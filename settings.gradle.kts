@@ -1,4 +1,4 @@
-rootProject.name = "trixnity-messenger"
+rootProject.name = "trixnity-messenger-root"
 include(
     "trixnity-messenger",
     "integrationtests",
