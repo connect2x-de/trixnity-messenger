@@ -1,0 +1,85 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.settings
+
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.flatten
+import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getState
+import net.folivo.trixnity.client.store.membership
+import net.folivo.trixnity.client.user
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import org.koin.core.component.get
+
+private val log = KotlinLogging.logger {}
+
+interface MemberListViewModelFactory {
+    fun newMemberListViewModel(
+        viewModelContext: MatrixClientViewModelContext,
+        selectedRoomId: RoomId,
+        error: MutableStateFlow<String?>
+    ): MemberListViewModel {
+        return MemberListViewModelImpl(
+            viewModelContext = viewModelContext,
+            selectedRoomId = selectedRoomId,
+            error = error
+        )
+    }
+}
+
+interface MemberListViewModel {
+    val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>>
+    val showLoadingSpinner: StateFlow<Boolean>
+    val error: StateFlow<String?>
+}
+
+open class MemberListViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    private val selectedRoomId: RoomId,
+    override val error: MutableStateFlow<String?>,
+) : MatrixClientViewModelContext by viewModelContext, MemberListViewModel {
+
+    override val showLoadingSpinner = MutableStateFlow(true)
+
+    private val viewModels = mutableMapOf<UserId, MemberListElementViewModel>()
+
+    override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
+        combine(
+            matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
+            matrixClient.room.getState<CreateEventContent>(selectedRoomId).map { it?.content },
+            matrixClient.user.getAll(selectedRoomId).flatten().mapNotNull { it?.values?.filterNotNull().orEmpty() }
+        ) { powerLevels, createEvent, roomUsers ->
+            roomUsers.mapNotNull { roomUser ->
+                if (roomUser.membership == Membership.JOIN || roomUser.membership == Membership.INVITE) {
+                    val userId = roomUser.userId
+                    val memberListElementViewModel = viewModels.getOrPut(userId) {
+                        get<MemberListElementViewModelFactory>()
+                            .newMemberListElementViewModel(
+                                viewModelContext = childContext("memberListElement-${roomUser.userId.full}"),
+                                roomUser,
+                                error = error,
+                                selectedRoomId = selectedRoomId,
+                            )
+                    }
+                    Pair(userId, memberListElementViewModel)
+                } else null
+            }?.sortedByDescending { (userId, _) -> matrixClient.user.getPowerLevel(userId, powerLevels, createEvent) }
+                ?: emptyList()
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+
+    init {
+        coroutineScope.launch {
+            val roomFlow = matrixClient.room.getById(selectedRoomId)
+            combine(roomFlow, memberListElementViewModels) { room, memberListElementViewModels ->
+                val membersLoaded = room?.membersLoaded ?: false
+                showLoadingSpinner.value = !membersLoaded || memberListElementViewModels.isEmpty()
+                log.debug { "allMembersLoaded = $membersLoaded" }
+            }.collect()
+        }
+    }
+}

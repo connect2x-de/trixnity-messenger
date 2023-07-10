@@ -1,0 +1,131 @@
+package de.connect2x.trixnity.messenger.viewmodel.roomlist
+
+import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.getAccountData
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+
+
+private val log = KotlinLogging.logger {}
+
+interface CreateNewChatViewModelFactory {
+    fun newCreateNewChatViewModel(
+        viewModelContext: MatrixClientViewModelContext,
+        createNewRoomViewModel: CreateNewRoomViewModel,
+        onCreateGroup: (String) -> Unit,
+        onCancel: () -> Unit,
+        goToRoom: (RoomId) -> Unit,
+    ): CreateNewChatViewModel {
+        return CreateNewChatViewModelImpl(
+            viewModelContext, createNewRoomViewModel, onCreateGroup, onCancel, goToRoom
+        )
+    }
+}
+
+interface CreateNewChatViewModel {
+    val createNewRoomViewModel: CreateNewRoomViewModel
+    val error: StateFlow<String?>
+    fun onUserClick(user: SearchUserElement)
+    fun createGroup()
+    fun errorDismiss()
+    fun cancel()
+}
+
+open class CreateNewChatViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    override val createNewRoomViewModel: CreateNewRoomViewModel,
+    private val onCreateGroup: (String) -> Unit,
+    private val onCancel: () -> Unit,
+    private val goToRoom: (RoomId) -> Unit,
+) : CreateNewChatViewModel,
+    MatrixClientViewModelContext by viewModelContext {
+
+    private val backCallback = BackCallback {
+        cancel()
+    }
+
+    init {
+        backHandler.register(backCallback)
+        coroutineScope.launch {
+            getAllDirectRooms()
+        }
+    }
+
+    override fun createGroup() {
+        onCreateGroup(accountName)
+    }
+
+    override fun errorDismiss() {
+        createNewRoomViewModel.error.value = null
+    }
+
+    override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
+
+    override fun onUserClick(user: SearchUserElement) {
+        val userId = user.userId
+        coroutineScope.launch {
+            if (createNewRoomViewModel.existingDirectRooms.value[userId] != null &&
+                createNewRoomViewModel.existingDirectRooms.value[userId]?.isNotEmpty() == true
+            ) {
+                log.info { "go to existing room with $userId" }
+                createNewRoomViewModel.existingDirectRooms.value[userId]?.iterator()?.next()?.let { goToRoom(it) }
+            } else {
+                log.info { "create new room with $userId" }
+                matrixClient.api.rooms.createRoom(
+                    isDirect = true,
+                    invite = setOf(userId),
+                    initialState = listOf(Event.InitialStateEvent(EncryptionEventContent(), "")),
+                ).fold(
+                    onSuccess = { roomId ->
+                        log.debug { "created room ${roomId.full}" }
+                        goToRoom(roomId)
+                    },
+                    onFailure = {
+                        log.error(it) { "Cannot create room." }
+                        createNewRoomViewModel.error.value = i18n.createNewChatError()
+                    }
+                )
+            }
+        }
+    }
+
+    override fun cancel() {
+        onCancel()
+    }
+
+    private suspend fun getAllDirectRooms() {
+        matrixClient.user.getAccountData<DirectEventContent>().collect {
+            createNewRoomViewModel.existingDirectRooms.value = it?.mappings ?: emptyMap()
+        }
+    }
+
+}
+
+class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
+    override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    override fun onUserClick(user: SearchUserElement) {
+    }
+
+    override fun createGroup() {
+    }
+
+    override fun errorDismiss() {
+    }
+
+    override fun cancel() {
+    }
+
+}

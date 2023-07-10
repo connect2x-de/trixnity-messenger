@@ -1,0 +1,298 @@
+package de.connect2x.trixnity.messenger.viewmodel.roomlist
+
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.Search
+import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import io.kotest.assertions.timing.eventually
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.setMain
+import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
+import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
+import net.folivo.trixnity.core.ErrorResponse
+import net.folivo.trixnity.core.MatrixServerException
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import org.kodein.mock.Mock
+import org.kodein.mock.Mocker
+import org.kodein.mock.mockFunction0
+import org.kodein.mock.mockFunction1
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class CreateNewGroupViewModelTest : ShouldSpec() {
+    override fun timeout(): Long = 10_000
+
+    val mocker = Mocker()
+
+    private val userId1 = UserId("user1", "localhost")
+    private val userId2 = UserId("user2", "localhost")
+    private val userId3 = UserId("user3", "localhost")
+
+    @Mock
+    lateinit var matrixClientMock: MatrixClient
+
+    @Mock
+    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+
+    @Mock
+    lateinit var usersApiClientMock: UsersApiClient
+
+    @Mock
+    lateinit var roomsApiClientMock: RoomsApiClient
+
+    @Mock
+    lateinit var userServiceMock: UserService
+
+    private val onBackMock = mockFunction0<Unit>(mocker)
+    private val onGroupCreatedMock = mockFunction1<Unit, RoomId>(mocker)
+
+    init {
+        Dispatchers.setMain(testMainDispatcher)
+        beforeTest {
+            mocker.reset()
+            injectMocks(mocker)
+
+            with(mocker) {
+                every { matrixClientMock.di } returns koinApplication {
+                    modules(
+                        module {
+                            single { userServiceMock }
+                        }
+                    )
+                }.koin
+                every { matrixClientMock.userId } returns userId1
+                every { matrixClientMock.api } returns matrixClientServerApiClientMock
+                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
+                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+            }
+        }
+
+        should("add user to group list when selected and remove from list when deselected") {
+            mocker.everySuspending {
+                usersApiClientMock.searchUsers(
+                    isEqual("u"),
+                    isAny(),
+                    isAny(),
+                    isNull()
+                )
+            } returns
+                    Result.success(
+                        SearchUsers.Response(
+                            false,
+                            listOf(
+                                SearchUsers.Response.SearchUser(userId = userId1),
+                                SearchUsers.Response.SearchUser(userId = userId2),
+                                SearchUsers.Response.SearchUser(userId = userId3)
+                            )
+                        )
+                    )
+            val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
+            val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+
+            val cut = createNewGroupViewModel()
+            val subscriberJob = launch { cut.canCreateNewGroup.collect {} }
+            cut.createNewRoomViewModel.userSearchTerm.value = "u"
+            cut.foundUsers.first {
+                it == listOf(user2, user3)
+            }
+            cut.canCreateNewGroup.replayCache.getOrNull(0) shouldBe false
+            cut.onUserClick(user2)
+
+            eventually(3.seconds) {
+                cut.canCreateNewGroup.replayCache.getOrNull(0) shouldBe true
+                cut.groupUsers.value shouldContainExactly listOf(user2)
+                cut.foundUsers.value shouldNotContain user2
+            }
+
+            cut.removeUserFromGroup(user2)
+
+            eventually(3.seconds) {
+                cut.canCreateNewGroup.replayCache.getOrNull(0) shouldBe false
+                cut.groupUsers.value shouldBe emptyList()
+                cut.foundUsers.value shouldContain user2
+            }
+
+            subscriberJob.cancel()
+        }
+
+        should("create group with all selected users") {
+            mocker.every { onGroupCreatedMock.invoke(isAny()) } returns Unit
+
+            val roomId = RoomId("room1", "localhost")
+            mocker.everySuspending {
+                roomsApiClientMock.createRoom(
+                    isEqual(DirectoryVisibility.PRIVATE),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isEqual(setOf(userId2, userId3)),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
+                    isAny(),
+                    isEqual(false),
+                    isAny(),
+                    isNull(),
+                )
+            } returns Result.success(roomId)
+            mocker.everySuspending {
+                usersApiClientMock.searchUsers(
+                    isEqual("u"),
+                    isAny(),
+                    isAny(),
+                    isNull()
+                )
+            } returns
+                    Result.success(
+                        SearchUsers.Response(
+                            false,
+                            listOf(
+                                SearchUsers.Response.SearchUser(userId = userId1),
+                                SearchUsers.Response.SearchUser(userId = userId2),
+                                SearchUsers.Response.SearchUser(userId = userId3)
+                            )
+                        )
+                    )
+            val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
+            val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+
+            val cut = createNewGroupViewModel()
+            cut.createNewRoomViewModel.userSearchTerm.value = "u"
+            cut.foundUsers.first {
+                it == listOf(user2, user3)
+            }
+            cut.onUserClick(user2)
+            cut.onUserClick(user3)
+
+            cut.createNewGroup()
+
+            eventually(3.seconds) {
+                mocker.verify(exhaustive = false) { onGroupCreatedMock.invoke(roomId) }
+            }
+        }
+
+        should("show error message when group cannot be created") {
+            var groupCreatedWasCalled = false
+            mocker.every { onGroupCreatedMock.invoke(isAny()) } runs {
+                groupCreatedWasCalled = true
+            }
+
+            mocker.everySuspending {
+                roomsApiClientMock.createRoom(
+                    isEqual(DirectoryVisibility.PRIVATE),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isEqual(setOf(userId2, userId3)),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
+                    isAny(),
+                    isEqual(false),
+                    isAny(),
+                    isNull(),
+                )
+            } returns Result.failure(
+                MatrixServerException(
+                    HttpStatusCode.Forbidden,
+                    ErrorResponse.Forbidden("403")
+                )
+            )
+            mocker.everySuspending {
+                usersApiClientMock.searchUsers(
+                    isEqual("u"),
+                    isAny(),
+                    isAny(),
+                    isNull()
+                )
+            } returns
+                    Result.success(
+                        SearchUsers.Response(
+                            false,
+                            listOf(
+                                SearchUsers.Response.SearchUser(userId = userId1),
+                                SearchUsers.Response.SearchUser(userId = userId2),
+                                SearchUsers.Response.SearchUser(userId = userId3)
+                            )
+                        )
+                    )
+            val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
+            val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+
+            val cut = createNewGroupViewModel()
+            cut.createNewRoomViewModel.userSearchTerm.value = "u"
+            cut.foundUsers.first {
+                it == listOf(user2, user3)
+            }
+            cut.onUserClick(user2)
+            cut.onUserClick(user3)
+
+            cut.createNewGroup()
+
+            cut.error.value shouldNotBe null
+            groupCreatedWasCalled shouldBe false
+        }
+    }
+
+    private fun createNewGroupViewModel(): CreateNewGroupViewModelImpl {
+        return CreateNewGroupViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        trixnityMessengerModule(),
+                        testMatrixClientModule(matrixClientMock),
+                    )
+                }.koin,
+                accountName = "test",
+                coroutineContext = Dispatchers.Unconfined
+            ),
+            createNewRoomViewModel = createNewRoomViewModel(),
+            onBack = onBackMock,
+            onGroupCreated = onGroupCreatedMock,
+        )
+    }
+
+
+    private fun createNewRoomViewModel(): CreateNewRoomViewModel {
+        return CreateNewRoomViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        trixnityMessengerModule(),
+                        testMatrixClientModule(matrixClientMock),
+                    )
+                }.koin,
+                accountName = "test",
+                coroutineContext = Dispatchers.Unconfined
+            ),
+        )
+    }
+}

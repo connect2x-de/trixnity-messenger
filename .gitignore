@@ -1,0 +1,13 @@
+*.iml
+.gradle/
+/local.properties
+.idea/
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+/localInfra/data/homeserver.db
+/localInfra/data/media_store/
+test*.db
+desktop/test.db

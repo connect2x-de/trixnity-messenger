@@ -1,0 +1,149 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
+
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
+import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.store.RoomOutboxMessage
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import org.kodein.mock.Mock
+import org.kodein.mock.Mocker
+import org.kodein.mock.mockFunction4
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class OutboxElementViewModelTest : ShouldSpec() {
+
+    val mocker = Mocker()
+
+    @Mock
+    lateinit var matrixClientMock: MatrixClient
+
+    @Mock
+    lateinit var downloadManagerMock: DownloadManager
+
+    @Mock
+    lateinit var clock: Clock
+
+    private val roomId = RoomId("room1", "localhost")
+
+    init {
+        Dispatchers.setMain(testMainDispatcher)
+        beforeTest {
+            mocker.reset()
+            injectMocks(mocker)
+
+            mocker.every { clock.now() } returns Instant.parse("2020-10-01T01:00:00.000Z")
+        }
+
+        should("result in a TextMessageViewModel for a text message") {
+            val cut = outboxElementViewModel(
+                RoomOutboxMessage(
+                    transactionId = "1",
+                    roomId = RoomId(""),
+                    content = TextMessageEventContent(body = "Hello World")
+                )
+            )
+
+            val value = cut.viewModel.value
+            value.shouldBeInstanceOf<TextMessageViewModel>()
+            value.isByMe shouldBe true
+            value.showSender.value shouldBe false
+            value.formattedDate shouldBe "01.10.2020"
+        }
+
+        should("result in an ImageMessageViewModel for a image message") {
+            val cut = outboxElementViewModel(
+                RoomOutboxMessage(
+                    transactionId = "1",
+                    roomId = RoomId(""),
+                    content = ImageMessageEventContent(body = "", url = "mxc://localhost/123456")
+                )
+            )
+
+            val value = cut.viewModel.value
+            value.shouldBeInstanceOf<ImageMessageViewModel>()
+            value.isByMe shouldBe true
+            value.showSender.value shouldBe false
+            value.formattedDate shouldBe "01.10.2020"
+        }
+
+        should("result in a VideoMessageViewModel for a video message") {
+            val cut = outboxElementViewModel(
+                RoomOutboxMessage(
+                    transactionId = "1",
+                    roomId = RoomId(""),
+                    content = VideoMessageEventContent(body = "", url = "mxc://localhost/123456")
+                )
+            )
+
+            val value = cut.viewModel.value
+            value.shouldBeInstanceOf<VideoMessageViewModel>()
+            value.isByMe shouldBe true
+            value.showSender.value shouldBe false
+            value.formattedDate shouldBe "01.10.2020"
+        }
+
+        should("result in a FileMessageViewModel for a file message") {
+            val cut = outboxElementViewModel(
+                RoomOutboxMessage(
+                    transactionId = "1",
+                    roomId = RoomId(""),
+                    content = FileMessageEventContent(body = "", url = "mxc://localhost/123456")
+                )
+            )
+
+            val value = cut.viewModel.value
+            value.shouldBeInstanceOf<FileMessageViewModel>()
+            value.isByMe shouldBe true
+            value.showSender.value shouldBe false
+            value.formattedDate shouldBe "01.10.2020"
+        }
+
+        should("not display any other message type ('== null')") {
+            val cut = outboxElementViewModel(
+                RoomOutboxMessage(
+                    transactionId = "1",
+                    roomId = RoomId(""),
+                    content = EmoteMessageEventContent(body = "")
+                )
+            )
+
+            cut.viewModel.value.shouldBeInstanceOf<NullTimelineElementViewModel>()
+        }
+    }
+
+    private fun outboxElementViewModel(outboxMessage: RoomOutboxMessage<*>): OutboxElementViewModel {
+        return OutboxElementViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
+                        single { downloadManagerMock }
+                        single { clock }
+                    })
+                }.koin,
+                accountName = "test",
+            ),
+            outboxMessage = outboxMessage,
+            showDateAbove = false,
+            showChatBubbleEdge = false,
+            selectedRoomId = roomId,
+            onOpenModal = mockFunction4(mocker),
+        )
+    }
+}

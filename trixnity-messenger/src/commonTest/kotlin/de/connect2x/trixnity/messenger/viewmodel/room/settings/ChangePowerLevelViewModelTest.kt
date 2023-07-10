@@ -1,0 +1,420 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.settings
+
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.test.setMain
+import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import org.kodein.mock.Mock
+import org.kodein.mock.Mocker
+import org.kodein.mock.mockFunction0
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
+
+@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
+class ChangePowerLevelViewModelTest : ShouldSpec() {
+
+    override fun timeout(): Long = 2_000
+
+    val mocker = Mocker()
+
+    private val me = UserId("user1", "localhost")
+    private val alice = UserId("alice", "localhost")
+    private val bob = UserId("bob", "localhost")
+
+    private val roomId = RoomId("room", "localhost")
+
+    private val memberElementAlice =
+        MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
+
+    private val roomUserAlice = RoomUser(
+        roomId, alice, "Alice", Event.StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            alice,
+            roomId,
+            0L,
+            stateKey = ""
+        )
+    )
+
+    private val roomUserBob = RoomUser(
+        roomId, bob, "Bob", Event.StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            bob,
+            roomId,
+            0L,
+            stateKey = ""
+        )
+    )
+
+    @Mock
+    lateinit var matrixClientMock: MatrixClient
+
+    @Mock
+    lateinit var roomServiceMock: RoomService
+
+    @Mock
+    lateinit var userServiceMock: UserService
+
+    @Mock
+    lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
+
+    @Mock
+    lateinit var roomsApiClientMock: RoomsApiClient
+
+    private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
+
+    private val closeMemberOptions = mockFunction0<Unit>(mocker)
+
+
+    init {
+        Dispatchers.setMain(testMainDispatcher)
+        coroutineTestScope = true
+
+
+        beforeTest {
+            mocker.reset()
+            injectMocks(mocker)
+
+            with(mocker) {
+                every { matrixClientMock.di } returns koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }.koin
+                syncStateMocker = every { matrixClientMock.syncState }
+                syncStateMocker returns MutableStateFlow(SyncState.STARTED)
+
+                every { matrixClientMock.api } returns matrixClientServerApiMock
+                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+
+                every {
+                    roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
+                } returns MutableStateFlow(
+                    Event.StateEvent(
+                        PowerLevelsEventContent(),
+                        EventId("eventId"),
+                        bob,
+                        roomId,
+                        123,
+                        null,
+                        ""
+                    )
+                )
+            }
+        }
+
+        context("changing a role") {
+
+            beforeTest {
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(100)
+
+            }
+
+            should("close member options after changing the user role") {
+
+                var closeMemberOptionsWasCalled = false
+                mocker.every { closeMemberOptions.invoke() } runs {
+                    closeMemberOptionsWasCalled = true
+                }
+
+                mocker.everySuspending {
+                    roomsApiClientMock.sendStateEvent(
+                        isEqual(roomId),
+                        isAny(),
+                        isAny(),
+                        isNull()
+                    )
+                } returns Result.success(EventId(""))
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+                cut.setRoleToAdmin()
+                testCoroutineScheduler.advanceUntilIdle()
+
+                cut.error.value shouldBe ""
+                mocker.verifyWithSuspend(exhaustive = false, false) {
+                    roomsApiClientMock.sendStateEvent(
+                        isEqual(roomId),
+                        isEqual(PowerLevelsEventContent(users = mapOf(alice to 100))),
+                        isAny(),
+                        isNull()
+                    )
+                }
+
+                closeMemberOptionsWasCalled shouldBe true
+                cancelNeverEndingCoroutines()
+
+            }
+
+            should("show an error message when trying to change a role and we are not connected") {
+                syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+
+                var closeMemberOptionsWasCalled = false
+                mocker.every { closeMemberOptions.invoke() } runs {
+                    closeMemberOptionsWasCalled = true
+                }
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+                cut.setRoleToAdmin()
+                testCoroutineScheduler.advanceUntilIdle()
+
+                cut.error.value shouldNotBe null
+                closeMemberOptionsWasCalled shouldBe false
+                cancelNeverEndingCoroutines()
+            }
+
+            should("show an error message when changing a role fails") {
+
+                mocker.everySuspending {
+                    roomsApiClientMock.sendStateEvent(
+                        isEqual(roomId),
+                        isAny(),
+                        isAny(),
+                        isNull()
+                    )
+                } returns Result.failure(Throwable())
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+                cut.setRoleToAdmin()
+                testCoroutineScheduler.advanceUntilIdle()
+
+                cut.error.value shouldNotBe null
+                cancelNeverEndingCoroutines()
+            }
+
+        }
+
+        context("change Power Level") {
+
+            beforeTest {
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(100)
+
+            }
+
+            should("close member options after changing the power level successfully") {
+
+                var closeMemberOptionsWasCalled = false
+                mocker.every { closeMemberOptions.invoke() } runs {
+                    closeMemberOptionsWasCalled = true
+                }
+
+                mocker.everySuspending {
+                    roomsApiClientMock.sendStateEvent(
+                        isEqual(roomId),
+                        isAny(),
+                        isAny(),
+                        isNull()
+                    )
+                } returns Result.success(EventId(""))
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+                cut.setPowerLevelTo(99)
+                testCoroutineScheduler.advanceUntilIdle()
+
+                cut.error.value shouldBe ""
+                mocker.verifyWithSuspend(exhaustive = false, false) {
+                    roomsApiClientMock.sendStateEvent(
+                        isEqual(roomId),
+                        isEqual(PowerLevelsEventContent(users = mapOf(alice to 99))),
+                        isAny(),
+                        isNull()
+                    )
+                }
+
+                closeMemberOptionsWasCalled shouldBe true
+                cancelNeverEndingCoroutines()
+            }
+            should("show an error message if trying to change a power level and we are not connected") {
+
+                syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+
+                var closeMemberOptionsWasCalled = false
+                mocker.every { closeMemberOptions.invoke() } runs {
+                    closeMemberOptionsWasCalled = true
+                }
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+                cut.setPowerLevelTo(99)
+                testCoroutineScheduler.advanceUntilIdle()
+
+                cut.error.value shouldNotBe null
+                closeMemberOptionsWasCalled shouldBe false
+                cancelNeverEndingCoroutines()
+            }
+
+            should("show an error message if changing the power level fails") {
+
+                mocker.everySuspending {
+                    roomsApiClientMock.sendStateEvent(
+                        isEqual(roomId),
+                        isAny(),
+                        isAny(),
+                        isNull()
+                    )
+                } returns Result.failure(Throwable())
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+                cut.setPowerLevelTo(99)
+                testCoroutineScheduler.advanceUntilIdle()
+
+                cut.error.value shouldNotBe null
+                cancelNeverEndingCoroutines()
+            }
+        }
+        context("power level input") {
+
+            should("show an error message if input is empty") {
+
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(100)
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+
+                cut.onPowerLevelEntered("")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.onPowerLevelEntered("  ")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+
+                cancelNeverEndingCoroutines()
+
+            }
+            should("show an error message if input is not a number") {
+
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(100)
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+
+                cut.onPowerLevelEntered(".,")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.onPowerLevelEntered("hjjku")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+
+                cancelNeverEndingCoroutines()
+            }
+            should("show an error message if input is < 0 or > 100") {
+
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(100)
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+
+                cut.onPowerLevelEntered("-56")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.onPowerLevelEntered("124")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+
+                cancelNeverEndingCoroutines()
+            }
+            should("show an error message if input level is higher than allowed to set by us") {
+
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(56)
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(56)
+                )
+
+                cut.onPowerLevelEntered("57")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+
+                cancelNeverEndingCoroutines()
+            }
+            should("show an error message if we are not allowed to change the power level") {
+
+                mocker.every {
+                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                } returns MutableStateFlow(null)
+
+                val cut = changePowerLevelViewModel(
+                    coroutineContext, roomUserAlice, MutableStateFlow(100)
+                )
+
+                cut.onPowerLevelEntered("57")
+                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+
+                cancelNeverEndingCoroutines()
+            }
+        }
+    }
+
+    private fun changePowerLevelViewModel(
+        coroutineContext: CoroutineContext,
+        roomUser: RoomUser,
+        powerLevel: StateFlow<Int>,
+    ) = ChangePowerLevelViewModelImpl(
+        viewModelContext = MatrixClientViewModelContextImpl(
+            componentContext = DefaultComponentContext(LifecycleRegistry()),
+            di = koinApplication {
+                modules(
+                    trixnityMessengerModule(),
+                    testMatrixClientModule(matrixClientMock),
+                )
+            }.koin,
+            accountName = "test",
+            coroutineContext = coroutineContext
+        ),
+        roomUser = roomUser,
+        error = MutableStateFlow(""),
+        selectedRoomId = roomId,
+        closeMemberOptions = closeMemberOptions,
+        powerLevel = powerLevel,
+    )
+}

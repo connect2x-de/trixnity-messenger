@@ -1,0 +1,209 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
+
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.FileNameComputations
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VideoMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
+import org.koin.core.component.get
+
+interface VideoMessageViewModelFactory {
+    fun newVideoMessageViewModel(
+        viewModelContext: MatrixClientViewModelContext,
+        formattedDate: String,
+        showDateAbove: Boolean,
+        formattedTime: String?,
+        isByMe: Boolean,
+        showChatBubbleEdge: Boolean,
+        showBigGap: Boolean,
+        showSender: StateFlow<Boolean>,
+        sender: StateFlow<String>,
+        invitation: Flow<String?>,
+        content: VideoMessageEventContent,
+        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+    ): VideoMessageViewModel {
+        return VideoMessageViewModelImpl(
+            viewModelContext,
+            formattedDate,
+            showDateAbove,
+            formattedTime,
+            isByMe,
+            showChatBubbleEdge,
+            showBigGap,
+            showSender,
+            sender,
+            invitation,
+            content,
+            onOpenModal,
+        )
+    }
+}
+
+interface VideoMessageViewModel : FileBasedMessageViewModel {
+    val url: String?
+    val encryptedFile: EncryptedFile?
+    val thumbnail: StateFlow<ByteArray?>
+    val width: Int
+    val height: Int
+    val progress: StateFlow<FileTransferProgressElement?>
+    fun getMaxHeight(): Int
+    fun getHeight(maxWidth: Float): Int
+    fun getWidth(maxWidth: Float, possibleHeight: Float): Int
+    fun cancelThumbnailDownload()
+    fun openVideo()
+}
+
+open class VideoMessageViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    override val formattedDate: String,
+    override val showDateAbove: Boolean,
+    override val formattedTime: String?,
+    override val isByMe: Boolean,
+    override val showChatBubbleEdge: Boolean,
+    override val showBigGap: Boolean,
+    override val showSender: StateFlow<Boolean>,
+    override val sender: StateFlow<String>,
+    override val invitation: Flow<String?>,
+    private val content: VideoMessageEventContent,
+    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
+    MatrixClientViewModelContext by viewModelContext {
+
+    private val fileNameComputations = FileNameComputations(get())
+    private val thumbnails = get<Thumbnails>()
+
+    private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
+    private val thumbnailLoad = getThumbnailAsync()
+
+    override val url: String? = content.file?.url ?: content.url
+    override val encryptedFile: EncryptedFile? = content.file
+
+    override val thumbnail: StateFlow<ByteArray?> = channelFlow {
+        send(thumbnailLoad.await())
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val width: Int = thumbnailWidth(content)
+    override val height: Int = thumbnailHeight(content)
+    override val progress: StateFlow<FileTransferProgressElement?> =
+        thumbnails.mapProgressToProgressElement(thumbnailProgressFlow)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override fun getMaxHeight(): Int = 300
+
+    override fun getHeight(maxWidth: Float) = SizeComputations.getHeight(height, getMaxHeight(), width, maxWidth)
+    override fun getWidth(maxWidth: Float, possibleHeight: Float) =
+        SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
+
+    override fun cancelThumbnailDownload() {
+        thumbnailLoad.cancel()
+    }
+
+    override fun getFileNameWithExtension() =
+        fileNameComputations.getOrCreateFileName(
+            content.bodyWithoutFallback,
+            content.info?.mimeType,
+            ContentType.Video.Any
+        )
+
+    override fun openVideo() {
+        // if you have video working replace this with: 'url?.let { onOpenModal(OpenModalType.VIDEO, it, encryptedFile, getFileNameWithExtension()) }'
+        openSaveFileDialog()
+    }
+
+    private fun getThumbnailAsync(): Deferred<ByteArray?> =
+        coroutineScope.async {
+            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow)
+        }
+
+    private fun thumbnailWidth(content: VideoMessageEventContent) =
+        content.info?.thumbnailInfo?.width ?: 400
+
+    private fun thumbnailHeight(content: VideoMessageEventContent) =
+        content.info?.thumbnailInfo?.height ?: 300
+}
+
+class PreviewVideoMessageViewModel : VideoMessageViewModel {
+    override val url: String? = null
+    override val encryptedFile: EncryptedFile? = null
+    override val thumbnail: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
+    override val width: Int = 300
+    override val height: Int = 200
+    override val progress: MutableStateFlow<FileTransferProgressElement?> =
+        MutableStateFlow(FileTransferProgressElement(0.3f, "145kB / 550kB"))
+
+    override fun openVideo() {
+    }
+
+    override fun getMaxHeight(): Int {
+        return 200
+    }
+
+    override fun getHeight(maxWidth: Float): Int {
+        return 200
+    }
+
+    override fun getWidth(maxWidth: Float, possibleHeight: Float): Int {
+        return 300
+    }
+
+    override fun cancelThumbnailDownload() {
+    }
+
+    override val saveFileDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
+    override val downloadProgressElement: MutableStateFlow<StateFlow<FileTransferProgressElement?>?> =
+        MutableStateFlow(null)
+    override val downloadSuccessful: MutableStateFlow<StateFlow<Boolean>?> = MutableStateFlow(null)
+
+    override fun getFileNameWithExtension(): String {
+        return "anImage.png"
+    }
+
+    override fun downloadFile(): DownloadFile {
+        return object : DownloadFile {
+            override suspend fun getFileResult(): Result<ByteArray> = Result.success(previewImageByteArray())
+            override suspend fun getFile(): ByteArray? = previewImageByteArray()
+        }
+    }
+
+    override fun downloadFile(progressElement: MutableStateFlow<FileTransferProgressElement?>): DownloadFile {
+        return object : DownloadFile {
+            override suspend fun getFileResult(): Result<ByteArray> = Result.success(previewImageByteArray())
+            override suspend fun getFile(): ByteArray? = previewImageByteArray()
+        }
+    }
+
+    override fun cancelDownload() {
+    }
+
+    override fun getCoroutineContextForDownloadingFile(): CoroutineScope {
+        return CoroutineScope(Dispatchers.Default)
+    }
+
+    override fun openSaveFileDialog() {
+    }
+
+    override fun closeSaveFileDialog() {
+    }
+
+    override val isByMe: Boolean = false
+    override val showChatBubbleEdge: Boolean = false
+    override val showBigGap: Boolean = false
+    override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
+    override val sender: StateFlow<String> = MutableStateFlow("Martin")
+    override val formattedTime: String? = null
+    override val invitation: Flow<String?> = MutableStateFlow(null)
+    override val formattedDate: String = "23.11.21"
+    override val showDateAbove: Boolean = false
+
+}

@@ -1,0 +1,143 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline
+
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.shouldBe
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.Event.MessageEvent
+import net.folivo.trixnity.core.model.events.Event.StateEvent
+import net.folivo.trixnity.core.model.events.RedactedStateEventContent
+import net.folivo.trixnity.core.model.events.RoomEventContent
+import net.folivo.trixnity.core.model.events.UnknownMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.core.model.keys.Key
+import net.folivo.trixnity.core.model.keys.KeyAlgorithm
+
+class RelevantTimelineEventsTest : ShouldSpec() {
+
+    private val roomId = RoomId("room1", "localhost")
+    private val eventId = EventId("eventId")
+    private val alice = UserId("alice", "localhost")
+
+    private val cut = object : RelevantTimelineEvents {}
+
+    init {
+        should("consider 'null' as not relevant") {
+            cut.isRelevantTimelineEvent(null) shouldBe false
+        }
+
+        should("consider text messages as relevant") {
+            val timelineEvent = timelineEvent(
+                MessageEvent(TextMessageEventContent(body = "Hola"), eventId, alice, roomId, 0L),
+                content = Result.success(TextMessageEventContent(body = "Hola"))
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe true
+        }
+
+        should("consider decrypted text messages as relevant") {
+            val timelineEvent = timelineEvent(
+                MessageEvent(
+                    MegolmEncryptedEventContent(
+                        ciphertext = "cipherCipher",
+                        senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
+                        deviceId = "",
+                        sessionId = ""
+                    ),
+                    eventId, alice, roomId, 0L
+                ),
+                content = Result.success(TextMessageEventContent(body = "Hola"))
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe true
+        }
+
+        should("consider unknown message events as not relevant") {
+            val timelineEvent = timelineEvent(
+                MessageEvent(
+                    UnknownMessageEventContent(
+                        raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
+                        "m.reaction"
+                    ),
+                    eventId, alice, roomId, 0L
+                )
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe false
+        }
+
+        should("consider unknown decrypted message events as not relevant") {
+            val timelineEvent = timelineEvent(
+                MessageEvent(
+                    MegolmEncryptedEventContent(
+                        ciphertext = "cipherCipher",
+                        senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
+                        deviceId = "",
+                        sessionId = ""
+                    ),
+                    eventId, alice, roomId, 0L
+                ),
+                content = Result.success(
+                    UnknownMessageEventContent(
+                        raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))), eventType = "m.reaction"
+                    ),
+                )
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe false
+        }
+
+        should("consider member events as relevant") {
+            val timelineEvent = timelineEvent(
+                StateEvent(
+                    MemberEventContent(membership = Membership.JOIN), eventId, alice, roomId, 0L, stateKey = "",
+                ),
+                content = Result.success(MemberEventContent(membership = Membership.JOIN))
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe true
+        }
+
+        should("consider some state events as not relevant") {
+            val timelineEvent = timelineEvent(
+                StateEvent(
+                    RedactedStateEventContent(eventType = "m.redacted"), eventId, alice, roomId, 0L, stateKey = "",
+                )
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe false
+        }
+
+        should("consider encrypted messages as relevant as we do not know anything about their type yet") {
+            val timelineEvent = timelineEvent(
+                MessageEvent(
+                    MegolmEncryptedEventContent(
+                        ciphertext = "cipherCipher",
+                        senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
+                        deviceId = "",
+                        sessionId = ""
+                    ),
+                    eventId, alice, roomId, 0L
+                ),
+                content = null
+            )
+            cut.isRelevantTimelineEvent(timelineEvent) shouldBe true
+        }
+    }
+
+    private fun timelineEvent(
+        roomEvent: Event.RoomEvent<*>,
+        content: Result<RoomEventContent>? = null
+    ): TimelineEvent = TimelineEvent(
+        roomEvent,
+        content,
+        roomId,
+        eventId,
+        previousEventId = null,
+        nextEventId = null,
+        gap = null,
+    )
+
+}

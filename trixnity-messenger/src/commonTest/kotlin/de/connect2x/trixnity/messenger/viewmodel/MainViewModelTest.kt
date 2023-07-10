@@ -1,0 +1,729 @@
+package de.connect2x.trixnity.messenger.viewmodel
+
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.backhandler.BackDispatcher
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.resume
+import com.arkivanov.essenty.lifecycle.stop
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.viewmodel.MainViewModel.SelfVerificationConfig
+import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter.InitialSyncConfig
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncState
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListWrapper
+import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
+import de.connect2x.trixnity.messenger.viewmodel.util.IsNetworkAvailable
+import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.timing.eventually
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.instanceOf
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.test.setMain
+import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.key.DeviceTrustLevel
+import net.folivo.trixnity.client.key.KeySecretService
+import net.folivo.trixnity.client.key.KeyService
+import net.folivo.trixnity.client.key.KeyTrustService
+import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.Room
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.client.user.getAccountData
+import net.folivo.trixnity.client.verification.SelfVerificationMethod
+import net.folivo.trixnity.client.verification.VerificationService
+import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.clientserverapi.model.sync.Sync
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
+import org.kodein.mock.Mock
+import org.kodein.mock.Mocker
+import org.koin.core.module.Module
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class MainViewModelTest : ShouldSpec() {
+    override fun timeout(): Long = 5_000
+
+    private val mocker = Mocker()
+
+    private lateinit var lifecycle: LifecycleRegistry
+    private val backPressedHandler = BackDispatcher()
+
+    private val myUserId = UserId("user1", "localhost")
+    private val myDeviceId = "deviceId"
+    private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
+
+    @Mock
+    lateinit var matrixClientMock: MatrixClient
+
+    @Mock
+    lateinit var matrixClientMock2: MatrixClient
+
+    @Mock
+    lateinit var roomServiceMock: RoomService
+
+    @Mock
+    lateinit var keyServiceMock: KeyService
+
+    @Mock
+    lateinit var keySecretServiceMock: KeySecretService
+
+    @Mock
+    lateinit var keyTrustServiceMock: KeyTrustService
+
+    @Mock
+    lateinit var verificationServiceMock: VerificationService
+
+    @Mock
+    lateinit var verificationServiceMock2: VerificationService
+
+    @Mock
+    lateinit var userServiceMock: UserService
+
+    @Mock
+    lateinit var downloadManagerMock: DownloadManager
+
+    @Mock
+    lateinit var isNetworkAvailable: IsNetworkAvailable
+
+    @Mock
+    lateinit var roomHeaderViewModelMock: RoomHeaderViewModel
+
+    @Mock
+    lateinit var inputAreaViewModelMock: InputAreaViewModel
+
+    @Mock
+    lateinit var runInitialSyncMock: RunInitialSync
+
+    @Mock
+    lateinit var minimizeMessengerMock: () -> Unit
+
+    lateinit var selfVerificationMethods: Mocker.Every<Flow<VerificationService.SelfVerificationMethods>>
+    lateinit var networkAvailable: Mocker.Every<Boolean>
+    lateinit var syncState: Mocker.Every<StateFlow<SyncState>>
+    lateinit var initialSyncDone: Mocker.Every<StateFlow<Boolean>>
+
+    init {
+        Dispatchers.setMain(testMainDispatcher)
+        isolationMode = IsolationMode.InstancePerTest // since we want to reset Lifecycle, etc.
+
+        beforeTest {
+            mocker.reset()
+            injectMocks(mocker)
+
+            lifecycle = LifecycleRegistry()
+            lifecycle.resume()
+
+            with(mocker) {
+                every { matrixClientMock.di } returns koinApplication {
+                    modules(module {
+                        single { roomServiceMock }
+                        single { keyServiceMock }
+                        single { userServiceMock }
+                        single { verificationServiceMock }
+                    })
+                }.koin
+                every { matrixClientMock.userId } returns myUserId
+                every { matrixClientMock.deviceId } returns myDeviceId
+                every { matrixClientMock.displayName } returns MutableStateFlow(null)
+                every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+                syncState = every { matrixClientMock.syncState }
+                syncState returns MutableStateFlow(SyncState.RUNNING)
+                everySuspending { matrixClientMock.startSync() } returns Unit
+                everySuspending { matrixClientMock.cancelSync(isAny()) } returns Unit
+
+                every { roomServiceMock.getAll() } returns roomsFlow
+                every {
+                    roomServiceMock.getState(isAny(), isEqual(CreateEventContent::class), isAny())
+                } returns MutableStateFlow(null)
+                every {
+                    roomServiceMock.getTimeline(
+                        isAny(),
+                        isAny<suspend (Flow<TimelineEvent>) -> Unit>()
+                    )
+                } returns
+                        NoOpTimeline
+                every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(null)
+                every {
+                    roomServiceMock.getAccountData(isAny(), isEqual(FullyReadEventContent::class), isAny())
+                } returns flowOf(null)
+                every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
+                every { userServiceMock.getAll(isAny()) } returns flowOf(mapOf())
+                every { userServiceMock.getById(isAny(), isAny()) } returns MutableStateFlow(null)
+
+                every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(null)
+                selfVerificationMethods =
+                    every { verificationServiceMock.getSelfVerificationMethods() }
+                selfVerificationMethods returns MutableStateFlow(PreconditionsNotMet(emptySet()))
+
+                every { keyServiceMock.getTrustLevel(isAny<UserId>(), isAny()) } returns
+                        flowOf(DeviceTrustLevel.Valid(true))
+
+                everySuspending { userServiceMock.loadMembers(RoomId(isAny()), isAny()) } returns Unit
+                every { userServiceMock.getAccountData<DirectEventContent>() } returns
+                        MutableStateFlow(DirectEventContent(emptyMap()))
+
+                networkAvailable = every { isNetworkAvailable.invoke() }
+                networkAvailable returns false
+
+                initialSyncDone = every { matrixClientMock.initialSyncDone }
+                initialSyncDone returns MutableStateFlow(true)
+
+                every { minimizeMessengerMock.invoke() } returns Unit
+
+                // matrixClientMock2
+                every { matrixClientMock2.di } returns koinApplication {
+                    modules(module {
+                        single { roomServiceMock }
+                        single { keyServiceMock }
+                        single { userServiceMock }
+                        single { verificationServiceMock2 }
+                    })
+                }.koin
+                every { matrixClientMock2.userId } returns myUserId
+                every { matrixClientMock2.deviceId } returns myDeviceId
+                every { matrixClientMock2.displayName } returns MutableStateFlow(null)
+                every { matrixClientMock2.avatarUrl } returns MutableStateFlow(null)
+                every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
+                everySuspending { matrixClientMock2.startSync() } returns Unit
+                everySuspending { matrixClientMock2.cancelSync(isAny()) } returns Unit
+                every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
+            }
+        }
+
+        should("select no room initially") {
+            mocker.everySuspending {
+                matrixClientMock.syncOnce(
+                    isAny(),
+                    isAny<suspend (Sync.Response) -> Unit>()
+                )
+            } returns Result.success(Unit)
+
+            val cut = mainViewModel()
+
+
+            eventually(2.seconds) {
+                assertSoftly {
+                    cut.selectedRoomId.value shouldBe null
+                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                    cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                }
+            }
+
+        }
+
+        should("show its room view when room is selected") {
+            val cut = mainViewModel()
+
+            val roomId = RoomId("!Room:localhost")
+            cut.setSinglePane(true)
+
+            cut.onRoomSelected("test", roomId)
+
+            eventually(2.seconds) {
+                assertSoftly {
+                    cut.isSinglePane.value shouldBe true
+                    cut.selectedRoomId.value shouldBe roomId
+
+                    cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
+                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.None>() // since single pane
+                }
+            }
+
+        }
+
+        should("show room list view if room is selected in multi-pane view") {
+            val cut = mainViewModel()
+
+            val roomId = RoomId("!Room:localhost")
+            cut.setSinglePane(false)
+
+            cut.onRoomSelected("test", roomId)
+
+            eventually(2.seconds) {
+                assertSoftly {
+                    cut.isSinglePane.value shouldBe false
+                    cut.selectedRoomId.value shouldBe roomId
+                    cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
+                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>() // since multi pane
+                }
+            }
+
+        }
+
+        should("show list of rooms when the room view is closed") {
+            val cut = mainViewModel()
+
+            cut.onRoomSelected("test", RoomId("!Room:localhost"))
+
+            cut.closeDetailsAndShowList()
+
+            eventually(2.seconds) {
+                cut.selectedRoomId.value shouldBe null
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+            }
+
+        }
+
+        should("show room view after switching to multipane when room was selected before") {
+            val cut = mainViewModel()
+
+            cut.onRoomSelected("test", RoomId("!Room:localhost"))
+            cut.selectedRoomId.first { it == RoomId("!Room:localhost") }
+            cut.setSinglePane(false)
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
+            }
+
+        }
+
+        should("not show room view after switching to multi-pane when no room was selected") {
+            val cut = mainViewModel()
+
+            cut.setSinglePane(false)
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+            }
+
+        }
+
+        should("close the room list when a room is selected and switch to single-pane") {
+            val cut = mainViewModel()
+
+            cut.onRoomSelected("test", RoomId("!Room:localhost"))
+            cut.selectedRoomId.first { it == RoomId("!Room:localhost") }
+            cut.setSinglePane(true)
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.None>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
+            }
+
+        }
+
+        should("show the room list when no room is selected and switch to single-pane") {
+            val cut = mainViewModel()
+
+            cut.setSinglePane(true)
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+            }
+
+        }
+
+        should("show room list when the room view is left with the back button in single-pane") {
+            val cut = mainViewModel()
+
+            cut.onRoomSelected("test", RoomId("!Room:localhost"))
+            cut.setSinglePane(true)
+            eventually(2.seconds) { // wait for single pane to be set async
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.None>()
+            }
+
+            backPressedHandler.back()
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+            }
+
+        }
+
+        should("still show the room list when the back button is pressed in a single-pane with the room list visible") {
+            val cut = mainViewModel()
+
+            cut.setSinglePane(true)
+
+            backPressedHandler.back()
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+            }
+
+        }
+
+        should("still show the room list when the back button is pressed in a multi-pane with the room list visible") {
+            val cut = mainViewModel()
+
+
+            backPressedHandler.back()
+
+            eventually(2.seconds) {
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+            }
+
+        }
+
+        should("show the back button in single-pane layout") {
+            val cut = mainViewModel()
+
+            cut.setSinglePane(true)
+
+            eventually(2.seconds) {
+                cut.isBackButtonVisible.value shouldBe true
+            }
+
+        }
+
+        should("not show the back button in multi-pane layout") {
+            val cut = mainViewModel()
+
+            cut.setSinglePane(false)
+
+            eventually(2.seconds) {
+                cut.isBackButtonVisible.value shouldBe false
+            }
+
+        }
+
+        should("show self verification modal when self verification is needed") {
+            selfVerificationMethods returns MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(
+                            UserId(""),
+                            setOf(),
+                        ) { _, _ -> Result.failure(RuntimeException()) },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key()
+                        )
+                    )
+                )
+            )
+            mocker.everySuspending {
+                matrixClientMock.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+            } returns Result.success(Unit)
+
+            val cut = mainViewModel()
+
+
+            eventually(2.seconds) {
+                cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationConfig.SelfVerification>()
+            }
+            cut.closeSelfVerification()
+            eventually(2.seconds) {
+                cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationConfig.None>()
+            }
+        }
+
+        should("show multiple self verifications sequentially if needed") {
+            with(mocker) {
+                // test
+                selfVerificationMethods returns MutableStateFlow(
+                    VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                        setOf(
+                            SelfVerificationMethod.CrossSignedDeviceVerification(
+                                UserId(""),
+                                setOf(),
+                            ) { _, _ -> Result.failure(RuntimeException()) },
+                            SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                                keySecretServiceMock,
+                                keyTrustServiceMock,
+                                "keyId",
+                                SecretKeyEventContent.AesHmacSha2Key()
+                            )
+                        )
+                    )
+                )
+                // test2
+                every { verificationServiceMock2.activeDeviceVerification } returns MutableStateFlow(null)
+                every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(
+                    VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                        setOf(
+                            SelfVerificationMethod.CrossSignedDeviceVerification(
+                                UserId(""),
+                                setOf(),
+                            ) { _, _ -> Result.failure(RuntimeException()) },
+                            SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                                keySecretServiceMock,
+                                keyTrustServiceMock,
+                                "keyId",
+                                SecretKeyEventContent.AesHmacSha2Key()
+                            )
+                        )
+                    )
+                )
+
+                everySuspending {
+                    matrixClientMock.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                } returns Result.success(Unit)
+                everySuspending {
+                    matrixClientMock2.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                } returns Result.success(Unit)
+            }
+
+
+            val cut = mainViewModel(
+                testMatrixClientModule(
+                    listOf(matrixClientMock, matrixClientMock2),
+                    listOf("test", "test2")
+                )
+            )
+
+            eventually(2.seconds) {
+                val configuration = cut.selfVerificationStack.value.active.configuration
+                configuration.shouldBeInstanceOf<SelfVerificationConfig.SelfVerification>()
+                val accountName = configuration.accountName
+                accountName shouldBe "test"
+                accountName
+            }
+            cut.closeSelfVerification()
+            eventually(2.seconds) {
+                val configuration = cut.selfVerificationStack.value.active.configuration
+                configuration.shouldBeInstanceOf<SelfVerificationConfig.SelfVerification>()
+                configuration.accountName shouldBe "test2"
+            }
+            cut.closeSelfVerification()
+            eventually(2.seconds) {
+                cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationConfig.None>()
+            }
+        }
+
+        should("do a small sync when initial sync is done") {
+            networkAvailable returns true
+            initialSyncDone returns MutableStateFlow(true)
+            mocker.every { runInitialSyncMock.invoke("test") } runs {
+                flow {
+                    delay(500.milliseconds)
+                    emit(true)
+                }
+            }
+
+            val cut = mainViewModel()
+
+            // initial state is: InitialSyncConfig.Undefined, but is switched so quickly, we cannot assert it here
+
+            eventually(300.milliseconds) {
+                val configuration = cut.initialSyncStack.value.active.configuration
+                configuration.shouldBeTypeOf<InitialSyncConfig.Sync>()
+                configuration.accountNames["test"] shouldBe InitialSyncState.DONE
+            }
+
+            eventually(700.milliseconds) {
+                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncConfig.None>()
+                mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
+            }
+
+        }
+
+        should("perform initial sync whe not yet done") {
+            networkAvailable returns true
+            initialSyncDone returns MutableStateFlow(false)
+            mocker.every { runInitialSyncMock.invoke("test") } runs {
+                flow {
+                    delay(500.milliseconds)
+                    emit(true)
+                }
+            }
+
+            val cut = mainViewModel()
+
+            // initial state is: InitialSyncConfig.Undefined, but is switched so quickly, we cannot assert it here
+
+            eventually(300.milliseconds) {
+                val configuration = cut.initialSyncStack.value.active.configuration
+                configuration.shouldBeTypeOf<InitialSyncConfig.Sync>()
+                configuration.accountNames["test"] shouldBe InitialSyncState.NOT_DONE
+            }
+
+            eventually(2.seconds) {
+                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncConfig.None>()
+                mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
+            }
+        }
+
+        should("directly switch to regular sync when no network is available") {
+            networkAvailable returns false
+            initialSyncDone returns MutableStateFlow(false)
+
+            val cut = mainViewModel()
+
+            eventually(800.milliseconds) {
+                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncConfig.None>()
+                mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
+            }
+        }
+
+        should("cancel the sync when the app is stopped and restart the sync when the app is resumed again") {
+            networkAvailable returns true
+            initialSyncDone returns MutableStateFlow(true)
+            mocker.every { runInitialSyncMock.invoke("test") } returns flowOf(true)
+            mainViewModel()
+
+            eventually(300.milliseconds) {
+                mocker.verifyWithSuspend(exhaustive = false) {
+                    called { matrixClientMock.startSync() }
+                }
+            }
+
+            lifecycle.stop()
+            eventually(300.milliseconds) {
+                mocker.verifyWithSuspend(exhaustive = false) {
+                    called { matrixClientMock.cancelSync(isAny()) }
+                }
+            }
+
+            lifecycle.resume()
+            eventually(300.milliseconds) {
+                mocker.verifyWithSuspend(exhaustive = false) {
+                    called { matrixClientMock.startSync() }
+                }
+            }
+        }
+    }
+
+    private fun mainViewModel(matrixClientModule: Module = testMatrixClientModule(matrixClientMock)): MainViewModelImpl {
+        val mainViewModel = MainViewModelImpl(
+            viewModelContext = ViewModelContextImpl(
+                componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                di = koinApplication {
+                    modules(trixnityMessengerModule(), matrixClientModule, module {
+                        single { downloadManagerMock }
+                        single { isNetworkAvailable }
+                        single { runInitialSyncMock }
+                        single<RoomHeaderViewModelFactory> {
+                            object : RoomHeaderViewModelFactory {
+                                override fun newRoomHeaderViewModel(
+                                    viewModelContext: MatrixClientViewModelContext,
+                                    selectedRoomId: RoomId,
+                                    isBackButtonVisible: MutableStateFlow<Boolean>,
+                                    onBack: () -> Unit,
+                                    onVerifyUser: () -> Unit,
+                                    onShowRoomSettings: () -> Unit
+                                ): RoomHeaderViewModel {
+                                    return roomHeaderViewModelMock
+                                }
+                            }
+                        }
+                        single<InputAreaViewModelFactory> {
+                            object : InputAreaViewModelFactory {
+                                override fun newInputAreaViewModel(
+                                    viewModelContext: MatrixClientViewModelContext,
+                                    selectedRoomId: RoomId,
+                                    onMessageEditFinished: (EventId) -> Unit,
+                                    onMessageReplyToFinished: (Event.MessageEvent<*>) -> Unit,
+                                    onShowAttachmentSendView: (file: String) -> Unit
+                                ): InputAreaViewModel {
+                                    return inputAreaViewModelMock
+                                }
+                            }
+                        }
+                        single<RoomListViewModelFactory> {
+                            object : RoomListViewModelFactory {
+                                override fun newRoomListViewModel(
+                                    viewModelContext: ViewModelContext,
+                                    selectedRoomId: StateFlow<RoomId?>,
+                                    onRoomSelected: (String, RoomId) -> Unit,
+                                    onCreateNewRoom: (String) -> Unit,
+                                    onUserSettingsSelected: () -> Unit,
+                                    onOpenAppInfo: () -> Unit,
+                                    onSendLogs: () -> Unit,
+                                    onOpenAccountsOverview: () -> Unit
+                                ): RoomListViewModel {
+                                    return object : RoomListViewModel {
+                                        override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
+                                        override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+                                        override val errorType: MutableStateFlow<ErrorType> =
+                                            MutableStateFlow(ErrorType.JUST_DISMISS)
+                                        override val sortedRoomListElementViewModels: StateFlow<List<Pair<RoomId, RoomListElementViewModel>>> =
+                                            MutableStateFlow(emptyList())
+                                        override val syncStateError: StateFlow<Map<String, Boolean>> = MutableStateFlow(
+                                            emptyMap()
+                                        )
+                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
+                                        override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
+                                        override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+                                        override val spaces: StateFlow<List<SpaceViewModel>> = MutableStateFlow(
+                                            emptyList()
+                                        )
+                                        override val activeSpace: MutableStateFlow<RoomId?> = MutableStateFlow(null)
+                                        override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
+                                        override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
+                                            MutableStateFlow(true)
+                                        override val accountViewModel: AccountViewModel = object : AccountViewModel {
+                                            override val activeAccount: StateFlow<Account?> = MutableStateFlow(null)
+                                            override val allAccounts: StateFlow<List<Account>> =
+                                                MutableStateFlow(listOf())
+
+                                            override fun selectActiveAccount(accountName: String?) {
+                                            }
+
+                                            override fun userSettings() {
+                                            }
+
+                                            override fun appInfo() {
+                                            }
+                                        }
+
+                                        override fun createNewRoom() {
+                                        }
+
+                                        override fun createNewRoomFor(accountName: String) {
+                                        }
+
+                                        override fun selectRoom(roomId: RoomId) {
+                                        }
+
+                                        override fun errorDismiss() {
+                                        }
+
+                                        override fun sendLogs() {
+                                        }
+
+                                        override fun openAccountsOverview() {
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }.koin,
+                coroutineContext = Dispatchers.Unconfined,
+            ),
+            initialSyncOnceIsFinished = {},
+            onCreateNewAccount = {},
+            onRemoveAccount = {},
+            minimizeMessenger = minimizeMessengerMock,
+        )
+        mainViewModel.start()
+        return mainViewModel
+    }
+}

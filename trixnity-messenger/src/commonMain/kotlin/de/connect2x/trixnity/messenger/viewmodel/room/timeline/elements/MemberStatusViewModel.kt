@@ -1,0 +1,95 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
+
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
+import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.user
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+
+interface MemberStatusViewModelFactory {
+    fun newMemberStatusViewModel(
+        viewModelContext: MatrixClientViewModelContext,
+        formattedDate: String,
+        showDateAbove: Boolean,
+        invitation: Flow<String?>,
+        timelineEventFlow: Flow<TimelineEvent?>,
+        usernameFlow: StateFlow<String>,
+        isDirectFlow: StateFlow<Boolean>,
+    ): MemberStatusViewModel {
+        return MemberStatusViewModelImpl(
+            viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, usernameFlow, isDirectFlow
+        )
+    }
+}
+
+interface MemberStatusViewModel : BaseTimelineElementViewModel {
+    val formattedMemberStatus: StateFlow<String?>
+}
+
+open class MemberStatusViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    override val formattedDate: String,
+    override val showDateAbove: Boolean,
+    override val invitation: Flow<String?>,
+    timelineEventFlow: Flow<TimelineEvent?>,
+    usernameFlow: StateFlow<String>,
+    isDirectFlow: StateFlow<Boolean>,
+) : MemberStatusViewModel, MatrixClientViewModelContext by viewModelContext {
+
+    override val formattedMemberStatus: StateFlow<String?> = combine(
+        timelineEventFlow,
+        usernameFlow,
+        isDirectFlow,
+    ) { timelineEvent, username, isDirect ->
+        timelineEvent?.let {
+            val event = it.event
+            require(event is Event.StateEvent)
+            val content = event.content
+            require(content is MemberEventContent)
+
+            val previousContent = event.unsigned?.previousContent
+            if (previousContent is MemberEventContent) {
+                if (content.membership != previousContent.membership) {
+                    membershipChanged(event, content, username, isDirect)
+                } else if (content.avatarUrl != previousContent.avatarUrl) {
+                    i18n.eventChangeAvatar(username)
+                } else {
+                    null
+                }
+            } else {
+                membershipChanged(event, content, username, isDirect)
+            }
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    private suspend fun membershipChanged(
+        event: Event.StateEvent<*>,
+        content: MemberEventContent,
+        username: String,
+        isDirect: Boolean
+    ): String {
+        val groupOrChatDative =
+            if (isDirect) i18n.eventChangeChatDative()
+            else i18n.eventChangeGroupDative()
+        val groupOrChatAccusative =
+            if (isDirect) i18n.eventChangeChatAccusative()
+            else i18n.eventChangeGroupAccusative()
+        val thisUserId = UserId(event.stateKey)
+        val thisUsername = matrixClient.user.getById(event.roomId, thisUserId)
+            .map { user -> user?.name ?: thisUserId.full }
+            .stateIn(coroutineScope)
+
+        return when (content.membership) {
+            Membership.INVITE -> i18n.eventChangeInvite(thisUsername.value, username)
+            Membership.JOIN -> i18n.eventChangeJoin(thisUsername.value, groupOrChatDative)
+            Membership.LEAVE -> i18n.eventChangeLeave(thisUsername.value, groupOrChatAccusative)
+            Membership.BAN -> i18n.eventChangeBan(thisUsername.value, username, groupOrChatDative)
+            Membership.KNOCK -> i18n.eventChangeKnock(thisUsername.value, groupOrChatDative)
+            else -> ""
+        }
+    }
+}

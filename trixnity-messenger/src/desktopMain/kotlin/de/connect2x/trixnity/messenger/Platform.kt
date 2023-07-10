@@ -1,0 +1,153 @@
+package de.connect2x.trixnity.messenger
+
+import de.connect2x.trixnity.messenger.util.cleanAccountName
+import de.connect2x.trixnity.messenger.util.getSecret
+import de.connect2x.trixnity.messenger.util.setSecret
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
+import io.realm.kotlin.Realm
+import net.folivo.trixnity.client.media.MediaStore
+import net.folivo.trixnity.client.media.okio.OkioMediaStore
+import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
+import okio.Path.Companion.toOkioPath
+import org.koin.core.module.Module
+import java.awt.Desktop
+import java.io.File
+import java.net.URI
+import java.nio.file.Files
+import java.nio.file.Path
+import java.security.SecureRandom
+import java.util.*
+import kotlin.io.path.absolutePathString
+import kotlin.system.exitProcess
+
+
+private val log = KotlinLogging.logger { }
+
+@Suppress("UNUSED_VALUE")
+actual suspend fun createRepositoriesModule(context: Any?, accountName: String): Module {
+    val messengerConfig = MessengerConfig.instance
+    val dbFolder = getDbFolder(accountName).absolutePathString()
+    log.debug { messengerConfig }
+
+    return if (messengerConfig.encryptDb) {
+        val secretsName =
+            "${messengerConfig.packageName}.${messengerConfig.appName}.${accountName.cleanAccountName()}.db"
+        val password = getSecret(secretsName)
+            ?: createPassword().also {
+                setSecret(secretsName, it)
+            }
+
+        createRealmRepositoriesModule {
+            directory(dbFolder)
+            encryptionKey(password.toByteArray())
+        }
+    } else {
+        createRealmRepositoriesModule {
+            directory(dbFolder)
+        }
+    }
+}
+
+internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore =
+    OkioMediaStore(getAppFolder(accountName).toOkioPath().resolve("media"))
+
+private fun createPassword(): String {
+    val secureRandom = SecureRandom()
+    val alphabet = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    return generateSequence { alphabet[secureRandom.nextInt(alphabet.size)] }
+        .take(Realm.ENCRYPTION_KEY_LENGTH).joinToString("")
+}
+
+fun getDbFolder(accountName: String): Path = getAppFolder(accountName).resolve(MessengerConfig.instance.dbName)
+
+fun getAppFolder(accountName: String?): Path {
+    val appName = MessengerConfig.instance.appName
+    val cleanAccountName = accountName?.cleanAccountName()
+    log.debug { "get app folder for $appName and account $cleanAccountName" }
+    val path = when (getOs()) {
+        OS.MAC_OS -> {
+            Path.of(System.getenv("HOME")).resolve("Library").resolve("Application Support")
+                .resolve(appName).let {
+                    if (cleanAccountName == null) it
+                    else it.resolve(cleanAccountName)
+                }
+        }
+
+        OS.WINDOWS -> {
+            Path.of(System.getenv("LOCALAPPDATA")).resolve(appName).let {
+                if (cleanAccountName == null) it
+                else it.resolve(cleanAccountName)
+            }
+        }
+
+        OS.LINUX -> {
+            Path.of(System.getenv("HOME")).resolve(".$appName").let {
+                if (cleanAccountName == null) it
+                else it.resolve(".$cleanAccountName")
+            }
+        }
+    }
+    Files.createDirectories(path)
+    return path
+}
+
+actual fun deleteDatabase(accountName: String) {
+    getDbFolder(accountName).toFile().deleteRecursively()
+}
+
+actual fun closeApp() {
+    exitProcess(0)
+}
+
+actual fun getVersion(): String {
+    val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
+    val properties = Properties()
+    properties.load(resourcesDir.resolve("version.properties").inputStream())
+    return properties.getProperty("version")
+}
+
+actual fun getLicenses(): String {
+    val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
+    val licensesLines = resourcesDir.resolve("licenses.txt").readLines()
+    val cutFromHere = licensesLines.indexOf("Unknown")
+    return licensesLines.subList(0, cutFromHere - 1).joinToString(System.lineSeparator())
+}
+
+actual fun isNetworkAvailable(): Boolean {
+    return true
+}
+
+actual fun deviceDisplayName(): String {
+    return "${MessengerConfig.instance.appName} (${getOs().value})"
+}
+
+actual fun getLogContent(): String {
+    return Files.readString(getAppFolder(accountName = null).resolve("timmy.log"))
+}
+
+actual fun sendLogToDevs(emailAddress: String, subject: String, content: String) {
+    val desktop = Desktop.getDesktop()
+    val mailURIStr = String.format(
+        "mailto:%s?subject=%s&body=%s",
+        emailAddress,
+        subject.encodeURLParameter(),
+        content.encodeURLParameter()
+    )
+    val mailURI = URI(mailURIStr);
+    desktop.mail(mailURI)
+}
+
+enum class OS(val value: String) {
+    WINDOWS("Windows"), MAC_OS("macOS"), LINUX("Linux")
+}
+
+fun getOs(): OS {
+    val os = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
+    return when {
+        os.contains("mac", ignoreCase = true) || os.contains("darwin", ignoreCase = true) -> OS.MAC_OS
+        os.contains("win", ignoreCase = true) -> OS.WINDOWS
+        os.contains("linux", ignoreCase = true) -> OS.LINUX
+        else -> throw RuntimeException("os $os is not supported")
+    }
+}
