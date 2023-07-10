@@ -11,3 +11,4 @@ build/
 /localInfra/data/media_store/
 test*.db
 desktop/test.db
+kotlin-js-store
