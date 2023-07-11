@@ -17,6 +17,7 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
         }
+        publishLibraryVariants("release")
     }
     jvm("desktop") {
         compilations.all {
@@ -151,6 +152,12 @@ android {
 
             assets.srcDir(File(buildDir, "generated/moko/androidMain/assets"))
             res.srcDir(File(buildDir, "generated/moko/androidMain/res"))
+        }
+    }
+
+    buildTypes {
+        release {
+            isDefault = true
         }
     }
 }
