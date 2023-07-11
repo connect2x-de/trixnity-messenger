@@ -53,10 +53,8 @@ fun coroutineScope(
         log.error(exception) { "coroutine scope with lifecycle has been cancelled${if (description != null) "($description)" else ""}" }
         // TODO close app
     }
-    val scope = CoroutineScope(context + handler)
-    lifecycle.doOnDestroy {
-        scope.cancel()
-    }
+    val scope = CoroutineScope(context + SupervisorJob() + handler)
+    lifecycle.doOnDestroy(scope::cancel)
     return scope
 }
 

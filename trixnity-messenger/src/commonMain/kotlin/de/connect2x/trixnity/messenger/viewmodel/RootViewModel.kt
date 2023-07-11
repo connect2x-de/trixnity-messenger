@@ -70,7 +70,7 @@ open class RootViewModelImpl(
     override val rootStack: Value<ChildStack<RootRouter.Config, RootRouter.RootWrapper>> = router.stack
 
     init {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        scope.launch {
             init(koinApplication)
         }
     }
@@ -102,7 +102,7 @@ open class RootViewModelImpl(
         matrixClientService.matrixClients.first { namedMatrixClients ->
             namedMatrixClients.isEmpty()
         }
-        init(koinApplication)
+        init(koinApplication) // TODO iteration (loop or collect) instead of recursion
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

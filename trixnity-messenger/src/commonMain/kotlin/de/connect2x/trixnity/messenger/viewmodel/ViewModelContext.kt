@@ -19,6 +19,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import kotlin.coroutines.CoroutineContext
 
+
 interface ViewModelContext : KoinComponent, ComponentContext {
     /**
      * This should be used carefully, because it can lead to leaks when not used on the top level.
