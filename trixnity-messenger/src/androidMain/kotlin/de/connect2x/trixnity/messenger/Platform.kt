@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import de.connect2x.trixnity.messenger.util.cleanAccountName
+import de.connect2x.trixnity.messenger.util.getAccountName
 import de.connect2x.trixnity.messenger.util.getSecret
 import de.connect2x.trixnity.messenger.util.setSecret
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -29,10 +30,9 @@ import java.security.SecureRandom
 
 private val log = KotlinLogging.logger {}
 
-actual suspend fun createRepositoriesModule(context: Any?, accountName: String): Module {
+actual suspend fun createRepositoriesModule(accountName: String): Module {
     val messengerConfig = MessengerConfig.instance
-    require(context is Context)
-    val dbFolder = context.getDbFolder(accountName).absolutePath
+    val dbFolder = getContext().getDbFolderFile(accountName).absolutePath
     log.debug { "createRepositoriesModule with config: $messengerConfig" }
 
     return if (messengerConfig.encryptDb) {
@@ -66,12 +66,21 @@ private fun createPassword(): String {
         .take(Realm.ENCRYPTION_KEY_LENGTH).joinToString("")
 }
 
-fun Context.getDbFolder(accountName: String) =
-    filesDir.resolve("${MessengerConfig.instance.dbName}_${accountName.cleanAccountName()}")
+fun Context.getDbFolderFile(accountName: String) =
+    getDbPath().resolve("${MessengerConfig.instance.dbName}_${accountName.cleanAccountName()}")
+
+actual fun getAccountNames(): List<String> =
+    getContext()
+        .getDbPath()
+        .list{ file, _ -> file.isDirectory}
+        ?.map { it.removePrefix("${MessengerConfig.instance.dbName}_").getAccountName() }
+        ?: emptyList()
 
 actual fun deleteDatabase(accountName: String) {
-    getContext().getDbFolder(accountName).deleteRecursively()
+    getContext().getDbFolderFile(accountName).deleteRecursively()
 }
+
+private fun Context.getDbPath() = filesDir.resolve("database")
 
 actual fun closeApp() {
     getContext().findActivity()?.finishAndRemoveTask()

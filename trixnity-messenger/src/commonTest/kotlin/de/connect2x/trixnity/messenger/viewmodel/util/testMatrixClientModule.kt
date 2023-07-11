@@ -27,12 +27,6 @@ fun testMatrixClientModule(matrixClientMock: MatrixClient, accountName: String =
             override fun invoke(): List<String> {
                 return listOf(accountName)
             }
-
-            override fun minus(accountName: String) {
-            }
-
-            override fun plus(accountName: String) {
-            }
         }
     }
 }
@@ -55,12 +49,6 @@ fun testMatrixClientModule(
         object : GetAccountNames {
             override fun invoke(): List<String> {
                 return accountNames
-            }
-
-            override fun minus(accountName: String) {
-            }
-
-            override fun plus(accountName: String) {
             }
         }
     }

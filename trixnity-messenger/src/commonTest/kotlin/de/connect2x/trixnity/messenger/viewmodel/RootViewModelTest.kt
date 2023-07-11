@@ -240,12 +240,6 @@ class RootViewModelTest : ShouldSpec() {
                         override fun invoke(): List<String> {
                             return listOf("test2", "test3")
                         }
-
-                        override fun plus(accountName: String) {
-                        }
-
-                        override fun minus(accountName: String) {
-                        }
                     }
                 }
             }))
@@ -262,12 +256,6 @@ class RootViewModelTest : ShouldSpec() {
                     object : GetAccountNames {
                         override fun invoke(): List<String> {
                             return listOf()
-                        }
-
-                        override fun minus(accountName: String) {
-                        }
-
-                        override fun plus(accountName: String) {
                         }
                     }
                 }
@@ -289,12 +277,6 @@ class RootViewModelTest : ShouldSpec() {
                         object : GetAccountNames {
                             override fun invoke(): List<String> {
                                 return initialAccountNames
-                            }
-
-                            override fun minus(accountName: String) {
-                            }
-
-                            override fun plus(accountName: String) {
                             }
                         }
                     }

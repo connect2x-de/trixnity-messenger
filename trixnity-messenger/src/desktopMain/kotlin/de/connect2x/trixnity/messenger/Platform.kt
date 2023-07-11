@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.cleanAccountName
+import de.connect2x.trixnity.messenger.util.getAccountName
 import de.connect2x.trixnity.messenger.util.getSecret
 import de.connect2x.trixnity.messenger.util.setSecret
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,15 +20,17 @@ import java.nio.file.Path
 import java.security.SecureRandom
 import java.util.*
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.system.exitProcess
 
 
 private val log = KotlinLogging.logger { }
 
-@Suppress("UNUSED_VALUE")
-actual suspend fun createRepositoriesModule(context: Any?, accountName: String): Module {
+actual suspend fun createRepositoriesModule(accountName: String): Module {
     val messengerConfig = MessengerConfig.instance
-    val dbFolder = getDbFolder(accountName).absolutePathString()
+    val dbFolder = getDbFolderPath(accountName).absolutePathString()
     log.debug { messengerConfig }
 
     return if (messengerConfig.encryptDb) {
@@ -59,7 +62,17 @@ private fun createPassword(): String {
         .take(Realm.ENCRYPTION_KEY_LENGTH).joinToString("")
 }
 
-fun getDbFolder(accountName: String): Path = getAppFolder(accountName).resolve(MessengerConfig.instance.dbName)
+private fun getDbFolderPath(accountName: String): Path =
+    getAppFolder(accountName).resolve(MessengerConfig.instance.dbName)
+
+actual fun getAccountNames(): List<String> =
+    getAppFolder(accountName = null)
+        .listDirectoryEntries()
+        .filter { it.isDirectory() }
+        .map {
+            log.debug { "account encoded: ${it.name}, decoded: ${it.name.getAccountName()}" }
+            it.name.getAccountName()
+        }
 
 fun getAppFolder(accountName: String?): Path {
     val appName = MessengerConfig.instance.appName
@@ -93,7 +106,7 @@ fun getAppFolder(accountName: String?): Path {
 }
 
 actual fun deleteDatabase(accountName: String) {
-    getDbFolder(accountName).toFile().deleteRecursively()
+    getDbFolderPath(accountName).toFile().deleteRecursively()
 }
 
 actual fun closeApp() {

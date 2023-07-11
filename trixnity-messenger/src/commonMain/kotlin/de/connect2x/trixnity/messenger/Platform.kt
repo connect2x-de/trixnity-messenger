@@ -5,11 +5,13 @@ import org.koin.core.module.Module
 
 // since the MatrixClient can also be created by Android Services that can run without an Activity which sets the
 // globally available context in the DI, we _have_ to provide a context here (only the Android impl uses it)
-internal expect suspend fun createRepositoriesModule(context: Any?, accountName: String): Module
+internal expect suspend fun createRepositoriesModule(accountName: String): Module
 
 internal expect suspend fun createMediaStore(context: Any?, accountName: String): MediaStore
 
 internal expect fun deleteDatabase(accountName: String)
+
+internal expect fun getAccountNames(): List<String>
 
 expect fun closeApp()
 

@@ -1,22 +1,32 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.util.cleanAccountName
+import de.connect2x.trixnity.messenger.util.getAccountName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.*
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.okio.OkioMediaStore
 import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
+import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import platform.Foundation.*
 
 private val log = KotlinLogging.logger { }
 
-actual suspend fun createRepositoriesModule(context: Any?, accountName: String): Module {
-    return createRealmRepositoriesModule()
+actual suspend fun createRepositoriesModule(accountName: String): Module {
+    return createRealmRepositoriesModule {
+        directory(getDbPath(accountName).toString())
+    }
 }
 
+private fun getAppPath() = NSBundle.mainBundle.bundlePath.toPath()
+
+private fun getDbPath(accountName: String) =
+    getAppPath().resolve(accountName.cleanAccountName())
+
 internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore {
-    val mediaStore = OkioMediaStore(NSBundle.mainBundle.bundlePath.toPath().resolve("media"))
+    val mediaStore = OkioMediaStore(getAppPath().resolve("media"))
     log.debug { "media store location: $mediaStore" }
     return mediaStore
 }
@@ -24,6 +34,8 @@ internal actual suspend fun createMediaStore(context: Any?, accountName: String)
 actual fun deleteDatabase(accountName: String) {
 
 }
+
+actual fun getAccountNames(): List<String> = FileSystem.SYSTEM.list(getAppPath()).map { it.name.getAccountName() }
 
 actual fun closeApp() {
 

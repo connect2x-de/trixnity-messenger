@@ -72,14 +72,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                                 override fun invoke(): List<String> {
                                     return accounts
                                 }
-
-                                override fun minus(accountName: String) {
-                                    accounts -= accountName
-                                }
-
-                                override fun plus(accountName: String) {
-                                    accounts += accountName
-                                }
                             }
                         }
                     }
@@ -123,7 +115,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                 )
             )
             loginCalled shouldBe true
-            di.get<GetAccountNames>()() shouldBe listOf("test1")
         }
 
         should("login for another account and create additional MatrixClient") {
@@ -142,7 +133,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                     MutableStateFlow(matrixClientMock),
                 )
             )
-            di.get<GetAccountNames>()() shouldBe listOf("test1", "test2")
         }
 
         should("not login again, if MatrixClient already present for account") {
@@ -153,7 +143,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
             loginCalled = false
             cut.login(Url("https://example.org"), User("user"), "password", "", "test1")
             loginCalled shouldBe false // use the existing MatrixClient and do not log in again
-            di.get<GetAccountNames>()() shouldBe listOf("test1")
         }
 
         should("return exception in Result if login is not possible") {

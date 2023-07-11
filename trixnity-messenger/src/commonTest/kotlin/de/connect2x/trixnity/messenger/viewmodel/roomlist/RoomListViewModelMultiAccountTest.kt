@@ -939,12 +939,6 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         override fun invoke(): List<String> {
                             return listOf("test1", "test2", "test3")
                         }
-
-                        override fun minus(accountName: String) {
-                        }
-
-                        override fun plus(accountName: String) {
-                        }
                     }
                 }
                 single { roomNameMock }

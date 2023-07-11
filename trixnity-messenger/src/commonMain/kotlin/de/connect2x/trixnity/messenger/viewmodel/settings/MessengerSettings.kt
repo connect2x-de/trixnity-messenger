@@ -5,6 +5,7 @@ import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
 import de.connect2x.trixnity.messenger.MessengerConfig
+import de.connect2x.trixnity.messenger.getAccountNames
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -99,8 +100,8 @@ class MessengerSettingsImpl : MessengerSettings {
         get() = getValue(NOTIFICATIONS_SHOW_TEXT, defaultNotificationShowText)
         set(value) = setValue(value)
     override var accountNames: List<String>
-        get() = settings.getString(ACCOUNT_NAMES, "").parseAccountNames()
-        set(value) = settings.putString(ACCOUNT_NAMES, value.joinToString(",") { it })
+        get() = getAccountNames()
+        set(value) {} // will be triggered by creating a new database for the accoynt
     override var activeAccount: String?
         get() = settings.getStringOrNull(ACTIVE_ACCOUNT)
         set(value) = value?.let { settings.putString(ACTIVE_ACCOUNT, value) } ?: settings.remove(ACTIVE_ACCOUNT)
@@ -128,12 +129,5 @@ class MessengerSettingsImpl : MessengerSettings {
         settings.putString(NOTIFICATIONS_PLAY_SOUND, json.encodeToString(value))
     }
 }
-
-private fun String.parseAccountNames(): List<String> {
-    if (this.isBlank()) return emptyList()
-    return this.split(",").map { it.trim() }
-        .also { log.debug { "settings (account names): $it (size: ${it.size})" } }
-}
-
 
 expect fun createSettings(): Settings

@@ -47,7 +47,7 @@ class DefaultMatrixClientService(
     private val di: Koin,
     private val baseHttpClient: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
     private val repositoriesModuleCreation: suspend (account: String) -> Module = {
-        createRepositoriesModule(context, it)
+        createRepositoriesModule(it)
     },
     private val mediaStoreCreation: suspend (accountName: String) -> MediaStore = {
         createMediaStore(context, it)
@@ -143,7 +143,6 @@ class DefaultMatrixClientService(
                 accountName,
             ).map {
                 // if we log in, we need to register the new account name locally
-                di.get<GetAccountNames>() + accountName
                 matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
                 log.debug { "logged in successfully with account $accountName" }
             }.recoverCatching { exc ->
@@ -160,7 +159,6 @@ class DefaultMatrixClientService(
             matrixClients.value -= namedMatrixClient
             val result = namedMatrixClient.matrixClient.value?.logout()?.onSuccess {
                 namedMatrixClient.matrixClient.value = null
-                di.get<GetAccountNames>() - accountName
                 deleteDatabase(accountName)
             }
             result
