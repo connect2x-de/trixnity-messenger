@@ -7,10 +7,7 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:${Versions.androidGradle}")
-
         classpath(kotlin("gradle-plugin", version = Versions.kotlin))
-
-        classpath("com.jaredsburrows:gradle-license-plugin:0.8.91")
     }
 }
 
@@ -21,7 +18,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = Versions.trixnityMessenger
+    version = withVersionSuffix(Versions.trixnityMessenger)
 
     repositories {
         mavenLocal()

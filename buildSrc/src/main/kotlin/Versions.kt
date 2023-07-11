@@ -2,6 +2,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 object Versions {
+    const val trixnityMessenger = "1.0.0"
+
     val kotlinJvmTarget = JavaVersion.VERSION_11
     const val trixnity = "3.7.0-beta3" // https://gitlab.com/trixnity/trixnity/-/releases
     const val kotlin = "1.8.20" // https://kotlinlang.org/
@@ -30,8 +32,6 @@ object Versions {
     const val crypto = "1.1.0-alpha06" // https://developer.android.com/jetpack/androidx/releases/security
     const val activity = "1.7.2" // https://developer.android.com/jetpack/androidx/releases/activity
     const val androidGradle = "7.3.1" // https://developer.android.com/reference/tools/gradle-api
-
-    const val trixnityMessenger = "1.0.0"
 }
 
 val JavaVersion.number: Int

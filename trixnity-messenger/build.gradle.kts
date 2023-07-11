@@ -171,7 +171,7 @@ rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlu
 publishing {
     repositories {
         maven {
-            url = uri("${System.getenv("CI_API_V4_URL")}/groups/12571694/-/packages/maven")
+            url = uri("${System.getenv("CI_API_V4_URL")}/projects/47538655/packages/maven")
             name = "GitLab"
             credentials(HttpHeaderCredentials::class) {
                 name = "Job-Token"
