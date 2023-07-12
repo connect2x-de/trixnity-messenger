@@ -1,9 +1,11 @@
 package de.connect2x.trixnity.messenger
 
 import com.juul.indexeddb.Database
+import com.juul.indexeddb.Key
 import com.juul.indexeddb.openDatabase
-import de.connect2x.trixnity.messenger.viewmodel.util.runBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.indexeddb.IndexedDBMediaStore
 import net.folivo.trixnity.client.store.repository.indexeddb.createIndexedDBRepositoriesModule
@@ -29,13 +31,12 @@ actual suspend fun createRepositoriesModule(accountName: String): Module {
     return createIndexedDBRepositoriesModule(getDbName(accountName))
 }
 
-actual fun getAccountNames(): List<String> {
-    return runBlocking {
-        getAccountNamesDb()
-            .transaction(accountNamesStore) {
-                objectStore(accountNamesStore).getAll()
-            }
-    } as List<String>
+actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.Default) {
+    (getAccountNamesDb()
+        .transaction(accountNamesStore) {
+            objectStore(accountNamesStore).getAll()
+        }
+    ).toList()
 }
 
 private fun getDbName(accountName: String) =
@@ -53,8 +54,14 @@ private suspend fun getAccountNamesDb(): Database {
     }
 }
 
-actual fun deleteDatabase(accountName: String) {
+actual suspend fun deleteDatabase(accountName: String) {
 
+}
+
+actual suspend fun deleteAccountDataLocally(accountName: String) {
+    getAccountNamesDb().writeTransaction(accountNamesStore) {
+        objectStore(accountNamesStore).delete(Key(accountName))
+    }
 }
 
 actual fun closeApp() {
@@ -77,7 +84,7 @@ actual fun deviceDisplayName(): String {
     return "Browser"
 }
 
-actual fun getLogContent(): String {
+actual suspend fun getLogContent(): String {
     return ""
 }
 

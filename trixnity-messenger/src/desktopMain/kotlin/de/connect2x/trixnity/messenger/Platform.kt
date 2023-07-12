@@ -7,6 +7,10 @@ import de.connect2x.trixnity.messenger.util.setSecret
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.realm.kotlin.Realm
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.okio.OkioMediaStore
 import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
@@ -28,12 +32,14 @@ import kotlin.system.exitProcess
 
 private val log = KotlinLogging.logger { }
 
-actual suspend fun createRepositoriesModule(accountName: String): Module {
+private val accountMutex = Mutex()
+
+actual suspend fun createRepositoriesModule(accountName: String): Module = withContext(Dispatchers.IO) {
     val messengerConfig = MessengerConfig.instance
     val dbFolder = getDbFolderPath(accountName).absolutePathString()
     log.debug { messengerConfig }
 
-    return if (messengerConfig.encryptDb) {
+    if (messengerConfig.encryptDb) {
         val secretsName =
             "${messengerConfig.packageName}.${messengerConfig.appName}.${accountName.cleanAccountName()}.db"
         val password = getSecret(secretsName)
@@ -53,7 +59,9 @@ actual suspend fun createRepositoriesModule(accountName: String): Module {
 }
 
 internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore =
-    OkioMediaStore(getAppFolder(accountName).toOkioPath().resolve("media"))
+    withContext(Dispatchers.IO) {
+        OkioMediaStore(getAppFolder(accountName).resolve("media").toOkioPath())
+    }
 
 private fun createPassword(): String {
     val secureRandom = SecureRandom()
@@ -62,22 +70,25 @@ private fun createPassword(): String {
         .take(Realm.ENCRYPTION_KEY_LENGTH).joinToString("")
 }
 
-private fun getDbFolderPath(accountName: String): Path =
-    getAppFolder(accountName).resolve(MessengerConfig.instance.dbName)
+private suspend fun getDbFolderPath(accountName: String): Path =
+    getAppFolder(accountName).resolve("database")
 
-actual fun getAccountNames(): List<String> =
-    getAppFolder(accountName = null)
-        .listDirectoryEntries()
-        .filter { it.isDirectory() }
-        .map {
-            log.debug { "account encoded: ${it.name}, decoded: ${it.name.getAccountName()}" }
-            it.name.getAccountName()
-        }
+actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
+    accountMutex.withLock {
+        getAppFolder(accountName = null)
+            .listDirectoryEntries()
+            .filter { it.isDirectory() }
+            .map {
+                log.debug { "account encoded: ${it.name}, decoded: ${it.name.getAccountName()}" }
+                it.name.getAccountName()
+            }
+    }
+}
 
-fun getAppFolder(accountName: String?): Path {
+fun getAppFolder(accountName: String?): Path  {
     val appName = MessengerConfig.instance.appName
     val cleanAccountName = accountName?.cleanAccountName()
-    log.debug { "get app folder for $appName and account $cleanAccountName" }
+    log.debug { "get app folder for $appName and account $accountName (decoded: $cleanAccountName)" }
     val path = when (getOs()) {
         OS.MAC_OS -> {
             Path.of(System.getenv("HOME")).resolve("Library").resolve("Application Support")
@@ -101,12 +112,26 @@ fun getAppFolder(accountName: String?): Path {
             }
         }
     }
+
     Files.createDirectories(path)
     return path
 }
 
-actual fun deleteDatabase(accountName: String) {
-    getDbFolderPath(accountName).toFile().deleteRecursively()
+actual suspend fun deleteDatabase(accountName: String) {
+    withContext(Dispatchers.IO) {
+        accountMutex.withLock {
+            getDbFolderPath(accountName).toFile().deleteRecursively()
+        }
+    }
+}
+
+actual suspend fun deleteAccountDataLocally(accountName: String) {
+    withContext(Dispatchers.IO) {
+        accountMutex.withLock {
+            val result = getAppFolder(accountName).toFile().deleteRecursively()
+            log.debug { "deleted account folder for account $accountName: $result" }
+        }
+    }
 }
 
 actual fun closeApp() {
@@ -135,7 +160,7 @@ actual fun deviceDisplayName(): String {
     return "${MessengerConfig.instance.appName} (${getOs().value})"
 }
 
-actual fun getLogContent(): String {
+actual suspend fun getLogContent(): String {
     return Files.readString(getAppFolder(accountName = null).resolve("timmy.log"))
 }
 

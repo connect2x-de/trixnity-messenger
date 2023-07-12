@@ -4,6 +4,11 @@ import de.connect2x.trixnity.messenger.util.cleanAccountName
 import de.connect2x.trixnity.messenger.util.getAccountName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.okio.OkioMediaStore
 import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
@@ -14,28 +19,42 @@ import platform.Foundation.*
 
 private val log = KotlinLogging.logger { }
 
-actual suspend fun createRepositoriesModule(accountName: String): Module {
-    return createRealmRepositoriesModule {
+private val accountMutex = Mutex()
+
+actual suspend fun createRepositoriesModule(accountName: String): Module = withContext(Dispatchers.IO) {
+    createRealmRepositoriesModule {
         directory(getDbPath(accountName).toString())
     }
 }
 
+internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore =
+    withContext(Dispatchers.IO) {
+        val mediaStore = OkioMediaStore(getAppPath().resolve("media"))
+        log.debug { "media store location: $mediaStore" }
+        mediaStore
+    }
+
+actual suspend fun deleteDatabase(accountName: String) = withContext(Dispatchers.IO) {
+    accountMutex.withLock {
+        FileSystem.SYSTEM.deleteRecursively(getDbPath(accountName), mustExist = false)
+    }
+}
+
+actual suspend fun deleteAccountDataLocally(accountName: String) = withContext(Dispatchers.IO) {
+    accountMutex.withLock {
+        FileSystem.SYSTEM.deleteRecursively(getAppPath().resolve(accountName), mustExist = false)
+    }
+}
+
+actual suspend fun getAccountNames(): List<String> =
+    withContext(Dispatchers.IO) {
+        accountMutex.withLock {
+            FileSystem.SYSTEM.list(getAppPath()).map { it.name.getAccountName() }
+        }
+    }
+
 private fun getAppPath() = NSBundle.mainBundle.bundlePath.toPath()
-
-private fun getDbPath(accountName: String) =
-    getAppPath().resolve(accountName.cleanAccountName())
-
-internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore {
-    val mediaStore = OkioMediaStore(getAppPath().resolve("media"))
-    log.debug { "media store location: $mediaStore" }
-    return mediaStore
-}
-
-actual fun deleteDatabase(accountName: String) {
-
-}
-
-actual fun getAccountNames(): List<String> = FileSystem.SYSTEM.list(getAppPath()).map { it.name.getAccountName() }
+private fun getDbPath(accountName: String) = getAppPath().resolve(accountName.cleanAccountName())
 
 actual fun closeApp() {
 
@@ -71,7 +90,7 @@ actual fun deviceDisplayName(): String {
     return "iOS"
 }
 
-actual fun getLogContent(): String {
+actual suspend fun getLogContent(): String {
     return ""
 }
 

@@ -9,9 +9,11 @@ internal expect suspend fun createRepositoriesModule(accountName: String): Modul
 
 internal expect suspend fun createMediaStore(context: Any?, accountName: String): MediaStore
 
-internal expect fun deleteDatabase(accountName: String)
+internal expect suspend fun deleteDatabase(accountName: String)
 
-internal expect fun getAccountNames(): List<String>
+internal expect suspend fun deleteAccountDataLocally(accountName: String)
+
+internal expect suspend fun getAccountNames(): List<String>
 
 expect fun closeApp()
 
@@ -23,6 +25,6 @@ internal expect fun isNetworkAvailable(): Boolean
 
 internal expect fun deviceDisplayName(): String
 
-expect fun getLogContent(): String
+expect suspend fun getLogContent(): String
 
 expect fun sendLogToDevs(emailAddress: String, subject: String, content: String)

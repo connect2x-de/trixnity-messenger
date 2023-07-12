@@ -19,6 +19,7 @@ import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -115,7 +116,8 @@ class RootViewModelTest : ShouldSpec() {
             }
 
             val matrixClient: MutableStateFlow<MatrixClient?> = MutableStateFlow(null)
-            matrixClients.value = listOf(NamedMatrixClient(accountName = "test1", matrixClient))
+            matrixClients.value =
+                listOf(NamedMatrixClient(accountName = "test1", matrixClient, CoroutineScope(Dispatchers.Default)))
             eventually(1.seconds) {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
@@ -135,7 +137,8 @@ class RootViewModelTest : ShouldSpec() {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
 
-            matrixClients.value = listOf(NamedMatrixClient(accountName = "test1", matrixClient))
+            matrixClients.value =
+                listOf(NamedMatrixClient(accountName = "test1", matrixClient, CoroutineScope(Dispatchers.Default)))
             continually(1.seconds) {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
@@ -156,7 +159,7 @@ class RootViewModelTest : ShouldSpec() {
 
             val matrixClient1: MutableStateFlow<MatrixClient?> = MutableStateFlow(null)
             matrixClients.value = listOf(
-                NamedMatrixClient(accountName = "test1", matrixClient1),
+                NamedMatrixClient(accountName = "test1", matrixClient1, CoroutineScope(Dispatchers.Default)),
             )
 
             continually(500.milliseconds) {
@@ -174,8 +177,8 @@ class RootViewModelTest : ShouldSpec() {
 
             val matrixClient2: MutableStateFlow<MatrixClient?> = MutableStateFlow(null)
             matrixClients.value = listOf(
-                NamedMatrixClient(accountName = "test1", matrixClient1),
-                NamedMatrixClient(accountName = "test2", matrixClient2),
+                NamedMatrixClient(accountName = "test1", matrixClient1, CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient(accountName = "test2", matrixClient2, CoroutineScope(Dispatchers.Default)),
             )
             continually(500.milliseconds) {
                 val config = cut.rootStack.value.active.configuration
@@ -192,9 +195,9 @@ class RootViewModelTest : ShouldSpec() {
 
             val matrixClient3: MutableStateFlow<MatrixClient?> = MutableStateFlow(null)
             matrixClients.value = listOf(
-                NamedMatrixClient(accountName = "test1", matrixClient1),
-                NamedMatrixClient(accountName = "test2", matrixClient2),
-                NamedMatrixClient(accountName = "test3", matrixClient3),
+                NamedMatrixClient(accountName = "test1", matrixClient1, CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient(accountName = "test2", matrixClient2, CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient(accountName = "test3", matrixClient3, CoroutineScope(Dispatchers.Default)),
             )
             continually(500.milliseconds) {
                 val config = cut.rootStack.value.active.configuration
@@ -217,18 +220,18 @@ class RootViewModelTest : ShouldSpec() {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
             matrixClients.value = listOf(
-                NamedMatrixClient("test1", MutableStateFlow(matrixClientMock)),
+                NamedMatrixClient("test1", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
             )
             delay(100.milliseconds)
             matrixClients.value = listOf(
-                NamedMatrixClient("test1", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient("test2", MutableStateFlow(matrixClientMock)),
+                NamedMatrixClient("test1", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient("test2", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
             )
             delay(100.milliseconds)
             matrixClients.value = listOf(
-                NamedMatrixClient("test1", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient("test2", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient("test3", MutableStateFlow(matrixClientMock)),
+                NamedMatrixClient("test1", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient("test2", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient("test3", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
             )
             eventually(1.seconds) {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.Main>()
@@ -237,15 +240,15 @@ class RootViewModelTest : ShouldSpec() {
             di.loadModules(listOf(module {
                 single<GetAccountNames> {
                     object : GetAccountNames {
-                        override fun invoke(): List<String> {
+                        override suspend fun invoke(): List<String> {
                             return listOf("test2", "test3")
                         }
                     }
                 }
             }))
             matrixClients.value = listOf(
-                NamedMatrixClient("test2", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient("test3", MutableStateFlow(matrixClientMock)),
+                NamedMatrixClient("test2", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
+                NamedMatrixClient("test3", MutableStateFlow(matrixClientMock), CoroutineScope(Dispatchers.Default)),
             )
             continually(500.milliseconds) {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.Main>()
@@ -254,7 +257,7 @@ class RootViewModelTest : ShouldSpec() {
             di.loadModules(listOf(module {
                 single<GetAccountNames> {
                     object : GetAccountNames {
-                        override fun invoke(): List<String> {
+                        override suspend fun invoke(): List<String> {
                             return listOf()
                         }
                     }
@@ -275,7 +278,7 @@ class RootViewModelTest : ShouldSpec() {
                     single { downloadManagerMock }
                     single<GetAccountNames> {
                         object : GetAccountNames {
-                            override fun invoke(): List<String> {
+                            override suspend fun invoke(): List<String> {
                                 return initialAccountNames
                             }
                         }

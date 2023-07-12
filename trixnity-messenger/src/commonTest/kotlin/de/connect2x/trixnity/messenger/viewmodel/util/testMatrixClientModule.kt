@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.NamedMatrixClient
 import de.connect2x.trixnity.messenger.NamedMatrixClients
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.client.MatrixClient
 import org.koin.core.module.Module
@@ -15,7 +17,8 @@ fun testMatrixClientModule(matrixClientMock: MatrixClient, accountName: String =
                 listOf(
                     NamedMatrixClient(
                         accountName,
-                        MutableStateFlow(matrixClientMock)
+                        MutableStateFlow(matrixClientMock),
+                        CoroutineScope(Dispatchers.Default),
                     )
                 )
             )
@@ -24,7 +27,7 @@ fun testMatrixClientModule(matrixClientMock: MatrixClient, accountName: String =
 
     single {
         object : GetAccountNames {
-            override fun invoke(): List<String> {
+            override suspend fun invoke(): List<String> {
                 return listOf(accountName)
             }
         }
@@ -39,7 +42,11 @@ fun testMatrixClientModule(
         NamedMatrixClients(
             MutableStateFlow(
                 matrixClientMocks.zip(accountNames) { matrixClientMock, accountName ->
-                    NamedMatrixClient(accountName, MutableStateFlow(matrixClientMock))
+                    NamedMatrixClient(
+                        accountName,
+                        MutableStateFlow(matrixClientMock),
+                        CoroutineScope(Dispatchers.Default),
+                    )
                 }
             )
         )
@@ -47,7 +54,7 @@ fun testMatrixClientModule(
 
     single {
         object : GetAccountNames {
-            override fun invoke(): List<String> {
+            override suspend fun invoke(): List<String> {
                 return accountNames
             }
         }

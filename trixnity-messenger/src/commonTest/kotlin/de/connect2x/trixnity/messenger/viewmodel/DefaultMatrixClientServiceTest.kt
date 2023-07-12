@@ -8,6 +8,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,7 +70,7 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                         single<GetAccountNames> {
                             object : GetAccountNames {
                                 val accounts = mutableListOf<String>()
-                                override fun invoke(): List<String> {
+                                override suspend fun invoke(): List<String> {
                                     return accounts
                                 }
                             }
@@ -111,7 +112,8 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
             cut.matrixClients.value shouldBe listOf(
                 NamedMatrixClient(
                     accountName = "test1",
-                    MutableStateFlow(matrixClientMock)
+                    MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
                 )
             )
             loginCalled shouldBe true
@@ -127,10 +129,12 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                 NamedMatrixClient(
                     accountName = "test1",
                     MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
                 ),
                 NamedMatrixClient(
                     accountName = "test2",
                     MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
                 )
             )
         }
@@ -162,7 +166,8 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
             cut.matrixClients.value shouldBe listOf(
                 NamedMatrixClient(
                     accountName = "test1",
-                    MutableStateFlow(matrixClientMock)
+                    MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
                 )
             )
             initFromStoreCalled shouldBe true
@@ -185,7 +190,13 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
         should("not init from store when matrix client is present already") {
             val cut = defaultMatrixClientService(di)
             cut.matrixClients.value =
-                listOf(NamedMatrixClient(accountName = "test1", MutableStateFlow(matrixClientMock)))
+                listOf(
+                    NamedMatrixClient(
+                        accountName = "test1",
+                        MutableStateFlow(matrixClientMock),
+                        CoroutineScope(Dispatchers.Default),
+                    )
+                )
             val result = cut.initFromStore("test1")
 
             result shouldBe Result.success(true)
@@ -195,9 +206,21 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
         should("remove matrix clients of all accounts on destroy") {
             val cut = defaultMatrixClientService(di)
             cut.matrixClients.value = listOf(
-                NamedMatrixClient(accountName = "test1", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient(accountName = "test2", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient(accountName = "test3", MutableStateFlow(matrixClientMock)),
+                NamedMatrixClient(
+                    accountName = "test1",
+                    MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
+                ),
+                NamedMatrixClient(
+                    accountName = "test2",
+                    MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
+                ),
+                NamedMatrixClient(
+                    accountName = "test3",
+                    MutableStateFlow(matrixClientMock),
+                    CoroutineScope(Dispatchers.Default),
+                ),
             )
 
             val namedMatrixClient = cut.matrixClients.value[0]
