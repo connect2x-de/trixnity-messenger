@@ -8,12 +8,16 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
+import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import net.folivo.trixnity.core.model.events.m.room.get
 import net.folivo.trixnity.core.model.push.PushAction
 import net.folivo.trixnity.core.model.push.PushCondition
 import net.folivo.trixnity.core.model.push.PushRuleKind
@@ -40,8 +44,8 @@ interface RoomSettingsViewModelFactory {
 }
 
 interface RoomSettingsViewModel {
-    //    val roomName: StateFlow<String?>
-//    val canChangeRoomName: StateFlow<Boolean>
+    val roomName: StateFlow<String?>
+    val canChangeRoomName: StateFlow<Boolean>
     val roomNotificationLevels: Map<NotificationLevels, NotificationLevel>
     val selectedRoomNotificationsLevel: StateFlow<NotificationLevel>
     val isNotificationsLevelLoading: StateFlow<Boolean>
@@ -54,7 +58,7 @@ interface RoomSettingsViewModel {
     val memberListViewModel: MemberListViewModel
     val hasPowerToInvite: StateFlow<Boolean>
 
-    //    fun changeRoomNameTo(roomName: String)
+    fun changeRoomNameTo(roomName: String)
     fun openAddMembersView()
     fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel)
     fun leaveRoom()
@@ -72,10 +76,23 @@ open class RoomSettingsViewModelImpl(
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
-    //    override val roomName: StateFlow<String?> = matrixClient.room.getById(selectedRoomId).map { it?.name?.explicitName }
-//        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-//    override val canChangeRoomName: StateFlow<Boolean> =
-//        matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId).map { powerLevel -> }
+    override val roomName: StateFlow<String?> = matrixClient.room.getById(selectedRoomId).map { it?.name?.explicitName }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val canChangeRoomName: StateFlow<Boolean> =
+        combine(
+            matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId, stateKey = ""),
+            matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
+        ) { powerLevelEventContentEvent, userPowerLevel ->
+            val nameEventContentPowerLevelNecessary =
+                powerLevelEventContentEvent?.content?.events?.get(NameEventContent::class)
+            val defaultPowerLevelNecessary = powerLevelEventContentEvent?.content?.stateDefault ?: 50
+            log.trace { "$userPowerLevel >= $nameEventContentPowerLevelNecessary & $defaultPowerLevelNecessary" }
+            if (nameEventContentPowerLevelNecessary != null) {
+                userPowerLevel >= nameEventContentPowerLevelNecessary
+            } else {
+                userPowerLevel >= defaultPowerLevelNecessary
+            }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val roomNotificationLevels = mapOf(
         NotificationLevels.ALL to NotificationLevel(i18n, NotificationLevels.ALL),
         NotificationLevels.MENTIONS to NotificationLevel(i18n, NotificationLevels.MENTIONS),
@@ -158,6 +175,22 @@ open class RoomSettingsViewModelImpl(
                 SharingStarted.WhileSubscribed(),
                 roomNotificationLevels.getValue(NotificationLevels.ALL)
             )
+    }
+
+    override fun changeRoomNameTo(roomName: String) {
+        if (canChangeRoomName.value) {
+            coroutineScope.launch {
+                matrixClient.api.rooms.sendStateEvent(selectedRoomId, NameEventContent(roomName), stateKey = "")
+                    .onFailure {
+                        log.error(it) { "cannot change the room name to '$roomName'" }
+                        error.value = i18n.settingsRoomChangeNameError()
+                    }
+                    .onSuccess {
+                        log.debug { "changed room name to '$roomName'" }
+                        error.value = null
+                    }
+            }
+        }
     }
 
     override fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel) {
