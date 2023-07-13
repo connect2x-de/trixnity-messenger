@@ -71,7 +71,6 @@ open class MatrixClientInitializationViewModelImpl(
             log.debug { "MatrixClient state: ${currentState.value}" }
         } else {
             log.info { "Could not retrieve MatrixClient from store." }
-            get<GetAccountNames>() - accountName
             onInitializationFailure()
         }
     }

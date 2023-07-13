@@ -39,7 +39,7 @@ fun trixnityMessengerModule() = module {
     single<Clock> { Clock.System }
 
     single<MessengerSettings> { MessengerSettingsImpl() }
-    single<GetAccountNames> { GetAccountNamesImpl(get()) }
+    single<GetAccountNames> { GetAccountNamesImpl() }
 
     single<Initials> { object : Initials {} }
     single<VerifyAccount> { VerifyAccountImpl() }

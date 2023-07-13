@@ -11,7 +11,7 @@ import java.io.IOException
 
 private val log = KotlinLogging.logger { }
 
-actual fun getSecret(id: String): String? {
+actual suspend fun getSecret(id: String): String? {
     try {
         val masterKey = MasterKey.Builder(getContext()).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
 
@@ -39,7 +39,7 @@ actual fun getSecret(id: String): String? {
     return null
 }
 
-actual fun setSecret(id: String, secret: String) {
+actual suspend fun setSecret(id: String, secret: String) {
     try {
         val masterKey = MasterKey.Builder(getContext()).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
 

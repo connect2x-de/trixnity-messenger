@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.DefaultMatrixClientService
 import de.connect2x.trixnity.messenger.MatrixClientService
+import de.connect2x.trixnity.messenger.getAppFolder
 import de.connect2x.trixnity.messenger.integrationtests.util.newDatabase
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
@@ -123,7 +124,10 @@ private fun createDefaultMatrixClientService(koinApplication: KoinApplication) =
     DefaultMatrixClientService(
         context = null,
         di = koinApplication.koin,
-        repositoriesModuleCreation = { accountName: String -> createExposedRepositoriesModule(newDatabase(accountName)) },
+        repositoriesModuleCreation = { accountName: String ->
+            getAppFolder(accountName) // also create a folder for the accounts
+            createExposedRepositoriesModule(newDatabase(accountName))
+        },
         mediaStoreCreation = { InMemoryMediaStore() },
     )
 

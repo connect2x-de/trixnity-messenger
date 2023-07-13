@@ -40,7 +40,7 @@ interface AddMatrixAccountViewModelFactory {
 }
 
 interface AddMatrixAccountViewModel {
-    val isFirstMatrixClient: Boolean
+    val isFirstMatrixClient: StateFlow<Boolean?>
     val canLogin: StateFlow<Boolean>
 
     enum class Mode {
@@ -93,8 +93,10 @@ open class AddMatrixAccountViewModelImpl(
 
     final override val mode: MutableStateFlow<Mode> = MutableStateFlow(Mode.USERID)
 
-    private val getAccountNames = get<GetAccountNames>()
-    override val isFirstMatrixClient: Boolean = getAccountNames().isEmpty()
+    private val accountNames = channelFlow { send(get<GetAccountNames>()()) }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val isFirstMatrixClient: StateFlow<Boolean?> = accountNames.map { it?.isEmpty() }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val accountName: MutableStateFlow<String> = MutableStateFlow("Standard")
     final override val userId: MutableStateFlow<String> = MutableStateFlow("")
@@ -154,12 +156,10 @@ open class AddMatrixAccountViewModelImpl(
             mode,
         ) { accountName, userId, userIdValidation, username, password, serverUrl, mode ->
             log.trace { "canLogin: accountName=$accountName, userId=$userId, userIdValidation=$userIdValidation, username=$username, serverUrl=$serverUrl, mode=$mode" }
-            val accountAlreadyExist = getAccountNames().contains(accountName)
+            val accountAlreadyExist = accountNames.value?.contains(accountName) ?: false
             loginState.value = when {
                 accountName.isBlank() -> LoginState.Failure(i18n.accountNameMustNotBeEmpty())
-                getAccountNames().contains(accountName) ->
-                    LoginState.Failure(i18n.accountAlreadyExistsLocally(accountName))
-
+                accountAlreadyExist -> LoginState.Failure(i18n.accountAlreadyExistsLocally(accountName))
                 else -> LoginState.Initial
             }
             when {
@@ -305,7 +305,7 @@ open class AddMatrixAccountViewModelImpl(
 }
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
-    override val isFirstMatrixClient: Boolean = true
+    override val isFirstMatrixClient: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val mode: MutableStateFlow<Mode> = MutableStateFlow(Mode.USERID)
     override val accountName: MutableStateFlow<String> = MutableStateFlow("default")
     override val userId: MutableStateFlow<String> = MutableStateFlow("@timmy:imbitbu.de")

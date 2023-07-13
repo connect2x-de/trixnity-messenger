@@ -11,10 +11,15 @@ import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import de.connect2x.trixnity.messenger.util.cleanAccountName
+import de.connect2x.trixnity.messenger.util.getAccountName
 import de.connect2x.trixnity.messenger.util.getSecret
 import de.connect2x.trixnity.messenger.util.setSecret
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.realm.kotlin.Realm
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -29,13 +34,14 @@ import java.security.SecureRandom
 
 private val log = KotlinLogging.logger {}
 
-actual suspend fun createRepositoriesModule(context: Any?, accountName: String): Module {
+private val accountMutex = Mutex()
+
+actual suspend fun createRepositoriesModule(accountName: String): Module = withContext(Dispatchers.IO) {
     val messengerConfig = MessengerConfig.instance
-    require(context is Context)
-    val dbFolder = context.getDbFolder(accountName).absolutePath
+    val dbFolder = getContext().getDbPath(accountName).absolutePath
     log.debug { "createRepositoriesModule with config: $messengerConfig" }
 
-    return if (messengerConfig.encryptDb) {
+    if (messengerConfig.encryptDb) {
         val secretsName =
             "${messengerConfig.packageName}.${messengerConfig.appName}.${accountName.cleanAccountName()}.db"
         val password = getSecret(secretsName)
@@ -54,10 +60,11 @@ actual suspend fun createRepositoriesModule(context: Any?, accountName: String):
     }
 }
 
-internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore {
-    require(context is Context)
-    return OkioMediaStore(context.filesDir.toOkioPath().resolve("media"))
-}
+internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore =
+    withContext(Dispatchers.IO) {
+        require(context is Context)
+        OkioMediaStore(context.getAccountPath(accountName).resolve("media").toOkioPath())
+    }
 
 private fun createPassword(): String {
     val secureRandom = SecureRandom()
@@ -66,12 +73,34 @@ private fun createPassword(): String {
         .take(Realm.ENCRYPTION_KEY_LENGTH).joinToString("")
 }
 
-fun Context.getDbFolder(accountName: String) =
-    filesDir.resolve("${MessengerConfig.instance.dbName}_${accountName.cleanAccountName()}")
-
-actual fun deleteDatabase(accountName: String) {
-    getContext().getDbFolder(accountName).deleteRecursively()
+actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
+    accountMutex.withLock {
+        getContext()
+            .filesDir
+            .list { file, _ -> file.isDirectory }
+            ?.map { it.getAccountName() }
+            ?: emptyList()
+    }
 }
+
+actual suspend fun deleteDatabase(accountName: String) {
+    withContext(Dispatchers.IO) {
+        accountMutex.withLock {
+            getContext().getDbPath(accountName).deleteRecursively()
+        }
+    }
+}
+
+actual suspend fun deleteAccountDataLocally(accountName: String) {
+    withContext(Dispatchers.IO) {
+        accountMutex.withLock {
+            getContext().getAccountPath(accountName).deleteRecursively()
+        }
+    }
+}
+
+private fun Context.getAccountPath(accountName: String) = filesDir.resolve(accountName)
+private fun Context.getDbPath(accountName: String) = getAccountPath(accountName).resolve("database")
 
 actual fun closeApp() {
     getContext().findActivity()?.finishAndRemoveTask()
@@ -110,7 +139,7 @@ actual fun deviceDisplayName(): String {
     return "${MessengerConfig.instance.appName.firstOrNull()} (Android)"
 }
 
-actual fun getLogContent(): String {
+actual suspend fun getLogContent(): String {
     val logFile = getContext().filesDir.resolve("timmy.log")
     return logFile.absolutePath
 }

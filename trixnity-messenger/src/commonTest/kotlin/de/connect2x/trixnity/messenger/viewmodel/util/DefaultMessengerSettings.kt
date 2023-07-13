@@ -24,9 +24,6 @@ fun defaultMessengerSettings(lang: String) = object : MessengerSettings {
     override var notificationsShowText: Map<String?, Boolean>
         get() = emptyMap()
         set(value) {}
-    override var accountNames: List<String>
-        get() = emptyList()
-        set(value) {}
     override var activeAccount: String?
         get() = null
         set(value) {}

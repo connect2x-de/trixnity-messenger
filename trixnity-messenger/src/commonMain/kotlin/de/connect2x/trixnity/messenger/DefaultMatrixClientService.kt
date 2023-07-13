@@ -6,6 +6,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -47,7 +48,7 @@ class DefaultMatrixClientService(
     private val di: Koin,
     private val baseHttpClient: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
     private val repositoriesModuleCreation: suspend (account: String) -> Module = {
-        createRepositoriesModule(context, it)
+        createRepositoriesModule(it)
     },
     private val mediaStoreCreation: suspend (accountName: String) -> MediaStore = {
         createMediaStore(context, it)
@@ -135,7 +136,8 @@ class DefaultMatrixClientService(
         log.debug { "existing MatrixClients: ${matrixClients.value}" }
         return if (matrixClients.value.none { it.accountName == accountName }) {
             log.info { "try to login" }
-            matrixClientFactory(scope).login(
+            val matrixClientScope = CoroutineScope(Dispatchers.Default)
+            matrixClientFactory(matrixClientScope).login(
                 baseUrl,
                 identifier,
                 password,
@@ -143,8 +145,7 @@ class DefaultMatrixClientService(
                 accountName,
             ).map {
                 // if we log in, we need to register the new account name locally
-                di.get<GetAccountNames>() + accountName
-                matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
+                matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it), matrixClientScope)
                 log.debug { "logged in successfully with account $accountName" }
             }.recoverCatching { exc ->
                 mapExceptions(exc)
@@ -156,12 +157,13 @@ class DefaultMatrixClientService(
         log.info { "logging out of account '$accountName'" }
         log.debug { "currently active MatrixClients: ${matrixClients.value.joinToString { "${it.accountName} (${it.matrixClient.value})" }}" }
         return matrixClients.value.find { it.accountName == accountName }?.let { namedMatrixClient ->
-            log.debug { "MatrixClient.logout() for $namedMatrixClient" }
+            log.info { "MatrixClient.logout() for $namedMatrixClient" }
             matrixClients.value -= namedMatrixClient
             val result = namedMatrixClient.matrixClient.value?.logout()?.onSuccess {
+                namedMatrixClient.coroutineScope.cancel("logout")
                 namedMatrixClient.matrixClient.value = null
-                di.get<GetAccountNames>() - accountName
-                deleteDatabase(accountName)
+                log.info { "now, delete account data on this machine" }
+                deleteAccountDataLocally(accountName)
             }
             result
         } ?: Result.success(Unit)
@@ -173,9 +175,10 @@ class DefaultMatrixClientService(
         return mutex.withLock {
             if (matrixClients.value.none { it.accountName == accountName }) {
                 log.info { "try to init from store" }
-                matrixClientFactory(scope).initFromStore(accountName).map {
+                val matrixClientScope = CoroutineScope(Dispatchers.Default)
+                matrixClientFactory(matrixClientScope).initFromStore(accountName).map {
                     if (it != null) {
-                        matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
+                        matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it), matrixClientScope)
                         true
                     } else false
                 }.recoverCatching { exc ->

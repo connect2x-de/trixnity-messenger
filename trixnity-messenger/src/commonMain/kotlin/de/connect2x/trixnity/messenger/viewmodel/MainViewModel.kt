@@ -265,9 +265,9 @@ open class MainViewModelImpl(
     private fun onRemoveAccountInternal(accountName: String) {
         roomListRouter.closeAccountsOverview()
         this.onRemoveAccount(accountName)
-        if (getKoin().get<GetAccountNames>()().isEmpty()) {
-            log.debug { "since all account have been removed, close all navigation" }
-            runBlocking {
+        coroutineScope.launch {
+            if (getKoin().get<GetAccountNames>()().isEmpty()) {
+                log.debug { "since all account have been removed, close all navigation" }
                 roomRouter.closeRoom()
                 roomListRouter.close()
                 imageRouter.closeImage()
@@ -275,8 +275,8 @@ open class MainViewModelImpl(
                 avatarCutterRouter.close()
                 initialSyncRouter.close()
                 verificationRouter.closeVerification()
+                log.debug { "finished closing all navigation" }
             }
-            log.debug { "finished closing all navigation" }
         }
     }
 
@@ -617,17 +617,19 @@ open class MainViewModelImpl(
         }
 
     private fun onSendLogs() {
-        try {
-            log.debug { "send logs to devs (email: ${MessengerConfig.instance.sendLogsEmailAddress})" }
-            MessengerConfig.instance.sendLogsEmailAddress?.let { email ->
-                sendLogToDevs(
-                    email,
-                    "error report for ${MessengerConfig.instance.appName} (version ${getVersion()}, ${deviceDisplayName()})",
-                    getLogContent()
-                )
+        coroutineScope.launch {
+            try {
+                log.debug { "send logs to devs (email: ${MessengerConfig.instance.sendLogsEmailAddress})" }
+                MessengerConfig.instance.sendLogsEmailAddress?.let { email ->
+                    sendLogToDevs(
+                        email,
+                        "error report for ${MessengerConfig.instance.appName} (version ${getVersion()}, ${deviceDisplayName()})",
+                        getLogContent()
+                    )
+                }
+            } catch (exc: Exception) {
+                log.error(exc) { "Cannot send error report." }
             }
-        } catch (exc: Exception) {
-            log.error(exc) { "Cannot send error report." }
         }
     }
 }

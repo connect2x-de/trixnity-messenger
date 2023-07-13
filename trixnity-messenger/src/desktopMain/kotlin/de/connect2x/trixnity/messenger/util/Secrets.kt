@@ -13,7 +13,7 @@ import java.nio.file.Files
 
 private val log = KotlinLogging.logger { }
 
-actual fun getSecret(id: String): String? {
+actual suspend fun getSecret(id: String): String? {
     return when (getOs()) {
         OS.WINDOWS -> {
             val credentialRef = PointerByReference()
@@ -84,7 +84,7 @@ actual fun getSecret(id: String): String? {
     }
 }
 
-actual fun setSecret(id: String, secret: String) {
+actual suspend fun setSecret(id: String, secret: String) {
     when (getOs()) {
         OS.WINDOWS -> {
             val byteArray = secret.toByteArray()

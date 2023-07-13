@@ -2,26 +2,14 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 
 import com.benasher44.uuid.uuid4
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.plus
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.login
-import net.folivo.trixnity.client.loginWith
-import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.authentication.Register
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import org.jetbrains.exposed.sql.Database
-import org.koin.core.module.Module
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network

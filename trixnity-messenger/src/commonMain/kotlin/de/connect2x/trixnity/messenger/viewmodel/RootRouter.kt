@@ -12,14 +12,16 @@ import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.NamedMatrixClients
 import de.connect2x.trixnity.messenger.closeApp
-import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
-import de.connect2x.trixnity.messenger.util.launchBringToFront
-import de.connect2x.trixnity.messenger.util.launchPop
-import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import korlibs.io.async.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.core.component.get
 import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger { }
 
@@ -139,11 +141,13 @@ class RootRouter(
     private fun onCancelAddMatrixAccount() {
         log.debug { "cancel the creation of another MatrixClient" }
 
-        if (getAccountNames().isEmpty()) {
-            log.info { "There are no MatrixClients configured yet, so close the app" }
-            closeApp()
-        } else {
-            navigation.launchPop(viewModelContext.coroutineScope)
+        CoroutineScope(Dispatchers.Main).launch {
+            if (getAccountNames().isEmpty()) {
+                log.info { "There are no MatrixClients configured yet, so close the app" }
+                closeApp()
+            } else {
+                navigation.popSuspending()
+            }
         }
     }
 

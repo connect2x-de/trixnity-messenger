@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 interface StoreFailureViewModelFactory {
     fun newStoreFailureViewModel(
@@ -42,6 +43,8 @@ open class StoreFailureViewModelImpl(
     }
 
     override fun deleteDb() {
-        deleteDatabase(_accountName)
+        coroutineScope.launch {
+            deleteDatabase(_accountName)
+        }
     }
 }
