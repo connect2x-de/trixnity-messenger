@@ -83,3 +83,11 @@ open class MemberListViewModelImpl(
         }
     }
 }
+
+class PreviewMemberListViewModel : MemberListViewModel {
+    override val memberListElementViewModels: MutableStateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
+        MutableStateFlow(listOf())
+    override val showLoadingSpinner: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+
+}

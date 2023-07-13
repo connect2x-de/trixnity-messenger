@@ -11,18 +11,13 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
+import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -108,6 +103,8 @@ class RoomSettingsViewModelTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomsApiClient
 
     private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
+    private lateinit var roomPowerLevel: Mocker.Every<Flow<Event<PowerLevelsEventContent>?>>
+    private lateinit var roomGetById: Mocker.Every<Flow<Room?>>
     private val userPowerLevel = MutableStateFlow(50)
 
     init {
@@ -134,13 +131,22 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
                 every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
 
-                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+                roomGetById = every { roomServiceMock.getById(roomId) }
+                roomGetById returns MutableStateFlow(
                     Room(
                         isDirect = true,
                         roomId = roomId
                     )
                 )
 
+                roomPowerLevel = mocker.every {
+                    roomServiceMock.getState(
+                        roomId,
+                        PowerLevelsEventContent::class,
+                        ""
+                    )
+                }
+                roomPowerLevel returns MutableStateFlow(powerLevelEvent)
                 every {
                     roomServiceMock.getState(
                         roomId,
@@ -180,13 +186,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
         should("set room's push rule to SILENT when we override all room notifications with 'do not notify'") {
             mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
-            mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(
                 PushRulesEventContent(
@@ -220,13 +219,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
         should("set room's push rule to SILENT when we set room notifications to 'do not notify' and do not have a rule for our name mention") {
             mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
-            mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(
                 PushRulesEventContent(
@@ -253,13 +245,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         }
 
         should("set room's push rule to MENTIONS when we set room notifications to 'do not notify'") {
-            mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(
@@ -296,13 +281,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
         should("set room's push rule to ALL there are no 'do not notify' rules for the room") {
             mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
-            mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
             val cut = roomSettingsViewModel(coroutineContext)
@@ -316,13 +294,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         }
 
         should("go back to the room list view when leaving the room successfully") {
-            mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
@@ -350,13 +321,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
         should("show an error message when trying to leave a room and we are not connected") {
             mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
-            mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
@@ -372,13 +336,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         }
 
         should("show an error message when leaving the room fails") {
-            mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
@@ -403,13 +360,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
         should("not allow to invite users") {
             mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
-            mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
 
@@ -425,13 +375,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
 
         should("allow to invite users") {
-            mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
@@ -449,7 +392,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
 
-            val roomPowerLevelRequirements = MutableStateFlow(
+            roomPowerLevel returns MutableStateFlow(
                 Event.StateEvent(
                     content = PowerLevelsEventContent(),
                     id = EventId("1"),
@@ -459,13 +402,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                     stateKey = "",
                 )
             )
-            mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns roomPowerLevelRequirements
 
             val cut = roomSettingsViewModel(coroutineContext)
             val canChangeRoomNameStateFlow = cut.canChangeRoomName // hold reference for WhileSubscribed
@@ -499,13 +435,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns roomPowerLevelRequirements
+            roomPowerLevel returns roomPowerLevelRequirements
             userPowerLevel.value = 25
 
             val cut = roomSettingsViewModel(coroutineContext)
@@ -553,6 +483,37 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             )
             println("power level not OK")
             canChangeRoomNameStateFlow.first { it.not() }
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("load the room name, set it when loaded, and can be manipulated afterwards") {
+            mocker.every {
+                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            } returns MutableStateFlow(null)
+
+            val roomStateFlow = MutableStateFlow<Room?>(null)
+            roomGetById returns roomStateFlow
+
+            val cut = roomSettingsViewModel(coroutineContext)
+            // subscribe to all values in order to check for correct values later
+            CoroutineScope(Dispatchers.Default).launch {
+                cut.roomNameLoading.collect()
+            }
+            CoroutineScope(Dispatchers.Default).launch {
+                cut.roomName.collect()
+            }
+
+            cut.roomNameLoading.value shouldBe true
+            cut.roomName.value shouldBe ""
+
+            roomStateFlow.value = Room(
+                roomId,
+                name = RoomDisplayName(explicitName = "Old name", summary = null)
+            )
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.roomNameLoading.value shouldBe false
+            cut.roomName.value shouldBe "Old name"
 
             cancelNeverEndingCoroutines()
         }
