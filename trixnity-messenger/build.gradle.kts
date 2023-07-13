@@ -74,7 +74,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.kodein.mock:mockmp-runtime:${Versions.mocKmp}")
-                implementation("org.kodein.mock:mockmp-test-helper:${Versions.mocKmp}")
+                implementation("org.kodein.mock:mockmp-test-helper-junit5:${Versions.mocKmp}")
 
                 implementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
