@@ -5,7 +5,7 @@ object Versions {
     const val trixnityMessenger = "1.0.0"
 
     val kotlinJvmTarget = JavaVersion.VERSION_11
-    const val trixnity = "3.7.0-beta3" // https://gitlab.com/trixnity/trixnity/-/releases
+    const val trixnity = "3.7.0-SNAPSHOT" // https://gitlab.com/trixnity/trixnity/-/releases
     const val kotlin = "1.8.22" // https://kotlinlang.org/
     const val ksp = "1.8.22-1.0.11" // https://github.com/google/ksp/releases
     const val kotlinxCoroutines = "1.7.2" // https://github.com/Kotlin/kotlinx.coroutines/releases
