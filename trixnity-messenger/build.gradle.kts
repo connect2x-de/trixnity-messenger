@@ -6,8 +6,8 @@ plugins {
     id("kotlin-parcelize")
     kotlin("multiplatform")
     kotlin("plugin.serialization").version(Versions.kotlin)
-    id("org.kodein.mock.mockmp")
     id("io.kotest.multiplatform")
+    id("com.google.devtools.ksp")
     `maven-publish`
 }
 
@@ -72,6 +72,9 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("org.kodein.mock:mockmp-runtime:${Versions.mocKmp}")
+                implementation("org.kodein.mock:mockmp-test-helper:${Versions.mocKmp}")
+
                 implementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
                 implementation("io.kotest:kotest-common:${Versions.kotest}")
@@ -153,6 +156,14 @@ android {
             res.srcDir(File(buildDir, "generated/moko/androidMain/res"))
         }
     }
+}
+
+dependencies {
+    configurations
+        .filter { it.name.startsWith("ksp") && it.name.contains("Test") }
+        .forEach {
+            add(it.name, "org.kodein.mock:mockmp-processor:${Versions.mocKmp}")
+        }
 }
 
 //afterEvaluate {

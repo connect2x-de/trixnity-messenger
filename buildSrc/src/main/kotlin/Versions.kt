@@ -6,7 +6,8 @@ object Versions {
 
     val kotlinJvmTarget = JavaVersion.VERSION_11
     const val trixnity = "3.7.0-beta3" // https://gitlab.com/trixnity/trixnity/-/releases
-    const val kotlin = "1.8.20" // https://kotlinlang.org/
+    const val kotlin = "1.8.22" // https://kotlinlang.org/
+    const val ksp = "1.8.22-1.0.11" // https://github.com/google/ksp/releases
     const val kotlinxCoroutines = "1.7.2" // https://github.com/Kotlin/kotlinx.coroutines/releases
     const val kotlinxSerialization = "1.5.1" // https://github.com/Kotlin/kotlinx.serialization/releases
     const val decompose = "2.0.0" // https://github.com/arkivanov/Decompose/releases
@@ -14,7 +15,7 @@ object Versions {
     const val kotlinxDatetime = "0.4.0" // https://github.com/Kotlin/kotlinx-datetime/releases
     const val koin = "3.4.2" // https://github.com/InsertKoinIO/koin/tags
     const val ktor = "2.3.2" // https://github.com/ktorio/ktor/releases
-    const val mocKMP = "1.14.0" // https://github.com/Kodein-Framework/MocKMP/releases
+    const val mocKmp = "1.14.0" // https://github.com/Kodein-Framework/MocKMP/releases
     const val kotest = "5.6.2" // https://github.com/kotest/kotest/releases
     const val jna = "5.13.0" // https://github.com/java-native-access/jna/tags
     const val okio = "3.4.0" // https://square.github.io/okio/changelog
@@ -31,7 +32,7 @@ object Versions {
 
     const val crypto = "1.1.0-alpha06" // https://developer.android.com/jetpack/androidx/releases/security
     const val activity = "1.7.2" // https://developer.android.com/jetpack/androidx/releases/activity
-    const val androidGradle = "7.3.1" // https://developer.android.com/reference/tools/gradle-api
+    const val androidGradle = "7.4.2" // https://developer.android.com/reference/tools/gradle-api
 }
 
 val JavaVersion.number: Int
