@@ -12,8 +12,8 @@ buildscript {
 }
 
 plugins {
-    id("org.kodein.mock.mockmp") version Versions.mocKMP apply false
     id("io.kotest.multiplatform") version Versions.kotest apply false
+    id("com.google.devtools.ksp") version Versions.ksp apply false
 }
 
 allprojects {
