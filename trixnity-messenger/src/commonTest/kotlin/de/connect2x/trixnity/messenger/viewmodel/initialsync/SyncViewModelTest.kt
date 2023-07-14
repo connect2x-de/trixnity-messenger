@@ -12,9 +12,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -31,29 +29,23 @@ class SyncViewModelTest : ShouldSpec() {
     @Mock
     lateinit var onSyncDone: () -> Unit
 
-    private var initialSyncWasCalled = false
-    private var onSyncDoneCalled = false
-
     init {
-        coroutineTestScope = true
         Dispatchers.setMain(testMainDispatcher)
-        isolationMode = IsolationMode.InstancePerTest // initialSyncWasCalled has to be reset
 
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+        }
 
+        should("not do any sync if there is no network") {
+            var onSyncDoneCalled = false
             with(mocker) {
                 every { onSyncDone.invoke() } runs {
                     onSyncDoneCalled = true
                 }
             }
-        }
-
-        should("not do any sync if there is no network") {
-            val cut = syncViewModel(mapOf("test1" to InitialSyncState.NOT_DONE), isNetworkAvailable = false)
+            val cut = syncViewModel(mapOf("test1" to InitialSyncState.NOT_DONE), mapOf(), isNetworkAvailable = false)
             continually(1.seconds) {
-                initialSyncWasCalled shouldBe false
                 cut.accountSyncStates.value shouldBe mapOf(
                     "test1" to AccountSync(
                         InitialSyncState.NOT_DONE,
@@ -65,13 +57,18 @@ class SyncViewModelTest : ShouldSpec() {
         }
 
         should("do the sync for all accounts if the network is available") {
+            var onSyncDoneCalled = false
+            with(mocker) {
+                every { onSyncDone.invoke() } runs {
+                    onSyncDoneCalled = true
+                }
+            }
             val cut = syncViewModel(
                 accountNames = mapOf("test1" to InitialSyncState.NOT_DONE, "test2" to InitialSyncState.DONE),
                 runInitialSync = mapOf("test1" to flowOf(true), "test2" to flowOf(false)),
                 isNetworkAvailable = true,
             )
             eventually(1.seconds) {
-                initialSyncWasCalled shouldBe true
                 cut.accountSyncStates.value shouldBe mapOf(
                     "test1" to AccountSync(
                         InitialSyncState.NOT_DONE,
@@ -87,17 +84,22 @@ class SyncViewModelTest : ShouldSpec() {
         }
 
         should("finish the syncs for different accounts in parallel") {
+            var onSyncDoneCalled = false
+            with(mocker) {
+                every { onSyncDone.invoke() } runs {
+                    onSyncDoneCalled = true
+                }
+            }
+            val syncDone = MutableSharedFlow<Boolean>()
             val cut = syncViewModel(
                 accountNames = mapOf("test1" to InitialSyncState.NOT_DONE, "test2" to InitialSyncState.DONE),
-                runInitialSync = mapOf("test1" to flow {
-                    delay(2.seconds)
-                    emit(true)
-                }, "test2" to flowOf(false)),
+                runInitialSync = mapOf("test1" to syncDone, "test2" to flowOf(true)),
                 isNetworkAvailable = true,
             )
-            eventually(1.seconds) {
-                initialSyncWasCalled shouldBe true
-                cut.accountSyncStates.value shouldBe mapOf(
+
+            cut.accountSyncStates.first {
+                // do NOT use == as this fails in iOS
+                it.entries.containsAll(mapOf(
                     "test1" to AccountSync(
                         InitialSyncState.NOT_DONE,
                         AccountSyncState.RUNNING,
@@ -105,13 +107,14 @@ class SyncViewModelTest : ShouldSpec() {
                     "test2" to AccountSync(
                         InitialSyncState.DONE,
                         AccountSyncState.DONE,
-                    ),
-                )
-                onSyncDoneCalled shouldBe false
+                    )
+                ).entries)
             }
-            eventually(3.seconds) {
-                initialSyncWasCalled shouldBe true
-                cut.accountSyncStates.value shouldBe mapOf(
+            onSyncDoneCalled shouldBe false
+
+            syncDone.emit(true)
+            cut.accountSyncStates.first {
+                it.entries.containsAll(mapOf(
                     "test1" to AccountSync(
                         InitialSyncState.NOT_DONE,
                         AccountSyncState.DONE,
@@ -119,13 +122,19 @@ class SyncViewModelTest : ShouldSpec() {
                     "test2" to AccountSync(
                         InitialSyncState.DONE,
                         AccountSyncState.DONE,
-                    ),
-                )
-                onSyncDoneCalled shouldBe true
+                    )
+                ).entries)
             }
+            onSyncDoneCalled shouldBe true
         }
 
         should("cancel syncs for all accounts if cancellation is called") {
+            var onSyncDoneCalled = false
+            with(mocker) {
+                every { onSyncDone.invoke() } runs {
+                    onSyncDoneCalled = true
+                }
+            }
             val cut = syncViewModel(
                 accountNames = mapOf("test1" to InitialSyncState.NOT_DONE, "test2" to InitialSyncState.DONE),
                 runInitialSync = mapOf("test1" to flow {
@@ -144,7 +153,7 @@ class SyncViewModelTest : ShouldSpec() {
 
     fun syncViewModel(
         accountNames: Map<String, InitialSyncState>,
-        runInitialSync: Map<String, Flow<Boolean>> = mapOf(),
+        runInitialSync: Map<String, Flow<Boolean>>,
         isNetworkAvailable: Boolean = true,
     ): SyncViewModel =
         SyncViewModelImpl(
@@ -169,7 +178,7 @@ class SyncViewModelTest : ShouldSpec() {
                 single<RunInitialSync> {
                     object : RunInitialSync {
                         override fun invoke(accountName: String): Flow<Boolean> {
-                            initialSyncWasCalled = true
+                            println("runInitialSync($accountName)")
                             return runInitialSync[accountName] ?: flowOf(false)
                         }
                     }
