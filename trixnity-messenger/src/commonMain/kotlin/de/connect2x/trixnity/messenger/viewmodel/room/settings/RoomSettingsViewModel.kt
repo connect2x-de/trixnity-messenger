@@ -53,6 +53,7 @@ interface RoomSettingsViewModel {
 
     /** only use this value when [roomNameLoading] is `false` */
     val roomName: MutableStateFlow<String>
+    val roomNameChanged: StateFlow<Boolean>
     val canChangeRoomName: StateFlow<Boolean>
     val roomNotificationLevels: Map<NotificationLevels, NotificationLevel>
     val selectedRoomNotificationsLevel: StateFlow<NotificationLevel>
@@ -93,6 +94,12 @@ open class RoomSettingsViewModelImpl(
     override val roomNameLoading: StateFlow<Boolean> = roomNameState.map { it is RoomNameState.Undetermined }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val roomName: MutableStateFlow<String> = MutableStateFlow("")
+    override val roomNameChanged = combine(roomName, roomNameState) { name, origName ->
+        name != when (origName) {
+            is RoomNameState.Undetermined -> ""
+            is RoomNameState.Determined -> origName.name ?: ""
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val canChangeRoomName: StateFlow<Boolean> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId, stateKey = ""),
@@ -394,6 +401,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
 
     override val roomNameLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val roomName: MutableStateFlow<String> = MutableStateFlow("room name")
+    override val roomNameChanged: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canChangeRoomName: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val roomNotificationLevels: Map<NotificationLevels, NotificationLevel> = mapOf(
         NotificationLevels.ALL to NotificationLevelAll(),
