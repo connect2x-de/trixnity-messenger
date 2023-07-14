@@ -1,13 +1,11 @@
 package de.connect2x.trixnity.messenger
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.client.MatrixClient
 
 data class NamedMatrixClient(
     val accountName: String,
     val matrixClient: MutableStateFlow<MatrixClient?>,
-    internal val coroutineScope: CoroutineScope,
 ) {
     override fun hashCode(): Int {
         return accountName.hashCode() + matrixClient.value.hashCode()

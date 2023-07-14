@@ -113,7 +113,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                 NamedMatrixClient(
                     accountName = "test1",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 )
             )
             loginCalled shouldBe true
@@ -129,12 +128,10 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                 NamedMatrixClient(
                     accountName = "test1",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 ),
                 NamedMatrixClient(
                     accountName = "test2",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 )
             )
         }
@@ -167,7 +164,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                 NamedMatrixClient(
                     accountName = "test1",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 )
             )
             initFromStoreCalled shouldBe true
@@ -194,7 +190,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                     NamedMatrixClient(
                         accountName = "test1",
                         MutableStateFlow(matrixClientMock),
-                        CoroutineScope(Dispatchers.Default),
                     )
                 )
             val result = cut.initFromStore("test1")
@@ -209,17 +204,14 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                 NamedMatrixClient(
                     accountName = "test1",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 ),
                 NamedMatrixClient(
                     accountName = "test2",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 ),
                 NamedMatrixClient(
                     accountName = "test3",
                     MutableStateFlow(matrixClientMock),
-                    CoroutineScope(Dispatchers.Default),
                 ),
             )
 
