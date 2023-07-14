@@ -52,7 +52,7 @@ class DefaultMatrixClientService(
     private val mediaStoreCreation: suspend (accountName: String) -> MediaStore = {
         createMediaStore(context, it)
     },
-    private val matrixClientFactory: (CoroutineScope) -> MatrixClientFactory = { scopeParam ->
+    private val matrixClientFactory: () -> MatrixClientFactory = {
         val configuration: MatrixClientConfiguration.() -> Unit = {
             setOwnMessagesAsFullyRead = true
             httpClientFactory = baseHttpClient
@@ -83,7 +83,6 @@ class DefaultMatrixClientService(
                     repositoriesModule = repositoriesModule,
                     mediaStore = mediaStoreCreation(accountName),
                     configuration = configuration,
-                    scope = scopeParam
                 )
             }
 
@@ -99,7 +98,6 @@ class DefaultMatrixClientService(
                     repositoriesModule = repositoriesModule,
                     mediaStore = mediaStoreCreation(accountName),
                     configuration = configuration,
-                    scope = scopeParam,
                 )
             }
         }
@@ -135,7 +133,7 @@ class DefaultMatrixClientService(
         log.debug { "existing MatrixClients: ${matrixClients.value}" }
         return if (matrixClients.value.none { it.accountName == accountName }) {
             log.info { "try to login" }
-            matrixClientFactory(scope).login(
+            matrixClientFactory().login(
                 baseUrl,
                 identifier,
                 password,
@@ -173,7 +171,7 @@ class DefaultMatrixClientService(
         return mutex.withLock {
             if (matrixClients.value.none { it.accountName == accountName }) {
                 log.info { "try to init from store" }
-                matrixClientFactory(scope).initFromStore(accountName).map {
+                matrixClientFactory().initFromStore(accountName).map {
                     if (it != null) {
                         matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
                         true

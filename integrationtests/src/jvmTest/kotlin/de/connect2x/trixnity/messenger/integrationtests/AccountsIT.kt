@@ -26,7 +26,6 @@ import kotlin.test.Test
 class AccountsIT {
 
     private lateinit var koinApplication: KoinApplication
-    private lateinit var scope: CoroutineScope
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
 
     private val password = "user$1passw0rd"
@@ -45,7 +44,6 @@ class AccountsIT {
                 settingsModule()
             )
         }
-        scope = CoroutineScope(Dispatchers.Default) + CoroutineName("accounts-client1")
         val baseUrl = URLBuilder(
             protocol = URLProtocol.HTTP,
             host = synapseDocker.host,
@@ -58,21 +56,18 @@ class AccountsIT {
             baseUrl = baseUrl,
             repositoriesModule = repositoriesModule1,
             mediaStore = InMemoryMediaStore(),
-            scope = scope,
             getLoginInfo = { it.register("user1", password) }
         ).getOrThrow()
         MatrixClient.loginWith(
             baseUrl = baseUrl,
             repositoriesModule = repositoriesModule2,
             mediaStore = InMemoryMediaStore(),
-            scope = scope,
             getLoginInfo = { it.register("user2", password) }
         ).getOrThrow()
     }
 
     @AfterTest
     fun afterEach() {
-        scope.cancel()
         singleThreadContext.close()
     }
 
