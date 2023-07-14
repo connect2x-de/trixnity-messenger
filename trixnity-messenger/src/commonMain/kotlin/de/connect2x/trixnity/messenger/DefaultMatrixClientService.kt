@@ -141,7 +141,6 @@ class DefaultMatrixClientService(
                 accountName,
             ).map {
                 // if we log in, we need to register the new account name locally
-                di.get<GetAccountNames>() + accountName
                 matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
                 log.debug { "logged in successfully with account $accountName" }
             }.recoverCatching { exc ->
