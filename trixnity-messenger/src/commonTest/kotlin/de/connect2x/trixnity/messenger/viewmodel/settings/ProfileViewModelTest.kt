@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.timing.eventually
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -44,7 +43,6 @@ class ProfileViewModelTest : ShouldSpec() {
     val mocker = Mocker()
 
     private val ownUserId = UserId("bob", "localhost")
-    private val displayNameFlow = MutableStateFlow("Bob")
     private val ownUserId2 = UserId("alice", "localhost")
     private val displayNameFlow2 = MutableStateFlow("Alice")
 
@@ -64,7 +62,6 @@ class ProfileViewModelTest : ShouldSpec() {
 
     init {
         Dispatchers.setMain(testMainDispatcher)
-        isolationMode = IsolationMode.InstancePerTest // for displayNameFlow resets
 
         beforeTest {
             mocker.reset()
@@ -79,12 +76,6 @@ class ProfileViewModelTest : ShouldSpec() {
                         }
                     )
                 }.koin
-                every { matrixClientMock.displayName } returns displayNameFlow
-                setDisplayNameMocker = everySuspending { matrixClientMock.setDisplayName(isAny()) }
-                setDisplayNameMocker runs {
-                    displayNameFlow.value = it[0] as String
-                    Result.success(Unit)
-                }
                 every { matrixClientMock.avatarUrl } returns MutableStateFlow("mxc://localhost/123456")
                 every { matrixClientMock.userId } returns ownUserId
 
@@ -114,6 +105,7 @@ class ProfileViewModelTest : ShouldSpec() {
         }
 
         should("show profiles initially") {
+            mocker.every { matrixClientMock.displayName } returns MutableStateFlow("Bob")
             mocker.everySuspending {
                 mediaServiceMock.getThumbnail(
                     isEqual("mxc://localhost/123456"),
@@ -148,6 +140,14 @@ class ProfileViewModelTest : ShouldSpec() {
         }
 
         should("set a new display name and reload profile") {
+            // do NOT move this block into the init block as it will break in iOS tests
+            val displayNameFlow = MutableStateFlow("Bob")
+            mocker.every { matrixClientMock.displayName } returns displayNameFlow
+            setDisplayNameMocker = mocker.everySuspending { matrixClientMock.setDisplayName(isAny()) }
+            setDisplayNameMocker runs {
+                displayNameFlow.value = it[0] as String
+                Result.success(Unit)
+            }
             mocker.everySuspending {
                 mediaServiceMock.getThumbnail(
                     isEqual("mxc://localhost/123456"),
@@ -175,6 +175,13 @@ class ProfileViewModelTest : ShouldSpec() {
         }
 
         should("show error when new display name cannot be set") {
+            val displayNameFlow = MutableStateFlow("Bob")
+            mocker.every { matrixClientMock.displayName } returns displayNameFlow
+            setDisplayNameMocker = mocker.everySuspending { matrixClientMock.setDisplayName(isAny()) }
+            setDisplayNameMocker runs {
+                displayNameFlow.value = it[0] as String
+                Result.success(Unit)
+            }
             mocker.everySuspending {
                 mediaServiceMock.getThumbnail(
                     isEqual("mxc://localhost/123456"),
@@ -201,6 +208,13 @@ class ProfileViewModelTest : ShouldSpec() {
         }
 
         should("display an error message when the user has not enough rights to change the display name") {
+            val displayNameFlow = MutableStateFlow("Bob")
+            mocker.every { matrixClientMock.displayName } returns displayNameFlow
+            setDisplayNameMocker = mocker.everySuspending { matrixClientMock.setDisplayName(isAny()) }
+            setDisplayNameMocker runs {
+                displayNameFlow.value = it[0] as String
+                Result.success(Unit)
+            }
             mocker.everySuspending {
                 mediaServiceMock.getThumbnail(
                     isEqual("mxc://localhost/123456"),
@@ -229,6 +243,7 @@ class ProfileViewModelTest : ShouldSpec() {
         }
 
         should("compute the open avatar cutter property") {
+            mocker.every { matrixClientMock.displayName } returns MutableStateFlow("Bob")
             mocker.everySuspending {
                 mediaServiceMock.getThumbnail(
                     isEqual("mxc://localhost/123456"),
