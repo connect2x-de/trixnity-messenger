@@ -233,6 +233,7 @@ class TimelineViewModelTest : ShouldSpec() {
             val cut = timelineViewModel(mockFunction0(mocker))
             cut.timelineElementViewModels.first { it.size == 2 }
             cut.lastVisibleTimelineElement.value = "1"
+            delay(200) // give the viewmodel time to compute derived values
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -930,6 +931,7 @@ class TimelineViewModelTest : ShouldSpec() {
             cut.timelineElementViewModels waitForSize 1
             cut.windowIsFocused.value = true
             cut.lastVisibleTimelineElement.value = "0"
+            delay(200) // give the viewmodel time to compute derived values
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(this)
             scrollToCalled.value.shouldBeEmpty()

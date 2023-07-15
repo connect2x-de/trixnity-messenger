@@ -61,7 +61,7 @@ open class SyncViewModelImpl(
     private suspend fun doSync() {
         if (isNetworkAvailable()) {
             coroutineScope {
-                accountNames.entries.forEach { (accountName, initialSyncState) ->
+                accountNames.entries.map { (accountName, initialSyncState) ->
                     if (initialSyncState == NOT_DONE) {
                         launch {
                             log.info { "initial sync for $accountName" }
@@ -83,9 +83,10 @@ open class SyncViewModelImpl(
                             }
                         }
                     }
-                }
+                }.forEach { it.join() }
             }
         }
+        log.info { "initial sync done"}
         onSyncDone()
     }
 
