@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -52,16 +51,8 @@ class UserPresenceTest : ShouldSpec() {
     @Mock
     lateinit var directRoomMock: DirectRoom
 
-    private val userPresenceFlow = MutableStateFlow(
-        mapOf(
-            alice to PresenceEventContent(presence = Presence.ONLINE),
-            bob to PresenceEventContent(presence = Presence.UNAVAILABLE)
-        )
-    )
-
     init {
         coroutineTestScope = true
-        isolationMode = IsolationMode.InstancePerTest
 
         beforeTest {
             mocker.reset()
@@ -77,12 +68,17 @@ class UserPresenceTest : ShouldSpec() {
                 }.koin
                 every { matrixClientMock.api } returns matrixClientServerApiClient
                 every { matrixClientServerApiClient.users } returns usersApiClientMock
-
-                every { userServiceMock.userPresence } returns userPresenceFlow
             }
         }
 
         should("return null when not a direct room") {
+            val userPresenceFlow = MutableStateFlow(
+                mapOf(
+                    alice to PresenceEventContent(presence = Presence.ONLINE),
+                    bob to PresenceEventContent(presence = Presence.UNAVAILABLE)
+                )
+            )
+            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
             mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
                 null
             )
@@ -91,9 +87,18 @@ class UserPresenceTest : ShouldSpec() {
             val result = cut.presentEventContentFlow(matrixClientMock, room).stateIn(scope)
             testCoroutineScheduler.advanceUntilIdle()
             result.value shouldBe null
+
+            cancelNeverEndingCoroutines()
         }
 
         should("return the current presence status of the other user in a direct room") {
+            val userPresenceFlow = MutableStateFlow(
+                mapOf(
+                    alice to PresenceEventContent(presence = Presence.ONLINE),
+                    bob to PresenceEventContent(presence = Presence.UNAVAILABLE)
+                )
+            )
+            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
             mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
                 alice
             )
@@ -102,30 +107,36 @@ class UserPresenceTest : ShouldSpec() {
             val result = cut.presentEventContentFlow(matrixClientMock, room).stateIn(scope)
             testCoroutineScheduler.advanceUntilIdle()
             result.value shouldBe PresenceEventContent(presence = Presence.ONLINE)
+
+            cancelNeverEndingCoroutines()
         }
 
         should("return 'offline' initially when no presence status found") {
+            val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
+            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
             mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
                 alice
             )
             mocker.everySuspending { usersApiClientMock.getPresence(alice) } returns
                     Result.failure(RuntimeException("Oh no!"))
-            userPresenceFlow.value = mapOf()
 
             val cut = userPresence()
             val result = cut.presentEventContentFlow(matrixClientMock, room).stateIn(scope)
             result.value shouldBe PresenceEventContent(presence = Presence.OFFLINE)
             testCoroutineScheduler.advanceUntilIdle()
             result.value shouldBe PresenceEventContent(presence = Presence.OFFLINE)
+
+            cancelNeverEndingCoroutines()
         }
 
         should("update the presence information via a server request for users whose presence status is not known yet") {
+            val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
+            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
             mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
                 alice
             )
             mocker.everySuspending { usersApiClientMock.getPresence(alice) } returns
                     Result.success(PresenceEventContent(presence = Presence.ONLINE))
-            userPresenceFlow.value = mapOf()
 
             val cut = userPresence()
             cut.presentEventContentFlow(matrixClientMock, room)
@@ -136,6 +147,8 @@ class UserPresenceTest : ShouldSpec() {
                         1 -> value shouldBe PresenceEventContent(presence = Presence.ONLINE)
                     }
                 }
+
+            cancelNeverEndingCoroutines()
         }
     }
 
