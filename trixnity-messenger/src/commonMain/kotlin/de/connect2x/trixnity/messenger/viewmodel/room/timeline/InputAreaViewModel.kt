@@ -11,6 +11,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.replace
 import net.folivo.trixnity.client.room.message.reply
 import net.folivo.trixnity.client.room.message.text
+import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.Event.MessageEvent
@@ -48,6 +49,7 @@ interface InputAreaViewModel {
     val isEdit: StateFlow<Boolean>
     val replyToViewModel: StateFlow<ReplyToViewModel?>
     val isReplyTo: StateFlow<Boolean>
+    val listOfPossibleUsers: StateFlow<List<String>>
 
     /**
      * The UI should focus the input area whenever this value changes to a non-null value.
@@ -94,6 +96,23 @@ open class InputAreaViewModelImpl(
     override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
     override val isReplyTo: StateFlow<Boolean> =
         replyToViewModel.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val listOfPossibleUsers: StateFlow<List<String>> = message.map { message ->
+        val nameRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
+        message.split("\\R".toRegex()).lastOrNull()?.let { lastLine ->
+            val matchResult = nameRegex.find(lastLine)
+            val groups = matchResult?.groupValues?.filterNot { it == lastLine }
+            log.trace { "$groups" }
+            if (groups?.size == 1 || groups?.size == 2) {
+                val namePrefix =
+                    if (groups.size ==1) groups[0]
+                    else groups.filter { it.isNotEmpty() }.getOrNull(0) // multiline
+                        ?: "" // @ with no prefix yet
+                listOfUsers(namePrefix)
+            } else {
+                emptyList()
+            }
+        } ?: emptyList()
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
     init {
         coroutineScope.launch {
@@ -232,6 +251,21 @@ open class InputAreaViewModelImpl(
         repliedToEvent?.let { onMessageReplyFinished(it) }
     }
 
+    private suspend fun listOfUsers(startsWith: String): List<String> {
+        return matrixClient.user.getAll(selectedRoomId).filterNotNull()
+            .map { it.values }
+            .map { userFlowList ->
+                userFlowList
+                    .filter { roomUserFlow ->
+                        val roomUser = roomUserFlow.first()
+                        roomUser?.userId != matrixClient.userId &&
+                                roomUser?.name?.startsWith(startsWith, ignoreCase = true) ?: false
+                    }
+                    .take(10)
+                    .map { it.first()?.name ?: "" }
+            }.first()
+    }
+
     private suspend fun typing() {
         if (isTyping.value.not()) {
             isTyping.value = true
@@ -267,6 +301,7 @@ class PreviewInputViewModel : InputAreaViewModel {
     override val isEdit: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplyTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
+    override val listOfPossibleUsers: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
 
     override fun addNewlineToMessage() {
     }
