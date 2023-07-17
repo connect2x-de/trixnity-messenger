@@ -101,9 +101,9 @@ test:mac:
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
+  # TODO :trixnity-messenger:iosArm64Test not created by gradle
   script:
     - ./gradlew
-      :trixnity-messenger:iosArm64Test
       :trixnity-messenger:iosSimulatorArm64Test
       :trixnity-messenger:iosX64Test
       --stacktrace
