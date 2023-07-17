@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
@@ -11,7 +12,9 @@ plugins {
     `maven-publish`
 }
 
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+    targetHierarchy.default()
     jvmToolchain(Versions.kotlinJvmTarget.number)
     android {
         compilations.all {
@@ -44,8 +47,9 @@ kotlin {
         }
         binaries.executable()
     }
-    ios()
+    iosArm64()
     iosSimulatorArm64()
+    iosX64()
 
     sourceSets {
         all {
@@ -107,15 +111,12 @@ kotlin {
                 api(npm("@js-joda/timezone", "2.3.0"))
             }
         }
-        val iosMain by getting {
+        val appleMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
             }
-        }
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
         }
         val jvmTest by getting {
             dependencies {
@@ -127,10 +128,6 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-client-android:${Versions.ktor}")
             }
-        }
-        val iosTest by getting
-        val iosSimulatorArm64Test by getting {
-            dependsOn(iosTest)
         }
     }
 }
