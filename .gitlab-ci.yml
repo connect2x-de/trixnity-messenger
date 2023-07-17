@@ -82,7 +82,7 @@ variables:
 
 build:mac:
   stage: build
-  tags: [ "trixnity-mac-internal" ]
+  tags: [ "internal-mac" ]
   cache:
     - *cache-mac
     - *push-build-cache-mac
@@ -107,7 +107,7 @@ test:mac:
   stage: test
   timeout: 1h
   needs: [ "build:mac" ]
-  tags: [ "trixnity-mac-internal" ]
+  tags: [ "internal-mac" ]
   cache:
     - *pull-cache-mac
     - *pull-build-cache-mac
@@ -159,7 +159,7 @@ test:integration-test:
 
 publish:mac:
   stage: publish
-  tags: [ "trixnity-mac-internal" ]
+  tags: [ "internal-mac" ]
   cache:
     - *pull-cache-mac
   rules:
