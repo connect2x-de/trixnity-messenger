@@ -77,8 +77,13 @@ build:mac:
     - *cache-mac
   rules:
     - *if-merge-request-or-main
+  # TODO remove other task than assemble as soon as the tests do not flicker anymore
   script:
-    - ./gradlew :trixnity-messenger:assemble --stacktrace
+    - ./gradlew
+      :trixnity-messenger:assemble
+      :trixnity-messenger:linkDebugTestIosSimulatorArm64
+      :trixnity-messenger:linkDebugTestIosX64
+      --stacktrace
 
 build:linux:
   stage: build
@@ -88,8 +93,14 @@ build:linux:
     - *cache-linux
   rules:
     - *if-merge-request-or-main
+  # TODO remove other task than assemble as soon as the tests do not flicker anymore
   script:
-    - ./gradlew :trixnity-messenger:assemble --stacktrace
+    - ./gradlew
+      :trixnity-messenger:assemble
+      :trixnity-messenger:jvmTestClasses
+      :trixnity-messenger:compileTestKotlinJs
+      :trixnity-messenger:compileReleaseUnitTestKotlinAndroid
+      --stacktrace
 
 test:mac:
   stage: test
