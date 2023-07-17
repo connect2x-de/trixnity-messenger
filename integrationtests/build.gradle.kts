@@ -13,10 +13,8 @@ kotlin {
             useJUnitPlatform()
             // testLogging.showStandardStreams = true   // activate when detailed information in tests is required
         }
-        if (isCI.not()) {
-            tasks.withType<Test>().configureEach {
-                maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
-            }
+        tasks.withType<Test>().configureEach {
+            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
 
