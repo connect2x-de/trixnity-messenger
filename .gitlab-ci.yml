@@ -103,9 +103,9 @@ test:mac:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      iosArm64Test
-      iosSimulatorArm64Test
-      iosX64Test
+      :trixnity-messenger:iosArm64Test
+      :trixnity-messenger:iosSimulatorArm64Test
+      :trixnity-messenger:iosX64Test
       --stacktrace
 
 test:linux:
@@ -121,9 +121,9 @@ test:linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      jvmTest -x :integrationtests:jvmTest
-      testReleaseUnitTest
-      jsTest
+      :trixnity-messenger:jvmTest
+      :trixnity-messenger:testReleaseUnitTest
+      :trixnity-messenger:jsTest
       --stacktrace
 
 test:integration-test:
