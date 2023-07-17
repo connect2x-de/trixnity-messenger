@@ -19,7 +19,7 @@ kotlin {
         }
         publishLibraryVariants("release")
     }
-    jvm("desktop") {
+    jvm {
         compilations.all {
             kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
         }
@@ -84,7 +84,7 @@ kotlin {
                 implementation("ch.qos.logback:logback-classic:${Versions.logback}")
             }
         }
-        val desktopMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
@@ -117,7 +117,7 @@ kotlin {
         val iosSimulatorArm64Main by getting {
             dependsOn(iosMain)
         }
-        val desktopTest by getting {
+        val jvmTest by getting {
             dependencies {
                 implementation("io.kotest:kotest-runner-junit5:${Versions.kotest}")
                 implementation("io.ktor:ktor-client-java:${Versions.ktor}")
