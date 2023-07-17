@@ -10,33 +10,21 @@ variables:
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
   BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/trixnity/trixnity-build-linux:latest
 
-.pull-cache-linux: &pull-cache-linux
-  - key: global-tixnity-cache-linux
-    policy: pull
-    paths:
-      - $GRADLE_USER_HOME
-      - $KONAN_DATA_DIR
-
 .cache-linux: &cache-linux
   - key: global-tixnity-cache-linux
+    policy: pull-push
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
-
-.pull-build-cache-linux: &pull-build-cache-linux
-  - key: "$CI_COMMIT_REF_NAME-linux"
-    policy: pull
-    paths:
-      - $BUILD_DIRS
-
-.push-build-cache-linux: &push-build-cache-linux
   - key: "$CI_COMMIT_REF_NAME-linux"
     policy: push
     paths:
-      - $BUILD_DIRS
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
 
-.pull-cache-mac: &pull-cache-mac
-  - key: global-tixnity-cache-mac
+.pull-cache-linux: &pull-cache-linux
+  - key: "$CI_COMMIT_REF_NAME-linux"
+    fallback_keys: [ "global-tixnity-cache-linux" ]
     policy: pull
     paths:
       - $GRADLE_USER_HOME
@@ -44,21 +32,23 @@ variables:
 
 .cache-mac: &cache-mac
   - key: global-tixnity-cache-mac
+    policy: pull-push
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
+  - key: "$CI_COMMIT_REF_NAME-mac"
+    policy: push
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
 
-.pull-build-cache-mac: &pull-build-cache-mac
+.pull-cache-mac: &pull-cache-mac
   - key: "$CI_COMMIT_REF_NAME-mac"
+    fallback_keys: [ "global-tixnity-cache-mac" ]
     policy: pull
     paths:
-      - $BUILD_DIRS
-
-.push-build-cache-mac: &push-build-cache-mac
-  - key: "$CI_COMMIT_REF_NAME-mac"
-    policy: push
-    paths:
-      - $BUILD_DIRS
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
 
 .artifact-reports: &artifact-reports
   name: reports
@@ -85,7 +75,6 @@ build:mac:
   tags: [ "internal-mac" ]
   cache:
     - *cache-mac
-    - *push-build-cache-mac
   rules:
     - *if-merge-request-or-main
   script:
@@ -97,7 +86,6 @@ build:linux:
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
     - *cache-linux
-    - *push-build-cache-linux
   rules:
     - *if-merge-request-or-main
   script:
@@ -110,7 +98,6 @@ test:mac:
   tags: [ "internal-mac" ]
   cache:
     - *pull-cache-mac
-    - *pull-build-cache-mac
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
@@ -129,7 +116,6 @@ test:linux:
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
     - *pull-cache-linux
-    - *pull-build-cache-linux
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
@@ -149,7 +135,6 @@ test:integration-test:
     - name: docker:dind
   cache:
     - *pull-cache-linux
-    - *pull-build-cache-linux
   variables: *docker-variables
   artifacts: *artifact-reports
   rules:
