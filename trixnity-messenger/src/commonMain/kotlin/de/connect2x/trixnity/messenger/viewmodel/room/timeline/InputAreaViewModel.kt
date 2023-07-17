@@ -3,24 +3,54 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.canSendMessages
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.replace
 import net.folivo.trixnity.client.room.message.reply
 import net.folivo.trixnity.client.room.message.text
+import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.Event.MessageEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
+import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
+
+data class Username(
+    val matrixId: String,
+    val name: String,
+    val initials: String,
+    val avatar: Flow<ByteArray?>,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Username
+
+        if (matrixId != other.matrixId) return false
+        if (name != other.name) return false
+        return initials == other.initials
+    }
+
+    override fun hashCode(): Int {
+        var result = matrixId.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + initials.hashCode()
+        return result
+    }
+}
 
 interface InputAreaViewModelFactory {
     fun newInputAreaViewModel(
@@ -49,7 +79,8 @@ interface InputAreaViewModel {
     val isEdit: StateFlow<Boolean>
     val replyToViewModel: StateFlow<ReplyToViewModel?>
     val isReplyTo: StateFlow<Boolean>
-    val listOfPossibleUsers: StateFlow<List<String>>
+    val listOfPossibleUsers: StateFlow<List<Username>>
+    val listOfPossibleUsersLoading: StateFlow<Boolean?>
 
     /**
      * The UI should focus the input area whenever this value changes to a non-null value.
@@ -58,6 +89,7 @@ interface InputAreaViewModel {
 
     fun addNewlineToMessage()
     fun addToMessage(additional: String)
+    fun selectUser(username: Username)
     fun sendMessage()
     fun selectAttachment()
     fun closeAttachmentDialog()
@@ -76,6 +108,8 @@ open class InputAreaViewModelImpl(
     private val onMessageReplyFinished: (MessageEvent<*>) -> Unit,
     private val onShowAttachmentSendView: (file: String) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
+
+    private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
         canSendMessages(matrixClient, selectedRoomId)
@@ -96,22 +130,30 @@ open class InputAreaViewModelImpl(
     override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
     override val isReplyTo: StateFlow<Boolean> =
         replyToViewModel.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val listOfPossibleUsers: StateFlow<List<String>> = message.map { message ->
+    private val _listOfPossibleUsersLoading = MutableStateFlow<Boolean?>(null)
+    override val listOfPossibleUsersLoading: StateFlow<Boolean?> = _listOfPossibleUsersLoading.asStateFlow()
+    override val listOfPossibleUsers: StateFlow<List<Username>> = message.mapLatest { message ->
         val nameRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
         message.split("\\R".toRegex()).lastOrNull()?.let { lastLine ->
             val matchResult = nameRegex.find(lastLine)
             val groups = matchResult?.groupValues?.filterNot { it == lastLine }
-            log.trace { "$groups" }
             if (groups?.size == 1 || groups?.size == 2) {
                 val namePrefix =
-                    if (groups.size ==1) groups[0]
+                    if (groups.size == 1) groups[0]
                     else groups.filter { it.isNotEmpty() }.getOrNull(0) // multiline
                         ?: "" // @ with no prefix yet
-                listOfUsers(namePrefix)
+                _listOfPossibleUsersLoading.value = true
+                val listOfUsers = listOfUsers(namePrefix)
+                _listOfPossibleUsersLoading.value = false
+                listOfUsers
             } else {
+                _listOfPossibleUsersLoading.value = null
                 emptyList()
             }
-        } ?: emptyList()
+        } ?: run {
+            _listOfPossibleUsersLoading.value = null
+            emptyList()
+        }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
     init {
@@ -131,7 +173,6 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    @OptIn(FlowPreview::class)
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
 
@@ -143,6 +184,19 @@ open class InputAreaViewModelImpl(
     override fun addToMessage(additional: String) {
         message.value += additional
         _shouldFocus.value = uuid4().toString()
+    }
+
+    override fun selectUser(username: Username) {
+        val nameRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
+        val messageLines = message.value.split("\\R".toRegex())
+        messageLines.lastOrNull()?.let { lastLine ->
+            val matchResult = nameRegex.find(lastLine)
+            val groups = matchResult?.groupValues?.filterNot { it == lastLine }
+            if (groups?.size == 1 || groups?.size == 2) {
+                message.value = messageLines.drop(1).map { "$it\n" }.joinToString { "" } + lastLine.replaceAfterLast("@", "${username.name} ")
+                _shouldFocus.value = uuid4().toString()
+            }
+        }
     }
 
     override fun sendMessage() {
@@ -251,19 +305,34 @@ open class InputAreaViewModelImpl(
         repliedToEvent?.let { onMessageReplyFinished(it) }
     }
 
-    private suspend fun listOfUsers(startsWith: String): List<String> {
-        return matrixClient.user.getAll(selectedRoomId).filterNotNull()
-            .map { it.values }
-            .map { userFlowList ->
-                userFlowList
-                    .filter { roomUserFlow ->
-                        val roomUser = roomUserFlow.first()
-                        roomUser?.userId != matrixClient.userId &&
-                                roomUser?.name?.startsWith(startsWith, ignoreCase = true) ?: false
+    private suspend fun listOfUsers(startsWith: String): List<Username> {
+        val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
+        return allUsers?.filter { roomUserFlow ->
+            val roomUser = roomUserFlow.value.first()
+            val userId = roomUser?.userId
+            userId != matrixClient.userId && (
+                    roomUser?.name?.startsWith(startsWith, ignoreCase = true) ?: false ||
+                            userId?.localpart?.startsWith(startsWith, ignoreCase = true) ?: false ||
+                            userId?.domain?.startsWith(startsWith, ignoreCase = true) ?: false
+                    )
+        }
+            ?.map { roomUserFlow ->
+                roomUserFlow.key.full to roomUserFlow.value
+            }
+            ?.take(10)
+            ?.map { pair ->
+                val avatar = pair.second.map {
+                    it?.avatarUrl?.let { url ->
+                        matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
+                            onSuccess = { it.toByteArray() },
+                            onFailure = { null }
+                        )
                     }
-                    .take(10)
-                    .map { it.first()?.name ?: "" }
-            }.first()
+                }
+                val name = pair.second.first()?.name ?: ""
+                Username(pair.first, name, initials.compute(name), avatar)
+            }
+            ?: emptyList()
     }
 
     private suspend fun typing() {
@@ -301,12 +370,16 @@ class PreviewInputViewModel : InputAreaViewModel {
     override val isEdit: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplyTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
-    override val listOfPossibleUsers: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    override val listOfPossibleUsers: MutableStateFlow<List<Username>> = MutableStateFlow(emptyList())
+    override val listOfPossibleUsersLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun addNewlineToMessage() {
     }
 
     override fun addToMessage(additional: String) {
+    }
+
+    override fun selectUser(username: Username) {
     }
 
     override fun sendMessage() {

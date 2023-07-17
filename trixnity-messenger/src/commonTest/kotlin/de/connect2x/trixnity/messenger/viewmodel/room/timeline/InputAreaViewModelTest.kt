@@ -15,6 +15,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -38,6 +40,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction1
@@ -64,6 +67,9 @@ class InputAreaViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     @Mock
+    lateinit var mediaServiceMock: MediaService
+
+    @Mock
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
     @Mock
@@ -73,6 +79,8 @@ class InputAreaViewModelTest : ShouldSpec() {
 
     private val onMessageEditFinishedMock = mockFunction1<Unit, EventId>(mocker)
     private val onMessageReplToFinishedMock = mockFunction1<Unit, Event<*>>(mocker)
+
+    private lateinit var allRoomUsersMock: Mocker.Every<Flow<Map<UserId, Flow<RoomUser?>>?>>
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -84,8 +92,8 @@ class InputAreaViewModelTest : ShouldSpec() {
         val bobRoomUser = roomUser(ourUserId, "Bob") // our == bob
         val alvinUserId = UserId("@alvin:localhost")
         val alvinRoomUser = roomUser(alvinUserId, "Alvin")
-        val zoopUserId = UserId("@zoop:localhost")
-        val zoopRoomUser = roomUser(alvinUserId, "Zoop")
+        val zoopUserId = UserId("@completelyDifferent:anotherplanet")
+        val zoopRoomUser = roomUser(zoopUserId, "Zoop")
         val messageEvent = MessageEvent(
             content = TextMessageEventContent("Hello"),
             id = eventId,
@@ -104,6 +112,7 @@ class InputAreaViewModelTest : ShouldSpec() {
                         module {
                             single { roomServiceMock }
                             single { userServiceMock }
+                            single { mediaServiceMock }
                         }
                     )
                 }.koin
@@ -139,7 +148,8 @@ class InputAreaViewModelTest : ShouldSpec() {
                     )
                 )
                 every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
-                every { userServiceMock.getAll(roomId) } returns MutableStateFlow(
+                allRoomUsersMock = every { userServiceMock.getAll(roomId) }
+                allRoomUsersMock returns MutableStateFlow(
                     mapOf(
                         aliceUserId to flowOf(aliceRoomUser),
                         alvinUserId to flowOf(alvinRoomUser),
@@ -150,6 +160,10 @@ class InputAreaViewModelTest : ShouldSpec() {
                 every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
                 every { onMessageEditFinishedMock.invoke(isAny()) } returns Unit
                 every { onMessageReplToFinishedMock.invoke(isAny()) } returns Unit
+
+                everySuspending {
+                    mediaServiceMock.getThumbnail(isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
+                } returns Result.success("image".toByteArray().toByteArrayFlow())
             }
         }
 
@@ -426,11 +440,16 @@ class InputAreaViewModelTest : ShouldSpec() {
 
             cut.message.value = "Hello! @Al"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.listOfPossibleUsers.value shouldBe listOf("Alice", "Alvin")
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(aliceUserId.full, "Alice", "A", flowOf(null)),
+                Username(alvinUserId.full, "Alvin", "A", flowOf(null)),
+            )
 
             cut.message.value = "Hello! @Ali"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.listOfPossibleUsers.value shouldBe listOf("Alice")
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(aliceUserId.full, "Alice", "A", flowOf(null)),
+            )
 
             cut.message.value = "Hello! @Alin"
             testCoroutineScheduler.advanceUntilIdle()
@@ -447,7 +466,10 @@ class InputAreaViewModelTest : ShouldSpec() {
 
             cut.message.value = "Hello! @al"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.listOfPossibleUsers.value shouldBe listOf("Alice", "Alvin")
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(aliceUserId.full, "Alice", "A", flowOf(null)),
+                Username(alvinUserId.full, "Alvin", "A", flowOf(null)),
+            )
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -471,9 +493,11 @@ class InputAreaViewModelTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.message.value = "Hello!\n\nThis is great.\n@Ali"
+            cut.message.value = "Hello!\n\nThis is great.\n@Zoo"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.listOfPossibleUsers.value shouldBe listOf("Alice")
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(zoopUserId.full, "Zoop", "Z", flowOf(null)),
+            )
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -486,11 +510,90 @@ class InputAreaViewModelTest : ShouldSpec() {
 
             cut.message.value = "Hello! @"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.listOfPossibleUsers.value shouldBe listOf("Alice", "Alvin", "Zoop")
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(aliceUserId.full, "Alice", "A", flowOf(null)),
+                Username(alvinUserId.full, "Alvin", "A", flowOf(null)),
+                Username(zoopUserId.full, "Zoop", "Z", flowOf(null)),
+            )
 
             cut.message.value = "Hello! \n\n@"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.listOfPossibleUsers.value shouldBe listOf("Alice", "Alvin", "Zoop")
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(aliceUserId.full, "Alice", "A", flowOf(null)),
+                Username(alvinUserId.full, "Alvin", "A", flowOf(null)),
+                Username(zoopUserId.full, "Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("also search for users in the Matrix ID in room's potential user list") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @compl"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(zoopUserId.full, "Zoop", "Z", flowOf(null)),
+            )
+
+            cut.message.value = "Hello! @another"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(zoopUserId.full, "Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the loading flag correctly: null when no loading needed, true when still loading and false when loading has finished") {
+            val roomUsers = MutableSharedFlow<Map<UserId, Flow<RoomUser>>>()
+            allRoomUsersMock returns roomUsers
+
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfPossibleUsersLoading.value shouldBe null
+
+            cut.message.value = "Hello! @compl"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfPossibleUsersLoading.value shouldBe true
+            cut.listOfPossibleUsers.value shouldBe emptyList()
+
+            roomUsers.emit(
+                mapOf(
+                    zoopUserId to flowOf(zoopRoomUser),
+                )
+            )
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfPossibleUsersLoading.value shouldBe false
+            cut.listOfPossibleUsers.value shouldBe listOf(
+                Username(zoopUserId.full,"Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the currently selected user's displayname") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @Ali"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectUser(Username(aliceUserId.full, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "Hello! @Alice "
+
+            cut.message.value = "Hello!\n\nHola.\n@Ali"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectUser(Username(aliceUserId.full, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value = "Hello!\n\nHola.\n@Alice "
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
