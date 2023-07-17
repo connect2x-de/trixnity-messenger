@@ -81,7 +81,6 @@ build:mac:
   script:
     - ./gradlew
       :trixnity-messenger:assemble
-      :trixnity-messenger:linkDebugTestIosSimulatorArm64
       :trixnity-messenger:linkDebugTestIosX64
       --stacktrace
 
@@ -115,7 +114,6 @@ test:mac:
   # TODO :trixnity-messenger:iosArm64Test not created by gradle
   script:
     - ./gradlew
-      :trixnity-messenger:iosSimulatorArm64Test
       :trixnity-messenger:iosX64Test
       --stacktrace
 
