@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
@@ -11,7 +12,9 @@ plugins {
     `maven-publish`
 }
 
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+    targetHierarchy.default()
     jvmToolchain(Versions.kotlinJvmTarget.number)
     android {
         compilations.all {
@@ -19,7 +22,7 @@ kotlin {
         }
         publishLibraryVariants("release")
     }
-    jvm("desktop") {
+    jvm {
         compilations.all {
             kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
         }
@@ -28,7 +31,9 @@ kotlin {
             // testLogging.showStandardStreams = true   // activate when detailed information in tests is required
         }
         tasks.withType<Test>().configureEach {
-            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+            if (isCI.not()) {
+                maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+            }
         }
     }
     js(IR) {
@@ -44,8 +49,9 @@ kotlin {
         }
         binaries.executable()
     }
-    ios()
+    iosArm64()
     iosSimulatorArm64()
+    iosX64()
 
     sourceSets {
         all {
@@ -84,7 +90,7 @@ kotlin {
                 implementation("ch.qos.logback:logback-classic:${Versions.logback}")
             }
         }
-        val desktopMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
@@ -107,17 +113,14 @@ kotlin {
                 api(npm("@js-joda/timezone", "2.3.0"))
             }
         }
-        val iosMain by getting {
+        val appleMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
             }
         }
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
-        }
-        val desktopTest by getting {
+        val jvmTest by getting {
             dependencies {
                 implementation("io.kotest:kotest-runner-junit5:${Versions.kotest}")
                 implementation("io.ktor:ktor-client-java:${Versions.ktor}")
@@ -127,10 +130,6 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-client-android:${Versions.ktor}")
             }
-        }
-        val iosTest by getting
-        val iosSimulatorArm64Test by getting {
-            dependsOn(iosTest)
         }
     }
 }
