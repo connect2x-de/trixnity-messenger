@@ -1,11 +1,9 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.trixnity.messenger.MessengerConfig
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createMessenger
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
-import de.connect2x.trixnity.messenger.integrationtests.util.newDatabase
-import de.connect2x.trixnity.messenger.integrationtests.util.register
-import de.connect2x.trixnity.messenger.integrationtests.util.settingsModule
-import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
+import de.connect2x.trixnity.messenger.integrationtests.util.*
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import io.ktor.http.*
 import kotlinx.coroutines.*
@@ -40,6 +38,8 @@ class VerificationIT {
     fun beforeEach(): Unit = runBlocking {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
+
+        MessengerConfig.instance.appName = "timmyVerificationIT" // for different DB locations
 
         koinApplication1 = koinApplication {
             modules(
@@ -77,6 +77,7 @@ class VerificationIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
+        cleanup()
     }
 
     @Test
@@ -89,6 +90,7 @@ class VerificationIT {
                     username = "user1",
                     password = password,
                 )
+            deleteAppFolder() // we have to clean up in between so that the "new" messenger does not read from the other database
             val messenger2 = createMessenger(koinApplication2)
             messenger2.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
@@ -96,6 +98,7 @@ class VerificationIT {
                 password = password,
                 recoveryKey = recoveryKey,
             )
+            deleteAppFolder()
             val messenger3 = createMessenger(koinApplication3)
             messenger3.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",

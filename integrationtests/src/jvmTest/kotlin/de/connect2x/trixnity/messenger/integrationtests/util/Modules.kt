@@ -16,11 +16,6 @@ fun settingsModule() = module {
             override val defaultNotificationShowPopup: Boolean = false
             override val defaultNotificationShowText: Boolean = false
 
-            override var accountNames: List<String>
-                get() = settings["accountNames"]?.let { it as List<String> } ?: emptyList()
-                set(value) {
-                    settings["accountNames"] = value
-                }
             override var activeAccount: String?
                 get() = settings["activeAccount"]?.let { it as String? }
                 set(value) {

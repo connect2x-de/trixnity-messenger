@@ -885,7 +885,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 listOf(
                     NamedMatrixClient(
                         accountName = "test1",
-                        MutableStateFlow(matrixClientMock1)
+                        MutableStateFlow(matrixClientMock1),
                     ),
                 )
             testCoroutineScheduler.advanceUntilIdle()
@@ -915,15 +915,15 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             listOf(
                 NamedMatrixClient(
                     accountName = "test1",
-                    MutableStateFlow(matrixClientMock1)
+                    MutableStateFlow(matrixClientMock1),
                 ),
                 NamedMatrixClient(
                     accountName = "test2",
-                    MutableStateFlow(matrixClientMock2)
+                    MutableStateFlow(matrixClientMock2),
                 ),
                 NamedMatrixClient(
                     accountName = "test3",
-                    MutableStateFlow(matrixClientMock3)
+                    MutableStateFlow(matrixClientMock3),
                 )
             )
         )
@@ -936,14 +936,8 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 }
                 single {
                     object : GetAccountNames {
-                        override fun invoke(): List<String> {
+                        override suspend fun invoke(): List<String> {
                             return listOf("test1", "test2", "test3")
-                        }
-
-                        override fun minus(accountName: String) {
-                        }
-
-                        override fun plus(accountName: String) {
                         }
                     }
                 }

@@ -47,7 +47,7 @@ class DefaultMatrixClientService(
     private val di: Koin,
     private val baseHttpClient: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
     private val repositoriesModuleCreation: suspend (account: String) -> Module = {
-        createRepositoriesModule(context, it)
+        createRepositoriesModule(it)
     },
     private val mediaStoreCreation: suspend (accountName: String) -> MediaStore = {
         createMediaStore(context, it)
@@ -141,7 +141,6 @@ class DefaultMatrixClientService(
                 accountName,
             ).map {
                 // if we log in, we need to register the new account name locally
-                di.get<GetAccountNames>() + accountName
                 matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
                 log.debug { "logged in successfully with account $accountName" }
             }.recoverCatching { exc ->
@@ -154,12 +153,12 @@ class DefaultMatrixClientService(
         log.info { "logging out of account '$accountName'" }
         log.debug { "currently active MatrixClients: ${matrixClients.value.joinToString { "${it.accountName} (${it.matrixClient.value})" }}" }
         return matrixClients.value.find { it.accountName == accountName }?.let { namedMatrixClient ->
-            log.debug { "MatrixClient.logout() for $namedMatrixClient" }
+            log.info { "MatrixClient.logout() for $namedMatrixClient" }
             matrixClients.value -= namedMatrixClient
             val result = namedMatrixClient.matrixClient.value?.logout()?.onSuccess {
                 namedMatrixClient.matrixClient.value = null
-                di.get<GetAccountNames>() - accountName
-                deleteDatabase(accountName)
+                log.info { "now, delete account data on this machine" }
+                deleteAccountDataLocally(accountName)
             }
             result
         } ?: Result.success(Unit)

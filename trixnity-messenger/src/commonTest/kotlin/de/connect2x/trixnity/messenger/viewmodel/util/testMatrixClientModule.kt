@@ -15,7 +15,7 @@ fun testMatrixClientModule(matrixClientMock: MatrixClient, accountName: String =
                 listOf(
                     NamedMatrixClient(
                         accountName,
-                        MutableStateFlow(matrixClientMock)
+                        MutableStateFlow(matrixClientMock),
                     )
                 )
             )
@@ -24,14 +24,8 @@ fun testMatrixClientModule(matrixClientMock: MatrixClient, accountName: String =
 
     single {
         object : GetAccountNames {
-            override fun invoke(): List<String> {
+            override suspend fun invoke(): List<String> {
                 return listOf(accountName)
-            }
-
-            override fun minus(accountName: String) {
-            }
-
-            override fun plus(accountName: String) {
             }
         }
     }
@@ -45,7 +39,10 @@ fun testMatrixClientModule(
         NamedMatrixClients(
             MutableStateFlow(
                 matrixClientMocks.zip(accountNames) { matrixClientMock, accountName ->
-                    NamedMatrixClient(accountName, MutableStateFlow(matrixClientMock))
+                    NamedMatrixClient(
+                        accountName,
+                        MutableStateFlow(matrixClientMock),
+                    )
                 }
             )
         )
@@ -53,14 +50,8 @@ fun testMatrixClientModule(
 
     single {
         object : GetAccountNames {
-            override fun invoke(): List<String> {
+            override suspend fun invoke(): List<String> {
                 return accountNames
-            }
-
-            override fun minus(accountName: String) {
-            }
-
-            override fun plus(accountName: String) {
             }
         }
     }

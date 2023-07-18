@@ -8,6 +8,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,16 +70,8 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                         single<GetAccountNames> {
                             object : GetAccountNames {
                                 val accounts = mutableListOf<String>()
-                                override fun invoke(): List<String> {
+                                override suspend fun invoke(): List<String> {
                                     return accounts
-                                }
-
-                                override fun minus(accountName: String) {
-                                    accounts -= accountName
-                                }
-
-                                override fun plus(accountName: String) {
-                                    accounts += accountName
                                 }
                             }
                         }
@@ -119,11 +112,10 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
             cut.matrixClients.value shouldBe listOf(
                 NamedMatrixClient(
                     accountName = "test1",
-                    MutableStateFlow(matrixClientMock)
+                    MutableStateFlow(matrixClientMock),
                 )
             )
             loginCalled shouldBe true
-            di.get<GetAccountNames>()() shouldBe listOf("test1")
         }
 
         should("login for another account and create additional MatrixClient") {
@@ -142,7 +134,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                     MutableStateFlow(matrixClientMock),
                 )
             )
-            di.get<GetAccountNames>()() shouldBe listOf("test1", "test2")
         }
 
         should("not login again, if MatrixClient already present for account") {
@@ -153,7 +144,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
             loginCalled = false
             cut.login(Url("https://example.org"), User("user"), "password", "", "test1")
             loginCalled shouldBe false // use the existing MatrixClient and do not log in again
-            di.get<GetAccountNames>()() shouldBe listOf("test1")
         }
 
         should("return exception in Result if login is not possible") {
@@ -173,7 +163,7 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
             cut.matrixClients.value shouldBe listOf(
                 NamedMatrixClient(
                     accountName = "test1",
-                    MutableStateFlow(matrixClientMock)
+                    MutableStateFlow(matrixClientMock),
                 )
             )
             initFromStoreCalled shouldBe true
@@ -196,7 +186,12 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
         should("not init from store when matrix client is present already") {
             val cut = defaultMatrixClientService(di)
             cut.matrixClients.value =
-                listOf(NamedMatrixClient(accountName = "test1", MutableStateFlow(matrixClientMock)))
+                listOf(
+                    NamedMatrixClient(
+                        accountName = "test1",
+                        MutableStateFlow(matrixClientMock),
+                    )
+                )
             val result = cut.initFromStore("test1")
 
             result shouldBe Result.success(true)
@@ -206,9 +201,18 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
         should("remove matrix clients of all accounts on destroy") {
             val cut = defaultMatrixClientService(di)
             cut.matrixClients.value = listOf(
-                NamedMatrixClient(accountName = "test1", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient(accountName = "test2", MutableStateFlow(matrixClientMock)),
-                NamedMatrixClient(accountName = "test3", MutableStateFlow(matrixClientMock)),
+                NamedMatrixClient(
+                    accountName = "test1",
+                    MutableStateFlow(matrixClientMock),
+                ),
+                NamedMatrixClient(
+                    accountName = "test2",
+                    MutableStateFlow(matrixClientMock),
+                ),
+                NamedMatrixClient(
+                    accountName = "test3",
+                    MutableStateFlow(matrixClientMock),
+                ),
             )
 
             val namedMatrixClient = cut.matrixClients.value[0]

@@ -1,10 +1,8 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.trixnity.messenger.MessengerConfig
 import de.connect2x.trixnity.messenger.integrationtests.messenger.*
-import de.connect2x.trixnity.messenger.integrationtests.util.newDatabase
-import de.connect2x.trixnity.messenger.integrationtests.util.register
-import de.connect2x.trixnity.messenger.integrationtests.util.settingsModule
-import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
+import de.connect2x.trixnity.messenger.integrationtests.util.*
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import io.ktor.http.*
 import kotlinx.coroutines.*
@@ -38,6 +36,8 @@ class AccountsIT {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
 
+        MessengerConfig.instance.appName = "timmyAccountsIT" // for different DB locations
+
         koinApplication = koinApplication {
             modules(
                 trixnityMessengerModule(),
@@ -69,6 +69,7 @@ class AccountsIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
+        cleanup()
     }
 
     @Test

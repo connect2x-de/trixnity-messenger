@@ -46,7 +46,7 @@ fun trixnityMessengerModule() = module {
     }
 
     single<MessengerSettings> { MessengerSettingsImpl() }
-    single<GetAccountNames> { GetAccountNamesImpl(get()) }
+    single<GetAccountNames> { GetAccountNamesImpl() }
 
     single<Initials> { object : Initials {} }
     single<VerifyAccount> { VerifyAccountImpl() }

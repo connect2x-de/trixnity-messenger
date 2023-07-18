@@ -19,6 +19,7 @@ import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -115,7 +116,8 @@ class RootViewModelTest : ShouldSpec() {
             }
 
             val matrixClient: MutableStateFlow<MatrixClient?> = MutableStateFlow(null)
-            matrixClients.value = listOf(NamedMatrixClient(accountName = "test1", matrixClient))
+            matrixClients.value =
+                listOf(NamedMatrixClient(accountName = "test1", matrixClient))
             eventually(1.seconds) {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
@@ -135,7 +137,8 @@ class RootViewModelTest : ShouldSpec() {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
 
-            matrixClients.value = listOf(NamedMatrixClient(accountName = "test1", matrixClient))
+            matrixClients.value =
+                listOf(NamedMatrixClient(accountName = "test1", matrixClient))
             continually(1.seconds) {
                 cut.rootStack.value.active.configuration.shouldBeTypeOf<RootRouter.Config.MatrixClientInitialization>()
             }
@@ -237,14 +240,8 @@ class RootViewModelTest : ShouldSpec() {
             di.loadModules(listOf(module {
                 single<GetAccountNames> {
                     object : GetAccountNames {
-                        override fun invoke(): List<String> {
+                        override suspend fun invoke(): List<String> {
                             return listOf("test2", "test3")
-                        }
-
-                        override fun plus(accountName: String) {
-                        }
-
-                        override fun minus(accountName: String) {
                         }
                     }
                 }
@@ -260,14 +257,8 @@ class RootViewModelTest : ShouldSpec() {
             di.loadModules(listOf(module {
                 single<GetAccountNames> {
                     object : GetAccountNames {
-                        override fun invoke(): List<String> {
+                        override suspend fun invoke(): List<String> {
                             return listOf()
-                        }
-
-                        override fun minus(accountName: String) {
-                        }
-
-                        override fun plus(accountName: String) {
                         }
                     }
                 }
@@ -287,14 +278,8 @@ class RootViewModelTest : ShouldSpec() {
                     single { downloadManagerMock }
                     single<GetAccountNames> {
                         object : GetAccountNames {
-                            override fun invoke(): List<String> {
+                            override suspend fun invoke(): List<String> {
                                 return initialAccountNames
-                            }
-
-                            override fun minus(accountName: String) {
-                            }
-
-                            override fun plus(accountName: String) {
                             }
                         }
                     }

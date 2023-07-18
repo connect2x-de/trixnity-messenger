@@ -7,7 +7,6 @@ class MessengerConfig private constructor() {
     var appName: String = "Trixnity Messenger"
     var packageName: String = "de.connect2x"
 
-    var dbName: String = "database"
     var encryptDb: Boolean = true
 
     var defaultPushMode: PushMode = PushMode.NONE
@@ -21,6 +20,6 @@ class MessengerConfig private constructor() {
     }
 
     override fun toString(): String {
-        return "MessengerConfig(appName='$appName', dbName='$dbName', encryptDb=$encryptDb, defaultPushMode=$defaultPushMode, defaultHomeServer='$defaultHomeServer')"
+        return "MessengerConfig(appName='$appName', encryptDb=$encryptDb, defaultPushMode=$defaultPushMode, defaultHomeServer='$defaultHomeServer')"
     }
 }
