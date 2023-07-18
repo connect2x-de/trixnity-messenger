@@ -167,7 +167,7 @@ publish:mac:
 
 publish:linux:
   stage: publish
-  tags: [ "saas-linux-medium-amd64" ]
+  tags: [ "internal-docker-privileged" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
     - *pull-cache-linux
