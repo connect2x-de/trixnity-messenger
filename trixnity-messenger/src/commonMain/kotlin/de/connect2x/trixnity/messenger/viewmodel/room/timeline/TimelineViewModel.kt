@@ -176,6 +176,7 @@ class TimelineViewModelImpl(
     )
 
     private val timelineViewModelConfig = get<TimelineViewModelConfig>()
+    private val outerScope = get<CoroutineScope>()
 
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
     private val timeline: SharedFlow<Timeline<TimelineElementWrapper>> =
@@ -762,20 +763,24 @@ class TimelineViewModelImpl(
         // we have to execute this in the GlobalScope, since otherwise the view model would be cleaned up and with
         // it the scope where this code is executed
         // TODO alternative: we could put this in some sort of global worker (in Trixnity?) with database for offline scenarios (this worker could also handle redactions and more)
-        GlobalScope.launch {
-            withTimeout(5.seconds) {
-                val readUntil = readEvent.value
-                val currentFullyReadMarker = fullyReadEvent.value
-                if (readUntil != null && readUntil != currentFullyReadMarker) {
-                    log.debug { "mark last seen message as fully read (readUntil=$readUntil currentFullyReadMarker=$currentFullyReadMarker)" }
-                    fullyReadEvent.value = readUntil
-                    matrixClient.api.rooms.setReadMarkers(selectedRoomId, fullyRead = readUntil)
-                        .onFailure { log.error(it) { "cannot set message as fully read: $readUntil" } }
-                        .onSuccess { log.debug { "set message as fully read: $readUntil" } }
-                } else {
-                    if (readUntil == null) log.warn { "cannot mark message as read, since readUntil == null" }
+        try {
+            outerScope.launch {
+                withTimeout(5.seconds) {
+                    val readUntil = readEvent.value
+                    val currentFullyReadMarker = fullyReadEvent.value
+                    if (readUntil != null && readUntil != currentFullyReadMarker) {
+                        log.debug { "mark last seen message as fully read (readUntil=$readUntil currentFullyReadMarker=$currentFullyReadMarker)" }
+                        fullyReadEvent.value = readUntil
+                        matrixClient.api.rooms.setReadMarkers(selectedRoomId, fullyRead = readUntil)
+                            .onFailure { log.error(it) { "cannot set message as fully read: $readUntil" } }
+                            .onSuccess { log.debug { "set message as fully read: $readUntil" } }
+                    } else {
+                        if (readUntil == null) log.warn { "cannot mark message as read, since readUntil == null" }
+                    }
                 }
             }
+        } catch (exc: CancellationException) {
+            log.debug { "mark as fully read has been cancelled before completing" }
         }
     }
 

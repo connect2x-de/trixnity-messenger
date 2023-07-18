@@ -125,7 +125,9 @@ class SyncViewModelTest : ShouldSpec() {
                     )
                 ).entries)
             }
-            onSyncDoneCalled shouldBe true
+            eventually(1.seconds) {
+                onSyncDoneCalled shouldBe true
+            }
         }
 
         should("cancel syncs for all accounts if cancellation is called") {
