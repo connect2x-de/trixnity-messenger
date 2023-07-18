@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -119,7 +120,6 @@ class RoomViewModelTest : ShouldSpec() {
 
     init {
         Dispatchers.setMain(testMainDispatcher)
-        isolationMode = IsolationMode.InstancePerTest // since we want to reset Lifecycle, etc.
 
         beforeTest {
             mocker.reset()
@@ -217,6 +217,10 @@ class RoomViewModelTest : ShouldSpec() {
                 every { syncApiClientMock.subscribe(isAny<KClass<TypingEventContent>>(), isAny()) } returns Unit
                 every { syncApiClientMock.unsubscribe(isAny<KClass<TypingEventContent>>(), isAny()) } returns Unit
             }
+        }
+
+        afterTest {
+            lifecycle.destroy()
         }
 
         should("show selected room without settings initially") {
