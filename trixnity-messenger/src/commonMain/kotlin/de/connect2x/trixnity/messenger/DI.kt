@@ -25,6 +25,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import de.connect2x.trixnity.messenger.viewmodel.verification.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -37,6 +38,12 @@ data class NamedMatrixClients(val list: StateFlow<List<NamedMatrixClient>>)
 
 fun trixnityMessengerModule() = module {
     single<Clock> { Clock.System }
+    single<CoroutineScope> {
+        val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            log.error(throwable) { "Exception in coroutineContext $coroutineContext" }
+        }
+        CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
+    }
 
     single<MessengerSettings> { MessengerSettingsImpl() }
     single<GetAccountNames> { GetAccountNamesImpl() }

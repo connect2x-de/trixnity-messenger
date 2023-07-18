@@ -108,7 +108,7 @@ fun getAppFolder(accountName: String?): Path  {
         OS.LINUX -> {
             Path.of(System.getenv("HOME")).resolve(".$appName").let {
                 if (cleanAccountName == null) it
-                else it.resolve(".$cleanAccountName")
+                else it.resolve(cleanAccountName)
             }
         }
     }
