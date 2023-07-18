@@ -29,7 +29,6 @@ class VerificationIT {
     private lateinit var koinApplication1: KoinApplication
     private lateinit var koinApplication2: KoinApplication
     private lateinit var koinApplication3: KoinApplication
-    private lateinit var scope1: CoroutineScope
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
 
     private val password = "user$1passw0rd"
@@ -60,7 +59,6 @@ class VerificationIT {
                 settingsModule()
             )
         }
-        scope1 = CoroutineScope(Dispatchers.Default) + CoroutineName("verification-client1")
         val baseUrl = URLBuilder(
             protocol = URLProtocol.HTTP,
             host = synapseDocker.host,
@@ -72,14 +70,12 @@ class VerificationIT {
             baseUrl = baseUrl,
             repositoriesModule = repositoriesModule1,
             mediaStore = InMemoryMediaStore(),
-            scope = scope1,
             getLoginInfo = { it.register("user1", password) }
         ).getOrThrow()
     }
 
     @AfterTest
     fun afterEach() {
-        scope1.cancel()
         singleThreadContext.close()
     }
 
