@@ -211,6 +211,7 @@ class RoomViewModelTest : ShouldSpec() {
                         MutableStateFlow(null)
                 every { userServiceMock.getAccountData<PushRulesEventContent>("") } returns
                         MutableStateFlow(null)
+                every { userServiceMock.getPowerLevel(isAny(), isAny()) } returns MutableStateFlow(50)
 
                 every { minimizeMessengerMock.invoke() } returns Unit
 
