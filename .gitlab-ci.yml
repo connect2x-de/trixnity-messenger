@@ -1,7 +1,6 @@
 stages:
   - build
   - test
-  - integration-test
   - publish
 
 variables:
@@ -136,8 +135,9 @@ test:linux:
       --stacktrace
 
 test:integration-test:
-  stage: integration-test
+  stage: test
   timeout: 30m
+  needs: [ "build:linux" ]
   tags: [ "internal-docker-privileged" ]
   image: $BUILD_LINUX_IMAGE_NAME
   services:
