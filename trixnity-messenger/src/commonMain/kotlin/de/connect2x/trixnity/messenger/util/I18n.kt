@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.util.Lang.DE
 import de.connect2x.trixnity.messenger.util.Lang.EN
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
@@ -523,6 +523,11 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
     fun settingsRoomLeaveRoomWarningTitleGroup() = translate {
         EN - "Leave room?"
         DE - "Die Gruppe verlassen?"
+    }
+
+    fun settingsRoomChangeNameError() = translate {
+        EN - "Failed to change the room name."
+        DE - "Fehler beim Ändern des Raumnamens."
     }
 
     fun settingsRoomMemberListChangePowerLevelError(username: String) = translate {
