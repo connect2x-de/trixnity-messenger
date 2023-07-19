@@ -53,7 +53,7 @@ interface RoomSettingsViewModel {
 
     /** only use this value when [roomNameLoading] is `false` */
     val roomName: MutableStateFlow<String>
-    val roomNameChanged: StateFlow<Boolean>
+    val roomNameIsBeingEdited: StateFlow<Boolean>
     val canChangeRoomName: StateFlow<Boolean>
     val roomNotificationLevels: Map<NotificationLevels, NotificationLevel>
     val selectedRoomNotificationsLevel: StateFlow<NotificationLevel>
@@ -86,20 +86,33 @@ open class RoomSettingsViewModelImpl(
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
-    private val roomNameState: StateFlow<RoomNameState> =
-        matrixClient.room.getById(selectedRoomId)
-            .filterNotNull()
-            .map { RoomNameState.Determined(it.name?.explicitName) } // only explicit name is relevant here
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), RoomNameState.Undetermined)
+    private val roomNameIsCurrentlyChanging = MutableStateFlow(false)
+    private val roomNameState: StateFlow<RoomNameState> = combine(
+        matrixClient.room.getById(selectedRoomId),
+        roomNameIsCurrentlyChanging,
+    ) { room, roomNameIsCurrentlyChanging ->
+        log.trace { "roomNameIsCurrentlyChanging: $roomNameIsCurrentlyChanging, room.name: ${room?.name}" }
+        if (roomNameIsCurrentlyChanging) {
+            RoomNameState.Undetermined
+        } else {
+            if (room != null) {
+                RoomNameState.Determined(room.name?.explicitName) // only explicit name is relevant here
+            } else {
+                RoomNameState.Undetermined
+            }
+        }
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, RoomNameState.Undetermined)
+
     override val roomNameLoading: StateFlow<Boolean> = roomNameState.map { it is RoomNameState.Undetermined }
+        .onEach { println("   $it") }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val roomName: MutableStateFlow<String> = MutableStateFlow("")
-    override val roomNameChanged = combine(roomName, roomNameState) { name, origName ->
+    override val roomNameIsBeingEdited = combine(roomName, roomNameState) { name, origName ->
         name != when (origName) {
             is RoomNameState.Undetermined -> ""
             is RoomNameState.Determined -> origName.name ?: ""
         }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val canChangeRoomName: StateFlow<Boolean> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId, stateKey = ""),
@@ -114,7 +127,7 @@ open class RoomSettingsViewModelImpl(
             } else {
                 userPowerLevel >= defaultPowerLevelNecessary
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // is used for changeRoomName()
     override val roomNotificationLevels = mapOf(
         NotificationLevels.ALL to NotificationLevelImpl(i18n, NotificationLevels.ALL),
         NotificationLevels.MENTIONS to NotificationLevelImpl(i18n, NotificationLevels.MENTIONS),
@@ -145,7 +158,7 @@ open class RoomSettingsViewModelImpl(
     init {
         coroutineScope.launch {
             roomNameState.collect {
-                if (it is RoomNameState.Determined) {
+                if (it is RoomNameState.Determined && roomNameIsBeingEdited.value.not()) {
                     roomName.value = it.name ?: ""
                 }
             }
@@ -208,17 +221,27 @@ open class RoomSettingsViewModelImpl(
     }
 
     override fun changeRoomName() {
-        if (canChangeRoomName.value) {
+        log.debug { "attempt to change the room's name (can change: ${canChangeRoomName.value}, name changed: ${roomNameIsBeingEdited.value})" }
+        if (canChangeRoomName.value && roomNameIsBeingEdited.value) {
+            roomNameIsCurrentlyChanging.value = true
             coroutineScope.launch {
-                matrixClient.api.rooms.sendStateEvent(selectedRoomId, NameEventContent(roomName.value), stateKey = "")
-                    .onFailure {
-                        log.error(it) { "cannot change the room name to '${roomName.value}'" }
-                        error.value = i18n.settingsRoomChangeNameError()
-                    }
-                    .onSuccess {
-                        log.debug { "changed room name to '${roomName.value}'" }
-                        error.value = null
-                    }
+                try {
+                    matrixClient.api.rooms.sendStateEvent(
+                        selectedRoomId,
+                        NameEventContent(roomName.value),
+                        stateKey = ""
+                    )
+                        .onFailure {
+                            log.error(it) { "cannot change the room name to '${roomName.value}'" }
+                            error.value = i18n.settingsRoomChangeNameError()
+                        }
+                        .onSuccess {
+                            log.debug { "changed room name to '${roomName.value}'" }
+                            error.value = null
+                        }
+                } finally {
+                    roomNameIsCurrentlyChanging.value = false
+                }
             }
         }
     }
@@ -401,7 +424,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
 
     override val roomNameLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val roomName: MutableStateFlow<String> = MutableStateFlow("room name")
-    override val roomNameChanged: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val roomNameIsBeingEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canChangeRoomName: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val roomNotificationLevels: Map<NotificationLevels, NotificationLevel> = mapOf(
         NotificationLevels.ALL to NotificationLevelAll(),

@@ -1,8 +1,7 @@
 stages:
   - build
-  - tests
-  - integration-tests
-  - release
+  - test
+  - publish
 
 variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -10,16 +9,45 @@ variables:
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
   BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/trixnity/trixnity-build-linux:latest
 
-.docker-variables: &docker-variables
-  DOCKER_HOST: tcp://docker:2376
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_TLS_VERIFY: 1
-  DOCKER_CERT_PATH: "${DOCKER_TLS_CERTDIR}/client"
+.cache-linux: &cache-linux
+  - key: global-trixnity-messenger-cache-linux
+    policy: pull-push
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
+  - key: "$CI_COMMIT_REF_NAME-linux"
+    policy: push
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
 
-.build-cache: &build-cache
-  paths:
-    - $GRADLE_USER_HOME
-    - $KONAN_DATA_DIR
+.pull-cache-linux: &pull-cache-linux
+  - key: "$CI_COMMIT_REF_NAME-linux"
+    fallback_keys: [ "global-trixnity-messenger-cache-linux" ]
+    policy: pull
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
+
+.cache-mac: &cache-mac
+  - key: global-trixnity-messenger-cache-mac
+    policy: pull-push
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
+  - key: "$CI_COMMIT_REF_NAME-mac"
+    policy: push
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
+
+.pull-cache-mac: &pull-cache-mac
+  - key: "$CI_COMMIT_REF_NAME-mac"
+    fallback_keys: [ "global-trixnity-messenger-cache-mac" ]
+    policy: pull
+    paths:
+      - $GRADLE_USER_HOME
+      - $KONAN_DATA_DIR
 
 .artifact-reports: &artifact-reports
   name: reports
@@ -28,47 +56,127 @@ variables:
   reports:
     junit: "**/build/test-results/**/TEST-*.xml"
 
-build:
+.docker-variables: &docker-variables
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "${DOCKER_TLS_CERTDIR}/client"
+
+.if-merge-request-or-main: &if-merge-request-or-main
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+
+.if-main: &if-main
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build:mac:
   stage: build
   tags: [ "internal-mac" ]
-  cache: *build-cache
+  cache:
+    - *cache-mac
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME'
+    - *if-merge-request-or-main
+  # TODO remove other task than assemble as soon as the tests do not flicker anymore
   script:
-    - ./gradlew :trixnity-messenger:assemble --stacktrace
+    - ./gradlew
+      :trixnity-messenger:assemble
+      :trixnity-messenger:linkDebugTestIosX64
+      --stacktrace
 
-tests:
-  stage: tests
+build:linux:
+  stage: build
+  tags: [ "internal-docker-privileged" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *cache-linux
+  rules:
+    - *if-merge-request-or-main
+  # TODO remove other task than assemble as soon as the tests do not flicker anymore
+  script:
+    - ./gradlew
+      :trixnity-messenger:assemble
+      :trixnity-messenger:jvmTestClasses
+      :trixnity-messenger:compileTestKotlinJs
+      :trixnity-messenger:compileReleaseUnitTestKotlinAndroid
+      --stacktrace
+
+test:mac:
+  stage: test
+  timeout: 1h
+  needs: [ "build:mac" ]
   tags: [ "internal-mac" ]
-  cache: *build-cache
+  cache:
+    - *pull-cache-mac
   artifacts: *artifact-reports
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME'
+    - *if-merge-request-or-main
+  # TODO :trixnity-messenger:iosArm64Test not created by gradle
   script:
-    - ./gradlew -x :integrationtests:allTests allTests --stacktrace
+    - ./gradlew
+      :trixnity-messenger:iosX64Test
+      --stacktrace
 
-integration-tests:
-  stage: integration-tests
+test:linux:
+  stage: test
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "internal-docker-privileged" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew
+      :trixnity-messenger:jvmTest
+      :trixnity-messenger:testReleaseUnitTest
+      :trixnity-messenger:jsTest
+      --stacktrace
+
+test:integration-test:
+  stage: test
+  timeout: 30m
+  needs: [ "build:linux" ]
   tags: [ "internal-docker-privileged" ]
   image: $BUILD_LINUX_IMAGE_NAME
   services:
-    - docker:20-dind
+    - name: docker:dind
+  cache:
+    - *pull-cache-linux
   variables: *docker-variables
-  cache: *build-cache
   artifacts: *artifact-reports
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-    - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME'
+    - *if-merge-request-or-main
   script:
     - ./gradlew :integrationtests:jvmTest --stacktrace
 
-publish-trixnity-messenger:
-  stage: release
+publish:mac:
+  stage: publish
   tags: [ "internal-mac" ]
-  cache: *build-cache
+  cache:
+    - *pull-cache-mac
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - *if-main
   script:
-    - ./gradlew :trixnity-messenger:publish --stacktrace
+    - ./gradlew
+      :trixnity-messenger:publishIosArm64PublicationToGitlabRepository
+      :trixnity-messenger:publishIosSimulatorArm64PublicationToGitlabRepository
+      :trixnity-messenger:publishIosX64PublicationToGitlabRepository
+      --stacktrace
+
+publish:linux:
+  stage: publish
+  tags: [ "internal-docker-privileged" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  rules:
+    - *if-main
+  script:
+    - ./gradlew
+      :trixnity-messenger:publishKotlinMultiplatformPublicationToGitlabRepository
+      :trixnity-messenger:publishJvmPublicationToGitlabRepository
+      :trixnity-messenger:publishAndroidReleasePublicationToGitlabRepository
+      :trixnity-messenger:publishJsPublicationToGitlabRepository
+      --stacktrace

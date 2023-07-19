@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -41,10 +42,11 @@ import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class RoomSettingsViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
+    override fun timeout(): Long = 4_000
 
     val mocker = Mocker()
 
@@ -135,7 +137,8 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 roomGetById returns MutableStateFlow(
                     Room(
                         isDirect = true,
-                        roomId = roomId
+                        roomId = roomId,
+                        name = RoomDisplayName(explicitName = "Old name", summary = null),
                     )
                 )
 
@@ -514,6 +517,59 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.roomNameLoading.value shouldBe false
             cut.roomName.value shouldBe "Old name"
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the room's name to `Undetermined` when the name is currently set") {
+            val coroutineScope = CoroutineScope(Dispatchers.Default)
+            userPowerLevel.value = 1000
+            roomPowerLevel returns MutableStateFlow(
+                Event.StateEvent(
+                    content = PowerLevelsEventContent(),
+                    id = EventId("1"),
+                    sender = me,
+                    roomId = roomId,
+                    originTimestamp = 0L,
+                    stateKey = "",
+                )
+            )
+            mocker.every {
+                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            } returns MutableStateFlow(null)
+            mocker.everySuspending {
+                roomsApiClientMock.sendStateEvent(isEqual(roomId), isAny(), isAny(), isAny())
+            } runs {
+                coroutineScope.async {
+                    delay(1.seconds)
+                    Result.success(EventId("1"))
+                }.await()
+            }
+
+            val cut = roomSettingsViewModel(coroutineContext)
+            // subscribe to all values in order to check for correct values later
+            coroutineScope.launch { cut.roomNameLoading.collect() }
+            coroutineScope.launch { cut.roomNameIsBeingEdited.collect() }
+            coroutineScope.launch { cut.canChangeRoomName.collect() }
+
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.roomName.value shouldBe "Old name"
+
+            cut.roomName.value = "New name"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.roomNameIsBeingEdited.value shouldBe true
+            cut.roomNameLoading.value shouldBe false
+
+            cut.changeRoomName()
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.roomNameLoading.value shouldBe true
+
+            coroutineScope.launch {
+                eventually(2.seconds) {
+                    cut.roomName.value shouldBe "New name"
+                    cut.roomNameLoading.value shouldBe false
+                }
+            }.join()
 
             cancelNeverEndingCoroutines()
         }
