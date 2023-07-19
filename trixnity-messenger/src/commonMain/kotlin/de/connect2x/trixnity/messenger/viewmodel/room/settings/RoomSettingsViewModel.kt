@@ -104,7 +104,6 @@ open class RoomSettingsViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.Eagerly, RoomNameState.Undetermined)
 
     override val roomNameLoading: StateFlow<Boolean> = roomNameState.map { it is RoomNameState.Undetermined }
-        .onEach { println("   $it") }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val roomName: MutableStateFlow<String> = MutableStateFlow("")
     override val roomNameIsBeingEdited = combine(roomName, roomNameState) { name, origName ->
