@@ -15,6 +15,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -38,6 +40,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction1
@@ -64,6 +67,9 @@ class InputAreaViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     @Mock
+    lateinit var mediaServiceMock: MediaService
+
+    @Mock
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
     @Mock
@@ -74,12 +80,20 @@ class InputAreaViewModelTest : ShouldSpec() {
     private val onMessageEditFinishedMock = mockFunction1<Unit, EventId>(mocker)
     private val onMessageReplToFinishedMock = mockFunction1<Unit, Event<*>>(mocker)
 
+    private lateinit var allRoomUsersMock: Mocker.Every<Flow<Map<UserId, Flow<RoomUser?>>?>>
+
     init {
         Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         val eventId = EventId("0")
         val aliceUserId = UserId("@alice:localhost")
+        val aliceRoomUser = roomUser(aliceUserId, "Alice")
+        val bobRoomUser = roomUser(ourUserId, "Bob") // our == bob
+        val alvinUserId = UserId("@alvin:localhost")
+        val alvinRoomUser = roomUser(alvinUserId, "Alvin")
+        val zoopUserId = UserId("@completelyDifferent:anotherplanet")
+        val zoopRoomUser = roomUser(zoopUserId, "Zoop")
         val messageEvent = MessageEvent(
             content = TextMessageEventContent("Hello"),
             id = eventId,
@@ -98,6 +112,7 @@ class InputAreaViewModelTest : ShouldSpec() {
                         module {
                             single { roomServiceMock }
                             single { userServiceMock }
+                            single { mediaServiceMock }
                         }
                     )
                 }.koin
@@ -133,20 +148,22 @@ class InputAreaViewModelTest : ShouldSpec() {
                     )
                 )
                 every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
-                every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(
-                    RoomUser(
-                        roomId, aliceUserId, "Alice", Event.StateEvent(
-                            content = MemberEventContent(membership = Membership.JOIN),
-                            id = EventId("123"),
-                            sender = aliceUserId,
-                            roomId = roomId,
-                            originTimestamp = 0L,
-                            stateKey = "",
-                        )
+                allRoomUsersMock = every { userServiceMock.getAll(roomId) }
+                allRoomUsersMock returns MutableStateFlow(
+                    mapOf(
+                        aliceUserId to flowOf(aliceRoomUser),
+                        alvinUserId to flowOf(alvinRoomUser),
+                        ourUserId to flowOf(bobRoomUser),
+                        zoopUserId to flowOf(zoopRoomUser),
                     )
                 )
+                every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
                 every { onMessageEditFinishedMock.invoke(isAny()) } returns Unit
                 every { onMessageReplToFinishedMock.invoke(isAny()) } returns Unit
+
+                everySuspending {
+                    mediaServiceMock.getThumbnail(isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
+                } returns Result.success("image".toByteArray().toByteArrayFlow())
             }
         }
 
@@ -403,7 +420,336 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
+        should("set the list of potential mentions to empty when the message does not prompt it") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! at"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe emptyList()
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the list of potential mentions to the users matching the prefix of the message's reference") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @Al"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null)),
+                Username(alvinUserId, "Alvin", "A", flowOf(null)),
+            )
+
+            cut.message.value = "Hello! @Ali"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null)),
+            )
+
+            cut.message.value = "Hello! @Alin"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe emptyList()
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the list of potential mentions to users matching the prefix of the message's reference regardless of case") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @al"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null)),
+                Username(alvinUserId, "Alvin", "A", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("not return own user name in the list of potential mentions") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @Bo"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe emptyList()
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("consider multiline messages when computing the list of potential mentions") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello!\n\nThis is great.\n@Zoo"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(zoopUserId, "Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("compute a list of all room users when the referenced name prefix is empty") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null)),
+                Username(alvinUserId, "Alvin", "A", flowOf(null)),
+                Username(zoopUserId, "Zoop", "Z", flowOf(null)),
+            )
+
+            cut.message.value = "Hello! \n\n@"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null)),
+                Username(alvinUserId, "Alvin", "A", flowOf(null)),
+                Username(zoopUserId, "Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("also search for users in the Matrix ID in room's potential user list") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @compl"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(zoopUserId, "Zoop", "Z", flowOf(null)),
+            )
+
+            cut.message.value = "Hello! @another"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(zoopUserId, "Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("also consider mentions by containment") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @ce and @Zoop" // search in name
+            cut.currentCursorPosition.value = 10
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null))
+            )
+
+            cut.message.value = "Hello! @pla and @Zoop" //search in userId
+            cut.currentCursorPosition.value = 11
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(zoopUserId, "Zoop", "Z", flowOf(null))
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("search at the current message's position for possible mentions") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @Ali it goes on..."
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe emptyList()
+
+            cut.currentCursorPosition.value = 11
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null))
+            )
+
+            cut.currentCursorPosition.value = 10
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null)),
+                Username(alvinUserId, "Alvin", "A", flowOf(null)),
+            )
+
+            cut.message.value = "Hello!\n @Ali it goes on..."
+            cut.currentCursorPosition.value = 12
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(aliceUserId, "Alice", "A", flowOf(null))
+            )
+
+            cut.message.value = "Hello!\n @Ali @Zoo it goes on..."
+            cut.currentCursorPosition.value = 17
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentions.value shouldBe listOf(
+                Username(zoopUserId, "Zoop", "Z", flowOf(null))
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the loading flag correctly: null when no loading needed, true when still loading and false when loading has finished") {
+            val roomUsers = MutableSharedFlow<Map<UserId, Flow<RoomUser>>>()
+            allRoomUsersMock returns roomUsers
+
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentionsLoading.value shouldBe null
+
+            cut.message.value = "Hello! @compl"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentionsLoading.value shouldBe true
+            cut.listOfMentions.value shouldBe emptyList()
+
+            roomUsers.emit(
+                mapOf(
+                    zoopUserId to flowOf(zoopRoomUser),
+                )
+            )
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.listOfMentionsLoading.value shouldBe false
+            cut.listOfMentions.value shouldBe listOf(
+                Username(zoopUserId,"Zoop", "Z", flowOf(null)),
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the currently selected user's displayname") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "Hello! @Ali"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "Hello! @Alice "
+
+            cut.message.value = "Hello!\n\nHola.\n@Ali"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value = "Hello!\n\nHola.\n@Alice "
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set the currently selected user's displayname when the cursor is not at the end") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "@Ali"
+            cut.currentCursorPosition.value = 3
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "@Alice "
+
+            cut.message.value = "Hello! @Ali"
+            cut.currentCursorPosition.value = 11
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "Hello! @Alice "
+
+            cut.message.value = "Hello! @Ali something more"
+            cut.currentCursorPosition.value = 11
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "Hello! @Alice something more"
+
+            cut.message.value = "Hello!\n\nHola.\n@Ali something more"
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.currentCursorPosition.value = 18
+            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value = "Hello!\n\nHola.\n@Alice something more"
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("find the right replacement target in a message line with several '@'s") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "@Ali @Zo @Alv"
+            cut.currentCursorPosition.value = 8
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "@Ali @Zoop @Alv"
+
+            cut.message.value = "@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv"
+            cut.currentCursorPosition.value = 18 // after @Zo
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "@Ali\n @Ali\n @Ali @Zoop @Alv\n @Alv"
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("ignore a replacement where no `@` can be found") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = "@Ali Zo Alv"
+            cut.currentCursorPosition.value = 7
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.message.value shouldBe "@Ali Zo Alv" // nothing should change
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
     }
+
+    private fun roomUser(userId: UserId, name: String) = RoomUser(
+        roomId, userId, name, Event.StateEvent(
+            content = MemberEventContent(membership = Membership.JOIN),
+            id = EventId("123"),
+            sender = userId,
+            roomId = roomId,
+            originTimestamp = 0L,
+            stateKey = "",
+        )
+    )
 
     private fun inputAreaViewModel(coroutineContext: CoroutineContext) = InputAreaViewModelImpl(
         viewModelContext = MatrixClientViewModelContextImpl(
@@ -432,5 +778,6 @@ class InputAreaViewModelTest : ShouldSpec() {
         launch { cut.replyToViewModel.collect() }
         launch { cut.isReplyTo.collect() }
         launch { cut.shouldFocus.collect() }
+        launch { cut.listOfMentions.collect() }
     }
 }

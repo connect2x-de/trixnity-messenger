@@ -3,23 +3,56 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.canSendMessages
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.replace
 import net.folivo.trixnity.client.room.message.reply
 import net.folivo.trixnity.client.room.message.text
+import net.folivo.trixnity.client.store.avatarUrl
+import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event.MessageEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
+import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
+
+data class Username(
+    val userId: UserId,
+    val name: String,
+    val initials: String,
+    val avatar: Flow<ByteArray?>,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Username
+
+        if (userId != other.userId) return false
+        if (name != other.name) return false
+        return initials == other.initials
+    }
+
+    override fun hashCode(): Int {
+        var result = userId.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + initials.hashCode()
+        return result
+    }
+}
 
 interface InputAreaViewModelFactory {
     fun newInputAreaViewModel(
@@ -48,14 +81,23 @@ interface InputAreaViewModel {
     val isEdit: StateFlow<Boolean>
     val replyToViewModel: StateFlow<ReplyToViewModel?>
     val isReplyTo: StateFlow<Boolean>
+    val listOfMentions: StateFlow<List<Username>>
+    val listOfMentionsLoading: StateFlow<Boolean?>
 
     /**
      * The UI should focus the input area whenever this value changes to a non-null value.
      */
     val shouldFocus: StateFlow<String?>
 
+    /**
+     * The UI should set this value, so that mentions, etc. can be computed everywhere. When left to `null`, only the
+     * end of the last input line is considered for mentions, @see [listOfMentions].
+     */
+    val currentCursorPosition: MutableStateFlow<Int?>
+
     fun addNewlineToMessage()
     fun addToMessage(additional: String)
+    fun selectMention(username: Username)
     fun sendMessage()
     fun selectAttachment()
     fun closeAttachmentDialog()
@@ -74,6 +116,8 @@ open class InputAreaViewModelImpl(
     private val onMessageReplyFinished: (MessageEvent<*>) -> Unit,
     private val onShowAttachmentSendView: (file: String) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
+
+    private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
         canSendMessages(matrixClient, selectedRoomId)
@@ -94,6 +138,28 @@ open class InputAreaViewModelImpl(
     override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
     override val isReplyTo: StateFlow<Boolean> =
         replyToViewModel.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
+    private val _listOfMentionsLoading = MutableStateFlow<Boolean?>(null)
+    override val listOfMentionsLoading: StateFlow<Boolean?> = _listOfMentionsLoading.asStateFlow()
+
+    private val mentionRegex = "@(\\S*)".toRegex()
+    private val mentionInLineRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
+
+    override val listOfMentions: StateFlow<List<Username>> = combine(
+        message, currentCursorPosition
+    ) { message, currentCursorPosition ->
+        if (currentCursorPosition != null) {
+            getMentions(message.substring(0, currentCursorPosition.coerceAtMost(message.length)).afterNewline())
+        } else {
+            message.lines().lastOrNull()?.let { lastLine ->
+                getMentions(lastLine)
+            } ?: run {
+                _listOfMentionsLoading.value = null
+                emptyList()
+            }
+        }
+    }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
     init {
         coroutineScope.launch {
@@ -112,7 +178,6 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    @OptIn(FlowPreview::class)
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
 
@@ -124,6 +189,50 @@ open class InputAreaViewModelImpl(
     override fun addToMessage(additional: String) {
         message.value += additional
         _shouldFocus.value = uuid4().toString()
+    }
+
+    override fun selectMention(username: Username) {
+        val currentCursorPosition = currentCursorPosition.value
+        val lines = message.value.lines()
+        if (currentCursorPosition != null) {
+            val lineLengthAccumulated = lines
+                .runningFold(0) { acc, line -> acc + line.length }
+            val lineInWhichCursorIs = lineLengthAccumulated
+                .indexOfFirst { it >= currentCursorPosition } - 1 // first index is the initial value 0
+            val cursorInLine = currentCursorPosition - lineLengthAccumulated[lineInWhichCursorIs]
+            val line = lines[lineInWhichCursorIs]
+            val replaceLine = line.substring(0, cursorInLine)
+            // search from cursor position to beginning of the word -> if not starting with an `@` ignore
+            if (replaceLine.takeLastWhile { it != ' ' }.contains("@")) {
+                val beforeReplacement = replaceLine.substringBeforeLast("@")
+                val shouldBeReplaced = "@" + replaceLine.substringAfterLast("@")
+                val restOfTheLine = line.substring((cursorInLine + 1).coerceAtMost(line.length))
+                val replacedLine =
+                    listOf(
+                        beforeReplacement +
+                                shouldBeReplaced.replace(mentionRegex, "@${username.name} ") +
+                                restOfTheLine
+                    )
+                message.value =
+                    (lines.take(lineInWhichCursorIs) + replacedLine + lines.drop(lines.size - lineInWhichCursorIs + 1))
+                        .joinToString("\n") { it }
+                _shouldFocus.value = uuid4().toString()
+            }
+        } else {
+            lines.lastOrNull()?.let { lastLine ->
+                val matchResult = mentionInLineRegex.find(lastLine)
+                val groups = matchResult?.groupValues?.filterNot { it == lastLine }
+                if (groups?.size == 1 || groups?.size == 2) {
+                    message.value =
+                        lines.drop(1).map { "$it\n" }.joinToString { "" } + lastLine.replaceAfterLast(
+                            "@",
+                            "${username.name} "
+                        )
+                    _shouldFocus.value = uuid4().toString()
+                }
+                Unit
+            }
+        }
     }
 
     override fun sendMessage() {
@@ -232,6 +341,59 @@ open class InputAreaViewModelImpl(
         repliedToEvent?.let { onMessageReplyFinished(it) }
     }
 
+
+    private suspend fun getMentions(
+        text: String
+    ): List<Username> {
+        val matchResult = mentionInLineRegex.findAll(text).lastOrNull()
+        val groups = matchResult?.groupValues?.drop(1)
+        return if (groups?.size == 1 || groups?.size == 2) {
+            val search =
+                if (groups.size == 1) groups[0]
+                else groups.filter { it.isNotEmpty() }.getOrNull(0) // multiline
+                    ?: "" // @ with no prefix yet
+            _listOfMentionsLoading.value = true
+            val listOfUsers = listOfUsers(search)
+            _listOfMentionsLoading.value = false
+            listOfUsers
+        } else {
+            _listOfMentionsLoading.value = null
+            emptyList()
+        }
+    }
+
+    private suspend fun listOfUsers(search: String): List<Username> {
+        val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
+        return allUsers
+            ?.entries?.asFlow()
+            ?.map { users -> users.value.first() }
+            ?.filterNotNull()
+            ?.filter { roomUser ->
+                val userId = roomUser.userId
+                userId != matrixClient.userId && (
+                        roomUser.name.contains(search, ignoreCase = true) ||
+                                userId.localpart.contains(search, ignoreCase = true) ||
+                                userId.domain.contains(search, ignoreCase = true)
+                        )
+            }
+            ?.take(10)
+            ?.map { roomUser ->
+                val avatar = flow {
+                    emit(
+                        roomUser.avatarUrl?.let { url ->
+                            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
+                                onSuccess = { it.toByteArray() },
+                                onFailure = { null }
+                            )
+                        }
+                    )
+                }
+
+                Username(roomUser.userId, roomUser.name, initials.compute(roomUser.name), avatar)
+            }?.toList()
+            ?: emptyList()
+    }
+
     private suspend fun typing() {
         if (isTyping.value.not()) {
             isTyping.value = true
@@ -267,11 +429,17 @@ class PreviewInputViewModel : InputAreaViewModel {
     override val isEdit: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplyTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
+    override val listOfMentions: MutableStateFlow<List<Username>> = MutableStateFlow(emptyList())
+    override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
 
     override fun addNewlineToMessage() {
     }
 
     override fun addToMessage(additional: String) {
+    }
+
+    override fun selectMention(username: Username) {
     }
 
     override fun sendMessage() {
