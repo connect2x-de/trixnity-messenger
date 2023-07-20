@@ -28,7 +28,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
-import net.folivo.trixnity.core.model.events.EventType
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.push.PushAction.DontNotify
@@ -105,9 +104,8 @@ class RoomSettingsViewModelTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomsApiClient
 
     private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
-    private lateinit var roomPowerLevel: Mocker.Every<Flow<Event<PowerLevelsEventContent>?>>
+    private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
     private lateinit var roomGetById: Mocker.Every<Flow<Room?>>
-    private val userPowerLevel = MutableStateFlow(50)
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -142,14 +140,25 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                     )
                 )
 
-                roomPowerLevel = mocker.every {
+                canSendEventMocker = mocker.every {
+                    userServiceMock.canSendEvent(isAny(), isAny())
+                }
+                canSendEventMocker returns flowOf(true)
+
+                every {
+                    roomServiceMock.getState(
+                        roomId,
+                        CreateEventContent::class,
+                        ""
+                    )
+                } returns MutableStateFlow(createEvent)
+                every {
                     roomServiceMock.getState(
                         roomId,
                         PowerLevelsEventContent::class,
                         ""
                     )
-                }
-                roomPowerLevel returns MutableStateFlow(powerLevelEvent)
+                } returns MutableStateFlow(powerLevelEvent)
                 every {
                     roomServiceMock.getState(
                         roomId,
@@ -179,8 +188,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
                 every { userServiceMock.canInvite(isAny()) } returns
                         MutableStateFlow(true)
-
-                every { userServiceMock.getPowerLevel(isEqual(roomId), isAny()) } returns userPowerLevel
 
                 every { userServiceMock.canSetPowerLevelToMax(isEqual(roomId), isAny()) } returns MutableStateFlow(100)
 
@@ -390,101 +397,20 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("allow to change to room's name when the user's power level is above the standard required level 50") {
+        should("allow to change to room's name when the user's power level is allowed to") {
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
 
-            roomPowerLevel returns MutableStateFlow(
-                Event.StateEvent(
-                    content = PowerLevelsEventContent(),
-                    id = EventId("1"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
-                )
-            )
+            val canSendEvent = MutableStateFlow(true)
+            canSendEventMocker returns canSendEvent
 
             val cut = roomSettingsViewModel(coroutineContext)
             val canChangeRoomNameStateFlow = cut.canChangeRoomName // hold reference for WhileSubscribed
-            println("power level OK")
             canChangeRoomNameStateFlow.first { it }
 
-            userPowerLevel.value = 45
-            println("power level not OK")
-            canChangeRoomNameStateFlow.first { it.not() }
+            canSendEvent.value = false
 
-            userPowerLevel.value = 55
-            println("power level OK")
-            canChangeRoomNameStateFlow.first { it }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("allow to change the room's name when the user's power level is above the supplied power level requirements") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(null)
-
-            val roomPowerLevelRequirements = MutableStateFlow(
-                stateEvent(
-                    PowerLevelsEventContent(
-                        events = mapOf(
-                            EventType(CreateEventContent::class, "") to 80,
-                            EventType(NameEventContent::class, "") to 20,
-                        ),
-                        stateDefault = 40,
-                    )
-                )
-            )
-            roomPowerLevel returns roomPowerLevelRequirements
-            userPowerLevel.value = 25
-
-            val cut = roomSettingsViewModel(coroutineContext)
-            val canChangeRoomNameStateFlow = cut.canChangeRoomName // hold reference for WhileSubscribed
-            println("power level OK")
-            canChangeRoomNameStateFlow.first { it }
-
-            roomPowerLevelRequirements.value = stateEvent(
-                PowerLevelsEventContent(
-                    stateDefault = 30,
-                )
-            )
-            println("power level not OK")
-            canChangeRoomNameStateFlow.first { it.not() }
-
-            roomPowerLevelRequirements.value = stateEvent(
-                PowerLevelsEventContent(
-                    stateDefault = 20,
-                )
-            )
-            println("power level OK")
-            canChangeRoomNameStateFlow.first { it }
-
-            roomPowerLevelRequirements.value = stateEvent(
-                PowerLevelsEventContent(
-                    events = mapOf(EventType(NameEventContent::class, "") to 30)
-                )
-            )
-            println("power level not OK")
-            canChangeRoomNameStateFlow.first { it.not() }
-
-            roomPowerLevelRequirements.value = stateEvent(
-                PowerLevelsEventContent(
-                    events = mapOf(EventType(NameEventContent::class, "") to 20)
-                )
-            )
-            println("power level OK")
-            canChangeRoomNameStateFlow.first { it }
-
-            roomPowerLevelRequirements.value = stateEvent(
-                PowerLevelsEventContent(
-                    events = mapOf(EventType(NameEventContent::class, "") to 30),
-                    stateDefault = 20,
-                )
-            )
-            println("power level not OK")
             canChangeRoomNameStateFlow.first { it.not() }
 
             cancelNeverEndingCoroutines()
@@ -523,17 +449,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
         should("set the room's name to `Undetermined` when the name is currently set") {
             val coroutineScope = CoroutineScope(Dispatchers.Default)
-            userPowerLevel.value = 1000
-            roomPowerLevel returns MutableStateFlow(
-                Event.StateEvent(
-                    content = PowerLevelsEventContent(),
-                    id = EventId("1"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
-                )
-            )
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)

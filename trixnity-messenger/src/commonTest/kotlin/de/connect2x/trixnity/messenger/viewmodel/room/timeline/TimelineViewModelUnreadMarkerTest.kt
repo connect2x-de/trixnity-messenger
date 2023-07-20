@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
@@ -34,7 +33,6 @@ import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -129,16 +127,6 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                         )
                 every { roomServiceMock.getOutbox() } returns MutableStateFlow(emptyList())
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
-                every { roomServiceMock.getState<PowerLevelsEventContent>(roomId) } returns MutableStateFlow(
-                    Event.StateEvent(
-                        content = PowerLevelsEventContent(),
-                        id = EventId("123"),
-                        sender = UserId("user", "localhost"),
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
-                )
 
                 every { userServiceMock.getAll(isEqual(roomId)) } returns MutableStateFlow(
                     mapOf(
@@ -184,6 +172,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                     )
                 )
                 roomUser = every { userServiceMock.getById(isEqual(roomId), isAny()) }
+                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
             }

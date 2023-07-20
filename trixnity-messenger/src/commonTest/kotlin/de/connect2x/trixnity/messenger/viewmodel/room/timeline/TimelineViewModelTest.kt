@@ -30,7 +30,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -45,7 +44,6 @@ import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.UnknownMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -53,7 +51,6 @@ import org.kodein.mock.mockFunction0
 import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.Ignore
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -141,16 +138,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 every { roomServiceMock.getOutbox() } returns outboxMessagesFlow
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
-                every { roomServiceMock.getState<PowerLevelsEventContent>(roomId) } returns MutableStateFlow(
-                    Event.StateEvent(
-                        content = PowerLevelsEventContent(),
-                        id = EventId("123"),
-                        sender = UserId("user", "localhost"),
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
-                )
+                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
 
                 every { roomServiceMock.getTimelineEvent(isAny(), isAny(), isAny()) } returns
                         dummyEvent

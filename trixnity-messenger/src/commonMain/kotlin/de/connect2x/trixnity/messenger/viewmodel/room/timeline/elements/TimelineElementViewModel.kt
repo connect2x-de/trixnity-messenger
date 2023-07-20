@@ -5,7 +5,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.canSendMessages
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
@@ -24,6 +23,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -123,7 +123,8 @@ open class TimelineElementViewModelImpl(
     private val _redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val redactionError: StateFlow<String?> = _redactionError.asStateFlow()
     override val canBeRepliedTo: StateFlow<Boolean> =
-        canSendMessages(matrixClient, selectedRoomId).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     private val _replyToInProgress = MutableStateFlow(false)
     override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
