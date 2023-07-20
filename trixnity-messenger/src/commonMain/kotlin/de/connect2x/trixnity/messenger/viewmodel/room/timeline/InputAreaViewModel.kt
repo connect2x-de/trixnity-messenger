@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,6 +19,7 @@ import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event.MessageEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger { }
 
 data class Username(
-    val matrixId: String,
+    val userId: UserId,
     val name: String,
     val initials: String,
     val avatar: Flow<ByteArray?>,
@@ -41,13 +41,13 @@ data class Username(
 
         other as Username
 
-        if (matrixId != other.matrixId) return false
+        if (userId != other.userId) return false
         if (name != other.name) return false
         return initials == other.initials
     }
 
     override fun hashCode(): Int {
-        var result = matrixId.hashCode()
+        var result = userId.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + initials.hashCode()
         return result
@@ -108,7 +108,7 @@ interface InputAreaViewModel {
     fun cancelReplyTo()
 }
 
-@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+@OptIn(FlowPreview::class)
 open class InputAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
@@ -141,18 +141,18 @@ open class InputAreaViewModelImpl(
     override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _listOfMentionsLoading = MutableStateFlow<Boolean?>(null)
     override val listOfMentionsLoading: StateFlow<Boolean?> = _listOfMentionsLoading.asStateFlow()
+
+    private val mentionRegex = "@(\\S*)".toRegex()
+    private val mentionInLineRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
+
     override val listOfMentions: StateFlow<List<Username>> = combine(
         message, currentCursorPosition
     ) { message, currentCursorPosition ->
-        val nameRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
         if (currentCursorPosition != null) {
-            getMentions(
-                nameRegex,
-                message.substring(0, currentCursorPosition.coerceAtMost(message.length)).afterNewline()
-            )
+            getMentions(message.substring(0, currentCursorPosition.coerceAtMost(message.length)).afterNewline())
         } else {
             message.lines().lastOrNull()?.let { lastLine ->
-                getMentions(nameRegex, lastLine)
+                getMentions(lastLine)
             } ?: run {
                 _listOfMentionsLoading.value = null
                 emptyList()
@@ -160,27 +160,6 @@ open class InputAreaViewModelImpl(
         }
     }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
-
-    private suspend fun getMentions(
-        nameRegex: Regex,
-        line: String
-    ): List<Username> {
-        val matchResult = nameRegex.find(line)
-        val groups = matchResult?.groupValues?.filterNot { it == line }
-        return if (groups?.size == 1 || groups?.size == 2) {
-            val namePrefix =
-                if (groups.size == 1) groups[0]
-                else groups.filter { it.isNotEmpty() }.getOrNull(0) // multiline
-                    ?: "" // @ with no prefix yet
-            _listOfMentionsLoading.value = true
-            val listOfUsers = listOfUsers(namePrefix)
-            _listOfMentionsLoading.value = false
-            listOfUsers
-        } else {
-            _listOfMentionsLoading.value = null
-            emptyList()
-        }
-    }
 
     init {
         coroutineScope.launch {
@@ -223,27 +202,25 @@ open class InputAreaViewModelImpl(
             val cursorInLine = currentCursorPosition - lineLengthAccumulated[lineInWhichCursorIs]
             val line = lines[lineInWhichCursorIs]
             val replaceLine = line.substring(0, cursorInLine)
-            val beforeLastAt = replaceLine.substringBeforeLast("@")
-            val afterLastAt = "@" + replaceLine.substringAfterLast("@")
-            val matchResult = "^.*@(\\S*)(.*)$".toRegex().find(afterLastAt)
-            val groups = matchResult?.groupValues?.filterNot { it == line }
-            if (groups?.size == 2 || groups?.size == 3) {
-                val rest = line.substring((cursorInLine + 1).coerceAtMost(line.length))
-                val replace =
+            // search from cursor position to beginning of the word -> if not starting with an `@` ignore
+            if (replaceLine.takeLastWhile { it != ' ' }.contains("@")) {
+                val beforeReplacement = replaceLine.substringBeforeLast("@")
+                val shouldBeReplaced = "@" + replaceLine.substringAfterLast("@")
+                val restOfTheLine = line.substring((cursorInLine + 1).coerceAtMost(line.length))
+                val replacedLine =
                     listOf(
-                        (if (beforeLastAt != afterLastAt) beforeLastAt else "") +
-                        afterLastAt.replace(
-                            "@(\\S*)".toRegex(), "@${username.name} "
-                        ) + rest
+                        beforeReplacement +
+                                shouldBeReplaced.replace(mentionRegex, "@${username.name} ") +
+                                restOfTheLine
                     )
                 message.value =
-                    (lines.take(lineInWhichCursorIs) + replace + lines.drop(lines.size - lineInWhichCursorIs + 1))
+                    (lines.take(lineInWhichCursorIs) + replacedLine + lines.drop(lines.size - lineInWhichCursorIs + 1))
                         .joinToString("\n") { it }
                 _shouldFocus.value = uuid4().toString()
             }
         } else {
             lines.lastOrNull()?.let { lastLine ->
-                val matchResult = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex().find(lastLine)
+                val matchResult = mentionInLineRegex.find(lastLine)
                 val groups = matchResult?.groupValues?.filterNot { it == lastLine }
                 if (groups?.size == 1 || groups?.size == 2) {
                     message.value =
@@ -364,33 +341,56 @@ open class InputAreaViewModelImpl(
         repliedToEvent?.let { onMessageReplyFinished(it) }
     }
 
-    private suspend fun listOfUsers(startsWith: String): List<Username> {
-        val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
-        return allUsers?.filter { roomUserFlow ->
-            val roomUser = roomUserFlow.value.first()
-            val userId = roomUser?.userId
-            userId != matrixClient.userId && (
-                    roomUser?.name?.startsWith(startsWith, ignoreCase = true) ?: false ||
-                            userId?.localpart?.startsWith(startsWith, ignoreCase = true) ?: false ||
-                            userId?.domain?.startsWith(startsWith, ignoreCase = true) ?: false
-                    )
+
+    private suspend fun getMentions(
+        text: String
+    ): List<Username> {
+        val matchResult = mentionInLineRegex.findAll(text).lastOrNull()
+        val groups = matchResult?.groupValues?.drop(1)
+        return if (groups?.size == 1 || groups?.size == 2) {
+            val search =
+                if (groups.size == 1) groups[0]
+                else groups.filter { it.isNotEmpty() }.getOrNull(0) // multiline
+                    ?: "" // @ with no prefix yet
+            _listOfMentionsLoading.value = true
+            val listOfUsers = listOfUsers(search)
+            _listOfMentionsLoading.value = false
+            listOfUsers
+        } else {
+            _listOfMentionsLoading.value = null
+            emptyList()
         }
-            ?.map { roomUserFlow ->
-                roomUserFlow.key.full to roomUserFlow.value
+    }
+
+    private suspend fun listOfUsers(search: String): List<Username> {
+        val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
+        return allUsers
+            ?.entries?.asFlow()
+            ?.map { users -> users.value.first() }
+            ?.filterNotNull()
+            ?.filter { roomUser ->
+                val userId = roomUser.userId
+                userId != matrixClient.userId && (
+                        roomUser.name.contains(search, ignoreCase = true) ||
+                                userId.localpart.contains(search, ignoreCase = true) ||
+                                userId.domain.contains(search, ignoreCase = true)
+                        )
             }
             ?.take(10)
-            ?.map { pair ->
-                val avatar = pair.second.map {
-                    it?.avatarUrl?.let { url ->
-                        matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                            onSuccess = { it.toByteArray() },
-                            onFailure = { null }
-                        )
-                    }
+            ?.map { roomUser ->
+                val avatar = flow {
+                    emit(
+                        roomUser.avatarUrl?.let { url ->
+                            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
+                                onSuccess = { it.toByteArray() },
+                                onFailure = { null }
+                            )
+                        }
+                    )
                 }
-                val name = pair.second.first()?.name ?: ""
-                Username(pair.first, name, initials.compute(name), avatar)
-            }
+
+                Username(roomUser.userId, roomUser.name, initials.compute(roomUser.name), avatar)
+            }?.toList()
             ?: emptyList()
     }
 
