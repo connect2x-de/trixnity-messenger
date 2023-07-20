@@ -15,14 +15,12 @@ import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -32,7 +30,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -105,16 +102,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
 
                 every { roomServiceMock.getOutbox() } returns MutableStateFlow(emptyList())
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
-                every { roomServiceMock.getState<PowerLevelsEventContent>(roomId) } returns MutableStateFlow(
-                    Event.StateEvent(
-                        content = PowerLevelsEventContent(),
-                        id = EventId("123"),
-                        sender = UserId("user", "localhost"),
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
-                )
+                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
 
                 val dummyEvent = flowOf(
                     TimelineEvent(

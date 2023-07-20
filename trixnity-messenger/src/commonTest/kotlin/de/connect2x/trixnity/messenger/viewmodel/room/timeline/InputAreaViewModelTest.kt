@@ -38,7 +38,6 @@ import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.Event.MessageEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.Mock
@@ -75,7 +74,7 @@ class InputAreaViewModelTest : ShouldSpec() {
     @Mock
     lateinit var roomsApiClientMock: RoomsApiClient
 
-    private lateinit var powerLevelMocker: Mocker.Every<Flow<Event<PowerLevelsEventContent>?>>
+    private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
 
     private val onMessageEditFinishedMock = mockFunction1<Unit, EventId>(mocker)
     private val onMessageReplToFinishedMock = mockFunction1<Unit, Event<*>>(mocker)
@@ -120,19 +119,11 @@ class InputAreaViewModelTest : ShouldSpec() {
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
                 every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
 
-                powerLevelMocker = every {
-                    roomServiceMock.getState(isEqual(roomId), isEqual(PowerLevelsEventContent::class), isAny())
+                canSendEventMocker = every {
+                    userServiceMock.canSendEvent(isAny(), isAny())
                 }
-                powerLevelMocker returns flowOf(
-                    Event.StateEvent(
-                        content = PowerLevelsEventContent(),
-                        id = EventId(""),
-                        sender = UserId(""),
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
-                )
+
+                canSendEventMocker returns flowOf(true)
                 everySuspending { roomServiceMock.sendMessage(isEqual(roomId), isAny(), isAny()) } returns ""
                 every {
                     roomServiceMock.getTimelineEvent(isAny(), isEqual(eventId), isAny())
@@ -197,19 +188,7 @@ class InputAreaViewModelTest : ShouldSpec() {
         }
 
         should("not allow to send messages when the own power level is too low") {
-            powerLevelMocker returns flowOf(
-                Event.StateEvent(
-                    content = PowerLevelsEventContent(
-                        eventsDefault = 50,
-                        usersDefault = 10, // default is not enough to write messages
-                    ),
-                    id = EventId(""),
-                    sender = UserId(""),
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = ""
-                )
-            )
+            canSendEventMocker returns flowOf(false)
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
@@ -634,7 +613,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.listOfMentionsLoading.value shouldBe false
             cut.listOfMentions.value shouldBe listOf(
-                Username(zoopUserId,"Zoop", "Z", flowOf(null)),
+                Username(zoopUserId, "Zoop", "Z", flowOf(null)),
             )
 
             subscriberJob.cancel()

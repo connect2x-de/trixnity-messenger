@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.canSendMessages
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -17,10 +16,12 @@ import net.folivo.trixnity.client.room.message.reply
 import net.folivo.trixnity.client.room.message.text
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event.MessageEvent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.toByteArray
@@ -120,7 +121,7 @@ open class InputAreaViewModelImpl(
     private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
-        canSendMessages(matrixClient, selectedRoomId)
+        matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val message = MutableStateFlow("")
     override val isSendEnabled: StateFlow<Boolean> =

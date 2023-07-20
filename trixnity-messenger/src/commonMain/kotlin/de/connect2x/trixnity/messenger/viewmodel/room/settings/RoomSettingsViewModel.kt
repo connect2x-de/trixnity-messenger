@@ -8,16 +8,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import net.folivo.trixnity.core.model.events.m.room.get
 import net.folivo.trixnity.core.model.push.PushAction
 import net.folivo.trixnity.core.model.push.PushCondition
 import net.folivo.trixnity.core.model.push.PushRuleKind
@@ -113,20 +111,8 @@ open class RoomSettingsViewModelImpl(
         }
     }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val canChangeRoomName: StateFlow<Boolean> =
-        combine(
-            matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId, stateKey = ""),
-            matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
-        ) { powerLevelEventContentEvent, userPowerLevel ->
-            val nameEventContentPowerLevelNecessary =
-                powerLevelEventContentEvent?.content?.events?.get(NameEventContent::class)
-            val defaultPowerLevelNecessary = powerLevelEventContentEvent?.content?.stateDefault ?: 50
-            log.trace { "$userPowerLevel >= $nameEventContentPowerLevelNecessary & $defaultPowerLevelNecessary" }
-            if (nameEventContentPowerLevelNecessary != null) {
-                userPowerLevel >= nameEventContentPowerLevelNecessary
-            } else {
-                userPowerLevel >= defaultPowerLevelNecessary
-            }
-        }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // is used for changeRoomName()
+        matrixClient.user.canSendEvent<NameEventContent>(selectedRoomId)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false) // is used for changeRoomName()
     override val roomNotificationLevels = mapOf(
         NotificationLevels.ALL to NotificationLevelImpl(i18n, NotificationLevels.ALL),
         NotificationLevels.MENTIONS to NotificationLevelImpl(i18n, NotificationLevels.MENTIONS),

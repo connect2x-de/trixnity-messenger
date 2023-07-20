@@ -24,7 +24,6 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
@@ -36,7 +35,6 @@ import net.folivo.trixnity.core.model.events.Event.RoomEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
@@ -101,16 +99,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                         MutableStateFlow(roomUser(bob, "Bob"))
 
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
-                every { roomServiceMock.getState<PowerLevelsEventContent>(roomId) } returns MutableStateFlow(
-                    Event.StateEvent(
-                        content = PowerLevelsEventContent(),
-                        id = EventId("123"),
-                        sender = UserId("user", "localhost"),
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
-                )
+                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
             }
         }
 

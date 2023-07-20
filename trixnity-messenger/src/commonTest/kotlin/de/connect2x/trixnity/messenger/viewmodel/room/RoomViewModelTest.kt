@@ -18,11 +18,9 @@ import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.timing.eventually
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.types.beOfType
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -212,6 +210,7 @@ class RoomViewModelTest : ShouldSpec() {
                 every { userServiceMock.getAccountData<PushRulesEventContent>("") } returns
                         MutableStateFlow(null)
                 every { userServiceMock.getPowerLevel(isAny(), isAny()) } returns MutableStateFlow(50)
+                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
 
                 every { minimizeMessengerMock.invoke() } returns Unit
 
