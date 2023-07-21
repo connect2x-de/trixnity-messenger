@@ -218,14 +218,10 @@ class MainViewModelTest : ShouldSpec() {
 
         should("select no room initially") {
             mocker.everySuspending {
-                matrixClientMock.syncOnce(
-                    isAny(),
-                    isAny<suspend (Sync.Response) -> Unit>()
-                )
+                matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
-
 
             eventually(2.seconds) {
                 assertSoftly {
@@ -428,7 +424,7 @@ class MainViewModelTest : ShouldSpec() {
                 )
             )
             mocker.everySuspending {
-                matrixClientMock.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
@@ -482,10 +478,10 @@ class MainViewModelTest : ShouldSpec() {
                 )
 
                 everySuspending {
-                    matrixClientMock.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                    matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
                 } returns Result.success(Unit)
                 everySuspending {
-                    matrixClientMock2.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                    matrixClientMock2.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
                 } returns Result.success(Unit)
             }
 

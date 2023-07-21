@@ -10,6 +10,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.observe
 import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import com.arkivanov.essenty.parcelable.Parcelable
@@ -37,6 +38,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListConfig
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListWrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.runBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
@@ -48,6 +50,7 @@ import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.*
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
@@ -139,6 +142,7 @@ open class MainViewModelImpl(
     private val onRemoveAccount: (String) -> Unit,
 ) : ViewModelContext by viewModelContext, MainViewModel {
 
+    private val messengerSettings = get<MessengerSettings>()
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
         MutableStateFlow(listOf<String>()) // in case of multiple self verifications, we need to do one after another
@@ -292,6 +296,7 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         possiblyStartSelfVerification()
         reactToActiveVerifications()
+        reactToPresenceIsPublicChanges()
     }
 
     private fun startSync() {
@@ -323,7 +328,9 @@ open class MainViewModelImpl(
                         namedMatrixClients.collectLatest { namedMatrixClients ->
                             namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
                                 log.debug { "start sync for $accountName" }
-                                matrixClientFlow.value?.startSync()
+                                matrixClientFlow.value?.startSync(
+                                    presence = if (messengerSettings.presenceIsPublic(accountName)) Presence.ONLINE else null
+                                )
                             }
                         }
                     }
@@ -345,7 +352,9 @@ open class MainViewModelImpl(
                     log.debug { "resume app: restart sync" }
                     namedMatrixClients.value.forEach { (accountName, matrixClientFlow) ->
                         log.debug { "start sync for $accountName" }
-                        matrixClientFlow.value?.startSync()
+                        matrixClientFlow.value?.startSync(
+                            presence = if (messengerSettings.presenceIsPublic(accountName)) Presence.ONLINE else null
+                        )
                     }
                 }
             }
@@ -450,6 +459,23 @@ open class MainViewModelImpl(
                                 }
                             }
                     }
+                }
+            }
+        }
+    }
+
+    private fun reactToPresenceIsPublicChanges() {
+        coroutineScope.launch {
+            namedMatrixClients.scopedCollectLatest { namedMatrixClients ->
+                namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
+                   messengerSettings.presenceIsPublicFlow(accountName).collect { presenceIsPublic ->
+                       if (presenceIsPublic && (lifecycle.state >= Lifecycle.State.STARTED)) {
+                           matrixClientFlow.value?.let { matrixClient ->
+                               log.info { "the settings for `presenceIsPublic` have changed -> set presence to ONLINE" }
+                               matrixClient.api.users.setPresence(matrixClient.userId, Presence.ONLINE)
+                           }
+                       }
+                   }
                 }
             }
         }

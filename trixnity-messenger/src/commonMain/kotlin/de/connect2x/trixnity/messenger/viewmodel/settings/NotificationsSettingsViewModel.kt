@@ -58,23 +58,22 @@ open class NotificationsSettingsViewModelImpl(
             namedMatrixClients.map { (accountName, _) ->
                 log.trace { "notification settings for account $accountName will be loaded" }
                 val pushMode = MutableStateFlow(
-                    messengerSettings.pushMode[accountName]
-                        ?: messengerSettings.defaultPushMode,
+                    messengerSettings.pushMode(accountName)
                 )
                 NotificationSettingsOfAccount(
                     accountName = accountName,
                     pushMode = pushMode,
                     notificationSettings = MutableStateFlow(getNotificationSettings(accountName, getKoin())),
-                    showNotificationSettings = messengerSettings.pushModeFlow.map { it[accountName] != null && it[accountName] != PushMode.NONE }
+                    showNotificationSettings = messengerSettings.pushModeFlow(accountName).map { it != PushMode.NONE }
                         .stateIn(
                             this,
                             SharingStarted.WhileSubscribed(),
-                            messengerSettings.pushMode[accountName] != null && messengerSettings.pushMode[accountName] != PushMode.NONE
+                            messengerSettings.pushMode(accountName) != PushMode.NONE,
                         )
                 ).also {
                     this.launch {
                         pushMode.collectLatest {
-                            messengerSettings.pushMode = messengerSettings.pushMode - accountName + (accountName to it)
+                            messengerSettings.setPushMode(accountName, it)
                         }
                     }
                 }

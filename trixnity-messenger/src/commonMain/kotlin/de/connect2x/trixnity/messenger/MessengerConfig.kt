@@ -9,7 +9,15 @@ class MessengerConfig private constructor() {
 
     var encryptDb: Boolean = true
 
-    var defaultPushMode: PushMode = PushMode.NONE
+    // for privacy-first, override these values
+    var defaultPushMode: PushMode = PushMode.PUSH
+    var defaultPresenceIsPublic: Boolean = true
+    var defaultReadMarkerIsPublic: Boolean = true
+
+    // notifications defaults
+    var defaultNotificationPlaySound: Boolean = true
+    var defaultNotificationShowPopup: Boolean = true
+    var defaultNotificationShowText: Boolean = true
 
     var defaultHomeServer: String = ""
 
@@ -20,6 +28,7 @@ class MessengerConfig private constructor() {
     }
 
     override fun toString(): String {
-        return "MessengerConfig(appName='$appName', encryptDb=$encryptDb, defaultPushMode=$defaultPushMode, defaultHomeServer='$defaultHomeServer')"
+        return "MessengerConfig(appName='$appName', packageName='$packageName', encryptDb=$encryptDb, defaultPushMode=$defaultPushMode, defaultPresenceIsPublic=$defaultPresenceIsPublic, defaultReadMarkerIsPublic=$defaultReadMarkerIsPublic, defaultNotificationPlaySound=$defaultNotificationPlaySound, defaultNotificationShowPopup=$defaultNotificationShowPopup, defaultNotificationShowText=$defaultNotificationShowText, defaultHomeServer='$defaultHomeServer', sendLogsEmailAddress=$sendLogsEmailAddress)"
     }
+
 }
