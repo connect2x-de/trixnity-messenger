@@ -9,11 +9,19 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@Serializable
 enum class PushMode {
-    NONE, POLLING, PUSH
+    @SerialName("none")
+    NONE,
+    @SerialName("polling")
+    POLLING,
+    @SerialName("push")
+    PUSH,
 }
 
 private val log = KotlinLogging.logger { }
@@ -28,26 +36,28 @@ private const val ACTIVE_ACCOUNT = "activeAccount"
 private const val PREFERRED_LANG = "preferredLang"
 
 // FIXME global settings for account based settings
+// FIXME add tests
 /**
  * Messenger settings for this device. Settings for accounts are determined in the following order (if `null`, the next
  * value is used): `settings value` -> `default value` (from [MessengerConfig])
  */
 interface MessengerSettings {
     fun pushMode(accountName: String): PushMode
-    fun setPushMode(accountName: String, newValue: PushMode)
+    fun setPushMode(accountName: String, newValue: PushMode?)
     fun pushModeFlow(accountName: String): Flow<PushMode>
+    fun pushModeFlow(): Flow<Map<String?, PushMode>>
     fun presenceIsPublic(accountName: String): Boolean
-    fun setPresenceIsPublic(accountName: String, newValue: Boolean)
+    fun setPresenceIsPublic(accountName: String, newValue: Boolean?)
     fun presenceIsPublicFlow(accountName: String): Flow<Boolean>
     fun readMarkerIsPublic(accountName: String): Boolean
     fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean>
-    fun setReadMarkerIsPublic(accountName: String, newValue: Boolean)
+    fun setReadMarkerIsPublic(accountName: String, newValue: Boolean?)
     fun notificationsPlaySound(accountName: String): Boolean
-    fun setNotificationsPlaySound(accountName: String, newValue: Boolean)
+    fun setNotificationsPlaySound(accountName: String, newValue: Boolean?)
     fun notificationsShowPopup(accountName: String): Boolean
-    fun setNotificationsShowPopup(accountName: String, newValue: Boolean)
+    fun setNotificationsShowPopup(accountName: String, newValue: Boolean?)
     fun notificationsShowText(accountName: String): Boolean
-    fun setNotificationsShowText(accountName: String, newValue: Boolean)
+    fun setNotificationsShowText(accountName: String, newValue: Boolean?)
     var activeAccount: String?
     var preferredLang: String?
 }
@@ -67,7 +77,7 @@ class MessengerSettingsImpl : MessengerSettings {
     override fun pushMode(accountName: String): PushMode {
         return settings.getStringOrNull(PUSH_MODE)?.let { jsonString ->
             try {
-                json.decodeFromString<Map<String, String>>(jsonString)
+                json.decodeFromString<Map<String?, String>>(jsonString)
                     .map { (accountName, pushModeString) -> accountName to createPushMode(pushModeString) }
                     .toMap()[accountName]
                     ?: defaultPushMode
@@ -77,13 +87,16 @@ class MessengerSettingsImpl : MessengerSettings {
         } ?: defaultPushMode
     }
 
-    override fun setPushMode(accountName: String, newValue: PushMode) {
+    override fun setPushMode(accountName: String, newValue: PushMode?) {
         log.debug { "set push mode for account $accountName to: $newValue" }
         val oldMap = settings.getStringOrNull(PUSH_MODE)?.let { jsonString ->
             try {
-                json.decodeFromString<Map<String, String>>(jsonString)
-                    .map { (accountName, pushModeString) -> accountName to createPushMode(pushModeString) }
-                    .toMap()
+                val origMap = json.decodeFromString<Map<String?, String>>(jsonString)
+                if (newValue == null) {
+                    origMap - accountName
+                } else {
+                    origMap + (accountName to newValue)
+                }
             } catch (exc: Exception) {
                 mapOf()
             }
@@ -93,29 +106,32 @@ class MessengerSettingsImpl : MessengerSettings {
     }
 
     override fun pushModeFlow(accountName: String): Flow<PushMode> {
+        return pushModeFlow().map { it[accountName] ?: defaultPushMode }
+    }
+
+    override fun pushModeFlow(): Flow<Map<String?, PushMode>> {
         return if (settings is ObservableSettings) {
             settings.getStringOrNullFlow(PUSH_MODE).map { jsonString ->
                 jsonString?.let {
                     try {
-                        json.decodeFromString<Map<String, String>>(jsonString)
+                        json.decodeFromString<Map<String?, String>>(jsonString)
                             .map { (accountName, pushModeString) -> accountName to createPushMode(pushModeString) }
-                            .toMap()[accountName]
-                            ?: defaultPushMode
+                            .toMap()
                     } catch (exc: Exception) {
-                        defaultPushMode
+                        mapOf(null to defaultPushMode)
                     }
-                } ?: defaultPushMode
+                } ?: mapOf(null to defaultPushMode)
             }
         } else {
             log.warn { "You are trying to retrieve a Flow value from non-observable settings. This value will not change over time." }
-            flowOf(pushMode(accountName))
+            flowOf(mapOf(null to defaultPushMode))
         }
     }
 
     override fun presenceIsPublic(accountName: String): Boolean =
         getValue(PRESENCE_IS_PUBLIC, accountName, defaultPresenceIsPublic)
 
-    override fun setPresenceIsPublic(accountName: String, newValue: Boolean) =
+    override fun setPresenceIsPublic(accountName: String, newValue: Boolean?) =
         setValue(PRESENCE_IS_PUBLIC, accountName, defaultPresenceIsPublic, newValue)
 
     override fun presenceIsPublicFlow(accountName: String): Flow<Boolean> {
@@ -125,7 +141,7 @@ class MessengerSettingsImpl : MessengerSettings {
     override fun readMarkerIsPublic(accountName: String): Boolean =
         getValue(READ_MARKER_IS_PUBLIC, accountName, defaultReadMarkerIsPublic)
 
-    override fun setReadMarkerIsPublic(accountName: String, newValue: Boolean) =
+    override fun setReadMarkerIsPublic(accountName: String, newValue: Boolean?) =
         setValue(READ_MARKER_IS_PUBLIC, accountName, defaultReadMarkerIsPublic, newValue)
 
     override fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean> =
@@ -134,19 +150,19 @@ class MessengerSettingsImpl : MessengerSettings {
     override fun notificationsPlaySound(accountName: String): Boolean =
         getValue(NOTIFICATIONS_PLAY_SOUND, accountName, defaultNotificationPlaySound)
 
-    override fun setNotificationsPlaySound(accountName: String, newValue: Boolean) =
+    override fun setNotificationsPlaySound(accountName: String, newValue: Boolean?) =
         setValue(NOTIFICATIONS_PLAY_SOUND, accountName, defaultNotificationPlaySound, newValue)
 
     override fun notificationsShowPopup(accountName: String): Boolean =
         getValue(NOTIFICATIONS_SHOW_POPUP, accountName, defaultNotificationShowPopup)
 
-    override fun setNotificationsShowPopup(accountName: String, newValue: Boolean) =
+    override fun setNotificationsShowPopup(accountName: String, newValue: Boolean?) =
         setValue(NOTIFICATIONS_SHOW_POPUP, accountName, defaultNotificationShowPopup, newValue)
 
     override fun notificationsShowText(accountName: String): Boolean =
         getValue(NOTIFICATIONS_SHOW_TEXT, accountName, defaultNotificationShowText)
 
-    override fun setNotificationsShowText(accountName: String, newValue: Boolean) =
+    override fun setNotificationsShowText(accountName: String, newValue: Boolean?) =
         setValue(NOTIFICATIONS_SHOW_TEXT, accountName, defaultNotificationShowText, newValue)
 
     override var activeAccount: String?
@@ -166,7 +182,7 @@ class MessengerSettingsImpl : MessengerSettings {
     private fun <T> getValue(key: String, accountName: String, defaultValue: T): T =
         settings.getStringOrNull(key)?.let { jsonString ->
             try {
-                json.decodeFromString<Map<String, T>>(jsonString)[accountName] ?: defaultValue
+                json.decodeFromString<Map<String?, T>>(jsonString)[accountName] ?: defaultValue
             } catch (exc: Exception) {
                 defaultValue
             }
@@ -177,7 +193,7 @@ class MessengerSettingsImpl : MessengerSettings {
             settings.getStringOrNullFlow(key).map {
                 it?.let { jsonString ->
                     try {
-                        json.decodeFromString<Map<String, T>>(jsonString)[accountName] ?: defaultValue
+                        json.decodeFromString<Map<String?, T>>(jsonString)[accountName] ?: defaultValue
                     } catch (exc: Exception) {
                         defaultValue
                     }
@@ -189,17 +205,26 @@ class MessengerSettingsImpl : MessengerSettings {
         }
     }
 
-    private fun <T> setValue(key: String, accountName: String, defaultValue: T, value: T) {
+    private inline fun <reified T> setValue(key: String, accountName: String, defaultValue: T, value: T?) {
         log.debug { "set value of `$key` in account '$accountName' to $value" }
         val oldValue = settings.getStringOrNull(key)?.let { jsonString ->
             try {
-                json.decodeFromString<Map<String, T>>(jsonString)
+                json.decodeFromString<Map<String?, T>>(jsonString)
             } catch (exc: Exception) {
                 mapOf(accountName to defaultValue)
             }
         } ?: mapOf(accountName to defaultValue)
-        val newValue = oldValue - accountName + (accountName to value)
-        settings.putString(key, json.encodeToString(newValue))
+        val newValue: Map<String?, T> =
+            if (value == null) {
+                oldValue - accountName
+            } else {
+                oldValue - accountName + (accountName to value)
+            }
+        try {
+            settings.putString(key, json.encodeToString(newValue))
+        } catch (exc: Exception) {
+            log.error(exc) { "cannot save value in settings" }
+        }
     }
 }
 

@@ -154,6 +154,7 @@ private val settingsViewModels = module {
     }
     single<ProfileViewModelFactory> { object : ProfileViewModelFactory {} }
     single<UserSettingsViewModelFactory> { object : UserSettingsViewModelFactory {} }
+    single<PrivacySettingsViewModelFactory> { object: PrivacySettingsViewModelFactory {} }
 }
 
 private val timelineElementsViewModels = module {
