@@ -468,14 +468,19 @@ open class MainViewModelImpl(
         coroutineScope.launch {
             namedMatrixClients.scopedCollectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
-                   messengerSettings.presenceIsPublicFlow(accountName).collect { presenceIsPublic ->
-                       if (presenceIsPublic && (lifecycle.state >= Lifecycle.State.STARTED)) {
-                           matrixClientFlow.value?.let { matrixClient ->
-                               log.info { "the settings for `presenceIsPublic` have changed -> set presence to ONLINE" }
-                               matrixClient.api.users.setPresence(matrixClient.userId, Presence.ONLINE)
-                           }
-                       }
-                   }
+                    messengerSettings.presenceIsPublicFlow(accountName).collect { presenceIsPublic ->
+                        if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
+                            matrixClientFlow.value?.let { matrixClient ->
+                                log.info { "the settings for `presenceIsPublic` have changed -> set presence to ONLINE" }
+                                matrixClient.api.users.setPresence(matrixClient.userId, Presence.ONLINE)
+                            }
+                        } else if (presenceIsPublic.not() && lifecycle.state >= Lifecycle.State.STARTED) {
+                            matrixClientFlow.value?.let { matrixClient ->
+                                log.info { "the settings for `presenceIsPublic` have changed -> set presence to OFFLINE" }
+                                matrixClient.api.users.setPresence(matrixClient.userId, Presence.OFFLINE)
+                            }
+                        }
+                    }
                 }
             }
         }

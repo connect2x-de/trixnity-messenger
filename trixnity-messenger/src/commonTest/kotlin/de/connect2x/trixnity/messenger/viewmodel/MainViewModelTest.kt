@@ -5,6 +5,7 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
+import com.russhwolf.settings.MapSettings
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel.SelfVerificationConfig
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
@@ -15,6 +16,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListWrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -47,7 +50,9 @@ import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.clientserverapi.client.UsersApiClient
 import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -55,6 +60,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import org.kodein.mock.Mock
@@ -77,6 +83,8 @@ class MainViewModelTest : ShouldSpec() {
     private val myUserId = UserId("user1", "localhost")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
+
+    private val messengerSettings = MessengerSettingsImpl(MapSettings())
 
     @Mock
     lateinit var matrixClientMock: MatrixClient
@@ -101,6 +109,12 @@ class MainViewModelTest : ShouldSpec() {
 
     @Mock
     lateinit var verificationServiceMock2: VerificationService
+
+    @Mock
+    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+
+    @Mock
+    lateinit var usersApiClientMock: UsersApiClient
 
     @Mock
     lateinit var userServiceMock: UserService
@@ -152,6 +166,8 @@ class MainViewModelTest : ShouldSpec() {
                 every { matrixClientMock.deviceId } returns myDeviceId
                 every { matrixClientMock.displayName } returns MutableStateFlow(null)
                 every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+                every { matrixClientMock.api } returns matrixClientServerApiClientMock
+                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
                 syncState = every { matrixClientMock.syncState }
                 syncState returns MutableStateFlow(SyncState.RUNNING)
                 everySuspending { matrixClientMock.startSync() } returns Unit
@@ -603,6 +619,19 @@ class MainViewModelTest : ShouldSpec() {
                 }
             }
         }
+
+        should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public") {
+            val presences = mutableListOf<Presence>()
+            mocker.everySuspending {
+                usersApiClientMock.setPresence(isEqual(myUserId), isAny(capture = presences), isAny(), isAny())
+            } returns Result.success(Unit)
+            messengerSettings.setPresenceIsPublic("test", true)
+            mainViewModel()
+            messengerSettings.setPresenceIsPublic("test", false)
+            messengerSettings.setPresenceIsPublic("test", true)
+
+            presences shouldBe mutableListOf(Presence.ONLINE, Presence.OFFLINE, Presence.ONLINE)
+        }
     }
 
     private fun mainViewModel(matrixClientModule: Module = testMatrixClientModule(matrixClientMock)): MainViewModelImpl {
@@ -614,6 +643,7 @@ class MainViewModelTest : ShouldSpec() {
                         single { downloadManagerMock }
                         single { isNetworkAvailable }
                         single { runInitialSyncMock }
+                        single<MessengerSettings> { messengerSettings }
                         single<RoomHeaderViewModelFactory> {
                             object : RoomHeaderViewModelFactory {
                                 override fun newRoomHeaderViewModel(

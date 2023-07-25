@@ -2,10 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.*
+import com.russhwolf.settings.MapSettings
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.timing.continually
@@ -50,9 +52,11 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
+    private val messengerSettings = MessengerSettingsImpl(MapSettings())
     private val roomId = RoomId("room1", "localhost")
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
+
     private val bob = UserId("bob", "localhost")
 
     @Mock
@@ -71,17 +75,12 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomsApiClient
 
     @Mock
-    lateinit var messengerSettingsMock: MessengerSettings
-
-    @Mock
     lateinit var roomHeaderViewModelMock: RoomHeaderViewModel
 
     @Mock
     lateinit var inputAreaViewModelMock: InputAreaViewModel
-
     private lateinit var roomUser: Mocker.Every<Flow<RoomUser?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
-    private lateinit var readMarkerIsPublic: Mocker.Every<Flow<Boolean>>
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -176,12 +175,9 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
-
-                readMarkerIsPublic = every { messengerSettingsMock.readMarkerIsPublicFlow(isAny()) }
-                readMarkerIsPublic returns flowOf(true)
-                every { messengerSettingsMock.readMarkerIsPublic(isAny()) } returns true
-                every { messengerSettingsMock.preferredLang } returns "en"
             }
+            messengerSettings.preferredLang = "en"
+            messengerSettings.setReadMarkerIsPublic("test", true)
         }
         afterTest {
             lifecycleRegistry.destroy()
@@ -566,7 +562,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark messages as read privately if the setting is set to privacy-first") {
-            readMarkerIsPublic returns flowOf(false)
+            messengerSettings.setReadMarkerIsPublic("test", false)
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
@@ -673,7 +669,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                 }
                             }
                         }
-                        single { messengerSettingsMock }
+                        single<MessengerSettings> { messengerSettings }
                     })
                 }.koin,
                 accountName = "test",
