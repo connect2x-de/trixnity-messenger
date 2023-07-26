@@ -468,7 +468,7 @@ open class MainViewModelImpl(
 
     private fun reactToPresenceIsPublicChanges() {
         coroutineScope.launch {
-            namedMatrixClients.scopedCollectLatest { namedMatrixClients ->
+            namedMatrixClients.collectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
                     messengerSettings.presenceIsPublicFlow(accountName).collect { presenceIsPublic ->
                         if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {

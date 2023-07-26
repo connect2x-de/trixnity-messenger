@@ -233,9 +233,6 @@ class TimelineViewModelImpl(
     private val timelineElementRules = get<TimelineElementRules>()
     private val messengerSettings = get<MessengerSettings>()
 
-    private val readMarkerIsPublic = messengerSettings.readMarkerIsPublicFlow(accountName)
-        .stateIn(coroutineScope, SharingStarted.Eagerly, messengerSettings.readMarkerIsPublic(accountName))
-
     private val roomUsers =
         matrixClient.user.getAll(selectedRoomId)
             .filterNotNull()
@@ -758,8 +755,8 @@ class TimelineViewModelImpl(
         readEvent.value = eventId
         matrixClient.api.rooms.setReadMarkers(
             roomId = selectedRoomId,
-            read = if (readMarkerIsPublic.value) eventId else null,
-            privateRead = if (readMarkerIsPublic.value) null else eventId,
+            read = if (messengerSettings.readMarkerIsPublic(accountName)) eventId else null,
+            privateRead = if (messengerSettings.readMarkerIsPublic(accountName)) null else eventId,
         ).onFailure { log.error(it) { "cannot set read marker for event $eventId" } }
             .onSuccess { log.debug { "successfully set read marker for message: $eventId" } }
     }
