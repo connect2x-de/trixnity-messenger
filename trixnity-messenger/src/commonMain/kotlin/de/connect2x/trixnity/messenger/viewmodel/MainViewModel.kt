@@ -327,9 +327,10 @@ open class MainViewModelImpl(
                     launch {
                         namedMatrixClients.collectLatest { namedMatrixClients ->
                             namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
-                                log.debug { "start sync for $accountName" }
+                                val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
+                                log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
                                 matrixClientFlow.value?.startSync(
-                                    presence = if (messengerSettings.presenceIsPublic(accountName)) Presence.ONLINE else null
+                                    presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
                                 )
                             }
                         }
@@ -351,9 +352,10 @@ open class MainViewModelImpl(
                 coroutineScope.launch {
                     log.debug { "resume app: restart sync" }
                     namedMatrixClients.value.forEach { (accountName, matrixClientFlow) ->
-                        log.debug { "start sync for $accountName" }
+                        val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
+                        log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
                         matrixClientFlow.value?.startSync(
-                            presence = if (messengerSettings.presenceIsPublic(accountName)) Presence.ONLINE else null
+                            presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
                         )
                     }
                 }
@@ -471,13 +473,15 @@ open class MainViewModelImpl(
                     messengerSettings.presenceIsPublicFlow(accountName).collect { presenceIsPublic ->
                         if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
                             matrixClientFlow.value?.let { matrixClient ->
-                                log.info { "the settings for `presenceIsPublic` have changed -> set presence to ONLINE" }
-                                matrixClient.api.users.setPresence(matrixClient.userId, Presence.ONLINE)
+                                log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }
+                                matrixClient.stopSync(wait = false)
+                                matrixClient.startSync(presence = Presence.ONLINE)
                             }
                         } else if (presenceIsPublic.not() && lifecycle.state >= Lifecycle.State.STARTED) {
                             matrixClientFlow.value?.let { matrixClient ->
-                                log.info { "the settings for `presenceIsPublic` have changed -> set presence to OFFLINE" }
-                                matrixClient.api.users.setPresence(matrixClient.userId, Presence.OFFLINE)
+                                log.info { "the settings for `presenceIsPublic` have changed -> restart sync with OFFLINE" }
+                                matrixClient.stopSync(wait = false)
+                                matrixClient.startSync(presence = Presence.OFFLINE)
                             }
                         }
                     }

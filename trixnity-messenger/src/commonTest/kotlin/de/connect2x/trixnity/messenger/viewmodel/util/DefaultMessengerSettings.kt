@@ -16,6 +16,9 @@ fun defaultMessengerSettings(lang: String) = object : MessengerSettings {
     override fun readMarkerIsPublic(accountName: String): Boolean = true
     override fun setReadMarkerIsPublic(accountName: String, newValue: Boolean?) {}
     override fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
+    override fun typingIsPublic(accountName: String): Boolean = false
+    override fun setTypingIsPublic(accountName: String, newValue: Boolean?) {}
+    override fun typingIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
     override fun notificationsPlaySound(accountName: String): Boolean = false
     override fun setNotificationsPlaySound(accountName: String, newValue: Boolean?) {}
     override fun notificationsShowPopup(accountName: String): Boolean = false

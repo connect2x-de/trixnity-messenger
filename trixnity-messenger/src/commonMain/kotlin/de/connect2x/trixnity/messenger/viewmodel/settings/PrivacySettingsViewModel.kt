@@ -11,6 +11,7 @@ data class PrivacySetting(
     val accountName: String,
     val presenceIsPublic: MutableStateFlow<Boolean>,
     val readMarkerIsPublic: MutableStateFlow<Boolean>,
+    val typingIsPublic: MutableStateFlow<Boolean>,
 )
 
 interface PrivacySettingsViewModelFactory {
@@ -39,6 +40,7 @@ class PrivacySettingsViewModelImpl(
             namedMatrixClients.map { (accountName, _) ->
                 val presenceIsPublic = MutableStateFlow(messengerSettings.presenceIsPublic(accountName))
                 val readMarkerIsPublic = MutableStateFlow(messengerSettings.readMarkerIsPublic(accountName))
+                val typingIsPublic = MutableStateFlow(messengerSettings.typingIsPublic(accountName))
 
                 // reflect changes back to settings
                 this.launch {
@@ -51,8 +53,13 @@ class PrivacySettingsViewModelImpl(
                         messengerSettings.setReadMarkerIsPublic(accountName, it)
                     }
                 }
+                this.launch {
+                    typingIsPublic.drop(1).collect {
+                        messengerSettings.setTypingIsPublic(accountName, it)
+                    }
+                }
 
-                PrivacySetting(accountName, presenceIsPublic, readMarkerIsPublic)
+                PrivacySetting(accountName, presenceIsPublic, readMarkerIsPublic, typingIsPublic)
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 

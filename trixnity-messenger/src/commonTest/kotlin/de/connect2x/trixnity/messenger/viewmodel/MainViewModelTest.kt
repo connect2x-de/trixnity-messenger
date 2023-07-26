@@ -50,9 +50,7 @@ import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.client.UsersApiClient
 import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -111,12 +109,6 @@ class MainViewModelTest : ShouldSpec() {
     lateinit var verificationServiceMock2: VerificationService
 
     @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
-
-    @Mock
-    lateinit var usersApiClientMock: UsersApiClient
-
-    @Mock
     lateinit var userServiceMock: UserService
 
     @Mock
@@ -141,6 +133,7 @@ class MainViewModelTest : ShouldSpec() {
     lateinit var networkAvailable: Mocker.Every<Boolean>
     lateinit var syncState: Mocker.Every<StateFlow<SyncState>>
     lateinit var initialSyncDone: Mocker.Every<StateFlow<Boolean>>
+    private val startSyncPresenceCapture = mutableListOf<Presence>()
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -166,11 +159,10 @@ class MainViewModelTest : ShouldSpec() {
                 every { matrixClientMock.deviceId } returns myDeviceId
                 every { matrixClientMock.displayName } returns MutableStateFlow(null)
                 every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
                 syncState = every { matrixClientMock.syncState }
                 syncState returns MutableStateFlow(SyncState.RUNNING)
-                everySuspending { matrixClientMock.startSync() } returns Unit
+                everySuspending { matrixClientMock.startSync(isAny(startSyncPresenceCapture)) } returns Unit
+                everySuspending { matrixClientMock.stopSync(isAny()) } returns Unit
                 everySuspending { matrixClientMock.cancelSync(isAny()) } returns Unit
 
                 every { roomServiceMock.getAll() } returns roomsFlow
@@ -621,16 +613,14 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public") {
-            val presences = mutableListOf<Presence>()
-            mocker.everySuspending {
-                usersApiClientMock.setPresence(isEqual(myUserId), isAny(capture = presences), isAny(), isAny())
-            } returns Result.success(Unit)
             messengerSettings.setPresenceIsPublic("test", true)
             mainViewModel()
             messengerSettings.setPresenceIsPublic("test", false)
             messengerSettings.setPresenceIsPublic("test", true)
 
-            presences shouldBe mutableListOf(Presence.ONLINE, Presence.OFFLINE, Presence.ONLINE)
+            // initial, then 3 changes
+            startSyncPresenceCapture shouldBe
+                    mutableListOf(Presence.ONLINE, Presence.ONLINE, Presence.OFFLINE, Presence.ONLINE)
         }
     }
 

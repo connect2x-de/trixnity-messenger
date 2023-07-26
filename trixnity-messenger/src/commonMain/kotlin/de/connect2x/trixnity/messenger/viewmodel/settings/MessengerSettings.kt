@@ -18,8 +18,10 @@ import kotlinx.serialization.json.Json
 enum class PushMode {
     @SerialName("none")
     NONE,
+
     @SerialName("polling")
     POLLING,
+
     @SerialName("push")
     PUSH,
 }
@@ -29,6 +31,7 @@ private val log = KotlinLogging.logger { }
 private const val PUSH_MODE = "pushMode"
 private const val PRESENCE_IS_PUBLIC = "presenceIsPublic"
 private const val READ_MARKER_IS_PUBLIC = "readMarkerIsPublic"
+private const val TYPING_IS_PUBLIC = "typingIsPublic"
 private const val NOTIFICATIONS_PLAY_SOUND = "notificationsPlaySound"
 private const val NOTIFICATIONS_SHOW_POPUP = "notificationsShowPopup"
 private const val NOTIFICATIONS_SHOW_TEXT = "notificationsShowText"
@@ -51,6 +54,9 @@ interface MessengerSettings {
     fun readMarkerIsPublic(accountName: String): Boolean
     fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean>
     fun setReadMarkerIsPublic(accountName: String, newValue: Boolean?)
+    fun typingIsPublic(accountName: String): Boolean
+    fun setTypingIsPublic(accountName: String, newValue: Boolean?)
+    fun typingIsPublicFlow(accountName: String): Flow<Boolean>
     fun notificationsPlaySound(accountName: String): Boolean
     fun setNotificationsPlaySound(accountName: String, newValue: Boolean?)
     fun notificationsShowPopup(accountName: String): Boolean
@@ -66,6 +72,7 @@ class MessengerSettingsImpl(private val settings: Settings) : MessengerSettings 
     private val defaultPushMode: PushMode = MessengerConfig.instance.defaultPushMode
     private val defaultPresenceIsPublic: Boolean = MessengerConfig.instance.defaultPresenceIsPublic
     private val defaultReadMarkerIsPublic: Boolean = MessengerConfig.instance.defaultReadMarkerIsPublic
+    private val defaultTypingIsPublic: Boolean = MessengerConfig.instance.defaultTypingIsPublic
     private val defaultNotificationPlaySound: Boolean = MessengerConfig.instance.defaultNotificationPlaySound
     private val defaultNotificationShowPopup: Boolean = MessengerConfig.instance.defaultNotificationShowPopup
     private val defaultNotificationShowText: Boolean = MessengerConfig.instance.defaultNotificationShowText
@@ -120,6 +127,16 @@ class MessengerSettingsImpl(private val settings: Settings) : MessengerSettings 
     override fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean> =
         getFlowValue(READ_MARKER_IS_PUBLIC, accountName, readMarkerIsPublic(accountName), defaultReadMarkerIsPublic)
 
+    override fun typingIsPublic(accountName: String): Boolean =
+        getValue(TYPING_IS_PUBLIC, accountName, defaultTypingIsPublic)
+
+    override fun setTypingIsPublic(accountName: String, newValue: Boolean?) {
+        setValue(TYPING_IS_PUBLIC, accountName, newValue, defaultTypingIsPublic)
+    }
+
+    override fun typingIsPublicFlow(accountName: String): Flow<Boolean> =
+        getFlowValue(TYPING_IS_PUBLIC, accountName, typingIsPublic(accountName), defaultTypingIsPublic)
+
     override fun notificationsPlaySound(accountName: String): Boolean =
         getValue(NOTIFICATIONS_PLAY_SOUND, accountName, defaultNotificationPlaySound)
 
@@ -160,7 +177,12 @@ class MessengerSettingsImpl(private val settings: Settings) : MessengerSettings 
         return result
     }
 
-    private inline fun <reified T> getFlowValue(key: String, accountName: String, currentValue: T, defaultValue: T): Flow<T> {
+    private inline fun <reified T> getFlowValue(
+        key: String,
+        accountName: String,
+        currentValue: T,
+        defaultValue: T
+    ): Flow<T> {
         return if (settings is ObservableSettings) {
             settings.getStringOrNullFlow(key).map {
                 it?.let { jsonString ->
