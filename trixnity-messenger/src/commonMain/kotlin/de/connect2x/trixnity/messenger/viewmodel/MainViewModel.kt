@@ -300,8 +300,26 @@ open class MainViewModelImpl(
     }
 
     private fun startSync() {
+        initialSyncRouter.stack.observe { childStack ->
+            if (childStack.active.configuration == InitialSyncConfig.None) {
+                log.info { "initial sync / small sync is done -> now sync regularly" }
+                initialSyncOnceIsFinished(true)
+                coroutineScope.launch {
+                    namedMatrixClients.collectLatest { namedMatrixClients ->
+                        namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
+                            val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
+                            log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
+                            matrixClientFlow.value?.startSync(
+                                presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         coroutineScope.launch {
-            val syncForAccounts = namedMatrixClients.map { namedMatrixClients ->
+            namedMatrixClients.map { namedMatrixClients ->
                 namedMatrixClients.mapNotNull { namedMatrixClient ->
                     namedMatrixClient.matrixClient.value?.let { matrixClient ->
                         log.debug { "start sync [${namedMatrixClient.accountName}] -> $matrixClient, initial sync done: ${matrixClient.initialSyncDone.value}" }
@@ -313,31 +331,11 @@ open class MainViewModelImpl(
                         }
                     }
                 }.toMap()
-            }
-            launch {
-                syncForAccounts.collect {
-                    initialSyncRouter.showSync(it)
-                }
-            }
-
-            initialSyncRouter.stack.subscribe { childStack ->
-                if (childStack.active.configuration == InitialSyncConfig.None) {
-                    log.info { "initial sync / small sync is done -> now sync regularly" }
-                    initialSyncOnceIsFinished(true)
-                    launch {
-                        namedMatrixClients.collectLatest { namedMatrixClients ->
-                            namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
-                                val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
-                                log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
-                                matrixClientFlow.value?.startSync(
-                                    presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
-                                )
-                            }
-                        }
-                    }
-                }
+            }.collect {
+                initialSyncRouter.showSync(it)
             }
         }
+
         lifecycle.doOnStop {
             runBlocking { // even when the scope is destroyed, we want the sync to stop
                 log.debug { "app is stopped: cancel sync" }

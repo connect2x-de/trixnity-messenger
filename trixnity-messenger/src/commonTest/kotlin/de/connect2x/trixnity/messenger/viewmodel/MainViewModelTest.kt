@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.russhwolf.settings.MapSettings
@@ -24,7 +25,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.timing.eventually
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -137,7 +137,6 @@ class MainViewModelTest : ShouldSpec() {
 
     init {
         Dispatchers.setMain(testMainDispatcher)
-        isolationMode = IsolationMode.InstancePerTest // since we want to reset Lifecycle, etc.
 
         beforeTest {
             mocker.reset()
@@ -222,6 +221,11 @@ class MainViewModelTest : ShouldSpec() {
                 everySuspending { matrixClientMock2.cancelSync(isAny()) } returns Unit
                 every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
             }
+        }
+
+        afterTest {
+            lifecycle.destroy()
+            startSyncPresenceCapture.clear()
         }
 
         should("select no room initially") {
@@ -613,14 +617,22 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public") {
+            val cut = mainViewModel()
+            delay(300.milliseconds) // give viewmodel time to start first sync
+            messengerSettings.setPresenceIsPublic("test", false)
             messengerSettings.setPresenceIsPublic("test", true)
-            mainViewModel()
             messengerSettings.setPresenceIsPublic("test", false)
             messengerSettings.setPresenceIsPublic("test", true)
 
-            // initial, then 3 changes
             startSyncPresenceCapture shouldBe
-                    mutableListOf(Presence.ONLINE, Presence.ONLINE, Presence.OFFLINE, Presence.ONLINE)
+                    mutableListOf(
+                        Presence.ONLINE, // initial sync
+                        Presence.ONLINE, // first normal sync
+                        Presence.OFFLINE, // 4 changes
+                        Presence.ONLINE,
+                        Presence.OFFLINE,
+                        Presence.ONLINE
+                    )
         }
     }
 
