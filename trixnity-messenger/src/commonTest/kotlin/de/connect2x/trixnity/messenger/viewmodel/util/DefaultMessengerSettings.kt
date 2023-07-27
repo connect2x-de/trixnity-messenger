@@ -6,24 +6,25 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 fun defaultMessengerSettings(lang: String) = object : MessengerSettings {
-    override val defaultPushMode: PushMode = PushMode.NONE
-    override val defaultNotificationPlaySound: Boolean = false
-    override val defaultNotificationShowPopup: Boolean = false
-    override val defaultNotificationShowText: Boolean = false
-    override var pushMode: Map<String?, PushMode>
-        get() = emptyMap()
-        set(value) {}
-    override val pushModeFlow: Flow<Map<String?, PushMode>>
-        get() = flowOf(emptyMap())
-    override var notificationPlaySound: Map<String?, Boolean>
-        get() = emptyMap()
-        set(value) {}
-    override var notificationsShowPopup: Map<String?, Boolean>
-        get() = emptyMap()
-        set(value) {}
-    override var notificationsShowText: Map<String?, Boolean>
-        get() = emptyMap()
-        set(value) {}
+    override fun pushMode(accountName: String): PushMode = PushMode.NONE
+    override fun setPushMode(accountName: String, newValue: PushMode?) {}
+    override fun pushModeFlow(accountName: String): Flow<PushMode> = flowOf(PushMode.NONE)
+    override fun pushModeFlow(): Flow<Map<String?, PushMode>> = flowOf(mapOf(null to PushMode.NONE))
+    override fun presenceIsPublic(accountName: String): Boolean = true
+    override fun setPresenceIsPublic(accountName: String, newValue: Boolean?) {}
+    override fun presenceIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
+    override fun readMarkerIsPublic(accountName: String): Boolean = true
+    override fun setReadMarkerIsPublic(accountName: String, newValue: Boolean?) {}
+    override fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
+    override fun typingIsPublic(accountName: String): Boolean = false
+    override fun setTypingIsPublic(accountName: String, newValue: Boolean?) {}
+    override fun typingIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
+    override fun notificationsPlaySound(accountName: String): Boolean = false
+    override fun setNotificationsPlaySound(accountName: String, newValue: Boolean?) {}
+    override fun notificationsShowPopup(accountName: String): Boolean = false
+    override fun setNotificationsShowPopup(accountName: String, newValue: Boolean?) {}
+    override fun notificationsShowText(accountName: String): Boolean = false
+    override fun setNotificationsShowText(accountName: String, newValue: Boolean?) {}
     override var activeAccount: String?
         get() = null
         set(value) {}

@@ -28,6 +28,8 @@ kotlin {
                 implementation(project(":trixnity-messenger"))
                 implementation("net.folivo:trixnity-client-repository-exposed:${Versions.trixnity}")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
+                implementation("com.russhwolf:multiplatform-settings:${Versions.multiplatformSettings}")
+                implementation("com.russhwolf:multiplatform-settings-test:${Versions.multiplatformSettings}")
                 implementation(kotlin("test"))
                 implementation("io.kotest:kotest-common:${Versions.kotest}")
                 implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")

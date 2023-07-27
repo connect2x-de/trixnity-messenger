@@ -107,6 +107,7 @@ class RoomListRouter(
                     onShowDevicesSettings = ::onShowDevicesSettings,
                     onShowProfile = ::onShowProfile,
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
+                    onShowPrivacySettings = ::onShowPrivacySettings,
                 )
             )
 
@@ -133,6 +134,13 @@ class RoomListRouter(
                         onCloseNotificationsSettings = ::onCloseNotificationsSettings,
                         onShowConfigureNotifications = ::onShowConfigureNotifications,
                     )
+            )
+
+            is RoomListConfig.PrivacySettings -> RoomListWrapper.PrivacySettings(
+                viewModelContext.get<PrivacySettingsViewModelFactory>().newPrivacySettingsViewModel(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    onClosePrivacySettings = ::onClosePrivacySettings,
+                )
             )
 
             is RoomListConfig.ConfigureNotifications -> RoomListWrapper.ConfigureNotifications(
@@ -247,6 +255,16 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
+    private fun onShowPrivacySettings() {
+        log.debug { "show privacy settings" }
+        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.PrivacySettings)
+    }
+
+    private fun onClosePrivacySettings() {
+        log.debug { "close privacy settings" }
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
     private fun onShowConfigureNotifications(accountName: String) {
         log.debug { "configure notifications for account $accountName" }
         navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.ConfigureNotifications(accountName))
@@ -317,6 +335,9 @@ class RoomListRouter(
         object NotificationsSettings : RoomListConfig()
 
         @Parcelize
+        object PrivacySettings: RoomListConfig()
+
+        @Parcelize
         data class ConfigureNotifications(val accountName: String) : RoomListConfig()
 
         @Parcelize
@@ -342,6 +363,7 @@ class RoomListRouter(
         class Profile(val profileViewModel: ProfileViewModel) : RoomListWrapper()
         class NotificationsSettings(val notificationsSettingsViewModel: NotificationsSettingsViewModel) :
             RoomListWrapper()
+        class PrivacySettings(val privacySettingsViewModel: PrivacySettingsViewModel): RoomListWrapper()
 
         class ConfigureNotifications(val configureNotificationsViewModel: ConfigureNotificationsViewModel) :
             RoomListWrapper()

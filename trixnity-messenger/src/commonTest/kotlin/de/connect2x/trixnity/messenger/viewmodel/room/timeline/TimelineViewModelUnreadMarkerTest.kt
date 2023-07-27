@@ -2,10 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.*
+import com.russhwolf.settings.MapSettings
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.timing.continually
@@ -50,9 +52,11 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
+    private val messengerSettings = MessengerSettingsImpl(MapSettings())
     private val roomId = RoomId("room1", "localhost")
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
+
     private val bob = UserId("bob", "localhost")
 
     @Mock
@@ -71,14 +75,10 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomsApiClient
 
     @Mock
-    lateinit var downloadManagerMock: DownloadManager
-
-    @Mock
     lateinit var roomHeaderViewModelMock: RoomHeaderViewModel
 
     @Mock
     lateinit var inputAreaViewModelMock: InputAreaViewModel
-
     private lateinit var roomUser: Mocker.Every<Flow<RoomUser?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
 
@@ -176,6 +176,8 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
             }
+            messengerSettings.preferredLang = "en"
+            messengerSettings.setReadMarkerIsPublic("test", true)
         }
         afterTest {
             lifecycleRegistry.destroy()
@@ -559,6 +561,30 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             verifyReadMarkerNotCalled()
         }
 
+        should("mark messages as read privately if the setting is set to privacy-first") {
+            messengerSettings.setReadMarkerIsPublic("test", false)
+            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hello")
+                }
+                +messageEvent(sender = alice) {
+                    text("World!")
+                }
+                +messageEvent(sender = alice) {
+                    text("What's up?")
+                }
+            }
+            timelineMock.fullyReadEventIndex.value = 0
+            val cut = timelineViewModel()
+            cut.timelineElementViewModels waitForSize 3
+            cut.lastVisibleTimelineElement.value = "1"
+
+            assertUnreadMarkerAtIndex(1, cut)
+            mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
+                roomsApiClientMock.setReadMarkers(isEqual(roomId), isNull(), isNull(), isEqual(EventId("1")), isAny())
+            }
+        }
+
         should("mark the last message as fully read when the room is changed or app exited (view model is destroyed)") {
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -583,6 +609,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             lifecycleRegistry.destroy()
             verifyReadMarkerCalled(null to 1, 1 to null)
         }
+
         should("mark the last message as fully read when the app is paused") {
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -642,6 +669,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                 }
                             }
                         }
+                        single<MessengerSettings> { messengerSettings }
                     })
                 }.koin,
                 accountName = "test",

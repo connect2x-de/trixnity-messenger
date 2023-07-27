@@ -3,8 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
+import com.russhwolf.settings.MapSettings
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel.SelfVerificationConfig
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
@@ -15,13 +17,14 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListWrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.timing.eventually
-import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -55,6 +58,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import org.kodein.mock.Mock
@@ -77,6 +81,8 @@ class MainViewModelTest : ShouldSpec() {
     private val myUserId = UserId("user1", "localhost")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
+
+    private val messengerSettings = MessengerSettingsImpl(MapSettings())
 
     @Mock
     lateinit var matrixClientMock: MatrixClient
@@ -127,10 +133,10 @@ class MainViewModelTest : ShouldSpec() {
     lateinit var networkAvailable: Mocker.Every<Boolean>
     lateinit var syncState: Mocker.Every<StateFlow<SyncState>>
     lateinit var initialSyncDone: Mocker.Every<StateFlow<Boolean>>
+    private val startSyncPresenceCapture = mutableListOf<Presence>()
 
     init {
         Dispatchers.setMain(testMainDispatcher)
-        isolationMode = IsolationMode.InstancePerTest // since we want to reset Lifecycle, etc.
 
         beforeTest {
             mocker.reset()
@@ -154,7 +160,8 @@ class MainViewModelTest : ShouldSpec() {
                 every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
                 syncState = every { matrixClientMock.syncState }
                 syncState returns MutableStateFlow(SyncState.RUNNING)
-                everySuspending { matrixClientMock.startSync() } returns Unit
+                everySuspending { matrixClientMock.startSync(isAny(startSyncPresenceCapture)) } returns Unit
+                everySuspending { matrixClientMock.stopSync(isAny()) } returns Unit
                 everySuspending { matrixClientMock.cancelSync(isAny()) } returns Unit
 
                 every { roomServiceMock.getAll() } returns roomsFlow
@@ -216,16 +223,17 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
+        afterTest {
+            lifecycle.destroy()
+            startSyncPresenceCapture.clear()
+        }
+
         should("select no room initially") {
             mocker.everySuspending {
-                matrixClientMock.syncOnce(
-                    isAny(),
-                    isAny<suspend (Sync.Response) -> Unit>()
-                )
+                matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
-
 
             eventually(2.seconds) {
                 assertSoftly {
@@ -428,7 +436,7 @@ class MainViewModelTest : ShouldSpec() {
                 )
             )
             mocker.everySuspending {
-                matrixClientMock.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
@@ -482,10 +490,10 @@ class MainViewModelTest : ShouldSpec() {
                 )
 
                 everySuspending {
-                    matrixClientMock.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                    matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
                 } returns Result.success(Unit)
                 everySuspending {
-                    matrixClientMock2.syncOnce(isAny(), isAny<suspend (Sync.Response) -> Unit>())
+                    matrixClientMock2.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
                 } returns Result.success(Unit)
             }
 
@@ -607,6 +615,25 @@ class MainViewModelTest : ShouldSpec() {
                 }
             }
         }
+
+        should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public") {
+            val cut = mainViewModel()
+            delay(300.milliseconds) // give viewmodel time to start first sync
+            messengerSettings.setPresenceIsPublic("test", false)
+            messengerSettings.setPresenceIsPublic("test", true)
+            messengerSettings.setPresenceIsPublic("test", false)
+            messengerSettings.setPresenceIsPublic("test", true)
+
+            startSyncPresenceCapture shouldBe
+                    mutableListOf(
+                        Presence.ONLINE, // initial sync
+                        Presence.ONLINE, // first normal sync
+                        Presence.OFFLINE, // 4 changes
+                        Presence.ONLINE,
+                        Presence.OFFLINE,
+                        Presence.ONLINE
+                    )
+        }
     }
 
     private fun mainViewModel(matrixClientModule: Module = testMatrixClientModule(matrixClientMock)): MainViewModelImpl {
@@ -618,6 +645,7 @@ class MainViewModelTest : ShouldSpec() {
                         single { downloadManagerMock }
                         single { isNetworkAvailable }
                         single { runInitialSyncMock }
+                        single<MessengerSettings> { messengerSettings }
                         single<RoomHeaderViewModelFactory> {
                             object : RoomHeaderViewModelFactory {
                                 override fun newRoomHeaderViewModel(

@@ -19,7 +19,6 @@ import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -88,7 +87,8 @@ class RootViewModelTest : ShouldSpec() {
                 everySuspending { matrixClientServiceMock.login(isAny(), isAny(), isAny(), isAny(), isAny()) } returns
                         Result.success(Unit)
 
-                everySuspending { matrixClientMock.syncOnce<Unit>(isAny(), isAny()) } returns Result.success(Unit)
+                everySuspending { matrixClientMock.syncOnce<Unit>(isAny(), isAny(), isAny()) } returns
+                        Result.success(Unit)
 
                 every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
 

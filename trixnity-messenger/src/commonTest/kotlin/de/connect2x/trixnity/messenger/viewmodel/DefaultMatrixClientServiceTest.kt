@@ -8,7 +8,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.ktor.http.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -319,8 +318,6 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
     }
 
     private fun defaultMatrixClientService(di: Koin) = DefaultMatrixClientService(
-        context = null,
-        di = di,
         repositoriesModuleCreation = { createInMemoryRepositoriesModule() },
         matrixClientFactory = { matrixClientFactory },
     )

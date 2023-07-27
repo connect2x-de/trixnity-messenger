@@ -2,8 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.util.Lang
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.PushMode
 import de.connect2x.trixnity.messenger.viewmodel.util.defaultMessengerSettings
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe

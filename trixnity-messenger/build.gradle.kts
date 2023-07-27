@@ -82,6 +82,7 @@ kotlin {
                 implementation("org.kodein.mock:mockmp-runtime:${Versions.mocKmp}")
 
                 implementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
+                implementation("com.russhwolf:multiplatform-settings-test:${Versions.multiplatformSettings}")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
                 implementation("io.kotest:kotest-common:${Versions.kotest}")
                 implementation("io.kotest:kotest-framework-engine:${Versions.kotest}")

@@ -42,7 +42,7 @@ actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.Def
 private fun getDbName(accountName: String) =
     "${MessengerConfig.instance.appName.replaceFirstChar { it.lowercase() }}-$accountName"
 
-internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore {
+internal actual suspend fun createMediaStore(accountName: String): MediaStore {
     return IndexedDBMediaStore("timmy_media")
 }
 

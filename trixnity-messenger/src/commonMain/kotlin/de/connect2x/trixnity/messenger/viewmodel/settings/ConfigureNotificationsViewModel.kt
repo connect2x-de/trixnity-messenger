@@ -32,32 +32,29 @@ open class ConfigureNotificationsViewModelImpl(
     private val messengerSettings = getKoin().get<MessengerSettings>()
 
     override val playSound = MutableStateFlow(
-        messengerSettings.notificationPlaySound[accountName] ?: messengerSettings.defaultNotificationPlaySound
+        messengerSettings.notificationsPlaySound(accountName)
     )
     override val showPopup = MutableStateFlow(
-        messengerSettings.notificationsShowPopup[accountName] ?: messengerSettings.defaultNotificationShowPopup
+        messengerSettings.notificationsShowPopup(accountName)
     )
     override val showText = MutableStateFlow(
-        messengerSettings.notificationsShowText[accountName] ?: messengerSettings.defaultNotificationShowText
+        messengerSettings.notificationsShowText(accountName)
     )
 
     init {
         coroutineScope.launch {
             playSound.collectLatest {
-                messengerSettings.notificationPlaySound =
-                    messengerSettings.notificationPlaySound - accountName + (accountName to it)
+                messengerSettings.setNotificationsPlaySound(accountName, it)
             }
         }
         coroutineScope.launch {
             showPopup.collectLatest {
-                messengerSettings.notificationsShowPopup =
-                    messengerSettings.notificationsShowPopup - accountName + (accountName to it)
+                messengerSettings.setNotificationsShowPopup(accountName, it)
             }
         }
         coroutineScope.launch {
             showText.collectLatest {
-                messengerSettings.notificationsShowText =
-                    messengerSettings.notificationsShowText - accountName + (accountName to it)
+                messengerSettings.setNotificationsShowText(accountName, it)
             }
         }
     }

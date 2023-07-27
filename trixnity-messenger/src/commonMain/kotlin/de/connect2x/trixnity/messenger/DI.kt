@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import com.russhwolf.settings.Settings
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
@@ -45,7 +46,8 @@ fun trixnityMessengerModule() = module {
         CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
     }
 
-    single<MessengerSettings> { MessengerSettingsImpl() }
+    single<Settings> { createSettings() }
+    single<MessengerSettings> { MessengerSettingsImpl(get()) }
     single<GetAccountNames> { GetAccountNamesImpl() }
 
     single<Initials> { object : Initials {} }
@@ -154,6 +156,7 @@ private val settingsViewModels = module {
     }
     single<ProfileViewModelFactory> { object : ProfileViewModelFactory {} }
     single<UserSettingsViewModelFactory> { object : UserSettingsViewModelFactory {} }
+    single<PrivacySettingsViewModelFactory> { object: PrivacySettingsViewModelFactory {} }
 }
 
 private val timelineElementsViewModels = module {

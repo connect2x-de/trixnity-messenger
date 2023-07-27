@@ -13,7 +13,6 @@ import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.Koin
@@ -43,21 +42,19 @@ interface MatrixClientFactory {
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultMatrixClientService(
-    context: Any?,
-    private val di: Koin,
     private val baseHttpClient: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
     private val repositoriesModuleCreation: suspend (account: String) -> Module = {
         createRepositoriesModule(it)
     },
     private val mediaStoreCreation: suspend (accountName: String) -> MediaStore = {
-        createMediaStore(context, it)
+        createMediaStore(it)
     },
     private val matrixClientFactory: () -> MatrixClientFactory = {
         val configuration: MatrixClientConfiguration.() -> Unit = {
             setOwnMessagesAsFullyRead = true
             httpClientFactory = baseHttpClient
             lastRelevantEventFilter =
-                { it is Event.MessageEvent<*> && (it.content is RoomMessageEventContent || it.content is EncryptedEventContent) }
+                { it.content is RoomMessageEventContent || it.content is EncryptedEventContent }
         }
 
         object : MatrixClientFactory {
@@ -119,7 +116,7 @@ class DefaultMatrixClientService(
 
     // for iOS, since default parameters are not supported in MPP for Swift (https://youtrack.jetbrains.com/issue/KT-41908/cant-instantiate-data-classes-on-iOS-init-is-unavailable)
     companion object {
-        fun create(context: Any?, di: Koin): MatrixClientService = DefaultMatrixClientService(context, di)
+        fun create(context: Any?, di: Koin): MatrixClientService = DefaultMatrixClientService()
     }
 
     override suspend fun login(

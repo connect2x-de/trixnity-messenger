@@ -13,17 +13,17 @@ actual fun getNotificationSettings(accountName: String, koin: Koin): String {
     val messengerSettings = koin.get<MessengerSettings>()
     return runBlocking {
         val sound =
-            if (messengerSettings.notificationPlaySound[accountName] != false)
+            if (messengerSettings.notificationsPlaySound(accountName))
                 i18n.settingsNotificationsSound()
             else
                 i18n.settingsNotificationsSilent()
         val bubble =
-            if (messengerSettings.notificationsShowPopup[accountName] != false)
+            if (messengerSettings.notificationsShowPopup(accountName))
                 i18n.settingsNotificationsPopup()
             else
                 i18n.settingsNotificationsPopupNot()
         val text =
-            if (messengerSettings.notificationsShowText[accountName] != false)
+            if (messengerSettings.notificationsShowText(accountName))
                 i18n.settingsNotificationsText()
             else
                 i18n.settingsNotificationsTextNot()

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -118,6 +119,7 @@ open class InputAreaViewModelImpl(
     private val onShowAttachmentSendView: (file: String) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
 
+    private val messengerSettings = get<MessengerSettings>()
     private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
@@ -399,7 +401,9 @@ open class InputAreaViewModelImpl(
         if (isTyping.value.not()) {
             isTyping.value = true
             try {
-                matrixClient.api.rooms.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
+                if (messengerSettings.typingIsPublic(accountName)) {
+                    matrixClient.api.rooms.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
+                }
             } catch (exc: Exception) {
                 // ignore
             }

@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.SendAttachmentConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.SendAttachmentWrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
@@ -230,6 +231,7 @@ class TimelineViewModelImpl(
     private val clock = get<Clock>()
     private val directRoom = get<DirectRoom>()
     private val timelineElementRules = get<TimelineElementRules>()
+    private val messengerSettings = get<MessengerSettings>()
 
     private val roomUsers =
         matrixClient.user.getAll(selectedRoomId)
@@ -753,14 +755,14 @@ class TimelineViewModelImpl(
         readEvent.value = eventId
         matrixClient.api.rooms.setReadMarkers(
             roomId = selectedRoomId,
-            read = eventId
+            read = if (messengerSettings.readMarkerIsPublic(accountName)) eventId else null,
+            privateRead = if (messengerSettings.readMarkerIsPublic(accountName)) null else eventId,
         ).onFailure { log.error(it) { "cannot set read marker for event $eventId" } }
             .onSuccess { log.debug { "successfully set read marker for message: $eventId" } }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun markAsFullyRead() {
-        // we have to execute this in the GlobalScope, since otherwise the view model would be cleaned up and with
+        // we have to execute this in the outerScope, since otherwise the view model would be cleaned up and with
         // it the scope where this code is executed
         // TODO alternative: we could put this in some sort of global worker (in Trixnity?) with database for offline scenarios (this worker could also handle redactions and more)
         try {
