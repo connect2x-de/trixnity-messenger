@@ -38,7 +38,7 @@ private val accountMutex = Mutex()
 
 actual suspend fun createRepositoriesModule(accountName: String): Module = withContext(Dispatchers.IO) {
     val messengerConfig = MessengerConfig.instance
-    val dbFolder = getContext().getDbPath(accountName).absolutePath
+    val dbFolder = getDbPath(accountName).absolutePath
     log.debug { "createRepositoriesModule with config: $messengerConfig" }
 
     if (messengerConfig.encryptDb) {
@@ -60,10 +60,9 @@ actual suspend fun createRepositoriesModule(accountName: String): Module = withC
     }
 }
 
-internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore =
+internal actual suspend fun createMediaStore(accountName: String): MediaStore =
     withContext(Dispatchers.IO) {
-        require(context is Context)
-        OkioMediaStore(context.getAccountPath(accountName).resolve("media").toOkioPath())
+        OkioMediaStore(getAccountPath(accountName).resolve("media").toOkioPath())
     }
 
 private fun createPassword(): String {
@@ -75,8 +74,7 @@ private fun createPassword(): String {
 
 actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
     accountMutex.withLock {
-        getContext()
-            .filesDir
+        getAppFolder()
             .list { file, _ -> file.isDirectory }
             ?.map { it.getAccountName() }
             ?: emptyList()
@@ -86,7 +84,7 @@ actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO)
 actual suspend fun deleteDatabase(accountName: String) {
     withContext(Dispatchers.IO) {
         accountMutex.withLock {
-            getContext().getDbPath(accountName).deleteRecursively()
+            getDbPath(accountName).deleteRecursively()
         }
     }
 }
@@ -94,13 +92,14 @@ actual suspend fun deleteDatabase(accountName: String) {
 actual suspend fun deleteAccountDataLocally(accountName: String) {
     withContext(Dispatchers.IO) {
         accountMutex.withLock {
-            getContext().getAccountPath(accountName).deleteRecursively()
+            getAccountPath(accountName).deleteRecursively()
         }
     }
 }
 
-private fun Context.getAccountPath(accountName: String) = filesDir.resolve(accountName)
-private fun Context.getDbPath(accountName: String) = getAccountPath(accountName).resolve("database")
+private fun getAppFolder() = getContext().filesDir.resolve(MessengerConfig.instance.appName)
+private fun getAccountPath(accountName: String) = getAppFolder().resolve(accountName.cleanAccountName())
+private fun getDbPath(accountName: String) = getAccountPath(accountName).resolve("database")
 
 actual fun closeApp() {
     getContext().findActivity()?.finishAndRemoveTask()

@@ -7,7 +7,7 @@ import org.koin.core.module.Module
 // globally available context in the DI, we _have_ to provide a context here (only the Android impl uses it)
 internal expect suspend fun createRepositoriesModule(accountName: String): Module
 
-internal expect suspend fun createMediaStore(context: Any?, accountName: String): MediaStore
+internal expect suspend fun createMediaStore(accountName: String): MediaStore
 
 internal expect suspend fun deleteDatabase(accountName: String)
 

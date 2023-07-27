@@ -27,7 +27,7 @@ actual suspend fun createRepositoriesModule(accountName: String): Module = withC
     }
 }
 
-internal actual suspend fun createMediaStore(context: Any?, accountName: String): MediaStore =
+internal actual suspend fun createMediaStore(accountName: String): MediaStore =
     withContext(Dispatchers.IO) {
         val mediaStore = OkioMediaStore(getAppPath().resolve("media"))
         log.debug { "media store location: $mediaStore" }

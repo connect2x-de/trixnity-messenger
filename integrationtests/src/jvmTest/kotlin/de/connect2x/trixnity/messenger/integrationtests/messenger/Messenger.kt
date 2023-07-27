@@ -122,8 +122,6 @@ private suspend fun RootViewModelImpl.openAccountsOverview(): AccountsOverviewVi
 
 private fun createDefaultMatrixClientService(koinApplication: KoinApplication) =
     DefaultMatrixClientService(
-        context = null,
-        di = koinApplication.koin,
         repositoriesModuleCreation = { accountName: String ->
             getAppFolder(accountName) // also create a folder for the accounts
             createExposedRepositoriesModule(newDatabase(accountName))
