@@ -74,10 +74,10 @@ internal class MockSyncApiClient(
     )
 
 
-    public override fun subscribeAfterSyncResponse(subscriber: SuspendFunction1<Sync.Response, Unit>):
+    public override fun subscribeAfterSyncProcessing(subscriber: SuspendFunction1<Sync.Response, Unit>):
             Unit = this.mocker.register(
         this,
-        "subscribeAfterSyncResponse(kotlin.coroutines.SuspendFunction1)", subscriber
+        "subscribeAfterSyncProcessing(kotlin.coroutines.SuspendFunction1)", subscriber
     )
 
     public override fun subscribeAllEvents(subscriber: SuspendFunction1<Event<EventContent>, Unit>):
@@ -132,9 +132,9 @@ internal class MockSyncApiClient(
     )
 
     public override
-    fun unsubscribeAfterSyncResponse(subscriber: SuspendFunction1<Sync.Response, Unit>): Unit =
+    fun unsubscribeAfterSyncProcessing(subscriber: SuspendFunction1<Sync.Response, Unit>): Unit =
         this.mocker.register(
-            this, "unsubscribeAfterSyncResponse(kotlin.coroutines.SuspendFunction1)",
+            this, "unsubscribeAfterSyncProcessing(kotlin.coroutines.SuspendFunction1)",
             subscriber
         )
 

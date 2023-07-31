@@ -30,11 +30,10 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
-import net.folivo.trixnity.core.model.push.PushAction.DontNotify
 import net.folivo.trixnity.core.model.push.PushAction.Notify
 import net.folivo.trixnity.core.model.push.PushCondition
 import net.folivo.trixnity.core.model.push.PushRule
-import net.folivo.trixnity.core.model.push.PushRuleKind
+import net.folivo.trixnity.core.model.push.PushRuleSet
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -194,86 +193,63 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             }
         }
 
-        should("set room's push rule to SILENT when we override all room notifications with 'do not notify'") {
+        should("set room's push rule to DEFAULT'") {
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(
                 PushRulesEventContent(
-                    global = mapOf(
-                        PushRuleKind.OVERRIDE to listOf(
-                            PushRule(
-                                conditions = setOf(
-                                    PushCondition.EventMatch(
-                                        key = "room_id",
-                                        "!room:localhost"
-                                    )
-                                ),
-                                actions = setOf(DontNotify),
-                                enabled = true,
-                                default = false,
-                                ruleId = "!room:localhost",
-                            ),
-                        ),
-                    )
+                    global = PushRuleSet()
                 )
             )
             val cut = roomSettingsViewModel(coroutineContext)
             val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.SILENT
+            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.DEFAULT
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
-        should("set room's push rule to SILENT when we set room notifications to 'do not notify' and do not have a rule for our name mention") {
+        should("set room's push rule to ALL'") {
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(
                 PushRulesEventContent(
-                    global = mapOf(
-                        PushRuleKind.ROOM to listOf(
-                            PushRule(
-                                actions = setOf(DontNotify),
-                                enabled = true,
-                                default = false,
-                                ruleId = "!room:localhost",
-                            ),
-                        ),
-                    )
-                )
-            )
-            val cut = roomSettingsViewModel(coroutineContext)
-            val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.SILENT
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set room's push rule to MENTIONS when we set room notifications to 'do not notify'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(
-                PushRulesEventContent(
-                    global = mapOf(
-                        PushRuleKind.CONTENT to listOf(
-                            PushRule(
+                    global = PushRuleSet(
+                        room = listOf(
+                            PushRule.Room(
                                 actions = setOf(Notify),
                                 enabled = true,
-                                default = true,
-                                ruleId = ".m.rule.contains_user_name",
+                                default = false,
+                                roomId = RoomId("!room:localhost"),
                             ),
                         ),
-                        PushRuleKind.ROOM to listOf(
-                            PushRule(
-                                actions = setOf(DontNotify),
+                    )
+                )
+            )
+            val cut = roomSettingsViewModel(coroutineContext)
+            val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.ALL
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("set room's push rule to MENTIONS'") {
+            mocker.every {
+                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            } returns MutableStateFlow(
+                PushRulesEventContent(
+                    global = PushRuleSet(
+                        room = listOf(
+                            PushRule.Room(
+                                actions = setOf(),
                                 enabled = true,
                                 default = false,
-                                ruleId = "!room:localhost",
+                                roomId = RoomId("!room:localhost"),
                             ),
                         ),
                     )
@@ -289,15 +265,29 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("set room's push rule to ALL there are no 'do not notify' rules for the room") {
+        should("set room's push rule to SILENT'") {
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(null)
+            } returns MutableStateFlow(
+                PushRulesEventContent(
+                    global = PushRuleSet(
+                        override = listOf(
+                            PushRule.Override(
+                                actions = setOf(),
+                                conditions = setOf(PushCondition.EventMatch("room_id", "!room:localhost")),
+                                enabled = true,
+                                default = false,
+                                ruleId = "!room:localhost",
+                            ),
+                        ),
+                    )
+                )
+            )
             val cut = roomSettingsViewModel(coroutineContext)
             val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.ALL
+            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.SILENT
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
