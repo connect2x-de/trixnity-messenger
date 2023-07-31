@@ -620,6 +620,11 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Stumm"
     }
 
+    fun settingsRoomNotificationsDefault() = translate {
+        EN - "Default"
+        DE - "Standard"
+    }
+
     fun settingsRoomNotificationsAllExplanation() = translate {
         EN - "you are notified on every new message"
         DE - "Sie werden über jede neue Nachricht informiert"
@@ -633,6 +638,11 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
     fun settingsRoomNotificationsSilentExplanation() = translate {
         EN - "you are not notified on any new message"
         DE - "Sie erhalten keinerlei Benachrichtigungen über neue Nachrichten"
+    }
+
+    fun settingsRoomNotificationsDefaultExplanation() = translate {
+        EN - "you are notified as specified in the global settings"
+        DE - "Sie werden so benachrichtigt, wie dies in den globalen Einstellungen festgelegt ist."
     }
 
     fun profileLoadError() = translate {

@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -13,6 +14,7 @@ import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
+import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
@@ -116,7 +118,8 @@ open class RoomSettingsViewModelImpl(
     override val roomNotificationLevels = mapOf(
         NotificationLevels.ALL to NotificationLevelImpl(i18n, NotificationLevels.ALL),
         NotificationLevels.MENTIONS to NotificationLevelImpl(i18n, NotificationLevels.MENTIONS),
-        NotificationLevels.SILENT to NotificationLevelImpl(i18n, NotificationLevels.SILENT)
+        NotificationLevels.SILENT to NotificationLevelImpl(i18n, NotificationLevels.SILENT),
+        NotificationLevels.DEFAULT to NotificationLevelImpl(i18n, NotificationLevels.DEFAULT),
     )
     override val selectedRoomNotificationsLevel: StateFlow<NotificationLevel>
     override val isNotificationsLevelLoading = MutableStateFlow(false)
@@ -170,34 +173,41 @@ open class RoomSettingsViewModelImpl(
         selectedRoomNotificationsLevel =
             matrixClient.user.getAccountData<PushRulesEventContent>().map { prs ->
                 prs?.let { pushRules ->
-                    val notifyMeInMentions = pushRules.global?.get(PushRuleKind.CONTENT)?.any { pushRule ->
-                        pushRule.enabled && pushRule.ruleId == ".m.rule.contains_user_name" &&
-                                pushRule.actions.any { pushAction -> pushAction == PushAction.Notify }
-                    } ?: false
+                    val roomActions =
+                        pushRules.global?.room
+                            ?.filter { it.enabled }
+                            ?.find { pushRule -> pushRule.roomId == selectedRoomId }
+                            ?.actions
+                            ?.filter { it !is PushAction.Unknown }
 
-                    val dontNotifyRoom =
-                        pushRules.global?.get(PushRuleKind.ROOM)
-                            ?.find { pushRule -> pushRule.ruleId == selectedRoomId.full && pushRule.enabled }
-                            ?.actions?.any { it == PushAction.DontNotify } == true
-                    val dontNotifyOverride =
-                        pushRules.global?.get(PushRuleKind.OVERRIDE)?.find { pushRule ->
-                            pushRule.conditions?.any { pushCondition ->
-                                pushCondition is PushCondition.EventMatch &&
-                                        pushCondition.key == "room_id" &&
-                                        pushCondition.pattern == selectedRoomId.full
-                            } ?: false
-                                    && pushRule.conditions?.size == 1
-                                    && pushRule.enabled
-                        }?.actions?.any { it == PushAction.DontNotify } == true
+                    val overrideActions =
+                        pushRules.global?.override
+                            ?.filter { it.enabled }
+                            ?.find { pushRule ->
+                                pushRule.conditions?.any { pushCondition ->
+                                    pushCondition == PushCondition.EventMatch(
+                                        key = "room_id",
+                                        pattern = selectedRoomId.full
+                                    )
+                                } ?: false
+                                        && pushRule.conditions?.size == 1
+                            }?.actions
+                            ?.filter { it !is PushAction.Unknown }
 
-                    if (dontNotifyOverride || dontNotifyRoom && notifyMeInMentions.not()) {
-                        roomNotificationLevels.getValue(NotificationLevels.SILENT)
-                    } else if (dontNotifyRoom && notifyMeInMentions) {
-                        roomNotificationLevels.getValue(NotificationLevels.MENTIONS)
-                    } else {
-                        roomNotificationLevels.getValue(NotificationLevels.ALL)
+                    val level = when {
+                        overrideActions == null && roomActions != null && roomActions.isNotEmpty() ->
+                            NotificationLevels.ALL
+
+                        overrideActions == null && roomActions != null && roomActions.isEmpty() ->
+                            NotificationLevels.MENTIONS
+
+                        roomActions == null && overrideActions != null && overrideActions.isEmpty() ->
+                            NotificationLevels.SILENT
+
+                        else -> NotificationLevels.DEFAULT
                     }
-                } ?: roomNotificationLevels.getValue(NotificationLevels.ALL)
+                    roomNotificationLevels.getValue(level)
+                } ?: roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
             }.stateIn(
                 coroutineScope,
                 SharingStarted.WhileSubscribed(),
@@ -244,74 +254,85 @@ open class RoomSettingsViewModelImpl(
             error.value = null
             isNotificationsLevelLoading.value = true
 
-            when (selectedRoomNotificationsLevel.value.key) {
-                NotificationLevels.SILENT -> when (newLevel.key) {
-                    NotificationLevels.SILENT -> {}
-                    NotificationLevels.ALL -> {
-                        deletePush(PushRuleKind.OVERRIDE)
-                    }
-
-                    NotificationLevels.MENTIONS -> {
-                        deletePush(PushRuleKind.OVERRIDE)
-                        setPush(PushRuleKind.ROOM)
-                    }
+            when (newLevel.key) {
+                NotificationLevels.DEFAULT -> {
+                    deleteRoomPush()
+                    deleteOverridePush()
                 }
 
-                NotificationLevels.MENTIONS -> when (newLevel.key) {
-                    NotificationLevels.SILENT -> {
-                        deletePush(PushRuleKind.ROOM)
-                        setPush(PushRuleKind.OVERRIDE)
-                    }
-
-                    NotificationLevels.ALL -> {
-                        deletePush(PushRuleKind.ROOM)
-                    }
-
-                    NotificationLevels.MENTIONS -> {}
+                NotificationLevels.ALL -> {
+                    deleteOverridePush()
+                    setRoomPush(true)
                 }
 
-                NotificationLevels.ALL -> when (newLevel.key) {
-                    NotificationLevels.SILENT -> {
-                        setPush(PushRuleKind.OVERRIDE)
-                    }
-
-                    NotificationLevels.ALL -> {}
-                    NotificationLevels.MENTIONS -> {
-                        setPush(PushRuleKind.ROOM)
-                    }
+                NotificationLevels.MENTIONS -> {
+                    deleteOverridePush()
+                    setRoomPush(false)
                 }
+
+                NotificationLevels.SILENT -> {
+                    deleteRoomPush()
+                    setOverridePush()
+                }
+
             }
 
             isNotificationsLevelLoading.value = false
         }
     }
 
-    private suspend fun deletePush(kind: PushRuleKind) {
-        matrixClient.api.push.deletePushRule(
+    private suspend fun setRoomPush(notify: Boolean) {
+        matrixClient.api.push.setPushRule(
             "global",
-            kind,
+            PushRuleKind.ROOM,
             selectedRoomId.full,
+            SetPushRule.Request(
+                conditions = setOf(),
+                actions = if (notify) setOf(PushAction.Notify, PushAction.SetSoundTweak("default")) else setOf(),
+            ),
         ).onFailure { exception ->
-            log.error(exception) { "cannot delete push notification rule: $kind (${selectedRoomId.full})" }
+            log.error(exception) { "Cannot add room push notification rule: (${selectedRoomId.full})" }
             error.value = i18n.settingsRoomNotificationsError()
         }
     }
 
-    private suspend fun setPush(kind: PushRuleKind) {
+    private suspend fun setOverridePush() {
         matrixClient.api.push.setPushRule(
             "global",
-            kind,
+            PushRuleKind.OVERRIDE,
             selectedRoomId.full,
             SetPushRule.Request(
-                actions = setOf(PushAction.DontNotify),
-                conditions =
-                if (kind == PushRuleKind.OVERRIDE)
-                    setOf(PushCondition.EventMatch(key = "room_id", pattern = selectedRoomId.full))
-                else
-                    setOf()
+                conditions = setOf(PushCondition.EventMatch(key = "room_id", pattern = selectedRoomId.full)),
+                actions = setOf(),
             ),
         ).onFailure { exception ->
-            log.error(exception) { "Cannot add push notification rule: $kind (${selectedRoomId.full})" }
+            log.error(exception) { "Cannot add override push notification rule: (${selectedRoomId.full})" }
+            error.value = i18n.settingsRoomNotificationsError()
+        }
+    }
+
+    private suspend fun deleteRoomPush() {
+        matrixClient.api.push.deletePushRule(
+            "global",
+            PushRuleKind.ROOM,
+            selectedRoomId.full,
+        ).onFailure { exception ->
+            // we could just prevent calling the function at all, when rule already deleted
+            if (exception is MatrixServerException && exception.statusCode == HttpStatusCode.NotFound) return
+            log.error(exception) { "cannot delete room push notification rule: (${selectedRoomId.full})" }
+            error.value = i18n.settingsRoomNotificationsError()
+        }
+    }
+
+    private suspend fun deleteOverridePush() {
+        matrixClient.api.push.deletePushRule(
+            "global",
+            PushRuleKind.OVERRIDE,
+            selectedRoomId.full,
+        ).onFailure { exception ->
+            // we could just prevent calling the function at all, when rule already deleted
+            if (exception is MatrixServerException && exception.statusCode == HttpStatusCode.NotFound) return
+            log.error(exception) { "cannot delete override push notification rule: (${selectedRoomId.full})" }
             error.value = i18n.settingsRoomNotificationsError()
         }
     }
@@ -358,9 +379,10 @@ open class RoomSettingsViewModelImpl(
 
 
 enum class NotificationLevels(val key: String) {
+    DEFAULT("DEFAULT"),
     ALL("ALL"),
     MENTIONS("MENTIONS"),
-    SILENT("SILENT")
+    SILENT("SILENT"),
 }
 
 interface NotificationLevel {
@@ -378,12 +400,14 @@ class NotificationLevelImpl(i18n: I18n, override val key: NotificationLevels) : 
             NotificationLevels.ALL -> i18n.settingsRoomNotificationsAll()
             NotificationLevels.MENTIONS -> i18n.settingsRoomNotificationsMentions()
             NotificationLevels.SILENT -> i18n.settingsRoomNotificationsSilent()
+            NotificationLevels.DEFAULT -> i18n.settingsRoomNotificationsDefault()
         }
 
         explanation.value = when (key) {
             NotificationLevels.ALL -> i18n.settingsRoomNotificationsAllExplanation()
             NotificationLevels.MENTIONS -> i18n.settingsRoomNotificationsMentionsExplanation()
             NotificationLevels.SILENT -> i18n.settingsRoomNotificationsSilentExplanation()
+            NotificationLevels.DEFAULT -> i18n.settingsRoomNotificationsDefaultExplanation()
         }
     }
 }
