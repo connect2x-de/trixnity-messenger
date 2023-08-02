@@ -59,7 +59,9 @@ fun trixnityMessengerModule() = module {
 
     single<Lang> { object : Lang {} }
     single<I18n> { object : I18n(get(), get()) {} }
-    single<RoomName> { RoomNameImpl(get()) }
+    single<RoomName> { RoomNameImpl(get(), get()) }
+    single<RoomInviter> { RoomInviterImpl() }
+    single<UserBlocking> { UserBlockingImpl() }
 
     single<DownloadManager> { DownloadManagerImpl() }
     single<Thumbnails> { ThumbnailsImpl() }
@@ -157,6 +159,7 @@ private val settingsViewModels = module {
     single<ProfileViewModelFactory> { object : ProfileViewModelFactory {} }
     single<UserSettingsViewModelFactory> { object : UserSettingsViewModelFactory {} }
     single<PrivacySettingsViewModelFactory> { object: PrivacySettingsViewModelFactory {} }
+    single<PrivacySettingViewModelFactory> { object: PrivacySettingViewModelFactory {} }
 }
 
 private val timelineElementsViewModels = module {

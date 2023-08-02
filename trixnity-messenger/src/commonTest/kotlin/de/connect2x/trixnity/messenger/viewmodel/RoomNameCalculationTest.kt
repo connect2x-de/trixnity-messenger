@@ -2,7 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.util.Lang
-import de.connect2x.trixnity.messenger.viewmodel.util.defaultMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
+import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +43,9 @@ class RoomNameCalculationTest : ShouldSpec() {
     @Mock
     lateinit var userServiceMock: UserService
 
+    @Mock
+    lateinit var roomInviterMock: RoomInviter
+
     lateinit var i18n: I18n
 
     lateinit var user1Mocker: Mocker.Every<Flow<RoomUser?>>
@@ -51,7 +55,7 @@ class RoomNameCalculationTest : ShouldSpec() {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(Lang.EN, defaultMessengerSettings("en")) {}
+            i18n = object : I18n(Lang.EN, testMessengerSettings("en")) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -91,12 +95,12 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the room id when name field is empty") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(roomId, null, matrixClientMock).first() shouldBe "!room1:server"
         }
 
         should("return the value of the explicit name when the corresponding field is given") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -110,7 +114,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the room id when isEmpty=false, |heroes|=0, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -124,7 +128,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display name of the hero, when isEmpty=false, |heroes|=1, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -138,7 +142,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of all heroes, when isEmpty=false, |heroes|=2, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -152,7 +156,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of all heroes, when isEmpty=false, |heroes|=3, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -166,7 +170,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return an indication of the remaining user when isEmpty=false, |heroes|=0, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -180,7 +184,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display name of the hero along with a count of the remaining users when isEmpty=false, |heroes|=1, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -194,7 +198,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of the heroes along with a count of the remaining users when isEmpty=false, |heroes|=2, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -208,7 +212,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the count of the remaining users when isEmpty=false, |heroes|=0, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -222,7 +226,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display name of the hero along with a count of the remaining users when isEmpty=false, |heroes|=1, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -236,7 +240,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of the heroes along with a count of the remaining users when isEmpty=false, |heroes|=2, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -249,8 +253,8 @@ class RoomNameCalculationTest : ShouldSpec() {
             ).first() shouldBe "User 1, User 2 and 2 others"
         }
 
-        should("return 'Leerer Chat' when isEmpty=true, |heroes|=0, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+        should("return 'Empty Chat' when isEmpty=true, |heroes|=0, otherUserCount=0") {
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -264,7 +268,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display name of the hero surrounded by an Empty-Room-String when isEmpty=true |heroes|=1, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -286,7 +290,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 )
 
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 roomDisplayName,
@@ -295,7 +299,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of the heroes surrounded by an Empty-Room-String, when isEmpty=true, |heroes|=3, otherUserCount=0") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -309,7 +313,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return an indication of the remaining user surrounded by an Empty-Room-String when isEmpty=true, |heroes|=0, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -323,7 +327,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display name of the hero along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=1, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -337,7 +341,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of the heroes along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=2, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -351,7 +355,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=0, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -365,7 +369,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display name of the hero along with the count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=1, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -379,7 +383,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the display names of the heroes along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=2, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(
@@ -404,7 +408,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 )
 
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(roomId, roomDisplayName, matrixClientMock)
                 .first() shouldBe "User 1, User 2 and one other"
             user1displayName.value = RoomUser(roomId, user1, "User 1 changed", memberEvent(user1))
@@ -416,7 +420,7 @@ class RoomNameCalculationTest : ShouldSpec() {
         }
 
         should("return the UserId from the hero without RoomDisplayName object when isEmpty=true, |heroes|=2, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n)
+            val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
                 RoomDisplayName(

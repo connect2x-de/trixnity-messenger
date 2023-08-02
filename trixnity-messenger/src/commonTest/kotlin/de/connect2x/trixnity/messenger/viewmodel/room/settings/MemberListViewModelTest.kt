@@ -20,16 +20,20 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.key.KeyService
+import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -97,6 +101,9 @@ class MemberListViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     @Mock
+    lateinit var keyServiceMock: KeyService
+
+    @Mock
     lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
 
     @Mock
@@ -116,6 +123,7 @@ class MemberListViewModelTest : ShouldSpec() {
                         module {
                             single { roomServiceMock }
                             single { userServiceMock }
+                            single { keyServiceMock }
                         }
                     )
                 }.koin
@@ -141,11 +149,14 @@ class MemberListViewModelTest : ShouldSpec() {
                 )
                 every { userServiceMock.canKickUser(isEqual(roomId), isAny()) } returns
                         MutableStateFlow(true)
-
                 every { userServiceMock.getPowerLevel(isEqual(roomId), isAny()) } returns
                         MutableStateFlow(50)
-
                 every { userServiceMock.canSetPowerLevelToMax(isEqual(roomId), isAny()) } returns MutableStateFlow(1)
+                every { userServiceMock.getAccountData<IgnoredUserListEventContent>() } returns flowOf(
+                    IgnoredUserListEventContent(emptyMap())
+                )
+
+                every { keyServiceMock.getTrustLevel(isAny()) } returns flowOf(UserTrustLevel.Blocked)
 
             }
         }

@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -100,6 +101,9 @@ class RoomListViewModelImpl(
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
+
+    private val messengerSettings = get<MessengerSettings>()
+
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val error = _error.asStateFlow()
     private val _errorType = MutableStateFlow(ErrorType.JUST_DISMISS)
@@ -122,7 +126,7 @@ class RoomListViewModelImpl(
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
-    private val activeAccount: MutableStateFlow<String?> = MutableStateFlow(null)
+    private val activeAccount: MutableStateFlow<String?> = MutableStateFlow(messengerSettings.activeAccount)
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()
     private val initials = get<Initials>()
@@ -310,9 +314,10 @@ class RoomListViewModelImpl(
                                 viewModelContext.get<RoomListElementViewModelFactory>().newRoomListElementViewModel(
                                     viewModelContext = childContext(
                                         "roomListElement-${roomId.full}",
-                                        accountName = namedMatrixClient.accountName
+                                        accountName = namedMatrixClient.accountName,
                                     ),
                                     roomId,
+                                    onRoomSelected = { onRoomSelected(namedMatrixClient.accountName, roomId) },
                                 )
                             roomListElementViewModels[roomId] = roomListElementViewModel
                             roomId to roomListElementViewModel
@@ -457,7 +462,7 @@ class RoomListViewModelImpl(
                             log.error(it) { "Cannot join room." }
                             errorSelectedRoom.value = roomId
                             _errorType.value = ErrorType.WITH_ACTION
-                            _error.value = "Kann Gruppe oder Chat nicht beitreten."
+                            _error.value = i18n.roomListInvitationError()
                         }
                     )
                 }

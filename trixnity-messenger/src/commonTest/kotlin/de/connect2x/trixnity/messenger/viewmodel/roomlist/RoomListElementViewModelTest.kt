@@ -7,11 +7,9 @@ import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.RoomNameElement
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.testCoroutineScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -26,19 +24,23 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.clientserverapi.client.UsersApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.UnknownMessageEventContent
+import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
+import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -69,13 +71,21 @@ class RoomListElementViewModelTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomsApiClient
 
     @Mock
+    lateinit var usersApiClientMock: UsersApiClient
+
+    @Mock
     lateinit var userPresenceMock: UserPresence
 
     @Mock
     lateinit var roomNameMock: RoomName
 
     @Mock
+    lateinit var roomInviter: RoomInviter
+
+    @Mock
     lateinit var clock: Clock
+
+    private val onRoomSelectedMock = mockFunction0<Unit>(mocker)
 
     private val roomId = RoomId("room", "localhost")
     private val roomId1 = RoomId("room1", "localhost")
@@ -121,6 +131,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
                 every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
 
                 every {
                     roomServiceMock.getState(
@@ -178,8 +189,9 @@ class RoomListElementViewModelTest : ShouldSpec() {
                         isAny()
                     )
                 } returns MutableStateFlow(null)
+                everySuspending { roomsApiClientMock.leaveRoom(isAny(), isAny(), isAny()) } returns Result.success(Unit)
 
-                roomByIdMocker = mocker.every { roomServiceMock.getById(roomId) }
+                roomByIdMocker = every { roomServiceMock.getById(roomId) }
                 roomByIdMocker returns
                         MutableStateFlow(
                             Room(
@@ -786,6 +798,63 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
+        should("reject invitation to room and block user when requested") {
+            val eventId1 = EventId("\$event1")
+            val room = Room(
+                roomId,
+                lastEventId = eventId1,
+                isDirect = false,
+            )
+            with(mocker) {
+                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
+                every { roomServiceMock.getLastTimelineEvent(isEqual(roomId), isAny()) } returns
+                        MutableStateFlow(
+                            MutableStateFlow(
+                                TimelineEvent(
+                                    event = inviteEvent(),
+                                    content = Result.success(inviteEvent().content),
+                                    previousEventId = null,
+                                    nextEventId = null,
+                                    gap = null,
+                                )
+                            )
+                        )
+                every { userServiceMock.getAccountData<IgnoredUserListEventContent>() } returns flowOf(
+                    IgnoredUserListEventContent(
+                        mapOf(
+                            UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
+                        )
+                    )
+                )
+                everySuspending { usersApiClientMock.setAccountData(isAny(), isAny(), isAny(), isAny()) } returns
+                        Result.success(Unit)
+                everySuspending { roomInviter.getInviter(isAny(), isAny()) } returns user2
+            }
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            cut.rejectInvitationAndBlockInviter()
+            testCoroutineScheduler.advanceUntilIdle()
+
+            mocker.verifyWithSuspend(exhaustive = false) {
+                userServiceMock.getAccountData<IgnoredUserListEventContent>()
+                usersApiClientMock.setAccountData(
+                    isEqual(
+                        IgnoredUserListEventContent(
+                            mapOf(
+                                UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
+                                user2 to JsonObject(emptyMap()),
+                            )
+                        )
+                    ),
+                    isEqual(me),
+                    isAny(),
+                    isAny(),
+                )
+            }
+
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun roomListElementViewModel(
@@ -796,6 +865,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
                 single { userPresenceMock }
                 single { roomNameMock }
+                single { roomInviter }
                 single { clock }
             })
         }.koin
@@ -808,6 +878,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext
             ),
             roomId,
+            onRoomSelected = onRoomSelectedMock,
         )
     }
 
@@ -854,6 +925,15 @@ class RoomListElementViewModelTest : ShouldSpec() {
         roomId = roomId,
         originTimestamp = 0L,
         stateKey = ""
+    )
+
+    private fun inviteEvent() = Event.StateEvent(
+        content = MemberEventContent(membership = Membership.INVITE),
+        id = EventId("\$event1"),
+        sender = user2,
+        roomId = roomId,
+        originTimestamp = 0L,
+        stateKey = me.full,
     )
 
 }

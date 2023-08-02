@@ -68,8 +68,7 @@ open class MemberListViewModelImpl(
                     }
                     Pair(userId, memberListElementViewModel)
                 } else null
-            }?.sortedByDescending { (userId, _) -> matrixClient.user.getPowerLevel(userId, powerLevels, createEvent) }
-                ?: emptyList()
+            }.sortedByDescending { (userId, _) -> matrixClient.user.getPowerLevel(userId, powerLevels, createEvent) }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
     init {

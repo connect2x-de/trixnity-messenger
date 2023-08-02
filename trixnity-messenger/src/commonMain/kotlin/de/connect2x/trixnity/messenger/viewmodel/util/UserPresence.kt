@@ -26,9 +26,9 @@ class UserPresenceImpl(
     ): Flow<PresenceEventContent?> {
         return combine(
             matrixClient.user.userPresence,
-            directRoom.getUser(matrixClient, roomId)
-        ) { userPresence, userIdNullable ->
-            userIdNullable?.let { userId ->
+            directRoom.getUsers(matrixClient, roomId)
+        ) { userPresence, otherUsers ->
+            otherUsers.firstOrNull()?.let { userId ->
                 userPresence[userId]?.let { presence ->
                     flowOf(presence)
                 } ?: flow {

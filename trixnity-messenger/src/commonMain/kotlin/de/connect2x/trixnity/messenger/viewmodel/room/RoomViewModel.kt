@@ -43,7 +43,7 @@ interface RoomViewModel {
     val isShowSettings: StateFlow<Boolean>
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
-    fun setTwoPane(twoPane: Boolean)
+    fun setSinglePane(twoPane: Boolean)
     fun selectFile(file: String)
     fun dragFile(file: String)
     fun dragFileExit()
@@ -97,10 +97,10 @@ open class RoomViewModelImpl(
         this.onRoomBack.invoke()
     }
 
-    override fun setTwoPane(twoPane: Boolean) {
-        if (twoPane != isTwoPane.value) {
-            isTwoPane.value = twoPane
-            if (twoPane) {
+    override fun setSinglePane(singlePane: Boolean) {
+        if (singlePane != isTwoPane.value) {
+            isTwoPane.value = singlePane
+            if (singlePane) {
                 switchToSinglePane()
             } else {
                 switchToMultiPane()
@@ -188,7 +188,7 @@ class PreviewRoomViewModel() : RoomViewModel {
     override val isShowSettings: StateFlow<Boolean> = MutableStateFlow(false)
     override val isTwoPane: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun onRoomBack() {}
-    override fun setTwoPane(twoPane: Boolean) {
+    override fun setSinglePane(twoPane: Boolean) {
         isTwoPane.value = twoPane
     }
 

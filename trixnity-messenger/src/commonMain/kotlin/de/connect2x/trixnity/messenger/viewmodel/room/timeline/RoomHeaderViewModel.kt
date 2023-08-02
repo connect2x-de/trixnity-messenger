@@ -4,20 +4,19 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomHeaderElement
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.*
+import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.TypingEventContent
 import net.folivo.trixnity.utils.toByteArray
@@ -47,12 +46,26 @@ interface RoomHeaderViewModelFactory {
 }
 
 interface RoomHeaderViewModel {
+    val error: StateFlow<String?>
     val isBackButtonVisible: StateFlow<Boolean>
     val roomHeaderElement: StateFlow<RoomHeaderElement>
     val usersTyping: StateFlow<String?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val canVerifyUser: StateFlow<Boolean>
 
+    /**
+     * Is true if this is a direct room and only 2 users are present and not already blocked.
+     */
+    val canBlockUser: StateFlow<Boolean>
+
+    /**
+     * Is true if this is a direct room and only 2 users are present and other user is blocked.
+     */
+    val canUnblockUser: StateFlow<Boolean>
+    val isUserBlocked: StateFlow<Boolean>
+
+    fun blockUser()
+    fun unblockUser()
     fun verifyUser()
     fun showRoomSettings()
     fun goBack()
@@ -71,15 +84,37 @@ open class RoomHeaderViewModelImpl(
     override val roomHeaderElement: StateFlow<RoomHeaderElement>
     override val userTrustLevel: StateFlow<UserTrustLevel?>
     override val canVerifyUser: StateFlow<Boolean>
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private val directRoom = get<DirectRoom>()
     private val userPresence = get<UserPresence>()
     private val roomName = get<RoomName>()
     private val initials = get<Initials>()
+    private val userBlocking = get<UserBlocking>()
 
     override val usersTyping = matrixClient.room.usersTyping.map { map ->
         map[selectedRoomId]?.let { typingInfo(it) }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val canBlockUser: StateFlow<Boolean> = combine(
+        directRoom.getUsers(matrixClient, selectedRoomId),
+        matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
+    ) { otherUsers, ignoredUserListEventContent ->
+        otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0])?.not())
+                ?: false
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canUnblockUser: StateFlow<Boolean> = combine(
+        directRoom.getUsers(matrixClient, selectedRoomId),
+        matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
+    ) { otherUsers, ignoredUserListEventContent ->
+        otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0]))
+                ?: false
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val isUserBlocked: StateFlow<Boolean> =
+        directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest { userIds ->
+            if (userIds.size == 1) userBlocking.isUserBlocked(matrixClient, userIds[0]) else flowOf(false)
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     init {
         roomHeaderElement =
@@ -119,25 +154,51 @@ open class RoomHeaderViewModelImpl(
             )
 
         userTrustLevel =
-            directRoom.getUser(matrixClient, selectedRoomId).flatMapLatest {
-                it?.let { userId ->
+            directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest {
+                it.firstOrNull()?.let { userId ->
                     matrixClient.key.getTrustLevel(userId)
                 } ?: flowOf(null)
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
         canVerifyUser =
             combine(
-                directRoom.getUser(matrixClient, selectedRoomId),
+                directRoom.getUsers(matrixClient, selectedRoomId),
                 userTrustLevel
-            ) { otherUser, userTrustLevel ->
+            ) { otherUsers, userTrustLevel ->
                 val otherUserVerified =
                     userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
-                otherUser != null && otherUserVerified.not()
+                otherUsers.size == 1 && otherUserVerified.not()
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     }
 
     override fun verifyUser() {
         onVerifyUser()
+    }
+
+    override fun blockUser() {
+        coroutineScope.launch {
+            if (canBlockUser.value) {
+                val otherUsers = directRoom.getUsers(matrixClient, selectedRoomId).first()
+                if (otherUsers.size == 1) {
+                    userBlocking.blockUser(matrixClient, otherUsers[0]) {
+                        error.value = i18n.blockUserError(otherUsers[0].full)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun unblockUser() {
+        coroutineScope.launch {
+            if (canUnblockUser.value) {
+                val otherUsers = directRoom.getUsers(matrixClient, selectedRoomId).first()
+                if (otherUsers.size == 1) {
+                    userBlocking.unblockUser(matrixClient, otherUsers[0]) {
+                        error.value = i18n.blockUserError(otherUsers[0].full)
+                    }
+                }
+            }
+        }
     }
 
     override fun showRoomSettings() {
@@ -191,6 +252,7 @@ open class RoomHeaderViewModelImpl(
 }
 
 class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isBackButtonVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val roomHeaderElement: MutableStateFlow<RoomHeaderElement> = MutableStateFlow(
         RoomHeaderElement(
@@ -203,14 +265,14 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("is typing...")
     override val userTrustLevel: MutableStateFlow<UserTrustLevel?> = MutableStateFlow(null)
     override val canVerifyUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canBlockUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canUnblockUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isUserBlocked: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    override fun verifyUser() {
-    }
-
-    override fun showRoomSettings() {
-    }
-
-    override fun goBack() {
-    }
+    override fun verifyUser() {}
+    override fun blockUser() {}
+    override fun unblockUser() {}
+    override fun showRoomSettings() {}
+    override fun goBack() {}
 
 }
