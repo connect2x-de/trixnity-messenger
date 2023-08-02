@@ -10,10 +10,10 @@ fun defaultMessengerSettings(lang: String) = object : MessengerSettings {
     override fun setPushMode(accountName: String, newValue: PushMode?) {}
     override fun pushModeFlow(accountName: String): Flow<PushMode> = flowOf(PushMode.NONE)
     override fun pushModeFlow(): Flow<Map<String?, PushMode>> = flowOf(mapOf(null to PushMode.NONE))
-    override fun presenceIsPublic(accountName: String): Boolean = true
+    override fun presenceIsPublic(accountName: String): Boolean = false
     override fun setPresenceIsPublic(accountName: String, newValue: Boolean?) {}
     override fun presenceIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
-    override fun readMarkerIsPublic(accountName: String): Boolean = true
+    override fun readMarkerIsPublic(accountName: String): Boolean = false
     override fun setReadMarkerIsPublic(accountName: String, newValue: Boolean?) {}
     override fun readMarkerIsPublicFlow(accountName: String): Flow<Boolean> = flowOf(false)
     override fun typingIsPublic(accountName: String): Boolean = false

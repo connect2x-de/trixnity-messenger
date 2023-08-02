@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.util.I18n
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.getSender
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
@@ -30,13 +30,13 @@ interface RoomName {
         matrixClient: MatrixClient,
     ): Flow<RoomNameElement>
 
-    suspend fun getInviter(
+    suspend fun getInviterName(
         roomId: RoomId,
         matrixClient: MatrixClient,
     ): String
 }
 
-class RoomNameImpl(private val i18n: I18n) : RoomName {
+class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter) : RoomName {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getRoomNameElement(
@@ -82,13 +82,10 @@ class RoomNameImpl(private val i18n: I18n) : RoomName {
         }
     }
 
-    override suspend fun getInviter(
+    override suspend fun getInviterName(
         roomId: RoomId,
         matrixClient: MatrixClient,
-    ) = matrixClient.room.getState<MemberEventContent>(
-        roomId,
-        matrixClient.userId.full,
-    ).first().getSender()?.let { inviter ->
+    ) = roomInviter.getInviter(matrixClient, roomId)?.let { inviter ->
         matrixClient.room.getState<MemberEventContent>(
             roomId,
             inviter.full,

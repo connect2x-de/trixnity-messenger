@@ -5,18 +5,17 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.*
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.*
+import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.originalName
-import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -44,6 +43,7 @@ interface MemberListElementViewModelFactory {
 interface MemberListElementViewModel {
     val userId: UserId
     val member: StateFlow<MemberElement?>
+    val userTrustLevel: StateFlow<UserTrustLevel?>
     val memberOptionsOpen: StateFlow<Boolean>
     val error: StateFlow<String?>
     val kickUserWarningOpen: StateFlow<Boolean>
@@ -55,12 +55,16 @@ interface MemberListElementViewModel {
     val showRole: StateFlow<Boolean>
     val showPowerLevel: StateFlow<Boolean>
     val changePowerLevelViewModel: ChangePowerLevelViewModel
+    val isUserBlocked: StateFlow<Boolean>
+    val blockingInProgress: StateFlow<Boolean>
 
     fun openMemberOptions()
     fun closeMemberOptions()
     fun openKickUserWarning()
     fun closeKickUserWarning()
     fun kickUser(userId: UserId)
+    fun blockUser()
+    fun unblockUser()
 
     enum class Role {
         USER {
@@ -124,10 +128,13 @@ open class MemberListElementViewModelImpl(
     override val kickUserWarningTitle = MutableStateFlow("")
 
     private val initials = get<Initials>()
-    private val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val userBlocking = get<UserBlocking>()
 
+    private val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
+    override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val member: StateFlow<MemberListElementViewModel.MemberElement?>
     override val role = MutableStateFlow(USER)
     override val showRole = MutableStateFlow(false)
@@ -137,6 +144,10 @@ open class MemberListElementViewModelImpl(
 
     override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val blockingInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val changePowerLevelViewModel: ChangePowerLevelViewModel =
         get<ChangePowerLevelViewModelFactory>()
@@ -241,6 +252,32 @@ open class MemberListElementViewModelImpl(
                         error.value = i18n.settingsRoomMemberListKickUserError()
                     }
                 )
+            }
+        }
+    }
+
+    override fun blockUser() {
+        coroutineScope.launch {
+            try {
+                blockingInProgress.value = true
+                userBlocking.blockUser(matrixClient, userId) {
+                    error.value = i18n.blockUserError(userId.full)
+                }
+            } finally {
+                blockingInProgress.value = false
+            }
+        }
+    }
+
+    override fun unblockUser() {
+        coroutineScope.launch {
+            try {
+                blockingInProgress.value = true
+                userBlocking.unblockUser(matrixClient, userId) {
+                    error.value = i18n.settingsUnblockUserError(userId.full)
+                }
+            } finally {
+                blockingInProgress.value = false
             }
         }
     }

@@ -299,6 +299,11 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Sie können offline keine Einladungen annehmen."
     }
 
+    fun roomListInvitationError() = translate {
+        EN - "There has been an error. Please try again later."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+    }
+
     fun roomListContentImage() = translate {
         EN - "Image"
         DE - "Bild"
@@ -643,6 +648,16 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
     fun settingsRoomNotificationsDefaultExplanation() = translate {
         EN - "you are notified as specified in the global settings"
         DE - "Sie werden so benachrichtigt, wie dies in den globalen Einstellungen festgelegt ist."
+    }
+
+    fun settingsUnblockUserError(userId: String) =  translate {
+        EN - "Cannot unblock user '$userId'. Please try again later."
+        DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
+    }
+
+    fun blockUserError(userId: String) = translate {
+        EN - "Cannot block user '$userId'."
+        DE - "Nutzer '$userId' kann nicht geblockt werden."
     }
 
     fun profileLoadError() = translate {
