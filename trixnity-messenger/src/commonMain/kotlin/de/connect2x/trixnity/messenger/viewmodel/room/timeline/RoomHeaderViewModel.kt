@@ -97,31 +97,23 @@ open class RoomHeaderViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val canBlockUser: StateFlow<Boolean> = combine(
-        directRoom.getUser(matrixClient, selectedRoomId),
-        matrixClient.user.getAll(selectedRoomId).take(3),
+        directRoom.getUsers(matrixClient, selectedRoomId),
         matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
-    ) { otherUser, usersInRoom, ignoredUserListEventContent ->
-        otherUser != null && usersInRoom?.size == 2 && (
-                ignoredUserListEventContent?.ignoredUsers?.containsKey(
-                    usersInRoom.keys.first { it != matrixClient.userId }
-                )?.not())
+    ) { otherUsers, ignoredUserListEventContent ->
+        otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0])?.not())
                 ?: false
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val canUnblockUser: StateFlow<Boolean> = combine(
-        directRoom.getUser(matrixClient, selectedRoomId),
-        matrixClient.user.getAll(selectedRoomId).take(3),
+        directRoom.getUsers(matrixClient, selectedRoomId),
         matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
-    ) { otherUser, usersInRoom, ignoredUserListEventContent ->
-        otherUser != null && usersInRoom?.size == 2 && (
-                ignoredUserListEventContent?.ignoredUsers?.containsKey(
-                    usersInRoom.keys.first { it != matrixClient.userId }
-                ))
+    ) { otherUsers, ignoredUserListEventContent ->
+        otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0]))
                 ?: false
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val isUserBlocked: StateFlow<Boolean> =
-        directRoom.getUser(matrixClient, selectedRoomId).flatMapLatest { userId ->
-            if (userId != null) userBlocking.isUserBlocked(matrixClient, userId) else flowOf(false)
+        directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest { userIds ->
+            if (userIds.size == 1) userBlocking.isUserBlocked(matrixClient, userIds[0]) else flowOf(false)
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     init {
@@ -162,20 +154,20 @@ open class RoomHeaderViewModelImpl(
             )
 
         userTrustLevel =
-            directRoom.getUser(matrixClient, selectedRoomId).flatMapLatest {
-                it?.let { userId ->
+            directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest {
+                it.firstOrNull()?.let { userId ->
                     matrixClient.key.getTrustLevel(userId)
                 } ?: flowOf(null)
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
         canVerifyUser =
             combine(
-                directRoom.getUser(matrixClient, selectedRoomId),
+                directRoom.getUsers(matrixClient, selectedRoomId),
                 userTrustLevel
-            ) { otherUser, userTrustLevel ->
+            ) { otherUsers, userTrustLevel ->
                 val otherUserVerified =
                     userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
-                otherUser != null && otherUserVerified.not()
+                otherUsers.size == 1 && otherUserVerified.not()
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     }
 
@@ -186,10 +178,10 @@ open class RoomHeaderViewModelImpl(
     override fun blockUser() {
         coroutineScope.launch {
             if (canBlockUser.value) {
-                val otherUser = directRoom.getUser(matrixClient, selectedRoomId).first()
-                if (otherUser != null) {
-                    userBlocking.blockUser(matrixClient, otherUser) {
-                        error.value = i18n.blockUserError(otherUser.full)
+                val otherUsers = directRoom.getUsers(matrixClient, selectedRoomId).first()
+                if (otherUsers.size == 1) {
+                    userBlocking.blockUser(matrixClient, otherUsers[0]) {
+                        error.value = i18n.blockUserError(otherUsers[0].full)
                     }
                 }
             }
@@ -199,10 +191,10 @@ open class RoomHeaderViewModelImpl(
     override fun unblockUser() {
         coroutineScope.launch {
             if (canUnblockUser.value) {
-                val otherUser = directRoom.getUser(matrixClient, selectedRoomId).first()
-                if (otherUser != null) {
-                    userBlocking.unblockUser(matrixClient, otherUser) {
-                        error.value = i18n.blockUserError(otherUser.full)
+                val otherUsers = directRoom.getUsers(matrixClient, selectedRoomId).first()
+                if (otherUsers.size == 1) {
+                    userBlocking.unblockUser(matrixClient, otherUsers[0]) {
+                        error.value = i18n.blockUserError(otherUsers[0].full)
                     }
                 }
             }

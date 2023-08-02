@@ -89,7 +89,6 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
     private lateinit var roomNameElement: Mocker.Every<Flow<RoomNameElement>>
     private lateinit var ignoredUsers: Mocker.Every<Flow<IgnoredUserListEventContent?>>
-    private lateinit var usersInRoom: Mocker.Every<Flow<Map<UserId, Flow<RoomUser?>>?>>
 
     init {
         coroutineTestScope = true
@@ -118,13 +117,6 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 roomNameElement returns MutableStateFlow(RoomNameElement("My Room"))
                 every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
 
-                usersInRoom = every { userServiceMock.getAll(roomId) }
-                usersInRoom returns flowOf(
-                    mapOf(
-                        me to flowOf(null),
-                        otherUser to flowOf(null)
-                    )
-                )
                 ignoredUsers = every { userServiceMock.getAccountData<IgnoredUserListEventContent>() }
                 ignoredUsers returns flowOf(
                     IgnoredUserListEventContent(emptyMap())
@@ -153,7 +145,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         should("should show correct room name with initials and avatar and react to changes") {
             val roomName = MutableStateFlow(RoomNameElement("My Room"))
             roomNameElement returns roomName
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns flowOf(null)
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
@@ -170,7 +162,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         }
 
         should("compute trust level of `null` for non-direct rooms") {
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns flowOf(null)
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
@@ -180,8 +172,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
         should("react to changes in the user's trust level") {
             val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
-            val directRoom = MutableStateFlow<UserId?>(otherUser)
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns directRoom
+            val directRoom = MutableStateFlow(listOf(otherUser))
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns directRoom
             mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns trustLevel
 
             val cut = roomHeaderViewModel(coroutineContext)
@@ -192,14 +184,14 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.userTrustLevel.value shouldBe UserTrustLevel.Blocked
 
-            directRoom.value = null
+            directRoom.value = emptyList()
             testCoroutineScheduler.advanceUntilIdle()
             cut.userTrustLevel.value shouldBe null
         }
 
         should("allow to verify other user if not yet verified and vice versa") {
             val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns flowOf(otherUser)
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(listOf(otherUser))
             mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns trustLevel
 
             val cut = roomHeaderViewModel(coroutineContext)
@@ -212,7 +204,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         }
 
         should("not allow user verification in non-direct room") {
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns flowOf(null)
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
             mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
@@ -226,7 +218,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         should("allow to block user in a direct room with only 2 users and user is not yet blocked and unblock if already blocked") {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns flowOf(otherUser)
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(listOf(otherUser))
             mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
@@ -248,10 +240,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
 
         should("not allow to block user in non-direct rooms or direct rooms with more than 2 participants") {
-            val userMap = MutableStateFlow<Map<UserId, Flow<RoomUser?>>>(mapOf())
-            val directRoom = MutableStateFlow<UserId?>(otherUser)
-            usersInRoom returns userMap
-            mocker.every { directRoomMock.getUser(isAny(), isEqual(roomId)) } returns directRoom
+            val directRoom = MutableStateFlow(listOf(otherUser, UserId("another_dude", "localhost")))
+            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns directRoom
             mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
@@ -261,15 +251,12 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             cut.canBlockUser.value shouldBe false
             cut.canUnblockUser.value shouldBe false
 
-            userMap.value = mapOf(
-                me to flowOf(null),
-                otherUser to flowOf(null),
-            )
+            directRoom.value = listOf(otherUser)
             testCoroutineScheduler.advanceUntilIdle()
             cut.canBlockUser.value shouldBe true
             cut.canUnblockUser.value shouldBe false
 
-            directRoom.value = null
+            directRoom.value = emptyList()
             testCoroutineScheduler.advanceUntilIdle()
             cut.canBlockUser.value shouldBe false
             cut.canUnblockUser.value shouldBe false

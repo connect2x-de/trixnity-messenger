@@ -79,8 +79,8 @@ class UserPresenceTest : ShouldSpec() {
                 )
             )
             mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
-                null
+            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+                emptyList()
             )
 
             val cut = userPresence()
@@ -99,8 +99,8 @@ class UserPresenceTest : ShouldSpec() {
                 )
             )
             mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
-                alice
+            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+                listOf(alice)
             )
 
             val cut = userPresence()
@@ -114,8 +114,8 @@ class UserPresenceTest : ShouldSpec() {
         should("return 'offline' initially when no presence status found") {
             val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
             mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
-                alice
+            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+                listOf(alice)
             )
             mocker.everySuspending { usersApiClientMock.getPresence(alice) } returns
                     Result.failure(RuntimeException("Oh no!"))
@@ -132,8 +132,8 @@ class UserPresenceTest : ShouldSpec() {
         should("update the presence information via a server request for users whose presence status is not known yet") {
             val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
             mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUser(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
-                alice
+            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+                listOf(alice)
             )
             mocker.everySuspending { usersApiClientMock.getPresence(alice) } returns
                     Result.success(PresenceEventContent(presence = Presence.ONLINE))

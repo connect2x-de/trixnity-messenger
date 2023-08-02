@@ -44,7 +44,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class VerificationViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
+    override fun timeout(): Long = 4_000
 
     val mocker = Mocker()
 

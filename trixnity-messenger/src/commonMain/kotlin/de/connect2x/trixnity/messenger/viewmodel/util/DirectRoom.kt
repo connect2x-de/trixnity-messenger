@@ -10,18 +10,18 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 
 interface DirectRoom {
-    fun getUser(matrixClient: MatrixClient, directRoom: RoomId): Flow<UserId?>
+    fun getUsers(matrixClient: MatrixClient, directRoom: RoomId): Flow<List<UserId>>
 }
 
 class DirectRoomImpl : DirectRoom {
 
-    override fun getUser(matrixClient: MatrixClient, directRoom: RoomId): Flow<UserId?> {
-        return matrixClient.user.getAccountData<DirectEventContent>().map {
-            it?.mappings?.let { directMappings ->
-                directMappings.entries.find { (_, rooms) ->
+    override fun getUsers(matrixClient: MatrixClient, directRoom: RoomId): Flow<List<UserId>> {
+        return matrixClient.user.getAccountData<DirectEventContent>().map { directEventContent ->
+            directEventContent?.mappings?.let { directMappings ->
+                directMappings.entries.filter { (_, rooms) ->
                     rooms?.contains(directRoom) ?: false
-                }?.key
-            }
+                }.map { it.key }
+            }?: emptyList()
         }
     }
 }
