@@ -6,7 +6,7 @@ import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.defaultMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -117,7 +117,7 @@ class PrivacySettingsViewModelTest : ShouldSpec() {
                 trixnityMessengerModule(),
                 testMatrixClientModule(listOf(matrixClientMock1, matrixClientMock2), listOf("test1", "test2")),
                 module {
-                    single<MessengerSettings> { defaultMessengerSettings("en") }
+                    single<MessengerSettings> { testMessengerSettings("en") }
                 }
             )
         }.koin

@@ -6,16 +6,21 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.RoomHeaderElement
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.mock.MockSyncApiClient
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec
@@ -29,10 +34,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.DeviceTrustLevel
-import net.folivo.trixnity.client.key.KeySecretService
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.key.KeyTrustService
+import net.folivo.trixnity.client.key.*
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.store.Room
@@ -229,13 +231,13 @@ class RoomViewModelTest : ShouldSpec() {
             cut.shouldShowInitialView()
         }
 
-        context(RoomViewModel::setTwoPane.toString()) {
+        context(RoomViewModel::setSinglePane.toString()) {
             context("settings aren't activated") {
                 should("show room list in single-pane view") {
                     val cut = roomViewModel()
                     cut.shouldShowInitialView()
 
-                    cut.setTwoPane(true)
+                    cut.setSinglePane(true)
 
                     eventually(1.seconds) {
                         assertSoftly {
@@ -248,7 +250,7 @@ class RoomViewModelTest : ShouldSpec() {
                     val cut = roomViewModel()
                     cut.shouldShowInitialView()
 
-                    cut.setTwoPane(false)
+                    cut.setSinglePane(false)
 
                     eventually(1.seconds) {
                         assertSoftly {
@@ -267,7 +269,7 @@ class RoomViewModelTest : ShouldSpec() {
                         cut.timelineStack.value.active.instance as TimelineRouter.TimelineWrapper.View
                     timelineWrapper.timelineViewModel.roomHeaderViewModel.showRoomSettings()
 
-                    cut.setTwoPane(true)
+                    cut.setSinglePane(true)
 
                     eventually(1.seconds) {
                         assertSoftly {
@@ -285,7 +287,7 @@ class RoomViewModelTest : ShouldSpec() {
                         cut.timelineStack.value.active.instance as TimelineRouter.TimelineWrapper.View
                     timelineWrapper.timelineViewModel.roomHeaderViewModel.showRoomSettings()
 
-                    cut.setTwoPane(false)
+                    cut.setSinglePane(false)
 
                     eventually(1.seconds) {
                         assertSoftly {
@@ -299,7 +301,7 @@ class RoomViewModelTest : ShouldSpec() {
         should("show the room when room settings are getting disabled in two-pane view") {
             val cut = roomViewModel()
             cut.shouldShowInitialView()
-            cut.setTwoPane(true)
+            cut.setSinglePane(true)
 
             cut.onSettingsBack()
 
@@ -314,7 +316,7 @@ class RoomViewModelTest : ShouldSpec() {
         should("show the room when room settings are getting disabled in multi-pane view") {
             val cut = roomViewModel()
             cut.shouldShowInitialView()
-            cut.setTwoPane(false)
+            cut.setSinglePane(false)
 
             cut.onSettingsBack()
 
@@ -329,7 +331,7 @@ class RoomViewModelTest : ShouldSpec() {
         should("show the room settings view when room settings are getting disabled in two-pane view") {
             val cut = roomViewModel()
             cut.shouldShowInitialView()
-            cut.setTwoPane(true)
+            cut.setSinglePane(true)
 
             cut.onShowSettings()
 
@@ -344,7 +346,7 @@ class RoomViewModelTest : ShouldSpec() {
         should("show the room view and the room settings view when room settings are getting disabled in multi-pane view") {
             val cut = roomViewModel()
             cut.shouldShowInitialView()
-            cut.setTwoPane(false)
+            cut.setSinglePane(false)
 
             cut.onShowSettings()
 
@@ -374,9 +376,42 @@ class RoomViewModelTest : ShouldSpec() {
                 ),
                 di = koinApplication {
                     modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
+                        single { testMessengerSettings("EN") }
                         single { downloadManagerMock }
                         single { isNetworkAvailable }
                         single { runInitialSyncMock }
+                        single<RoomHeaderViewModelFactory> {
+                            object : RoomHeaderViewModelFactory {
+                                override fun newRoomHeaderViewModel(
+                                    viewModelContext: MatrixClientViewModelContext,
+                                    selectedRoomId: RoomId,
+                                    isBackButtonVisible: MutableStateFlow<Boolean>,
+                                    onBack: () -> Unit,
+                                    onVerifyUser: () -> Unit,
+                                    onShowRoomSettings: () -> Unit,
+                                ): RoomHeaderViewModel {
+                                    return object : RoomHeaderViewModel {
+                                        override val error: StateFlow<String?> = MutableStateFlow(null)
+                                        override val isBackButtonVisible: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val roomHeaderElement: StateFlow<RoomHeaderElement> = MutableStateFlow(
+                                            RoomHeaderElement("", "", null, null)
+                                        )
+                                        override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
+                                        override val userTrustLevel: StateFlow<UserTrustLevel?> = MutableStateFlow(null)
+                                        override val canVerifyUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)
+
+                                        override fun blockUser() {}
+                                        override fun unblockUser() {}
+                                        override fun verifyUser() {}
+                                        override fun showRoomSettings() { onShowRoomSettings() }
+                                        override fun goBack() { onBack() }
+                                    }
+                                }
+                            }
+                        }
                     })
                 }.koin,
                 accountName = "test",

@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.MatcherResult
@@ -941,6 +942,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         }
                     }
                 }
+                single { testMessengerSettings("EN") }
                 single { roomNameMock }
                 single<AccountViewModelFactory> {
                     object : AccountViewModelFactory {

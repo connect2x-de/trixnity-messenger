@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.PushMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-fun defaultMessengerSettings(lang: String) = object : MessengerSettings {
+fun testMessengerSettings(lang: String) = object : MessengerSettings {
     override fun pushMode(accountName: String): PushMode = PushMode.NONE
     override fun setPushMode(accountName: String, newValue: PushMode?) {}
     override fun pushModeFlow(accountName: String): Flow<PushMode> = flowOf(PushMode.NONE)

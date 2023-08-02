@@ -8,7 +8,7 @@ import de.connect2x.trixnity.messenger.util.Lang
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.*
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.defaultMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
@@ -18,17 +18,17 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.key.KeyService
+import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
@@ -36,6 +36,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
@@ -91,6 +92,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     @Mock
+    lateinit var keyServiceMock: KeyService
+
+    @Mock
     lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
 
     @Mock
@@ -108,7 +112,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(Lang.EN, defaultMessengerSettings("en")) {}
+            i18n = object : I18n(Lang.EN, testMessengerSettings("en")) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -116,6 +120,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         module {
                             single { roomServiceMock }
                             single { userServiceMock }
+                            single { keyServiceMock }
                         }
                     )
                 }.koin
@@ -133,13 +138,16 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
                 every { userServiceMock.canKickUser(isEqual(roomId), isAny()) } returns
                         MutableStateFlow(true)
-
                 every { userServiceMock.getPowerLevel(isEqual(roomId), isEqual(alice)) } returns
                         MutableStateFlow(50)
-
                 every {
                     userServiceMock.canSetPowerLevelToMax(isEqual(roomId), isAny())
                 } returns MutableStateFlow(100)
+                every { userServiceMock.getAccountData<IgnoredUserListEventContent>() } returns flowOf(
+                    IgnoredUserListEventContent(emptyMap())
+                )
+
+                every { keyServiceMock.getTrustLevel(isAny()) } returns flowOf(UserTrustLevel.Blocked)
             }
         }
 

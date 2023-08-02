@@ -59,7 +59,7 @@ open class PrivacySettingViewModelImpl(
                         ?: emptyList()
                 }
             )
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val unblockingInProgress: MutableStateFlow<List<UserId>> = MutableStateFlow(emptyList())
 
     init {

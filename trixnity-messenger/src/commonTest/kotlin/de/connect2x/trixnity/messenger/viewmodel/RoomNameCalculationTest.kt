@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.util.Lang
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
-import de.connect2x.trixnity.messenger.viewmodel.util.defaultMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
@@ -55,7 +55,7 @@ class RoomNameCalculationTest : ShouldSpec() {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(Lang.EN, defaultMessengerSettings("en")) {}
+            i18n = object : I18n(Lang.EN, testMessengerSettings("en")) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {

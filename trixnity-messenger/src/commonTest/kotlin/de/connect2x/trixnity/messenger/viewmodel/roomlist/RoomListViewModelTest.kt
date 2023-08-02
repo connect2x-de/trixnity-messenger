@@ -5,10 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.*
-import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.MatcherResult
@@ -1254,6 +1251,7 @@ class RoomListViewModelTest : ShouldSpec() {
         val koin = koinApplication {
             modules(trixnityMessengerModule(), matrixClientModule, module {
                 single { roomNameMock }
+                single { testMessengerSettings("EN") }
                 single<AccountViewModelFactory> {
                     object : AccountViewModelFactory {
                         override fun newAccountViewModel(
