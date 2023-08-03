@@ -257,8 +257,7 @@ class RoomListViewModelImpl(
             ) { roomsWithMeta, activeSpaceInfo, directRooms, searchedRooms ->
                 data class SortableRoom(
                     val roomWithMeta: RoomWithMeta,
-                    val creationTime: Instant?,
-                    val lastRelevantEventTime: Instant?,
+                    val sortTime: Instant?,
                 )
                 roomsWithMeta.values.asFlow()
                     .filter { (room, namedMatrixClient) ->
@@ -283,27 +282,20 @@ class RoomListViewModelImpl(
                     }.onEach { log.trace { "filtered rooms: $it" } }
                     .map { roomWithMeta -> // why map here? -> because we need the creation time and cannot call suspended functions in `sortedByDescending`
                         val room = roomWithMeta.room
-                        val matrixClient = roomWithMeta.namedMatrixClient.matrixClientOrThrow()
-                        val creationTime =
-                            matrixClient.room.getState<CreateEventContent>(room.roomId, "").first()
-                                .getOriginTimestamp()?.let { Instant.fromEpochMilliseconds(it) }
-                        val lastRelevantEventTime =
-                            room.lastRelevantEventId?.let { lastRelevantEventId ->
-                                matrixClient.room.getTimelineEvent(
-                                    room.roomId,
-                                    lastRelevantEventId,
-                                ).first()?.event?.originTimestamp?.let { timestamp ->
-                                    Instant.fromEpochMilliseconds(timestamp)
-                                }
+                        val lastRelevantEventTime = room.lastRelevantEventTimestamp
+                        val sortTime =
+                            when {
+                                room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
+                                lastRelevantEventTime == null -> roomWithMeta.namedMatrixClient.matrixClientOrThrow()
+                                    .room.getState<CreateEventContent>(room.roomId, "").first()
+                                    .getOriginTimestamp()?.let { Instant.fromEpochMilliseconds(it) }
+
+                                else -> lastRelevantEventTime
                             }
-                        SortableRoom(roomWithMeta, creationTime, lastRelevantEventTime)
+                        SortableRoom(roomWithMeta, sortTime)
                     }.toList()
-                    .sortedByDescending { (roomWithMeta, creationTime, lastRelevantEventTime) ->
-                        val room = roomWithMeta.room
-                        if (room.membership == Membership.INVITE) Instant.DISTANT_FUTURE
-                        else if (room.lastRelevantEventId == null) creationTime
-                        else lastRelevantEventTime
-                    }.asFlow()
+                    .sortedByDescending { (_, sortTime) -> sortTime }
+                    .asFlow()
                     .map { it.roomWithMeta }
                     .map { (room, namedMatrixClient) ->
                         val roomId = room.roomId
