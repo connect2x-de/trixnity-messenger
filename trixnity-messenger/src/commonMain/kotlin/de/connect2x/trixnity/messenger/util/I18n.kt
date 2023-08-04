@@ -379,6 +379,21 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Beim Ausloggen aus Ihrem Account gab es einen Fehler. Bitte versuchen Sie es später noch einmal."
     }
 
+    fun registrationNotSupported() = translate {
+        EN - "You can only register a new user with a registration token."
+        DE - "Sie können einen neuen Nutzer nur mit einem Registrierungs-Token anlegen."
+    }
+
+    fun registrationCannotDetermine() = translate {
+        EN - "The methods for registration cannot be determined."
+        DE - "Es ist nicht möglich die Registrierungsoptionen zu bestimmen."
+    }
+
+    fun registrationNotSuccessful() = translate {
+        EN - "The registration has not been successful."
+        DE - "Die Registrierung konnte nicht erfolgreich abgeschlossen werden."
+    }
+
     fun settingsNotificationsSound() = translate {
         EN - "sound"
         DE - "Töne"

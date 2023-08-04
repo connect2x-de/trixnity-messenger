@@ -22,12 +22,15 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
+import io.ktor.client.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.store.repository.exposed.createExposedRepositoriesModule
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
+import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import org.koin.core.KoinApplication
 import kotlin.time.Duration.Companion.seconds
 
@@ -112,6 +115,27 @@ suspend fun RootViewModelImpl.verifyAccountsArePresent(vararg accountNames: Stri
         .roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
 }
 
+suspend fun RootViewModelImpl.registerAccountWithToken(serverUrl: String, token: String) {
+    withTimeout(10.seconds) {
+        val addMatrixAccountViewModel =
+            rootStack.waitFor(RootRouter.RootWrapper.AddMatrixAccount::class).addMatrixAccountViewModel
+        addMatrixAccountViewModel.registerNewUser()
+        val registerNewAccountViewModel =
+            rootStack.waitFor(RootRouter.RootWrapper.RegisterNewAccount::class).registerNewAccountViewModel
+        registerNewAccountViewModel.serverUrl.update { serverUrl }
+        registerNewAccountViewModel.accountName.update { "Standard" }
+        registerNewAccountViewModel.username.update { "user1" }
+        registerNewAccountViewModel.password.update { "user1password" }
+        registerNewAccountViewModel.registrationToken.update { token }
+        registerNewAccountViewModel.selectedRegistration.first { it is AuthenticationType.RegistrationToken }
+        registerNewAccountViewModel.tryRegistration()
+
+        val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
+        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel.accountViewModel.allAccounts.first { it.isNotEmpty() }
+        mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.InitialSyncWrapper.None::class)
+    }
+}
+
 private suspend fun RootViewModelImpl.openAccountsOverview(): AccountsOverviewViewModel {
     val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
     val roomListViewModel =
@@ -122,6 +146,16 @@ private suspend fun RootViewModelImpl.openAccountsOverview(): AccountsOverviewVi
 
 private fun createDefaultMatrixClientService(koinApplication: KoinApplication) =
     DefaultMatrixClientService(
+        { config ->
+            HttpClient {
+                config()
+                // TODO activate for better debugging
+//                install(Logging) {
+//                    logger = Logger.DEFAULT
+//                    level = LogLevel.ALL
+//                }
+            }
+        },
         repositoriesModuleCreation = { accountName: String ->
             getAppFolder(accountName) // also create a folder for the accounts
             createExposedRepositoriesModule(newDatabase(accountName))

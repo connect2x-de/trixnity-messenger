@@ -5,10 +5,7 @@ import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.RoomNameImpl
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientLogoutViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
@@ -125,6 +122,7 @@ private val connectingViewModels = module {
     single<MatrixClientLogoutViewModelFactory> { object : MatrixClientLogoutViewModelFactory {} }
     single<StoreFailureViewModelFactory> { object : StoreFailureViewModelFactory {} }
     single<AddMatrixAccountViewModelFactory> { object : AddMatrixAccountViewModelFactory {} }
+    single<RegisterNewAccountViewModelFactory> { object: RegisterNewAccountViewModelFactory {} }
 }
 
 private val filesViewModels = module {

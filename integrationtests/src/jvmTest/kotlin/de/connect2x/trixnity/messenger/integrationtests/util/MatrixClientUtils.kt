@@ -19,8 +19,8 @@ import org.testcontainers.utility.DockerImageName
 const val synapseVersion =
     "v1.88.0" // TODO you should update this from time to time. https://github.com/matrix-org/synapse/releases
 
-fun synapseDocker() =
-    GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion"))
+fun synapseDocker(useRegistrationToken: Boolean = false): GenericContainer<Nothing> {
+    return GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion"))
         .apply {
             withEnv(
                 mapOf(
@@ -30,13 +30,16 @@ fun synapseDocker() =
                     "SYNAPSE_REPORT_STATS" to "no",
                     "UID" to "1000",
                     "GID" to "1000"
-                )
+                ) +
+                        if (useRegistrationToken) mapOf("SYNAPSE_CONFIG_PATH" to "data/homeserver_withRegistration.yaml")
+                        else emptyMap()
             )
             withClasspathResourceMapping("data", "/data", BindMode.READ_WRITE)
             withExposedPorts(8008)
             waitingFor(Wait.forHealthcheck())
             withNetwork(Network.SHARED)
         }
+}
 
 private const val password = "user$1passw0rd"
 
