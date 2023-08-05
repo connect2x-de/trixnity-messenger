@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.LoginState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.*
 import io.ktor.http.*
 import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +33,8 @@ interface RegisterNewAccountViewModelFactory {
 interface RegisterNewAccountViewModel {
     val error: StateFlow<String?>
 
-    val registrationOptions: StateFlow<List<AuthenticationType>?>
-    val selectedRegistration: StateFlow<AuthenticationType?>
+    val registrationOptions: StateFlow<List<AuthenticationType>>
+    val selectedRegistration: MutableStateFlow<AuthenticationType?>
 
     val accountName: MutableStateFlow<String>
     val serverUrl: MutableStateFlow<String>
@@ -56,10 +57,11 @@ class RegisterNewAccountViewModelImpl(
     private val matrixClientService: MatrixClientService,
     private val onLogin: () -> Unit,
     private val onCancel: () -> Unit,
+    private val httpClientFactory: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val registrationOptions: MutableStateFlow<List<AuthenticationType>?> = MutableStateFlow(null)
+    override val registrationOptions: MutableStateFlow<List<AuthenticationType>> = MutableStateFlow(emptyList())
     override val selectedRegistration: MutableStateFlow<AuthenticationType?> = MutableStateFlow(null)
 
     override val accountName: MutableStateFlow<String> = MutableStateFlow("")
@@ -77,19 +79,21 @@ class RegisterNewAccountViewModelImpl(
             serverUrl.collect { serverUrl ->
                 if (serverUrl.isNotBlank()) {
                     try {
-                        val api = MatrixClientServerApiClientImpl(Url(serverUrl))
+                        val api = MatrixClientServerApiClientImpl(Url(serverUrl), httpClientFactory = httpClientFactory)
                         log.info { "serverUrl: $serverUrl" }
                         api.authentication.register(accountType = AccountType.USER)
                             .onFailure {
                                 log.error(it) { "cannot initiate UIA" }
+                                registrationOptions.update { emptyList() }
                                 error.value = i18n.registrationNotSupported()
                             }
                             .onSuccess {
-                                log.debug { "initiate flow"}
+                                log.debug { "initiate flow" }
                                 determineRegistrationFlows(it)
                             }
-                    } catch (exc: URLParserException) {
-                        // do nothing
+                    } catch (exc: Exception) {
+                        log.warn(exc) { "try to initiate register UIA" }
+                        registrationOptions.update { emptyList() }
                     }
                 }
             }
@@ -112,11 +116,13 @@ class RegisterNewAccountViewModelImpl(
     }
 
     override fun tryRegistration() {
+        log.info { "try registration (serverUrl: ${serverUrl.value}, accountName = ${accountName.value}, username = ${username.value}, password = *******)" }
         coroutineScope.launch {
             registrationInProgress.update { true }
             if (selectedRegistration.value is AuthenticationType.RegistrationToken) {
+                log.info { "registration with token: ${registrationToken.value}" }
                 try {
-                    val api = MatrixClientServerApiClientImpl(Url(serverUrl.value))
+                    val api = MatrixClientServerApiClientImpl(Url(serverUrl.value), httpClientFactory = httpClientFactory)
                     api.authentication.register(
                         accountType = AccountType.USER,
                         username = username.value,
@@ -201,7 +207,7 @@ class RegisterNewAccountViewModelImpl(
                                             log.error(it) { "cannot use registration token" }
                                             error.value = i18n.registrationNotSuccessful()
                                         }
-                                        .onSuccess { response ->return doFlows(response) }
+                                        .onSuccess { response -> return doFlows(response) }
                                 }
 
                                 is AuthenticationType.Dummy -> {

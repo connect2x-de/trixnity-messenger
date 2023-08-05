@@ -89,6 +89,7 @@ kotlin {
                 implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
                 implementation("io.kotest:kotest-framework-datatest:${Versions.kotest}")
                 implementation("ch.qos.logback:logback-classic:${Versions.logback}")
+                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
             }
         }
         val jvmMain by getting {
@@ -165,6 +166,7 @@ android {
 }
 
 dependencies {
+    implementation("io.ktor:ktor-client-logging-jvm:2.3.2")
     configurations
         .filter { it.name.startsWith("ksp") && it.name.contains("Test") }
         .forEach {
