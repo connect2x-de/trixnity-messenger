@@ -19,14 +19,6 @@ interface MatrixClientService {
         accountName: String,
     ): Result<Unit>
 
-    suspend fun loginWithToken(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        token: String,
-        initialDeviceDisplayName: String?,
-        accountName: String,
-    ): Result<Unit>
-
     suspend fun logout(accountName: String): Result<Unit>
 
     suspend fun initFromStore(

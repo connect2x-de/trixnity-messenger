@@ -33,10 +33,11 @@ import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RegisterNewAccountViewModelTest : ShouldSpec() {
-    override fun timeout(): Long? = 3_000
+    override fun timeout(): Long = 3_000
 
     val mocker = Mocker()
 
@@ -64,6 +65,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
         should("show an empty list of registration options when no server is selected") {
             val cut = registerNewAccountViewModel(coroutineContext)
+            testCoroutineScheduler.advanceTimeBy(600.milliseconds)
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.registrationOptions.value shouldBe emptyList()
@@ -75,6 +77,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
         should("show an empty list of registration options when the given server URL is no valid URL") {
             val cut = registerNewAccountViewModel(coroutineContext)
             cut.serverUrl.update { "87fydf##://ds" }
+            testCoroutineScheduler.advanceTimeBy(600.milliseconds)
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.registrationOptions.value shouldBe emptyList()
@@ -87,10 +90,38 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             val mockEngine = MockEngine.config {
                 dispatcher = dispatcher()
                 addHandler { request ->
-                    if (request.url.host == "myMatrixServer" && request.url.port == 55678) {
-                        respond(
-                            content = ByteReadChannel(
-                                """
+                    when {
+                        request.url.encodedPath.contains(".well-known") ->
+                            respond(
+                                content = ByteReadChannel(
+                                    """
+                                {
+                                    "m.homeserver": {
+                                        "base_url": "http://myMatrixServer:55678"
+                                    }
+                                }
+                            """.trimIndent()
+                                ),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+
+                        request.url.encodedPath.contains("versions") ->
+                            respond(
+                                content = ByteReadChannel(
+                                    """
+                                {
+                                    "versions": [],
+                                    "unstable_features": {}
+                                }
+                            """.trimIndent()
+                                ),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+
+                        request.url.host == "myMatrixServer" && request.url.port == 55678 -> {
+                            respond(
+                                content = ByteReadChannel(
+                                    """
                                 {
                                   "completed": [],
                                   "flows": [
@@ -103,17 +134,23 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                                       "stages": [
                                         "m.login.password"
                                       ]
+                                    },
+                                    {
+                                      "stages": [
+                                        "m.login.dummy"
+                                      ]
                                     }
                                   ],
                                   "session": "xxxxxxyz"
                                 }
                             """.trimIndent()
-                            ),
-                            status = HttpStatusCode.Unauthorized,
-                            headers = headersOf(HttpHeaders.ContentType, "application/json")
-                        )
-                    } else {
-                        respond("")
+                                ),
+                                status = HttpStatusCode.Unauthorized,
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+                        }
+
+                        else -> respond("")
                     }
                 }
             }.create()
@@ -126,7 +163,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 AuthenticationType.Password,
             )
             cut.selectedRegistration.value shouldBe AuthenticationType.RegistrationToken
-            cut.needsRegistrationToken.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
@@ -136,7 +172,44 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 dispatcher = dispatcher()
                 addHandler { request ->
                     val body = request.body.toByteArray().toString(Charset.forName("UTF-8"))
+                    println("  -- ${request.url.encodedPath}")
                     when {
+                        request.url.encodedPath.contains(".well-known") ->
+                            respond(
+                                content = ByteReadChannel(
+                                    """
+                                {
+                                    "m.homeserver": {
+                                        "base_url": "http://myMatrixServer:55678"
+                                    }
+                                }
+                            """.trimIndent()
+                                ),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+
+                        request.url.encodedPath.contains("versions") ->
+                            respond(
+                                content = ByteReadChannel(
+                                    """
+                                {
+                                    "versions": [],
+                                    "unstable_features": {}
+                                }
+                            """.trimIndent()
+                                ),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+
+                        request.url.encodedPath.contains("validity") ->
+                            respond("""
+                                {
+                                    "valid": true
+                                }
+                            """.trimIndent(),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+
                         request.url.host == "myMatrixServer" &&
                                 request.url.port == 55678 &&
                                 request.url.pathSegments.contains("register") &&
@@ -214,7 +287,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             cut.serverUrl.update { "http://myMatrixServer:55678" }
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectedRegistration.value shouldBe AuthenticationType.RegistrationToken
-            cut.needsRegistrationToken.value shouldBe true
             cut.accountName.update { "Standard" }
             cut.username.update { "user1" }
             cut.password.update { "user1-password" }

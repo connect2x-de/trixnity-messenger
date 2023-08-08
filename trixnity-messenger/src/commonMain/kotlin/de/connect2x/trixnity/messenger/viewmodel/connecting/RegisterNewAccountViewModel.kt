@@ -1,22 +1,30 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.LoginState
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel.RegistrationState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.combine
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.http.*
 import korlibs.io.async.launch
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.serverDiscovery
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
 import net.folivo.trixnity.clientserverapi.model.authentication.Register
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
+import net.folivo.trixnity.core.ErrorResponse
+import net.folivo.trixnity.core.MatrixServerException
+import org.koin.core.component.get
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -32,27 +40,36 @@ interface RegisterNewAccountViewModelFactory {
 
 interface RegisterNewAccountViewModel {
     val error: StateFlow<String?>
+    val registrationState: StateFlow<RegistrationState>
 
     val registrationOptions: StateFlow<List<AuthenticationType>>
+    val loadingRegistrationOptions: StateFlow<Boolean>
     val selectedRegistration: MutableStateFlow<AuthenticationType?>
 
+    val existingAccountNames: StateFlow<List<String>?>
     val accountName: MutableStateFlow<String>
     val serverUrl: MutableStateFlow<String>
     val username: MutableStateFlow<String>
     val password: MutableStateFlow<String>
+    val serverUrlValidation: StateFlow<ServerUrlValidation>
 
-    val registrationInProgress: StateFlow<Boolean>
-
-    val needsRegistrationToken: StateFlow<Boolean>
     val registrationToken: MutableStateFlow<String>
 
+    val canRegisterNewUser: StateFlow<Boolean>
     val loginState: StateFlow<LoginState>
 
     fun tryRegistration()
     fun cancel()
+
+    sealed interface RegistrationState {
+        object Initial : RegistrationState
+        object Registering : RegistrationState
+        data class Error(val message: String) : RegistrationState
+    }
 }
 
-class RegisterNewAccountViewModelImpl(
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+open class RegisterNewAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     private val matrixClientService: MatrixClientService,
     private val onLogin: () -> Unit,
@@ -60,32 +77,89 @@ class RegisterNewAccountViewModelImpl(
     private val httpClientFactory: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 
+    private val getAccountNames = get<GetAccountNames>()
+
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val registrationState: MutableStateFlow<RegistrationState> = MutableStateFlow(RegistrationState.Initial)
     override val registrationOptions: MutableStateFlow<List<AuthenticationType>> = MutableStateFlow(emptyList())
+    override val loadingRegistrationOptions: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val selectedRegistration: MutableStateFlow<AuthenticationType?> = MutableStateFlow(null)
 
-    override val accountName: MutableStateFlow<String> = MutableStateFlow("")
+    override val existingAccountNames: StateFlow<List<String>?> = channelFlow { send(getAccountNames()) }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val accountName: MutableStateFlow<String> = MutableStateFlow("Standard")
     override val serverUrl: MutableStateFlow<String> = MutableStateFlow("")
     override val username: MutableStateFlow<String> = MutableStateFlow("")
     override val password: MutableStateFlow<String> = MutableStateFlow("")
 
-    override val registrationInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val needsRegistrationToken: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("")
     override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.Initial)
 
+    override val canRegisterNewUser: StateFlow<Boolean> = combine(
+        accountName, existingAccountNames, username, password, selectedRegistration, registrationToken
+    ) { accountName, existingAccountNames, username, password, selectedRegistration, registrationToken ->
+        when {
+            existingAccountNames?.contains(accountName) != false -> false
+            username.isBlank() -> false
+            password.isBlank() -> false
+            selectedRegistration == AuthenticationType.RegistrationToken && registrationToken.isBlank() -> false
+            else -> true
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val serverUrlValidation: StateFlow<ServerUrlValidation> = serverUrl
+        .debounce(1.seconds)
+        .transformLatest { serverUrl ->
+            when {
+                serverUrl.isBlank() -> emit(ServerUrlValidation.None)
+
+                serverUrl.startsWith("localhost") || serverUrl.startsWith("http://localhost") ->
+                    try {
+                        emit(ServerUrlValidation.Valid(Url(serverUrl)))
+                    } catch (exc: Exception) {
+                        emit(ServerUrlValidation.None)
+                    }
+
+                else -> {
+                    emit(ServerUrlValidation.Started)
+                    coroutineScope {
+                        val minDelay = launch { delay(500.milliseconds) }
+                        val result = withTimeoutOrNull(3.seconds) {
+                            serverUrl.serverDiscovery(httpClientFactory).fold(
+                                onSuccess = {
+                                    log.debug { "server url can be determined" }
+                                    ServerUrlValidation.Valid(it)
+                                },
+                                onFailure = {
+                                    log.debug { "server url cannot be determined" }
+                                    ServerUrlValidation.Invalid(i18n.serverDiscoveryFailed())
+                                })
+                        }
+                        minDelay.join()
+                        if (result == null) emit(ServerUrlValidation.Invalid(i18n.serverDiscoveryFailed()))
+                        else emit(result)
+                    }
+                }
+            }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ServerUrlValidation.None)
+
     init {
         coroutineScope.launch {
-            serverUrl.collect { serverUrl ->
-                if (serverUrl.isNotBlank()) {
+            serverUrlValidation.collect { serverUrlValidation ->
+                if (serverUrlValidation is ServerUrlValidation.Valid) {
                     try {
-                        val api = MatrixClientServerApiClientImpl(Url(serverUrl), httpClientFactory = httpClientFactory)
+                        val api =
+                            MatrixClientServerApiClientImpl(
+                                serverUrlValidation.url,
+                                httpClientFactory = httpClientFactory
+                            )
                         log.info { "serverUrl: $serverUrl" }
+                        loadingRegistrationOptions.update { true }
                         api.authentication.register(accountType = AccountType.USER)
                             .onFailure {
                                 log.error(it) { "cannot initiate UIA" }
                                 registrationOptions.update { emptyList() }
-                                error.value = i18n.registrationNotSupported()
+                                error.value = i18n.registrationErrorNotSupported()
                             }
                             .onSuccess {
                                 log.debug { "initiate flow" }
@@ -94,21 +168,9 @@ class RegisterNewAccountViewModelImpl(
                     } catch (exc: Exception) {
                         log.warn(exc) { "try to initiate register UIA" }
                         registrationOptions.update { emptyList() }
-                    }
-                }
-            }
-        }
-
-        coroutineScope.launch {
-            selectedRegistration.collect { authenticationType ->
-                when (authenticationType) {
-                    is AuthenticationType.RegistrationToken -> {
-                        needsRegistrationToken.update { true }
-                    }
-
-                    else -> {
-                        log.warn { "Only registration token is supported at the moment." }
-                        error.value = i18n.registrationNotSupported()
+                        selectedRegistration.update { null }
+                    } finally {
+                        loadingRegistrationOptions.update { false }
                     }
                 }
             }
@@ -118,40 +180,63 @@ class RegisterNewAccountViewModelImpl(
     override fun tryRegistration() {
         log.info { "try registration (serverUrl: ${serverUrl.value}, accountName = ${accountName.value}, username = ${username.value}, password = *******)" }
         coroutineScope.launch {
-            registrationInProgress.update { true }
+            registrationState.update { RegistrationState.Registering }
             if (selectedRegistration.value is AuthenticationType.RegistrationToken) {
                 log.info { "registration with token: ${registrationToken.value}" }
                 try {
-                    val api = MatrixClientServerApiClientImpl(Url(serverUrl.value), httpClientFactory = httpClientFactory)
-                    api.authentication.register(
-                        accountType = AccountType.USER,
-                        username = username.value,
-                        password = password.value,
-                    )
+                    val api =
+                        MatrixClientServerApiClientImpl(Url(serverUrl.value), httpClientFactory = httpClientFactory)
+                    api.authentication.isRegistrationTokenValid(registrationToken.value)
                         .onFailure {
-                            log.error(it) { "cannot initiate UIA" }
-                            error.value = i18n.registrationNotSupported()
+                            log.error(it) { "registration token ${registrationToken.value} is not valid" }
+                            registrationState.update { RegistrationState.Error(i18n.registrationTokenNotValid()) }
                         }
                         .onSuccess {
-                            log.info { "try to do UIA to retrieve access_token" }
-                            val accessToken = doFlows(it)
-                            if (accessToken != null) {
-                                login(
-                                    matrixClientService,
-                                    accountName.value,
-                                    serverUrl.value,
-                                    username.value,
-                                    password.value,
-                                    loginState,
-                                    onLogin,
-                                )
-                            } else {
-                                log.error { "access token cannot be accessed" }
-                                error.value = i18n.registrationNotSuccessful()
-                            }
+                            api.authentication.register(
+                                accountType = AccountType.USER,
+                                username = username.value,
+                                password = password.value,
+                            )
+                                .onFailure { exc ->
+                                    log.error(exc) { "cannot initiate UIA" }
+                                    if (exc is MatrixServerException) {
+                                        registrationState.update {
+                                            RegistrationState.Error(
+                                                when (exc.errorResponse) {
+                                                    is ErrorResponse.UserInUse -> i18n.registrationErrorUserInUse()
+                                                    is ErrorResponse.InvalidUsername -> i18n.registrationErrorInvalidUsername()
+                                                    is ErrorResponse.Exclusive -> i18n.registrationErrorInvalidUsername() // for users this is the same
+                                                    else -> i18n.registrationErrorNotSupported()
+                                                }
+                                            )
+                                        }
+                                    } else {
+                                        registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSupported()) }
+                                    }
+                                }
+                                .onSuccess {
+                                    log.info { "try to do UIA to retrieve access_token" }
+                                    val accessToken = doFlows(it)
+                                    if (accessToken != null) {
+                                        login(
+                                            matrixClientService,
+                                            accountName.value,
+                                            serverUrl.value,
+                                            username.value,
+                                            password.value,
+                                            loginState,
+                                            onLogin,
+                                        )
+                                    } else {
+                                        log.error { "access token cannot be accessed" }
+                                        registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
+                                    }
+                                }
                         }
                 } finally {
-                    registrationInProgress.update { false }
+                    if (registrationState.value !is RegistrationState.Error) {
+                        registrationState.update { RegistrationState.Initial }
+                    }
                 }
             }
         }
@@ -170,13 +255,18 @@ class RegisterNewAccountViewModelImpl(
             is UIA.Step -> {
                 val flows = uia.state.flows
                 log.debug { "UIA flows: $flows" }
-                registrationOptions.update { flows.filter { it.stages.isNotEmpty() }.map { it.stages.first() } }
-                selectedRegistration.update { registrationOptions.value?.first() }
+                registrationOptions.update {
+                    flows
+                        .filter { it.stages.isNotEmpty() && it.stages.first() != AuthenticationType.Dummy }
+                        .map { it.stages.first() }
+                }
+                selectedRegistration.update { registrationOptions.value.first() }
             }
 
             is UIA.Error -> {
                 log.error { "UIA flow in error state: ${uia.errorResponse.error}" }
-                error.value = i18n.registrationCannotDetermine()
+                selectedRegistration.update { null }
+                error.value = i18n.registrationErrorCannotDetermine()
             }
         }
     }
@@ -205,7 +295,7 @@ class RegisterNewAccountViewModelImpl(
                                     uia.authenticate(AuthenticationRequest.RegistrationToken(registrationToken.value))
                                         .onFailure {
                                             log.error(it) { "cannot use registration token" }
-                                            error.value = i18n.registrationNotSuccessful()
+                                            registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
                                         }
                                         .onSuccess { response -> return doFlows(response) }
                                 }
@@ -214,7 +304,7 @@ class RegisterNewAccountViewModelImpl(
                                     uia.authenticate(AuthenticationRequest.Dummy)
                                         .onFailure {
                                             log.error(it) { "cannot perform dummy authentication" }
-                                            error.value = i18n.registrationNotSuccessful()
+                                            registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
                                         }
                                         .onSuccess { response -> return doFlows(response) }
                                 }
@@ -230,11 +320,38 @@ class RegisterNewAccountViewModelImpl(
 
             is UIA.Error -> {
                 log.error { "UIA flow in error state: ${uia.errorResponse.error}" }
-                error.value = i18n.registrationCannotDetermine()
+                registrationState.update { RegistrationState.Error(i18n.registrationErrorCannotDetermine()) }
             }
         }
 
         return null
     }
+}
+
+class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val registrationState: MutableStateFlow<RegistrationState> = MutableStateFlow(RegistrationState.Initial)
+    override val registrationOptions: MutableStateFlow<List<AuthenticationType>> = MutableStateFlow(
+        listOf(
+            AuthenticationType.RegistrationToken,
+            AuthenticationType.Password,
+        )
+    )
+    override val loadingRegistrationOptions: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val selectedRegistration: MutableStateFlow<AuthenticationType?> =
+        MutableStateFlow(AuthenticationType.RegistrationToken)
+    override val existingAccountNames: MutableStateFlow<List<String>?> = MutableStateFlow(emptyList())
+    override val accountName: MutableStateFlow<String> = MutableStateFlow("Standard")
+    override val serverUrl: MutableStateFlow<String> = MutableStateFlow("http://localhost:8008")
+    override val username: MutableStateFlow<String> = MutableStateFlow("user1")
+    override val password: MutableStateFlow<String> = MutableStateFlow("user1-password")
+    override val serverUrlValidation: MutableStateFlow<ServerUrlValidation> =
+        MutableStateFlow(ServerUrlValidation.Valid(Url("http://localhost:8008")))
+    override val registrationToken: MutableStateFlow<String> = MutableStateFlow("myRegistrationToken")
+    override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.Initial)
+    override val canRegisterNewUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
+
+    override fun tryRegistration() {}
+    override fun cancel() {}
 
 }

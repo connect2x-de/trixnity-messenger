@@ -13,7 +13,6 @@ import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.Koin
@@ -27,14 +26,6 @@ interface MatrixClientFactory {
         baseUrl: Url,
         identifier: IdentifierType,
         password: String,
-        initialDeviceDisplayName: String?,
-        accountName: String,
-    ): Result<MatrixClient>
-
-    suspend fun loginWithToken(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        token: String,
         initialDeviceDisplayName: String?,
         accountName: String,
     ): Result<MatrixClient>
@@ -80,27 +71,6 @@ class DefaultMatrixClientService(
                     baseUrl = baseUrl,
                     identifier = identifier,
                     password = password,
-                    initialDeviceDisplayName = initialDeviceDisplayName ?: deviceDisplayName(),
-                    repositoriesModule = repositoriesModule,
-                    mediaStore = mediaStoreCreation(accountName),
-                    configuration = configuration,
-                )
-            }
-
-            override suspend fun loginWithToken(
-                baseUrl: Url,
-                identifier: IdentifierType,
-                token: String,
-                initialDeviceDisplayName: String?,
-                accountName: String,
-            ): Result<MatrixClient> {
-                val repositoriesModule = createRepositoriesModule(repositoriesModuleCreation, accountName)
-                log.debug { "MatrixClient.login" }
-                return MatrixClient.login(
-                    loginType = LoginType.Token(),
-                    identifier = identifier,
-                    baseUrl = baseUrl,
-                    token = token,
                     initialDeviceDisplayName = initialDeviceDisplayName ?: deviceDisplayName(),
                     repositoriesModule = repositoriesModule,
                     mediaStore = mediaStoreCreation(accountName),
@@ -172,33 +142,6 @@ class DefaultMatrixClientService(
                 baseUrl,
                 identifier,
                 password,
-                initialDeviceDisplayName,
-                accountName,
-            ).map {
-                // if we log in, we need to register the new account name locally
-                matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
-                log.debug { "logged in successfully with account $accountName" }
-            }.recoverCatching { exc ->
-                mapExceptions(exc)
-            }
-        } else Result.success(Unit)
-    }
-
-    override suspend fun loginWithToken(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        token: String,
-        initialDeviceDisplayName: String?,
-        accountName: String,
-    ): Result<Unit> {
-        log.debug { "log in to account: $accountName" }
-        log.debug { "existing MatrixClients: ${matrixClients.value}" }
-        return if (matrixClients.value.none { it.accountName == accountName }) {
-            log.info { "try to login" }
-            matrixClientFactory().loginWithToken(
-                baseUrl,
-                identifier,
-                token,
                 initialDeviceDisplayName,
                 accountName,
             ).map {

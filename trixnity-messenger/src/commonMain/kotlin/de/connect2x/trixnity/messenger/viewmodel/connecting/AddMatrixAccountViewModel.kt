@@ -132,11 +132,11 @@ open class AddMatrixAccountViewModelImpl(
                                     },
                                     onFailure = {
                                         log.debug { "server url cannot be determined" }
-                                        UserIdValidation.ServerDiscoveryFailure(i18n.serverDiscoveryFailed())
+                                        UserIdValidation.ServerDiscoveryFailure(i18n.serverDiscoveryFailedForUserId())
                                     })
                             }
                             minDelay.join()
-                            if (result == null) emit(UserIdValidation.ServerDiscoveryFailure(i18n.serverDiscoveryFailed()))
+                            if (result == null) emit(UserIdValidation.ServerDiscoveryFailure(i18n.serverDiscoveryFailedForUserId()))
                             else emit(result)
                         }
                     }

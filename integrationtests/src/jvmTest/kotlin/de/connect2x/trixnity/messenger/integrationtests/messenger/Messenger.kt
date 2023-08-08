@@ -123,7 +123,6 @@ suspend fun RootViewModelImpl.registerAccountWithToken(serverUrl: String, token:
         val registerNewAccountViewModel =
             rootStack.waitFor(RootRouter.RootWrapper.RegisterNewAccount::class).registerNewAccountViewModel
         registerNewAccountViewModel.serverUrl.update { serverUrl }
-        registerNewAccountViewModel.accountName.update { "Standard" }
         registerNewAccountViewModel.username.update { "user1" }
         registerNewAccountViewModel.password.update { "user1password" }
         registerNewAccountViewModel.registrationToken.update { token }

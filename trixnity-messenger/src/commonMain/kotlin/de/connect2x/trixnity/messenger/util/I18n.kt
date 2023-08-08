@@ -379,19 +379,34 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Beim Ausloggen aus Ihrem Account gab es einen Fehler. Bitte versuchen Sie es später noch einmal."
     }
 
-    fun registrationNotSupported() = translate {
+    fun registrationTokenNotValid() = translate {
+        EN - "the given registration is not valid"
+        DE - "das Registrierungs-Token ist nicht gültig"
+    }
+
+    fun registrationErrorNotSupported() = translate {
         EN - "You can only register a new user with a registration token."
         DE - "Sie können einen neuen Nutzer nur mit einem Registrierungs-Token anlegen."
     }
 
-    fun registrationCannotDetermine() = translate {
+    fun registrationErrorCannotDetermine() = translate {
         EN - "The methods for registration cannot be determined."
         DE - "Es ist nicht möglich die Registrierungsoptionen zu bestimmen."
     }
 
-    fun registrationNotSuccessful() = translate {
+    fun registrationErrorNotSuccessful() = translate {
         EN - "The registration has not been successful."
         DE - "Die Registrierung konnte nicht erfolgreich abgeschlossen werden."
+    }
+
+    fun registrationErrorUserInUse() = translate {
+        EN - "This username is already taken."
+        DE - "Dieser Nutzername ist bereits vergeben."
+    }
+
+    fun registrationErrorInvalidUsername() = translate {
+        EN - "The username is invalid. Please use another one."
+        DE - "Der gewählte Nutzername ist ungültig. Bitte wählen Sie einen anderen."
     }
 
     fun settingsNotificationsSound() = translate {
@@ -732,9 +747,14 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Eine Adresse muss mit einem '@' beginnen."
     }
 
-    fun serverDiscoveryFailed() = translate {
+    fun serverDiscoveryFailedForUserId() = translate {
         EN - "Server could not be determined (after the ':'). Please check or enter the server manually."
         DE - "Server konnte nicht ermittelt werden (nach dem ':'). Bitte prüfen oder tragen Sie den Server manuell ein."
+    }
+
+    fun serverDiscoveryFailed() = translate {
+        EN - "Server could not be determined or is not valid."
+        DE - "Server konnte nicht ermittelt werden oder ist nicht gültig."
     }
 
     fun userIdDomainMissing() = translate {
