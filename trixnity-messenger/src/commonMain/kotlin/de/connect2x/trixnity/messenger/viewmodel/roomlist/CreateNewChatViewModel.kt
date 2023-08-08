@@ -24,11 +24,12 @@ interface CreateNewChatViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
         onCreateGroup: (String) -> Unit,
+        onSearchGroup: (String) -> Unit,
         onCancel: () -> Unit,
         goToRoom: (RoomId) -> Unit,
     ): CreateNewChatViewModel {
         return CreateNewChatViewModelImpl(
-            viewModelContext, createNewRoomViewModel, onCreateGroup, onCancel, goToRoom
+            viewModelContext, createNewRoomViewModel, onCreateGroup, onSearchGroup, onCancel, goToRoom
         )
     }
 }
@@ -38,6 +39,7 @@ interface CreateNewChatViewModel {
     val error: StateFlow<String?>
     fun onUserClick(user: SearchUserElement)
     fun createGroup()
+    fun searchGroup()
     fun errorDismiss()
     fun cancel()
 }
@@ -46,6 +48,7 @@ open class CreateNewChatViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val createNewRoomViewModel: CreateNewRoomViewModel,
     private val onCreateGroup: (String) -> Unit,
+    private val onSearchGroup: (String) -> Unit,
     private val onCancel: () -> Unit,
     private val goToRoom: (RoomId) -> Unit,
 ) : CreateNewChatViewModel,
@@ -64,6 +67,10 @@ open class CreateNewChatViewModelImpl(
 
     override fun createGroup() {
         onCreateGroup(accountName)
+    }
+
+    override fun searchGroup() {
+        onSearchGroup(accountName)
     }
 
     override fun errorDismiss() {
@@ -116,16 +123,10 @@ class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    override fun onUserClick(user: SearchUserElement) {
-    }
-
-    override fun createGroup() {
-    }
-
-    override fun errorDismiss() {
-    }
-
-    override fun cancel() {
-    }
+    override fun onUserClick(user: SearchUserElement) {}
+    override fun createGroup() {}
+    override fun searchGroup() {}
+    override fun errorDismiss() {}
+    override fun cancel() {}
 
 }

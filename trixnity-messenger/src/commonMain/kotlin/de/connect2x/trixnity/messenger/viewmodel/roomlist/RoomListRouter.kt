@@ -76,6 +76,7 @@ class RoomListRouter(
                                 )
                             ),
                         onCreateGroup = ::onCreateGroup,
+                        onSearchGroup = ::onSearchGroup,
                         onCancel = ::onCancelCreateNewChat,
                         goToRoom = ::goToRoom,
                     )
@@ -98,6 +99,17 @@ class RoomListRouter(
                         onBack = ::onCancelCreateNewGroup,
                         onGroupCreated = ::onGroupCreated,
                     )
+            )
+
+            is RoomListConfig.SearchGroup -> RoomListWrapper.SearchGroup(
+                viewModelContext.get<SearchGroupViewModelFactory>().newSearchGroupViewModel(
+                    viewModelContext.childContext(
+                        componentContext,
+                        roomListConfig.accountName,
+                    ),
+                    onBack = ::onCancelSearchGroup,
+                    onGroupJoined = ::onGroupJoined,
+                )
             )
 
             is RoomListConfig.UserSettings -> RoomListWrapper.UserSettings(
@@ -198,11 +210,28 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupCreated(roomId: RoomId) = viewModelContext.coroutineScope.launch {
+    private fun onGroupCreated(accountName:String, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "on group created ($roomId)" }
         navigation.popWhileSuspending { it !is RoomListConfig.RoomList }
         selectedRoomId.value = roomId
-//        onRoomSelected(roomId)
+        onRoomSelected(accountName, roomId)
+    }
+
+    private fun onSearchGroup(accountName: String) {
+        log.debug { "on search group in account $accountName" }
+        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.SearchGroup(accountName))
+    }
+
+    private fun onCancelSearchGroup() {
+        log.debug { "on cancel search group" }
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private fun onGroupJoined(accountName: String, roomId: RoomId) =  viewModelContext.coroutineScope.launch {
+        log.debug { "on group joined ($roomId)" }
+        navigation.popWhileSuspending { it !is RoomListConfig.RoomList }
+        selectedRoomId.value = roomId
+        onRoomSelected(accountName, roomId)
     }
 
     private fun onOpenUserSettings() {
@@ -323,6 +352,9 @@ class RoomListRouter(
         data class CreateNewGroup(val accountName: String) : RoomListConfig()
 
         @Parcelize
+        data class SearchGroup(val accountName: String) : RoomListConfig()
+
+        @Parcelize
         object UserSettings : RoomListConfig()
 
         @Parcelize
@@ -335,7 +367,7 @@ class RoomListRouter(
         object NotificationsSettings : RoomListConfig()
 
         @Parcelize
-        object PrivacySettings: RoomListConfig()
+        object PrivacySettings : RoomListConfig()
 
         @Parcelize
         data class ConfigureNotifications(val accountName: String) : RoomListConfig()
@@ -356,6 +388,8 @@ class RoomListRouter(
         class CreateNewGroup(val createNewGroupViewModel: CreateNewGroupViewModel) :
             RoomListWrapper()
 
+        class SearchGroup(val searchGroupViewModel: SearchGroupViewModel) : RoomListWrapper()
+
         class UserSettings(val userSettingsViewModel: UserSettingsViewModel) : RoomListWrapper()
         class DevicesSettings(val devicesSettingsViewModel: DevicesSettingsViewModel) :
             RoomListWrapper()
@@ -363,7 +397,8 @@ class RoomListRouter(
         class Profile(val profileViewModel: ProfileViewModel) : RoomListWrapper()
         class NotificationsSettings(val notificationsSettingsViewModel: NotificationsSettingsViewModel) :
             RoomListWrapper()
-        class PrivacySettings(val privacySettingsViewModel: PrivacySettingsViewModel): RoomListWrapper()
+
+        class PrivacySettings(val privacySettingsViewModel: PrivacySettingsViewModel) : RoomListWrapper()
 
         class ConfigureNotifications(val configureNotificationsViewModel: ConfigureNotificationsViewModel) :
             RoomListWrapper()

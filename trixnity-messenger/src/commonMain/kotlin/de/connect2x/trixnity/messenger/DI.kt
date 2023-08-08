@@ -139,6 +139,7 @@ private val roomListViewModels = module {
     single<CreateNewChatViewModelFactory> { object : CreateNewChatViewModelFactory {} }
     single<CreateNewGroupViewModelFactory> { object : CreateNewGroupViewModelFactory {} }
     single<CreateNewRoomViewModelFactory> { object : CreateNewRoomViewModelFactory {} }
+    single<SearchGroupViewModelFactory> { object: SearchGroupViewModelFactory {} }
     single<RoomListElementViewModelFactory> { object : RoomListElementViewModelFactory {} }
     single<RoomListViewModelFactory> { object : RoomListViewModelFactory {} }
 }
