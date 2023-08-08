@@ -166,7 +166,6 @@ android {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-client-logging-jvm:2.3.2")
     configurations
         .filter { it.name.startsWith("ksp") && it.name.contains("Test") }
         .forEach {
