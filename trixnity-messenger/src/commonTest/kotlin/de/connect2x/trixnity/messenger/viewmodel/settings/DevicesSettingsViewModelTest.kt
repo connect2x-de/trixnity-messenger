@@ -33,7 +33,6 @@ import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeyStore
 import net.folivo.trixnity.client.store.repository.*
-import net.folivo.trixnity.client.store.transaction.TransactionManagerImpl
 import net.folivo.trixnity.client.verification.ActiveDeviceVerification
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.DevicesApiClient
@@ -687,7 +686,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             secretsRepository = InMemorySecretsRepository(),
             secretKeyRequestRepository = InMemorySecretKeyRequestRepository(),
             roomKeyRequestRepository = InMemoryRoomKeyRequestRepository(),
-            tm = TransactionManagerImpl(MatrixClientConfiguration(), NoOpRepositoryTransactionManager, scope),
+            tm = NoOpRepositoryTransactionManager,
             config = MatrixClientConfiguration(),
             storeScope = scope,
         ),

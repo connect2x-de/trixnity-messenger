@@ -260,11 +260,8 @@ class RoomListViewModelImpl(
                     val sortTime: Instant?,
                 )
                 roomsWithMeta.values.asFlow()
-                    .filter { (room, namedMatrixClient) ->
-                        val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                        val isRoom =
-                            matrixClient.room.getState<CreateEventContent>(room.roomId)
-                                .first()?.content?.type == RoomType.Room
+                    .filter { (room, _) ->
+                        val isRoom = room.createEventContent?.type == RoomType.Room
                         val isInActiveSpace =
                             if (activeSpaceInfo != null) {
                                 activeSpaceInfo.roomsInSpace.contains(room.roomId) ||
@@ -320,11 +317,8 @@ class RoomListViewModelImpl(
         spaces = allRoomsFlow.flatMapLatest { allRooms ->
             combine( // TODO This is a heavy operation: SpaceViewModel should calculate room name.
                 allRooms.values.asFlow()
-                    .filter { (room, namedMatrixClient) ->
-                        val isSpace =
-                            namedMatrixClient.matrixClientOrThrow().room
-                                .getState<CreateEventContent>(room.roomId)
-                                .first()?.content?.type == RoomType.Space
+                    .filter { (room, _) ->
+                        val isSpace = room.createEventContent?.type == RoomType.Space
                         isSpace && (room.membership == Membership.INVITE || room.membership == Membership.JOIN)
                     }.map { (space, namedMatrixClient) ->
                         roomName.getRoomNameElement(space, namedMatrixClient.matrixClientOrThrow())

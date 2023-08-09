@@ -129,6 +129,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     private lateinit var di: Koin
     private lateinit var namedMatrixClients: MutableStateFlow<List<NamedMatrixClient>>
 
+    private val roomCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Room)
+    private val spaceCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Space)
+
     init {
         Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
@@ -365,40 +368,28 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         )
                     )
             val eventId1 = EventId("1")
-            mocker.every {
-                roomServiceMock1.getTimelineEvent(
-                    isEqual(roomId1),
-                    isEqual(eventId1),
-                    isAny(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(eventId1, Instant.parse("2021-11-03T14:00:00Z"))
+            val room1 = Room(
+                roomId1,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventId = eventId1,
+                lastRelevantEventTimestamp = Instant.parse("2021-11-03T14:00:00Z")
             )
-            val room1 = Room(roomId1, lastRelevantEventId = eventId1)
             val eventId2 = EventId("2")
-            mocker.every {
-                roomServiceMock1.getTimelineEvent(
-                    isEqual(roomId2),
-                    isEqual(eventId2),
-                    isAny(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(eventId2, Instant.parse("2021-11-04T19:00:00Z"))
+            val room2 = Room(
+                roomId2,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventId = eventId2,
+                lastRelevantEventTimestamp = Instant.parse("2021-11-04T19:00:00Z")
             )
-            val room2 = Room(roomId2, lastRelevantEventId = eventId2)
             val eventId3 = EventId("3")
-            mocker.every {
-                roomServiceMock2.getTimelineEvent(
-                    isEqual(roomId3),
-                    isEqual(eventId3),
-                    isAny(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(eventId3, Instant.parse("2021-11-04T18:00:00Z"))
+            val room3 = Room(
+                roomId3,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventId = eventId3,
+                lastRelevantEventTimestamp = Instant.parse("2021-11-04T18:00:00Z")
             )
-            val room3 = Room(roomId3, lastRelevantEventId = eventId3)
-            val room4 = Room(roomId4)
-            val room5 = Room(roomId5) // with invite
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
+            val room5 = Room(roomId5, createEventContent = roomCreateEventContent) // with invite
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -476,7 +467,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("display info message when trying to join a room while the client is not connected to the server") {
-            val room = Room(roomId1, membership = Membership.INVITE)
+            val room = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.INVITE)
             mocker.every { roomServiceMock1.getById(roomId1) } returns flowOf(room)
             mocker.every { roomServiceMock1.getAll() } returns MutableStateFlow(
                 mapOf(
@@ -512,10 +503,10 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("yield all rooms as search result when search term which is blank") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -551,10 +542,10 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("contain search term in all search results") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -593,9 +584,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("add a newly added room to the search result when it fits the search term") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val room3NameFlow = MutableStateFlow(RoomNameElement("room2-other"))
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
@@ -638,10 +629,10 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("not show spaces in room list") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val space = Room(spaceId1)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val space = Room(spaceId1, createEventContent = spaceCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -685,10 +676,10 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("consider all spaces") {
-            val room1 = Room(roomId1)
-            val room3 = Room(roomId3)
-            val space1 = Room(spaceId1)
-            val space2 = Room(spaceId2)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
+            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -746,12 +737,12 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("filter rooms by the space that is currently selected") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
-            val space1 = Room(spaceId1)
-            val space2 = Room(spaceId2)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
+            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
+            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -856,9 +847,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
         should("react to changes of accounts") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
