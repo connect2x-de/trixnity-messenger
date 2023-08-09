@@ -110,10 +110,12 @@ open class RegisterNewAccountViewModelImpl(
     override val serverUrlValidation: StateFlow<ServerUrlValidation> = serverUrl
         .debounce(1.seconds)
         .transformLatest { serverUrl ->
+            log.debug { "serverUrl: $serverUrl" }
             when {
                 serverUrl.isBlank() -> emit(ServerUrlValidation.None)
 
-                serverUrl.startsWith("localhost") || serverUrl.startsWith("http://localhost") ->
+                serverUrl.startsWith("localhost") || serverUrl.startsWith("http://localhost") ||
+                        serverUrl.contains("host.testcontainers.internal") -> // for ITs in CI
                     try {
                         emit(ServerUrlValidation.Valid(Url(serverUrl)))
                     } catch (exc: Exception) {
