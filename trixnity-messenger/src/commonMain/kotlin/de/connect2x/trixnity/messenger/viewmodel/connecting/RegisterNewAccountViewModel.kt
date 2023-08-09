@@ -115,7 +115,7 @@ open class RegisterNewAccountViewModelImpl(
                 serverUrl.isBlank() -> emit(ServerUrlValidation.None)
 
                 serverUrl.startsWith("localhost") || serverUrl.startsWith("http://localhost") ||
-                        serverUrl.contains("host.testcontainers.internal") -> // for ITs in CI
+                        serverUrl.startsWith("http://docker:") -> // for ITs in CI
                     try {
                         emit(ServerUrlValidation.Valid(Url(serverUrl)))
                     } catch (exc: Exception) {
