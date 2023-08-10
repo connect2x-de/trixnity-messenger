@@ -226,6 +226,7 @@ class DefaultMatrixClientService(
             log.info { "MatrixClient.logout() for $namedMatrixClient" }
             matrixClients.value -= namedMatrixClient
             val result = namedMatrixClient.matrixClient.value?.logout()?.onSuccess {
+                namedMatrixClient.matrixClient.value?.stop()
                 namedMatrixClient.matrixClient.value = null
                 log.info { "now, delete account data on this machine" }
                 deleteAccountDataLocally(accountName)

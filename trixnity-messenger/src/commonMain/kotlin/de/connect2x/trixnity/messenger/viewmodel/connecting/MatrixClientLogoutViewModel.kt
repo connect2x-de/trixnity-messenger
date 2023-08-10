@@ -48,6 +48,7 @@ class MatrixClientLogoutViewModelImpl(
         coroutineScope.launch {
             matrixClientService.logout(accountName)
                 .onSuccess {
+                    log.debug { "logout completed" }
                     onLogoutCompleted()
                 }
                 .onFailure {

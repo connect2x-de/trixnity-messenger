@@ -80,11 +80,12 @@ fun trixnityMessengerModule() = module {
                 // on Desktop, when the scope of the caller (a view model) is ended, the app in most cases is ended as well
                 // -> it is OK to cancel the initial sync in this case as the JVM is not running anymore
                 return channelFlow {
+                    val matrixClient =
+                        (get<NamedMatrixClients>().list.value.find { it.accountName == accountName }?.matrixClient?.value
+                            ?: throw IllegalStateException("Cannot find account '$accountName'."))
+                    log.info { "matrixClient: $matrixClient" }
                     send(
-                        InitialSync.run(
-                            get<NamedMatrixClients>().list.value.find { it.accountName == accountName }?.matrixClient?.value
-                                ?: throw IllegalStateException("Cannot find account '$accountName'.")
-                        )
+                        InitialSync.run(matrixClient)
                     )
                 }
             }
@@ -122,7 +123,7 @@ private val connectingViewModels = module {
     single<MatrixClientLogoutViewModelFactory> { object : MatrixClientLogoutViewModelFactory {} }
     single<StoreFailureViewModelFactory> { object : StoreFailureViewModelFactory {} }
     single<AddMatrixAccountViewModelFactory> { object : AddMatrixAccountViewModelFactory {} }
-    single<RegisterNewAccountViewModelFactory> { object: RegisterNewAccountViewModelFactory {} }
+    single<RegisterNewAccountViewModelFactory> { object : RegisterNewAccountViewModelFactory {} }
 }
 
 private val filesViewModels = module {
@@ -139,7 +140,7 @@ private val roomListViewModels = module {
     single<CreateNewChatViewModelFactory> { object : CreateNewChatViewModelFactory {} }
     single<CreateNewGroupViewModelFactory> { object : CreateNewGroupViewModelFactory {} }
     single<CreateNewRoomViewModelFactory> { object : CreateNewRoomViewModelFactory {} }
-    single<SearchGroupViewModelFactory> { object: SearchGroupViewModelFactory {} }
+    single<SearchGroupViewModelFactory> { object : SearchGroupViewModelFactory {} }
     single<RoomListElementViewModelFactory> { object : RoomListElementViewModelFactory {} }
     single<RoomListViewModelFactory> { object : RoomListViewModelFactory {} }
 }
@@ -157,8 +158,8 @@ private val settingsViewModels = module {
     }
     single<ProfileViewModelFactory> { object : ProfileViewModelFactory {} }
     single<UserSettingsViewModelFactory> { object : UserSettingsViewModelFactory {} }
-    single<PrivacySettingsViewModelFactory> { object: PrivacySettingsViewModelFactory {} }
-    single<PrivacySettingViewModelFactory> { object: PrivacySettingViewModelFactory {} }
+    single<PrivacySettingsViewModelFactory> { object : PrivacySettingsViewModelFactory {} }
+    single<PrivacySettingViewModelFactory> { object : PrivacySettingViewModelFactory {} }
 }
 
 private val timelineElementsViewModels = module {

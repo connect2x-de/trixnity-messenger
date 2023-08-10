@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapStep
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.assertions.timing.eventually
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
@@ -100,19 +101,21 @@ suspend fun RootViewModelImpl.deleteAccount(username: String) {
     val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
     mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.InitialSyncWrapper.None::class)
+    log.debug { " +- delete account finished" }
 }
 
 suspend fun RootViewModelImpl.verifyAccountsArePresent(vararg accountNames: String) {
     val accountsOverviewViewModel = openAccountsOverview()
     withTimeout(5.seconds) {
-        accountsOverviewViewModel.accountNames.first {
-            log.debug { "found: ${it.joinToString { it }}, expected: ${accountNames.joinToString { it }}" }
-            it.containsAll(accountNames.toList()) && accountNames.toList().containsAll(it)
+        eventually(4.seconds) {
+            val foundAccountNames = accountsOverviewViewModel.accountNames.first()
+            log.debug { "found: ${foundAccountNames.joinToString { it }}, expected: ${accountNames.joinToString { it }}" }
+            foundAccountNames.containsAll(accountNames.toList()) && accountNames.toList().containsAll(foundAccountNames)
         }
+        accountsOverviewViewModel.close()
+        rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
+            .roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
     }
-    accountsOverviewViewModel.close()
-    rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
-        .roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
 }
 
 suspend fun RootViewModelImpl.registerAccountWithToken(serverUrl: String, token: String) {

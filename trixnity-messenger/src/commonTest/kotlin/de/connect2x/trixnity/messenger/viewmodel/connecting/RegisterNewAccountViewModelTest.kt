@@ -25,8 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
+import net.folivo.trixnity.core.model.UserId
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -56,7 +56,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
             with(mocker) {
                 everySuspending {
-                    matrixClientServiceMock.login(isAny(), isAny(), isAny(), isAny(), isAny())
+                    matrixClientServiceMock.loginWith(isAny(), isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
                 } returns Result.success(Unit)
 
                 every { onLoginMock.invoke() } returns Unit
@@ -202,7 +202,8 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                             )
 
                         request.url.encodedPath.contains("validity") ->
-                            respond("""
+                            respond(
+                                """
                                 {
                                     "valid": true
                                 }
@@ -295,10 +296,12 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             mocker.verifyWithSuspend {
-                matrixClientServiceMock.login(
+                matrixClientServiceMock.loginWith(
                     isEqual(Url("http://myMatrixServer:55678")),
-                    isEqual(IdentifierType.User("user1")),
-                    isEqual("user1-password"),
+                    isEqual(UserId("@user1:myMatrixServer:55678")),
+                    isEqual("GHTYAJCE"),
+                    isEqual("abc123"),
+                    isAny(),
                     isAny(),
                     isEqual("Standard")
                 )
