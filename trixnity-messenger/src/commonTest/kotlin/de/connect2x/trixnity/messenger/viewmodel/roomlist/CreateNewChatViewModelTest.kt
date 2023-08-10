@@ -240,6 +240,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             ),
             createNewRoomViewModel = createNewRoomViewModel(),
             onCreateGroup = mockFunction1(mocker),
+            onSearchGroup = mockFunction1(mocker),
             onCancel = onCancelMock,
             goToRoom = goToRoomMock,
         )

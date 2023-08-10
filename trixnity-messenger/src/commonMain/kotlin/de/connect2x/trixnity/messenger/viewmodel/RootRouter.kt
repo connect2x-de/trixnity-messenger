@@ -4,7 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.essenty.parcelable.Parcelable
 import com.arkivanov.essenty.parcelable.Parcelize
 import com.benasher44.uuid.uuid4
@@ -18,10 +17,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.koin.core.component.get
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger { }
 
@@ -72,6 +69,16 @@ class RootRouter(
                     matrixClientService = matrixClientService,
                     onLogin = ::onLogin,
                     onCancel = ::onCancelAddMatrixAccount,
+                    onRegisterNewUser = ::showUserRegistration,
+                )
+            )
+
+            is Config.RegisterNewAccount -> RootWrapper.RegisterNewAccount(
+                viewModelContext.get<RegisterNewAccountViewModelFactory>().newRegisterNewAccountViewModel(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    matrixClientService = matrixClientService,
+                    onLogin = ::userRegistrationSuccess,
+                    onCancel = ::hideUserRegistration,
                 )
             )
 
@@ -198,6 +205,19 @@ class RootRouter(
         }
     }
 
+    private fun showUserRegistration() {
+        navigation.launchPush(viewModelContext.coroutineScope, Config.RegisterNewAccount)
+    }
+
+    private fun hideUserRegistration() {
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private fun userRegistrationSuccess() {
+        navigation.launchPop(viewModelContext.coroutineScope) // close registration
+        onLogin()
+    }
+
     sealed class RootWrapper {
         object None : RootWrapper()
         class MatrixClientInitialization(val matrixClientInitializationViewModel: MatrixClientInitializationViewModel) :
@@ -207,6 +227,7 @@ class RootRouter(
 
         class Main(val mainViewModel: MainViewModel) : RootWrapper()
         class AddMatrixAccount(val addMatrixAccountViewModel: AddMatrixAccountViewModel) : RootWrapper()
+        class RegisterNewAccount(val registerNewAccountViewModel: RegisterNewAccountViewModel): RootWrapper()
         class StoreFailure(val storeFailureViewModel: StoreFailureViewModel) : RootWrapper()
     }
 
@@ -225,6 +246,9 @@ class RootRouter(
 
         @Parcelize
         object AddMatrixAccount : Config()
+
+        @Parcelize
+        object RegisterNewAccount: Config()
 
         @Parcelize
         data class StoreFailure(

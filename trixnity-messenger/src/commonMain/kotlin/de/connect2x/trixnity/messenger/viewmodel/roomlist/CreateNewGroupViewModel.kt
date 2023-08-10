@@ -20,7 +20,7 @@ interface CreateNewGroupViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
         onBack: () -> Unit,
-        onGroupCreated: (RoomId) -> Unit,
+        onGroupCreated: (String, RoomId) -> Unit,
     ): CreateNewGroupViewModel {
         return CreateNewGroupViewModelImpl(
             viewModelContext, createNewRoomViewModel, onBack, onGroupCreated
@@ -49,7 +49,7 @@ open class CreateNewGroupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val createNewRoomViewModel: CreateNewRoomViewModel,
     private val onBack: () -> Unit,
-    private val onGroupCreated: (RoomId) -> Unit,
+    private val onGroupCreated: (String, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
 
@@ -82,7 +82,7 @@ open class CreateNewGroupViewModelImpl(
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
-                    onGroupCreated(roomId)
+                    onGroupCreated(accountName, roomId)
                 },
                 onFailure = {
                     log.error(it) { "Cannot create a group." }

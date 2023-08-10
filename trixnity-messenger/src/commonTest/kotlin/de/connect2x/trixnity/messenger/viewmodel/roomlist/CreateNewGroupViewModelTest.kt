@@ -34,10 +34,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
+import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
@@ -68,7 +65,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     private val onBackMock = mockFunction0<Unit>(mocker)
-    private val onGroupCreatedMock = mockFunction1<Unit, RoomId>(mocker)
+    private val onGroupCreatedMock = mockFunction2<Unit,String, RoomId>(mocker)
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -140,7 +137,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
         }
 
         should("create group with all selected users") {
-            mocker.every { onGroupCreatedMock.invoke(isAny()) } returns Unit
+            mocker.every { onGroupCreatedMock.invoke(isAny(), isAny()) } returns Unit
 
             val roomId = RoomId("room1", "localhost")
             mocker.everySuspending {
@@ -192,13 +189,13 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             cut.createNewGroup()
 
             eventually(3.seconds) {
-                mocker.verify(exhaustive = false) { onGroupCreatedMock.invoke(roomId) }
+                mocker.verify(exhaustive = false) { onGroupCreatedMock.invoke("test", roomId) }
             }
         }
 
         should("show error message when group cannot be created") {
             var groupCreatedWasCalled = false
-            mocker.every { onGroupCreatedMock.invoke(isAny()) } runs {
+            mocker.every { onGroupCreatedMock.invoke(isAny(), isAny()) } runs {
                 groupCreatedWasCalled = true
             }
 

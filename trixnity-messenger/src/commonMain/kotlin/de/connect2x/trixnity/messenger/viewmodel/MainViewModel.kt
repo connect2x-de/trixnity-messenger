@@ -300,15 +300,15 @@ open class MainViewModelImpl(
     }
 
     private fun startSync() {
-        initialSyncRouter.stack.observe { childStack ->
-            if (childStack.active.configuration == InitialSyncConfig.None) {
-                log.info { "initial sync / small sync is done -> now sync regularly" }
-                initialSyncOnceIsFinished(true)
-                coroutineScope.launch {
-                    namedMatrixClients.collectLatest { namedMatrixClients ->
-                        namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
-                            val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
-                            log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
+        coroutineScope.launch {
+            initialSyncRouter.stack.toFlow().collect { childStack ->
+                if (childStack.active.configuration == InitialSyncConfig.None) {
+                    log.info { "initial sync / small sync is done -> now sync regularly" }
+                    initialSyncOnceIsFinished(true)
+                    namedMatrixClients.value.forEach { (accountName, matrixClientFlow) ->
+                        val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
+                        log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
+                        launch {
                             matrixClientFlow.value?.startSync(
                                 presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
                             )
@@ -319,21 +319,33 @@ open class MainViewModelImpl(
         }
 
         coroutineScope.launch {
-            namedMatrixClients.map { namedMatrixClients ->
-                namedMatrixClients.mapNotNull { namedMatrixClient ->
-                    namedMatrixClient.matrixClient.value?.let { matrixClient ->
-                        log.debug { "start sync [${namedMatrixClient.accountName}] -> $matrixClient, initial sync done: ${matrixClient.initialSyncDone.value}" }
-                        val initialSyncDone = matrixClient.initialSyncDone.first()
-                        if (initialSyncDone) {
-                            namedMatrixClient.accountName to InitialSyncState.DONE
+            namedMatrixClients
+                .scan(
+                    Pair<List<NamedMatrixClient>, List<NamedMatrixClient>>(emptyList(), emptyList())
+                ) { old, new -> old.second to new }
+                .map { (namedMatrixClientsOld, namedMatrixClients) ->
+                    namedMatrixClients.mapNotNull { namedMatrixClient ->
+                        if (namedMatrixClientsOld.any { namedMatrixClient.accountName == it.accountName }) {
+                            null
                         } else {
-                            namedMatrixClient.accountName to InitialSyncState.NOT_DONE
+                            namedMatrixClient.matrixClient.value?.let { matrixClient ->
+                                log.debug { "start sync [${namedMatrixClient.accountName}] -> $matrixClient, initial sync done: ${matrixClient.initialSyncDone.value}" }
+                                val initialSyncDone = matrixClient.initialSyncDone.first()
+                                if (initialSyncDone) {
+                                    namedMatrixClient.accountName to InitialSyncState.DONE
+                                } else {
+                                    namedMatrixClient.accountName to InitialSyncState.NOT_DONE
+                                }
+                            }
                         }
+                    }.toMap()
+                }.collect {
+                    if (it.isNotEmpty()) {
+                        initialSyncRouter.showSync(it)
+                    } else {
+                        log.debug { "no initial sync needed" }
                     }
-                }.toMap()
-            }.collect {
-                initialSyncRouter.showSync(it)
-            }
+                }
         }
 
         lifecycle.doOnStop {

@@ -89,6 +89,7 @@ kotlin {
                 implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
                 implementation("io.kotest:kotest-framework-datatest:${Versions.kotest}")
                 implementation("ch.qos.logback:logback-classic:${Versions.logback}")
+                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
             }
         }
         val jvmMain by getting {

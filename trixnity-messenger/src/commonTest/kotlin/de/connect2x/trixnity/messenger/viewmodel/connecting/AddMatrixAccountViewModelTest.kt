@@ -180,6 +180,7 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
             matrixClientService = matrixClientServiceMock,
             onLogin = onLoginMock,
             onCancel = onCancelMock,
+            onRegisterNewUser = mockFunction0(mocker),
         ).apply {
             accountName.value = "default"
             serverUrl.value = "http://localhost"
