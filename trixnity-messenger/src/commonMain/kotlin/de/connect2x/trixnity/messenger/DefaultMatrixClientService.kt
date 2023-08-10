@@ -13,6 +13,7 @@ import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.Koin
@@ -27,6 +28,16 @@ interface MatrixClientFactory {
         identifier: IdentifierType,
         password: String,
         initialDeviceDisplayName: String?,
+        accountName: String,
+    ): Result<MatrixClient>
+
+    suspend fun loginWith(
+        baseUrl: Url,
+        userId: UserId,
+        deviceId: String,
+        accessToken: String,
+        displayName: String?,
+        avatarUrl: String? = null,
         accountName: String,
     ): Result<MatrixClient>
 
@@ -76,6 +87,34 @@ class DefaultMatrixClientService(
                     mediaStore = mediaStoreCreation(accountName),
                     configuration = configuration,
                 )
+            }
+
+            override suspend fun loginWith(
+                baseUrl: Url,
+                userId: UserId,
+                deviceId: String,
+                accessToken: String,
+                displayName: String?,
+                avatarUrl: String?,
+                accountName: String,
+            ): Result<MatrixClient> {
+                val repositoriesModule = createRepositoriesModule(repositoriesModuleCreation, accountName)
+                log.debug { "MatrixClient.loginWith" }
+                return MatrixClient.loginWith(
+                    baseUrl,
+                    repositoriesModule,
+                    mediaStoreCreation(accountName),
+                    getLoginInfo = {
+                        Result.success(
+                            MatrixClient.LoginInfo(
+                                userId = userId,
+                                deviceId = deviceId,
+                                accessToken = accessToken,
+                                displayName = displayName,
+                                avatarUrl = avatarUrl,
+                            )
+                        )
+                    })
             }
 
             override suspend fun initFromStore(
@@ -153,6 +192,32 @@ class DefaultMatrixClientService(
             }
         } else Result.success(Unit)
     }
+
+    override suspend fun loginWith(
+        baseUrl: Url,
+        userId: UserId,
+        deviceId: String,
+        accessToken: String,
+        displayName: String?,
+        avatarUrl: String?,
+        accountName: String
+    ): Result<Unit> {
+        log.debug { "log in to account '$accountName' with existing access token" }
+        log.debug { "existing MatrixClients: ${matrixClients.value}" }
+        return if (matrixClients.value.none { it.accountName == accountName }) {
+            log.info { "try to loginWith" }
+            matrixClientFactory().loginWith(
+                baseUrl, userId, deviceId, accessToken, displayName, avatarUrl, accountName
+            ).map {
+                // if we log in, we need to register the new account name locally
+                matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
+                log.debug { "logged in successfully with account $accountName" }
+            }.recoverCatching { exc ->
+                mapExceptions(exc)
+            }
+        } else Result.success(Unit)
+    }
+
 
     override suspend fun logout(accountName: String): Result<Unit> {
         log.info { "logging out of account '$accountName'" }

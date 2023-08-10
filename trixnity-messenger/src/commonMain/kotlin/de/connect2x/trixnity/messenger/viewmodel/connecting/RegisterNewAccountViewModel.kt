@@ -218,16 +218,21 @@ open class RegisterNewAccountViewModelImpl(
                                 }
                                 .onSuccess {
                                     log.info { "try to do UIA to retrieve access_token" }
-                                    val accessToken = doFlows(it)
-                                    if (accessToken != null) {
-                                        login(
-                                            matrixClientService,
-                                            accountName.value,
-                                            serverUrl.value,
-                                            username.value,
-                                            password.value,
-                                            loginState,
-                                            onLogin,
+                                    val registerResponse = doFlows(it)
+                                    val deviceId = registerResponse?.deviceId
+                                    val accessToken = registerResponse?.accessToken
+                                    if (deviceId != null && accessToken != null) {
+                                        loginWith(
+                                            matrixClientService = matrixClientService,
+                                            accountName = accountName.value,
+                                            serverUrl = serverUrl.value,
+                                            userId = registerResponse.userId,
+                                            deviceId = deviceId,
+                                            accessToken = accessToken,
+                                            displayName = null,
+                                            avatarUrl = null,
+                                            loginState = loginState,
+                                            onLogin = onLogin,
                                         )
                                     } else {
                                         log.error { "access token cannot be accessed" }
@@ -273,12 +278,12 @@ open class RegisterNewAccountViewModelImpl(
         }
     }
 
-    private suspend fun doFlows(uia: UIA<Register.Response>): String? {
+    private suspend fun doFlows(uia: UIA<Register.Response>): Register.Response? {
         log.info { uia }
         when (uia) {
             is UIA.Success -> {
                 log.info { "successfully authenticated" }
-                return uia.value.accessToken
+                return uia.value
             }
 
             is UIA.Step -> {
