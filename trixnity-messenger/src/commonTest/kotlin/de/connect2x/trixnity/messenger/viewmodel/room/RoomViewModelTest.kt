@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.RoomHeaderElement
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
-import de.connect2x.trixnity.messenger.viewmodel.mock.MockSyncApiClient
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
@@ -101,6 +100,7 @@ class RoomViewModelTest : ShouldSpec() {
     @Mock
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
+    @Mock
     lateinit var syncApiClientMock: SyncApiClient
 
     @Mock
@@ -137,8 +137,6 @@ class RoomViewModelTest : ShouldSpec() {
                         single { verificationServiceMock }
                     })
                 }.koin
-
-                syncApiClientMock = MockSyncApiClient(mocker)
 
                 every { matrixClientMock.userId } returns myUserId
                 every { matrixClientMock.deviceId } returns myDeviceId
@@ -406,8 +404,13 @@ class RoomViewModelTest : ShouldSpec() {
                                         override fun blockUser() {}
                                         override fun unblockUser() {}
                                         override fun verifyUser() {}
-                                        override fun showRoomSettings() { onShowRoomSettings() }
-                                        override fun goBack() { onBack() }
+                                        override fun showRoomSettings() {
+                                            onShowRoomSettings()
+                                        }
+
+                                        override fun goBack() {
+                                            onBack()
+                                        }
                                     }
                                 }
                             }

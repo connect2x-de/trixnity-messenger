@@ -107,6 +107,9 @@ class RoomListViewModelTest : ShouldSpec() {
     lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
     lateinit var roomName3Mocker: Mocker.Every<Flow<RoomNameElement>>
 
+    private val roomCreateEventContent = CreateEventContent(creator = me, type = RoomType.Room)
+    private val spaceCreateEventContent = CreateEventContent(creator = me, type = RoomType.Space)
+
     init {
         Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
@@ -179,7 +182,7 @@ class RoomListViewModelTest : ShouldSpec() {
                     )
                 } returns flowOf(
                     Event.StateEvent(
-                        content = CreateEventContent(creator = me),
+                        content = roomCreateEventContent,
                         id = EventId(""),
                         sender = me,
                         roomId = roomId1,
@@ -259,40 +262,32 @@ class RoomListViewModelTest : ShouldSpec() {
                         )
                     )
             val eventId1 = EventId("1")
-            mocker.every {
-                roomServiceMock.getTimelineEvent(
-                    isEqual(roomId1),
-                    isEqual(eventId1),
-                    isAny(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(eventId1, Instant.parse("2021-11-03T14:00:00Z"))
+            val room1 = Room(
+                roomId1,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventId = eventId1,
+                lastRelevantEventTimestamp = Instant.parse("2021-11-03T14:00:00Z")
             )
-            val room1 = Room(roomId1, lastRelevantEventId = eventId1)
             val eventId2 = EventId("2")
-            mocker.every {
-                roomServiceMock.getTimelineEvent(
-                    isEqual(roomId2),
-                    isEqual(eventId2),
-                    isAny(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(eventId2, Instant.parse("2021-11-04T19:00:00Z"))
+            val room2 = Room(
+                roomId2,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventId = eventId2,
+                lastRelevantEventTimestamp = Instant.parse("2021-11-04T19:00:00Z")
             )
-            val room2 = Room(roomId2, lastRelevantEventId = eventId2)
             val eventId3 = EventId("3")
-            mocker.every {
-                roomServiceMock.getTimelineEvent(
-                    isEqual(roomId3),
-                    isEqual(eventId3),
-                    isAny(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(eventId3, Instant.parse("2021-11-04T18:00:00Z"))
+            val room3 = Room(
+                roomId3,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventId = eventId3,
+                lastRelevantEventTimestamp = Instant.parse("2021-11-04T18:00:00Z")
             )
-            val room3 = Room(roomId3, lastRelevantEventId = eventId3)
-            val room4 = Room(roomId4)
-            val room5 = Room(roomId5) // with invite
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
+            val room5 = Room(
+                roomId5,
+                createEventContent = roomCreateEventContent,
+                lastRelevantEventTimestamp = null
+            ) // with invite
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -367,7 +362,7 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("open a normal room on selection") {
-            val room = Room(roomId1)
+            val room = Room(roomId1, createEventContent = roomCreateEventContent)
             mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
             mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
                 mapOf(
@@ -511,8 +506,8 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("yield all rooms as search result when search term which is blank") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -539,9 +534,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("contain search term in all search results") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -572,9 +567,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("change search results when the search term changes") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -605,9 +600,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("show a newly added room that fits the ongoing search term") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val roomList = MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(room1),
@@ -644,9 +639,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("remove room from search result when it is removed") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val roomList = MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(room1),
@@ -683,9 +678,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("remove a room from the search result when its name changes and it no longer fits the search term") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val room3NameFlow = MutableStateFlow(RoomNameElement("room2-other"))
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
@@ -717,9 +712,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("add a newly added room to the search result when it fits the search term") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val room3NameFlow = MutableStateFlow(RoomNameElement("room2-other"))
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
@@ -757,10 +752,10 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("not show spaces in room list") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val space = Room(spaceId1)
-            val room3 = Room(roomId3)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val space = Room(spaceId1, createEventContent = spaceCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -774,18 +769,6 @@ class RoomListViewModelTest : ShouldSpec() {
                 every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
                 every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space)
                 every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                every { roomServiceMock.getState<CreateEventContent>(spaceId1, "") } returns
-                        flowOf(
-                            Event.StateEvent(
-                                CreateEventContent(
-                                    creator = me,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
-                        )
             }
 
             val cut = roomListViewModel(coroutineContext)
@@ -799,9 +782,9 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("consider all spaces") {
-            val room1 = Room(roomId1)
-            val space1 = Room(spaceId1)
-            val space2 = Room(spaceId2)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
+            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -852,12 +835,12 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("filter rooms by the space that is currently selected") {
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
-            val space1 = Room(spaceId1)
-            val space2 = Room(spaceId2)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
+            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
+            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -938,11 +921,11 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("also show direct rooms with people that are members of the selected space") {
-            val room1 = Room(roomId1, isDirect = true)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
-            val space2 = Room(spaceId2)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent, isDirect = true)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
+            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -1093,15 +1076,15 @@ class RoomListViewModelTest : ShouldSpec() {
                         )
             }
 
-            val room1 = Room(roomId1, isDirect = true)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
-            val room21 = Room(roomId21, isDirect = true)
-            val room22 = Room(roomId22)
-            val room23 = Room(roomId23)
-            val space2 = Room(spaceId2)
-            val space21 = Room(spaceId21)
+            val room1 = Room(roomId1, createEventContent = roomCreateEventContent, isDirect = true)
+            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
+            val room21 = Room(roomId21, createEventContent = roomCreateEventContent, isDirect = true)
+            val room22 = Room(roomId22, createEventContent = roomCreateEventContent)
+            val room23 = Room(roomId23, createEventContent = roomCreateEventContent)
+            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
+            val space21 = Room(spaceId21, createEventContent = spaceCreateEventContent)
             with(mocker) {
                 every { roomServiceMock.getAll() } returns MutableStateFlow(
                     mapOf(
