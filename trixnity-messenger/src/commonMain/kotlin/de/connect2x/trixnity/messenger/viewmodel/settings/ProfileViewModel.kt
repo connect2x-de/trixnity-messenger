@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
@@ -78,12 +77,12 @@ open class ProfileViewModelImpl(
                 log.trace { "profiles for account $accountName will be loaded" }
                 val matrixClient = matrixClientFlow.value
                     ?: throw IllegalStateException("cannot find MatrixClient for account $accountName")
-                val userId = matrixClient.userId.full
+                val userId = matrixClient.userId
                 ProfileOfAccount(
                     accountName = accountName,
-                    userId = userId,
-                    displayName = matrixClient.displayName.map { it ?: userId }
-                        .stateIn(this, SharingStarted.Eagerly, userId),
+                    userId = userId.full,
+                    displayName = matrixClient.displayName.map { it ?: userId.localpart }
+                        .stateIn(this, SharingStarted.Eagerly, userId.localpart),
                     avatar = matrixClient.avatarUrl.map { avatarUrl ->
                         avatarUrl?.let {
                             matrixClient.media.getThumbnail(

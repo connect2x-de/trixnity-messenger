@@ -272,6 +272,24 @@ class ProfileViewModelTest : ShouldSpec() {
                 openAvatarCutter.value shouldBe null
             }
         }
+
+        should("compute the display name correctly when an explicit display name is not set") {
+            mocker.every { matrixClientMock.displayName } returns MutableStateFlow(null)
+            mocker.everySuspending {
+                mediaServiceMock.getThumbnail(
+                    isEqual("mxc://localhost/123456"),
+                    isEqual(avatarSize().toLong()),
+                    isEqual(avatarSize().toLong()),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                )
+            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            val cut = profileViewModel()
+            val profilesOfAccounts = cut.profilesOfAccounts
+            profilesOfAccounts.first { it.size == 2 }
+            cut.profilesOfAccounts.value[0].displayName.value shouldBe "bob"
+        }
     }
 
     private fun profileViewModel(): ProfileViewModelImpl {

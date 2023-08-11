@@ -59,8 +59,8 @@ open class AccountViewModelImpl(
                 val accountName = namedMatrixClient.accountName
                 log.info { "account: $accountName" }
                 val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                val displayNameFlow = matrixClient.displayName.map { it ?: accountName }
-                    .stateIn(this, SharingStarted.WhileSubscribed(), "")
+                val displayNameFlow = matrixClient.displayName.map { it ?: matrixClient.userId.localpart }
+                    .stateIn(this, SharingStarted.WhileSubscribed(), matrixClient.userId.localpart)
                 Account(
                     accountName = accountName,
                     displayName = displayNameFlow,

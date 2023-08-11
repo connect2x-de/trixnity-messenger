@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
+import de.connect2x.trixnity.messenger.deviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.LoginState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel.RegistrationState
@@ -51,6 +52,7 @@ interface RegisterNewAccountViewModel {
     val serverUrl: MutableStateFlow<String>
     val username: MutableStateFlow<String>
     val password: MutableStateFlow<String>
+    val displayName: MutableStateFlow<String?>
     val serverUrlValidation: StateFlow<ServerUrlValidation>
 
     val registrationToken: MutableStateFlow<String>
@@ -90,6 +92,7 @@ open class RegisterNewAccountViewModelImpl(
     override val accountName: MutableStateFlow<String> = MutableStateFlow("Standard")
     override val serverUrl: MutableStateFlow<String> = MutableStateFlow("")
     override val username: MutableStateFlow<String> = MutableStateFlow("")
+    override val displayName: MutableStateFlow<String?> = MutableStateFlow(null)
     override val password: MutableStateFlow<String> = MutableStateFlow("")
 
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("")
@@ -199,6 +202,7 @@ open class RegisterNewAccountViewModelImpl(
                                 accountType = AccountType.USER,
                                 username = username.value,
                                 password = password.value,
+                                initialDeviceDisplayName = deviceDisplayName()
                             )
                                 .onFailure { exc ->
                                     log.error(exc) { "cannot initiate UIA" }
@@ -230,7 +234,7 @@ open class RegisterNewAccountViewModelImpl(
                                             userId = registerResponse.userId,
                                             deviceId = deviceId,
                                             accessToken = accessToken,
-                                            displayName = null,
+                                            displayName = displayName.value ?: username.value,
                                             avatarUrl = null,
                                             loginState = loginState,
                                             onLogin = onLogin,
@@ -354,6 +358,7 @@ class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
     override val serverUrl: MutableStateFlow<String> = MutableStateFlow("http://localhost:8008")
     override val username: MutableStateFlow<String> = MutableStateFlow("user1")
     override val password: MutableStateFlow<String> = MutableStateFlow("user1-password")
+    override val displayName: MutableStateFlow<String?> = MutableStateFlow(null)
     override val serverUrlValidation: MutableStateFlow<ServerUrlValidation> =
         MutableStateFlow(ServerUrlValidation.Valid(Url("http://localhost:8008")))
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("myRegistrationToken")

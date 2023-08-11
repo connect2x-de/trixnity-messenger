@@ -172,7 +172,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 dispatcher = dispatcher()
                 addHandler { request ->
                     val body = request.body.toByteArray().toString(Charset.forName("UTF-8"))
-                    println("  -- ${request.url.encodedPath}")
                     when {
                         request.url.encodedPath.contains(".well-known") ->
                             respond(
@@ -296,6 +295,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             cut.selectedRegistration.value shouldBe AuthenticationType.RegistrationToken
             cut.accountName.update { "Standard" }
             cut.username.update { "user1" }
+            cut.displayName.update { "user1special" }
             cut.password.update { "user1-password" }
             cut.registrationToken.update { "myRegistrationToken" }
             cut.tryRegistration()
@@ -307,7 +307,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                     isEqual(UserId("@user1:myMatrixServer:55678")),
                     isEqual("GHTYAJCE"),
                     isEqual("abc123"),
-                    isAny(),
+                    isEqual("user1special"),
                     isAny(),
                     isEqual("Standard")
                 )
