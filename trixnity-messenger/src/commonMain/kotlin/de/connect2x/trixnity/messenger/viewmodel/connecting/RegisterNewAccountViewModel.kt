@@ -180,14 +180,15 @@ open class RegisterNewAccountViewModelImpl(
     }
 
     override fun tryRegistration() {
-        log.info { "try registration (serverUrl: ${serverUrl.value}, accountName = ${accountName.value}, username = ${username.value}, password = *******)" }
+        val urlValidation = serverUrlValidation.value
+        log.info { "try registration (serverUrl: $urlValidation, accountName = ${accountName.value}, username = ${username.value}, password = *******)" }
         coroutineScope.launch {
             registrationState.update { RegistrationState.Registering }
-            if (selectedRegistration.value is AuthenticationType.RegistrationToken) {
+            if (selectedRegistration.value is AuthenticationType.RegistrationToken && urlValidation is ServerUrlValidation.Valid) {
                 log.info { "registration with token: ${registrationToken.value}" }
                 try {
                     val api =
-                        MatrixClientServerApiClientImpl(Url(serverUrl.value), httpClientFactory = httpClientFactory)
+                        MatrixClientServerApiClientImpl(urlValidation.url, httpClientFactory = httpClientFactory)
                     api.authentication.isRegistrationTokenValid(registrationToken.value)
                         .onFailure {
                             log.error(it) { "registration token ${registrationToken.value} is not valid" }
@@ -225,7 +226,7 @@ open class RegisterNewAccountViewModelImpl(
                                         loginWith(
                                             matrixClientService = matrixClientService,
                                             accountName = accountName.value,
-                                            serverUrl = serverUrl.value,
+                                            serverUrl = urlValidation.url.toString(),
                                             userId = registerResponse.userId,
                                             deviceId = deviceId,
                                             accessToken = accessToken,
@@ -289,40 +290,41 @@ open class RegisterNewAccountViewModelImpl(
             is UIA.Step -> {
                 val flows = uia.state.flows
                 log.debug { "UIA flows: $flows" }
-                // TODO at the moment only support 1 flow with multiple stages
-                if (flows.size > 1) {
-                    log.warn { "Only a single flow is supported at the moment" }
-                } else {
-                    val completedStages = uia.state.completed
-                    flows.firstOrNull()?.let { flow ->
-                        flow.stages.filterNot { completedStages.contains(it) }.firstOrNull()?.let { firstStage ->
-                            log.debug { "first stage is $firstStage, token is ${registrationToken.value}" }
-                            when (firstStage) {
-                                is AuthenticationType.RegistrationToken -> {
-                                    uia.authenticate(AuthenticationRequest.RegistrationToken(registrationToken.value))
-                                        .onFailure {
-                                            log.error(it) { "cannot use registration token" }
-                                            registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
-                                        }
-                                        .onSuccess { response -> return doFlows(response) }
-                                }
+                val completedStages = uia.state.completed
+                // TODO at the moment only support flows with registration token
+                flows.firstOrNull { flow ->
+                    flow.stages
+                        .filterNot { completedStages.contains(it) }
+                        .all { it == AuthenticationType.RegistrationToken || it == AuthenticationType.Dummy }
+                }?.let { flow ->
+                    flow.stages.filterNot { completedStages.contains(it) }.firstOrNull()?.let { firstStage ->
+                        log.debug { "first stage is $firstStage, token is ${registrationToken.value}" }
+                        when (firstStage) {
+                            is AuthenticationType.RegistrationToken -> {
+                                uia.authenticate(AuthenticationRequest.RegistrationToken(registrationToken.value))
+                                    .onFailure {
+                                        log.error(it) { "cannot use registration token" }
+                                        registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
+                                    }
+                                    .onSuccess { response -> return doFlows(response) }
+                            }
 
-                                is AuthenticationType.Dummy -> {
-                                    uia.authenticate(AuthenticationRequest.Dummy)
-                                        .onFailure {
-                                            log.error(it) { "cannot perform dummy authentication" }
-                                            registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
-                                        }
-                                        .onSuccess { response -> return doFlows(response) }
-                                }
+                            is AuthenticationType.Dummy -> {
+                                uia.authenticate(AuthenticationRequest.Dummy)
+                                    .onFailure {
+                                        log.error(it) { "cannot perform dummy authentication" }
+                                        registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
+                                    }
+                                    .onSuccess { response -> return doFlows(response) }
+                            }
 
-                                else -> {
-                                    log.error { "" }
-                                }
+                            else -> {
+                                log.error { "unexpected registration stage -> do nothing" }
                             }
                         }
                     }
                 }
+                    ?: log.warn { "no suitable registration flow found (only registration token is supported at the moment)" }
             }
 
             is UIA.Error -> {

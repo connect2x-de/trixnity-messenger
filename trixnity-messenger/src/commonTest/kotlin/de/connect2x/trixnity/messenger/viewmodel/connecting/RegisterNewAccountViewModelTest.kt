@@ -227,6 +227,12 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                                         "m.login.registration_token",
                                         "m.login.dummy"
                                       ]
+                                    },
+                                    {
+                                      "stages": [
+                                        "m.login.registration_token",
+                                        "m.login.email.identity"
+                                      ]
                                     }
                                   ],
                                   "session": "xxxxxxyz"
