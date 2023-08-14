@@ -85,7 +85,7 @@ actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO)
     }
 }
 
-fun getAppFolder(accountName: String?): Path  {
+fun getAppFolder(accountName: String?): Path {
     val appName = MessengerConfig.instance.appName
     val cleanAccountName = accountName?.cleanAccountName()
     log.debug { "get app folder for $appName and account $accountName (decoded: $cleanAccountName)" }
@@ -139,17 +139,27 @@ actual fun closeApp() {
 }
 
 actual fun getVersion(): String {
-    val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
-    val properties = Properties()
-    properties.load(resourcesDir.resolve("version.properties").inputStream())
-    return properties.getProperty("version")
+    return try {
+        val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
+        val properties = Properties()
+        properties.load(resourcesDir.resolve("version.properties").inputStream())
+        properties.getProperty("version")
+    } catch (exc: Exception) {
+        log.error(exc) { "cannot determine version" }
+        ""
+    }
 }
 
 actual fun getLicenses(): String {
-    val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
-    val licensesLines = resourcesDir.resolve("licenses.txt").readLines()
-    val cutFromHere = licensesLines.indexOf("Unknown")
-    return licensesLines.subList(0, cutFromHere - 1).joinToString(System.lineSeparator())
+    return try {
+        val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
+        val licensesLines = resourcesDir.resolve("licenses").readLines()
+        val cutFromHere = licensesLines.indexOf("Unknown")
+        licensesLines.subList(0, cutFromHere - 1).joinToString(System.lineSeparator())
+    } catch (exc: Exception) {
+        log.error(exc) { "cannot load licenses" }
+        ""
+    }
 }
 
 actual fun isNetworkAvailable(): Boolean {
@@ -161,19 +171,28 @@ actual fun deviceDisplayName(): String {
 }
 
 actual suspend fun getLogContent(): String {
-    return Files.readString(getAppFolder(accountName = null).resolve("timmy.log"))
+    return try {
+        Files.readString(getAppFolder(accountName = null).resolve("timmy.log"))
+    } catch (exc: Exception) {
+        log.error(exc) { "cannot read log content" }
+        ""
+    }
 }
 
 actual fun sendLogToDevs(emailAddress: String, subject: String, content: String) {
-    val desktop = Desktop.getDesktop()
-    val mailURIStr = String.format(
-        "mailto:%s?subject=%s&body=%s",
-        emailAddress,
-        subject.encodeURLParameter(),
-        content.encodeURLParameter()
-    )
-    val mailURI = URI(mailURIStr);
-    desktop.mail(mailURI)
+    try {
+        val desktop = Desktop.getDesktop()
+        val mailURIStr = String.format(
+            "mailto:%s?subject=%s&body=%s",
+            emailAddress,
+            subject.encodeURLParameter(),
+            content.encodeURLParameter()
+        )
+        val mailURI = URI(mailURIStr);
+        desktop.mail(mailURI)
+    } catch (exc: Exception) {
+        log.error(exc) { "cannot open mail program to send logs" }
+    }
 }
 
 enum class OS(val value: String) {
