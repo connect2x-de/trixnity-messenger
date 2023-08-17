@@ -25,11 +25,11 @@ fun ViewModelContext.login(
     serverUrl: String,
     username: String,
     password: String,
-    loginState: MutableStateFlow<AddMatrixAccountViewModel.LoginState>,
+    loginState: MutableStateFlow<LoginState>,
     onLogin: () -> Unit,
 ) {
     log.info { "try to login" }
-    loginState.value = AddMatrixAccountViewModel.LoginState.Connecting
+    loginState.value = LoginState.Connecting
 
     coroutineScope.launch {
         val errorMessage = try {
@@ -74,10 +74,10 @@ fun ViewModelContext.login(
         }
 
         if (errorMessage == null) {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Success
+            loginState.value = LoginState.Success
             onLogin()
         } else {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Failure(errorMessage)
+            loginState.value = LoginState.Failure(errorMessage)
         }
     }
 }
@@ -91,11 +91,11 @@ fun ViewModelContext.loginWith(
     accessToken: String,
     displayName: String?,
     avatarUrl: String? = null,
-    loginState: MutableStateFlow<AddMatrixAccountViewModel.LoginState>,
+    loginState: MutableStateFlow<LoginState>,
     onLogin: () -> Unit,
 ) {
     log.info { "try to loginWith" }
-    loginState.value = AddMatrixAccountViewModel.LoginState.Connecting
+    loginState.value = LoginState.Connecting
 
     coroutineScope.launch {
         val errorMessage = try {
@@ -136,10 +136,10 @@ fun ViewModelContext.loginWith(
         }
 
         if (errorMessage == null) {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Success
+            loginState.value = LoginState.Success
             onLogin()
         } else {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Failure(errorMessage)
+            loginState.value = LoginState.Failure(errorMessage)
         }
     }
 }

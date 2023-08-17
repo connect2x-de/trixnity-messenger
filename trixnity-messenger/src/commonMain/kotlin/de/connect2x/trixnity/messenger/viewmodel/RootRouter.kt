@@ -66,10 +66,29 @@ class RootRouter(
             is Config.AddMatrixAccount -> RootWrapper.AddMatrixAccount(
                 viewModelContext.get<AddMatrixAccountViewModelFactory>().newAddMatrixAccountViewModel(
                     viewModelContext = viewModelContext.childContext(componentContext),
+                    onSelectLoginType = ::onSelectLoginType,
+                    onRegisterNewUser = ::showUserRegistration,
+                    onCancel = ::onCancelAddMatrixAccount,
+                )
+            )
+
+            is Config.PassswordLogin -> RootWrapper.PasswordLogin(
+                viewModelContext.get<PasswordLoginViewModelFactory>().newPasswordLoginViewModel(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    serverUrl = config.serverUrl,
                     matrixClientService = matrixClientService,
                     onLogin = ::onLogin,
-                    onCancel = ::onCancelAddMatrixAccount,
-                    onRegisterNewUser = ::showUserRegistration,
+                    onBack = ::backToAddMatrixAccount,
+                )
+            )
+
+            is Config.SSOLogin -> RootWrapper.SSOLogin(
+                viewModelContext.get<SSOLoginViewModelFactory>().newSSOLoginViewModel(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    serverUrl = config.serverUrl,
+                    providerId = config.providerId,
+                    providerName = config.providerName,
+                    onBack = ::backToAddMatrixAccount,
                 )
             )
 
@@ -162,7 +181,30 @@ class RootRouter(
         navigation.launchBringToFront(viewModelContext.coroutineScope, Config.AddMatrixAccount)
     }
 
-    private fun onLogin() {
+    private fun onSelectLoginType(loginType: LoginType) {
+        log.debug { "login type selected: $loginType" }
+        when (loginType) {
+            is LoginType.Password -> navigation.launchPush(
+                viewModelContext.coroutineScope,
+                Config.PassswordLogin(loginType.serverUrl)
+            )
+
+            is LoginType.SSO -> navigation.launchPush(
+                viewModelContext.coroutineScope,
+                Config.SSOLogin(
+                    serverUrl = loginType.serverUrl,
+                    providerId = loginType.id,
+                    providerName = loginType.name
+                )
+            )
+        }
+    }
+
+    private fun backToAddMatrixAccount() {
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private fun onLogin() { // FIXME use it
         log.debug { "login: success" }
         if (stack.value.active.configuration is Config.AddMatrixAccount) {
             navigation.launchPop(viewModelContext.coroutineScope, onComplete = {
@@ -227,7 +269,9 @@ class RootRouter(
 
         class Main(val mainViewModel: MainViewModel) : RootWrapper()
         class AddMatrixAccount(val addMatrixAccountViewModel: AddMatrixAccountViewModel) : RootWrapper()
-        class RegisterNewAccount(val registerNewAccountViewModel: RegisterNewAccountViewModel): RootWrapper()
+        class PasswordLogin(val passwordLoginViewModel: PasswordLoginViewModel) : RootWrapper()
+        class SSOLogin(val ssoLoginViewModel: SSOLoginViewModel) : RootWrapper()
+        class RegisterNewAccount(val registerNewAccountViewModel: RegisterNewAccountViewModel) : RootWrapper()
         class StoreFailure(val storeFailureViewModel: StoreFailureViewModel) : RootWrapper()
     }
 
@@ -248,7 +292,13 @@ class RootRouter(
         object AddMatrixAccount : Config()
 
         @Parcelize
-        object RegisterNewAccount: Config()
+        data class PassswordLogin(val serverUrl: String) : Config()
+
+        @Parcelize
+        data class SSOLogin(val serverUrl: String, val providerId: String, val providerName: String) : Config()
+
+        @Parcelize
+        object RegisterNewAccount : Config()
 
         @Parcelize
         data class StoreFailure(

@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.deviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.LoginState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel.RegistrationState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.combine
@@ -96,7 +95,7 @@ open class RegisterNewAccountViewModelImpl(
     override val password: MutableStateFlow<String> = MutableStateFlow("")
 
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("")
-    override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.Initial)
+    override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.None)
 
     override val canRegisterNewUser: StateFlow<Boolean> = combine(
         accountName, existingAccountNames, username, password, selectedRegistration, registrationToken
@@ -362,7 +361,7 @@ class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
     override val serverUrlValidation: MutableStateFlow<ServerUrlValidation> =
         MutableStateFlow(ServerUrlValidation.Valid(Url("http://localhost:8008")))
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("myRegistrationToken")
-    override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.Initial)
+    override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.None)
     override val canRegisterNewUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun tryRegistration() {}

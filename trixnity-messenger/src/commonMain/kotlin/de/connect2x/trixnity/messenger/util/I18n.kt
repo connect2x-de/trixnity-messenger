@@ -737,34 +737,14 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Es gibt bereits ein lokales Konto für den Namen $accountName."
     }
 
-    fun accountNameMustNotBeEmpty() = translate {
-        EN - "The account name must not be empty."
-        DE - "Der Kontoname darf nicht leer sein."
-    }
-
-    fun userIdShouldStartWithAt() = translate {
-        EN - "An address has to start with an '@'."
-        DE - "Eine Adresse muss mit einem '@' beginnen."
-    }
-
-    fun serverDiscoveryFailedForUserId() = translate {
-        EN - "Server could not be determined (after the ':'). Please check or enter the server manually."
-        DE - "Server konnte nicht ermittelt werden (nach dem ':'). Bitte prüfen oder tragen Sie den Server manuell ein."
+    fun defaultAccountName()=translate {
+        EN-"default"
+        DE-"Standard"
     }
 
     fun serverDiscoveryFailed() = translate {
         EN - "Server could not be determined or is not valid."
         DE - "Server konnte nicht ermittelt werden oder ist nicht gültig."
-    }
-
-    fun userIdDomainMissing() = translate {
-        EN - "Your address is missing a ':'."
-        DE - "Ihre Adresse benötigt ein ':'."
-    }
-
-    fun userIdServerUrlProblems() = translate {
-        EN - "Your server (after the ':') is not valid."
-        DE - "Der Server (nach dem ':') ist nicht korrekt."
     }
 }
 
