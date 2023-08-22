@@ -12,7 +12,7 @@ private val logger = KotlinLogging.logger { }
 
 suspend fun <C : Any, W : Any, T : Any> Value<ChildStack<C, W>>.waitFor(clazz: KClass<T>): T {
     return this.toFlow().first { childStack ->
-        logger.debug { " active: ${childStack.active.instance}" }
+        logger.debug { "wait for $clazz, active: ${childStack.active.instance}" }
         childStack.active.instance.instanceOf(clazz)
     }.active.instance as T
 }

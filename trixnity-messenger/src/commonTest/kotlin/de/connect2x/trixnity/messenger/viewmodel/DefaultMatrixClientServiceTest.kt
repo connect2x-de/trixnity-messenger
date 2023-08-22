@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.LoadStoreException.StoreAccessException
+import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec

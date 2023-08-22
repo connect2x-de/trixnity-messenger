@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.messenger.LoadStoreException.StoreAccessException
+import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.StoreAccessException
-import de.connect2x.trixnity.messenger.StoreLockedException
 import de.connect2x.trixnity.messenger.deviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -25,11 +25,11 @@ fun ViewModelContext.login(
     serverUrl: String,
     username: String,
     password: String,
-    loginState: MutableStateFlow<LoginState>,
+    addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     onLogin: () -> Unit,
 ) {
     log.info { "try to login" }
-    loginState.value = LoginState.Connecting
+    addMatrixAccountState.value = AddMatrixAccountState.Connecting
 
     coroutineScope.launch {
         val errorMessage = try {
@@ -74,10 +74,10 @@ fun ViewModelContext.login(
         }
 
         if (errorMessage == null) {
-            loginState.value = LoginState.Success
+            addMatrixAccountState.value = AddMatrixAccountState.Success
             onLogin()
         } else {
-            loginState.value = LoginState.Failure(errorMessage)
+            addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
         }
     }
 }
@@ -91,11 +91,11 @@ fun ViewModelContext.loginWith(
     accessToken: String,
     displayName: String?,
     avatarUrl: String? = null,
-    loginState: MutableStateFlow<LoginState>,
+    addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     onLogin: () -> Unit,
 ) {
     log.info { "try to loginWith" }
-    loginState.value = LoginState.Connecting
+    addMatrixAccountState.value = AddMatrixAccountState.Connecting
 
     coroutineScope.launch {
         val errorMessage = try {
@@ -136,10 +136,10 @@ fun ViewModelContext.loginWith(
         }
 
         if (errorMessage == null) {
-            loginState.value = LoginState.Success
+            addMatrixAccountState.value = AddMatrixAccountState.Success
             onLogin()
         } else {
-            loginState.value = LoginState.Failure(errorMessage)
+            addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
         }
     }
 }

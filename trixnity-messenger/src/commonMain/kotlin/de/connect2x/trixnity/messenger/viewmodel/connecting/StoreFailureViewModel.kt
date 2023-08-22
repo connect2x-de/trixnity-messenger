@@ -1,28 +1,23 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import de.connect2x.trixnity.messenger.StoreAccessException
-import de.connect2x.trixnity.messenger.StoreLockedException
+import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.closeApp
 import de.connect2x.trixnity.messenger.deleteDatabase
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 interface StoreFailureViewModelFactory {
     fun newStoreFailureViewModel(
         viewModelContext: ViewModelContext,
         accountName: String,
-        storeFailure: Result<Unit>?,
+        exception: LoadStoreException,
     ): StoreFailureViewModel {
-        return StoreFailureViewModelImpl(viewModelContext, accountName, storeFailure)
+        return StoreFailureViewModelImpl(viewModelContext, accountName, exception)
     }
 }
 
 interface StoreFailureViewModel {
-    val closeApplicationFlow: StateFlow<Boolean>
-    val deleteDbOrCloseApplication: StateFlow<Boolean>
+    val deleteEnabled: Boolean
     fun closeApplication()
     fun deleteDb()
 }
@@ -30,13 +25,10 @@ interface StoreFailureViewModel {
 open class StoreFailureViewModelImpl(
     viewModelContext: ViewModelContext,
     private val _accountName: String,
-    storeFailure: Result<Unit>?,
+    exception: LoadStoreException,
 ) : ViewModelContext by viewModelContext, StoreFailureViewModel {
 
-    override val closeApplicationFlow =
-        MutableStateFlow(storeFailure?.exceptionOrNull() is StoreLockedException).asStateFlow()
-    override val deleteDbOrCloseApplication =
-        MutableStateFlow(storeFailure?.exceptionOrNull() is StoreAccessException).asStateFlow()
+    override val deleteEnabled = exception is LoadStoreException.StoreAccessException
 
     override fun closeApplication() {
         closeApp()

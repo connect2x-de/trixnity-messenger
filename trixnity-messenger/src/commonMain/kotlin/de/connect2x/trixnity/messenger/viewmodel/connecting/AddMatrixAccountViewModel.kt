@@ -5,6 +5,8 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.*
+import io.ktor.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -20,14 +22,12 @@ private val log = KotlinLogging.logger {}
 interface AddMatrixAccountViewModelFactory {
     fun newAddMatrixAccountViewModel(
         viewModelContext: ViewModelContext,
-        onSelectLoginType: (LoginType) -> Unit,
-        onRegisterNewUser: () -> Unit,
+        onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
         onCancel: () -> Unit,
     ): AddMatrixAccountViewModel {
         return AddMatrixAccountViewModelImpl(
             viewModelContext,
-            onSelectLoginType,
-            onRegisterNewUser,
+            onAddMatrixAccountMethod,
             onCancel,
         )
     }
@@ -42,22 +42,20 @@ interface AddMatrixAccountViewModel {
     sealed interface ServerDiscoveryState {
         object None : ServerDiscoveryState
         object Loading : ServerDiscoveryState
-        data class Success(val loginTypes: Set<LoginType>, val canRegisterNewUser: Boolean) : ServerDiscoveryState
+        data class Success(val addMatrixAccountMethods: Set<AddMatrixAccountMethod>) : ServerDiscoveryState
         data class Failure(val message: String) : ServerDiscoveryState
     }
 
-    fun selectLoginType(loginType: LoginType)
-    fun registerNewUser() // FIXME use serverUrl
-
+    fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod)
     fun cancel()
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 open class AddMatrixAccountViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val onSelectLoginType: (LoginType) -> Unit,
-    private val onRegisterNewUser: () -> Unit,
+    private val onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
     private val onCancel: () -> Unit,
+    private val httpClientFactory: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel {
     override val isFirstMatrixClient: StateFlow<Boolean?> =
         flow { emit(get<GetAccountNames>()()) }
@@ -72,34 +70,60 @@ open class AddMatrixAccountViewModelImpl(
                 serverUrl.isBlank() -> ServerDiscoveryState.None
                 else -> {
                     emit(ServerDiscoveryState.Loading)
-                    serverUrl.serverDiscovery()
+                    serverUrl.serverDiscovery(httpClientFactory = httpClientFactory)
                         .onFailure {
+                            log.debug(it) { "server discovery failed" }
                             emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
                         }
                         .onSuccess { serverDiscoveryUrl ->
-                            val api = MatrixClientServerApiClientImpl(serverDiscoveryUrl)
-                            val loginTypes = api.authentication.getLoginTypes().getOrThrow().flatMap { loginType ->
-                                when (loginType) {
-                                    is net.folivo.trixnity.clientserverapi.model.authentication.LoginType.Password ->
-                                        setOf(LoginType.Password(serverDiscoveryUrl.toString()))
-
-                                    is net.folivo.trixnity.clientserverapi.model.authentication.LoginType.SSO ->
-                                        loginType.identityProviders.map {
-                                            LoginType.SSO(
-                                                serverUrl = serverDiscoveryUrl.toString(),
-                                                id = it.id,
-                                                name = it.name
-                                            )
-                                        }
-
-                                    else -> setOf()
-                                }
-                            }.toSet()
-                            val canRegisterNewUser = api.authentication.register().fold(
-                                onSuccess = { it is UIA.Step<*> },
-                                onFailure = { false }
+                            val api = MatrixClientServerApiClientImpl(
+                                serverDiscoveryUrl,
+                                httpClientFactory = httpClientFactory
                             )
-                            emit(ServerDiscoveryState.Success(loginTypes, canRegisterNewUser))
+                            api.authentication.getLoginTypes()
+                                .onFailure {
+                                    log.debug(it) { "get login types failed" }
+                                    emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
+                                }
+                                .onSuccess { loginTypes ->
+                                    val addMatrixAccountMethods = loginTypes.flatMap { loginType ->
+                                        when (loginType) {
+                                            is net.folivo.trixnity.clientserverapi.model.authentication.LoginType.Password ->
+                                                setOf(AddMatrixAccountMethod.Password(serverDiscoveryUrl.toString()))
+
+                                            is net.folivo.trixnity.clientserverapi.model.authentication.LoginType.SSO ->
+                                                loginType.identityProviders.map { identityProvider ->
+                                                    val icon = identityProvider.icon?.let {
+                                                        api.media.download(it).onFailure {
+                                                            log.warn { "could not download idp icon $it" }
+                                                        }.getOrNull()?.content?.toByteArray()
+                                                    }
+                                                    AddMatrixAccountMethod.SSO(
+                                                        serverUrl = serverDiscoveryUrl.toString(),
+                                                        identityProvider = identityProvider,
+                                                        icon = icon,
+                                                    )
+                                                }
+
+                                            else -> setOf()
+                                        }
+                                    }.toSet()
+                                    val canRegisterNewUser = api.authentication.register()
+                                        .fold(
+                                            onSuccess = { it is UIA.Step<*> },
+                                            onFailure = { false }
+                                        )
+                                    emit(
+                                        ServerDiscoveryState.Success(
+                                            addMatrixAccountMethods =
+                                            if (canRegisterNewUser)
+                                                addMatrixAccountMethods + AddMatrixAccountMethod.Register(
+                                                    serverDiscoveryUrl.toString()
+                                                )
+                                            else addMatrixAccountMethods
+                                        )
+                                    )
+                                }
                         }
                 }
             }
@@ -109,12 +133,8 @@ open class AddMatrixAccountViewModelImpl(
             ServerDiscoveryState.None
         )
 
-    override fun selectLoginType(loginType: LoginType) {
-        onSelectLoginType(loginType)
-    }
-
-    override fun registerNewUser() {
-        onRegisterNewUser()
+    override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
+        onAddMatrixAccountMethod(addMatrixAccountMethod)
     }
 
     override fun cancel() {
@@ -127,10 +147,7 @@ class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val serverUrl: MutableStateFlow<String> = MutableStateFlow("")
     override val serverDiscoveryState: StateFlow<ServerDiscoveryState> = MutableStateFlow(ServerDiscoveryState.None)
 
-    override fun selectLoginType(loginType: LoginType) {
-    }
-
-    override fun registerNewUser() {
+    override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
     }
 
     override fun cancel() {

@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
@@ -25,6 +26,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
@@ -50,7 +52,7 @@ suspend fun RootViewModelImpl.login(
     otherMessenger: RootViewModel? = null,
 ): String? {
     log.debug { " +- ADD ACCOUNT" }
-    addMatrixAccount(serverUrl, username, password)
+    addMatrixAccountViaPassword(serverUrl, username, password)
     log.debug { " +- try login" }
     val main = rootStack.waitFor(RootRouter.RootWrapper.Main::class)
     log.info { " +- main view" }
@@ -122,10 +124,13 @@ suspend fun RootViewModelImpl.registerAccountWithToken(serverUrl: String, token:
     withTimeout(10.seconds) {
         val addMatrixAccountViewModel =
             rootStack.waitFor(RootRouter.RootWrapper.AddMatrixAccount::class).addMatrixAccountViewModel
-        addMatrixAccountViewModel.registerNewUser()
+        addMatrixAccountViewModel.serverUrl.value = serverUrl
+        val registerMethod = addMatrixAccountViewModel.serverDiscoveryState
+            .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
+            .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Register>().first()
+        addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
         val registerNewAccountViewModel =
             rootStack.waitFor(RootRouter.RootWrapper.RegisterNewAccount::class).registerNewAccountViewModel
-        registerNewAccountViewModel.serverUrl.update { serverUrl }
         registerNewAccountViewModel.username.update { "user1" }
         registerNewAccountViewModel.password.update { "user1password" }
         registerNewAccountViewModel.registrationToken.update { token }
@@ -175,20 +180,26 @@ private fun createRootViewModel(koinApplication: KoinApplication, matrixClientSe
         coroutineContext = Dispatchers.Default,
     )
 
-private suspend fun RootViewModelImpl.addMatrixAccount(
+private suspend fun RootViewModelImpl.addMatrixAccountViaPassword(
     serverUrl: String,
     username: String,
     password: String,
 ) {
     val addMatrixAccount = rootStack.waitFor(RootRouter.RootWrapper.AddMatrixAccount::class)
     val addMatrixAccountViewModel = addMatrixAccount.addMatrixAccountViewModel
-    addMatrixAccountViewModel.mode.value = AddMatrixAccountViewModel.Mode.USERNAME
-    addMatrixAccountViewModel.accountName.value = username
     addMatrixAccountViewModel.serverUrl.value = serverUrl
-    addMatrixAccountViewModel.username.value = username
-    addMatrixAccountViewModel.password.value = password
-    addMatrixAccountViewModel.canLogin.first { it }
-    addMatrixAccountViewModel.tryLogin()
+    val registerMethod = addMatrixAccountViewModel.serverDiscoveryState
+        .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
+        .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Password>().first()
+    addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
+    val passwordLoginViewModel =
+        rootStack.waitFor(RootRouter.RootWrapper.PasswordLogin::class).passwordLoginViewModel
+    passwordLoginViewModel.accountName.value = username
+    addMatrixAccountViewModel.serverUrl.value = serverUrl
+    passwordLoginViewModel.username.value = username
+    passwordLoginViewModel.password.value = password
+    passwordLoginViewModel.canLogin.first { it }
+    passwordLoginViewModel.tryLogin()
 }
 
 private suspend fun bootstrap(

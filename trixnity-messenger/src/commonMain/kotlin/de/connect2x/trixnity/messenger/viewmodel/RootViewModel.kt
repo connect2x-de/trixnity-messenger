@@ -3,15 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import kotlin.coroutines.CoroutineContext
@@ -46,7 +42,7 @@ interface RootViewModel {
 
 open class RootViewModelImpl(
     componentContext: ComponentContext,
-    private val matrixClientService: MatrixClientService,
+    matrixClientService: MatrixClientService,
     initialSyncOnceIsFinished: (Boolean) -> Unit,
     koinApplication: KoinApplication,
     minimizeMessenger: () -> Unit = {},
@@ -68,64 +64,6 @@ open class RootViewModelImpl(
         minimizeMessenger = minimizeMessenger,
     )
     override val rootStack: Value<ChildStack<RootRouter.Config, RootRouter.RootWrapper>> = router.stack
-
-    init {
-        scope.launch {
-            init(koinApplication)
-        }
-    }
-
-    private suspend fun init(
-        koinApplication: KoinApplication
-    ) {
-        val accounts = koinApplication.koin.get<GetAccountNames>()()
-        log.debug { "accounts: $accounts" }
-        if (accounts.isEmpty()) { // no messenger login defined yet, show account creation
-            router.showFirstAccountCreation()
-            initMatrixClient(
-                matrixClientService.matrixClients.first { it.isNotEmpty() }.first().accountName
-            )
-        } else {
-            accounts.forEach { accountName ->
-                log.debug { "init MatrixClient for account '$accountName'" }
-                val namedMatrixClient =
-                    matrixClientService.matrixClients.value.find { it.accountName == accountName }
-                if (namedMatrixClient == null) {
-                    initMatrixClient(accountName)
-                } else {
-                    log.warn { "found an existing MatrixClient for account '$accountName': $namedMatrixClient" }
-                }
-            }
-        }
-        router.showMain()
-
-        matrixClientService.matrixClients.first { namedMatrixClients ->
-            namedMatrixClients.isEmpty()
-        }
-        init(koinApplication) // TODO iteration (loop or collect) instead of recursion
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun initMatrixClient(
-        accountName: String
-    ) {
-        router.showInitialization(accountName)
-        log.info { "wait for MatrixClient of '$accountName' to be initialized" }
-        matrixClientService.matrixClients.flatMapLatest { namedMatrixClients ->
-            combine(
-                namedMatrixClients.map { namedMatrixClient ->
-                    namedMatrixClient.matrixClient.map { if (it == null) null else namedMatrixClient.accountName }
-                }
-            ) {
-                it
-            }
-        }.first { accountNames ->
-            accountNames.any { foundAccountName ->
-                foundAccountName == accountName
-            }
-        }
-        log.info { "MatrixClient '$accountName' initialized" }
-    }
 
     override fun removeAccount(accountName: String) {
         onRemoveAccount(accountName)

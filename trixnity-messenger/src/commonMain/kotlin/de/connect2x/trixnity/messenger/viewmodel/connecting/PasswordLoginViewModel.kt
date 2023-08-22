@@ -30,6 +30,7 @@ interface PasswordLoginViewModelFactory {
 }
 
 interface PasswordLoginViewModel {
+    val isFirstMatrixClient: StateFlow<Boolean?>
     val serverUrl: String
 
     val canLogin: StateFlow<Boolean>
@@ -38,7 +39,7 @@ interface PasswordLoginViewModel {
     val username: MutableStateFlow<String>
     val password: MutableStateFlow<String>
 
-    val loginState: StateFlow<LoginState>
+    val addMatrixAccountState: StateFlow<AddMatrixAccountState>
     fun tryLogin()
     fun back()
 }
@@ -53,12 +54,15 @@ open class PasswordLoginViewModelImpl(
 
     private val accountNames = channelFlow { send(get<GetAccountNames>()()) }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val isFirstMatrixClient: StateFlow<Boolean?> = accountNames.map { it.isNullOrEmpty() }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val accountName: MutableStateFlow<String> = MutableStateFlow(i18n.defaultAccountName())
     final override val username: MutableStateFlow<String> = MutableStateFlow("")
     final override val password: MutableStateFlow<String> = MutableStateFlow("")
 
-    override val loginState: MutableStateFlow<LoginState> = MutableStateFlow(LoginState.None)
+    override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
+        MutableStateFlow(AddMatrixAccountState.None)
 
     override val canLogin: StateFlow<Boolean> =
         combine(
@@ -69,20 +73,21 @@ open class PasswordLoginViewModelImpl(
             log.trace { "canLogin: accountName=$accountName, username=$username, serverUrl=$serverUrl" }
             val accountAlreadyExists = accountNames.value?.contains(accountName) ?: false
             if (accountAlreadyExists)
-                loginState.value = LoginState.Failure(i18n.accountAlreadyExistsLocally(accountName))
+                addMatrixAccountState.value =
+                    AddMatrixAccountState.Failure(i18n.accountAlreadyExistsLocally(accountName))
             accountAlreadyExists.not() && accountName.isNotBlank() && username.isNotBlank() && password.isNotBlank() && serverUrl.isNotBlank()
         }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // eagerly because value is used below
 
     override fun tryLogin() {
         log.debug { "Try to login into $serverUrl with username $username and password *************." }
-        if (canLogin.value && loginState.value !is LoginState.Connecting) {
+        if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
             login(
                 matrixClientService,
                 accountName.value,
                 serverUrl,
                 username.value,
                 password.value,
-                loginState,
+                addMatrixAccountState,
                 onLogin,
             )
         } else {
@@ -97,11 +102,13 @@ open class PasswordLoginViewModelImpl(
 
 class PreviewPasswordLoginViewModel : PasswordLoginViewModel {
     override val serverUrl: String = "https://timmy-messenger.de"
+    override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val canLogin: StateFlow<Boolean> = MutableStateFlow(false)
     override val accountName: MutableStateFlow<String> = MutableStateFlow("default")
     override val username: MutableStateFlow<String> = MutableStateFlow("user")
     override val password: MutableStateFlow<String> = MutableStateFlow("password")
-    override val loginState: StateFlow<LoginState> = MutableStateFlow(LoginState.Failure("dino"))
+    override val addMatrixAccountState: StateFlow<AddMatrixAccountState> =
+        MutableStateFlow(AddMatrixAccountState.Failure("dino"))
 
     override fun tryLogin() {
     }

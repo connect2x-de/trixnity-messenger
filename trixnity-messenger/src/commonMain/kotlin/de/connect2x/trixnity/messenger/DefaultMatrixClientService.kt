@@ -123,7 +123,7 @@ class DefaultMatrixClientService(
                 val repositoriesModule = try {
                     repositoriesModuleCreation(accountName)
                 } catch (exc: Exception) {
-                    throw StoreAccessException(exc)
+                    throw LoadStoreException.StoreAccessException(exc)
                 }
                 return MatrixClient.fromStore(
                     repositoriesModule = repositoriesModule,
@@ -140,7 +140,7 @@ class DefaultMatrixClientService(
                 val repositoriesModule = try {
                     repositoriesModuleCreation(accountName)
                 } catch (exc: Exception) {
-                    throw StoreAccessException(exc)
+                    throw LoadStoreException.StoreAccessException(exc)
                 }
                 return repositoriesModule
             }
@@ -265,8 +265,8 @@ class DefaultMatrixClientService(
 
     private fun mapExceptions(exc: Throwable) {
         when (exc) {
-            is StoreAccessException ->
-                if (isLocked(exc)) throw StoreLockedException() else throw exc
+            is LoadStoreException.StoreAccessException ->
+                if (isLocked(exc)) throw LoadStoreException.StoreLockedException() else throw exc
 
             else -> throw exc
         }
