@@ -37,6 +37,8 @@ private const val NOTIFICATIONS_SHOW_POPUP = "notificationsShowPopup"
 private const val NOTIFICATIONS_SHOW_TEXT = "notificationsShowText"
 private const val ACTIVE_ACCOUNT = "activeAccount"
 private const val PREFERRED_LANG = "preferredLang"
+private const val URL_SCHEME = "urlScheme"
+private const val SSO__REDIRECT_URL = "ssoRedirectUrl"
 
 // FIXME global settings for account based settings
 /**
@@ -65,6 +67,8 @@ interface MessengerSettings {
     fun setNotificationsShowText(accountName: String, newValue: Boolean?)
     var activeAccount: String?
     var preferredLang: String?
+    var urlScheme: String
+    var ssoRedirectUrl: String
 }
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -161,6 +165,14 @@ class MessengerSettingsImpl(private val settings: Settings) : MessengerSettings 
     override var preferredLang: String?
         get() = settings.getStringOrNull(PREFERRED_LANG)
         set(value) = value?.let { settings.putString(PREFERRED_LANG, value) } ?: settings.remove(PREFERRED_LANG)
+
+    override var urlScheme: String
+        get() = settings.getStringOrNull(URL_SCHEME) ?: "trixnity"
+        set(value) = value.let { settings.putString(URL_SCHEME, value) }
+
+    override var ssoRedirectUrl: String
+        get() = settings.getStringOrNull(SSO__REDIRECT_URL) ?: "sso"
+        set(value) = value.let { settings.putString(SSO__REDIRECT_URL, value) }
 
     private inline fun <reified T> getValue(key: String, accountName: String, defaultValue: T): T {
         log.trace { "get settings: `$key` of '$accountName' and default value: $defaultValue (settings (keys): ${settings.keys})" }

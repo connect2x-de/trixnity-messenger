@@ -31,6 +31,13 @@ interface MatrixClientFactory {
         accountName: String,
     ): Result<MatrixClient>
 
+    suspend fun login(
+        baseUrl: Url,
+        token: String,
+        initialDeviceDisplayName: String?,
+        accountName: String,
+    ): Result<MatrixClient>
+
     suspend fun loginWith(
         baseUrl: Url,
         userId: UserId,
@@ -82,6 +89,24 @@ class DefaultMatrixClientService(
                     baseUrl = baseUrl,
                     identifier = identifier,
                     password = password,
+                    initialDeviceDisplayName = initialDeviceDisplayName ?: deviceDisplayName(),
+                    repositoriesModule = repositoriesModule,
+                    mediaStore = mediaStoreCreation(accountName),
+                    configuration = configuration,
+                )
+            }
+
+            override suspend fun login(
+                baseUrl: Url,
+                token: String,
+                initialDeviceDisplayName: String?,
+                accountName: String,
+            ): Result<MatrixClient> {
+                val repositoriesModule = createRepositoriesModule(repositoriesModuleCreation, accountName)
+                log.debug { "MatrixClient.login" }
+                return MatrixClient.login(
+                    baseUrl = baseUrl,
+                    token = token,
                     initialDeviceDisplayName = initialDeviceDisplayName ?: deviceDisplayName(),
                     repositoriesModule = repositoriesModule,
                     mediaStore = mediaStoreCreation(accountName),
@@ -181,6 +206,31 @@ class DefaultMatrixClientService(
                 baseUrl,
                 identifier,
                 password,
+                initialDeviceDisplayName,
+                accountName,
+            ).map {
+                // if we log in, we need to register the new account name locally
+                matrixClients.value += NamedMatrixClient(accountName, MutableStateFlow(it))
+                log.debug { "logged in successfully with account $accountName" }
+            }.recoverCatching { exc ->
+                mapExceptions(exc)
+            }
+        } else Result.success(Unit)
+    }
+
+    override suspend fun login(
+        baseUrl: Url,
+        token: String,
+        initialDeviceDisplayName: String?,
+        accountName: String,
+    ): Result<Unit> {
+        log.debug { "log in to account: $accountName" }
+        log.debug { "existing MatrixClients: ${matrixClients.value}" }
+        return if (matrixClients.value.none { it.accountName == accountName }) {
+            log.info { "try to login with token" }
+            matrixClientFactory().login(
+                baseUrl,
+                token,
                 initialDeviceDisplayName,
                 accountName,
             ).map {
