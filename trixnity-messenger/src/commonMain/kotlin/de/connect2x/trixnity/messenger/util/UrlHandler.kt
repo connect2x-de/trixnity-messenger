@@ -20,11 +20,6 @@ open class UrlHandlerBase(
 
 fun createFilteringUrlHandler(messengerSettings: MessengerSettings): UrlHandler {
     return UrlHandler {
-        println(it.protocol)
-        println(it.encodedPath)
-        println(it.host)
-        println(it.port)
-        println(it.parameters)
         it.protocol == URLProtocol.createOrDefault(messengerSettings.urlScheme)
     }
 }

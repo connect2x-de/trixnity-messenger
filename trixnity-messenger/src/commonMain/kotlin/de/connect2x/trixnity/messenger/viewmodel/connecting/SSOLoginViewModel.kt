@@ -78,15 +78,19 @@ open class SSOLoginViewModelImpl(
 
     init {
         coroutineScope.launch {
-            println("launch url collect")
             urlHandler.filter {
+                log.debug { it.protocol }
+                log.debug { it.encodedPath }
+                log.debug { it.host }
+                log.debug { it.port }
+                log.debug { it.parameters }
                 it.encodedPath.removeSuffix("/") == messengerSettings.ssoRedirectUrl
             }.collect {
                 val loginToken = it.parameters["loginToken"]
                 if (loginToken != null)
                     this.loginToken.value = loginToken
             }
-        }.invokeOnCompletion { println("stop url collect") }
+        }
     }
 
     override val loginUrl =
