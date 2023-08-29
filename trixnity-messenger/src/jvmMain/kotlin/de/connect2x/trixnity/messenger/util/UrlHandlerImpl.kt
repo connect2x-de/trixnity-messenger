@@ -19,7 +19,6 @@ import java.io.RandomAccessFile
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
-import java.net.SocketException
 import kotlin.concurrent.thread
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
@@ -141,9 +140,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
                                         socket.close()
                                     }
                                 }
-                            } catch (exception: SocketException) {
-                                log.error(exception) { "error reading url args" }
-                            } catch (exception: IOException) {
+                            } catch (exception: Exception) {
                                 log.error(exception) { "error reading url args" }
                             }
                         }
@@ -157,23 +154,24 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
     }
 
     private suspend fun String.sendUrlArg(port: Int) {
+        val urlArg = this
         withContext(Dispatchers.IO) {
             val address = InetAddress.getLoopbackAddress()
             val socket =
                 try {
                     Socket(address, port)
-                } catch (exception: IOException) {
-                    log.error("could not open client socket to send url arg")
+                } catch (exception: Exception) {
+                    log.error("could not open client socket on $port to send url arg")
                     null
                 }
             if (socket != null) {
-                log.debug("try send url arg")
+                log.debug("try send url arg $urlArg using port $port")
                 try {
                     val outputStream = socket.getOutputStream()
-                    outputStream.write(this@sendUrlArg.encodeToByteArray())
+                    outputStream.write(urlArg.encodeToByteArray())
                     outputStream.close()
-                } catch (exception: IOException) {
-                    log.error(exception) { "error sending url args" }
+                } catch (exception: Exception) {
+                    log.error(exception) { "error sending url arg $urlArg" }
                 } finally {
                     socket.close()
                 }
