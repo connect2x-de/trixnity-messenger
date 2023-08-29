@@ -30,17 +30,6 @@ private val log = KotlinLogging.logger { }
 
 actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandlerBase(filter), Flow<Url> {
 
-    init {
-        if (Desktop.isDesktopSupported() && getOs() == OS.MAC_OS) {
-            Desktop.getDesktop().setOpenURIHandler { event ->
-                val url = Url(event.uri)
-                urlHandlerFlow.tryEmit(url)
-            }
-        } else {
-            log.warn("this platform is not supported to set URI handlers")
-        }
-    }
-
     private val started = MutableStateFlow(false)
     private val lockFile = "port.lock"
 
@@ -48,16 +37,28 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
      * This need to be called with application start arguments.
      */
     suspend fun start(args: Array<String>) = withContext(Dispatchers.IO) {
-        if (getOs().let { it == OS.WINDOWS || it == OS.LINUX }) {
-            if (started.updateAndGet { true }.not()) return@withContext
-            val urlArg = args.firstOrNull()
-
-            val port = readPortFromLockFile()
-            if (port == null) {
-                listenForArgs(urlArg)
-            } else {
-                urlArg?.sendUrlArg(port)
+        val os = getOs()
+        when {
+            Desktop.isDesktopSupported() && os == OS.MAC_OS -> {
+                Desktop.getDesktop().setOpenURIHandler { event ->
+                    val url = Url(event.uri)
+                    urlHandlerFlow.tryEmit(url)
+                }
             }
+
+            os == OS.WINDOWS || os == OS.LINUX -> {
+                if (started.updateAndGet { true }.not()) return@withContext
+                val urlArg = args.firstOrNull()
+
+                val port = readPortFromLockFile()
+                if (port == null) {
+                    listenForArgs(urlArg)
+                } else {
+                    urlArg?.sendUrlArg(port)
+                }
+            }
+
+            else -> log.warn("this platform is not supported to listen for uris via args")
         }
     }
 
