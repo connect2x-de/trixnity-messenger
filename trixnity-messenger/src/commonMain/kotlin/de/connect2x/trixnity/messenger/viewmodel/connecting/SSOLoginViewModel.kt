@@ -79,7 +79,7 @@ open class SSOLoginViewModelImpl(
     init {
         coroutineScope.launch {
             urlHandler.filter {
-                it.encodedPath == messengerSettings.ssoRedirectUrl
+                it.encodedPath.removeSuffix("/") == messengerSettings.ssoRedirectUrl
             }.collect {
                 val loginToken = it.parameters["loginToken"]
                 if (loginToken != null)
