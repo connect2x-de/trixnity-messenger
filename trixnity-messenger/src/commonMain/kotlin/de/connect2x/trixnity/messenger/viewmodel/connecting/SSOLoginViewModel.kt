@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -80,13 +81,15 @@ open class SSOLoginViewModelImpl(
         URLBuilder(messengerSettings.ssoRedirectPath).apply {
             protocol = URLProtocol.createOrDefault(messengerSettings.urlProtocol)
             host = messengerSettings.urlHost
+            parameters.append("id", uuid4().toString()) // TODO need to be cached in the web!
         }.build()
 
     init {
         coroutineScope.launch {
             urlHandler.filter {
                 it.encodedPath == redirectUrl.encodedPath
-            }.collect { // FIXME unique id to prevent cross site attacks
+                        && it.parameters["id"] == redirectUrl.parameters["id"]
+            }.collect {
                 val loginToken = it.parameters["loginToken"]
                 if (loginToken != null)
                     this.loginToken.value = loginToken
