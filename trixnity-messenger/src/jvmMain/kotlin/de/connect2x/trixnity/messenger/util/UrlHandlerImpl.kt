@@ -31,7 +31,7 @@ private val log = KotlinLogging.logger { }
 actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandlerBase(filter), Flow<Url> {
 
     private val started = MutableStateFlow(false)
-    private val lockFile = "port.lock"
+    private val lockFileName = "port.lock"
 
     /**
      * This need to be called with application start arguments.
@@ -77,7 +77,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
     }
 
     private fun readPortFromLockFile(): Int? {
-        val lockFile = getAppFolder(null).resolve(lockFile)
+        val lockFile = getAppFolder(null).resolve(lockFileName)
         return if (lockFile.exists()) {
             lockFile.readText().toInt()
         } else null
@@ -85,60 +85,73 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
 
     private fun writePortToLockFile(port: Int) {
         log.debug("write port $port to lock file")
-        val lockFile = getAppFolder(null).resolve(lockFile)
+        val lockFile = getAppFolder(null).resolve(lockFileName)
         lockFile.writeText(port.toString())
-        val channel = RandomAccessFile(lockFile.toFile(), "rw").getChannel()
+        val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
+        val channel = randomAccessFile.getChannel()
         val lock = channel.tryLock(0, Long.MAX_VALUE, true)
+        if (lock == null) {
+            channel.close()
+            randomAccessFile.close()
+            lockFile.deleteIfExists()
+            throw IllegalStateException("could not lock $lockFileName")
+        }
         Runtime.getRuntime().addShutdownHook(thread {
             lock.release()
             channel.close()
+            randomAccessFile.close()
             lockFile.deleteIfExists()
         })
     }
 
     private fun listenForArgs(urlArg: String?) {
         thread {
-            runBlocking(Dispatchers.IO) {
-                urlArg?.toUrl()?.emit()
+            try {
+                runBlocking(Dispatchers.IO) {
+                    urlArg?.toUrl()?.emit()
 
-                val address = InetAddress.getLoopbackAddress()
-                var port = 2424
-                var server: ServerSocket? = null
-                while (true) {
-                    try {
-                        if (port < 3000)
-                            server = ServerSocket(port, 0, address)
-                        break
-                    } catch (exception: IOException) {
-                        port++
-                    }
-                }
-                if (server != null) {
-                    writePortToLockFile(port)
-                    log.debug("start listening for url args")
-                    while (server.isClosed.not()) {
+                    val address = InetAddress.getLoopbackAddress()
+                    var port = 2424
+                    var server: ServerSocket? = null
+                    while (true) {
                         try {
-                            val socket = server.accept()
-                            launch {
-                                try {
-                                    log.debug("try read url arg")
-                                    val inputStream = socket.getInputStream()
-                                    val bytes = inputStream.readAllBytes()
-                                    inputStream.close()
-                                    bytes.decodeToString().toUrl()?.emit()
-                                } catch (exception: IOException) {
-                                    log.error(exception) { "error reading url args" }
-                                } finally {
-                                    socket.close()
-                                }
-                            }
-                        } catch (exception: SocketException) {
-                            log.error(exception) { "error reading url args" }
+                            if (port < 3000)
+                                server = ServerSocket(port, 0, address)
+                            break
                         } catch (exception: IOException) {
-                            log.error(exception) { "error reading url args" }
+                            port++
                         }
                     }
-                } else log.error("could not start server socket to listen for url args")
+                    if (server != null) {
+                        writePortToLockFile(port)
+                        log.debug("start listening for url args")
+                        while (server.isClosed.not()) {
+                            try {
+                                val socket = server.accept()
+                                launch {
+                                    try {
+                                        log.debug("try read url arg")
+                                        val inputStream = socket.getInputStream()
+                                        val bytes = inputStream.readAllBytes()
+                                        inputStream.close()
+                                        bytes.decodeToString().toUrl()?.emit()
+                                    } catch (exception: IOException) {
+                                        log.error(exception) { "error reading url args" }
+                                    } finally {
+                                        socket.close()
+                                    }
+                                }
+                            } catch (exception: SocketException) {
+                                log.error(exception) { "error reading url args" }
+                            } catch (exception: IOException) {
+                                log.error(exception) { "error reading url args" }
+                            }
+                        }
+                    } else log.error("could not start server socket to listen for url args")
+                }
+            } catch (exception: Exception) {
+                log.error(exception) { "error in listenForArgs thread" }
+                throw exception
             }
         }
     }
