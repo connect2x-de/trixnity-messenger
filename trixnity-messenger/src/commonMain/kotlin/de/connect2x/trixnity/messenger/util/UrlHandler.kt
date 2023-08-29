@@ -19,5 +19,12 @@ open class UrlHandlerBase(
 ) : Flow<Url> by urlHandlerFlow.filter(filter)
 
 fun createFilteringUrlHandler(messengerSettings: MessengerSettings): UrlHandler {
-    return UrlHandler { it.protocol == URLProtocol.createOrDefault(messengerSettings.urlScheme) }
+    return UrlHandler {
+        println(it.protocol)
+        println(it.encodedPath)
+        println(it.host)
+        println(it.port)
+        println(it.parameters)
+        it.protocol == URLProtocol.createOrDefault(messengerSettings.urlScheme)
+    }
 }
