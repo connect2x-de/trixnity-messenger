@@ -96,7 +96,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
             lockFile.deleteIfExists()
             throw IllegalStateException("could not lock $lockFileName")
         }
-        Runtime.getRuntime().addShutdownHook(thread {
+        Runtime.getRuntime().addShutdownHook(thread(start = false) {
             lock.release()
             channel.close()
             randomAccessFile.close()
