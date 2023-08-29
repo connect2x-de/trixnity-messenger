@@ -6,13 +6,14 @@ import kotlinx.browser.window
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.filter
 import org.w3c.dom.events.Event
 
-actual class UrlHandlerImpl(
+actual class UrlHandler(
     private val urlHandlerFlow: Flow<Url>
-) : UrlHandler, Flow<Url> by urlHandlerFlow {
+) : Flow<Url> by urlHandlerFlow {
 
-    actual constructor() : this(
+    actual constructor(filter: (Url) -> Boolean) : this(
         callbackFlow {
             val eventListener: (Event) -> Unit = {
                 trySend(Url(document.URL))
@@ -21,6 +22,6 @@ actual class UrlHandlerImpl(
             awaitClose {
                 window.removeEventListener("locationchange", eventListener)
             }
-        }
+        }.filter(filter)
     )
 }

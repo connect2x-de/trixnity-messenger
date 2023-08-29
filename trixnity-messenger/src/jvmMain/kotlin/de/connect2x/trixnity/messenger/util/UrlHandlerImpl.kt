@@ -1,33 +1,171 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.OS
+import de.connect2x.trixnity.messenger.closeApp
+import de.connect2x.trixnity.messenger.getAppFolder
+import de.connect2x.trixnity.messenger.getOs
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.channels.BufferOverflow
+import korlibs.io.async.launch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.awt.Desktop
+import java.io.IOException
+import java.io.RandomAccessFile
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.Socket
+import java.net.SocketException
+import java.nio.ByteBuffer
+import kotlin.concurrent.thread
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 
 private val log = KotlinLogging.logger { }
 
-actual class UrlHandlerImpl(
-    private val urlHandlerFlow: MutableSharedFlow<Url>
-) : UrlHandler, Flow<Url> by urlHandlerFlow {
-
-    actual constructor() : this(
-        MutableSharedFlow(
-            extraBufferCapacity = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
-    )
+actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandlerBase(filter), Flow<Url> {
 
     init {
-        if (Desktop.isDesktopSupported()) {
+        if (Desktop.isDesktopSupported() && getOs() == OS.MAC_OS) {
             Desktop.getDesktop().setOpenURIHandler { event ->
                 val url = Url(event.uri)
                 urlHandlerFlow.tryEmit(url)
             }
         } else {
             log.warn("this platform is not supported to set URI handlers")
+        }
+    }
+
+    private val started = MutableStateFlow(false)
+    private val lockFile = "port.lock"
+
+    /**
+     * This need to be called with application start arguments.
+     */
+    suspend fun start(args: Array<String>) = withContext(Dispatchers.IO) {
+        if (getOs().let { it == OS.WINDOWS || it == OS.LINUX }) {
+            if (started.updateAndGet { true }.not()) return@withContext
+            val urlArg = args.firstOrNull()
+
+            val port = readPortFromLockFile()
+            if (port == null) {
+                listenForArgs(urlArg)
+            } else {
+                urlArg?.sendUrlArg(port)
+            }
+        }
+    }
+
+    private fun String.toUrl() =
+        if (isNotBlank())
+            try {
+                Url(this)
+            } catch (exception: URLParserException) {
+                log.error(exception) { "could not parse url from arg $this" }
+                null
+            }
+        else null
+
+    private fun Url.emit() {
+        urlHandlerFlow.tryEmit(this)
+    }
+
+    private fun readPortFromLockFile(): Int? {
+        val lockFile = getAppFolder(null).resolve(lockFile)
+        return if (lockFile.exists()) {
+            lockFile.readText().toInt()
+        } else null
+    }
+
+    private fun writePortToLockFile(port: Int) {
+        val lockFile = getAppFolder(null).resolve(lockFile)
+        val channel = RandomAccessFile(lockFile.toFile(), "rw").getChannel()
+        val lock = channel.tryLock(0, Long.MAX_VALUE, true)
+        channel.write(ByteBuffer.wrap(port.toString().encodeToByteArray()))
+        Runtime.getRuntime().addShutdownHook(thread {
+            lock.release()
+            channel.close()
+            lockFile.deleteIfExists()
+        })
+    }
+
+    private fun listenForArgs(urlArg: String?) {
+        thread {
+            runBlocking(Dispatchers.IO) {
+                urlArg?.toUrl()?.emit()
+
+                val address = InetAddress.getLoopbackAddress()
+                var port = 2424
+                var server: ServerSocket? = null
+                while (true) {
+                    try {
+                        if (port < 3000)
+                            server = ServerSocket(port, 0, address)
+                        break
+                    } catch (exception: IOException) {
+                        port++
+                    }
+                }
+                if (server != null) {
+                    writePortToLockFile(port)
+                    log.debug("start listening for url args")
+                    while (server.isClosed.not()) {
+                        try {
+                            val socket = server.accept()
+                            launch {
+                                try {
+                                    log.debug("try read url arg")
+                                    val inputStream = socket.getInputStream()
+                                    val bytes = inputStream.readAllBytes()
+                                    inputStream.close()
+                                    bytes.decodeToString().toUrl()?.emit()
+                                } catch (exception: IOException) {
+                                    log.error(exception) { "error reading url args" }
+                                } finally {
+                                    socket.close()
+                                }
+                            }
+                        } catch (exception: SocketException) {
+                            log.error(exception) { "error reading url args" }
+                        } catch (exception: IOException) {
+                            log.error(exception) { "error reading url args" }
+                        }
+                    }
+                } else log.error("could not start server socket to listen for url args")
+            }
+        }
+    }
+
+    private suspend fun String.sendUrlArg(port: Int) {
+        withContext(Dispatchers.IO) {
+            val address = InetAddress.getLoopbackAddress()
+            val socket =
+                try {
+                    Socket(address, port)
+                } catch (exception: IOException) {
+                    log.error("could not open client socket to send url arg")
+                    null
+                }
+            if (socket != null) {
+                log.debug("try send url arg")
+                try {
+                    val outputStream = socket.getOutputStream()
+                    outputStream.write(this@sendUrlArg.encodeToByteArray())
+                    outputStream.close()
+                } catch (exception: IOException) {
+                    log.error(exception) { "error sending url args" }
+                } finally {
+                    socket.close()
+                }
+                closeApp()
+            } else {
+                listenForArgs(null) // fallback
+            }
         }
     }
 }
