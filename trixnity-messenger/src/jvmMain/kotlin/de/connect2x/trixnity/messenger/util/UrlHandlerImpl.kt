@@ -53,7 +53,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
                 if (port == null) {
                     listenForArgs(urlArg)
                 } else {
-                    urlArg?.sendUrlArg(port)
+                    sendUrlArg(urlArg.orEmpty(), port)
                 }
             }
 
@@ -61,18 +61,13 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
         }
     }
 
-    private fun String.toUrl() =
+    private suspend fun String.emitUrl() {
         if (isNotBlank())
             try {
-                Url(this)
+                urlHandlerFlow.emit(Url(this))
             } catch (exception: URLParserException) {
                 log.error(exception) { "could not parse url from arg $this" }
-                null
             }
-        else null
-
-    private fun Url.emit() {
-        urlHandlerFlow.tryEmit(this)
     }
 
     private fun readPortFromLockFile(): Int? {
@@ -107,7 +102,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
         thread {
             try {
                 runBlocking(Dispatchers.IO) {
-                    urlArg?.toUrl()?.emit()
+                    urlArg?.emitUrl()
 
                     val address = InetAddress.getLoopbackAddress()
                     var port = 2424
@@ -123,7 +118,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
                     }
                     if (server != null) {
                         writePortToLockFile(port)
-                        log.debug("start listening for url args")
+                        log.debug("start listening for url args on port $port")
                         while (server.isClosed.not()) {
                             try {
                                 val socket = server.accept()
@@ -133,7 +128,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
                                         val inputStream = socket.getInputStream()
                                         val bytes = inputStream.readAllBytes()
                                         inputStream.close()
-                                        bytes.decodeToString().toUrl()?.emit()
+                                        bytes.decodeToString().emitUrl()
                                     } catch (exception: IOException) {
                                         log.error(exception) { "error reading url args" }
                                     } finally {
@@ -153,8 +148,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
         }
     }
 
-    private suspend fun String.sendUrlArg(port: Int) {
-        val urlArg = this
+    private suspend fun sendUrlArg(urlArg: String, port: Int) {
         withContext(Dispatchers.IO) {
             val address = InetAddress.getLoopbackAddress()
             val socket =
