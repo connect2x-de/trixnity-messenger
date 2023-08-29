@@ -20,11 +20,11 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
-import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 private val log = KotlinLogging.logger { }
 
@@ -84,10 +84,11 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
     }
 
     private fun writePortToLockFile(port: Int) {
+        log.debug("write port $port to lock file")
         val lockFile = getAppFolder(null).resolve(lockFile)
+        lockFile.writeText(port.toString())
         val channel = RandomAccessFile(lockFile.toFile(), "rw").getChannel()
         val lock = channel.tryLock(0, Long.MAX_VALUE, true)
-        channel.write(ByteBuffer.wrap(port.toString().encodeToByteArray()))
         Runtime.getRuntime().addShutdownHook(thread {
             lock.release()
             channel.close()
