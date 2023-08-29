@@ -76,16 +76,17 @@ open class SSOLoginViewModelImpl(
     private val urlHandler = get<UrlHandler>()
     private val messengerSettings = get<MessengerSettings>()
 
+    private val redirectUrl =
+        URLBuilder(messengerSettings.ssoRedirectPath).apply {
+            protocol = URLProtocol.createOrDefault(messengerSettings.urlProtocol)
+            host = messengerSettings.urlHost
+        }.build()
+
     init {
         coroutineScope.launch {
             urlHandler.filter {
-                log.debug { it.protocol }
-                log.debug { it.encodedPath }
-                log.debug { it.host }
-                log.debug { it.port }
-                log.debug { it.parameters }
-                it.encodedPath.removeSuffix("/") == messengerSettings.ssoRedirectUrl
-            }.collect {
+                it.encodedPath == redirectUrl.encodedPath
+            }.collect { // FIXME unique id to prevent cross site attacks
                 val loginToken = it.parameters["loginToken"]
                 if (loginToken != null)
                     this.loginToken.value = loginToken
@@ -94,10 +95,7 @@ open class SSOLoginViewModelImpl(
     }
 
     override val loginUrl =
-        Url(
-            "$serverUrl/_matrix/client/v3/login/sso/redirect/$providerId" +
-                    "?redirectUrl=${messengerSettings.urlScheme}://${messengerSettings.ssoRedirectUrl}"
-        ).toString()
+        Url("$serverUrl/_matrix/client/v3/login/sso/redirect/$providerId?redirectUrl=$redirectUrl").toString()
 
     override val canLogin: StateFlow<Boolean> =
         combine(
