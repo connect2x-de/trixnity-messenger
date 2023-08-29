@@ -13,6 +13,7 @@ import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -105,8 +106,9 @@ class DefaultMatrixClientService(
                 val repositoriesModule = createRepositoriesModule(repositoriesModuleCreation, accountName)
                 log.debug { "MatrixClient.login" }
                 return MatrixClient.login(
-                    baseUrl = baseUrl,
+                    loginType = LoginType.Token(),
                     token = token,
+                    baseUrl = baseUrl,
                     initialDeviceDisplayName = initialDeviceDisplayName ?: deviceDisplayName(),
                     repositoriesModule = repositoriesModule,
                     mediaStore = mediaStoreCreation(accountName),
