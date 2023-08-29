@@ -8,13 +8,11 @@ import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -75,6 +73,7 @@ open class RootViewModelImpl(
         }
     }
 
+    @OptIn(FlowPreview::class)
     private suspend fun init(
         koinApplication: KoinApplication
     ) {
@@ -99,7 +98,7 @@ open class RootViewModelImpl(
         }
         router.showMain()
 
-        matrixClientService.matrixClients.first { namedMatrixClients ->
+        matrixClientService.matrixClients.debounce(1.seconds).first { namedMatrixClients ->
             namedMatrixClients.isEmpty()
         }
         init(koinApplication) // TODO iteration (loop or collect) instead of recursion

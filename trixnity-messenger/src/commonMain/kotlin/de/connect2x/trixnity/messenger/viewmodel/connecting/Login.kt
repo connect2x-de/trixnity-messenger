@@ -11,9 +11,11 @@ import io.ktor.http.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
 
@@ -44,10 +46,17 @@ fun ViewModelContext.login(
             null
         } catch (exc: MatrixServerException) {
             log.error(exc) { "Cannot contact Matrix Server." }
-            when (exc.statusCode) {
-                HttpStatusCode.Forbidden -> i18n.connectingErrorForbidden()
-                HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
-                else -> i18n.connectingErrorStandard()
+            val errorResponse = exc.errorResponse
+            if (errorResponse is ErrorResponse.LimitExceeded && errorResponse.retryAfterMillis < 5_000) {
+                delay(errorResponse.retryAfterMillis)
+                login(matrixClientService, accountName, serverUrl, username, password, loginState, onLogin)
+                return@launch // since the recursive call has already set the errorMessage
+            } else {
+                when (exc.statusCode) {
+                    HttpStatusCode.Forbidden -> i18n.connectingErrorForbidden()
+                    HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
+                    else -> i18n.connectingErrorStandard()
+                }
             }
         } catch (exc: CancellationException) {
             // do nothing as this is the case when the view model is removed
@@ -75,6 +84,7 @@ fun ViewModelContext.login(
 
         if (errorMessage == null) {
             loginState.value = AddMatrixAccountViewModel.LoginState.Success
+            log.info {"call onLogin()"}
             onLogin()
         } else {
             loginState.value = AddMatrixAccountViewModel.LoginState.Failure(errorMessage)
