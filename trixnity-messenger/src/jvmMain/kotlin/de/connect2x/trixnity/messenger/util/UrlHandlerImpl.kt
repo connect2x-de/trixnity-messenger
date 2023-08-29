@@ -61,12 +61,12 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
         }
     }
 
-    private suspend fun String.emitUrl() {
-        if (isNotBlank())
+    private suspend fun emitUrl(urlArg: String) {
+        if (urlArg.isNotBlank())
             try {
-                urlHandlerFlow.emit(Url(this))
+                urlHandlerFlow.emit(Url(urlArg))
             } catch (exception: URLParserException) {
-                log.error(exception) { "could not parse url from arg $this" }
+                log.error(exception) { "could not parse url from arg $urlArg" }
             }
     }
 
@@ -102,7 +102,7 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
         thread {
             try {
                 runBlocking(Dispatchers.IO) {
-                    urlArg?.emitUrl()
+                    urlArg?.also { emitUrl(it) }
 
                     val address = InetAddress.getLoopbackAddress()
                     var port = 2424
@@ -128,7 +128,9 @@ actual class UrlHandler actual constructor(filter: (Url) -> Boolean) : UrlHandle
                                         val inputStream = socket.getInputStream()
                                         val bytes = inputStream.readAllBytes()
                                         inputStream.close()
-                                        bytes.decodeToString().emitUrl()
+                                        val url = bytes.decodeToString()
+                                        log.debug("received url arg $url")
+                                        emitUrl(url)
                                     } catch (exception: IOException) {
                                         log.error(exception) { "error reading url args" }
                                     } finally {
