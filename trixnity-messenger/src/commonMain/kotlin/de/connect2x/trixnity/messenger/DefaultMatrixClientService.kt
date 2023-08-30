@@ -123,7 +123,7 @@ class DefaultMatrixClientService(
                 val repositoriesModule = try {
                     repositoriesModuleCreation(accountName)
                 } catch (exc: Exception) {
-                    throw StoreAccessException(exc)
+                    throw LoadStoreException.StoreAccessException(exc)
                 }
                 return MatrixClient.fromStore(
                     repositoriesModule = repositoriesModule,
@@ -140,7 +140,7 @@ class DefaultMatrixClientService(
                 val repositoriesModule = try {
                     repositoriesModuleCreation(accountName)
                 } catch (exc: Exception) {
-                    throw StoreAccessException(exc)
+                    throw LoadStoreException.StoreAccessException(exc)
                 }
                 return repositoriesModule
             }
@@ -224,12 +224,12 @@ class DefaultMatrixClientService(
         log.debug { "currently active MatrixClients: ${matrixClients.value.joinToString { "${it.accountName} (${it.matrixClient.value})" }}" }
         return matrixClients.value.find { it.accountName == accountName }?.let { namedMatrixClient ->
             log.info { "MatrixClient.logout() for $namedMatrixClient" }
-            matrixClients.value -= namedMatrixClient
             val result = namedMatrixClient.matrixClient.value?.logout()?.onSuccess {
                 namedMatrixClient.matrixClient.value?.stop()
                 namedMatrixClient.matrixClient.value = null
                 log.info { "now, delete account data on this machine" }
                 deleteAccountDataLocally(accountName)
+                matrixClients.value -= namedMatrixClient
             }
             result
         } ?: Result.success(Unit)
@@ -265,8 +265,8 @@ class DefaultMatrixClientService(
 
     private fun mapExceptions(exc: Throwable) {
         when (exc) {
-            is StoreAccessException ->
-                if (isLocked(exc)) throw StoreLockedException() else throw exc
+            is LoadStoreException.StoreAccessException ->
+                if (isLocked(exc)) throw LoadStoreException.StoreLockedException() else throw exc
 
             else -> throw exc
         }

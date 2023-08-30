@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.messenger.LoadStoreException.StoreAccessException
+import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.StoreAccessException
-import de.connect2x.trixnity.messenger.StoreLockedException
 import de.connect2x.trixnity.messenger.deviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -11,9 +11,11 @@ import io.ktor.http.*
 import io.ktor.util.network.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
 
@@ -25,11 +27,11 @@ fun ViewModelContext.login(
     serverUrl: String,
     username: String,
     password: String,
-    loginState: MutableStateFlow<AddMatrixAccountViewModel.LoginState>,
+    addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     onLogin: () -> Unit,
 ) {
     log.info { "try to login" }
-    loginState.value = AddMatrixAccountViewModel.LoginState.Connecting
+    addMatrixAccountState.value = AddMatrixAccountState.Connecting
 
     coroutineScope.launch {
         val errorMessage = try {
@@ -44,10 +46,17 @@ fun ViewModelContext.login(
             null
         } catch (exc: MatrixServerException) {
             log.error(exc) { "Cannot contact Matrix Server." }
-            when (exc.statusCode) {
-                HttpStatusCode.Forbidden -> i18n.connectingErrorForbidden()
-                HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
-                else -> i18n.connectingErrorStandard()
+            val errorResponse = exc.errorResponse
+            if (errorResponse is ErrorResponse.LimitExceeded && errorResponse.retryAfterMillis < 5_000) {
+                delay(errorResponse.retryAfterMillis)
+                login(matrixClientService, accountName, serverUrl, username, password, addMatrixAccountState, onLogin)
+                return@launch // since the recursive call has already set the errorMessage
+            } else {
+                when (exc.statusCode) {
+                    HttpStatusCode.Forbidden -> i18n.connectingErrorForbidden()
+                    HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
+                    else -> i18n.connectingErrorStandard()
+                }
             }
         } catch (exc: CancellationException) {
             // do nothing as this is the case when the view model is removed
@@ -74,10 +83,10 @@ fun ViewModelContext.login(
         }
 
         if (errorMessage == null) {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Success
+            addMatrixAccountState.value = AddMatrixAccountState.Success
             onLogin()
         } else {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Failure(errorMessage)
+            addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
         }
     }
 }
@@ -91,11 +100,11 @@ fun ViewModelContext.loginWith(
     accessToken: String,
     displayName: String?,
     avatarUrl: String? = null,
-    loginState: MutableStateFlow<AddMatrixAccountViewModel.LoginState>,
+    addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     onLogin: () -> Unit,
 ) {
     log.info { "try to loginWith" }
-    loginState.value = AddMatrixAccountViewModel.LoginState.Connecting
+    addMatrixAccountState.value = AddMatrixAccountState.Connecting
 
     coroutineScope.launch {
         val errorMessage = try {
@@ -136,10 +145,10 @@ fun ViewModelContext.loginWith(
         }
 
         if (errorMessage == null) {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Success
+            addMatrixAccountState.value = AddMatrixAccountState.Success
             onLogin()
         } else {
-            loginState.value = AddMatrixAccountViewModel.LoginState.Failure(errorMessage)
+            addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
         }
     }
 }

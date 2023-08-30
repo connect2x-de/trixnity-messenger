@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.initialsync
 
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.AccountSyncState.DONE
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.AccountSyncState.RUNNING
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncState.NOT_DONE
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.clientserverapi.client.SyncState
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -62,26 +64,31 @@ open class SyncViewModelImpl(
         if (isNetworkAvailable()) {
             coroutineScope {
                 accountNames.entries.map { (accountName, initialSyncState) ->
-                    if (initialSyncState == NOT_DONE) {
-                        launch {
-                            log.info { "initial sync for $accountName" }
-                            val success =
-                                get<RunInitialSync>()(accountName).first()
-                            log.info { "initial sync done ($accountName): $success" }
-                            accountSyncStates.update {
-                                it - accountName + (accountName to AccountSync(initialSyncState, DONE))
+                    val syncState = getMatrixClient(accountName).syncState.value
+                    if (syncState != SyncState.RUNNING && syncState != SyncState.INITIAL_SYNC) {
+                        if (initialSyncState == NOT_DONE) {
+                            launch {
+                                log.info { "initial sync for $accountName" }
+                                val success =
+                                    get<RunInitialSync>()(accountName).first()
+                                log.info { "initial sync done ($accountName): $success" }
+                                accountSyncStates.update {
+                                    it - accountName + (accountName to AccountSync(initialSyncState, DONE))
+                                }
+                            }
+                        } else {
+                            launch {
+                                log.debug { "start small sync for $accountName" }
+                                val success =
+                                    get<RunInitialSync>()(accountName).first()
+                                log.debug { "done small sync ($accountName): $success" }
+                                accountSyncStates.update {
+                                    it - accountName + (accountName to AccountSync(initialSyncState, DONE))
+                                }
                             }
                         }
                     } else {
-                        launch {
-                            log.debug { "start small sync for $accountName" }
-                            val success =
-                                get<RunInitialSync>()(accountName).first()
-                            log.debug { "done small sync ($accountName): $success" }
-                            accountSyncStates.update {
-                                it - accountName + (accountName to AccountSync(initialSyncState, DONE))
-                            }
-                        }
+                        launch {  }
                     }
                 }.forEach { it.join() }
             }

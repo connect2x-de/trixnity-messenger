@@ -525,6 +525,7 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("do a small sync when initial sync is done") {
+            syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
             mocker.every { runInitialSyncMock.invoke("test") } runs {
@@ -552,6 +553,7 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("perform initial sync whe not yet done") {
+            syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(false)
             mocker.every { runInitialSyncMock.invoke("test") } runs {
@@ -578,6 +580,7 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("directly switch to regular sync when no network is available") {
+            syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns false
             initialSyncDone returns MutableStateFlow(false)
 
@@ -590,6 +593,7 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("cancel the sync when the app is stopped and restart the sync when the app is resumed again") {
+            syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
             mocker.every { runInitialSyncMock.invoke("test") } returns flowOf(true)

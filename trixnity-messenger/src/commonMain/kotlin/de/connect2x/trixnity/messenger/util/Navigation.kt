@@ -35,6 +35,29 @@ fun <C : Any> StackNavigator<C>.launchReplaceCurrent(
 }
 
 /**
+ * @see [com.arkivanov.decompose.router.stack.replaceAll]
+ */
+suspend fun <C : Any> StackNavigator<C>.replaceAllSuspending(
+    configuration: C,
+    onComplete: () -> Unit = {},
+) = withContext(Dispatchers.Main.immediate) {
+    log.trace { "replace all with configuration $configuration" }
+    replaceAll(configuration, onComplete = onComplete)
+}
+
+/**
+ * @see [com.arkivanov.decompose.router.stack.replaceCurrent]
+ */
+fun <C : Any> StackNavigator<C>.launchReplaceAll(
+    scope: CoroutineScope,
+    configuration: C,
+    onComplete: () -> Unit = {},
+) = scope.launch(Dispatchers.Main.immediate) {
+    log.trace { "replace all with configuration $configuration" }
+    replaceAll(configuration, onComplete = onComplete)
+}
+
+/**
  * @see [com.arkivanov.decompose.router.stack.push]
  */
 suspend fun <C : Any> StackNavigator<C>.pushSuspending(

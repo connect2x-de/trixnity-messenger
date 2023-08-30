@@ -2,171 +2,216 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.StoreLockedException
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.util.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.LoginState
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.Mode
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
-import io.ktor.util.network.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import org.kodein.mock.Mock
+import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
+import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class AddMatrixAccountViewModelTest : ShouldSpec() {
     val mocker = Mocker()
 
-    @Mock
-    lateinit var matrixClientServiceMock: MatrixClientService
-
     private val onCancelMock = mockFunction0<Unit>(mocker)
-    private val onLoginMock = mockFunction0<Unit>(mocker)
+    private val onAddMatrixAccountMethodMock = mockFunction1<Unit, AddMatrixAccountMethod>(mocker)
 
     init {
+        coroutineTestScope = true
+        Dispatchers.setMain(testMainDispatcher)
+
         beforeTest {
             mocker.reset()
-            Dispatchers.setMain(testMainDispatcher)
-            injectMocks(mocker)
 
             with(mocker) {
+                every { onAddMatrixAccountMethodMock(isAny()) } returns Unit
                 every { onCancelMock() } returns Unit
-                every { onLoginMock() } returns Unit
             }
         }
 
-        should("call login and start sync") {
-            mocker.everySuspending {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-            } returns Result.success(Unit)
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
+        should("do server discovery and collect login and registration options") {
+            val cut = viewModel {
+                addHandler { request ->
+                    when {
+                        request.url.encodedPath.contains(".well-known") ->
+                            respond(
+                                """
+                                    {
+                                        "m.homeserver": {
+                                            "base_url": "https://matrix.server.host"
+                                        }
+                                    }
+                                """.trimIndent(),
+                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                            )
 
-            mocker.verifyWithSuspend {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-                onLoginMock.invoke()
+                        request.url.encodedPath.contains("versions") ->
+                            respond(
+                                """
+                                    {
+                                        "versions": [],
+                                        "unstable_features": {}
+                                    }
+                                """.trimIndent(),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
+
+                        request.url.encodedPath.contains("/login") && request.url.host == "matrix.server.host" ->
+                            respond(
+                                """
+                                    {
+                                      "flows": [
+                                        {
+                                          "type": "m.login.password"
+                                        },
+                                        {
+                                          "identity_providers": [
+                                            {
+                                              "id": "com.example.idp.github",
+                                              "name": "GitHub"
+                                            },
+                                            {
+                                              "id": "com.example.idp.gitlab",
+                                              "name": "GitLab"
+                                            }
+                                          ],
+                                          "type": "m.login.sso"
+                                        }
+                                      ]
+                                    }
+                                """.trimIndent(),
+                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                            )
+
+                        request.url.encodedPath.contains("/register") && request.url.host == "matrix.server.host" -> {
+                            respond(
+                                """
+                                    {
+                                      "completed": [],
+                                      "flows": [
+                                        {
+                                          "stages": [
+                                            "m.login.dummy"
+                                          ]
+                                        }
+                                      ],
+                                      "session": "xxxxxxyz"
+                                    }
+                                """.trimIndent(),
+                                HttpStatusCode.Unauthorized,
+                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                            )
+                        }
+
+                        else -> throw IllegalStateException("no handler for mock engine matched $request")
+                    }
+                }
             }
-            cut.loginState.value shouldBe LoginState.Success
+            cut.serverUrl.value = "server.host"
+
+            cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
+                setOf(
+                    AddMatrixAccountMethod.Password("https://matrix.server.host"),
+                    AddMatrixAccountMethod.SSO(
+                        serverUrl = "https://matrix.server.host",
+                        identityProvider = LoginType.SSO.IdentityProvider(
+                            id = "com.example.idp.github",
+                            name = "GitHub"
+                        ),
+                        icon = null
+                    ),
+                    AddMatrixAccountMethod.SSO(
+                        serverUrl = "https://matrix.server.host",
+                        identityProvider = LoginType.SSO.IdentityProvider(
+                            id = "com.example.idp.gitlab",
+                            name = "GitLab"
+                        ),
+                        icon = null
+                    ),
+                    AddMatrixAccountMethod.Register("https://matrix.server.host"),
+                )
+            )
+
+            cancelNeverEndingCoroutines()
         }
 
-        should("set loginState when login fails because it was forbidden") {
-            mocker.everySuspending {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-            } returns Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")))
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
+        should("select add matrix account method") {
+            val cut = viewModel {
+                addHandler { request ->
+                    when {
+                        request.url.encodedPath.contains("versions") ->
+                            respond(
+                                """
+                                    {
+                                        "versions": [],
+                                        "unstable_features": {}
+                                    }
+                                """.trimIndent(),
+                                headers = headersOf(HttpHeaders.ContentType, "application/json")
+                            )
 
-            cut.loginState.value.shouldBeInstanceOf<LoginState.Failure>().message shouldContain "not correct"
-        }
+                        request.url.encodedPath.contains("/login") ->
+                            respond(
+                                """
+                                    {
+                                      "flows": [
+                                        {
+                                          "type": "m.login.password"
+                                        }
+                                      ]
+                                    }
+                                """.trimIndent(),
+                                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                            )
 
-
-        should("show the correct error message when server is configured wrong") {
-            mocker.everySuspending {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-            } returns Result.failure(UnresolvedAddressException())
-            val cut = viewModel()
-            cut.tryLogin()
-
-            cut.loginState.value.shouldBeInstanceOf<LoginState.Failure>().message shouldContain "address"
-        }
-
-        should("show the correct error message when an unknown error occurs") {
-            mocker.everySuspending {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-            } returns Result.failure(Exception("Something unexpected."))
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
-
-            cut.loginState.value.shouldBeInstanceOf<LoginState.Failure>().message shouldContain "Matrix server"
-        }
-
-        should("cancel login when user aborts the login") {
-            mocker.everySuspending {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-            } returns Result.success(Unit)
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.cancel()
-
-            mocker.verify(exhaustive = false) {
-                onCancelMock.invoke()
+                        else -> respond("no handler defined", HttpStatusCode.NotFound)
+                    }
+                }
             }
-        }
+            cut.serverUrl.value = "server.host"
 
-        should("abort with correct Exception in callback when store is locked") {
-            mocker.everySuspending {
-                matrixClientServiceMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isEqual("default"),
-                )
-            } runs { throw StoreLockedException() }
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
+            cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
+                setOf(AddMatrixAccountMethod.Password("https://server.host"))
+            )
 
-            cut.loginState.value.shouldBeInstanceOf<LoginState.Failure>().message shouldContain "instance"
+            cut.selectAddMatrixAccountMethod(AddMatrixAccountMethod.Password("https://server.host"))
+
+            mocker.verify {
+                onAddMatrixAccountMethodMock.invoke(AddMatrixAccountMethod.Password("https://server.host"))
+            }
+
+            cancelNeverEndingCoroutines()
         }
     }
 
-    private fun viewModel(): AddMatrixAccountViewModel {
-
+    private suspend fun viewModel(
+        mockEngineConfig: (MockEngineConfig.() -> Unit)? = null,
+    ): AddMatrixAccountViewModelImpl {
+        val currentCoroutineContext = currentCoroutineContext()
+        val mockEngine = MockEngine.config {
+            dispatcher = currentCoroutineContext.testCoroutineScheduler[CoroutineDispatcher] ?: Dispatchers.Unconfined
+            if (mockEngineConfig != null) mockEngineConfig()
+            else addHandler { _ -> respond("") }
+        }.create()
         val di = koinApplication {
             modules(trixnityMessengerModule())
         }.koin
@@ -175,18 +220,19 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
             viewModelContext = ViewModelContextImpl(
                 di,
                 DefaultComponentContext(LifecycleRegistry()),
-                coroutineContext = Dispatchers.Unconfined,
+                coroutineContext = currentCoroutineContext,
             ),
-            matrixClientService = matrixClientServiceMock,
-            onLogin = onLoginMock,
+            onAddMatrixAccountMethod = onAddMatrixAccountMethodMock,
             onCancel = onCancelMock,
-            onRegisterNewUser = mockFunction0(mocker),
-        ).apply {
-            accountName.value = "default"
-            serverUrl.value = "http://localhost"
-            username.value = "timmy"
-            password.value = "sup3rs3cr3t"
-            mode.value = Mode.USERNAME
-        }
+            httpClientFactory = { config ->
+                HttpClient(mockEngine) {
+                    config()
+                    install(Logging) {
+                        logger = Logger.DEFAULT
+                        level = LogLevel.ALL
+                    }
+                }
+            }
+        )
     }
 }

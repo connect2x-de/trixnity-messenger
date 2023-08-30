@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.GetAccountNames
+import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.StoreAccessException
-import de.connect2x.trixnity.messenger.StoreLockedException
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -18,12 +17,18 @@ interface MatrixClientInitializationViewModelFactory {
     fun newMatrixClientInitializationViewModel(
         viewModelContext: ViewModelContext,
         matrixClientService: MatrixClientService,
-        accountName: String,
+        onNoAccounts: () -> Unit,
+        onInitializationSuccess: () -> Unit,
         onInitializationFailure: () -> Unit,
-        onStoreFailure: (Result<Unit>) -> Unit,
+        onStoreFailure: (accountName: String, exception: LoadStoreException) -> Unit,
     ): MatrixClientInitializationViewModel {
         return MatrixClientInitializationViewModelImpl(
-            viewModelContext, matrixClientService, accountName, onInitializationFailure, onStoreFailure
+            viewModelContext,
+            matrixClientService,
+            onNoAccounts,
+            onInitializationSuccess,
+            onInitializationFailure,
+            onStoreFailure
         )
     }
 }
@@ -35,42 +40,54 @@ interface MatrixClientInitializationViewModel {
 open class MatrixClientInitializationViewModelImpl(
     private val viewModelContext: ViewModelContext,
     private val matrixClientService: MatrixClientService,
-    private val accountName: String,
+    private val onNoAccounts: () -> Unit,
+    private val onInitializationSuccess: () -> Unit,
     private val onInitializationFailure: () -> Unit,
-    private val onStoreFailure: (Result<Unit>) -> Unit,
+    private val onStoreFailure: (accountName: String, exception: LoadStoreException) -> Unit,
 ) : ViewModelContext by viewModelContext, MatrixClientInitializationViewModel {
 
     override val currentState = MutableStateFlow("")
+    private val getAccountNames = get<GetAccountNames>()
 
     init {
         coroutineScope.launch {
-            retrieveMatrixClientFromStore()
+            retrieveMatrixClientsFromStore()
         }
     }
 
-    private suspend fun retrieveMatrixClientFromStore() {
-        log.info { "Init MatrixClient from Settings and Store." }
+    private suspend fun retrieveMatrixClientsFromStore() {
         currentState.value = i18n.matrixClientInitLoading()
+
+        val accounts = getAccountNames()
+        log.info { "Init MatrixClients $accounts from Settings and Store." }
+        if (accounts.isEmpty()) { // no account defined yet, show account creation
+            onNoAccounts()
+        } else {
+            accounts.forEach { accountName ->
+                retrieveMatrixClientFromStore(accountName)
+            }
+            onInitializationSuccess()
+        }
+    }
+
+    private suspend fun retrieveMatrixClientFromStore(accountName: String) {
         val couldInitFromStore = matrixClientService.initFromStore(accountName).fold(
             onSuccess = {
-                log.info { "Successfully retrieved MatrixClient from store: $it" }
+                log.info { "Successfully retrieved MatrixClient $accountName from store: $it" }
                 it
             },
             onFailure = { exc ->
-                log.error(exc) { "Cannot retrieve MatrixClient from store." }
-                if (exc is StoreLockedException || exc is StoreAccessException) {
-                    onStoreFailure(Result.failure(exc))
+                log.error(exc) { "Cannot retrieve MatrixClient $accountName from store." }
+                if (exc is LoadStoreException) {
+                    onStoreFailure(accountName, exc)
                     return
                 }
                 false
             }
         )
         if (couldInitFromStore) {
-            log.info { "Retrieved MatrixClient from store." }
             currentState.value = i18n.matrixClientInitSuccess()
-            log.debug { "MatrixClient state: ${currentState.value}" }
         } else {
-            log.info { "Could not retrieve MatrixClient from store." }
             onInitializationFailure()
         }
     }

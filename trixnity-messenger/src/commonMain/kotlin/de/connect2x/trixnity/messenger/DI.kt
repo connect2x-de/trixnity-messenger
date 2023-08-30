@@ -123,6 +123,8 @@ private val connectingViewModels = module {
     single<MatrixClientLogoutViewModelFactory> { object : MatrixClientLogoutViewModelFactory {} }
     single<StoreFailureViewModelFactory> { object : StoreFailureViewModelFactory {} }
     single<AddMatrixAccountViewModelFactory> { object : AddMatrixAccountViewModelFactory {} }
+    single<PasswordLoginViewModelFactory> { object : PasswordLoginViewModelFactory {} }
+    single<SSOLoginViewModelFactory> { object : SSOLoginViewModelFactory {} }
     single<RegisterNewAccountViewModelFactory> { object : RegisterNewAccountViewModelFactory {} }
 }
 
