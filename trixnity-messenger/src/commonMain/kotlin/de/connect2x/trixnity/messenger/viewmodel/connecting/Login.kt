@@ -49,7 +49,7 @@ fun ViewModelContext.login(
             val errorResponse = exc.errorResponse
             if (errorResponse is ErrorResponse.LimitExceeded && errorResponse.retryAfterMillis < 5_000) {
                 delay(errorResponse.retryAfterMillis)
-                login(matrixClientService, accountName, serverUrl, username, password, loginState, onLogin)
+                login(matrixClientService, accountName, serverUrl, username, password, addMatrixAccountState, onLogin)
                 return@launch // since the recursive call has already set the errorMessage
             } else {
                 when (exc.statusCode) {
