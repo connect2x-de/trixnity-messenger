@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.timing.continually
 import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.IsolationMode
@@ -14,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
+import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.clientserverapi.client.SyncState
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
@@ -27,6 +30,9 @@ class SyncViewModelTest : ShouldSpec() {
     private val mocker = Mocker()
 
     @Mock
+    lateinit var matrixClientMock: MatrixClient
+
+    @Mock
     lateinit var onSyncDone: () -> Unit
 
     init {
@@ -35,6 +41,10 @@ class SyncViewModelTest : ShouldSpec() {
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+
+            with(mocker) {
+                every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STOPPED)
+            }
         }
 
         should("not do any sync if there is no network") {
@@ -169,6 +179,7 @@ class SyncViewModelTest : ShouldSpec() {
 
     private fun di(isNetworkAvailable: Boolean, runInitialSync: Map<String, Flow<Boolean>>) = koinApplication {
         modules(
+            testMatrixClientModule(listOf(matrixClientMock, matrixClientMock), listOf("test1", "test2")),
             module {
                 single<IsNetworkAvailable> {
                     object : IsNetworkAvailable {
