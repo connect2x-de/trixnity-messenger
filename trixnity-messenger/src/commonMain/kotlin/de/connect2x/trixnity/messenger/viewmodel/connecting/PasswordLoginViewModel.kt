@@ -71,7 +71,7 @@ open class PasswordLoginViewModelImpl(
             username,
             password,
         ) { accountName, username, password ->
-            log.trace { "canLogin: accountName=$accountName, username=$username, serverUrl=$serverUrl" }
+            log.trace { "canLogin: accountName=$accountName, username=$username, serverUrl=$serverUrl, password=${if (password.isNotBlank()) "***" else ""}" }
             val accountAlreadyExists = accountNames.value?.contains(accountName) ?: false
             if (accountAlreadyExists)
                 addMatrixAccountState.value =
@@ -81,7 +81,7 @@ open class PasswordLoginViewModelImpl(
 
     override fun tryLogin() {
         coroutineScope.launch {
-            log.debug { "Try to login into $serverUrl with username ${username.value} and password *************." }
+            log.debug { "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.isNotBlank()) "***" else ""}." }
             if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
                 matrixClientService.loginCatching(
                     accountName = accountName.value,

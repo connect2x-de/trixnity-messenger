@@ -105,7 +105,7 @@ open class SSOLoginViewModelImpl(
             accountName,
             loginToken,
         ) { accountName, loginToken ->
-            log.trace { "canLogin: accountName=$accountName, loginToken=$loginToken, serverUrl=$serverUrl" }
+            log.trace { "canLogin: accountName=$accountName, loginToken=${if (loginToken.isNotBlank()) "***" else ""}, serverUrl=$serverUrl" }
             val accountAlreadyExists = accountNames.value?.contains(accountName) ?: false
             if (accountAlreadyExists)
                 addMatrixAccountState.value =
@@ -115,7 +115,7 @@ open class SSOLoginViewModelImpl(
 
     override fun tryLogin() {
         coroutineScope.launch {
-            log.debug { "Try to login into $serverUrl with loginToken ${loginToken.value} and password *************." }
+            log.debug { "Try to login into $serverUrl with loginToken=${if (loginToken.value.isNotBlank()) "***" else ""}." }
             if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
                 matrixClientService.loginCatching(
                     accountName = accountName.value,
