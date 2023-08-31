@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
+import korlibs.io.async.launch
 import kotlinx.coroutines.flow.*
 import org.koin.core.component.get
 
@@ -70,7 +71,7 @@ open class PasswordLoginViewModelImpl(
             username,
             password,
         ) { accountName, username, password ->
-            log.trace { "canLogin: accountName=$accountName, username=$username, serverUrl=$serverUrl" }
+            log.trace { "canLogin: accountName=$accountName, username=$username, serverUrl=$serverUrl, password=${if (password.isNotBlank()) "***" else ""}" }
             val accountAlreadyExists = accountNames.value?.contains(accountName) ?: false
             if (accountAlreadyExists)
                 addMatrixAccountState.value =
@@ -79,19 +80,21 @@ open class PasswordLoginViewModelImpl(
         }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // eagerly because value is used below
 
     override fun tryLogin() {
-        log.debug { "Try to login into $serverUrl with username $username and password *************." }
-        if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
-            login(
-                matrixClientService,
-                accountName.value,
-                serverUrl,
-                username.value,
-                password.value,
-                addMatrixAccountState,
-                onLogin,
-            )
-        } else {
-            log.warn { "cannot login: canLogin=${canLogin.value}, serverUrl=${serverUrl}" }
+        coroutineScope.launch {
+            log.debug { "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.isNotBlank()) "***" else ""}." }
+            if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
+                matrixClientService.loginCatching(
+                    accountName = accountName.value,
+                    serverUrl = serverUrl,
+                    username = username.value,
+                    password = password.value,
+                    addMatrixAccountState = addMatrixAccountState,
+                    i18n = i18n,
+                    onLogin = onLogin,
+                )
+            } else {
+                log.warn { "cannot login: canLogin=${canLogin.value}, serverUrl=${serverUrl}" }
+            }
         }
     }
 

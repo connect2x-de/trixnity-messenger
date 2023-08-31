@@ -20,6 +20,13 @@ interface MatrixClientService {
         accountName: String,
     ): Result<Unit>
 
+    suspend fun login(
+        baseUrl: Url,
+        token: String,
+        initialDeviceDisplayName: String?,
+        accountName: String,
+    ): Result<Unit>
+
     suspend fun loginWith(
         baseUrl: Url,
         userId: UserId,

@@ -78,8 +78,10 @@ class RootRouter(
                 viewModelContext.get<SSOLoginViewModelFactory>().newSSOLoginViewModel(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
+                    matrixClientService = matrixClientService,
                     providerId = config.providerId,
                     providerName = config.providerName,
+                    onLogin = ::showMainOnLogin,
                     onBack = ::backToAddMatrixAccount,
                 )
             )

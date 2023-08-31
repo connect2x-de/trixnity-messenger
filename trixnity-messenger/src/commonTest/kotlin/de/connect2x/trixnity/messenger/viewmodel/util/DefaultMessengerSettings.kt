@@ -31,5 +31,7 @@ fun testMessengerSettings(lang: String) = object : MessengerSettings {
     override var preferredLang: String?
         get() = lang
         set(value) {}
-
+    override var urlProtocol: String = "trixnity"
+    override var urlHost: String = "localhost"
+    override var ssoRedirectPath: String = "sso"
 }

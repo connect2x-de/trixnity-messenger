@@ -185,8 +185,7 @@ open class RegisterNewAccountViewModelImpl(
                                     val deviceId = registerResponse?.deviceId
                                     val accessToken = registerResponse?.accessToken
                                     if (deviceId != null && accessToken != null) {
-                                        loginWith(
-                                            matrixClientService = matrixClientService,
+                                        matrixClientService.loginWithCatching(
                                             accountName = accountName.value,
                                             serverUrl = serverUrl,
                                             userId = registerResponse.userId,
@@ -195,6 +194,7 @@ open class RegisterNewAccountViewModelImpl(
                                             displayName = displayName.value ?: username.value,
                                             avatarUrl = null,
                                             addMatrixAccountState = addMatrixAccountState,
+                                            i18n = i18n,
                                             onLogin = onLogin,
                                         )
                                     } else {
