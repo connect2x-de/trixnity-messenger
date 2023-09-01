@@ -17,7 +17,6 @@ import net.folivo.trixnity.client.store.repository.realm.createRealmRepositories
 import okio.Path.Companion.toOkioPath
 import org.koin.core.module.Module
 import java.awt.Desktop
-import java.io.File
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
@@ -136,30 +135,6 @@ actual suspend fun deleteAccountDataLocally(accountName: String) {
 
 actual fun closeApp() {
     exitProcess(0)
-}
-
-actual fun getVersion(): String {
-    return try {
-        val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
-        val properties = Properties()
-        properties.load(resourcesDir.resolve("version.properties").inputStream())
-        properties.getProperty("version")
-    } catch (exc: Exception) {
-        log.error(exc) { "cannot determine version" }
-        ""
-    }
-}
-
-actual fun getLicenses(): String {
-    return try {
-        val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
-        val licensesLines = resourcesDir.resolve("licenses").readLines()
-        val cutFromHere = licensesLines.indexOf("Unknown")
-        licensesLines.subList(0, cutFromHere - 1).joinToString(System.lineSeparator())
-    } catch (exc: Exception) {
-        log.error(exc) { "cannot load licenses" }
-        ""
-    }
 }
 
 actual fun isNetworkAvailable(): Boolean {

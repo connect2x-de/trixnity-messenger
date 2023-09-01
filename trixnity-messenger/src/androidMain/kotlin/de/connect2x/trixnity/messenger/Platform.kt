@@ -20,9 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.okio.OkioMediaStore
 import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
@@ -103,26 +100,6 @@ private fun getDbPath(accountName: String) = getAccountPath(accountName).resolve
 
 actual fun closeApp() {
     getContext().findActivity()?.finishAndRemoveTask()
-}
-
-actual fun getVersion(): String {
-    return getContext().packageManager.getPackageInfo(getContext().packageName, 0)?.versionName ?: "unbekannt"
-}
-
-actual fun getLicenses(): String {
-    val text = getContext().assets.open("open_source_licenses.json").readBytes().decodeToString()
-    val json = Json.parseToJsonElement(text)
-    return json.jsonArray.joinToString(System.lineSeparator() + System.lineSeparator()) {
-        val projectLicense = it.jsonObject
-        val licenses =
-            projectLicense["licenses"]?.jsonArray
-                ?.joinToString(System.lineSeparator()) { "${it.jsonObject["license"]} (${it.jsonObject["license_url"]})" }
-                ?: ""
-        """${projectLicense["project"]} (${projectLicense["version"]})
-                |  URL: ${projectLicense["url"]}
-                |  Lizenz(en): $licenses
-            """.trimMargin()
-    }
 }
 
 @SuppressLint("MissingPermission")

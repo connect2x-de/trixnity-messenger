@@ -60,28 +60,6 @@ actual fun closeApp() {
 
 }
 
-actual fun getVersion(): String {
-    log.debug { "read version file" }
-    val version = NSBundle.mainBundle.pathForResource("version", "txt") ?: return "0.0.1"
-    log.debug { "version.txt location: $version" }
-    return memScoped {
-        val errorPtr = alloc<ObjCObjectVar<NSError?>>()
-
-        NSString.stringWithContentsOfFile(
-            version,
-            encoding = NSUTF8StringEncoding,
-            error = errorPtr.ptr
-        )?.trim() ?: run {
-            log.error { "Couldn't load resource: $version. Error: ${errorPtr.value?.localizedDescription} - ${errorPtr.value}" }
-            return "0.0.1"
-        }
-    }
-}
-
-actual fun getLicenses(): String {
-    return "Licenses"
-}
-
 actual fun isNetworkAvailable(): Boolean {
     return true
 }
