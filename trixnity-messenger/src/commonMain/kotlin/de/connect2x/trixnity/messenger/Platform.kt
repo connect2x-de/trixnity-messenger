@@ -17,10 +17,6 @@ internal expect suspend fun getAccountNames(): List<String>
 
 expect fun closeApp()
 
-internal expect fun getVersion(): String
-
-internal expect fun getLicenses(): String
-
 internal expect fun isNetworkAvailable(): Boolean
 
 internal expect fun deviceDisplayName(): String

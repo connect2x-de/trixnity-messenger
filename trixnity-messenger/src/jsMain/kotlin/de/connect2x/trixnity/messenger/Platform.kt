@@ -36,7 +36,7 @@ actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.Def
         .transaction(accountNamesStore) {
             objectStore(accountNamesStore).getAll()
         }
-    ).toList()
+            ).toList()
 }
 
 private fun getDbName(accountName: String) =
@@ -66,14 +66,6 @@ actual suspend fun deleteAccountDataLocally(accountName: String) {
 
 actual fun closeApp() {
 
-}
-
-actual fun getVersion(): String {
-    return "0.0.1"
-}
-
-actual fun getLicenses(): String {
-    return "Licenses"
 }
 
 actual fun isNetworkAvailable(): Boolean {

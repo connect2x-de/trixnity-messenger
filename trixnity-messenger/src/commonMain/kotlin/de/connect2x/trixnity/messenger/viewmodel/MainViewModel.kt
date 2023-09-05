@@ -668,7 +668,8 @@ open class MainViewModelImpl(
                 MessengerConfig.instance.sendLogsEmailAddress?.let { email ->
                     sendLogToDevs(
                         email,
-                        "error report for ${MessengerConfig.instance.appName} (version ${getVersion()}, ${deviceDisplayName()})",
+                        // TODO include version of trixnity-messenger or maybe move sendLogs to client
+                        "error report for ${MessengerConfig.instance.appName} (${deviceDisplayName()})",
                         getLogContent()
                     )
                 }
