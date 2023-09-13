@@ -31,9 +31,13 @@ interface CreateNewGroupViewModelFactory {
 interface CreateNewGroupViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
     val groupUsers: StateFlow<List<SearchUserElement>>
+    val isPrivate: StateFlow<Boolean>
+    val isEncrypted: StateFlow<Boolean>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
+    fun setPrivate(value: Boolean)
+    fun setEncrypted(value: Boolean)
     fun onUserClick(user: SearchUserElement)
     fun back()
     fun createNewGroup()
@@ -52,10 +56,17 @@ open class CreateNewGroupViewModelImpl(
     private val onGroupCreated: (String, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
+    private val _isPrivate = MutableStateFlow(false)
+    private val _isEncrypted = MutableStateFlow(false)
 
+    override val isPrivate: StateFlow<Boolean> = _isPrivate
+    override val isEncrypted: StateFlow<Boolean> = _isEncrypted
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
-    override val canCreateNewGroup =
-        groupUsers.map { it.isNotEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
+        !(private && !encrypted)
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+      //groupUsers.map { it.isNotEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
@@ -68,6 +79,13 @@ open class CreateNewGroupViewModelImpl(
         backHandler.register(backCallback)
     }
 
+    override fun setPrivate(value: Boolean) {
+        _isPrivate.value = value
+    }
+
+    override fun setEncrypted(value: Boolean) {
+        _isEncrypted.value = value
+    }
     override fun back() {
         onBack()
     }
@@ -127,8 +145,16 @@ open class CreateNewGroupViewModelImpl(
 class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
+    override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    override fun setPrivate(value: Boolean) {
+    }
+
+    override fun setEncrypted(value: Boolean) {
+    }
 
     override fun onUserClick(user: SearchUserElement) {
     }
