@@ -56,8 +56,8 @@ open class CreateNewGroupViewModelImpl(
     private val onGroupCreated: (String, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
-    private val _isPrivate = MutableStateFlow(false)
-    private val _isEncrypted = MutableStateFlow(false)
+    private val _isPrivate = MutableStateFlow(true) //Standardmäßig ist ein Raum privat
+    private val _isEncrypted = MutableStateFlow(true) //Standardmäßig ist ein Raum verschlüsselt
 
     override val isPrivate: StateFlow<Boolean> = _isPrivate
     override val isEncrypted: StateFlow<Boolean> = _isEncrypted
@@ -65,8 +65,6 @@ open class CreateNewGroupViewModelImpl(
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
         !(private && !encrypted)
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-
-      //groupUsers.map { it.isNotEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
