@@ -8,6 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -31,13 +32,11 @@ interface CreateNewGroupViewModelFactory {
 interface CreateNewGroupViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
     val groupUsers: StateFlow<List<SearchUserElement>>
-    val isPrivate: StateFlow<Boolean>
-    val isEncrypted: StateFlow<Boolean>
+    val isPrivate: MutableStateFlow<Boolean>
+    val isEncrypted: MutableStateFlow<Boolean>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
-    fun setPrivate(value: Boolean)
-    fun setEncrypted(value: Boolean)
     fun onUserClick(user: SearchUserElement)
     fun back()
     fun createNewGroup()
@@ -56,11 +55,9 @@ open class CreateNewGroupViewModelImpl(
     private val onGroupCreated: (String, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
-    private val _isPrivate = MutableStateFlow(true) //Standardmäßig ist ein Raum privat
-    private val _isEncrypted = MutableStateFlow(true) //Standardmäßig ist ein Raum verschlüsselt
+    override val isPrivate = MutableStateFlow(true) //Standardmäßig ist ein Raum privat
+    override val isEncrypted = MutableStateFlow(true) //Standardmäßig ist ein Raum verschlüsselt
 
-    override val isPrivate: StateFlow<Boolean> = _isPrivate
-    override val isEncrypted: StateFlow<Boolean> = _isEncrypted
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
         !(private && !encrypted)
@@ -77,24 +74,29 @@ open class CreateNewGroupViewModelImpl(
         backHandler.register(backCallback)
     }
 
-    override fun setPrivate(value: Boolean) {
-        _isPrivate.value = value
-    }
-
-    override fun setEncrypted(value: Boolean) {
-        _isEncrypted.value = value
-    }
     override fun back() {
         onBack()
     }
 
     override fun createNewGroup() {
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
+        val visibility = if (isPrivate.value) {
+            DirectoryVisibility.PRIVATE
+        } else {
+            DirectoryVisibility.PUBLIC
+        }
+        val encryption = if (isEncrypted.value) {
+            listOf(Event.InitialStateEvent(content = EncryptionEventContent(), ""))
+        } else {
+            listOf()
+        }
         coroutineScope.launch {
             matrixClient.api.rooms.createRoom(
+                //name = createNewRoomViewModel.roomName.value, //TODO Raumname
+                visibility = visibility,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
-                initialState = listOf(Event.InitialStateEvent(content = EncryptionEventContent(), "")),
+                initialState = encryption,
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
@@ -143,16 +145,10 @@ open class CreateNewGroupViewModelImpl(
 class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
-    override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    override fun setPrivate(value: Boolean) {
-    }
-
-    override fun setEncrypted(value: Boolean) {
-    }
 
     override fun onUserClick(user: SearchUserElement) {
     }
