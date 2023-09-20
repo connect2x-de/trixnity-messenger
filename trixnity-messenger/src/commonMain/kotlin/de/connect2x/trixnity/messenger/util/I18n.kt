@@ -127,14 +127,9 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Gruppe"
     }
 
-    fun roomNameOthersCount(heroes: String, others: Long) = translate {
-        EN - "$heroes$others others"
-        DE - "$heroes$others andere"
-    }
-
-    fun roomNameOneOther() = translate {
-        EN - "one other"
-        DE - "ein anderer"
+    fun roomNameOther(othersCount: Long) = translate {
+        EN - if (othersCount == 1L) "one other" else "$othersCount others"
+        DE - if (othersCount == 1L) "ein anderer" else "$othersCount andere"
     }
 
     fun eventChangeAvatar(username: String) = translate {
@@ -680,7 +675,7 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Sie werden so benachrichtigt, wie dies in den globalen Einstellungen festgelegt ist."
     }
 
-    fun settingsUnblockUserError(userId: String) =  translate {
+    fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
     }
@@ -737,9 +732,9 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Es gibt bereits ein lokales Konto für den Namen $accountName."
     }
 
-    fun defaultAccountName()=translate {
-        EN-"default"
-        DE-"Standard"
+    fun defaultAccountName() = translate {
+        EN - "default"
+        DE - "Standard"
     }
 
     fun serverDiscoveryFailed() = translate {
