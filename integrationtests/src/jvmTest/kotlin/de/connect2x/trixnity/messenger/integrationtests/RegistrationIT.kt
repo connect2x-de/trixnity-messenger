@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.MessengerConfig
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createMessenger
 import de.connect2x.trixnity.messenger.integrationtests.messenger.registerAccountWithToken
 import de.connect2x.trixnity.messenger.integrationtests.util.cleanup
-import de.connect2x.trixnity.messenger.integrationtests.util.settingsModule
+import de.connect2x.trixnity.messenger.integrationtests.util.itModules
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -45,7 +45,7 @@ class RegistrationIT {
         koinApplication = koinApplication {
             modules(
                 trixnityMessengerModule(),
-                settingsModule()
+                itModules(),
             )
         }
     }

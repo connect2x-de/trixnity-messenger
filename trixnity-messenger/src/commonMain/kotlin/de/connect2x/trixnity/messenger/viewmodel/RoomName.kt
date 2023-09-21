@@ -36,7 +36,7 @@ interface RoomName {
     ): String
 }
 
-class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter) : RoomName {
+open class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter) : RoomName {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getRoomNameElement(
@@ -92,7 +92,7 @@ class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter)
         ).first()?.content?.displayName ?: inviter.full
     } ?: i18n.commonUnknown()
 
-    internal fun calculateRoomName(
+    open fun calculateRoomName(
         roomId: RoomId,
         name: RoomDisplayName?,
         matrixClient: MatrixClient,
@@ -137,7 +137,7 @@ class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter)
         return flowOf(roomId.full)
     }
 
-    private fun nameFromHeroes(
+    protected open fun nameFromHeroes(
         roomUser: RoomUser?,
         heroes: List<UserId>,
         index: Int

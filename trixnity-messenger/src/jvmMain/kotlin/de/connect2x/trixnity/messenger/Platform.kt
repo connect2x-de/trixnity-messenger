@@ -45,6 +45,7 @@ actual suspend fun createRepositoriesModule(accountName: String): Module = withC
             ?: createPassword().also {
                 setSecret(secretsName, it)
             }
+        // if you need to access your local realm database for debug purposes, use `hex(password.toByteArray())` to get the key to open it with realm studio
 
         createRealmRepositoriesModule {
             directory(dbFolder)

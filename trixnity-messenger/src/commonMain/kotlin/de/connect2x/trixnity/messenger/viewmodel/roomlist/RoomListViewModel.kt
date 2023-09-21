@@ -261,7 +261,7 @@ class RoomListViewModelImpl(
                 )
                 roomsWithMeta.values.asFlow()
                     .filter { (room, _) ->
-                        val isRoom = room.createEventContent?.type == RoomType.Room
+                        val isSpace = room.createEventContent?.type == RoomType.Space
                         val isInActiveSpace =
                             if (activeSpaceInfo != null) {
                                 activeSpaceInfo.roomsInSpace.contains(room.roomId) ||
@@ -272,7 +272,7 @@ class RoomListViewModelImpl(
                                         } ?: false)
                             } else true
                         val includedInSearch = searchedRooms.contains(room.roomId)
-                        isRoom &&
+                        !isSpace &&
                                 (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
                                 isInActiveSpace &&
                                 includedInSearch

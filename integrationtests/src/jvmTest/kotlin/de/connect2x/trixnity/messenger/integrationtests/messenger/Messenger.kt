@@ -4,8 +4,6 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.DefaultMatrixClientService
 import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.getAppFolder
-import de.connect2x.trixnity.messenger.integrationtests.util.newDatabase
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
@@ -24,14 +22,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.timing.eventually
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
-import net.folivo.trixnity.client.media.InMemoryMediaStore
-import net.folivo.trixnity.client.store.repository.exposed.createExposedRepositoriesModule
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import org.koin.core.KoinApplication
@@ -152,23 +147,7 @@ private suspend fun RootViewModelImpl.openAccountsOverview(): AccountsOverviewVi
 }
 
 private fun createDefaultMatrixClientService(koinApplication: KoinApplication) =
-    DefaultMatrixClientService(
-        { config ->
-            HttpClient {
-                config()
-                // TODO activate for better debugging
-//                install(Logging) {
-//                    logger = Logger.DEFAULT
-//                    level = LogLevel.ALL
-//                }
-            }
-        },
-        repositoriesModuleCreation = { accountName: String ->
-            getAppFolder(accountName) // also create a folder for the accounts
-            createExposedRepositoriesModule(newDatabase(accountName))
-        },
-        mediaStoreCreation = { InMemoryMediaStore() },
-    )
+    DefaultMatrixClientService(koinApplication.koin)
 
 private fun createRootViewModel(koinApplication: KoinApplication, matrixClientService: MatrixClientService) =
     RootViewModelImpl(
