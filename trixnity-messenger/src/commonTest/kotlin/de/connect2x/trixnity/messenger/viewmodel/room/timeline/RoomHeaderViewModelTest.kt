@@ -11,14 +11,11 @@ import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
@@ -27,18 +24,13 @@ import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -139,6 +131,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 mocker.every { userPresenceMock.presentEventContentFlow(isAny(), isEqual(roomId)) } returns flowOf(
                     PresenceEventContent(presence = Presence.ONLINE)
                 )
+                mocker.every { userBlockingMock.isUserBlocked(isAny(), isAny()) } returns MutableStateFlow(false)
             }
         }
 
@@ -294,14 +287,14 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
     private fun subscribe(roomHeaderViewModel: RoomHeaderViewModel) {
         val scope = CoroutineScope(Dispatchers.Default)
-        scope.launch { roomHeaderViewModel.roomHeaderElement.collect() }
-        scope.launch { roomHeaderViewModel.isBackButtonVisible.collect() }
-        scope.launch { roomHeaderViewModel.usersTyping.collect() }
-        scope.launch { roomHeaderViewModel.canVerifyUser.collect() }
-        scope.launch { roomHeaderViewModel.error.collect() }
-        scope.launch { roomHeaderViewModel.userTrustLevel.collect() }
-        scope.launch { roomHeaderViewModel.isUserBlocked.collect() }
-        scope.launch { roomHeaderViewModel.canBlockUser.collect() }
-        scope.launch { roomHeaderViewModel.canUnblockUser.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.roomHeaderElement.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.isBackButtonVisible.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.usersTyping.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.canVerifyUser.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.error.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.userTrustLevel.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.isUserBlocked.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.canBlockUser.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.canUnblockUser.collect() }
     }
 }

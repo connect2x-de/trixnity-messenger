@@ -82,9 +82,7 @@ open class CreateNewChatViewModelImpl(
     override fun onUserClick(user: SearchUserElement) {
         val userId = user.userId
         coroutineScope.launch {
-            if (createNewRoomViewModel.existingDirectRooms.value[userId] != null &&
-                createNewRoomViewModel.existingDirectRooms.value[userId]?.isNotEmpty() == true
-            ) {
+            if (createNewRoomViewModel.existingDirectRooms.value[userId]?.isNotEmpty() == true) {
                 log.info { "go to existing room with $userId" }
                 createNewRoomViewModel.existingDirectRooms.value[userId]?.iterator()?.next()?.let { goToRoom(it) }
             } else {

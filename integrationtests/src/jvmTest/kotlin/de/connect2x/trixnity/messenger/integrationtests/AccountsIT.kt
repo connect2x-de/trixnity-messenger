@@ -41,7 +41,7 @@ class AccountsIT {
         koinApplication = koinApplication {
             modules(
                 trixnityMessengerModule(),
-                settingsModule()
+                itModules(),
             )
         }
         val baseUrl = URLBuilder(

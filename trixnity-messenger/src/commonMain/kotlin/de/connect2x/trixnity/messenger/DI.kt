@@ -23,16 +23,39 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import de.connect2x.trixnity.messenger.viewmodel.verification.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.datetime.Clock
+import net.folivo.trixnity.client.MatrixClientConfiguration
+import net.folivo.trixnity.client.media.MediaStore
+import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
 private val log = KotlinLogging.logger {}
 
 data class NamedMatrixClients(val list: StateFlow<List<NamedMatrixClient>>)
+
+fun interface HttpClientConfiguration {
+    operator fun invoke(): (HttpClientConfig<*>.() -> Unit) -> HttpClient
+}
+
+// error is only in IDE (@see https://youtrack.jetbrains.com/issue/KTIJ-7642/HMPP-IDE-False-positive-suspend-modifier-is-not-allowed-on-a-single-abstract-member-for-common-code-if-JVM-target-present)
+fun interface CreateRepositoriesModule {
+    suspend operator fun invoke(accountName: String): Module
+}
+
+fun interface CreateMediaStore {
+    suspend operator fun invoke(accountName: String): MediaStore
+}
+
+fun interface CreateMatrixClientConfiguration {
+    operator fun invoke(): MatrixClientConfiguration.() -> Unit
+}
 
 fun trixnityMessengerModule() = module {
     single<Clock> { Clock.System }
@@ -41,6 +64,26 @@ fun trixnityMessengerModule() = module {
             log.error(throwable) { "Exception in coroutineContext $coroutineContext" }
         }
         CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
+    }
+
+    single<HttpClientConfiguration> {
+        HttpClientConfiguration { { HttpClient(it) } }
+    }
+    single<CreateRepositoriesModule> {
+        CreateRepositoriesModule { createRepositoriesModule(it) }
+    }
+    single<CreateMediaStore> {
+        CreateMediaStore { createMediaStore(it) }
+    }
+    single<CreateMatrixClientConfiguration> {
+        CreateMatrixClientConfiguration {
+            {
+                setOwnMessagesAsFullyRead = true
+                httpClientFactory = get<HttpClientConfiguration>()()
+                lastRelevantEventFilter =
+                    { it.content is RoomMessageEventContent || it.content is EncryptedEventContent }
+            }
+        }
     }
 
     single<Settings> { createSettings() }
@@ -201,6 +244,8 @@ private val roomSettingsViewModels = module {
         object : PotentialMembersViewModelFactory {}
     }
     single<RoomSettingsViewModelFactory> { object : RoomSettingsViewModelFactory {} }
+    single<RoomSettingsNameViewModelFactory> { object: RoomSettingsNameViewModelFactory {} }
+    single<RoomSettingsNotificationsViewModelFactory> { object : RoomSettingsNotificationsViewModelFactory {} }
 
 }
 private val timelineViewModels = module {
