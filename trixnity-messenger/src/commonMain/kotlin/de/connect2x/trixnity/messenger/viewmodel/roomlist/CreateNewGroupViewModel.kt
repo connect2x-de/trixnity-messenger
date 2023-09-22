@@ -34,6 +34,7 @@ interface CreateNewGroupViewModel {
     val groupUsers: StateFlow<List<SearchUserElement>>
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
+    var optionalRoomName: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -55,8 +56,9 @@ open class CreateNewGroupViewModelImpl(
     private val onGroupCreated: (String, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
-    override val isPrivate = MutableStateFlow(true) //Standardmäßig ist ein Raum privat
-    override val isEncrypted = MutableStateFlow(true) //Standardmäßig ist ein Raum verschlüsselt
+    override val isPrivate = MutableStateFlow(true)
+    override val isEncrypted = MutableStateFlow(true)
+    override var optionalRoomName = MutableStateFlow("")
 
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
@@ -90,9 +92,15 @@ open class CreateNewGroupViewModelImpl(
         } else {
             listOf()
         }
+        val optionalAlias = if (optionalRoomName.value != "") {
+            optionalRoomName.value
+        } else {
+            null
+        }
+
         coroutineScope.launch {
             matrixClient.api.rooms.createRoom(
-                //name = createNewRoomViewModel.roomName.value, //TODO Raumname
+                name = optionalAlias,
                 visibility = visibility,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
@@ -149,6 +157,7 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")
 
     override fun onUserClick(user: SearchUserElement) {
     }
