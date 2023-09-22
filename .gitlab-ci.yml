@@ -69,6 +69,9 @@ variables:
 .if-main: &if-main
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+.if-release: &if-release
+  - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
+
 build:mac:
   stage: build
   tags: [ "internal-mac" ]
@@ -158,6 +161,7 @@ publish:mac:
     - *pull-cache-mac
   rules:
     - *if-main
+    - *if-release
   script:
     - ./gradlew
       :trixnity-messenger:publishIosArm64PublicationToGitlabRepository
@@ -173,6 +177,7 @@ publish:linux:
     - *pull-cache-linux
   rules:
     - *if-main
+    - *if-release
   script:
     - ./gradlew
       :trixnity-messenger:publishKotlinMultiplatformPublicationToGitlabRepository
