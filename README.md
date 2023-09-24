@@ -1,4 +1,4 @@
-# Trixnity Messenger - A Headless Matrix Messenger
+# Trixnity Messenger - A headless Matrix messenger
 
 Trixnity Messenger provides extensions on top of [Trixnity](https://gitlab.com/trixnity/trixnity)
 geared towards building a messenger. It is agnostic to the UI and supports all technologies that are interoperable with
