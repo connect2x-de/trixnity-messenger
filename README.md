@@ -1,7 +1,7 @@
 # Trixnity Messenger - A headless Matrix messenger
 
 Trixnity Messenger provides extensions on top of [Trixnity](https://gitlab.com/trixnity/trixnity)
-geared towards building a messenger. It is agnostic to the UI and supports all technologies that are interoperable with
+geared towards building a multiplatform messenger. It is agnostic to the UI and supports all technologies that are interoperable with
 Kotlin. UI frameworks that are reactive like
 [Compose Multiplatform](https://www.jetbrains.com/lp/compose-mpp), [SwiftUI](https://developer.apple.com/xcode/swiftui/)
 , or [ReactJS](https://reactjs.org/) are best suited, since the changes in Trixnity Messenger can be reflected in the
