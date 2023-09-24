@@ -7,6 +7,8 @@ Kotlin. UI frameworks that are reactive like
 , or [ReactJS](https://reactjs.org/) are best suited, since the changes in Trixnity Messenger can be reflected in the
 component by binding to the view model.
 
+**You need help? Ask your questions in [#trixnity-messenger:imbitbu.de](https://matrix.to/#/#trixnity-messenger:imbitbu.de).**
+
 ## MVVM
 
 Trixnity Messenger follows the MVVM pattern, in particular it represents the view model (VM) part. Trixnity is the
@@ -136,3 +138,6 @@ class MyViewModel {
     // ...
 }
 ```
+
+## Commercial license and support
+If you need a commercial license contact us at [kontakt@connect2x.de](mailto:kontakt@connect2x.de).
