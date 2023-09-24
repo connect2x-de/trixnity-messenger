@@ -140,4 +140,4 @@ class MyViewModel {
 ```
 
 ## Commercial license and support
-If you need a commercial license contact us at [kontakt@connect2x.de](mailto:kontakt@connect2x.de).
+If you need a commercial license or support contact us at [kontakt@connect2x.de](mailto:kontakt@connect2x.de).
