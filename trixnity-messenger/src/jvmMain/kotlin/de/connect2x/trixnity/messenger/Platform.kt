@@ -117,14 +117,6 @@ fun getAppFolder(accountName: String?): Path {
     return path
 }
 
-actual suspend fun deleteDatabase(accountName: String) {
-    withContext(Dispatchers.IO) {
-        accountMutex.withLock {
-            getDbFolderPath(accountName).toFile().deleteRecursively()
-        }
-    }
-}
-
 actual suspend fun deleteAccountDataLocally(accountName: String) {
     withContext(Dispatchers.IO) {
         accountMutex.withLock {

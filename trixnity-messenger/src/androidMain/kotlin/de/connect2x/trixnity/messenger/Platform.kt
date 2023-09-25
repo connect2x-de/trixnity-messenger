@@ -78,14 +78,6 @@ actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO)
     }
 }
 
-actual suspend fun deleteDatabase(accountName: String) {
-    withContext(Dispatchers.IO) {
-        accountMutex.withLock {
-            getDbPath(accountName).deleteRecursively()
-        }
-    }
-}
-
 actual suspend fun deleteAccountDataLocally(accountName: String) {
     withContext(Dispatchers.IO) {
         accountMutex.withLock {
