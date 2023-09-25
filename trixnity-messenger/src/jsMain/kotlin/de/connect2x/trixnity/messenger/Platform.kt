@@ -40,16 +40,12 @@ actual suspend fun getAccountNames(): List<String> = LocalAccountNames.get()
 private fun getDbName(accountName: String) =
     "${MessengerConfig.instance.appName.replaceFirstChar { it.lowercase() }}-$accountName"
 
-private fun getMediaStoreName(accountName: String) =
-    getDbName(accountName) + "-media"
-
 internal actual suspend fun createMediaStore(accountName: String): MediaStore =
-    IndexedDBMediaStore(getMediaStoreName(accountName))
+    IndexedDBMediaStore(getDbName(accountName))
 
 actual suspend fun deleteAccountDataLocally(accountName: String) {
     LocalAccountNames.update { it - accountName }
     deleteDatabase(getDbName(accountName))
-    deleteDatabase(getMediaStoreName(accountName))
 }
 
 actual fun closeApp() {
