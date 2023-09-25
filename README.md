@@ -49,7 +49,6 @@ Then you are ready to create the root node of the view model tree that is used i
 val rootViewModel = RootViewModelImpl(
   componentContext = componentContext,
   matrixClientService = matrixClientService,
-  initialSyncOnceIsFinished = { }, // not needed in our small example
   koinApplication = koinApplication,
 )
 ```
