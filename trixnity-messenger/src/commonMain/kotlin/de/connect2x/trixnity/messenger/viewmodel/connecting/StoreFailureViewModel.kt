@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.closeApp
-import de.connect2x.trixnity.messenger.deleteDatabase
+import de.connect2x.trixnity.messenger.deleteAccountDataLocally
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.launch
 
@@ -36,7 +36,7 @@ open class StoreFailureViewModelImpl(
 
     override fun deleteDb() {
         coroutineScope.launch {
-            deleteDatabase(_accountName)
+            deleteAccountDataLocally(_accountName)
         }
     }
 }

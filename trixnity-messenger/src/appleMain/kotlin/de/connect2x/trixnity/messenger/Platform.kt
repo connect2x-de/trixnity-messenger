@@ -34,12 +34,6 @@ internal actual suspend fun createMediaStore(accountName: String): MediaStore =
         mediaStore
     }
 
-actual suspend fun deleteDatabase(accountName: String) = withContext(Dispatchers.IO) {
-    accountMutex.withLock {
-        FileSystem.SYSTEM.deleteRecursively(getDbPath(accountName), mustExist = false)
-    }
-}
-
 actual suspend fun deleteAccountDataLocally(accountName: String) = withContext(Dispatchers.IO) {
     accountMutex.withLock {
         FileSystem.SYSTEM.deleteRecursively(getAppPath().resolve(accountName), mustExist = false)

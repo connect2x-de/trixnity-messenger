@@ -1,11 +1,10 @@
 package de.connect2x.trixnity.messenger
 
-import com.juul.indexeddb.Database
-import com.juul.indexeddb.Key
-import com.juul.indexeddb.openDatabase
+import com.juul.indexeddb.deleteDatabase
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.browser.localStorage
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.indexeddb.IndexedDBMediaStore
 import net.folivo.trixnity.client.store.repository.indexeddb.createIndexedDBRepositoriesModule
@@ -19,49 +18,38 @@ external object JsJodaTimeZoneModule
 
 private val jsJodaTz = JsJodaTimeZoneModule
 
-private const val accountNamesDbName = "__accountNames__"
-private const val accountNamesStore = "accountNames"
+private object LocalAccountNames {
+    private const val KEY = "accountNames"
+
+    fun get() = localStorage.getItem(KEY)
+        ?.let { Json.decodeFromString<List<String>>(it) }
+        ?: emptyList()
+
+    fun update(updater: (List<String>) -> List<String>) =
+        localStorage.setItem(KEY, Json.encodeToString(updater(get())))
+}
 
 actual suspend fun createRepositoriesModule(accountName: String): Module {
     log.info { "create IndexDB store" }
-    getAccountNamesDb()
-        .writeTransaction(accountNamesStore) {
-            objectStore(accountNamesStore).add(accountName)
-        }
+    LocalAccountNames.update { it + accountName }
     return createIndexedDBRepositoriesModule(getDbName(accountName))
 }
 
-actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.Default) {
-    (getAccountNamesDb()
-        .transaction(accountNamesStore) {
-            objectStore(accountNamesStore).getAll()
-        }
-            ).toList()
-}
+actual suspend fun getAccountNames(): List<String> = LocalAccountNames.get()
 
 private fun getDbName(accountName: String) =
     "${MessengerConfig.instance.appName.replaceFirstChar { it.lowercase() }}-$accountName"
 
-internal actual suspend fun createMediaStore(accountName: String): MediaStore {
-    return IndexedDBMediaStore("timmy_media")
-}
+private fun getMediaStoreName(accountName: String) =
+    getDbName(accountName) + "-media"
 
-private suspend fun getAccountNamesDb(): Database {
-    return openDatabase(accountNamesDbName, 1) { database, oldVersion, newVersion ->
-        if (oldVersion < 1) {
-            database.createObjectStore(accountNamesStore)
-        }
-    }
-}
-
-actual suspend fun deleteDatabase(accountName: String) {
-
-}
+internal actual suspend fun createMediaStore(accountName: String): MediaStore =
+    IndexedDBMediaStore(getMediaStoreName(accountName))
 
 actual suspend fun deleteAccountDataLocally(accountName: String) {
-    getAccountNamesDb().writeTransaction(accountNamesStore) {
-        objectStore(accountNamesStore).delete(Key(accountName))
-    }
+    LocalAccountNames.update { it - accountName }
+    deleteDatabase(getDbName(accountName))
+    deleteDatabase(getMediaStoreName(accountName))
 }
 
 actual fun closeApp() {
@@ -73,7 +61,7 @@ actual fun isNetworkAvailable(): Boolean {
 }
 
 actual fun deviceDisplayName(): String {
-    return "Browser"
+    return "${MessengerConfig.instance.appName.replaceFirstChar { it.lowercase() }} (Browser)"
 }
 
 actual suspend fun getLogContent(): String {

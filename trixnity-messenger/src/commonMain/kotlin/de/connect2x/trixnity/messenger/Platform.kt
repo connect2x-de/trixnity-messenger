@@ -9,8 +9,6 @@ internal expect suspend fun createRepositoriesModule(accountName: String): Modul
 
 internal expect suspend fun createMediaStore(accountName: String): MediaStore
 
-internal expect suspend fun deleteDatabase(accountName: String)
-
 internal expect suspend fun deleteAccountDataLocally(accountName: String)
 
 internal expect suspend fun getAccountNames(): List<String>
