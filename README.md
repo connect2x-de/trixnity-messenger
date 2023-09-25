@@ -26,51 +26,109 @@ This is an overview on how different UI technologies can be used on top of trixn
 
 ![](doc/trixnity-messenger-arch.png)
 
-## Setup
+## Getting Started
 
-## Configuration
+In order to use the SDK, you have to create some objects. Those are:
+* a `KoinApplication` (see [DI](#change-the-default-behavior-of-view-models)) that looks like this
+  ```kotlin
+  val koinApplication = koinApplication {
+    modules(trixnityMessengerModule())
+  }
+  ```
+* a `MatrixClientService` (holds `MatrixClient`s that can be used to access Matrix APIs, see [Trixnity](https://gitlab.com/trixnity/trixnity)):
+  ```kotlin
+     val matrixClientService = DefaultMatrixClientService(koinApplication.koin)
+  ```
+* a `ComponentContext` (from [Decompose](https://github.com/arkivanov/Decompose)):
+  ```kotlin
+  val componentContext = DefaultComponentContext(LifecycleRegistry())
+  ```
 
-Trixnity Messenger can be configured via dependency injection (DI). It uses [Koin](https://insert-koin.io/). A Koin
-application is implicitly created in the ```de.connect2x.trixnity.messenger.viewmodel.RootViewModel```. You can provide
-additional modules to override the standard module (```de.connect2x.trixnity.messenger.trixnityMessengerModule```).
-See [i18n](#i18n) on how to override standard behaviour.
-
+Then you are ready to create the root node of the view model tree that is used in your app.
 ```kotlin
-import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
-
-val rootViewModel = RootViewModel( // creates a Koin Application under the hood; access with `rootViewModel.koin`
-    // ...
+val rootViewModel = RootViewModelImpl(
+  componentContext = componentContext,
+  matrixClientService = matrixClientService,
+  koinApplication = koinApplication,
 )
 ```
 
-### Customize view models
-
-In order to customize the behaviour of the messenger, all view models can be replaced or extended via the DI. For
-example, one might customize the login logic.
-
-This is the new view model (it just extends existing behaviour):
-
+Create a root node in your UI framework and pass the created `rootViewModel` to it. In Compose Multiplatform on the desktop, it looks something like this:
 ```kotlin
-class MyLoginViewModel(
-    // params
-) : LoginViewModelImpl(
-    // params
-) {
-    val isDemoVersion = true
+application {
+  Window(...) {
+    MyMatrixClient(rootViewModel)
+  }
+}
+```
+where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel` as a parameter.
+
+Now you are ready to react to different states of the routing in the `RootViewModel`.
+
+### Routing
+The `RootViewModel` itself does not do much on its own, but is a point where routing kicks in. Different views in the view models are organized in stacks that show one view on top and possibly some views behind the top stack (see [Decompose routing](https://arkivanov.github.io/Decompose/navigation/overview/)).
+
+In our case, let's have a look at `rootViewModel.rootStack`. It returns a `Value<ChildStack<RootRouter.Config, RootRouter.RootWrapper>>`, i.e. a value changing over time that is providing the UI with an instance of `RootRouter.RootWrapper`. In a first step, let's observe this value and react to changes:
+```kotlin
+// this code has to be called from a `suspend` function
+rootViewModel.rootStack.toFlow()
+  .mapLatest { it.active.instance }
+  .collect { wrapper ->
+    when(wrapper) {
+      is RootRouter.RootWrapper.None -> {} // draw an empty UI
+      is RootRouter.RootWrapper.MatrixClientInitialization -> {} // show initialization of the MatrixClient (aka loading screen)
+      else -> {} // add more cases    
+    } 
+  }
+```
+
+In case you are using Compose as your UI framework, Decompose has some [helpers](https://arkivanov.github.io/Decompose/extensions/compose/#navigating-between-composable-components) for routing.
+
+## Configuration
+Trixnity Messenger has multiple ways to configure the client to your needs.
+
+### MessengerConfig
+The class `MessengerConfig` contains static information that is used to determine some folder names and other data in the lifecycle of the messenger. To override the standard configuration, put this in your code:
+```kotlin
+val messengerConfig: MessengerConfig.() -> Unit = {
+  appName = "MyMatrixClient"
+  // more things you would like to change
+}
+
+// before a view model is created
+MessengerConfig.instance.apply(messengerConfig)
+```
+
+### Change the default behavior of view models
+You can customize the messenger SDK to fit your needs with the help of dependency injection (DI). Trixnity Messenger uses [Koin](https://insert-koin.io/) for this.
+
+Suppose you want to deliver a demo version of your messenger and with it, want to fix the server url when the client tries to login the user to a Matrix server. To do this, you have to do the following:
+* provide an alternative implementation to a view model interface, here `AddMatrixAccountViewModel`
+```kotlin
+  class MyAddMatrixAccountViewModel(
+    viewModelContext: ViewModelContext,
+    addMatrixAccountViewModel: AddMatrixAccountViewModelImpl,
+  ): ViewModelContext by viewModelContext, AddMatrixAccountViewModel by addMatrixAccountViewModel {
+    
+    private val isDemoVersion: Boolean = ... // this is computed from the config or a runtime parameter
+    val canChangeServerUrl: Boolean = !isDemoVersion
+    override val serverUrl: MutableStateFlow<String> = MutableStateFlow(if (isDemoVersion) "https://myUrl" else addMatrixAccountViewModel.serverUrl.value)
 }
 ```
 
 Then, we have to register the new view model in a module:
-
 ```kotlin
-val demoVersionModule = module {
-    single<LoginViewModelFactory> {
-        object : LoginViewModelFactory {
-            override fun newLoginViewModel(
-                // params
-            ): LoginViewModel {
-                return TimLoginViewModel(
-                    // params
+val addMatrixAccountModule = module {
+  single<AddMatrixAccountViewModelFactory> {
+    object : AddMatrixAccountViewModelFactory {
+      override fun newAddMatrixAccountViewModel(
+        viewModelContext: ViewModelContext,
+        onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
+        onCancel: () -> Unit
+      ): AddMatrixAccountViewModel {
+        return MyAddMatrixAccountViewModel(
+          viewModelContext,
+          AddMatrixAccountViewModelImpl(viewModelContext, onAddMatrixAccountMethod, onCancel),
                 )
             }
         }
@@ -78,66 +136,28 @@ val demoVersionModule = module {
 }
 ```
 
+Finally, add it to the modules of `KoinApplication`:
 ```kotlin
-val rootViewModel = RootViewModel(
-    // ...
-    modules = listOf(demoVersionModule),
-)
+val koinApplication = koinApplication {
+    modules(
+        trixnityMessengerModule(),
+    addMatrixAccountModule,  
+    )
+}
 ```
+
+When you start your application with this configuration, the implementation of `AddMatrixAccountViewModel` will be your customized version `MyAddMatrixAccountViewModel` and your UI can use all the properties and methods of it (maybe a downcast from the `AddMatrixViewModel` interface is needed).
 
 ### i18n
 
 Trixnity Messenger comes with a set of standard translations for some states that can occur. It currently supports
 English (en) and German (de). It uses a simple
-[Kotlin file](src/commonMain/kotlin/de/connect2x/trixnity/messenger/util/I18n.kt) for all translations.
+[Kotlin file](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/util/I18n.kt) for all translations.
 
-#### Override
+It allows the same customizations as view models. In order to change messages, simply override the messages you want to change by subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/util/I18n.kt).
 
-To override some or all of the messages, the I18n can be replaced by your own class by inheriting
-[I18nBase](src/commonMain/kotlin/de/connect2x/trixnity/messenger/util/I18n.kt) and overriding some or all messages.
+If you want to add new messages, use the delegation pattern as described in [View model customization](#change-the-default-behavior-of-view-models) and add more messages.
 
-```kotlin
-import de.connect2x.trixnity.messenger.ChangedI18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
-import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
-import org.koin.dsl.koinApplication
-import org.koin.dsl.module
-
-val changedI18nModule = module {
-    single<I18n> { object : ChangedI18n(get()) {} }
-}
-// ...
-
-val koinApplication = koinApplication {
-    modules(
-        trixnityMessengerModule(),
-        changedI18nModule,
-    )
-}
-val rootViewModel = RootViewModelImpl(
-    // ...
-    koinApplication = koinApplication,
-)
-```
-
-#### Extend
-
-If you want to extend the existing I18n, you can create an additional I18n module and inject it into the code
-where it is needed.
-
-```kotlin
-val myI18nModule = module {
-    single<MyI18n> { object : MyI18n(get()) {} }
-}
-// ...
-
-class MyViewModel {
-    // ...
-    val myI18n = di.get<MyI18n>()
-    val message = myI18n.myAdditionalMessage()
-    // ...
-}
-```
 
 ## Commercial license and support
 If you need a commercial license or support contact us at [kontakt@connect2x.de](mailto:kontakt@connect2x.de).

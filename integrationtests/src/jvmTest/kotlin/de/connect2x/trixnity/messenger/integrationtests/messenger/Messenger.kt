@@ -153,9 +153,7 @@ private fun createRootViewModel(koinApplication: KoinApplication, matrixClientSe
     RootViewModelImpl(
         DefaultComponentContext(LifecycleRegistry()),
         matrixClientService = matrixClientService,
-        initialSyncOnceIsFinished = {},
         koinApplication = koinApplication,
-        minimizeMessenger = {},
         coroutineContext = Dispatchers.Default,
     )
 

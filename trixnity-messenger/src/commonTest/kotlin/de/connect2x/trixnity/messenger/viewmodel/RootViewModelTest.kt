@@ -154,7 +154,6 @@ class RootViewModelTest : ShouldSpec() {
         return RootViewModelImpl(
             componentContext = DefaultComponentContext(lifecycle),
             matrixClientService = matrixClientServiceMock,
-            initialSyncOnceIsFinished = {},
             koinApplication = koinApplication,
         )
     }
