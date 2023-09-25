@@ -129,10 +129,10 @@ val addMatrixAccountModule = module {
         return MyAddMatrixAccountViewModel(
           viewModelContext,
           AddMatrixAccountViewModelImpl(viewModelContext, onAddMatrixAccountMethod, onCancel),
-                )
-            }
-        }
+        )
+      }
     }
+  }
 }
 ```
 
@@ -140,8 +140,8 @@ Finally, add it to the modules of `KoinApplication`:
 ```kotlin
 val koinApplication = koinApplication {
     modules(
-        trixnityMessengerModule(),
-    addMatrixAccountModule,  
+      trixnityMessengerModule(),
+      addMatrixAccountModule,  
     )
 }
 ```
