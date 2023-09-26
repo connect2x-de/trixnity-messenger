@@ -47,7 +47,8 @@ kotlin {
 //                }
             }
         }
-        binaries.executable()
+        binaries.library()
+        generateTypeScriptDefinitions()
     }
     iosArm64()
     iosSimulatorArm64()

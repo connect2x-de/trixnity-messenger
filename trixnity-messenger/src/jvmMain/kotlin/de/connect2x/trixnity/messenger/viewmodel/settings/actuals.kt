@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.util.I18n
+import de.connect2x.trixnity.messenger.i18n.I18n
 import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
 

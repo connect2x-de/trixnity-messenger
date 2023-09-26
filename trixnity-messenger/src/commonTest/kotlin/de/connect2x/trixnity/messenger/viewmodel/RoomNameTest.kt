@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.util.I18n
-import de.connect2x.trixnity.messenger.util.Lang
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.core.spec.style.ShouldSpec
@@ -57,7 +57,7 @@ class RoomNameTest : ShouldSpec() {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(Lang.EN, testMessengerSettings("en")) {}
+            i18n = object : I18n(DefaultLanguages, testMessengerSettings("en")) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {

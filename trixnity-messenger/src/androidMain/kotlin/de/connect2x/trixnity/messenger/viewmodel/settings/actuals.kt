@@ -7,7 +7,7 @@ import androidx.core.app.NotificationManagerCompat
 import de.connect2x.trixnity.messenger.MessengerConfig
 import de.connect2x.trixnity.messenger.findActivity
 import de.connect2x.trixnity.messenger.getContext
-import de.connect2x.trixnity.messenger.util.I18n
+import de.connect2x.trixnity.messenger.i18n.I18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.Koin
 
