@@ -92,15 +92,11 @@ open class CreateNewGroupViewModelImpl(
         } else {
             listOf()
         }
-        val optionalAlias = if (optionalRoomName.value != "") {
-            optionalRoomName.value
-        } else {
-            null
-        }
+        val optionalName = optionalRoomName.value.ifBlank { null }
 
         coroutineScope.launch {
             matrixClient.api.rooms.createRoom(
-                name = optionalAlias,
+                name = optionalName,
                 visibility = visibility,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
