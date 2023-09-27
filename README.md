@@ -42,8 +42,8 @@ desktop, it looks something like this:
 ```kotlin
 application {
     Window(...) {
-    MyMatrixClient(rootViewModel)
-}
+        MyMatrixClient(rootViewModel)
+    }
 }
 ```
 
@@ -182,12 +182,12 @@ downcast from the `AddMatrixViewModel` interface is needed).
 
 Trixnity Messenger comes with a set of standard translations for some states that can occur. It currently supports
 English (en) and German (de). It uses a simple
-[Kotlin file](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/util/I18n.kt) for all
+[Kotlin file](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/i18n/I18n.kt) for all
 translations.
 
 It allows the same customizations as view models. In order to change messages, simply override the messages you want to
 change by
-subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/util/I18n.kt).
+subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/i18n/I18nBase.kt).
 
 If you want to add new messages, use the delegation pattern as described
 in [View model customization](#change-the-default-behavior-of-view-models) and add more messages.

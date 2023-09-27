@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
-import de.connect2x.trixnity.messenger.util.I18n
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.*
 import io.github.oshai.kotlinlogging.KotlinLogging
