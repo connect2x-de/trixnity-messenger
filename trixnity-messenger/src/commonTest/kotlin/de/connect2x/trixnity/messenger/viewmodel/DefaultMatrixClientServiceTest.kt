@@ -76,6 +76,9 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
                                 }
                             }
                         }
+                        single<CreateRepositoriesModule> {
+                            CreateRepositoriesModule { createInMemoryRepositoriesModule() }
+                        }
                     }
                 )
             }.koin
@@ -319,8 +322,5 @@ class DefaultMatrixClientServiceTest : ShouldSpec() {
         }
     }
 
-    private fun defaultMatrixClientService(di: Koin) = DefaultMatrixClientService(
-        repositoriesModuleCreation = { createInMemoryRepositoriesModule() },
-        matrixClientFactory = { matrixClientFactory },
-    )
+    private fun defaultMatrixClientService(di: Koin) = DefaultMatrixClientService(di, { matrixClientFactory })
 }

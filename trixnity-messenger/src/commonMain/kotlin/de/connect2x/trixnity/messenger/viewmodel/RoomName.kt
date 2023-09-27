@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.util.I18n
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,7 +36,7 @@ interface RoomName {
     ): String
 }
 
-class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter) : RoomName {
+open class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter) : RoomName {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getRoomNameElement(
@@ -92,7 +92,7 @@ class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter)
         ).first()?.content?.displayName ?: inviter.full
     } ?: i18n.commonUnknown()
 
-    internal fun calculateRoomName(
+    open fun calculateRoomName(
         roomId: RoomId,
         name: RoomDisplayName?,
         matrixClient: MatrixClient,
@@ -103,78 +103,41 @@ class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter)
 
             return when {
                 !explicitName.isNullOrEmpty() -> flowOf(explicitName)
-                otherUsersCount <= 0 -> {
-                    when {
-                        heroes.isEmpty() -> flowOf(
-                            if (roomIsEmpty) i18n.roomNameEmptyChat()
-                            else roomId.full
-                        )
+                heroes.isEmpty() && roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
+                heroes.isEmpty() -> flowOf(roomId.full)
+                else -> combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
+                    val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
+                        when {
+                            otherUsersCount == 0L && index < heroes.size - 2 || otherUsersCount > 0L && index < heroes.size - 1 -> {
+                                nameFromHeroes(roomUser, heroes, index) + ", "
+                            }
 
-                        else -> {
-                            combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
-                                val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
-                                    when {
-                                        index < heroes.size - 2 -> {
-                                            name(roomUser, heroes, index) + ", "
-                                        }
+                            otherUsersCount == 0L && index == heroes.size - 2 -> {
+                                nameFromHeroes(roomUser, heroes, index) + " ${i18n.roomNameAnd()} "
+                            }
 
-                                        index == heroes.size - 2 -> {
-                                            name(roomUser, heroes, index) + " ${i18n.roomNameAnd()} "
-                                        }
+                            otherUsersCount > 0L && index == heroes.size - 1 -> {
+                                nameFromHeroes(
+                                    roomUser,
+                                    heroes,
+                                    index
+                                ) + " ${i18n.roomNameAnd()} ${i18n.roomNameOther(otherUsersCount)}"
+                            }
 
-                                        else -> {
-                                            name(roomUser, heroes, index)
-                                        }
-                                    }
-                                }.joinToString("")
-                                if (roomIsEmpty)
-                                    i18n.roomNameEmptyChatWas(heroConcat)
-                                else
-                                    heroConcat
+                            else -> {
+                                nameFromHeroes(roomUser, heroes, index)
                             }
                         }
-                    }
-                }
-
-                else -> {
-                    if (heroes.isEmpty()) {
-                        flowOf("")
-                    } else {
-                        combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
-                            it.mapIndexed { index: Int, roomUser: RoomUser? ->
-                                when {
-                                    index < heroes.size - 1 -> {
-                                        name(roomUser, heroes, index) + ", "
-                                    }
-
-                                    else -> {
-                                        name(roomUser, heroes, index) + " ${i18n.roomNameAnd()} "
-                                    }
-                                }
-                            }.joinToString("")
-                        }
-                    }.map { heroNames ->
-                        val heroConcat = when {
-                            otherUsersCount > 1 ->
-                                i18n.roomNameOthersCount(heroNames, otherUsersCount)
-
-                            else ->
-                                when {
-                                    heroNames.isEmpty() && !roomIsEmpty -> i18n.roomNameOneOther()
-                                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-
-                                    else -> heroNames + i18n.roomNameOneOther()
-                                }
-                        }
-                        if (roomIsEmpty) i18n.roomNameEmptyChatWas(heroConcat) else heroConcat
-                    }
+                    }.joinToString("")
+                    if (roomIsEmpty) i18n.roomNameEmptyChatWas(heroConcat)
+                    else heroConcat
                 }
             }
         }
         return flowOf(roomId.full)
     }
 
-    private fun name(
+    protected open fun nameFromHeroes(
         roomUser: RoomUser?,
         heroes: List<UserId>,
         index: Int

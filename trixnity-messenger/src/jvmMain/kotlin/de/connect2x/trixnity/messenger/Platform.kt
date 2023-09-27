@@ -45,6 +45,7 @@ actual suspend fun createRepositoriesModule(accountName: String): Module = withC
             ?: createPassword().also {
                 setSecret(secretsName, it)
             }
+        // if you need to access your local realm database for debug purposes, use `hex(password.toByteArray())` to get the key to open it with realm studio
 
         createRealmRepositoriesModule {
             directory(dbFolder)
@@ -114,14 +115,6 @@ fun getAppFolder(accountName: String?): Path {
 
     Files.createDirectories(path)
     return path
-}
-
-actual suspend fun deleteDatabase(accountName: String) {
-    withContext(Dispatchers.IO) {
-        accountMutex.withLock {
-            getDbFolderPath(accountName).toFile().deleteRecursively()
-        }
-    }
 }
 
 actual suspend fun deleteAccountDataLocally(accountName: String) {

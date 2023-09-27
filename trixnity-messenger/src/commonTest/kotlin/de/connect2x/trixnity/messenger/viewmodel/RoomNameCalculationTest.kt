@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.util.I18n
-import de.connect2x.trixnity.messenger.util.Lang
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.core.spec.style.ShouldSpec
@@ -55,7 +55,7 @@ class RoomNameCalculationTest : ShouldSpec() {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(Lang.EN, testMessengerSettings("en")) {}
+            i18n = object : I18n(DefaultLanguages, testMessengerSettings("en")) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -169,20 +169,6 @@ class RoomNameCalculationTest : ShouldSpec() {
             ).first() shouldBe "User 1, User 2 and User 3"
         }
 
-        should("return an indication of the remaining user when isEmpty=false, |heroes|=0, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n, roomInviterMock)
-            cut.calculateRoomName(
-                roomId,
-                RoomDisplayName(
-                    explicitName = null,
-                    isEmpty = false,
-                    otherUsersCount = 1,
-                    summary = RoomSummary(heroes = listOf())
-                ),
-                matrixClientMock,
-            ).first() shouldBe "One other"
-        }
-
         should("return the display name of the hero along with a count of the remaining users when isEmpty=false, |heroes|=1, otherUserCount=1") {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -209,20 +195,6 @@ class RoomNameCalculationTest : ShouldSpec() {
                 ),
                 matrixClientMock,
             ).first() shouldBe "User 1, User 2 and one other"
-        }
-
-        should("return the count of the remaining users when isEmpty=false, |heroes|=0, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n, roomInviterMock)
-            cut.calculateRoomName(
-                roomId,
-                RoomDisplayName(
-                    explicitName = null,
-                    isEmpty = false,
-                    otherUsersCount = 2,
-                    summary = RoomSummary(heroes = listOf())
-                ),
-                matrixClientMock,
-            ).first() shouldBe "2 others"
         }
 
         should("return the display name of the hero along with a count of the remaining users when isEmpty=false, |heroes|=1, otherUserCount=2") {
@@ -312,20 +284,6 @@ class RoomNameCalculationTest : ShouldSpec() {
             ).first() shouldBe "Empty chat (was User 1, User 2 and User 3)"
         }
 
-        should("return an indication of the remaining user surrounded by an Empty-Room-String when isEmpty=true, |heroes|=0, otherUserCount=1") {
-            val cut = RoomNameImpl(i18n, roomInviterMock)
-            cut.calculateRoomName(
-                roomId,
-                RoomDisplayName(
-                    explicitName = null,
-                    isEmpty = true,
-                    otherUsersCount = 1,
-                    summary = RoomSummary(heroes = listOf())
-                ),
-                matrixClientMock,
-            ).first() shouldBe "Empty chat (was one other)"
-        }
-
         should("return the display name of the hero along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=1, otherUserCount=1") {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -352,20 +310,6 @@ class RoomNameCalculationTest : ShouldSpec() {
                 ),
                 matrixClientMock,
             ).first() shouldBe "Empty chat (was User 1, User 2 and one other)"
-        }
-
-        should("return the count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=0, otherUserCount=2") {
-            val cut = RoomNameImpl(i18n, roomInviterMock)
-            cut.calculateRoomName(
-                roomId,
-                RoomDisplayName(
-                    explicitName = null,
-                    isEmpty = true,
-                    otherUsersCount = 2,
-                    summary = RoomSummary(heroes = listOf())
-                ),
-                matrixClientMock,
-            ).first() shouldBe "Empty chat (was 2 others)"
         }
 
         should("return the display name of the hero along with the count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, |heroes|=1, otherUserCount=2") {

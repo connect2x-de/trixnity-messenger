@@ -1,75 +1,17 @@
-package de.connect2x.trixnity.messenger.util
+package de.connect2x.trixnity.messenger.i18n
 
-import de.connect2x.trixnity.messenger.util.Lang.DE
-import de.connect2x.trixnity.messenger.util.Lang.EN
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 private val log = KotlinLogging.logger { }
 
-interface Lang {
-    object DE : Lang
-    object EN : Lang
-
-    fun langOf(lang: String?): Lang? {
-        return when (lang) {
-            "de" -> DE
-            "en" -> EN
-            else -> null
-        }
-    }
-
-    fun stringRepresentation(): String {
-        return when (this) {
-            DE -> "de"
-            EN -> "en"
-            else -> ""
-        }
-    }
-}
-
-abstract class I18nBase(private val lang: Lang, messengerSettings: MessengerSettings) {
-
-    private var currentLang = getLang(lang, messengerSettings)
-    val currentTimezone = TimeZone.of(timezone())
-
-    /**
-     * Used to explicitly set the language, e.g., for testing.
-     */
-    fun setCurrentLang(newLang: String) {
-        this.currentLang = lang.langOf(newLang) ?: EN
-    }
-
-    fun getCurrentLang(): Lang = currentLang
-
-    fun translate(block: TranslateBuilder.() -> Unit): String {
-        return TranslateBuilder().apply(block).map.translate()
-    }
-
-    class TranslateBuilder {
-
-        val map: MutableMap<Lang, String> = mutableMapOf()
-        operator fun Lang.minus(translation: String) {
-            map[this] = translation
-        }
-    }
-
-    private fun Map<Lang, String>.translate(): String {
-        val translated = this[currentLang]
-        return if (translated == null) {
-            log.warn { "cannot find translation for language $currentLang: $this" }
-            this[EN] ?: "<missing translation>"
-        } else {
-            translated
-        }
-    }
-}
-
-abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase(lang, messengerSettings) {
+// TODO this is not lazy -> use property delegation or one class for one language instead
+abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) :
+    I18nBase(languages, messengerSettings) {
 
     // ---- translations -----
     fun commonUnknown() = translate {
@@ -127,14 +69,9 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Gruppe"
     }
 
-    fun roomNameOthersCount(heroes: String, others: Long) = translate {
-        EN - "$heroes$others others"
-        DE - "$heroes$others andere"
-    }
-
-    fun roomNameOneOther() = translate {
-        EN - "one other"
-        DE - "ein anderer"
+    fun roomNameOther(othersCount: Long) = translate {
+        EN - if (othersCount == 1L) "one other" else "$othersCount others"
+        DE - if (othersCount == 1L) "ein anderer" else "$othersCount andere"
     }
 
     fun eventChangeAvatar(username: String) = translate {
@@ -680,7 +617,7 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Sie werden so benachrichtigt, wie dies in den globalen Einstellungen festgelegt ist."
     }
 
-    fun settingsUnblockUserError(userId: String) =  translate {
+    fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
     }
@@ -737,9 +674,9 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
         DE - "Es gibt bereits ein lokales Konto für den Namen $accountName."
     }
 
-    fun defaultAccountName()=translate {
-        EN-"default"
-        DE-"Standard"
+    fun defaultAccountName() = translate {
+        EN - "default"
+        DE - "Standard"
     }
 
     fun serverDiscoveryFailed() = translate {
@@ -748,15 +685,17 @@ abstract class I18n(lang: Lang, messengerSettings: MessengerSettings) : I18nBase
     }
 }
 
-private fun getLang(lang: Lang, messengerSettings: MessengerSettings): Lang {
+internal fun getLang(languages: Languages, messengerSettings: MessengerSettings): Language {
     val preferredLang = getPreferredLang(messengerSettings)
     val systemLang = getSystemLang()
     log.debug { "preferred language: $preferredLang, system language: $systemLang" }
-    return lang.langOf(preferredLang) ?: lang.langOf(systemLang) ?: EN // fallback is english
+    return preferredLang?.let { languages.langOf(it) }
+        ?: systemLang?.let { languages.langOf(it) }
+        ?: EN// fallback is english
 }
 
-fun setLang(lang: Lang, preferredLang: String) {
-    lang.langOf(preferredLang)
+fun setLang(languages: Languages, preferredLang: String) {
+    languages.langOf(preferredLang)
 }
 
 fun setPreferredLang(lang: String, messengerSettings: MessengerSettings) {
@@ -765,4 +704,4 @@ fun setPreferredLang(lang: String, messengerSettings: MessengerSettings) {
 
 fun getPreferredLang(messengerSettings: MessengerSettings): String? = messengerSettings.preferredLang
 
-expect fun getSystemLang(): String?
+internal expect fun getSystemLang(): String?

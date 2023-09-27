@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.NamedMatrixClient
 import de.connect2x.trixnity.messenger.matrixClientOrThrow
-import de.connect2x.trixnity.messenger.util.I18n
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
@@ -261,7 +261,7 @@ class RoomListViewModelImpl(
                 )
                 roomsWithMeta.values.asFlow()
                     .filter { (room, _) ->
-                        val isRoom = room.createEventContent?.type == RoomType.Room
+                        val isSpace = room.createEventContent?.type == RoomType.Space
                         val isInActiveSpace =
                             if (activeSpaceInfo != null) {
                                 activeSpaceInfo.roomsInSpace.contains(room.roomId) ||
@@ -272,7 +272,7 @@ class RoomListViewModelImpl(
                                         } ?: false)
                             } else true
                         val includedInSearch = searchedRooms.contains(room.roomId)
-                        isRoom &&
+                        !isSpace &&
                                 (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
                                 isInActiveSpace &&
                                 includedInSearch

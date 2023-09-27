@@ -43,8 +43,8 @@ interface RootViewModel {
 open class RootViewModelImpl(
     componentContext: ComponentContext,
     matrixClientService: MatrixClientService,
-    initialSyncOnceIsFinished: (Boolean) -> Unit,
     koinApplication: KoinApplication,
+    initialSyncOnceIsFinished: (Boolean) -> Unit = {},
     minimizeMessenger: () -> Unit = {},
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ) : ComponentContext by componentContext, RootViewModel {

@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -91,7 +92,7 @@ class SearchImpl(
         }
         // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
         val searchUsersAsync = async {
-            matrixClient.api.users.searchUsers(searchTerm, i18n.getCurrentLang().stringRepresentation(), limit)
+            matrixClient.api.users.searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language
                     onSuccess = { response ->
                         response.results

@@ -103,8 +103,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomsApiClient
 
     private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
-    private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
-    private lateinit var roomGetById: Mocker.Every<Flow<Room?>>
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -130,27 +128,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
                 every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
 
-                roomGetById = every { roomServiceMock.getById(roomId) }
-                roomGetById returns MutableStateFlow(
-                    Room(
-                        isDirect = true,
-                        roomId = roomId,
-                        name = RoomDisplayName(explicitName = "Old name", summary = null),
-                    )
-                )
-
-                canSendEventMocker = mocker.every {
-                    userServiceMock.canSendEvent(isAny(), isAny())
-                }
-                canSendEventMocker returns flowOf(true)
-
-                every {
-                    roomServiceMock.getState(
-                        roomId,
-                        CreateEventContent::class,
-                        ""
-                    )
-                } returns MutableStateFlow(createEvent)
                 every {
                     roomServiceMock.getState(
                         roomId,
@@ -165,14 +142,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                         ""
                     )
                 } returns MutableStateFlow(createEvent)
-
-                every {
-                    userServiceMock.getPowerLevel(
-                        me,
-                        powerLevelsEventContent = powerLevelsEventContent,
-                        createEventContent = createEventContent
-                    )
-                } returns 100
 
                 every {
                     userServiceMock.getAll(isEqual(roomId))
@@ -191,106 +160,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 every { userServiceMock.canSetPowerLevelToMax(isEqual(roomId), isAny()) } returns MutableStateFlow(100)
 
             }
-        }
-
-        should("set room's push rule to DEFAULT'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(
-                PushRulesEventContent(
-                    global = PushRuleSet()
-                )
-            )
-            val cut = roomSettingsViewModel(coroutineContext)
-            val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.DEFAULT
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set room's push rule to ALL'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(
-                PushRulesEventContent(
-                    global = PushRuleSet(
-                        room = listOf(
-                            PushRule.Room(
-                                actions = setOf(Notify),
-                                enabled = true,
-                                default = false,
-                                roomId = RoomId("!room:localhost"),
-                            ),
-                        ),
-                    )
-                )
-            )
-            val cut = roomSettingsViewModel(coroutineContext)
-            val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.ALL
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set room's push rule to MENTIONS'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(
-                PushRulesEventContent(
-                    global = PushRuleSet(
-                        room = listOf(
-                            PushRule.Room(
-                                actions = setOf(),
-                                enabled = true,
-                                default = false,
-                                roomId = RoomId("!room:localhost"),
-                            ),
-                        ),
-                    )
-                )
-            )
-            val cut = roomSettingsViewModel(coroutineContext)
-            val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.MENTIONS
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set room's push rule to SILENT'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(
-                PushRulesEventContent(
-                    global = PushRuleSet(
-                        override = listOf(
-                            PushRule.Override(
-                                actions = setOf(),
-                                conditions = setOf(PushCondition.EventMatch("room_id", "!room:localhost")),
-                                enabled = true,
-                                default = false,
-                                ruleId = "!room:localhost",
-                            ),
-                        ),
-                    )
-                )
-            )
-            val cut = roomSettingsViewModel(coroutineContext)
-            val subscriberJob = launch { cut.selectedRoomNotificationsLevel.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.SILENT
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
         }
 
         should("go back to the room list view when leaving the room successfully") {
@@ -386,108 +255,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-
-        should("allow to change to room's name when the user's power level is allowed to") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(null)
-
-            val canSendEvent = MutableStateFlow(true)
-            canSendEventMocker returns canSendEvent
-
-            val cut = roomSettingsViewModel(coroutineContext)
-            val canChangeRoomNameStateFlow = cut.canChangeRoomName // hold reference for WhileSubscribed
-            canChangeRoomNameStateFlow.first { it }
-
-            canSendEvent.value = false
-
-            canChangeRoomNameStateFlow.first { it.not() }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("load the room name, set it when loaded, and can be manipulated afterwards") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(null)
-
-            val roomStateFlow = MutableStateFlow<Room?>(null)
-            roomGetById returns roomStateFlow
-
-            val cut = roomSettingsViewModel(coroutineContext)
-            // subscribe to all values in order to check for correct values later
-            CoroutineScope(Dispatchers.Default).launch {
-                cut.roomNameLoading.collect()
-            }
-            CoroutineScope(Dispatchers.Default).launch {
-                cut.roomName.collect()
-            }
-
-            cut.roomNameLoading.value shouldBe true
-            cut.roomName.value shouldBe ""
-
-            roomStateFlow.value = Room(
-                roomId,
-                name = RoomDisplayName(explicitName = "Old name", summary = null)
-            )
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomNameLoading.value shouldBe false
-            cut.roomName.value shouldBe "Old name"
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set the room's name to `Undetermined` when the name is currently set") {
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-            } returns MutableStateFlow(null)
-            mocker.everySuspending {
-                roomsApiClientMock.sendStateEvent(isEqual(roomId), isAny(), isAny(), isAny())
-            } runs {
-                coroutineScope.async {
-                    delay(1.seconds)
-                    Result.success(EventId("1"))
-                }.await()
-            }
-
-            val cut = roomSettingsViewModel(coroutineContext)
-            // subscribe to all values in order to check for correct values later
-            coroutineScope.launch { cut.roomNameLoading.collect() }
-            coroutineScope.launch { cut.roomNameIsBeingEdited.collect() }
-            coroutineScope.launch { cut.canChangeRoomName.collect() }
-
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomName.value shouldBe "Old name"
-
-            cut.roomName.value = "New name"
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomNameIsBeingEdited.value shouldBe true
-            cut.roomNameLoading.value shouldBe false
-
-            cut.changeRoomName()
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomNameLoading.value shouldBe true
-
-            coroutineScope.launch {
-                eventually(2.seconds) {
-                    cut.roomName.value shouldBe "New name"
-                    cut.roomNameLoading.value shouldBe false
-                }
-            }.join()
-
-            cancelNeverEndingCoroutines()
-        }
     }
-
-    private fun stateEvent(eventContent: PowerLevelsEventContent) = Event.StateEvent(
-        content = eventContent,
-        id = EventId("1"),
-        sender = me,
-        roomId = roomId,
-        originTimestamp = 0L,
-        stateKey = "",
-    )
 
     private fun roomSettingsViewModel(
         coroutineContext: CoroutineContext,

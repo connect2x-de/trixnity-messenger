@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,13 +9,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.*
-import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.Koin
 import org.koin.core.module.Module
 
@@ -61,21 +57,11 @@ interface MatrixClientFactory {
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultMatrixClientService(
-    private val baseHttpClient: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
-    private val repositoriesModuleCreation: suspend (account: String) -> Module = {
-        createRepositoriesModule(it)
-    },
-    private val mediaStoreCreation: suspend (accountName: String) -> MediaStore = {
-        createMediaStore(it)
-    },
+    di: Koin,
     private val matrixClientFactory: () -> MatrixClientFactory = {
-        val configuration: MatrixClientConfiguration.() -> Unit = {
-            setOwnMessagesAsFullyRead = true
-            httpClientFactory = baseHttpClient
-            lastRelevantEventFilter =
-                { it.content is RoomMessageEventContent || it.content is EncryptedEventContent }
-        }
-
+        val repositoriesModuleCreation = di.get<CreateRepositoriesModule>()
+        val mediaStoreCreation = di.get<CreateMediaStore>()
+        val configuration = di.get<CreateMatrixClientConfiguration>()()
         object : MatrixClientFactory {
             override suspend fun login(
                 baseUrl: Url,
@@ -160,7 +146,7 @@ class DefaultMatrixClientService(
             }
 
             private suspend fun createRepositoriesModule(
-                repositoriesModuleCreation: suspend (account: String) -> Module,
+                repositoriesModuleCreation: CreateRepositoriesModule,
                 accountName: String
             ): Module {
                 log.debug { "create repositories module" }
@@ -173,8 +159,9 @@ class DefaultMatrixClientService(
             }
         }
     },
-    override val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    override val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
 ) : MatrixClientService {
+
     override val matrixClients = MutableStateFlow<List<NamedMatrixClient>>(listOf())
     private val mutex = Mutex()
 
@@ -190,7 +177,7 @@ class DefaultMatrixClientService(
 
     // for iOS, since default parameters are not supported in MPP for Swift (https://youtrack.jetbrains.com/issue/KT-41908/cant-instantiate-data-classes-on-iOS-init-is-unavailable)
     companion object {
-        fun create(context: Any?, di: Koin): MatrixClientService = DefaultMatrixClientService()
+        fun create(di: Koin): MatrixClientService = DefaultMatrixClientService(di)
     }
 
     override suspend fun login(
