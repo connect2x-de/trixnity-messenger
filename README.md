@@ -30,32 +30,10 @@ This is an overview on how different UI technologies can be used on top of trixn
 
 ## Getting Started
 
-In order to use the SDK, you have to create some objects. Those are:
-
-* a `KoinApplication` (see [DI](#change-the-default-behavior-of-view-models)) that looks like this
-  ```kotlin
-  val koinApplication = koinApplication {
-    modules(trixnityMessengerModule())
-  }
-  ```
-* a `MatrixClientService` (holds `MatrixClient`s that can be used to access Matrix APIs,
-  see [Trixnity](https://gitlab.com/trixnity/trixnity)):
-  ```kotlin
-     val matrixClientService = DefaultMatrixClientService(koinApplication.koin)
-  ```
-* a `ComponentContext` (from [Decompose](https://github.com/arkivanov/Decompose)):
-  ```kotlin
-  val componentContext = DefaultComponentContext(LifecycleRegistry())
-  ```
-
-Then you are ready to create the root node of the view model tree that is used in your app.
+Just create the root node of the view model tree that is used in your app.
 
 ```kotlin
-val rootViewModel = RootViewModelImpl(
-    componentContext = componentContext,
-    matrixClientService = matrixClientService,
-    koinApplication = koinApplication,
-)
+val rootViewModel = RootViewModelImpl()
 ```
 
 Create a root node in your UI framework and pass the created `rootViewModel` to it. In Compose Multiplatform on the
@@ -64,14 +42,36 @@ desktop, it looks something like this:
 ```kotlin
 application {
     Window(...) {
-    MyMatrixClient(rootViewModel)
-}
+        MyMatrixClient(rootViewModel)
+    }
 }
 ```
 
 where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel` as a parameter.
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
+
+### Override defaults
+
+There are some parameters of `RootViewModelImpl`, that you can override to change the behaviour.
+
+* The `KoinApplication` (see [DI](#change-the-default-behavior-of-view-models)) can be used to override view models and
+  other components.
+  ```kotlin
+  val koinApplication = koinApplication {
+    modules(trixnityMessengerModule())
+  }
+  ```
+* The `MatrixClientService` (holds `MatrixClient`s that can be used to access Matrix APIs,
+  see [Trixnity](https://gitlab.com/trixnity/trixnity)) can be extended to a service (e. g. for Android).
+  ```kotlin
+     val matrixClientService = DefaultMatrixClientService(koinApplication.koin)
+  ```
+* The `ComponentContext` (from [Decompose](https://github.com/arkivanov/Decompose)) may need to be adapted to your UI
+  technology.
+  ```kotlin
+  val componentContext = DefaultComponentContext(LifecycleRegistry())
+  ```
 
 ### Routing
 
