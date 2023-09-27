@@ -1,15 +1,20 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.DefaultMatrixClientService
 import de.connect2x.trixnity.messenger.MatrixClientService
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
+import org.koin.dsl.koinApplication
 import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger { }
@@ -41,9 +46,11 @@ interface RootViewModel {
 
 
 open class RootViewModelImpl(
-    componentContext: ComponentContext,
-    matrixClientService: MatrixClientService,
-    koinApplication: KoinApplication,
+    componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry()),
+    koinApplication: KoinApplication = koinApplication {
+        modules(trixnityMessengerModule())
+    },
+    matrixClientService: MatrixClientService = DefaultMatrixClientService(koinApplication.koin),
     initialSyncOnceIsFinished: (Boolean) -> Unit = {},
     minimizeMessenger: () -> Unit = {},
     coroutineContext: CoroutineContext = Dispatchers.Default,
