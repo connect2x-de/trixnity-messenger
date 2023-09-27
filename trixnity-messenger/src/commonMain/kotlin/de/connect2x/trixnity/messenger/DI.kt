@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger
 
 import com.russhwolf.settings.Settings
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
@@ -99,7 +102,7 @@ fun trixnityMessengerModule() = module {
     single<Secrets> { object : Secrets {} }
     single<RelevantTimelineEvents> { object : RelevantTimelineEvents {} }
 
-    single<Lang> { object : Lang {} }
+    single<Languages> { DefaultLanguages }
     single<I18n> { object : I18n(get(), get()) {} }
     single<RoomName> { RoomNameImpl(get(), get()) }
     single<RoomInviter> { RoomInviterImpl() }
@@ -244,7 +247,7 @@ private val roomSettingsViewModels = module {
         object : PotentialMembersViewModelFactory {}
     }
     single<RoomSettingsViewModelFactory> { object : RoomSettingsViewModelFactory {} }
-    single<RoomSettingsNameViewModelFactory> { object: RoomSettingsNameViewModelFactory {} }
+    single<RoomSettingsNameViewModelFactory> { object : RoomSettingsNameViewModelFactory {} }
     single<RoomSettingsNotificationsViewModelFactory> { object : RoomSettingsNotificationsViewModelFactory {} }
 
 }
