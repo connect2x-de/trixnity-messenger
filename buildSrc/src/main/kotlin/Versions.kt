@@ -2,7 +2,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 object Versions {
-    const val trixnityMessenger = "1.0.6"
+    const val trixnityMessenger = "1.0.7"
 
     val kotlinJvmTarget = JavaVersion.VERSION_11
     const val trixnity = "3.10.3" // https://gitlab.com/trixnity/trixnity/-/releases
