@@ -59,6 +59,7 @@ interface MatrixClientFactory {
 class DefaultMatrixClientService(
     di: Koin,
     private val matrixClientFactory: () -> MatrixClientFactory = {
+        log.trace { "create MatrixClientFactory" }
         val repositoriesModuleCreation = di.get<CreateRepositoriesModule>()
         val mediaStoreCreation = di.get<CreateMediaStore>()
         val configuration = di.get<CreateMatrixClientConfiguration>()()
