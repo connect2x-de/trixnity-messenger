@@ -22,20 +22,27 @@ private object LocalAccountNames {
     private const val KEY = "accountNames"
 
     fun get() = localStorage.getItem(KEY)
-        ?.let { Json.decodeFromString<List<String>>(it) }
-        ?: emptyList()
+        ?.let {
+            try {
+                Json.decodeFromString<Set<String>>(it)
+            } catch (_: Exception) {
+                log.warn { "failed loading account list -> create a new empty one" }
+                emptySet()
+            }
+        }
+        ?: emptySet()
 
-    fun update(updater: (List<String>) -> List<String>) =
+    fun update(updater: (Set<String>) -> Set<String>) =
         localStorage.setItem(KEY, Json.encodeToString(updater(get())))
 }
 
 actual suspend fun createRepositoriesModule(accountName: String): Module {
-    log.info { "create IndexDB store" }
+    log.info { "createIndexedDBRepositoriesModule" }
     LocalAccountNames.update { it + accountName }
     return createIndexedDBRepositoriesModule(getDbName(accountName))
 }
 
-actual suspend fun getAccountNames(): List<String> = LocalAccountNames.get()
+actual suspend fun getAccountNames(): List<String> = LocalAccountNames.get().toList()
 
 private fun getDbName(accountName: String) =
     "${MessengerConfig.instance.appName.replaceFirstChar { it.lowercase() }}-$accountName"
@@ -43,8 +50,10 @@ private fun getDbName(accountName: String) =
 private fun getMediaStoreName(accountName: String) =
     getDbName(accountName) + "-media"
 
-internal actual suspend fun createMediaStore(accountName: String): MediaStore =
-    IndexedDBMediaStore(getMediaStoreName(accountName))
+internal actual suspend fun createMediaStore(accountName: String): MediaStore {
+    log.info { "create IndexedDBMediaStore" }
+    return IndexedDBMediaStore(getMediaStoreName(accountName))
+}
 
 actual suspend fun deleteAccountDataLocally(accountName: String) {
     LocalAccountNames.update { it - accountName }
