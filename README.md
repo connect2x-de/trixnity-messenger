@@ -30,6 +30,18 @@ This is an overview on how different UI technologies can be used on top of trixn
 
 ## Getting Started
 
+First you need to add the maven repository:
+
+```kotlin
+maven("https://gitlab.com/api/v4/projects/47538655/packages/maven")
+```
+
+Now you are able to add trixnity-messenger as dependency to your project:
+
+```kotlin
+implementation("de.connect2x:trixnity-messenger:<version>")
+```
+
 Just create the root node of the view model tree that is used in your app.
 
 ```kotlin
@@ -41,7 +53,7 @@ desktop, it looks something like this:
 
 ```kotlin
 application {
-    Window(...) {
+    Window("My App") {
         MyMatrixClient(rootViewModel)
     }
 }
