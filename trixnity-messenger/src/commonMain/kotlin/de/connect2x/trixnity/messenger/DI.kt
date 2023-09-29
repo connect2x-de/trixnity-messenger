@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.datetime.Clock
+import net.folivo.trixnity.api.client.defaultTrixnityHttpClient
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
@@ -70,7 +71,7 @@ fun trixnityMessengerModule() = module {
     }
 
     single<HttpClientConfiguration> {
-        HttpClientConfiguration { { HttpClient(it) } }
+        HttpClientConfiguration { { defaultTrixnityHttpClient(config = it) } }
     }
     single<CreateRepositoriesModule> {
         CreateRepositoriesModule { createRepositoriesModule(it) }
