@@ -47,8 +47,6 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
 
-    private val scope = CoroutineScope(Dispatchers.Default)
-
     @Mock
     lateinit var matrixClientMock: MatrixClient
 
@@ -326,7 +324,6 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             onBack = onBackMock,
             onGroupCreated = onGroupCreatedMock,
         )
-        scope.launch(start = CoroutineStart.UNDISPATCHED){createNewGroupViewModelImpl.canCreateNewGroup.collect{}}
         return createNewGroupViewModelImpl
     }
 

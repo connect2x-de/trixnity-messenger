@@ -8,7 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -63,7 +63,7 @@ open class CreateNewGroupViewModelImpl(
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
         !(private && !encrypted)
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
@@ -81,11 +81,15 @@ open class CreateNewGroupViewModelImpl(
     }
 
     override fun createNewGroup() {
+        if (canCreateNewGroup.value.not()) {
+            log.warn { "cannot create new group, since canCreateNewGroup is false" }
+            return
+        }
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
-        val visibility = if (isPrivate.value) {
-            DirectoryVisibility.PRIVATE
+        val preset = if (isPrivate.value) {
+            CreateRoom.Request.Preset.PRIVATE
         } else {
-            DirectoryVisibility.PUBLIC
+            CreateRoom.Request.Preset.PUBLIC
         }
         val encryption = if (isEncrypted.value) {
             listOf(Event.InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -97,7 +101,7 @@ open class CreateNewGroupViewModelImpl(
         coroutineScope.launch {
             matrixClient.api.rooms.createRoom(
                 name = optionalName,
-                visibility = visibility,
+                preset = preset,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
                 initialState = encryption,
