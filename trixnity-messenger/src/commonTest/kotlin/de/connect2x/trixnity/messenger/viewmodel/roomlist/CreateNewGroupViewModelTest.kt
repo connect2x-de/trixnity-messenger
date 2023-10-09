@@ -24,6 +24,7 @@ import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.ErrorResponse
@@ -114,7 +115,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
 
             mocker.verifyWithSuspend(exhaustive = false) {
                 roomsApiClientMock.createRoom(
-                    isEqual(DirectoryVisibility.PUBLIC),
+                    isAny(),
                     isAny(),
                     isNull(),
                     isAny(),
@@ -123,7 +124,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
-                    isAny(),
+                    isEqual(CreateRoom.Request.Preset.PUBLIC),
                     isAny(),
                     isAny(),
                     isNull(),
