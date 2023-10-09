@@ -8,6 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -31,6 +32,9 @@ interface CreateNewGroupViewModelFactory {
 interface CreateNewGroupViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
     val groupUsers: StateFlow<List<SearchUserElement>>
+    val isPrivate: MutableStateFlow<Boolean>
+    val isEncrypted: MutableStateFlow<Boolean>
+    var optionalRoomName: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -52,10 +56,14 @@ open class CreateNewGroupViewModelImpl(
     private val onGroupCreated: (String, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
+    override val isPrivate = MutableStateFlow(true)
+    override val isEncrypted = MutableStateFlow(true)
+    override var optionalRoomName = MutableStateFlow("")
 
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
-    override val canCreateNewGroup =
-        groupUsers.map { it.isNotEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
+        !(private && !encrypted)
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
@@ -73,12 +81,30 @@ open class CreateNewGroupViewModelImpl(
     }
 
     override fun createNewGroup() {
+        if (canCreateNewGroup.value.not()) {
+            log.warn { "cannot create new group, since canCreateNewGroup is false" }
+            return
+        }
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
+        val preset = if (isPrivate.value) {
+            CreateRoom.Request.Preset.PRIVATE
+        } else {
+            CreateRoom.Request.Preset.PUBLIC
+        }
+        val encryption = if (isEncrypted.value) {
+            listOf(Event.InitialStateEvent(content = EncryptionEventContent(), ""))
+        } else {
+            listOf()
+        }
+        val optionalName = optionalRoomName.value.ifBlank { null }
+
         coroutineScope.launch {
             matrixClient.api.rooms.createRoom(
+                name = optionalName,
+                preset = preset,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
-                initialState = listOf(Event.InitialStateEvent(content = EncryptionEventContent(), "")),
+                initialState = encryption,
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
@@ -127,8 +153,11 @@ open class CreateNewGroupViewModelImpl(
 class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
+    override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")
 
     override fun onUserClick(user: SearchUserElement) {
     }

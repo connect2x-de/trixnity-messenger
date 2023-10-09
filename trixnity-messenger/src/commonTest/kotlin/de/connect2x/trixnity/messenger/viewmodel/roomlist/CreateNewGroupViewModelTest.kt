@@ -16,16 +16,15 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.ErrorResponse
@@ -65,7 +64,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     private val onBackMock = mockFunction0<Unit>(mocker)
-    private val onGroupCreatedMock = mockFunction2<Unit,String, RoomId>(mocker)
+    private val onGroupCreatedMock = mockFunction2<Unit, String, RoomId>(mocker)
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -85,6 +84,61 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
                 every { matrixClientServerApiClientMock.users } returns usersApiClientMock
                 every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+            }
+        }
+
+        should("create a room for public + encrypted") {
+            mocker.everySuspending {
+                roomsApiClientMock.createRoom(
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny()
+                )
+            } returns Result.success(RoomId("room1", "localhost"))
+            val cut = createNewGroupViewModel()
+            cut.isPrivate.value = false
+            cut.isEncrypted.value = true
+            eventually(2.seconds) {
+                cut.canCreateNewGroup.value shouldBe true
+            }
+            cut.createNewGroup()
+
+            mocker.verifyWithSuspend(exhaustive = false) {
+                roomsApiClientMock.createRoom(
+                    isAny(),
+                    isAny(),
+                    isNull(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(CreateRoom.Request.Preset.PUBLIC),
+                    isAny(),
+                    isAny(),
+                    isNull(),
+                )
+            }
+        }
+
+        should("not allow creation of room when private & unencrypted") {
+
+            val cut = createNewGroupViewModel()
+            cut.isPrivate.value = true
+            cut.isEncrypted.value = false
+            eventually(2.seconds) {
+                cut.canCreateNewGroup.value shouldBe false
             }
         }
 
@@ -116,11 +170,9 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             cut.foundUsers.first {
                 it == listOf(user2, user3)
             }
-            cut.canCreateNewGroup.replayCache.getOrNull(0) shouldBe false
             cut.onUserClick(user2)
 
             eventually(3.seconds) {
-                cut.canCreateNewGroup.replayCache.getOrNull(0) shouldBe true
                 cut.groupUsers.value shouldContainExactly listOf(user2)
                 cut.foundUsers.value shouldNotContain user2
             }
@@ -128,7 +180,6 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             cut.removeUserFromGroup(user2)
 
             eventually(3.seconds) {
-                cut.canCreateNewGroup.replayCache.getOrNull(0) shouldBe false
                 cut.groupUsers.value shouldBe emptyList()
                 cut.foundUsers.value shouldContain user2
             }
@@ -258,7 +309,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
     }
 
     private fun createNewGroupViewModel(): CreateNewGroupViewModelImpl {
-        return CreateNewGroupViewModelImpl(
+        val createNewGroupViewModelImpl = CreateNewGroupViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
@@ -274,6 +325,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             onBack = onBackMock,
             onGroupCreated = onGroupCreatedMock,
         )
+        return createNewGroupViewModelImpl
     }
 
 
