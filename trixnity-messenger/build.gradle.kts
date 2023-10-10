@@ -1,4 +1,9 @@
+
+import co.touchlab.skie.configuration.DefaultArgumentInterop
+import co.touchlab.skie.configuration.EnumInterop
+import co.touchlab.skie.configuration.SealedInterop
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
@@ -9,7 +14,9 @@ plugins {
     kotlin("plugin.serialization").version(Versions.kotlin)
     id("io.kotest.multiplatform")
     id("com.google.devtools.ksp")
+    id("co.touchlab.skie")
     `maven-publish`
+    id("org.jetbrains.dokka") version Versions.dokka
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -54,9 +61,24 @@ kotlin {
     iosSimulatorArm64()
     iosX64()
 
+    val xcf = XCFramework()
+    val iosTargets = listOf(iosArm64(), iosSimulatorArm64(), iosX64())
+
+    iosTargets.forEach {
+        it.binaries.framework {
+            baseName = "trixnity-messenger"
+            xcf.add(this)
+            export("com.arkivanov.decompose:decompose:${Versions.decompose}")
+            export("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
+//            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
+            export("net.folivo:trixnity-client:${Versions.trixnity}")
+        }
+    }
+
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
         }
         val commonMain by getting {
             dependencies {
@@ -188,6 +210,12 @@ rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlu
 }
 
 publishing {
+    val dokkaJar by tasks.registering(Jar::class) {
+        dependsOn(tasks.dokkaHtml)
+        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+        archiveClassifier.set("javadoc")
+    }
+
     repositories {
         maven {
             url = uri("${System.getenv("CI_API_V4_URL")}/projects/47538655/packages/maven")
@@ -199,6 +227,44 @@ publishing {
             authentication {
                 create("header", HttpHeaderAuthentication::class)
             }
+        }
+    }
+    publications.configureEach {
+        if (this is MavenPublication) {
+            pom {
+                name.set(project.name)
+                description.set("Multiplatform Kotlin SDK for Matrix messengers")
+                url.set("https://gitlab.com/connect2x/trixnity-messenger")
+                licenses {
+                    license {
+                        name.set("GNU AFFERO GENERAL PUBLIC LICENSE version 3")
+                        url.set("https://www.gnu.org/licenses/agpl-3.0.html")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("mthiele")
+                        id.set("benkuly")
+                    }
+                }
+                scm {
+                    url.set("https://gitlab.com/connect2x/trixnity-messenger")
+                }
+            }
+            artifact(dokkaJar)
+        }
+    }
+}
+
+skie {
+    analytics {
+        disableUpload.set(true)
+    }
+    features {
+        group {
+            EnumInterop.Enabled(false)
+            SealedInterop.Enabled(false)
+            DefaultArgumentInterop.Enabled(false)
         }
     }
 }

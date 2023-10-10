@@ -14,6 +14,7 @@ buildscript {
 plugins {
     id("io.kotest.multiplatform") version Versions.kotest apply false
     id("com.google.devtools.ksp") version Versions.ksp apply false
+    id("co.touchlab.skie") version Versions.skie apply false
 }
 
 allprojects {

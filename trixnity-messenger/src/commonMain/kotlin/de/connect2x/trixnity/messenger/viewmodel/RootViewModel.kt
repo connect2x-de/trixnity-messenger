@@ -91,4 +91,12 @@ open class RootViewModelImpl(
     override fun dragFileExit() {
         router.dragFileExit()
     }
+
+    // for iOS, since default parameters do not work there
+    companion object {
+        fun create(
+            koinApplication: KoinApplication
+        ): RootViewModel =
+            RootViewModelImpl(koinApplication = koinApplication)
+    }
 }
