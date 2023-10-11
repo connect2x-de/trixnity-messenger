@@ -3,7 +3,6 @@ import co.touchlab.skie.configuration.DefaultArgumentInterop
 import co.touchlab.skie.configuration.EnumInterop
 import co.touchlab.skie.configuration.SealedInterop
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
@@ -11,12 +10,13 @@ plugins {
     id("com.android.library")
     id("kotlin-parcelize")
     kotlin("multiplatform")
-    kotlin("plugin.serialization").version(Versions.kotlin)
+    kotlin("plugin.serialization")
     id("io.kotest.multiplatform")
     id("com.google.devtools.ksp")
     id("co.touchlab.skie")
     `maven-publish`
-    id("org.jetbrains.dokka") version Versions.dokka
+    id("co.touchlab.kmmbridge")
+//    id("org.jetbrains.dokka") // TODO dokka and SKIE do not seem to like each other
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -61,17 +61,13 @@ kotlin {
     iosSimulatorArm64()
     iosX64()
 
-    val xcf = XCFramework()
-    val iosTargets = listOf(iosArm64(), iosSimulatorArm64(), iosX64())
-
-    iosTargets.forEach {
+    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach {
         it.binaries.framework {
-            baseName = "trixnity-messenger"
-            xcf.add(this)
             export("com.arkivanov.decompose:decompose:${Versions.decompose}")
             export("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
 //            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
             export("net.folivo:trixnity-client:${Versions.trixnity}")
+            isStatic = true
         }
     }
 
@@ -210,11 +206,11 @@ rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlu
 }
 
 publishing {
-    val dokkaJar by tasks.registering(Jar::class) {
-        dependsOn(tasks.dokkaHtml)
-        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-        archiveClassifier.set("javadoc")
-    }
+//    val dokkaJar by tasks.registering(Jar::class) {
+//        dependsOn(tasks.dokkaHtml)
+//        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+//        archiveClassifier.set("javadoc")
+//    }
 
     repositories {
         maven {
@@ -251,7 +247,7 @@ publishing {
                     url.set("https://gitlab.com/connect2x/trixnity-messenger")
                 }
             }
-            artifact(dokkaJar)
+//            artifact(dokkaJar)
         }
     }
 }
@@ -267,4 +263,9 @@ skie {
             DefaultArgumentInterop.Enabled(false)
         }
     }
+}
+
+kmmbridge {
+    mavenPublishArtifacts()
+    spm()
 }
