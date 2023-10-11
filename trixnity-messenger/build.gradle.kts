@@ -239,7 +239,7 @@ publishing {
                 }
                 developers {
                     developer {
-                        id.set("mthiele")
+                        id.set("michael.thiele")
                         id.set("benkuly")
                     }
                 }
