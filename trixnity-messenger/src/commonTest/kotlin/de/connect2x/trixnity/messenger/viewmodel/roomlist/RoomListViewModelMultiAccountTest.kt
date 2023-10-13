@@ -44,7 +44,8 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
@@ -241,7 +242,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         isAny()
                     )
                 } returns flowOf(
-                    Event.StateEvent(
+                    StateEvent(
                         content = CreateEventContent(creator = me1),
                         id = EventId(""),
                         sender = me1,
@@ -257,7 +258,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         isAny()
                     )
                 } returns flowOf(
-                    Event.StateEvent(
+                    StateEvent(
                         content = CreateEventContent(creator = me2),
                         id = EventId(""),
                         sender = me2,
@@ -273,7 +274,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         isAny()
                     )
                 } returns flowOf(
-                    Event.StateEvent(
+                    StateEvent(
                         content = CreateEventContent(creator = me3),
                         id = EventId(""),
                         sender = me3,
@@ -358,7 +359,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 roomServiceMock3.getState(roomId5, CreateEventContent::class, "")
             } returns
                     flowOf(
-                        Event.StateEvent(
+                        StateEvent(
                             CreateEventContent(user2),
                             EventId("\$event-a"),
                             user2,
@@ -653,7 +654,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { roomServiceMock2.getById(roomId3) } returns MutableStateFlow(room3)
                 every { roomServiceMock1.getState<CreateEventContent>(spaceId1, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me1,
                                     federate = false,
@@ -700,7 +701,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { roomServiceMock2.getById(spaceId2) } returns MutableStateFlow(space2)
                 every { roomServiceMock1.getState<CreateEventContent>(spaceId1, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me1,
                                     federate = false,
@@ -712,7 +713,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         )
                 every { roomServiceMock2.getState<CreateEventContent>(spaceId2, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me2,
                                     federate = false,
@@ -767,7 +768,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { roomServiceMock2.getById(spaceId2) } returns MutableStateFlow(space2)
                 every { roomServiceMock1.getState<CreateEventContent>(spaceId1, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me1,
                                     federate = false,
@@ -779,7 +780,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         )
                 every { roomServiceMock2.getState<CreateEventContent>(spaceId2, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me2,
                                     federate = false,
@@ -999,7 +1000,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         }
 
     private fun timelineEvent(eventId: EventId, sentAt: Instant) = TimelineEvent(
-        event = Event.MessageEvent(
+        event = MessageEvent(
             content = RoomMessageEventContent.TextMessageEventContent(""),
             id = eventId,
             sender = user2,
@@ -1022,7 +1023,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         memberEvent(roomId, userId)
     )
 
-    private fun memberEvent(roomId: RoomId, sender: UserId) = Event.StateEvent(
+    private fun memberEvent(roomId: RoomId, sender: UserId) = StateEvent(
         content = MemberEventContent(membership = Membership.JOIN),
         id = EventId("1"),
         sender = sender,
@@ -1032,7 +1033,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     )
 
     private fun spaceChildEvent(spaceId: RoomId, containedId: RoomId) =
-        Event.StateEvent(
+        StateEvent(
             content = ChildEventContent(),
             id = EventId(""),
             sender = me2,

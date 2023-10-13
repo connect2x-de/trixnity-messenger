@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
@@ -47,7 +47,7 @@ open class MemberStatusViewModelImpl(
     ) { timelineEvent, username, isDirect ->
         timelineEvent?.let {
             val event = it.event
-            require(event is Event.StateEvent)
+            require(event is StateEvent)
             val content = event.content
             require(content is MemberEventContent)
 
@@ -67,7 +67,7 @@ open class MemberStatusViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private suspend fun membershipChanged(
-        event: Event.StateEvent<*>,
+        event: StateEvent<*>,
         content: MemberEventContent,
         username: String,
         isDirect: Boolean

@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 
@@ -90,7 +90,7 @@ open class CreateNewChatViewModelImpl(
                 matrixClient.api.rooms.createRoom(
                     isDirect = true,
                     invite = setOf(userId),
-                    initialState = listOf(Event.InitialStateEvent(EncryptionEventContent(), "")),
+                    initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
                 ).fold(
                     onSuccess = { roomId ->
                         log.debug { "created room ${roomId.full}" }

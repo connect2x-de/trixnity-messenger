@@ -16,8 +16,6 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.getOriginTimestamp
-import net.folivo.trixnity.client.getSender
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.isReplaced
@@ -27,10 +25,10 @@ import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
-import net.folivo.trixnity.core.model.events.Event.MessageEvent
-import net.folivo.trixnity.core.model.events.Event.RoomEvent
-import net.folivo.trixnity.core.model.events.RedactedMessageEventContent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
@@ -39,11 +37,12 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
-interface TimelineElementViewModelFactory {
-    fun newTimelineElementViewModel(
+interface TimelineElementHolderViewModelFactory {
+    fun newTimelineElementHolderViewModel(
         viewModelContext: MatrixClientViewModelContext,
-        selectedRoomId: RoomId,
+        key: String,
         timelineEventFlow: Flow<TimelineEvent?>,
+        selectedRoomId: RoomId,
         eventId: EventId,
         canLoadMoreBefore: Flow<Boolean>,
         canLoadMoreAfter: Flow<Boolean>,
@@ -52,13 +51,14 @@ interface TimelineElementViewModelFactory {
         shouldShowUnreadMarkerFlow: Flow<Boolean>,
         readBy: Flow<List<String>>,
         onMessageEdited: (EventId) -> Unit,
-        onMessageRepliedTo: (MessageEvent<*>) -> Unit,
+        onMessageRepliedTo: (EventId) -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    ): TimelineElementViewModel {
-        return TimelineElementViewModelImpl(
+    ): TimelineElementHolderViewModel {
+        return TimelineElementHolderViewModelImpl(
             viewModelContext,
-            selectedRoomId,
+            key,
             timelineEventFlow,
+            selectedRoomId,
             eventId,
             canLoadMoreBefore,
             canLoadMoreAfter,
@@ -73,21 +73,40 @@ interface TimelineElementViewModelFactory {
     }
 }
 
-interface TimelineElementViewModel : ITimelineElementViewModel {
+interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
+    val eventId: EventId
+
+    val shouldShowUnreadMarkerFlow: StateFlow<Boolean>
+    val showLoadingIndicatorBefore: StateFlow<Boolean>
+    val showLoadingIndicatorAfter: StateFlow<Boolean>
+
     val isDirect: StateFlow<Boolean>
     val isRead: StateFlow<Boolean>
 
     val isReplaced: StateFlow<Boolean>
+
+    val canBeEdited: StateFlow<Boolean>
+    val canBeRedacted: StateFlow<Boolean>
+    val redactionInProgress: StateFlow<Boolean>
+    val redactionError: StateFlow<String?>
+    val canBeRepliedTo: StateFlow<Boolean>
+    val highlight: StateFlow<Boolean>
+    fun edit()
+    fun endEdit()
+    fun redact()
+    fun replyTo()
+    fun endReplyTo()
 
     /** returns no Flow! -> for current value, recompute every time needed (Flow computation would be expensive) */
     suspend fun isReadBy(): String
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-open class TimelineElementViewModelImpl(
+open class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    protected val selectedRoomId: RoomId,
+    override val key: String,
     protected val timelineEventFlow: Flow<TimelineEvent?>,
+    protected val selectedRoomId: RoomId,
     override val eventId: EventId,
     canLoadMoreBefore: Flow<Boolean>,
     canLoadMoreAfter: Flow<Boolean>,
@@ -96,10 +115,9 @@ open class TimelineElementViewModelImpl(
     private val readBy: Flow<List<String>>,
     shouldShowUnreadMarkerFlow: Flow<Boolean>,
     private val onMessageEdited: (EventId) -> Unit,
-    private val onMessageRepliedTo: (MessageEvent<*>) -> Unit,
+    private val onMessageRepliedTo: (EventId) -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-) : TimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
-
+) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
     private val richRepliesComputations = get<RichRepliesComputations>()
 
@@ -141,7 +159,7 @@ open class TimelineElementViewModelImpl(
         }
     }
 
-    override val viewModel = combine(
+    override val timelineElementViewModel = combine(
         timelineEventFlow.filterNotNull(),
         timelineEventFlow.flatMapLatest {
             it?.let { timelineEvent ->
@@ -192,12 +210,12 @@ open class TimelineElementViewModelImpl(
         return timelineEvent?.let { te ->
             val event = te.event
             val content = event.content
-            if (event is Event.StateEvent &&
+            if (event is StateEvent &&
                 event.stateKey == matrixClient.userId.full &&
                 content is MemberEventContent &&
                 content.membership == Membership.INVITE
             ) {
-                flowOf(event.getSender())
+                flowOf(event.sender)
             } else {
                 matrixClient.room.getNextTimelineEvent(te)
                     ?.flatMapLatest { nextTimelineEvent ->
@@ -416,7 +434,7 @@ open class TimelineElementViewModelImpl(
                 }
             }
 
-            is RedactedMessageEventContent -> {
+            is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
                 get<RedactedMessageViewModelFactory>().newRedactedMessageViewModel(
                     viewModelContext = this,
@@ -505,8 +523,8 @@ open class TimelineElementViewModelImpl(
         return timelineEvent.event.sender == matrixClient.userId
     }
 
-    private fun localDateTimeOf(event: Event<*>): LocalDateTime {
-        val timestamp = event.getOriginTimestamp()
+    private fun localDateTimeOf(event: RoomEvent<*>): LocalDateTime {
+        val timestamp = event.originTimestamp
         requireNotNull(timestamp) // should not happen as only RoomEvents and StateEvents are possible
         return Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(TimeZone.of(timezone()))
     }
@@ -518,14 +536,14 @@ open class TimelineElementViewModelImpl(
         return previousTimelineEvent?.let {
             val (_, datesAreDifferent) = compareDates(event, previousTimelineEvent)
             Pair(
-                event.sender != previousTimelineEvent.event.sender || previousTimelineEvent.event is Event.StateEvent,
+                event.sender != previousTimelineEvent.event.sender || previousTimelineEvent.event is StateEvent,
                 datesAreDifferent,
             )
         } ?: Pair(true, true) // first message is treated like it is different to the previous one
     }
 
     private fun compareDates(
-        event: Event<*>,
+        event: RoomEvent<*>,
         previousTimelineEvent: TimelineEvent
     ): Pair<LocalDateTime, Boolean> {
         val thisLocalDateTime = localDateTimeOf(event)
@@ -599,7 +617,7 @@ open class TimelineElementViewModelImpl(
         _replyToInProgress.value = true
         coroutineScope.launch {
             timelineEventFlow.first()?.event?.let {
-                if (it is MessageEvent<*>) onMessageRepliedTo(it)
+                if (it is MessageEvent<*>) onMessageRepliedTo(it.id)
                 else log.warn { "Try to reply to non-message event is not allowed." }
             }
         }
@@ -615,9 +633,10 @@ open class TimelineElementViewModelImpl(
 
 }
 
-class PreviewTimelineElementViewModel1 : ITimelineElementViewModel {
+class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val eventId: EventId = EventId("\$1:localhost")
-    override val viewModel: StateFlow<BaseTimelineElementViewModel?> =
+    override val key: String = eventId.full
+    override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         MutableStateFlow(object : TextBasedViewModel {
             override val fallbackMessage: String = "Hello everyone!"
             override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
@@ -636,6 +655,9 @@ class PreviewTimelineElementViewModel1 : ITimelineElementViewModel {
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isDirect: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -656,14 +678,20 @@ class PreviewTimelineElementViewModel1 : ITimelineElementViewModel {
 
     override fun endReplyTo() {
     }
+
+    override suspend fun isReadBy(): String = "Bob, Alice"
 }
 
-class PreviewTimelineElementViewModel2 : ITimelineElementViewModel {
+class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val eventId: EventId = EventId("\$2:localhost")
-    override val viewModel: MutableStateFlow<BaseTimelineElementViewModel?> = MutableStateFlow(null)
+    override val key: String = eventId.full
+    override val timelineElementViewModel: MutableStateFlow<BaseTimelineElementViewModel?> = MutableStateFlow(null)
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isDirect: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -684,12 +712,14 @@ class PreviewTimelineElementViewModel2 : ITimelineElementViewModel {
 
     override fun endReplyTo() {
     }
+
+    override suspend fun isReadBy(): String = "Bob, Alice"
 
     init {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
             delay(3.seconds)
-            viewModel.value = object : TextBasedViewModel {
+            timelineElementViewModel.value = object : TextBasedViewModel {
                 override val fallbackMessage: String = "I have good news."
                 override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
                 override val message: String = "I have good news."

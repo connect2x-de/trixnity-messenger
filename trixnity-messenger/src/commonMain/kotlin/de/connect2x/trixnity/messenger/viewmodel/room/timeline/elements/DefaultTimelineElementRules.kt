@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import net.folivo.trixnity.core.model.events.RedactedMessageEventContent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStep
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
@@ -18,7 +18,7 @@ object DefaultTimelineElementRules : TimelineElementRules {
         OlmEncryptedEventContent::class,
         // messages
         RoomMessageEventContent::class,
-        RedactedMessageEventContent::class,
+        RedactedEventContent::class,
         // verification
         VerificationStep::class,
         // status events
@@ -32,6 +32,6 @@ object DefaultTimelineElementRules : TimelineElementRules {
         OlmEncryptedEventContent::class,
         // messages
         RoomMessageEventContent::class,
-        RedactedMessageEventContent::class,
+        RedactedEventContent::class,
     )
 }

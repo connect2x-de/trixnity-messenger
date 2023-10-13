@@ -21,7 +21,6 @@ import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event.MessageEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
@@ -61,7 +60,7 @@ interface InputAreaViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         onMessageEditFinished: (EventId) -> Unit,
-        onMessageReplyToFinished: (MessageEvent<*>) -> Unit,
+        onMessageReplyToFinished: (EventId) -> Unit,
         onShowAttachmentSendView: (file: String) -> Unit,
     ): InputAreaViewModel {
         return InputAreaViewModelImpl(
@@ -106,7 +105,7 @@ interface InputAreaViewModel {
     fun onAttachmentFileSelect(file: String)
     fun editMessage(eventId: EventId)
     fun cancelEdit()
-    fun replyToMessage(event: MessageEvent<*>)
+    fun replyToMessage(eventId: EventId)
     fun cancelReplyTo()
 }
 
@@ -115,7 +114,7 @@ open class InputAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onMessageEditFinished: (EventId) -> Unit,
-    private val onMessageReplyFinished: (MessageEvent<*>) -> Unit,
+    private val onMessageReplyFinished: (EventId) -> Unit,
     private val onShowAttachmentSendView: (file: String) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
 
@@ -257,14 +256,16 @@ open class InputAreaViewModelImpl(
                     val viewModel = replyToViewModel.value
                     if (viewModel != null) {
                         log.debug { "send message (reply)" }
-                        val event = viewModel.event
+                        val event =
+                            matrixClient.room.getTimelineEvent(selectedRoomId, viewModel.eventId).filterNotNull()
+                                .first()
                         matrixClient.room.sendMessage(selectedRoomId) {
                             reply(event)
                             text(text)
                         }
                         replyToViewModel.value = null
                         _shouldFocus.value = null
-                        onMessageReplyFinished(event)
+                        onMessageReplyFinished(viewModel.eventId)
                     } else {
                         log.debug { "send message" }
                         matrixClient.room.sendMessage(selectedRoomId) {
@@ -330,15 +331,15 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    override fun replyToMessage(event: MessageEvent<*>) {
-        log.debug { "reply to message ${event.id}" }
+    override fun replyToMessage(eventId: EventId) {
+        log.debug { "reply to message ${eventId}" }
         replyToViewModel.value = get<ReplyToViewModelFactory>()
-            .newReplyToViewModel(this@InputAreaViewModelImpl, selectedRoomId, event, ::cancelReplyTo)
-        _shouldFocus.value = event.id.full
+            .newReplyToViewModel(this@InputAreaViewModelImpl, selectedRoomId, eventId, ::cancelReplyTo)
+        _shouldFocus.value = eventId.full
     }
 
     override fun cancelReplyTo() {
-        val repliedToEvent = replyToViewModel.value?.event
+        val repliedToEvent = replyToViewModel.value?.eventId
         replyToViewModel.value = null
         _shouldFocus.value = null
         repliedToEvent?.let { onMessageReplyFinished(it) }
@@ -465,7 +466,7 @@ class PreviewInputViewModel : InputAreaViewModel {
     override fun cancelEdit() {
     }
 
-    override fun replyToMessage(event: MessageEvent<*>) {
+    override fun replyToMessage(eventId: EventId) {
     }
 
     override fun cancelReplyTo() {

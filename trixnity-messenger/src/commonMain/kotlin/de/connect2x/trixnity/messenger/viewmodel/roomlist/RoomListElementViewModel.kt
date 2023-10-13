@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import net.folivo.trixnity.client.getOriginTimestamp
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -20,7 +19,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -153,7 +152,7 @@ open class RoomListElementViewModelImpl(
                 formatTimestamp(Instant.fromEpochMilliseconds(it.event.originTimestamp), clock)
             }
                 ?: matrixClient.room.getState<CreateEventContent>(roomId).first()
-                    .getOriginTimestamp()?.let { Instant.fromEpochMilliseconds(it) }
+                    ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
                     ?.let { formatTimestamp(it, clock) }
                 ?: ""
         }.stateIn(coroutineScope, WhileSubscribed(), null)
@@ -244,7 +243,7 @@ open class RoomListElementViewModelImpl(
         timelineEvent: TimelineEvent?,
         eventsToSearch: Int = 100,
     ): Flow<TimelineEvent?> {
-        return if (relevantTimelineEvents.isRelevantTimelineEvent(timelineEvent) && timelineEvent?.event !is Event.StateEvent)
+        return if (relevantTimelineEvents.isRelevantTimelineEvent(timelineEvent) && timelineEvent?.event !is StateEvent)
             return flowOf(timelineEvent)
         else {
             if (eventsToSearch > 0) {

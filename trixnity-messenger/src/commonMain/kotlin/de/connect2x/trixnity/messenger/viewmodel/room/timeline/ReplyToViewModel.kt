@@ -8,13 +8,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thu
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event.MessageEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
@@ -26,28 +26,29 @@ interface ReplyToViewModelFactory {
     fun newReplyToViewModel(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        event: MessageEvent<*>,
+        eventId: EventId,
         onCancelReplyTo: () -> Unit,
     ): ReplyToViewModel {
         return ReplyToViewModelImpl(
             viewModelContext,
             selectedRoomId,
-            event,
+            eventId,
             onCancelReplyTo,
         )
     }
 }
 
 interface ReplyToViewModel {
-    val event: MessageEvent<*>
+    val eventId: EventId
     val replyTo: StateFlow<ReplyType?>
     fun cancelReplyTo()
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 open class ReplyToViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     selectedRoomId: RoomId,
-    override val event: MessageEvent<*>,
+    override val eventId: EventId,
     private val onCancelReplyTo: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ReplyToViewModel {
 
@@ -60,8 +61,14 @@ open class ReplyToViewModelImpl(
 
     init {
         replyTo = combine(
-            matrixClient.room.getTimelineEvent(selectedRoomId, event.id),
-            matrixClient.user.getById(selectedRoomId, event.sender),
+            matrixClient.room.getTimelineEvent(selectedRoomId, eventId),
+            matrixClient.room.getTimelineEvent(selectedRoomId, eventId)
+                .flatMapLatest {
+                    if (it == null) flowOf(null) else matrixClient.user.getById(
+                        selectedRoomId,
+                        it.sender
+                    )
+                },
         ) { timelineEvent, roomUser ->
             val sender = roomUser?.name ?: i18n.commonUnknown()
             when (val content = timelineEvent?.content?.getOrNull()) { // in case the event has to be decrypted
@@ -172,13 +179,7 @@ sealed interface ReplyType {
 }
 
 class PreviewReplyToViewModel : ReplyToViewModel {
-    override val event = MessageEvent(
-        content = TextMessageEventContent("Hello World!"),
-        id = EventId("1"),
-        sender = UserId("alice", "localhost"),
-        roomId = RoomId("room1", "localhost"),
-        originTimestamp = 0L,
-    )
+    override val eventId = EventId("1")
     override val replyTo: MutableStateFlow<ReplyType?> =
         MutableStateFlow(
             TextReply(
@@ -192,13 +193,7 @@ class PreviewReplyToViewModel : ReplyToViewModel {
 }
 
 class PreviewReplyToViewModel2 : ReplyToViewModel {
-    override val event = MessageEvent(
-        content = TextMessageEventContent("Hello World!"),
-        id = EventId("1"),
-        sender = UserId("alice", "localhost"),
-        roomId = RoomId("room1", "localhost"),
-        originTimestamp = 0L,
-    )
+    override val eventId = EventId("1")
     override val replyTo: MutableStateFlow<ReplyType?> =
         MutableStateFlow(
             ImageReply(

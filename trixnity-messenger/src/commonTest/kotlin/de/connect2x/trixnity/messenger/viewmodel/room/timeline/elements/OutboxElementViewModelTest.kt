@@ -12,6 +12,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -59,11 +62,10 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.viewModel.value
+            val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<TextMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.value shouldBe false
-            value.formattedDate shouldBe "01.10.2020"
         }
 
         should("result in an ImageMessageViewModel for a image message") {
@@ -75,11 +77,10 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.viewModel.value
+            val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<ImageMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.value shouldBe false
-            value.formattedDate shouldBe "01.10.2020"
         }
 
         should("result in a VideoMessageViewModel for a video message") {
@@ -91,11 +92,10 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.viewModel.value
+            val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<VideoMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.value shouldBe false
-            value.formattedDate shouldBe "01.10.2020"
         }
 
         should("result in a FileMessageViewModel for a file message") {
@@ -107,11 +107,10 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.viewModel.value
+            val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<FileMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.value shouldBe false
-            value.formattedDate shouldBe "01.10.2020"
         }
 
         should("not display any other message type ('== null')") {
@@ -123,12 +122,12 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            cut.viewModel.value.shouldBeInstanceOf<NullTimelineElementViewModel>()
+            cut.timelineElementViewModel.filterNotNull().first().shouldBeInstanceOf<NullTimelineElementViewModel>()
         }
     }
 
-    private fun outboxElementViewModel(outboxMessage: RoomOutboxMessage<*>): OutboxElementViewModel {
-        return OutboxElementViewModelImpl(
+    private fun outboxElementViewModel(outboxMessage: RoomOutboxMessage<*>): OutboxElementHolderViewModel {
+        return OutboxElementHolderViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
@@ -139,9 +138,11 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 }.koin,
                 accountName = "test",
             ),
-            outboxMessage = outboxMessage,
-            showDateAbove = false,
-            showChatBubbleEdge = false,
+            key = outboxMessage.transactionId,
+            outboxMessageFlow = flowOf(outboxMessage),
+            transactionId = outboxMessage.transactionId,
+            showDateAboveFlow = flowOf(false),
+            showChatBubbleEdgeFlow = flowOf(false),
             selectedRoomId = roomId,
             onOpenModal = mockFunction4(mocker),
         )

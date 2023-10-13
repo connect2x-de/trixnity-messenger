@@ -27,6 +27,8 @@ import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -185,7 +187,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
             val userId5 = UserId("user5", "localhost")
             val userId6 = UserId("user6", "localhost")
 
-            val memberEvent1 = Event.StateEvent(
+            val memberEvent1 = StateEvent(
                 MemberEventContent(membership = Membership.JOIN),
                 EventId("event1"),
                 userId1,
@@ -194,7 +196,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 null,
                 ""
             )
-            val memberEvent2 = Event.StateEvent(
+            val memberEvent2 = StateEvent(
                 MemberEventContent(membership = Membership.INVITE),
                 EventId("event2"),
                 userId1,
@@ -203,7 +205,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 null,
                 ""
             )
-            val memberEvent3 = Event.StateEvent(
+            val memberEvent3 = StateEvent(
                 MemberEventContent(membership = Membership.LEAVE),
                 EventId("event3"),
                 userId1,

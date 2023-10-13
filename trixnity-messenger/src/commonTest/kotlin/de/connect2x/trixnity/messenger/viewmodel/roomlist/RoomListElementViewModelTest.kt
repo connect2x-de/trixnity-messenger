@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.RoomNameElement
@@ -32,8 +32,9 @@ import net.folivo.trixnity.clientserverapi.client.UsersApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
-import net.folivo.trixnity.core.model.events.UnknownMessageEventContent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
@@ -293,7 +294,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("search for the last known message and display that instead of the last message of type UnknownMessageEventContent") {
+        should("search for the last known message and display that instead of the last message of type UnknownEventContent") {
             val eventId1 = EventId("\$event1")
             val eventId2 = EventId("\$event2")
             val room1 = Room(
@@ -303,8 +304,8 @@ class RoomListElementViewModelTest : ShouldSpec() {
             )
             mocker.every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             val reaction = TimelineEvent(
-                Event.MessageEvent(
-                    UnknownMessageEventContent(
+                MessageEvent(
+                    UnknownEventContent(
                         raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
                         eventType = "m.reaction"
                     ),
@@ -327,7 +328,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             } returns
                     MutableStateFlow(
                         TimelineEvent(
-                            Event.MessageEvent(
+                            MessageEvent(
                                 TextMessageEventContent(body = "Hola"),
                                 eventId1,
                                 user2,
@@ -345,7 +346,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("search for the last known message and display that instead of the last message is an encrypted UnknownMessageEventContent") {
+        should("search for the last known message and display that instead of the last message is an encrypted UnknownEventContent") {
             val eventId1 = EventId("\$event1")
             val eventId2 = EventId("\$event2")
             val room1 = Room(
@@ -355,7 +356,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             )
             mocker.every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             val reaction = TimelineEvent(
-                Event.MessageEvent(
+                MessageEvent(
                     EncryptedEventContent.MegolmEncryptedEventContent(
                         ciphertext = "78fd687dfdsf",
                         senderKey = Key.Curve25519Key(value = ""),
@@ -368,7 +369,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                     1000L,
                 ),
                 Result.success(
-                    UnknownMessageEventContent(
+                    UnknownEventContent(
                         raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
                         eventType = "m.reaction"
                     ),
@@ -387,7 +388,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             } returns
                     MutableStateFlow(
                         TimelineEvent(
-                            Event.MessageEvent(
+                            MessageEvent(
                                 TextMessageEventContent(body = "Hola"),
                                 eventId1,
                                 user2,
@@ -415,7 +416,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             )
             mocker.every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room)
             val lastTimelineEvent = TimelineEvent(
-                Event.StateEvent(
+                StateEvent(
                     NameEventContent("new name"),
                     lastEventId,
                     user2,
@@ -434,7 +435,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 val eventId = EventId("\$event-$i")
                 val previousTimelineEvent = if (i > 1) {
                     TimelineEvent(
-                        Event.StateEvent(
+                        StateEvent(
                             NameEventContent("new name"),
                             eventId,
                             user2,
@@ -448,7 +449,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                     )
                 } else if (i > 0) {
                     TimelineEvent(
-                        Event.MessageEvent(
+                        MessageEvent(
                             TextMessageEventContent("Hello!"),
                             eventId,
                             user2,
@@ -530,7 +531,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             )
             mocker.every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room)
             val lastTimelineEvent = TimelineEvent(
-                Event.StateEvent(
+                StateEvent(
                     NameEventContent("new name"),
                     lastEventId,
                     user2,
@@ -549,7 +550,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 val eventId = EventId("\$event-$i")
                 val previousTimelineEvent = if (i > 1) {
                     TimelineEvent(
-                        Event.StateEvent(
+                        StateEvent(
                             NameEventContent("new name"),
                             eventId,
                             user2,
@@ -563,7 +564,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                     )
                 } else if (i > 0) {
                     TimelineEvent(
-                        Event.MessageEvent(
+                        MessageEvent(
                             TextMessageEventContent("Hello!"),
                             eventId,
                             user2,
@@ -586,7 +587,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             mocker.every {
                 roomServiceMock.getState(isEqual(roomId1), isEqual(CreateEventContent::class), isAny())
             } returns flowOf(
-                Event.StateEvent(
+                StateEvent(
                     CreateEventContent(
                         creator = user2,
                         federate = false,
@@ -629,7 +630,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                         MutableStateFlow(
                             MutableStateFlow(
                                 TimelineEvent(
-                                    Event.MessageEvent(
+                                    MessageEvent(
                                         RoomMessageEventContent.ImageMessageEventContent(""),
                                         eventId1,
                                         user2,
@@ -646,7 +647,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                         MutableStateFlow(
                             MutableStateFlow(
                                 TimelineEvent(
-                                    Event.MessageEvent(
+                                    MessageEvent(
                                         EncryptedEventContent.MegolmEncryptedEventContent(
                                             "",
                                             Key.Curve25519Key(value = ""),
@@ -884,7 +885,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
     private fun timelineEvent(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2) =
         TimelineEvent(
-            event = Event.MessageEvent(
+            event = MessageEvent(
                 content = TextMessageEventContent(body),
                 id = eventId,
                 sender = sender,
@@ -899,7 +900,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
     private fun timelineEventEncrypted(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2) =
         TimelineEvent(
-            event = Event.MessageEvent(
+            event = MessageEvent(
                 content = EncryptedEventContent.MegolmEncryptedEventContent(
                     ciphertext = "",
                     senderKey = Key.Curve25519Key(value = ""),
@@ -918,7 +919,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             gap = null,
         )
 
-    private fun memberEvent() = Event.StateEvent(
+    private fun memberEvent() = StateEvent(
         content = MemberEventContent(membership = Membership.JOIN),
         id = EventId(""),
         sender = me,
@@ -927,7 +928,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
         stateKey = ""
     )
 
-    private fun inviteEvent() = Event.StateEvent(
+    private fun inviteEvent() = StateEvent(
         content = MemberEventContent(membership = Membership.INVITE),
         id = EventId("\$event1"),
         sender = user2,

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface BaseTimelineElementViewModel {
-    val invitation: Flow<String?> // in case the element has the invitation element above
+    val invitation: Flow<String?> // in case the element has the invitation element above // FIXME StateFlow?
     val formattedDate: String // used for sticky header
     val showDateAbove: Boolean
 }
