@@ -17,11 +17,11 @@ interface MemberStatusViewModelFactory {
         showDateAbove: Boolean,
         invitation: Flow<String?>,
         timelineEventFlow: Flow<TimelineEvent?>,
-        usernameFlow: StateFlow<String>,
+        sender: Flow<String>,
         isDirectFlow: StateFlow<Boolean>,
     ): MemberStatusViewModel {
         return MemberStatusViewModelImpl(
-            viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, usernameFlow, isDirectFlow
+            viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, sender, isDirectFlow
         )
     }
 }
@@ -34,15 +34,17 @@ open class MemberStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
-    override val invitation: Flow<String?>,
+    invitation: Flow<String?>,
     timelineEventFlow: Flow<TimelineEvent?>,
-    usernameFlow: StateFlow<String>,
+    sender: Flow<String>,
     isDirectFlow: StateFlow<Boolean>,
 ) : MemberStatusViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val formattedMemberStatus: StateFlow<String?> = combine(
         timelineEventFlow,
-        usernameFlow,
+        sender,
         isDirectFlow,
     ) { timelineEvent, username, isDirect ->
         timelineEvent?.let {

@@ -167,12 +167,12 @@ open class TimelineElementHolderViewModelImpl(
             } ?: flowOf(null)
         },
     ) { timelineEvent, previousTimelineEvent ->
-        val usernameFlow = timelineEventFlow.flatMapLatest {
+        val sender = timelineEventFlow.flatMapLatest {
             it?.let { timelineEvent ->
                 matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
                     .map { user -> user?.name ?: timelineEvent.event.sender.full }
             } ?: flowOf(i18n.commonUnknown())
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), i18n.commonUnknown()) // TODO leak
+        }
 
         val invitation = timelineEventFlow
             .mapNotNull { it ->
@@ -187,7 +187,7 @@ open class TimelineElementHolderViewModelImpl(
         subViewModel(
             timelineEvent = timelineEvent,
             previousRoomEvent = previousTimelineEvent,
-            usernameFlow = usernameFlow,
+            sender = sender,
             invitation = invitation,
         )
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -240,7 +240,7 @@ open class TimelineElementHolderViewModelImpl(
     private fun subViewModel(
         timelineEvent: TimelineEvent,
         previousRoomEvent: TimelineEvent?,
-        usernameFlow: StateFlow<String>,
+        sender: Flow<String>,
         invitation: Flow<String?>,
     ): BaseTimelineElementViewModel {
         val event = timelineEvent.event
@@ -256,7 +256,7 @@ open class TimelineElementHolderViewModelImpl(
         val showSender = isDirect.map {
             it.not() && isByMe.not() && showChatBubbleEdge
             // we can safely stateIn here since viewModels are cached
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false) // TODO leak
+        }
         val showDateAbove: Boolean = isPreviousOfOtherDay
 
         val content = timelineEvent.content?.fold(
@@ -283,9 +283,9 @@ open class TimelineElementHolderViewModelImpl(
                                 matrixClient,
                                 content.relatesTo,
                                 selectedRoomId
-                            ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null), // TODO leak
+                            ),
                             message = content.bodyWithoutFallback,
-                            sender = usernameFlow,
+                            sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
                             formattedDate = formatDate(receivedDateTime),
@@ -306,9 +306,9 @@ open class TimelineElementHolderViewModelImpl(
                                 matrixClient,
                                 content.relatesTo,
                                 selectedRoomId
-                            ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null), // TODO leak
+                            ),
                             message = content.bodyWithoutFallback,
-                            sender = usernameFlow,
+                            sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
                             formattedDate = formatDate(receivedDateTime),
@@ -324,7 +324,7 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create image message view model: ${event.id}" }
                         get<ImageMessageViewModelFactory>().newImageMessageViewModel(
                             viewModelContext = this,
-                            sender = usernameFlow,
+                            sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
                             formattedDate = formatDate(receivedDateTime),
@@ -344,7 +344,7 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create video message view model: ${event.id}" }
                         get<VideoMessageViewModelFactory>().newVideoMessageViewModel(
                             viewModelContext = this,
-                            sender = usernameFlow,
+                            sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
                             formattedDate = formatDate(receivedDateTime),
@@ -362,7 +362,7 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create audio message view model: ${event.id}" }
                         get<AudioMessageViewModelFactory>().newAudioMessageViewModel(
                             viewModelContext = this,
-                            sender = usernameFlow,
+                            sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
                             formattedDate = formatDate(receivedDateTime),
@@ -387,7 +387,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             showSender = showSender,
-                            sender = usernameFlow,
+                            sender = sender,
                             invitation = invitation,
                             content = content,
                         )
@@ -401,7 +401,7 @@ open class TimelineElementHolderViewModelImpl(
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
                             formattedTime = formatTime(receivedDateTime),
-                            usernameFlow = usernameFlow,
+                            usernameFlow = sender,
                             content = content,
                             selectedRoomId = selectedRoomId,
                             timelineEventId = timelineEvent.eventId,
@@ -418,9 +418,9 @@ open class TimelineElementHolderViewModelImpl(
                                 matrixClient,
                                 content.relatesTo,
                                 selectedRoomId
-                            ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null), // TODO leak
+                            ),
                             message = content.bodyWithoutFallback,
-                            sender = usernameFlow,
+                            sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
                             formattedDate = formatDate(receivedDateTime),
@@ -438,7 +438,7 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create redacted text message view model: ${event.id}" }
                 get<RedactedMessageViewModelFactory>().newRedactedMessageViewModel(
                     viewModelContext = this,
-                    sender = usernameFlow,
+                    sender = sender,
                     showSender = MutableStateFlow(false),
                     formattedTime = formatTime(receivedDateTime),
                     formattedDate = formatDate(receivedDateTime),
@@ -454,7 +454,7 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create encrypted message view model: ${event.id}" }
                 get<EncryptedMessageViewModelFactory>().newEncryptedMessageViewModel(
                     viewModelContext = this,
-                    sender = usernameFlow,
+                    sender = sender,
                     formattedTime = formatTime(receivedDateTime),
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
@@ -475,7 +475,7 @@ open class TimelineElementHolderViewModelImpl(
                     showDateAbove = showDateAbove,
                     invitation = invitation,
                     timelineEventFlow = timelineEventFlow,
-                    usernameFlow = usernameFlow,
+                    sender = sender,
                     isDirectFlow = isDirect,
                 )
             }
@@ -487,7 +487,7 @@ open class TimelineElementHolderViewModelImpl(
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     invitation = invitation,
-                    usernameFlow = usernameFlow,
+                    sender = sender,
                     isDirectFlow = isDirect,
                 )
             }
@@ -499,7 +499,7 @@ open class TimelineElementHolderViewModelImpl(
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     invitation = invitation,
-                    usernameFlow = usernameFlow,
+                    sender = sender,
                     timelineEvent = timelineEvent,
                     isDirectFlow = isDirect,
                 )

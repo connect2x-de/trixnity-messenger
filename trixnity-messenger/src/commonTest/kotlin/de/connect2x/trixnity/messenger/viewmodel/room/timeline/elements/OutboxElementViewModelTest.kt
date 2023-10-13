@@ -65,7 +65,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<TextMessageViewModel>()
             value.isByMe shouldBe true
-            value.showSender.value shouldBe false
+            value.showSender.first { !it }
         }
 
         should("result in an ImageMessageViewModel for a image message") {
@@ -80,7 +80,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<ImageMessageViewModel>()
             value.isByMe shouldBe true
-            value.showSender.value shouldBe false
+            value.showSender.first { !it }
         }
 
         should("result in a VideoMessageViewModel for a video message") {
@@ -95,7 +95,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<VideoMessageViewModel>()
             value.isByMe shouldBe true
-            value.showSender.value shouldBe false
+            value.showSender.first { !it }
         }
 
         should("result in a FileMessageViewModel for a file message") {
@@ -110,7 +110,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             val value = cut.timelineElementViewModel.filterNotNull().first()
             value.shouldBeInstanceOf<FileMessageViewModel>()
             value.isByMe shouldBe true
-            value.showSender.value shouldBe false
+            value.showSender.first { !it }
         }
 
         should("not display any other message type ('== null')") {

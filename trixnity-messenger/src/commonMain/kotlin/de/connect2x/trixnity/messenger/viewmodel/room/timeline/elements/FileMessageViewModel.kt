@@ -3,7 +3,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
@@ -17,8 +19,8 @@ interface FileMessageViewModelFactory {
         isByMe: Boolean,
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
-        showSender: StateFlow<Boolean>,
-        sender: StateFlow<String>,
+        showSender: Flow<Boolean>,
+        sender: Flow<String>,
         invitation: Flow<String?>,
         content: FileMessageEventContent,
     ): FileMessageViewModel {
@@ -52,12 +54,18 @@ open class FileMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    override val showSender: StateFlow<Boolean>,
-    override val sender: StateFlow<String>,
-    override val invitation: Flow<String?>,
+    showSender: Flow<Boolean>,
+    sender: Flow<String>,
+    invitation: Flow<String?>,
     private val content: FileMessageEventContent,
 ) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
     MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val showSender: StateFlow<Boolean> =
+        showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val url: String? = content.file?.url ?: content.url
     override val encryptedFile: EncryptedFile? = content.file

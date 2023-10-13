@@ -10,11 +10,11 @@ interface RoomCreatedStatusViewModelFactory {
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
-        usernameFlow: StateFlow<String?>,
+        sender: Flow<String?>,
         isDirectFlow: StateFlow<Boolean>,
     ): RoomCreatedStatusViewModel {
         return RoomCreatedStatusViewModelImpl(
-            viewModelContext, formattedDate, showDateAbove, invitation, usernameFlow, isDirectFlow,
+            viewModelContext, formattedDate, showDateAbove, invitation, sender, isDirectFlow,
         )
     }
 }
@@ -27,12 +27,14 @@ open class RoomCreatedStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
-    override val invitation: Flow<String?>,
-    usernameFlow: StateFlow<String?>,
+    invitation: Flow<String?>,
+    sender: Flow<String?>,
     isDirectFlow: StateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomCreatedStatusViewModel {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val roomCreatedMessage = combine(usernameFlow, isDirectFlow) { username, isDirect ->
+    override val roomCreatedMessage = combine(sender, isDirectFlow) { username, isDirect ->
         val chatOrGroup =
             if (isDirect) i18n.eventChangeChatAccusative()
             else i18n.eventChangeGroupAccusative()

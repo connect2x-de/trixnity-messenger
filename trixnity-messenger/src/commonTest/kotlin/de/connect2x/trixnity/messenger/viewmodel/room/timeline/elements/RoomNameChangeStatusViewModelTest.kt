@@ -134,7 +134,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
-            usernameFlow = usernameFlow,
+            sender = usernameFlow,
             timelineEvent = timelineEvent,
             isDirectFlow = isDirectFlow,
         )

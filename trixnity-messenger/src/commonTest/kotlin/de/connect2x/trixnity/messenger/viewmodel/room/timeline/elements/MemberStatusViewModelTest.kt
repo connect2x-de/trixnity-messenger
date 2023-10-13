@@ -334,7 +334,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
             showDateAbove = false,
             invitation = MutableStateFlow(""),
             timelineEventFlow = timelineEventFlow,
-            usernameFlow = usernameFlow,
+            sender = usernameFlow,
             isDirectFlow = isDirectFlow,
         )
     }

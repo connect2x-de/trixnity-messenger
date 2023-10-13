@@ -109,7 +109,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
         should("show other user's name when the request is targeted at us") {
             val cut = userVerificationViewModel(verificationRequestMessageEventContent.copy(to = me))
 
-            cut.sender.value shouldBe "username"
+            cut.sender.first { it == "username" }
         }
 
         should("show as active when the verification has not timed out and is not done or cancelled") {
@@ -381,7 +381,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             formattedTime = null,
-            usernameFlow = MutableStateFlow("username"),
+            sender = MutableStateFlow("username"),
             content = verificationRequestMessageEventContent,
             selectedRoomId = thisRoom,
             timelineEventId = timelineEventId,

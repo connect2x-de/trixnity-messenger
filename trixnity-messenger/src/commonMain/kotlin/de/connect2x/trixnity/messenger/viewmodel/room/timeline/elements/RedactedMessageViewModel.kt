@@ -14,8 +14,8 @@ interface RedactedMessageViewModelFactory {
         isByMe: Boolean,
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
-        showSender: StateFlow<Boolean>,
-        sender: StateFlow<String>,
+        showSender: Flow<Boolean>,
+        sender: Flow<String>,
         invitation: Flow<String?>,
     ): RedactedMessageViewModel {
         return RedactedMessageViewModelImpl(
@@ -45,10 +45,16 @@ open class RedactedMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    override val showSender: StateFlow<Boolean>,
-    override val sender: StateFlow<String>,
-    override val invitation: Flow<String?>,
+    showSender: Flow<Boolean>,
+    sender: Flow<String>,
+    invitation: Flow<String?>,
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val showSender: StateFlow<Boolean> =
+        showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val formattedMessage = sender.map { username ->
         i18n.eventMessageRedacted(username)
@@ -67,7 +73,7 @@ class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
     override val sender: StateFlow<String> = MutableStateFlow("Martin")
     override val formattedTime: String? = null
-    override val invitation: Flow<String?> = MutableStateFlow(null)
+    override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = false
 }

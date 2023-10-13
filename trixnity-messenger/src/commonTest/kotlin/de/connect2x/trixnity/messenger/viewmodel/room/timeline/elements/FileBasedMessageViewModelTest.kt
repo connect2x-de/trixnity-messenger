@@ -17,10 +17,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
@@ -153,7 +150,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         viewModelContext: MatrixClientViewModelContext,
         override val url: String?,
         override val encryptedFile: EncryptedFile?,
-        override val invitation: Flow<String?>,
+        invitation: Flow<String?>,
         override val formattedDate: String,
         override val showDateAbove: Boolean,
         override val formattedTime: String?,
@@ -163,6 +160,9 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         override val showSender: StateFlow<Boolean>,
         override val sender: StateFlow<String>,
     ) : AbstractFileBasedMessageViewModel(viewModelContext), ViewModelContext by viewModelContext {
+        override val invitation: StateFlow<String?> =
+            invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
         override fun getFileNameWithExtension(): String = "test.jpg"
     }
 
