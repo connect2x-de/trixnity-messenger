@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -113,7 +113,7 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
-            usernameFlow = usernameFlow,
+            sender = usernameFlow,
             isDirectFlow = isDirectFlow,
         )
     }

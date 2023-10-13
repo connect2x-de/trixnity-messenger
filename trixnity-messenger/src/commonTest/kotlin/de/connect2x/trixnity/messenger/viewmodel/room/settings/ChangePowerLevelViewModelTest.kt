@@ -26,7 +26,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
@@ -54,7 +54,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
         MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
 
     private val roomUserAlice = RoomUser(
-        roomId, alice, "Alice", Event.StateEvent(
+        roomId, alice, "Alice", StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             alice,
@@ -65,7 +65,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
     )
 
     private val roomUserBob = RoomUser(
-        roomId, bob, "Bob", Event.StateEvent(
+        roomId, bob, "Bob", StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             bob,
@@ -122,7 +122,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 every {
                     roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
                 } returns MutableStateFlow(
-                    Event.StateEvent(
+                    StateEvent(
                         PowerLevelsEventContent(),
                         EventId("eventId"),
                         bob,

@@ -1,93 +1,75 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import com.arkivanov.decompose.ComponentContext
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
-import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import korlibs.io.async.launch
+import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 
-interface OutboxElementViewModelFactory {
-    fun newOutboxElementViewModel(
+interface OutboxElementHolderViewModelFactory {
+    fun newOutboxElementHolderViewModel(
         viewModelContext: MatrixClientViewModelContext,
+        key: String,
+        outboxMessageFlow: Flow<RoomOutboxMessage<*>>,
         selectedRoomId: RoomId,
-        outboxMessage: RoomOutboxMessage<*>,
-        showDateAbove: Boolean,
-        showChatBubbleEdge: Boolean,
+        transactionId: String,
+        showDateAboveFlow: Flow<Boolean>,
+        showChatBubbleEdgeFlow: Flow<Boolean>,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    ): OutboxElementViewModel {
-        return OutboxElementViewModelImpl(
+    ): OutboxElementHolderViewModel {
+        return OutboxElementHolderViewModelImpl(
             viewModelContext,
+            key,
+            outboxMessageFlow,
             selectedRoomId,
-            outboxMessage,
-            showDateAbove,
-            showChatBubbleEdge,
-            onOpenModal,
+            transactionId,
+            showDateAboveFlow,
+            showChatBubbleEdgeFlow,
+            onOpenModal
         )
     }
 }
 
-interface OutboxElementViewModel : ITimelineElementViewModel, ComponentContext
+interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
+    val transactionId: String
+    val sendError: StateFlow<String?>
+    val canRetrySend: StateFlow<Boolean>
+    val canAbortSend: StateFlow<Boolean>
 
-open class OutboxElementViewModelImpl(
+    fun retrySend()
+    fun abortSend()
+}
+
+open class OutboxElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    override val key: String,
+    outboxMessageFlow: Flow<RoomOutboxMessage<*>>,
     private val selectedRoomId: RoomId,
-    outboxMessage: RoomOutboxMessage<*>,
-    showDateAbove: Boolean,
-    showChatBubbleEdge: Boolean,
+    override val transactionId: String,
+    showDateAboveFlow: Flow<Boolean>,
+    showChatBubbleEdgeFlow: Flow<Boolean>,
     onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-) : MatrixClientViewModelContext by viewModelContext, OutboxElementViewModel {
+) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
     private val richRepliesComputations = get<RichRepliesComputations>()
+    private val i18n = get<I18n>()
 
-    override val eventId: EventId? = null // does not have an EventId yet
-
-    override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val showLoadingIndicatorBefore: StateFlow<Boolean> = MutableStateFlow(false)
-    override val showLoadingIndicatorAfter: StateFlow<Boolean> = MutableStateFlow(false)
-
-    override val canBeEdited: StateFlow<Boolean> = MutableStateFlow(false)
-    override val canBeRedacted: StateFlow<Boolean> = MutableStateFlow(false)
-    override val redactionInProgress: StateFlow<Boolean> = MutableStateFlow(false)
-    override val redactionError: StateFlow<String?> = MutableStateFlow(null)
-    override val canBeRepliedTo: StateFlow<Boolean> = MutableStateFlow(false)
-    override val highlight: StateFlow<Boolean> = MutableStateFlow(false)
-    override fun edit() {
-    }
-
-    override fun endEdit() {
-    }
-
-    override fun redact() {
-        // TODO should we allow redacting messages before sending?
-    }
-
-    override fun replyTo() {
-        // not possible to reply to your outbox messages
-    }
-
-    override fun endReplyTo() {
-    }
-
-    private val clock = get<Clock>()
-    override val viewModel: MutableStateFlow<BaseTimelineElementViewModel?> = MutableStateFlow(
-        kotlin.run {
+    override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
+        combine(
+            outboxMessageFlow,
+            showDateAboveFlow,
+            showChatBubbleEdgeFlow
+        ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
             val content = outboxMessage.content
-            val formattedDate = formatDate(clock.now().toLocalDateTime(TimeZone.of(timezone())))
+            val mediaUploadProgress = outboxMessage.mediaUploadProgress
             when (content) {
                 is TextMessageEventContent -> {
                     get<TextMessageViewModelFactory>().newTextMessageViewModel(
@@ -101,7 +83,7 @@ open class OutboxElementViewModelImpl(
                         message = content.bodyWithoutFallback,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
-                        formattedDate = formattedDate,
+                        formattedDate = "",
                         formattedTime = null,
                         showDateAbove = showDateAbove,
                         isByMe = true,
@@ -116,7 +98,7 @@ open class OutboxElementViewModelImpl(
                         viewModelContext = this,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
-                        formattedDate = formattedDate,
+                        formattedDate = "",
                         formattedTime = null,
                         showDateAbove = showDateAbove,
                         isByMe = true,
@@ -125,8 +107,8 @@ open class OutboxElementViewModelImpl(
                         invitation = MutableStateFlow(null),
                         content = content,
                         onOpenModal = onOpenModal,
-                        transactionId = outboxMessage.transactionId,
-                        mediaUploadProgress = outboxMessage.mediaUploadProgress,
+                        transactionId = transactionId,
+                        mediaUploadProgress = mediaUploadProgress,
                     )
                 }
 
@@ -135,7 +117,7 @@ open class OutboxElementViewModelImpl(
                         viewModelContext = this,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
-                        formattedDate = formattedDate,
+                        formattedDate = "",
                         formattedTime = null,
                         showDateAbove = showDateAbove,
                         isByMe = true,
@@ -152,7 +134,7 @@ open class OutboxElementViewModelImpl(
                         viewModelContext = this,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
-                        formattedDate = formattedDate,
+                        formattedDate = "",
                         formattedTime = null,
                         showDateAbove = showDateAbove,
                         isByMe = true,
@@ -167,7 +149,7 @@ open class OutboxElementViewModelImpl(
                 is FileMessageEventContent -> {
                     get<FileMessageViewModelFactory>().newFileMessageViewModel(
                         viewModelContext = this,
-                        formattedDate = formattedDate,
+                        formattedDate = "",
                         showDateAbove = showDateAbove,
                         formattedTime = null,
                         isByMe = true,
@@ -182,8 +164,7 @@ open class OutboxElementViewModelImpl(
 
                 else -> createNullTimelineElementViewModel()
             }
-        }
-    )
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private fun createNullTimelineElementViewModel() =
         NullTimelineElementViewModel(
@@ -192,4 +173,31 @@ open class OutboxElementViewModelImpl(
             showDateAbove = false,
             invitation = MutableStateFlow(null),
         )
+
+    override val sendError: StateFlow<String?> = outboxMessageFlow.map {
+        when (val sendError = it.sendError) {
+            RoomOutboxMessage.SendError.NoEventPermission -> i18n.sendErrorEventPermission()
+            RoomOutboxMessage.SendError.NoMediaPermission -> i18n.sendErrorMediaPermission()
+            RoomOutboxMessage.SendError.MediaTooLarge -> i18n.sendErrorMediaTooLarge()
+            is RoomOutboxMessage.SendError.BadRequest -> i18n.sendErrorUnknown(sendError.errorResponse.error)
+            is RoomOutboxMessage.SendError.Unknown -> i18n.sendErrorUnknown(sendError.errorResponse.error)
+            null -> null
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val canAbortSend: StateFlow<Boolean> = MutableStateFlow(true)
+    override val canRetrySend: StateFlow<Boolean> = outboxMessageFlow.map { it.sendError != null }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override fun abortSend() {
+        coroutineScope.launch {
+            matrixClient.room.abortSendMessage(transactionId)
+        }
+    }
+
+    override fun retrySend() {
+        coroutineScope.launch {
+            matrixClient.room.retrySendMessage(transactionId)
+        }
+    }
 }

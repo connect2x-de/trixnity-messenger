@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.getSender
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.core.model.RoomId
@@ -26,7 +25,7 @@ class RoomInviterImpl : RoomInviter {
                 val result =
                     matrixClient.room.getState<MemberEventContent>(roomId, stateKey = matrixClient.userId.full)
                         .first { it != null && it.content.membership == Membership.INVITE }
-                        ?.getSender()
+                        ?.sender
                 log.debug { "inviter in $roomId is '$result'" }
                 result
             } catch (exc: Exception) {

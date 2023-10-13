@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -23,7 +23,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData.UnsignedStateEventData
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import org.kodein.mock.Mock
@@ -134,7 +134,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
-            usernameFlow = usernameFlow,
+            sender = usernameFlow,
             timelineEvent = timelineEvent,
             isDirectFlow = isDirectFlow,
         )
@@ -142,7 +142,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
 
     fun timelineEvent(previousNameEvent: UnsignedStateEventData<NameEventContent>? = null) =
         TimelineEvent(
-            event = Event.StateEvent(
+            event = StateEvent(
                 NameEventContent("new name"),
                 id = EventId(""),
                 sender = UserId(""),

@@ -4,12 +4,12 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
@@ -29,7 +29,6 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -100,7 +99,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
                     roomsApiClientMock.setReadMarkers(isAny(), isAny(), isAny(), isAny(), isNull())
                 } returns Result.success(Unit)
 
-                every { roomServiceMock.getOutbox() } returns MutableStateFlow(emptyList())
+                every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
                 every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
 
@@ -146,9 +145,9 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             roomUsers(mocker, userServiceMock, roomId) {}
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 10
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>().isReadBy() shouldBe ""
+            cut.timelineElementHolderViewModels waitForSize 10
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>().isReadBy() shouldBe ""
         }
 
         should("return list of users that have my message as their last read message") {
@@ -170,12 +169,12 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 10
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>().isReadBy() shouldBe "read by 1, 2"
+            cut.timelineElementHolderViewModels waitForSize 10
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>().isReadBy() shouldBe "read by 1, 2"
             // bug: the second time, the users were added again
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>().isReadBy() shouldBe "read by 1, 2"
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>().isReadBy() shouldBe "read by 1, 2"
         }
 
         should("return list of users that have read one of the last 5 messages in the timeline (that are all users in the room)") {
@@ -199,10 +198,10 @@ class TimelineViewModelReadByTest : ShouldSpec() {
 
             val cut = timelineViewModel()
             // even though there are more timeline events available, initially only show 11
-            cut.timelineElementViewModels waitForSize 11
+            cut.timelineElementHolderViewModels waitForSize 11
 
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>().isReadBy() shouldBe "read by 1, 2, 3"
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>().isReadBy() shouldBe "read by 1, 2, 3"
         }
 
         should("increase the number of messages to be considered to 30 until our message is searched") {
@@ -226,10 +225,10 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 11
+            cut.timelineElementHolderViewModels waitForSize 11
 
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>().isReadBy() shouldBe "read by 1, 2, 3"
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>().isReadBy() shouldBe "read by 1, 2, 3"
         }
 
         should("stop at 11 users that read my message") {
@@ -252,10 +251,10 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 10
+            cut.timelineElementHolderViewModels waitForSize 10
 
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>()
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>()
                 .isReadBy() shouldBe "read by 1, 10, 11, 2, 3, 4, 5, 6, 7, 8, ..."
         }
 
@@ -280,10 +279,10 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 11
+            cut.timelineElementHolderViewModels waitForSize 11
 
-            cut.timelineElementViewModels.value.first().second
-                .shouldBeInstanceOf<TimelineElementViewModel>().isReadBy() shouldBe "read by 1, 2, 3, 4, 5"
+            cut.timelineElementHolderViewModels.value.first()
+                .shouldBeInstanceOf<TimelineElementHolderViewModel>().isReadBy() shouldBe "read by 1, 2, 3, 4, 5"
         }
 
         should("only mark own messages as read that have at least one message of someone else following") {
@@ -302,12 +301,12 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 2
-            val viewModelMessage2 = cut.timelineElementViewModels.value[0].second
-            viewModelMessage2.shouldBeInstanceOf<TimelineElementViewModel>()
+            cut.timelineElementHolderViewModels waitForSize 2
+            val viewModelMessage2 = cut.timelineElementHolderViewModels.value[0]
+            viewModelMessage2.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage2.isRead.first { it }
-            val viewModelMessage1 = cut.timelineElementViewModels.value[1].second
-            viewModelMessage1.shouldBeInstanceOf<TimelineElementViewModel>()
+            val viewModelMessage1 = cut.timelineElementHolderViewModels.value[1]
+            viewModelMessage1.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage1.isRead.first { it.not() }
             viewModelMessage1.isReadBy() shouldBe "read by Alice"
         }
@@ -325,10 +324,10 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 1
+            cut.timelineElementHolderViewModels waitForSize 1
 
-            val viewModelMessage1 = cut.timelineElementViewModels.value[0].second
-            viewModelMessage1.shouldBeInstanceOf<TimelineElementViewModel>()
+            val viewModelMessage1 = cut.timelineElementHolderViewModels.value[0]
+            viewModelMessage1.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage1.isRead.first { it }
             viewModelMessage1.isReadBy() shouldBe "read by Alice"
         }
@@ -346,10 +345,10 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 1
+            cut.timelineElementHolderViewModels waitForSize 1
 
-            val viewModelMessage1 = cut.timelineElementViewModels.value[0].second
-            viewModelMessage1.shouldBeInstanceOf<TimelineElementViewModel>()
+            val viewModelMessage1 = cut.timelineElementHolderViewModels.value[0]
+            viewModelMessage1.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage1.isRead.first { it.not() }
             viewModelMessage1.isReadBy() shouldBe ""
         }
@@ -372,18 +371,18 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             }
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
 
-            val viewModelMessage3 = cut.timelineElementViewModels.value[0].second
-            viewModelMessage3.shouldBeInstanceOf<TimelineElementViewModel>()
+            val viewModelMessage3 = cut.timelineElementHolderViewModels.value[0]
+            viewModelMessage3.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage3.isRead.first { it.not() }
             viewModelMessage3.isReadBy() shouldBe ""
-            val viewModelMessage2 = cut.timelineElementViewModels.value[1].second
-            viewModelMessage2.shouldBeInstanceOf<TimelineElementViewModel>()
+            val viewModelMessage2 = cut.timelineElementHolderViewModels.value[1]
+            viewModelMessage2.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage2.isRead.first { it.not() }
             viewModelMessage2.isReadBy() shouldBe ""
-            val viewModelMessage1 = cut.timelineElementViewModels.value[2].second
-            viewModelMessage1.shouldBeInstanceOf<TimelineElementViewModel>()
+            val viewModelMessage1 = cut.timelineElementHolderViewModels.value[2]
+            viewModelMessage1.shouldBeInstanceOf<TimelineElementHolderViewModel>()
             viewModelMessage1.isRead.first { it.not() }
             viewModelMessage1.isReadBy() shouldBe ""
         }
@@ -412,7 +411,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
                             viewModelContext: MatrixClientViewModelContext,
                             selectedRoomId: RoomId,
                             onMessageEditFinished: (EventId) -> Unit,
-                            onMessageReplyToFinished: (Event.MessageEvent<*>) -> Unit,
+                            onMessageReplyToFinished: (EventId) -> Unit,
                             onShowAttachmentSendView: (file: String) -> Unit
                         ): InputAreaViewModel {
                             return inputAreaViewModelMock

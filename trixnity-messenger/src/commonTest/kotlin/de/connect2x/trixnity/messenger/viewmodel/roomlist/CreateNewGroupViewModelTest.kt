@@ -4,7 +4,6 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.util.Search
-import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
@@ -31,7 +30,7 @@ import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import org.kodein.mock.*
 import org.koin.dsl.koinApplication
@@ -123,7 +122,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
                     isEqual(CreateRoom.Request.Preset.PUBLIC),
                     isAny(),
                     isAny(),
@@ -201,7 +200,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
                     isAny(),
                     isEqual(false),
                     isAny(),
@@ -260,7 +259,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(Event.InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
                     isAny(),
                     isEqual(false),
                     isAny(),

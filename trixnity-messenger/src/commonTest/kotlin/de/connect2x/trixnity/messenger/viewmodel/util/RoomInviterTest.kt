@@ -12,7 +12,7 @@ import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
@@ -60,7 +60,7 @@ class RoomInviterTest : ShouldSpec() {
 
         should("get the inviter from the matching invitation state event") {
             mocker.every { roomServiceMock.getState<MemberEventContent>(roomId, me.full) } returns flowOf(
-                Event.StateEvent(
+                StateEvent(
                     content = MemberEventContent(
                         membership = Membership.INVITE,
                     ),
@@ -77,7 +77,7 @@ class RoomInviterTest : ShouldSpec() {
 
         should("not run indefinitely") {
             mocker.every { roomServiceMock.getState<MemberEventContent>(roomId, me.full) } returns MutableStateFlow(
-                Event.StateEvent(
+                StateEvent(
                     content = MemberEventContent(
                         membership = Membership.LEAVE, // no invite!
                     ),

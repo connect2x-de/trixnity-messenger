@@ -32,7 +32,7 @@ import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -60,7 +60,7 @@ class MemberListViewModelTest : ShouldSpec() {
         roomId,
         me,
         "User1",
-        Event.StateEvent(
+        StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             me,
@@ -70,7 +70,7 @@ class MemberListViewModelTest : ShouldSpec() {
         )
     )
     private val roomUserAlice = RoomUser(
-        roomId, alice, "Alice", Event.StateEvent(
+        roomId, alice, "Alice", StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             alice,
@@ -81,7 +81,7 @@ class MemberListViewModelTest : ShouldSpec() {
     )
 
     private val roomUserBob = RoomUser(
-        roomId, bob, "Bob", Event.StateEvent(
+        roomId, bob, "Bob", StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             bob,
@@ -166,7 +166,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 PowerLevelsEventContent(users = mapOf(alice to 100, bob to 50, me to 1))
             val createEventContent = CreateEventContent(creator = bob)
 
-            val powerLevelEvent = Event.StateEvent(
+            val powerLevelEvent = StateEvent(
                 powerLevelsEventContent,
                 EventId("I'm an EventId"),
                 sender = bob,
@@ -174,7 +174,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            val createEvent = Event.StateEvent(
+            val createEvent = StateEvent(
                 createEventContent,
                 EventId("I'm an EventId too"),
                 sender = bob,

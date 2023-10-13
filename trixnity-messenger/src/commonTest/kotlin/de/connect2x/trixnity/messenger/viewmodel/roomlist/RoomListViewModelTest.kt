@@ -38,7 +38,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.*
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
@@ -181,7 +181,7 @@ class RoomListViewModelTest : ShouldSpec() {
                         isAny()
                     )
                 } returns flowOf(
-                    Event.StateEvent(
+                    StateEvent(
                         content = roomCreateEventContent,
                         id = EventId(""),
                         sender = me,
@@ -252,7 +252,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 roomServiceMock.getState(roomId5, CreateEventContent::class, "")
             } returns
                     flowOf(
-                        Event.StateEvent(
+                        StateEvent(
                             CreateEventContent(user2),
                             EventId("\$event-a"),
                             user2,
@@ -798,7 +798,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
                 every { roomServiceMock.getState<CreateEventContent>(spaceId1, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -810,7 +810,7 @@ class RoomListViewModelTest : ShouldSpec() {
                         )
                 every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -860,7 +860,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
                 every { roomServiceMock.getState<CreateEventContent>(spaceId1, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -872,7 +872,7 @@ class RoomListViewModelTest : ShouldSpec() {
                         )
                 every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -943,7 +943,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
                 every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -1048,7 +1048,7 @@ class RoomListViewModelTest : ShouldSpec() {
                         isAny()
                     )
                 } returns flowOf(
-                    Event.StateEvent(
+                    StateEvent(
                         content = CreateEventContent(creator = me),
                         id = EventId(""),
                         sender = me,
@@ -1115,7 +1115,7 @@ class RoomListViewModelTest : ShouldSpec() {
 
                 every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -1127,7 +1127,7 @@ class RoomListViewModelTest : ShouldSpec() {
                         )
                 every { roomServiceMock2.getState<CreateEventContent>(spaceId21, "") } returns
                         flowOf(
-                            Event.StateEvent(
+                            StateEvent(
                                 CreateEventContent(
                                     creator = me,
                                     federate = false,
@@ -1301,7 +1301,7 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
     private fun timelineEvent(eventId: EventId, sentAt: Instant) = TimelineEvent(
-        event = Event.MessageEvent(
+        event = MessageEvent(
             content = RoomMessageEventContent.TextMessageEventContent(""),
             id = eventId,
             sender = user2,
@@ -1324,7 +1324,7 @@ class RoomListViewModelTest : ShouldSpec() {
         memberEvent(roomId, userId)
     )
 
-    private fun memberEvent(roomId: RoomId, sender: UserId) = Event.StateEvent(
+    private fun memberEvent(roomId: RoomId, sender: UserId) = StateEvent(
         content = MemberEventContent(membership = Membership.JOIN),
         id = EventId("1"),
         sender = sender,
@@ -1334,7 +1334,7 @@ class RoomListViewModelTest : ShouldSpec() {
     )
 
     private fun spaceChildEvent(spaceId: RoomId, containedId: RoomId) =
-        Event.StateEvent(
+        StateEvent(
             content = ChildEventContent(),
             id = EventId(""),
             sender = me,

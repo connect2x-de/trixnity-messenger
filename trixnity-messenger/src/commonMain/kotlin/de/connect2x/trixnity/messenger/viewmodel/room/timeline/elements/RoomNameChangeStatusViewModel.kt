@@ -13,7 +13,7 @@ interface RoomNameChangeStatusViewModelFactory {
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
-        usernameFlow: StateFlow<String>,
+        sender: Flow<String>,
         timelineEvent: TimelineEvent,
         isDirectFlow: StateFlow<Boolean>,
     ): RoomNameChangeStatusViewModel {
@@ -22,7 +22,7 @@ interface RoomNameChangeStatusViewModelFactory {
             formattedDate,
             showDateAbove,
             invitation,
-            usernameFlow,
+            sender,
             timelineEvent,
             isDirectFlow,
         )
@@ -37,14 +37,16 @@ open class RoomNameChangeStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
-    override val invitation: Flow<String?>,
-    usernameFlow: StateFlow<String>,
+    invitation: Flow<String?>,
+    sender: Flow<String>,
     timelineEvent: TimelineEvent,
     isDirectFlow: StateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomNameChangeStatusViewModel {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val roomNameChangeMessage =
-        combine(usernameFlow, isDirectFlow) { username, isDirect ->
+        combine(sender, isDirectFlow) { username, isDirect ->
             val content = timelineEvent.event.content
             require(content is NameEventContent)
 

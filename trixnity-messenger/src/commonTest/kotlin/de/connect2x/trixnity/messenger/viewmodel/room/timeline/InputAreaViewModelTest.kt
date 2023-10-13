@@ -34,8 +34,8 @@ import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
-import net.folivo.trixnity.core.model.events.Event.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
@@ -77,7 +77,7 @@ class InputAreaViewModelTest : ShouldSpec() {
     private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
 
     private val onMessageEditFinishedMock = mockFunction1<Unit, EventId>(mocker)
-    private val onMessageReplToFinishedMock = mockFunction1<Unit, Event<*>>(mocker)
+    private val onMessageReplToFinishedMock = mockFunction1<Unit, EventId>(mocker)
 
     private lateinit var allRoomUsersMock: Mocker.Every<Flow<Map<UserId, Flow<RoomUser?>>?>>
 
@@ -272,11 +272,11 @@ class InputAreaViewModelTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.replyToMessage(messageEvent)
+            cut.replyToMessage(messageEvent.id)
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.replyToViewModel.value shouldNot beNull()
-            cut.replyToViewModel.value?.event shouldBe messageEvent
+            cut.replyToViewModel.value?.eventId shouldBe messageEvent.id
             val replyTo = cut.replyToViewModel.value?.replyTo?.filterNotNull()?.first()
             replyTo.shouldNotBeNull()
             replyTo should beInstanceOf<ReplyType.TextReply>()
@@ -291,7 +291,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             cut.message.value shouldBe ""
             cut.shouldFocus.value shouldBe null
             mocker.verify(exhaustive = false) {
-                onMessageReplToFinishedMock.invoke(messageEvent)
+                onMessageReplToFinishedMock.invoke(messageEvent.id)
             }
 
             subscriberJob.cancel()
@@ -720,7 +720,7 @@ class InputAreaViewModelTest : ShouldSpec() {
     }
 
     private fun roomUser(userId: UserId, name: String) = RoomUser(
-        roomId, userId, name, Event.StateEvent(
+        roomId, userId, name, StateEvent(
             content = MemberEventContent(membership = Membership.JOIN),
             id = EventId("123"),
             sender = userId,

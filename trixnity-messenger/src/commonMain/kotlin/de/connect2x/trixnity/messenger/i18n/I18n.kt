@@ -683,6 +683,26 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
         EN - "Server could not be determined or is not valid."
         DE - "Server konnte nicht ermittelt werden oder ist nicht gültig."
     }
+
+    fun sendErrorEventPermission() = translate {
+        EN - "You do not have permission to send a message in this room."
+        DE - "Sie haben keine Rechte, um Nachrichten in diesem Raum zu versenden."
+    }
+
+    fun sendErrorMediaPermission() = translate {
+        EN - "You do not have permission to upload this file. The file type may not be supported or you reached an upload quota."
+        DE - "Sie haben keine Rechte, um diese Datei hochzuladen. Möglicherweise wurde der Dateityp abgelehnt oder Sie haben Ihr maxinmales Kontingent erreicht."
+    }
+
+    fun sendErrorMediaTooLarge() = translate {
+        EN - "The file you want to upload is too large."
+        DE - "Die Datei, die sich versuchen hochzuladen ist zu groß."
+    }
+
+    fun sendErrorUnknown(errorMessage: String?) = translate {
+        EN - "There was an unexpected error sending the message${if (errorMessage == null) "." else ": $errorMessage"}"
+        DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
+    }
 }
 
 internal fun getLang(languages: Languages, messengerSettings: MessengerSettings): Language {

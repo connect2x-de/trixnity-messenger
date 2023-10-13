@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 
 
 interface FallbackMessageViewModelFactory {
@@ -14,10 +16,10 @@ interface FallbackMessageViewModelFactory {
         isByMe: Boolean,
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
-        showSender: StateFlow<Boolean>,
-        sender: StateFlow<String>,
+        showSender: Flow<Boolean>,
+        sender: Flow<String>,
         fallbackMessage: String,
-        referencedMessage: StateFlow<ReferencedMessage?>,
+        referencedMessage: Flow<ReferencedMessage?>,
         message: String,
         invitation: Flow<String?>,
     ): FallbackMessageViewModel {
@@ -49,13 +51,21 @@ open class FallbackMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    override val showSender: StateFlow<Boolean>,
-    override val sender: StateFlow<String>,
+    showSender: Flow<Boolean>,
+    sender: Flow<String>,
     override val fallbackMessage: String,
-    override val referencedMessage: StateFlow<ReferencedMessage?>,
+    referencedMessage: Flow<ReferencedMessage?>,
     override val message: String,
-    override val invitation: Flow<String?>,
+    invitation: Flow<String?>,
 ) : FallbackMessageViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val showSender: StateFlow<Boolean> =
+        showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+    override val referencedMessage: StateFlow<ReferencedMessage?> =
+        referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun toString(): String {
         return fallbackMessage

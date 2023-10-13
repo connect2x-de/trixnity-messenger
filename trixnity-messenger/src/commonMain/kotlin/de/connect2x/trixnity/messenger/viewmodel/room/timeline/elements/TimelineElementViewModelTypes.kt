@@ -2,20 +2,25 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 
 interface BaseTimelineElementViewModel {
-    val invitation: Flow<String?> // in case the element has the invitation element above
+    val invitation: StateFlow<String?> // in case the element has the invitation element above
     val formattedDate: String // used for sticky header
     val showDateAbove: Boolean
 }
 
 class NullTimelineElementViewModel(
     viewModelContext: MatrixClientViewModelContext,
-    override val invitation: Flow<String?>,
+    invitation: Flow<String?>,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
-) : BaseTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext
+) : BaseTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+}
 
 interface TimelineElementWithTimestampViewModel : BaseTimelineElementViewModel {
     val formattedTime: String? // if null it is in the outbox
