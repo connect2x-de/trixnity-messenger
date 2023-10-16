@@ -335,7 +335,6 @@ open class TimelineElementHolderViewModelImpl(
                             invitation = invitation,
                             content = content,
                             onOpenModal = onOpenModal,
-                            transactionId = null,
                             mediaUploadProgress = MutableStateFlow(null),
                         )
                     }

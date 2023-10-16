@@ -107,7 +107,6 @@ open class OutboxElementHolderViewModelImpl(
                         invitation = MutableStateFlow(null),
                         content = content,
                         onOpenModal = onOpenModal,
-                        transactionId = transactionId,
                         mediaUploadProgress = mediaUploadProgress,
                     )
                 }
