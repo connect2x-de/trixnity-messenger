@@ -544,7 +544,7 @@ class TimelineViewModelImpl(
                         get<OutboxElementHolderViewModelFactory>().newOutboxElementHolderViewModel(
                             viewModelContext = childContext("outboxTimelineElement-${transactionId}"),
                             key = transactionId,
-                            outboxMessageFlow = outboxMessage.filterNotNull(),
+                            outboxMessageFlow = outboxMessage,
                             selectedRoomId = selectedRoomId,
                             transactionId = transactionId,
                             showDateAboveFlow = showDateAboveFlow,
