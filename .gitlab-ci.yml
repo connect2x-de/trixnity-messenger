@@ -82,7 +82,6 @@ build:mac:
   # TODO remove other task than assemble as soon as the tests do not flicker anymore
   script:
     - ./gradlew
-      :trixnity-messenger:assemble
       :trixnity-messenger:linkDebugTestIosX64
       --stacktrace
 
