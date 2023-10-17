@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -25,7 +25,8 @@ import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
@@ -108,7 +109,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
         should("show other user's name when the request is targeted at us") {
             val cut = userVerificationViewModel(verificationRequestMessageEventContent.copy(to = me))
 
-            cut.sender.value shouldBe "username"
+            cut.sender.first { it == "username" }
         }
 
         should("show as active when the verification has not timed out and is not done or cancelled") {
@@ -168,7 +169,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                         emit(
                             flowOf(
                                 TimelineEvent(
-                                    event = Event.MessageEvent(
+                                    event = MessageEvent(
                                         content = VerificationCancelEventContent(
                                             code = Timeout,
                                             reason = "",
@@ -258,7 +259,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                         emit(
                             flowOf(
                                 TimelineEvent(
-                                    event = Event.MessageEvent(
+                                    event = MessageEvent(
                                         content = MegolmEncryptedEventContent(
                                             ciphertext = "",
                                             senderKey = Key.Curve25519Key(
@@ -380,7 +381,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             formattedTime = null,
-            usernameFlow = MutableStateFlow("username"),
+            sender = MutableStateFlow("username"),
             content = verificationRequestMessageEventContent,
             selectedRoomId = thisRoom,
             timelineEventId = timelineEventId,
@@ -388,7 +389,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
     }
 
     private fun timelineEvent(eventId: EventId) = TimelineEvent(
-        event = Event.StateEvent(
+        event = StateEvent(
             content = MemberEventContent(membership = Membership.JOIN),
             id = eventId,
             sender = me,
@@ -408,7 +409,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
         eventId: EventId,
         messageEventContent: MessageEventContent,
     ) = TimelineEvent(
-        event = Event.MessageEvent(
+        event = MessageEvent(
             content = messageEventContent,
             id = eventId,
             sender = me,

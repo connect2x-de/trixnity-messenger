@@ -28,8 +28,8 @@ interface VideoMessageViewModelFactory {
         isByMe: Boolean,
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
-        showSender: StateFlow<Boolean>,
-        sender: StateFlow<String>,
+        showSender: Flow<Boolean>,
+        sender: Flow<String>,
         invitation: Flow<String?>,
         content: VideoMessageEventContent,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
@@ -73,13 +73,19 @@ open class VideoMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    override val showSender: StateFlow<Boolean>,
-    override val sender: StateFlow<String>,
-    override val invitation: Flow<String?>,
+    showSender: Flow<Boolean>,
+    sender: Flow<String>,
+    invitation: Flow<String?>,
     private val content: VideoMessageEventContent,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
     MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val showSender: StateFlow<Boolean> =
+        showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     private val fileNameComputations = FileNameComputations(get())
     private val thumbnails = get<Thumbnails>()
@@ -202,7 +208,7 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
     override val sender: StateFlow<String> = MutableStateFlow("Martin")
     override val formattedTime: String? = null
-    override val invitation: Flow<String?> = MutableStateFlow(null)
+    override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.11.21"
     override val showDateAbove: Boolean = false
 

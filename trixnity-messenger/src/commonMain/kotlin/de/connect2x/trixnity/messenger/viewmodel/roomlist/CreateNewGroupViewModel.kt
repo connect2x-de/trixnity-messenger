@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 
 
@@ -92,7 +92,7 @@ open class CreateNewGroupViewModelImpl(
             CreateRoom.Request.Preset.PUBLIC
         }
         val encryption = if (isEncrypted.value) {
-            listOf(Event.InitialStateEvent(content = EncryptionEventContent(), ""))
+            listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
         } else {
             listOf()
         }

@@ -8,12 +8,12 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
-import net.folivo.trixnity.core.model.events.Event.MessageEvent
-import net.folivo.trixnity.core.model.events.Event.StateEvent
-import net.folivo.trixnity.core.model.events.RedactedStateEventContent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.UnknownMessageEventContent
+import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -61,7 +61,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
         should("consider unknown message events as not relevant") {
             val timelineEvent = timelineEvent(
                 MessageEvent(
-                    UnknownMessageEventContent(
+                    UnknownEventContent(
                         raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
                         "m.reaction"
                     ),
@@ -83,7 +83,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
                     eventId, alice, roomId, 0L
                 ),
                 content = Result.success(
-                    UnknownMessageEventContent(
+                    UnknownEventContent(
                         raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))), eventType = "m.reaction"
                     ),
                 )
@@ -104,7 +104,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
         should("consider some state events as not relevant") {
             val timelineEvent = timelineEvent(
                 StateEvent(
-                    RedactedStateEventContent(eventType = "m.redacted"), eventId, alice, roomId, 0L, stateKey = "",
+                    RedactedEventContent(eventType = "m.redacted"), eventId, alice, roomId, 0L, stateKey = "",
                 )
             )
             cut.isRelevantTimelineEvent(timelineEvent) shouldBe false
@@ -128,7 +128,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
     }
 
     private fun timelineEvent(
-        roomEvent: Event.RoomEvent<*>,
+        roomEvent: RoomEvent<*>,
         content: Result<RoomEventContent>? = null
     ): TimelineEvent = TimelineEvent(
         roomEvent,

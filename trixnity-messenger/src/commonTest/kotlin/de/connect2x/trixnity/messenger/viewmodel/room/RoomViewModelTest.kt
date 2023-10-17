@@ -49,7 +49,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.events.m.TypingEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.kodein.mock.Mock
@@ -58,7 +57,6 @@ import org.kodein.mock.mockFunction0
 import org.kodein.mock.mockFunction5
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -167,7 +165,7 @@ class RoomViewModelTest : ShouldSpec() {
                 every {
                     roomServiceMock.getAccountData(isAny(), isEqual(FullyReadEventContent::class), isAny())
                 } returns flowOf(null)
-                every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
+                every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
 
                 every {
                     roomServiceMock.getState(isAny(), isEqual(CreateEventContent::class), isAny())
@@ -213,9 +211,6 @@ class RoomViewModelTest : ShouldSpec() {
                 every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
 
                 every { minimizeMessengerMock.invoke() } returns Unit
-
-                every { syncApiClientMock.subscribe(isAny<KClass<TypingEventContent>>(), isAny()) } returns Unit
-                every { syncApiClientMock.unsubscribe(isAny<KClass<TypingEventContent>>(), isAny()) } returns Unit
             }
         }
 

@@ -55,6 +55,8 @@ import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
@@ -179,7 +181,7 @@ class MainViewModelTest : ShouldSpec() {
                 every {
                     roomServiceMock.getAccountData(isAny(), isEqual(FullyReadEventContent::class), isAny())
                 } returns flowOf(null)
-                every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
+                every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
                 every { userServiceMock.getAll(isAny()) } returns flowOf(mapOf())
                 every { userServiceMock.getById(isAny(), isAny()) } returns MutableStateFlow(null)
 
@@ -670,7 +672,7 @@ class MainViewModelTest : ShouldSpec() {
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     onMessageEditFinished: (EventId) -> Unit,
-                                    onMessageReplyToFinished: (Event.MessageEvent<*>) -> Unit,
+                                    onMessageReplyToFinished: (EventId) -> Unit,
                                     onShowAttachmentSendView: (file: String) -> Unit
                                 ): InputAreaViewModel {
                                     return inputAreaViewModelMock

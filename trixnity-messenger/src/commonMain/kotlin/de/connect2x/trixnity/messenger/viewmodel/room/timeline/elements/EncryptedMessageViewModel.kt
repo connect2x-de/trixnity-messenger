@@ -16,8 +16,8 @@ interface EncryptedMessageViewModelFactory {
         isByMe: Boolean,
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
-        showSender: StateFlow<Boolean>,
-        sender: StateFlow<String>,
+        showSender: Flow<Boolean>,
+        sender: Flow<String>,
         invitation: Flow<String?>,
         timelineEventFlow: Flow<TimelineEvent?>,
     ): EncryptedMessageViewModel {
@@ -49,11 +49,17 @@ open class EncryptedMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    override val showSender: StateFlow<Boolean>,
-    override val sender: StateFlow<String>,
-    override val invitation: Flow<String?>,
+    showSender: Flow<Boolean>,
+    sender: Flow<String>,
+    invitation: Flow<String?>,
     timelineEventFlow: Flow<TimelineEvent?>,
 ) : MatrixClientViewModelContext by viewModelContext, EncryptedMessageViewModel {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val showSender: StateFlow<Boolean> =
+        showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val waitForDecryption: StateFlow<Boolean> =
         timelineEventFlow

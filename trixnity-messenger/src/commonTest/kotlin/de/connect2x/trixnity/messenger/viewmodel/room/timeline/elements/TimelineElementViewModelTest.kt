@@ -31,7 +31,9 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.*
-import net.folivo.trixnity.core.model.events.Event.RoomEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -114,7 +116,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             )
             testCoroutineScheduler.advanceUntilIdle()
 
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
             viewModel.sender.first { it == "Me" }
@@ -135,7 +137,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             roomUserMutableStateFlow.value = roomUser(me, "Me changed")
             testCoroutineScheduler.advanceUntilIdle()
 
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.sender.first { it == "Me changed" }
 
@@ -153,7 +155,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             timelineEventFlow.value = timelineEvent(messageEvent(TextMessageEventContent(body = "Hello World")))
             testCoroutineScheduler.advanceUntilIdle()
 
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
 
@@ -192,7 +194,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             )
             testCoroutineScheduler.advanceUntilIdle()
 
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
 
@@ -210,11 +212,11 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     coroutineContext = coroutineContext
                 )
             timelineEventFlow.value = timelineEvent(
-                messageEvent(RedactedMessageEventContent(eventType = ""))
+                messageEvent(RedactedEventContent(eventType = ""))
             )
             testCoroutineScheduler.advanceUntilIdle()
 
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             viewModel should beInstanceOf<RedactedMessageViewModel>()
 
             cancelNeverEndingCoroutines()
@@ -242,10 +244,10 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     eventId = EventId("bla"),
                     coroutineContext = coroutineContext
                 )
-            val subscriberJob = launch { cut.viewModel.collect() }
+            val subscriberJob = launch { cut.timelineElementViewModel.collect() }
             testCoroutineScheduler.advanceUntilIdle()
 
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is EncryptedMessageViewModel)
             viewModel.waitForDecryption.value shouldBe true
 
@@ -259,11 +261,11 @@ class TimelineElementViewModelTest : ShouldSpec() {
                             sessionId = ""
                         )
                     ),
-                    content = Result.success(UnknownMessageEventContent(JsonObject(mapOf()), "body"))
+                    content = Result.success(UnknownEventContent(JsonObject(mapOf()), "body"))
                 )
 
             testCoroutineScheduler.advanceUntilIdle()
-            val viewModelNew = cut.viewModel.first { it != null }
+            val viewModelNew = cut.timelineElementViewModel.first { it != null }
             viewModelNew.shouldBeInstanceOf<NullTimelineElementViewModel>()
 
             subscriberJob.cancel()
@@ -290,7 +292,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             testCoroutineScheduler.advanceUntilIdle()
-            val viewModel = cut.viewModel.first { it != null }
+            val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is NullTimelineElementViewModel)
 
             cancelNeverEndingCoroutines()
@@ -304,7 +306,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
         canLoadMoreAfter: StateFlow<Boolean> = MutableStateFlow(false),
         isDirect: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ) = TimelineElementViewModelImpl(
+    ) = TimelineElementHolderViewModelImpl(
         viewModelContext = MatrixClientViewModelContextImpl(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             di = koinApplication {
@@ -315,6 +317,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             accountName = "test",
             coroutineContext = coroutineContext
         ),
+        key = eventId.full,
         selectedRoomId = roomId,
         timelineEventFlow = timelineEventFlow,
         eventId = eventId,
@@ -355,7 +358,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
         return timelineEvent
     }
 
-    private fun messageEvent(content: MessageEventContent, sender: UserId = me) = Event.MessageEvent(
+    private fun messageEvent(content: MessageEventContent, sender: UserId = me) = MessageEvent(
         content,
         id = EventId(""),
         sender = sender,
@@ -367,7 +370,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
         roomId,
         userId,
         name,
-        event = Event.StateEvent(
+        event = StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             UserId(""),

@@ -8,9 +8,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Siz
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
-import net.folivo.trixnity.client.room
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.ImageMessageEventContent
@@ -26,13 +28,12 @@ interface ImageMessageViewModelFactory {
         isByMe: Boolean,
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
-        showSender: StateFlow<Boolean>,
-        sender: StateFlow<String>,
+        showSender: Flow<Boolean>,
+        sender: Flow<String>,
         invitation: Flow<String?>,
         content: ImageMessageEventContent,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-        transactionId: String?,
     ): ImageMessageViewModel {
         return ImageMessageViewModelImpl(
             viewModelContext,
@@ -47,14 +48,12 @@ interface ImageMessageViewModelFactory {
             invitation,
             content,
             onOpenModal,
-            transactionId,
             mediaUploadProgress,
         )
     }
 }
 
 interface ImageMessageViewModel : FileBasedMessageViewModel {
-    val isOutbox: Boolean
     val url: String?
     val encryptedFile: EncryptedFile?
     val thumbnail: StateFlow<ByteArray?>
@@ -66,7 +65,7 @@ interface ImageMessageViewModel : FileBasedMessageViewModel {
     fun getMaxHeight(): Int
     fun getHeight(maxWidth: Float): Int
     fun getWidth(maxWidth: Float, possibleHeight: Float): Int
-    fun cancelUploadOrThumbnailDownload()
+    fun cancelThumbnailDownload()
 }
 
 open class ImageMessageViewModelImpl(
@@ -77,15 +76,20 @@ open class ImageMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    override val showSender: StateFlow<Boolean>,
-    override val sender: StateFlow<String>,
-    override val invitation: Flow<String?>,
+    showSender: Flow<Boolean>,
+    sender: Flow<String>,
+    invitation: Flow<String?>,
     private val content: ImageMessageEventContent,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    private val transactionId: String?,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
 ) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
     MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val showSender: StateFlow<Boolean> =
+        showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     private val fileNameComputations = FileNameComputations(get())
     private val thumbnails = get<Thumbnails>()
@@ -100,12 +104,10 @@ open class ImageMessageViewModelImpl(
         send(thumbnailLoad.await())
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val isOutbox: Boolean = transactionId != null
-
     override val width: Int = thumbnailWidth(content)
     override val height: Int = thumbnailHeight(content)
     override val progress: StateFlow<FileTransferProgressElement?> =
-        if (isOutbox) { // in case of an outbox image, the thumbnail is already in the local DB, so only track outgoing upload
+        if (mediaUploadProgress != null) {
             thumbnails.mapProgressToProgressElement(mediaUploadProgress)
         } else {
             thumbnails.mapProgressToProgressElement(thumbnailProgressFlow)
@@ -117,16 +119,6 @@ open class ImageMessageViewModelImpl(
     override fun getWidth(maxWidth: Float, possibleHeight: Float) =
         SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
-    override fun cancelUploadOrThumbnailDownload() {
-        if (isOutbox) {
-            coroutineScope.launch {
-                transactionId?.let { matrixClient.room.abortSendMessage(it) }
-            }
-        } else {
-            thumbnailLoad.cancel()
-        }
-    }
-
     override fun getFileNameWithExtension() =
         fileNameComputations.getOrCreateFileName(
             content.bodyWithoutFallback,
@@ -136,6 +128,10 @@ open class ImageMessageViewModelImpl(
 
     override fun openImage() {
         url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, getFileNameWithExtension()) }
+    }
+
+    override fun cancelThumbnailDownload() {
+        thumbnailLoad.cancel()
     }
 
     private fun getThumbnailAsync(): Deferred<ByteArray?> =
@@ -152,7 +148,6 @@ open class ImageMessageViewModelImpl(
 }
 
 class PreviewImageMessageViewModel : ImageMessageViewModel {
-    override val isOutbox: Boolean = false
     override val url: String? = null
     override val encryptedFile: EncryptedFile? = null
     override val thumbnail: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
@@ -176,7 +171,7 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
         return 300
     }
 
-    override fun cancelUploadOrThumbnailDownload() {
+    override fun cancelThumbnailDownload() {
     }
 
     override val saveFileDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
@@ -221,7 +216,7 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
     override val sender: StateFlow<String> = MutableStateFlow("Martin")
     override val formattedTime: String? = null
-    override val invitation: Flow<String?> = MutableStateFlow(null)
+    override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.11.21"
     override val showDateAbove: Boolean = false
 

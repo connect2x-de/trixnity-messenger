@@ -6,6 +6,7 @@ import com.russhwolf.settings.MapSettings
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -30,7 +31,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -125,7 +126,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                 nextEventId = null
                             )
                         )
-                every { roomServiceMock.getOutbox() } returns MutableStateFlow(emptyList())
+                every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
 
                 every { userServiceMock.getAll(isEqual(roomId)) } returns MutableStateFlow(
@@ -135,7 +136,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                 roomId,
                                 me,
                                 "User1",
-                                Event.StateEvent(
+                                StateEvent(
                                     MemberEventContent(membership = Membership.JOIN),
                                     EventId(""),
                                     me,
@@ -147,7 +148,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                         ),
                         alice to flowOf(
                             RoomUser(
-                                roomId, alice, "Alice", Event.StateEvent(
+                                roomId, alice, "Alice", StateEvent(
                                     MemberEventContent(membership = Membership.JOIN),
                                     EventId(""),
                                     alice,
@@ -159,7 +160,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                         ),
                         bob to flowOf(
                             RoomUser(
-                                roomId, bob, "Bob", Event.StateEvent(
+                                roomId, bob, "Bob", StateEvent(
                                     MemberEventContent(membership = Membership.JOIN),
                                     EventId(""),
                                     bob,
@@ -202,7 +203,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             assertUnreadMarkerAtIndex(1, cut)
         }
 
@@ -225,7 +226,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             assertUnreadMarkerAtIndex(1, cut)
 
             timelineMock.fullyReadEventIndex.value = 3
@@ -252,7 +253,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             assertUnreadMarkerAtIndex(1, cut)
 
             timelineMock.fullyReadEventIndex.value = 2
@@ -276,7 +277,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             assertUnreadMarkerAtIndex(2, cut)
         }
 
@@ -299,7 +300,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             assertUnreadMarkerAtIndex(3, cut)
         }
 
@@ -323,7 +324,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             assertUnreadMarkerAtIndex(1, cut)
         }
 
@@ -346,7 +347,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             assertUnreadMarkerAtIndex(-1, cut)
         }
 
@@ -364,7 +365,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 1
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 2
+            cut.timelineElementHolderViewModels waitForSize 2
             cut.windowIsFocused.value = true
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
@@ -376,7 +377,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 }
             }
 
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             verifyReadMarkerCalled(null to 1, null to 2, 2 to null)
             assertUnreadMarkerAtIndex(-1, cut)
         }
@@ -392,7 +393,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 1
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 2
+            cut.timelineElementHolderViewModels waitForSize 2
             cut.windowIsFocused.value = true
             cut.lastVisibleTimelineElement.value = "txn-1"
             verifyReadMarkerCalled(null to 1)
@@ -403,7 +404,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 }
             }
 
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             verifyReadMarkerCalled(null to 1, null to 2, 2 to null)
             assertUnreadMarkerAtIndex(-1, cut)
         }
@@ -420,7 +421,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 1
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 2
+            cut.timelineElementHolderViewModels waitForSize 2
             cut.windowIsFocused.value = true
             cut.lastVisibleTimelineElement.value = "0"
 
@@ -432,7 +433,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 }
             }
 
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             assertUnreadMarkerAtIndex(2, cut)
         }
 
@@ -448,7 +449,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 0
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 2
+            cut.timelineElementHolderViewModels waitForSize 2
             cut.windowIsFocused.value = true
             cut.lastVisibleTimelineElement.value = "0"
 
@@ -459,7 +460,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                     text("Woohoo")
                 }
             }
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             assertUnreadMarkerAtIndex(1, cut)
         }
 
@@ -477,7 +478,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             }
             timelineMock.fullyReadEventIndex.value = 0
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
 
@@ -501,7 +502,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             }
             timelineMock.fullyReadEventIndex.value = 0
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             verifyReadMarkerNotCalled()
 
             cut.lastVisibleTimelineElement.value = "transactionId-2"
@@ -524,7 +525,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             }
             timelineMock.fullyReadEventIndex.value = 0
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
 
             assertUnreadMarkerAtIndex(1, cut)
@@ -553,7 +554,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             }
             timelineMock.fullyReadEventIndex.value = 0
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 4
+            cut.timelineElementHolderViewModels waitForSize 4
             cut.lastVisibleTimelineElement.value = "2" // we only see to "What's up?"
 
             assertUnreadMarkerAtIndex(1, cut) // the fully_read marker determines the unread marker
@@ -576,7 +577,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             }
             timelineMock.fullyReadEventIndex.value = 0
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
 
             assertUnreadMarkerAtIndex(1, cut)
@@ -601,7 +602,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             lifecycleRegistry.resume()
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
             roomUser returns flowOf(createRoomUser(me, "Me", EventId("1")))
@@ -626,7 +627,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             lifecycleRegistry.resume()
 
             val cut = timelineViewModel()
-            cut.timelineElementViewModels waitForSize 3
+            cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
             roomUser returns flowOf(createRoomUser(me, "Me", EventId("1")))
@@ -662,7 +663,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     onMessageEditFinished: (EventId) -> Unit,
-                                    onMessageReplyToFinished: (Event.MessageEvent<*>) -> Unit,
+                                    onMessageReplyToFinished: (EventId) -> Unit,
                                     onShowAttachmentSendView: (file: String) -> Unit
                                 ): InputAreaViewModel {
                                     return inputAreaViewModelMock
@@ -704,19 +705,20 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
     private suspend fun assertUnreadMarkerAtIndex(index: Int, timelineViewModel: TimelineViewModel) = coroutineScope {
         val subscriberJob = launch {
-            timelineViewModel.timelineElementViewModels.collectLatest {
+            timelineViewModel.timelineElementHolderViewModels.collectLatest {
                 coroutineScope {
-                    it.forEach {
-                        launch { it.second.shouldShowUnreadMarkerFlow.collect() }
+                    it.filterIsInstance<TimelineElementHolderViewModel>().forEach {
+                        launch { it.shouldShowUnreadMarkerFlow.collect() }
                     }
                 }
             }
         }
         eventually(1.seconds) {
             val actualReadMarkerIndexes =
-                timelineViewModel.timelineElementViewModels.value.mapIndexedNotNull { i, (_, viewModel) ->
-                    if (viewModel.shouldShowUnreadMarkerFlow.value) i else null
-                }
+                timelineViewModel.timelineElementHolderViewModels.value
+                    .filterIsInstance<TimelineElementHolderViewModel>().mapIndexedNotNull { i, viewModel ->
+                        if (viewModel.shouldShowUnreadMarkerFlow.value) i else null
+                    }
             withClue("expected read marker at index $index, but was at indexes $actualReadMarkerIndexes") {
                 if (index < 0) actualReadMarkerIndexes.shouldBeEmpty()
                 else actualReadMarkerIndexes shouldBe listOf(index)
@@ -729,7 +731,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         roomId = roomId,
         userId = userId,
         name = name,
-        event = Event.StateEvent(
+        event = StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId("_"),
             UserId("_"),

@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.NamedMatrixClient
-import de.connect2x.trixnity.messenger.matrixClientOrThrow
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.matrixClientOrThrow
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
@@ -16,7 +16,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import net.folivo.trixnity.client.getOriginTimestamp
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.flatten
@@ -285,7 +284,7 @@ class RoomListViewModelImpl(
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
                                 lastRelevantEventTime == null -> roomWithMeta.namedMatrixClient.matrixClientOrThrow()
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
-                                    .getOriginTimestamp()?.let { Instant.fromEpochMilliseconds(it) }
+                                    ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
 
                                 else -> lastRelevantEventTime
                             }

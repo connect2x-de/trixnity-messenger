@@ -27,6 +27,8 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
@@ -56,7 +58,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         roomId,
         me,
         "User1",
-        Event.StateEvent(
+        StateEvent(
             MemberEventContent(membership = Membership.JOIN),
             EventId(""),
             me,
@@ -70,7 +72,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         PowerLevelsEventContent(users = mapOf(me to 100))
     private val createEventContent = CreateEventContent(creator = me)
 
-    private val powerLevelEvent = Event.StateEvent(
+    private val powerLevelEvent = StateEvent(
         powerLevelsEventContent,
         EventId("I'm an EventId"),
         sender = me,
@@ -78,7 +80,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         roomId = roomId,
         stateKey = ""
     )
-    private val createEvent = Event.StateEvent(
+    private val createEvent = StateEvent(
         createEventContent,
         EventId("I'm an EventId too"),
         sender = me,

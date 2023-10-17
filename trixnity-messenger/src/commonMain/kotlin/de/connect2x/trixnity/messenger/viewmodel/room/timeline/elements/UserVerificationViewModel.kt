@@ -31,7 +31,7 @@ interface UserVerificationViewModelFactory {
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
-        usernameFlow: StateFlow<String>,
+        usernameFlow: Flow<String>,
         content: VerificationRequestMessageEventContent,
         selectedRoomId: RoomId,
         timelineEventId: EventId,
@@ -62,20 +62,24 @@ interface UserVerificationViewModel : TimelineElementWithTimestampViewModel {
 
 open class UserVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    override val invitation: Flow<String?>,
+    invitation: Flow<String?>,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
-    usernameFlow: StateFlow<String>,
+    sender: Flow<String>,
     content: VerificationRequestMessageEventContent,
     override val selectedRoomId: RoomId,
     override val timelineEventId: EventId,
 ) : MatrixClientViewModelContext by viewModelContext, UserVerificationViewModel {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val sender: StateFlow<String> =
+        if (content.to == matrixClient.userId)
+            sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+        else MutableStateFlow(i18n.commonUs())
 
     private val activeVerifications = get<ActiveVerifications>()
 
-    override val sender: StateFlow<String> =
-        if (content.to == matrixClient.userId) usernameFlow else MutableStateFlow(i18n.commonUs())
     override val isActive: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val reachedEndState: MutableStateFlow<Pair<Boolean, String>?> = MutableStateFlow(null)
 

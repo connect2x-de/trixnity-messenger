@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
@@ -17,11 +17,11 @@ interface MemberStatusViewModelFactory {
         showDateAbove: Boolean,
         invitation: Flow<String?>,
         timelineEventFlow: Flow<TimelineEvent?>,
-        usernameFlow: StateFlow<String>,
+        sender: Flow<String>,
         isDirectFlow: StateFlow<Boolean>,
     ): MemberStatusViewModel {
         return MemberStatusViewModelImpl(
-            viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, usernameFlow, isDirectFlow
+            viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, sender, isDirectFlow
         )
     }
 }
@@ -34,20 +34,22 @@ open class MemberStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
-    override val invitation: Flow<String?>,
+    invitation: Flow<String?>,
     timelineEventFlow: Flow<TimelineEvent?>,
-    usernameFlow: StateFlow<String>,
+    sender: Flow<String>,
     isDirectFlow: StateFlow<Boolean>,
 ) : MemberStatusViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val invitation: StateFlow<String?> =
+        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val formattedMemberStatus: StateFlow<String?> = combine(
         timelineEventFlow,
-        usernameFlow,
+        sender,
         isDirectFlow,
     ) { timelineEvent, username, isDirect ->
         timelineEvent?.let {
             val event = it.event
-            require(event is Event.StateEvent)
+            require(event is StateEvent)
             val content = event.content
             require(content is MemberEventContent)
 
@@ -67,7 +69,7 @@ open class MemberStatusViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private suspend fun membershipChanged(
-        event: Event.StateEvent<*>,
+        event: StateEvent<*>,
         content: MemberEventContent,
         username: String,
         isDirect: Boolean

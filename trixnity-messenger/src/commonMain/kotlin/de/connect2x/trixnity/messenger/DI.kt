@@ -71,7 +71,7 @@ fun trixnityMessengerModule() = module {
     }
 
     single<HttpClientConfiguration> {
-        HttpClientConfiguration { { defaultTrixnityHttpClient(config = it) } }
+        HttpClientConfiguration { defaultTrixnityHttpClient() }
     }
     single<CreateRepositoriesModule> {
         CreateRepositoriesModule { createRepositoriesModule(it) }
@@ -220,7 +220,7 @@ private val timelineElementsViewModels = module {
     single<VideoMessageViewModelFactory> { object : VideoMessageViewModelFactory {} }
     single<AudioMessageViewModelFactory> { object : AudioMessageViewModelFactory {} }
     single<MemberStatusViewModelFactory> { object : MemberStatusViewModelFactory {} }
-    single<OutboxElementViewModelFactory> { object : OutboxElementViewModelFactory {} }
+    single<OutboxElementHolderViewModelFactory> { object : OutboxElementHolderViewModelFactory {} }
     single<RedactedMessageViewModelFactory> { object : RedactedMessageViewModelFactory {} }
     single<RoomCreatedStatusViewModelFactory> { object : RoomCreatedStatusViewModelFactory {} }
     single<RoomNameChangeStatusViewModelFactory> {
@@ -229,7 +229,7 @@ private val timelineElementsViewModels = module {
     single<TextMessageViewModelFactory> { object : TextMessageViewModelFactory {} }
     single<NoticeMessageViewModelFactory> { object : NoticeMessageViewModelFactory {} }
     single<FallbackMessageViewModelFactory> { object : FallbackMessageViewModelFactory {} }
-    single<TimelineElementViewModelFactory> { object : TimelineElementViewModelFactory {} }
+    single<TimelineElementHolderViewModelFactory> { object : TimelineElementHolderViewModelFactory {} }
     single<UserVerificationViewModelFactory> { object : UserVerificationViewModelFactory {} }
 }
 

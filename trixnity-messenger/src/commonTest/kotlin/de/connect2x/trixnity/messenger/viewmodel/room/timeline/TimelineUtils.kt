@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ITimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
 import kotlinx.coroutines.flow.*
@@ -16,6 +16,9 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.*
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
@@ -61,7 +64,7 @@ class RoomUserBuilder(
             roomId,
             id,
             name,
-            Event.StateEvent(
+            StateEvent(
                 MemberEventContent(membership = Membership.JOIN),
                 EventId(""),
                 id,
@@ -217,7 +220,7 @@ class TimelineBuilder(
 
     private var idCounter = 0
 
-    operator fun Event.RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> {
+    operator fun RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> {
         val previousTimelineEvent = timelineEvents.lastOrNull()
         previousTimelineEvent?.update {
             it.copy(nextEventId = this.id)
@@ -247,14 +250,14 @@ class TimelineBuilder(
         sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
         transactionId: String? = null,
         block: MessageEventBuilder.() -> Unit
-    ): Event.MessageEvent<*> =
+    ): MessageEvent<*> =
         messageEvent(sender, EventId("${idCounter++}"), roomId, sentAt, transactionId, block)
 
     fun stateEvent(
         sender: UserId,
         sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
         block: StateEventBuilder.() -> Unit
-    ): Event.StateEvent<*> =
+    ): StateEvent<*> =
         stateEvent(sender, EventId("${idCounter++}"), roomId, sentAt, block)
 }
 
@@ -265,10 +268,10 @@ fun messageEvent(
     sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
     transactionId: String? = null,
     block: MessageEventBuilder.() -> Unit
-): Event.MessageEvent<*> {
+): MessageEvent<*> {
     val content = MessageEventBuilder().apply(block).content
     val result = content?.let {
-        Event.MessageEvent(
+        MessageEvent(
             content = content,
             id = eventId,
             sender = sender,
@@ -292,8 +295,8 @@ class MessageEventBuilder {
         return result
     }
 
-    fun reaction(relatesTo: EventId): UnknownMessageEventContent {
-        val result = UnknownMessageEventContent(
+    fun reaction(relatesTo: EventId): UnknownEventContent {
+        val result = UnknownEventContent(
             raw = JsonObject(mapOf("m.relates_to" to JsonPrimitive(relatesTo.full))),
             eventType = "m.reaction"
         )
@@ -301,8 +304,8 @@ class MessageEventBuilder {
         return result
     }
 
-    fun redacted(): RedactedMessageEventContent {
-        val result = RedactedMessageEventContent(eventType = "something")
+    fun redacted(): RedactedEventContent {
+        val result = RedactedEventContent(eventType = "something")
         content = result
         return result
     }
@@ -329,10 +332,10 @@ fun stateEvent(
     roomId: RoomId,
     sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
     block: StateEventBuilder.() -> Unit
-): Event.StateEvent<*> {
+): StateEvent<*> {
     val content = StateEventBuilder().apply(block).content
     val result = content?.let {
-        Event.StateEvent(
+        StateEvent(
             content = content,
             id = eventId,
             sender = sender,
@@ -354,8 +357,8 @@ class StateEventBuilder {
         return result
     }
 
-    fun unknownEvent(): UnknownStateEventContent {
-        val result = UnknownStateEventContent(
+    fun unknownEvent(): UnknownEventContent {
+        val result = UnknownEventContent(
             raw = JsonObject(mapOf("unknown" to JsonPrimitive("dino"))),
             eventType = "this_is_clearly_unknown"
         )
@@ -364,7 +367,7 @@ class StateEventBuilder {
     }
 }
 
-suspend infix fun StateFlow<List<Pair<String, ITimelineElementViewModel>>>.waitForSize(size: Int) =
+suspend infix fun StateFlow<List<BaseTimelineElementHolderViewModel>>.waitForSize(size: Int) =
     withClue(lazy { "timelineElementViewModels size was ${value.size}, expected $size" }) {
         withTimeout(4.seconds) {
             first { it.size == size }

@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -24,7 +24,7 @@ import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.Event
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -68,7 +68,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                         roomId = RoomId("room1", "localhost"),
                         userId = UserId("bob", "localhost"),
                         name = "Bob",
-                        event = Event.StateEvent(
+                        event = StateEvent(
                             content = MemberEventContent(membership = Membership.JOIN),
                             id = EventId(""),
                             sender = UserId(""),
@@ -85,7 +85,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                         roomId = RoomId("room1", "localhost"),
                         userId = UserId("mallory", "localhost"),
                         name = "Mallory",
-                        event = Event.StateEvent(
+                        event = StateEvent(
                             content = MemberEventContent(membership = Membership.JOIN),
                             id = EventId(""),
                             sender = UserId(""),
@@ -334,7 +334,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
             showDateAbove = false,
             invitation = MutableStateFlow(""),
             timelineEventFlow = timelineEventFlow,
-            usernameFlow = usernameFlow,
+            sender = usernameFlow,
             isDirectFlow = isDirectFlow,
         )
     }
@@ -348,7 +348,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
         previousMemberEventContent: MemberEventContent? = null,
     ) =
         TimelineEvent(
-            event = Event.StateEvent(
+            event = StateEvent(
                 content = MemberEventContent(
                     avatarUrl = avatarUrl,
                     displayName = displayName,
