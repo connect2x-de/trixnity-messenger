@@ -111,7 +111,6 @@ interface TimelineViewModel {
      */
     val scrollTo: Flow<String>
     val stickyDate: StateFlow<String?>
-    val selectedMessage: MutableStateFlow<String?>
     val isDirect: StateFlow<Boolean>
     val error: StateFlow<String?>
     val roomHeaderViewModel: RoomHeaderViewModel
@@ -210,8 +209,6 @@ class TimelineViewModelImpl(
     override val windowIsFocused: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val firstVisibleTimelineElement: MutableStateFlow<String?> = MutableStateFlow(null)
     override val lastVisibleTimelineElement: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    override val selectedMessage: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val isDirect: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId).map { it?.isDirect == true }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -547,7 +544,7 @@ class TimelineViewModelImpl(
                         get<OutboxElementHolderViewModelFactory>().newOutboxElementHolderViewModel(
                             viewModelContext = childContext("outboxTimelineElement-${transactionId}"),
                             key = transactionId,
-                            outboxMessageFlow = outboxMessage.filterNotNull(),
+                            outboxMessageFlow = outboxMessage,
                             selectedRoomId = selectedRoomId,
                             transactionId = transactionId,
                             showDateAboveFlow = showDateAboveFlow,
@@ -869,7 +866,6 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val firstVisibleTimelineElement: MutableStateFlow<String?> = MutableStateFlow(null)
     override val stickyDate: StateFlow<String?> = MutableStateFlow(null)
     override val scrollTo: Flow<String> = MutableSharedFlow()
-    override val selectedMessage: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()

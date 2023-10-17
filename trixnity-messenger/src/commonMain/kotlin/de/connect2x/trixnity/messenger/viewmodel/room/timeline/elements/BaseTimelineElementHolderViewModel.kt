@@ -6,3 +6,5 @@ sealed interface BaseTimelineElementHolderViewModel {
     val key: String
     val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?>
 }
+
+operator fun List<BaseTimelineElementHolderViewModel>.get(key: String) = firstOrNull { it.key == key }

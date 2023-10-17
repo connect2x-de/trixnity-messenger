@@ -18,7 +18,7 @@ interface OutboxElementHolderViewModelFactory {
     fun newOutboxElementHolderViewModel(
         viewModelContext: MatrixClientViewModelContext,
         key: String,
-        outboxMessageFlow: Flow<RoomOutboxMessage<*>>,
+        outboxMessageFlow: Flow<RoomOutboxMessage<*>?>,
         selectedRoomId: RoomId,
         transactionId: String,
         showDateAboveFlow: Flow<Boolean>,
@@ -51,7 +51,7 @@ interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
 open class OutboxElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
-    outboxMessageFlow: Flow<RoomOutboxMessage<*>>,
+    outboxMessageFlow: Flow<RoomOutboxMessage<*>?>,
     private val selectedRoomId: RoomId,
     override val transactionId: String,
     showDateAboveFlow: Flow<Boolean>,
@@ -68,8 +68,7 @@ open class OutboxElementHolderViewModelImpl(
             showDateAboveFlow,
             showChatBubbleEdgeFlow
         ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
-            val content = outboxMessage.content
-            val mediaUploadProgress = outboxMessage.mediaUploadProgress
+            val content = outboxMessage?.content
             when (content) {
                 is TextMessageEventContent -> {
                     get<TextMessageViewModelFactory>().newTextMessageViewModel(
@@ -107,8 +106,7 @@ open class OutboxElementHolderViewModelImpl(
                         invitation = MutableStateFlow(null),
                         content = content,
                         onOpenModal = onOpenModal,
-                        transactionId = transactionId,
-                        mediaUploadProgress = mediaUploadProgress,
+                        mediaUploadProgress = outboxMessage.mediaUploadProgress,
                     )
                 }
 
@@ -175,7 +173,7 @@ open class OutboxElementHolderViewModelImpl(
         )
 
     override val sendError: StateFlow<String?> = outboxMessageFlow.map {
-        when (val sendError = it.sendError) {
+        when (val sendError = it?.sendError) {
             RoomOutboxMessage.SendError.NoEventPermission -> i18n.sendErrorEventPermission()
             RoomOutboxMessage.SendError.NoMediaPermission -> i18n.sendErrorMediaPermission()
             RoomOutboxMessage.SendError.MediaTooLarge -> i18n.sendErrorMediaTooLarge()
@@ -186,7 +184,7 @@ open class OutboxElementHolderViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val canAbortSend: StateFlow<Boolean> = MutableStateFlow(true)
-    override val canRetrySend: StateFlow<Boolean> = outboxMessageFlow.map { it.sendError != null }
+    override val canRetrySend: StateFlow<Boolean> = outboxMessageFlow.map { it?.sendError != null }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override fun abortSend() {

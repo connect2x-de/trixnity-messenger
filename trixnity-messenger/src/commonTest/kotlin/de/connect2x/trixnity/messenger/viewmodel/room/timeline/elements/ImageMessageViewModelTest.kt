@@ -151,7 +151,6 @@ class ImageMessageViewModelTest : ShouldSpec() {
         invitation = flowOf(null),
         content = ImageMessageEventContent(""),
         onOpenModal = mockFunction4(mocker),
-        transactionId = null,
         mediaUploadProgress = MutableStateFlow(null),
     )
 }
