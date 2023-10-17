@@ -204,6 +204,141 @@ subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/t
 If you want to add new messages, use the delegation pattern as described
 in [View model customization](#change-the-default-behavior-of-view-models) and add more messages.
 
+
+## Usage from Swift (iOS or Mac)
+Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac applications.
+
+### Installation
+At this moment, the pipeline for Swift builds has not been automated in the CI (this is on our todo-list). Download the current version [here](https://gitlab.com/api/v4/projects/47538655/packages/maven/de/connect2x/trixnity-messenger-kmmbridge/1.0.8-LOCAL/trixnity-messenger-kmmbridge-1.0.8-LOCAL.zip). You can import the XCFramework locally into your project.
+
+### Initialization
+In order to use the library from Swift, always ```import trixnity_messenger``` in your files.
+
+To create an instance of Trixnity Messenger do the following:
+```swift
+let rootViewModel = RootViewModelImpl.companion.create(koinApplication: IosDIKt.trixnityMessengerApplication())
+```
+
+Pass this view model to your root UI node, e.g., a view in SwiftUI:
+```swift
+var body: some Scene {
+    WindowGroup {
+        RootView(rootViewModel)
+    }
+}
+```
+
+### Values and Flows
+Trixnity Messengers provides many properties that can change over time. Two data types are used: `Value`s and `Flow`s (with its specializations `StateFlow` and `MutableStateFlow`). To access those values and get informed when they update, different helpers can be used.
+
+#### Value
+Values represent the changes in the routers (the data type is coming from [decompose](https://arkivanov.github.io/Decompose)). 
+
+Use this code to get a Swift wrapper for `Value`s.
+```swift
+import Foundation
+import trixnity_messenger
+
+public class ObservableValue<T : AnyObject> : ObservableObject {
+    private let observableValue: Value<T>
+
+    @Published
+    var value: T
+
+    private var observer: ((T) -> Void)?
+    
+    init(_ value: Value<T>) {
+        observableValue = value
+        self.value = observableValue.value
+        observer = { [weak self] value in self?.value = value }
+        observableValue.subscribe(observer: observer!)
+    }
+
+    deinit {
+        observableValue.unsubscribe(observer: self.observer!)
+    }
+}
+```
+
+```swift
+import SwiftUI
+import trixnity_messenger
+
+@propertyWrapper struct StateValue<T : AnyObject>: DynamicProperty {
+    @ObservedObject
+    private var obj: ObservableValue<T>
+
+    var wrappedValue: T { obj.value }
+
+    init(_ value: Value<T>) {
+        obj = ObservableValue(value)
+    }
+}
+```
+
+This allows for the following code to work in SwiftUI:
+```swift
+struct RootView: View {
+    @StateValue
+    private var stack: ChildStack<RootRouter.Config, RootRouter.RootWrapper>
+    private var activeStack: RootRouter.RootWrapper { stack.active.instance }
+    
+    init(_ viewModel: RootViewModel) {
+        _stack = StateValue(viewModel.rootStack)
+    }
+    
+    // ...
+}
+```
+Now, you can access `activeStack` in your view and get the current router value all the time.
+
+#### Flows
+Trixnity Messenger uses [SKIE](https://skie.touchlab.co/) to generate some helper code to get nicer interfaces of Flows when accessing them from Swift code. To make it even easier, you can use the following helper:
+```swift
+func observe<T>(_ stateFlow: SkieSwiftStateFlow<T>, _ assign: (T) -> ()) async {
+  for await value in stateFlow.map({$0}) {
+      assign(value)
+  }
+}
+```
+For some primitive values (`Bool`, `Int`, etc.) you might want to add specializations of this method.
+
+To use flows from SwiftUI, create a wrapper of the view model you want to observe. As an example:
+```swift
+class AddMatrixAccountViewModelSwift: ObservableObject {
+    let delegate: AddMatrixAccountViewModel
+    @Published private(set) var serverDiscoveryState: AddMatrixAccountViewModelServerDiscoveryState
+    
+    init(delegate: AddMatrixAccountViewModel) {
+        self.delegate = delegate
+        self.serverDiscoveryState = delegate.serverDiscoveryState.value
+    }
+    
+    @MainActor
+    func activate() async {
+        await observe(delegate.serverDiscoveryState) { self.serverDiscoveryState = $0 }
+    }
+}
+```
+
+It can be initiated like this:
+```swift
+struct AddMatrixAccountView: View {
+ 
+    @ObservedObject private var viewModel: AddMatrixAccountViewModelSwift
+    
+    init(_ addMatrixAccountViewModel: AddMatrixAccountViewModel) {
+        viewModel = AddMatrixAccountViewModelSwift(delegate: addMatrixAccountViewModel)
+    }
+    
+    // here you can access `viewModel.serverDiscoveryState` and always get the last value
+}
+.task { // this is important: activate the wrapper view model observation of the original view model
+    await viewModel.activate()
+}
+```
+
+
 ## Commercial license and support
 
 If you need a commercial license or support contact us at [kontakt@connect2x.de](mailto:kontakt@connect2x.de).

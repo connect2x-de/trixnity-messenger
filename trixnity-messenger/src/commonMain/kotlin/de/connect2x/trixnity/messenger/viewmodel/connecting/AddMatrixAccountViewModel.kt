@@ -143,9 +143,9 @@ open class AddMatrixAccountViewModelImpl(
 }
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
-    override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(true)
+    override val isFirstMatrixClient: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val serverUrl: MutableStateFlow<String> = MutableStateFlow("")
-    override val serverDiscoveryState: StateFlow<ServerDiscoveryState> = MutableStateFlow(ServerDiscoveryState.None)
+    override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> = MutableStateFlow(ServerDiscoveryState.None)
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
     }

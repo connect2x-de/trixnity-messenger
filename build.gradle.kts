@@ -13,7 +13,11 @@ buildscript {
 
 plugins {
     id("io.kotest.multiplatform") version Versions.kotest apply false
+    kotlin("plugin.serialization") version Versions.kotlin apply false
     id("com.google.devtools.ksp") version Versions.ksp apply false
+    id("co.touchlab.skie") version Versions.skie apply false
+    id("co.touchlab.kmmbridge") version Versions.kmmBridge apply false
+    id("org.jetbrains.dokka") version Versions.dokka apply false
 }
 
 allprojects {

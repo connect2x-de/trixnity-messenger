@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
@@ -34,7 +35,7 @@ interface MatrixClientInitializationViewModelFactory {
 }
 
 interface MatrixClientInitializationViewModel {
-    val currentState: MutableStateFlow<String>
+    val currentState: StateFlow<String>
 }
 
 open class MatrixClientInitializationViewModelImpl(

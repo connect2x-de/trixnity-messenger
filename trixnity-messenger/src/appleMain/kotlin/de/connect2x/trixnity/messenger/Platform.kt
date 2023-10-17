@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.util.cleanAccountName
 import de.connect2x.trixnity.messenger.util.getAccountName
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.cinterop.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.sync.Mutex
@@ -13,9 +12,12 @@ import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.media.okio.OkioMediaStore
 import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
-import platform.Foundation.*
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSSearchPathForDirectoriesInDomains
+import platform.Foundation.NSUserDomainMask
 
 private val log = KotlinLogging.logger { }
 
@@ -23,35 +25,49 @@ private val accountMutex = Mutex()
 
 actual suspend fun createRepositoriesModule(accountName: String): Module = withContext(Dispatchers.IO) {
     createRealmRepositoriesModule {
-        directory(getDbPath(accountName).toString())
+        val databasePath = getDbPath(accountName).toString()
+        log.debug { "database path: $databasePath" }
+        directory(databasePath)
     }
 }
 
 internal actual suspend fun createMediaStore(accountName: String): MediaStore =
     withContext(Dispatchers.IO) {
-        val mediaStore = OkioMediaStore(getAppPath().resolve("media"))
-        log.debug { "media store location: $mediaStore" }
+        val mediaPath = getAppPath(accountName).resolve("media")
+        val mediaStore = OkioMediaStore(mediaPath)
+        log.debug { "media store path: $mediaPath" }
         mediaStore
     }
 
 actual suspend fun deleteAccountDataLocally(accountName: String) = withContext(Dispatchers.IO) {
     accountMutex.withLock {
-        FileSystem.SYSTEM.deleteRecursively(getAppPath().resolve(accountName), mustExist = false)
+        FileSystem.SYSTEM.deleteRecursively(getAppPath(accountName), mustExist = false)
     }
 }
 
 actual suspend fun getAccountNames(): List<String> =
     withContext(Dispatchers.IO) {
         accountMutex.withLock {
-            FileSystem.SYSTEM.list(getAppPath()).map { it.name.getAccountName() }
+            FileSystem.SYSTEM.list(getAppPath(accountName = null)).map { it.name.getAccountName() }
         }
     }
 
-private fun getAppPath() = NSBundle.mainBundle.bundlePath.toPath()
-private fun getDbPath(accountName: String) = getAppPath().resolve(accountName.cleanAccountName())
+private fun getAppPath(accountName: String?): Path {
+    val path = (
+            NSSearchPathForDirectoriesInDomains(
+                NSDocumentDirectory,
+                NSUserDomainMask,
+                true
+            )[0] as String) // user directory
+        .toPath().resolve(MessengerConfig.instance.appName) // /appName
+        .let { if (accountName == null) it else it.resolve(accountName.cleanAccountName()) } // /accountName
+    FileSystem.SYSTEM.createDirectories(path)
+    return path
+}
+
+private fun getDbPath(accountName: String) = getAppPath(accountName).resolve("database")
 
 actual fun closeApp() {
-
 }
 
 actual fun isNetworkAvailable(): Boolean {
