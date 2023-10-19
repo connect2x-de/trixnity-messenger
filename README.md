@@ -112,6 +112,13 @@ In case you are using Compose as your UI framework, Decompose has
 some [helpers](https://arkivanov.github.io/Decompose/extensions/compose/#navigating-between-composable-components) for
 routing.
 
+#### Routing overview
+To better understand how the routers are connected, the following (incomplete) overview might help. Many details are left out for clarity.
+
+![](doc/Routing-RootWrapper.png)
+
+![](doc/Routing-Main.png)
+
 ## Configuration
 
 Trixnity Messenger has multiple ways to configure the client to your needs.
