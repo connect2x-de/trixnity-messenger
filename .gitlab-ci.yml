@@ -81,7 +81,8 @@ build:mac:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      :trixnity-messenger:linkDebugTestIosX64
+      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
+      compileTestKotlin{IosSimulatorArm64,IosX64}
       --stacktrace
 
 build:linux:
@@ -94,10 +95,10 @@ build:linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      :trixnity-messenger:assemble
-      :trixnity-messenger:jvmTestClasses
-      :trixnity-messenger:compileTestKotlinJs
-      :trixnity-messenger:compileReleaseUnitTestKotlinAndroid
+      compileKotlin{Jvm,Js}
+      compileReleaseKotlinAndroid
+      compileTestKotlin{Jvm,Js}
+      compileReleaseUnitTestKotlinAndroid
       --stacktrace
 
 test:mac:
@@ -110,10 +111,9 @@ test:mac:
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
-  # TODO :trixnity-messenger:iosArm64Test not created by gradle
   script:
     - ./gradlew
-      :trixnity-messenger:iosX64Test
+      {iosSimulatorArm64,iosX64}Test
       --stacktrace
 
 test:linux:
@@ -129,9 +129,8 @@ test:linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      :trixnity-messenger:jvmTest
-      :trixnity-messenger:testReleaseUnitTest
-      :trixnity-messenger:jsTest
+      {jvm,js}Test -x :integration-tests:jvmTest
+      testReleaseUnitTest
       --stacktrace
 
 test:integration-test:
@@ -149,7 +148,9 @@ test:integration-test:
   rules:
     - *if-merge-request-or-main
   script:
-    - ./gradlew :integrationtests:jvmTest --stacktrace
+    - ./gradlew
+      :integrationtests:jvmTest
+      --stacktrace
 
 publish:mac:
   stage: publish
@@ -161,9 +162,7 @@ publish:mac:
     - *if-release
   script:
     - ./gradlew
-      :trixnity-messenger:publishIosArm64PublicationToGitlabRepository
-      :trixnity-messenger:publishIosSimulatorArm64PublicationToGitlabRepository
-      :trixnity-messenger:publishIosX64PublicationToGitlabRepository
+      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
       --stacktrace
 
 publish:linux:
@@ -177,8 +176,5 @@ publish:linux:
     - *if-release
   script:
     - ./gradlew
-      :trixnity-messenger:publishKotlinMultiplatformPublicationToGitlabRepository
-      :trixnity-messenger:publishJvmPublicationToGitlabRepository
-      :trixnity-messenger:publishAndroidReleasePublicationToGitlabRepository
-      :trixnity-messenger:publishJsPublicationToGitlabRepository
+      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease}PublicationToGitlabRepository
       --stacktrace
