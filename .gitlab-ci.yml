@@ -129,7 +129,7 @@ test:linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      {jvm,js}Test -x :integration-tests:jvmTest
+      {jvm,js}Test -x :integrationtests:jvmTest
       testReleaseUnitTest
       --stacktrace
 
