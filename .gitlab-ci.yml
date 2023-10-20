@@ -74,7 +74,7 @@ variables:
 
 build:mac:
   stage: build
-  tags: [ "internal-mac" ]
+  tags: [ "connect2x-mac" ]
   cache:
     - *cache-mac
   rules:
@@ -87,7 +87,7 @@ build:mac:
 
 build:linux:
   stage: build
-  tags: [ "internal-docker-privileged" ]
+  tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
     - *cache-linux
@@ -105,7 +105,7 @@ test:mac:
   stage: test
   timeout: 1h
   needs: [ "build:mac" ]
-  tags: [ "internal-mac" ]
+  tags: [ "connect2x-mac" ]
   cache:
     - *pull-cache-mac
   artifacts: *artifact-reports
@@ -120,7 +120,7 @@ test:linux:
   stage: test
   timeout: 1h
   needs: [ "build:linux" ]
-  tags: [ "internal-docker-privileged" ]
+  tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
     - *pull-cache-linux
@@ -136,7 +136,7 @@ test:integration-test:
   stage: test
   timeout: 30m
   needs: [ "build:linux" ]
-  tags: [ "internal-docker-privileged" ]
+  tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   services:
     - name: docker:dind
@@ -153,7 +153,7 @@ test:integration-test:
 
 publish:mac:
   stage: publish
-  tags: [ "internal-mac" ]
+  tags: [ "connect2x-mac" ]
   cache:
     - *pull-cache-mac
   rules:
@@ -166,7 +166,7 @@ publish:mac:
 
 publish:linux:
   stage: publish
-  tags: [ "internal-docker-privileged" ]
+  tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
     - *pull-cache-linux
