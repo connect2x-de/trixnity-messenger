@@ -1,4 +1,3 @@
-
 import co.touchlab.skie.configuration.DefaultArgumentInterop
 import co.touchlab.skie.configuration.EnumInterop
 import co.touchlab.skie.configuration.SealedInterop
@@ -230,7 +229,7 @@ publishing {
             pom {
                 name.set(project.name)
                 description.set("Multiplatform Kotlin SDK for Matrix messengers")
-                url.set("https://gitlab.com/connect2x/trixnity-messenger")
+                url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
                 licenses {
                     license {
                         name.set("GNU AFFERO GENERAL PUBLIC LICENSE version 3")
@@ -244,7 +243,7 @@ publishing {
                     }
                 }
                 scm {
-                    url.set("https://gitlab.com/connect2x/trixnity-messenger")
+                    url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
                 }
             }
 //            artifact(dokkaJar)
