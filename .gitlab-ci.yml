@@ -74,6 +74,7 @@ variables:
 
 build:mac:
   stage: build
+  interruptible: true
   tags: [ "connect2x-mac" ]
   cache:
     - *cache-mac
@@ -87,6 +88,7 @@ build:mac:
 
 build:linux:
   stage: build
+  interruptible: true
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
@@ -103,6 +105,7 @@ build:linux:
 
 test:mac:
   stage: test
+  interruptible: true
   timeout: 1h
   needs: [ "build:mac" ]
   tags: [ "connect2x-mac" ]
@@ -118,6 +121,7 @@ test:mac:
 
 test:linux:
   stage: test
+  interruptible: true
   timeout: 1h
   needs: [ "build:linux" ]
   tags: [ "connect2x-linux" ]
@@ -134,6 +138,7 @@ test:linux:
 
 test:integration-test:
   stage: test
+  interruptible: true
   timeout: 30m
   needs: [ "build:linux" ]
   tags: [ "connect2x-linux" ]
