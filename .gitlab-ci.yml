@@ -79,7 +79,6 @@ build:mac:
     - *cache-mac
   rules:
     - *if-merge-request-or-main
-  # TODO remove other task than assemble as soon as the tests do not flicker anymore
   script:
     - ./gradlew
       :trixnity-messenger:linkDebugTestIosX64
@@ -93,7 +92,6 @@ build:linux:
     - *cache-linux
   rules:
     - *if-merge-request-or-main
-  # TODO remove other task than assemble as soon as the tests do not flicker anymore
   script:
     - ./gradlew
       :trixnity-messenger:assemble
