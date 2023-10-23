@@ -11,6 +11,10 @@ component by binding to the view model.
 **You need help? Ask your questions
 in [#trixnity-messenger:imbitbu.de](https://matrix.to/#/#trixnity-messenger:imbitbu.de).**
 
+## TI-Messenger
+Are you looking for a TI-Messenger SDK? Trixnity Messenger is the base for our TIM SDK. If you want to know more, 
+contact us at [contact@connect2x.de](mailto:contact@connect2x.de). 
+
 ## MVVM
 
 Trixnity Messenger follows the MVVM pattern, in particular it represents the view model (VM) part. Trixnity is the
@@ -348,4 +352,4 @@ struct AddMatrixAccountView: View {
 
 ## Commercial license and support
 
-If you need a commercial license or support contact us at [kontakt@connect2x.de](mailto:kontakt@connect2x.de).
+If you need a commercial license or support contact us at [contact@connect2x.de](mailto:contact@connect2x.de).
