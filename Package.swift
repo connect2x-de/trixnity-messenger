@@ -2,8 +2,8 @@
 import PackageDescription
 
 // BEGIN KMMBRIDGE VARIABLES BLOCK (do not edit)
-let remoteKotlinUrl = "https://gitlab.com/api/v4/projects/47538655/packages/maven/de/connect2x/trixnity-messenger-kmmbridge/1.0.8-LOCAL/trixnity-messenger-kmmbridge-1.0.8-LOCAL.zip"
-let remoteKotlinChecksum = "2d68590fdc29e3c1f30d80bbbefe5aaf52a1db13a7276e7bd8ba211056451229"
+let remoteKotlinUrl = "https://gitlab.com/api/v4/projects/47538655/packages/maven/de/connect2x/trixnity-messenger-kmmbridge/1.0.10-LOCAL/trixnity-messenger-kmmbridge-1.0.10-LOCAL.zip"
+let remoteKotlinChecksum = "f10770d96f7afaa842a9bd0b9008a46cc6c024b2ef93408ca74b142fb9ca6af9"
 let packageName = "trixnity-messenger"
 // END KMMBRIDGE BLOCK
 
