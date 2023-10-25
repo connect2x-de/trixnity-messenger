@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.FileNameComputations
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MetaData
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
@@ -211,5 +212,6 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.11.21"
     override val showDateAbove: Boolean = false
+    override val metaData: MutableStateFlow<MetaData> = MutableStateFlow(MetaData("video"))
 
 }

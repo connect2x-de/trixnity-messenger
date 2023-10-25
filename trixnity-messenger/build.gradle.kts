@@ -116,6 +116,7 @@ kotlin {
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("net.java.dev.jna:jna:${Versions.jna}")
                 implementation("net.java.dev.jna:jna-platform:${Versions.jna}")
+                implementation("org.apache.tika:tika-core:${Versions.tika}")
             }
         }
         val androidMain by getting {
@@ -124,6 +125,7 @@ kotlin {
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("androidx.activity:activity-ktx:${Versions.activity}")
                 implementation("androidx.security:security-crypto:${Versions.crypto}")
+                implementation("org.apache.tika:tika-core:${Versions.tika}")
             }
         }
         val jsMain by getting {

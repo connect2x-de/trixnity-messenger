@@ -4,14 +4,15 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.files.Download
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MetaData
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.guessFileType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
@@ -27,6 +28,12 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
     val saveFileDialogOpen: StateFlow<Boolean>
     val downloadProgressElement: MutableStateFlow<StateFlow<FileTransferProgressElement?>?>
     val downloadSuccessful: MutableStateFlow<StateFlow<Boolean>?>
+
+    /**
+     * This can be a heavy operation, so the result is wrapped in a StateFlow to avoid computation when not needed.
+     */
+    val metaData: StateFlow<MetaData>
+
     fun getFileNameWithExtension(): String
     fun downloadFile(
         progressElement: MutableStateFlow<FileTransferProgressElement?>
@@ -125,4 +132,17 @@ abstract class AbstractFileBasedMessageViewModel(
     override fun closeSaveFileDialog() {
         _saveFileDialogOpen.value = false
     }
+
+    override val metaData: StateFlow<MetaData> = flow {
+        encryptedFile?.let { viewModelContext.matrixClient.media.getEncryptedMedia(it) }?.let { encryptedFile ->
+            encryptedFile
+                .onSuccess { file ->
+                    emit(MetaData(guessFileType(file)))
+                }
+                .onFailure {
+                    log.error(it) { "Cannot get encrypted file ${getFileNameWithExtension()}." }
+                }
+        }
+
+    }.stateIn(viewModelContext.coroutineScope, SharingStarted.WhileSubscribed(), MetaData(fileType = ""))
 }
