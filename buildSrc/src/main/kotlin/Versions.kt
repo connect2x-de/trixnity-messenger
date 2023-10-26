@@ -13,7 +13,7 @@ object Versions {
     const val decompose = "2.1.0-alpha-06" // https://github.com/arkivanov/Decompose/releases
     const val essenty = "1.2.0-alpha-03" // https://github.com/arkivanov/Essenty/releases
     const val kotlinxDatetime = "0.4.1" // https://github.com/Kotlin/kotlinx-datetime/releases
-    const val koin = "3.5.0" // https://github.com/InsertKoinIO/koin/tags
+    const val koin = "3.4.3" // https://github.com/InsertKoinIO/koin/tags
     const val ktor = "2.3.4" // https://github.com/ktorio/ktor/releases
     const val mocKmp = "1.15.0" // https://github.com/Kodein-Framework/MocKMP/releases
     const val kotest = "5.7.2" // https://github.com/kotest/kotest/releases
