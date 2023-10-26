@@ -21,6 +21,7 @@ interface NoticeMessageViewModelFactory {
         fallbackMessage: String,
         referencedMessage: Flow<ReferencedMessage?>,
         message: String,
+        formattedBody: String?,
         invitation: Flow<String?>,
     ): NoticeMessageViewModel {
         return NoticeMessageViewModelImpl(
@@ -36,6 +37,7 @@ interface NoticeMessageViewModelFactory {
             fallbackMessage,
             referencedMessage,
             message,
+            formattedBody,
             invitation
         )
     }
@@ -56,6 +58,7 @@ open class NoticeMessageViewModelImpl(
     override val fallbackMessage: String,
     referencedMessage: Flow<ReferencedMessage?>,
     override val message: String,
+    override val formattedBody: String?,
     invitation: Flow<String?>,
 ) : NoticeMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =

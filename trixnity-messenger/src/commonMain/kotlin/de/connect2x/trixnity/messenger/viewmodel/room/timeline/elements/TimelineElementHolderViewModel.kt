@@ -285,6 +285,7 @@ open class TimelineElementHolderViewModelImpl(
                                 selectedRoomId
                             ),
                             message = content.bodyWithoutFallback,
+                            formattedBody = content.formattedBody,
                             sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
@@ -308,6 +309,7 @@ open class TimelineElementHolderViewModelImpl(
                                 selectedRoomId
                             ),
                             message = content.bodyWithoutFallback,
+                            formattedBody = content.formattedBody,
                             sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
@@ -419,6 +421,7 @@ open class TimelineElementHolderViewModelImpl(
                                 selectedRoomId
                             ),
                             message = content.bodyWithoutFallback,
+                            formattedBody = content.getFormattedBody(),
                             sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
@@ -640,6 +643,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val fallbackMessage: String = "Hello everyone!"
             override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
             override val message: String = "Hello everyone!"
+            override val formattedBody: String = "Hello <b>everyone!</b>"
             override val isByMe: Boolean = false
             override val showChatBubbleEdge: Boolean = true
             override val showBigGap: Boolean = true
@@ -722,6 +726,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val fallbackMessage: String = "I have good news."
                 override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
                 override val message: String = "I have good news."
+                override val formattedBody: String = "<b>I</b> have good news."
                 override val isByMe: Boolean = false
                 override val showChatBubbleEdge: Boolean = false
                 override val showBigGap: Boolean = false

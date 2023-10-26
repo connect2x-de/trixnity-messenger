@@ -18,6 +18,7 @@ interface TextMessageViewModelFactory {
         fallbackMessage: String,
         referencedMessage: Flow<ReferencedMessage?>,
         message: String,
+        formattedBody: String?,
         invitation: Flow<String?>,
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
@@ -33,6 +34,7 @@ interface TextMessageViewModelFactory {
             fallbackMessage,
             referencedMessage,
             message,
+            formattedBody,
             invitation
         )
     }
@@ -53,6 +55,7 @@ open class TextMessageViewModelImpl(
     override val fallbackMessage: String,
     referencedMessage: Flow<ReferencedMessage?>,
     override val message: String,
+    override val formattedBody: String?,
     invitation: Flow<String?>,
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
 
@@ -72,6 +75,7 @@ open class TextMessageViewModelImpl(
 
 class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val message: String = "Hello World!"
+    override val formattedBody: String = "Hello <b>World!</b>"
     override val fallbackMessage: String = "Hello World!"
     override val isByMe: Boolean = false
     override val showChatBubbleEdge: Boolean = false
