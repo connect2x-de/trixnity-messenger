@@ -703,6 +703,11 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
         EN - "There was an unexpected error sending the message${if (errorMessage == null) "." else ": $errorMessage"}"
         DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
     }
+
+    fun attachmentSizeMaxSizeError(attachmentMaxSizeInMegaByte: Int) = translate {
+        EN - "The attachment exceeds the maximum allowed attachment size of $attachmentMaxSizeInMegaByte MB."
+        DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $attachmentMaxSizeInMegaByte MB."
+    }
 }
 
 internal fun getLang(languages: Languages, messengerSettings: MessengerSettings): Language {

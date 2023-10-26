@@ -20,6 +20,11 @@ class MessengerConfig private constructor() {
     var defaultNotificationShowPopup: Boolean = true
     var defaultNotificationShowText: Boolean = true
 
+    /**
+     * The maximum size of attachments that can be sent in *MegaByte*.
+     */
+    var attachmentMaxSize: Int = 500
+
     var defaultHomeServer: String = ""
 
     var sendLogsEmailAddress: String? = null
