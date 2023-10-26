@@ -80,6 +80,7 @@ open class OutboxElementHolderViewModelImpl(
                             selectedRoomId
                         ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                         message = content.bodyWithoutFallback,
+                        formattedBody = content.formattedBody,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
                         formattedDate = "",

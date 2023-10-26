@@ -21,6 +21,7 @@ interface FallbackMessageViewModelFactory {
         fallbackMessage: String,
         referencedMessage: Flow<ReferencedMessage?>,
         message: String,
+        formattedBody: String?,
         invitation: Flow<String?>,
     ): FallbackMessageViewModel {
         return FallbackMessageViewModelImpl(
@@ -36,7 +37,8 @@ interface FallbackMessageViewModelFactory {
             fallbackMessage,
             referencedMessage,
             message,
-            invitation
+            formattedBody,
+            invitation,
         )
     }
 }
@@ -56,6 +58,7 @@ open class FallbackMessageViewModelImpl(
     override val fallbackMessage: String,
     referencedMessage: Flow<ReferencedMessage?>,
     override val message: String,
+    override val formattedBody: String?,
     invitation: Flow<String?>,
 ) : FallbackMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
