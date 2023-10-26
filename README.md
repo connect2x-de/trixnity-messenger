@@ -12,8 +12,9 @@ component by binding to the view model.
 in [#trixnity-messenger:imbitbu.de](https://matrix.to/#/#trixnity-messenger:imbitbu.de).**
 
 ## TI-Messenger
-Are you looking for a TI-Messenger SDK? Trixnity Messenger is the base for our TIM SDK. If you want to know more, 
-contact us at [contact@connect2x.de](mailto:contact@connect2x.de). 
+
+Are you looking for a TI-Messenger SDK? Trixnity Messenger is the base for our TIM SDK. If you want to know more,
+contact us at [contact@connect2x.de](mailto:contact@connect2x.de).
 
 ## MVVM
 
@@ -117,7 +118,9 @@ some [helpers](https://arkivanov.github.io/Decompose/extensions/compose/#navigat
 routing.
 
 #### Routing overview
-To better understand how the routers are connected, the following (incomplete) overview might help. Many details are left out for clarity.
+
+To better understand how the routers are connected, the following (incomplete) overview might help. Many details are
+left out for clarity.
 
 ![](doc/Routing-RootWrapper.png)
 
@@ -215,22 +218,29 @@ subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/t
 If you want to add new messages, use the delegation pattern as described
 in [View model customization](#change-the-default-behavior-of-view-models) and add more messages.
 
-
 ## Usage from Swift (iOS or Mac)
+
 Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac applications.
 
 ### Installation
-At this moment, the pipeline for Swift builds has not been automated in the CI (this is on our todo-list). Download the current version [here](https://gitlab.com/api/v4/projects/47538655/packages/maven/de/connect2x/trixnity-messenger-kmmbridge/1.0.8-LOCAL/trixnity-messenger-kmmbridge-1.0.8-LOCAL.zip). You can import the XCFramework locally into your project.
+
+At this moment, the pipeline for Swift builds has not been automated in the CI (this is on our todo-list). Download the
+current
+version [here](https://gitlab.com/api/v4/projects/47538655/packages/maven/de/connect2x/trixnity-messenger-kmmbridge/1.0.8-LOCAL/trixnity-messenger-kmmbridge-1.0.8-LOCAL.zip).
+You can import the XCFramework locally into your project.
 
 ### Initialization
+
 In order to use the library from Swift, always ```import trixnity_messenger``` in your files.
 
 To create an instance of Trixnity Messenger do the following:
+
 ```swift
 let rootViewModel = RootViewModelImpl.companion.create(koinApplication: IosDIKt.trixnityMessengerApplication())
 ```
 
 Pass this view model to your root UI node, e.g., a view in SwiftUI:
+
 ```swift
 var body: some Scene {
     WindowGroup {
@@ -240,12 +250,18 @@ var body: some Scene {
 ```
 
 ### Values and Flows
-Trixnity Messengers provides many properties that can change over time. Two data types are used: `Value`s and `Flow`s (with its specializations `StateFlow` and `MutableStateFlow`). To access those values and get informed when they update, different helpers can be used.
+
+Trixnity Messengers provides many properties that can change over time. Two data types are used: `Value`s and `Flow`s (
+with its specializations `StateFlow` and `MutableStateFlow`). To access those values and get informed when they update,
+different helpers can be used.
 
 #### Value
-Values represent the changes in the routers (the data type is coming from [decompose](https://arkivanov.github.io/Decompose)). 
+
+Values represent the changes in the routers (the data type is coming
+from [decompose](https://arkivanov.github.io/Decompose)).
 
 Use this code to get a Swift wrapper for `Value`s.
+
 ```swift
 import Foundation
 import trixnity_messenger
@@ -288,6 +304,7 @@ import trixnity_messenger
 ```
 
 This allows for the following code to work in SwiftUI:
+
 ```swift
 struct RootView: View {
     @StateValue
@@ -301,10 +318,14 @@ struct RootView: View {
     // ...
 }
 ```
+
 Now, you can access `activeStack` in your view and get the current router value all the time.
 
 #### Flows
-Trixnity Messenger uses [SKIE](https://skie.touchlab.co/) to generate some helper code to get nicer interfaces of Flows when accessing them from Swift code. To make it even easier, you can use the following helper:
+
+Trixnity Messenger uses [SKIE](https://skie.touchlab.co/) to generate some helper code to get nicer interfaces of Flows
+when accessing them from Swift code. To make it even easier, you can use the following helper:
+
 ```swift
 func observe<T>(_ stateFlow: SkieSwiftStateFlow<T>, _ assign: (T) -> ()) async {
   for await value in stateFlow.map({$0}) {
@@ -312,9 +333,11 @@ func observe<T>(_ stateFlow: SkieSwiftStateFlow<T>, _ assign: (T) -> ()) async {
   }
 }
 ```
+
 For some primitive values (`Bool`, `Int`, etc.) you might want to add specializations of this method.
 
 To use flows from SwiftUI, create a wrapper of the view model you want to observe. As an example:
+
 ```swift
 class AddMatrixAccountViewModelSwift: ObservableObject {
     let delegate: AddMatrixAccountViewModel
@@ -333,6 +356,7 @@ class AddMatrixAccountViewModelSwift: ObservableObject {
 ```
 
 It can be initiated like this:
+
 ```swift
 struct AddMatrixAccountView: View {
  
@@ -349,6 +373,10 @@ struct AddMatrixAccountView: View {
 }
 ```
 
+## Contributions
+
+If you want to contribute to the project, you need to sign the [Contributor License Agreement](CLA.md).
+See [CLA_instructions.md](CLA_instructions.md) for more instructions.
 
 ## Commercial license and support
 
