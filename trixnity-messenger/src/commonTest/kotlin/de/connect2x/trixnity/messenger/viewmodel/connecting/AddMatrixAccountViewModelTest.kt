@@ -2,8 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
@@ -27,6 +28,7 @@ import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
 import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class AddMatrixAccountViewModelTest : ShouldSpec() {
@@ -213,7 +215,21 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
             else addHandler { _ -> respond("") }
         }.create()
         val di = koinApplication {
-            modules(trixnityMessengerModule())
+            modules(trixnityMessengerModule(), module {
+                single<HttpClientFactory> {
+                    HttpClientFactory {
+                        {
+                            HttpClient(mockEngine) {
+                                it()
+                                install(Logging) {
+                                    logger = Logger.DEFAULT
+                                    level = LogLevel.ALL
+                                }
+                            }
+                        }
+                    }
+                }
+            })
         }.koin
         di.get<I18n>().setCurrentLang("en")
         return AddMatrixAccountViewModelImpl(
@@ -224,15 +240,6 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
             ),
             onAddMatrixAccountMethod = onAddMatrixAccountMethodMock,
             onCancel = onCancelMock,
-            httpClientFactory = { config ->
-                HttpClient(mockEngine) {
-                    config()
-                    install(Logging) {
-                        logger = Logger.DEFAULT
-                        level = LogLevel.ALL
-                    }
-                }
-            }
         )
     }
 }

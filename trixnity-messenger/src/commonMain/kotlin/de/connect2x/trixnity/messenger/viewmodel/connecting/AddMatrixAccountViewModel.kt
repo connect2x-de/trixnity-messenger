@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.GetAccountNames
+import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -55,7 +55,6 @@ open class AddMatrixAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
     private val onCancel: () -> Unit,
-    private val httpClientFactory: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel {
     override val isFirstMatrixClient: StateFlow<Boolean?> =
         flow { emit(get<GetAccountNames>()()) }
@@ -63,6 +62,8 @@ open class AddMatrixAccountViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     final override val serverUrl = MutableStateFlow("")
+
+    private val httpClientFactory = get<HttpClientFactory>()()
 
     final override val serverDiscoveryState =
         serverUrl.debounce(1.seconds).transformLatest { serverUrl ->
@@ -145,7 +146,8 @@ open class AddMatrixAccountViewModelImpl(
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val isFirstMatrixClient: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val serverUrl: MutableStateFlow<String> = MutableStateFlow("")
-    override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> = MutableStateFlow(ServerDiscoveryState.None)
+    override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> =
+        MutableStateFlow(ServerDiscoveryState.None)
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
     }
