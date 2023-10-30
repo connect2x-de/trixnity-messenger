@@ -17,6 +17,6 @@ actual suspend fun getFileInfo(fileDescriptor: FileDescriptor): FileInfo {
         fileName = jsFile.name,
         fileSize = jsFile.size.toLong(),
         mimeType = ContentType.parse(jsFile.type),
-        byteArrayFlow = byteArrayFlow(sourceFactory = { Buffer().write(Int8Array(arrayBuffer).unsafeCast<ByteArray>()) })
+        byteArrayFlow = byteArrayFlow { Buffer().write(Int8Array(arrayBuffer).unsafeCast<ByteArray>()) }
     )
 }

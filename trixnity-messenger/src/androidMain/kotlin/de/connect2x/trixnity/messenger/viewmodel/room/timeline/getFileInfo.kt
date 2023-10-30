@@ -20,9 +20,9 @@ actual suspend fun getFileInfo(fileDescriptor: FileDescriptor): FileInfo {
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Downloads.DISPLAY_NAME))
                     val fileSize =
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Downloads.SIZE))
-                    val source = byteArrayFlow(sourceFactory = {
+                    val source = byteArrayFlow {
                         openInputStream(uri)?.source() ?: throw IOException("Cannot read file '$uri'.")
-                    })
+                    }
                     return FileInfo(
                         fileName,
                         fileSize,

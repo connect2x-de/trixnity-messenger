@@ -15,7 +15,7 @@ actual suspend fun getFileInfo(fileDescriptor: FileDescriptor): FileInfo {
     val path = fileDescriptor.toPath()
     val fileName: String = path.name
     val fileSize: Long? = fileSystem.metadataOrNull(path)?.size
-    val byteArrayFlow = byteArrayFlow(sourceFactory = {path.toNioPath().inputStream().source()})
+    val byteArrayFlow = byteArrayFlow { path.toNioPath().inputStream().source() }
 
     return FileInfo(fileName, fileSize, MimeTypes.guessByFileName(fileName), byteArrayFlow)
 }
