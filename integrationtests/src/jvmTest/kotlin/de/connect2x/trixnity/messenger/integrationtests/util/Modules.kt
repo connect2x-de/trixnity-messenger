@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 import com.russhwolf.settings.MapSettings
 import de.connect2x.trixnity.messenger.CreateMediaStore
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
-import de.connect2x.trixnity.messenger.HttpClientConfiguration
+import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.getAppFolder
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
@@ -14,8 +14,8 @@ import org.koin.dsl.module
 
 fun itModules() = module {
     single<MessengerSettings> { MessengerSettingsImpl(MapSettings()) }
-    single<HttpClientConfiguration> {
-        HttpClientConfiguration {
+    single<HttpClientFactory> {
+        HttpClientFactory {
             { config ->
                 HttpClient {
                     config()

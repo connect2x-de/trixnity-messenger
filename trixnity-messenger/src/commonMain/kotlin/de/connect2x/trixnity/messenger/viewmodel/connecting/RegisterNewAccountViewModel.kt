@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.GetAccountNames
+import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.deviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -8,7 +9,6 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountVi
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.combine
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.*
 import io.ktor.http.*
 import korlibs.io.async.launch
 import kotlinx.coroutines.flow.*
@@ -74,9 +74,9 @@ open class RegisterNewAccountViewModelImpl(
     private val matrixClientService: MatrixClientService,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
-    private val httpClientFactory: (HttpClientConfig<*>.() -> Unit) -> HttpClient = { HttpClient(it) },
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 
+    private val httpClientFactory = get<HttpClientFactory>()()
     private val accountNames = channelFlow { send(get<GetAccountNames>()()) }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val isFirstMatrixClient: StateFlow<Boolean?> = accountNames.map { it.isNullOrEmpty() }

@@ -49,6 +49,11 @@ interface TextBasedViewModel : RoomMessageViewModel {
      * This event's message (stripped of any fallbacks for rich replies).
      */
     val message: String
+
+    /**
+     * The HTML version of the message, if present. [spec](https://spec.matrix.org/v1.7/client-server-api/#mroommessage-msgtypes)
+     */
+    val formattedBody: String?
 }
 
 sealed interface ReferencedMessage {

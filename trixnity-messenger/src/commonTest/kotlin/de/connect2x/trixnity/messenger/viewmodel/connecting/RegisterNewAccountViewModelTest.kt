@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
@@ -273,6 +274,19 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 trixnityMessengerModule(),
                 module {
                     single { testMessengerSettings("EN") }
+                    single<HttpClientFactory> {
+                        HttpClientFactory {
+                            {
+                                HttpClient(mockEngine) {
+                                    it()
+                                    install(Logging) {
+                                        logger = Logger.DEFAULT
+                                        level = LogLevel.ALL
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             )
         }.koin
@@ -286,15 +300,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             matrixClientServiceMock,
             onLogin = onLoginMock,
             onBack = mockFunction0(mocker),
-            httpClientFactory = { config ->
-                HttpClient(mockEngine) {
-                    config()
-                    install(Logging) {
-                        logger = Logger.DEFAULT
-                        level = LogLevel.ALL
-                    }
-                }
-            }
         )
     }
 }

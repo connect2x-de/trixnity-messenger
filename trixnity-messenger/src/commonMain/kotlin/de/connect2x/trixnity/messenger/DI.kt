@@ -44,7 +44,11 @@ private val log = KotlinLogging.logger {}
 
 data class NamedMatrixClients(val list: StateFlow<List<NamedMatrixClient>>)
 
-fun interface HttpClientConfiguration {
+fun interface HttpUserAgent {
+    operator fun invoke(): String
+}
+
+fun interface HttpClientFactory {
     operator fun invoke(): (HttpClientConfig<*>.() -> Unit) -> HttpClient
 }
 
@@ -70,8 +74,10 @@ fun trixnityMessengerModule() = module {
         CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
     }
 
-    single<HttpClientConfiguration> {
-        HttpClientConfiguration { defaultTrixnityHttpClient() }
+    single<HttpUserAgent> { HttpUserAgent { "trixnity-messenger" } }
+    single<HttpClientFactory> {
+        val userAgent = get<HttpUserAgent>()()
+        HttpClientFactory { defaultTrixnityHttpClient(userAgent = userAgent) }
     }
     single<CreateRepositoriesModule> {
         CreateRepositoriesModule { createRepositoriesModule(it) }
@@ -83,7 +89,7 @@ fun trixnityMessengerModule() = module {
         CreateMatrixClientConfiguration {
             {
                 setOwnMessagesAsFullyRead = true
-                httpClientFactory = get<HttpClientConfiguration>()()
+                httpClientFactory = get<HttpClientFactory>()()
                 lastRelevantEventFilter =
                     { it.content is RoomMessageEventContent || it.content is EncryptedEventContent }
             }
