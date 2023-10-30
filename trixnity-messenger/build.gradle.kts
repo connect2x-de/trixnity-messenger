@@ -15,7 +15,7 @@ plugins {
     id("co.touchlab.skie")
     `maven-publish`
     id("co.touchlab.kmmbridge")
-//    id("org.jetbrains.dokka") // TODO dokka and SKIE do not seem to like each other
+//    id("org.jetbrains.dokka")
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -205,6 +205,7 @@ rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlu
 
 publishing {
 //    val dokkaJar by tasks.registering(Jar::class) {
+//        onlyIf { isCI }
 //        dependsOn(tasks.dokkaHtml)
 //        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
 //        archiveClassifier.set("javadoc")

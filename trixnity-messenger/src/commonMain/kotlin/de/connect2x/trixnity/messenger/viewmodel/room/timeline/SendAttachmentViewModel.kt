@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MessengerConfig
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -33,6 +34,7 @@ interface SendAttachmentViewModelFactory {
 }
 
 interface SendAttachmentViewModel {
+    val error: StateFlow<String?>
     val sendEnabled: StateFlow<Boolean>
     val fileName: StateFlow<String?>
     val fileSize: StateFlow<String?>
@@ -53,9 +55,12 @@ open class SendAttachmentViewModelImpl(
     private val onCloseAttachmentSendView: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SendAttachmentViewModel {
 
+    private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
     private val fileInfo: SharedFlow<FileInfo> = flow { emit(getFileInfo(file)) }
         .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
-    private val _sendEnabled = MutableStateFlow(true)
+    private val _sendEnabled = MutableStateFlow(_error.value == null)
+
+    override val error: StateFlow<String?> = _error.asStateFlow()
     override val sendEnabled: StateFlow<Boolean> = _sendEnabled.asStateFlow()
     override val fileName = fileInfo.map { it.fileName }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
@@ -80,6 +85,11 @@ open class SendAttachmentViewModelImpl(
 
     init {
         backHandler.register(backCallback)
+        val computedFileSize = fileInfo.fileSize
+        if ((computedFileSize?.compareTo(MessengerConfig.instance.attachmentMaxSize * 1_000_000) ?: 0) > 0) {
+            _error.value = i18n.attachmentSizeMaxSizeError(MessengerConfig.instance.attachmentMaxSize)
+        }
+        fileSize.value = " (" + (computedFileSize?.let { formatSize(it) } ?: i18n.commonUnknown()) + ")"
     }
 
     override fun send() {
@@ -135,7 +145,7 @@ open class SendAttachmentViewModelImpl(
                 }
             }
             onCloseAttachmentSendView()
-            _sendEnabled.value = true
+            _sendEnabled.value = error.value == null
         }
     }
 
@@ -146,6 +156,7 @@ open class SendAttachmentViewModelImpl(
 }
 
 class PreviewSendAttachmentViewModel() : SendAttachmentViewModel {
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val sendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val fileName: MutableStateFlow<String?> = MutableStateFlow("anImage.png")
     override val fileSize: MutableStateFlow<String> = MutableStateFlow("1337 KB")
