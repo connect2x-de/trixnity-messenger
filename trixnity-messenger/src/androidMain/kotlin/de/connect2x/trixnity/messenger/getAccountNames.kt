@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
+internal actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
     accountMutex.withLock {
         getAppFolder()
             .list { file, _ -> file.isDirectory }

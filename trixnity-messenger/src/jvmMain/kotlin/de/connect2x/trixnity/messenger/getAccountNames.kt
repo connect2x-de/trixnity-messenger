@@ -10,7 +10,7 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
 private val log = KotlinLogging.logger { }
-actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
+internal actual suspend fun getAccountNames(): List<String> = withContext(Dispatchers.IO) {
     accountMutex.withLock {
         getAppFolder(accountName = null)
             .listDirectoryEntries()

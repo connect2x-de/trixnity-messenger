@@ -9,3 +9,5 @@ class GetAccountNamesImpl : GetAccountNames {
         return getAccountNames()
     }
 }
+
+internal expect suspend fun getAccountNames(): List<String>
