@@ -20,6 +20,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.media
+import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.kodein.mock.*
 import org.koin.dsl.koinApplication
@@ -39,6 +41,9 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
     @Mock
     lateinit var downloadManagerMock: DownloadManager
 
+    @Mock
+    lateinit var mediaServiceMock: MediaService
+
     @Fake
     lateinit var encryptedFile: EncryptedFile
 
@@ -49,8 +54,16 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             injectMocks(mocker)
 
             with(mocker) {
+                every { matrixClientMock.di } returns koinApplication {
+                    modules(
+                        module {
+                            single { mediaServiceMock }
+                        }
+                    )
+                }.koin
                 every { downloadManagerMock.getProgressElement(isAny()) } returns MutableStateFlow(null)
                 every { downloadManagerMock.getSuccess(isAny()) } returns MutableStateFlow(false)
+                every { matrixClientMock.media } returns mediaServiceMock
             }
         }
 
@@ -70,8 +83,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             cut.saveFileDialogOpen.value shouldBe false
         }
 
-        should("download a file and set Result to 'failure' if not successful")
-        {
+        should("download a file and set Result to 'failure' if not successful") {
             mocker.every {
                 downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isDownload(), isAny())
             } returns async { Result.failure(RuntimeException("Oh no!")) }
@@ -87,8 +99,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             cut.saveFileDialogOpen.value shouldBe true // to show error message
         }
 
-        should("download a file and return 'null' if the download is cancelled")
-        {
+        should("download a file and return 'null' if the download is cancelled") {
             val scope = CoroutineScope(Dispatchers.Default)
 
             mocker.every {
@@ -123,28 +134,35 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun fileBasedMessageViewModel() = FileBasedMessageViewModelInstance(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                    single { downloadManagerMock }
-                })
-            }.koin,
-            accountName = "test",
-        ),
-        url = "mxc://localhost/123456",
-        encryptedFile = encryptedFile,
-        invitation = flowOf(""),
-        formattedDate = "",
-        showDateAbove = false,
-        formattedTime = "",
-        isByMe = false,
-        showChatBubbleEdge = false,
-        showBigGap = false,
-        showSender = MutableStateFlow(false),
-        sender = MutableStateFlow(""),
-    )
+    private fun fileBasedMessageViewModel(): FileBasedMessageViewModelInstance {
+
+        val fileBasedMessageViewModelInstance = FileBasedMessageViewModelInstance(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        trixnityMessengerModule(),
+                        testMatrixClientModule(matrixClientMock),
+                        module {
+                            single { downloadManagerMock }
+                        })
+                }.koin,
+                accountName = "test",
+            ),
+            url = "mxc://localhost/123456",
+            encryptedFile = encryptedFile,
+            invitation = flowOf(""),
+            formattedDate = "",
+            showDateAbove = false,
+            formattedTime = "",
+            isByMe = false,
+            showChatBubbleEdge = false,
+            showBigGap = false,
+            showSender = MutableStateFlow(false),
+            sender = MutableStateFlow(""),
+        )
+        return fileBasedMessageViewModelInstance
+    }
 
     private class FileBasedMessageViewModelInstance(
         viewModelContext: MatrixClientViewModelContext,
