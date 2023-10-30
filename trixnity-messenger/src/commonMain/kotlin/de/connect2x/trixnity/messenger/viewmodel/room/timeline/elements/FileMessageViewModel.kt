@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -10,8 +9,6 @@ import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-
-private val log= KotlinLogging.logger {  }
 
 interface FileMessageViewModelFactory {
     fun newFileMessageViewModel(

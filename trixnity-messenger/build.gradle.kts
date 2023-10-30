@@ -15,7 +15,7 @@ plugins {
     id("co.touchlab.skie")
     `maven-publish`
     id("co.touchlab.kmmbridge")
-    id("org.jetbrains.dokka")
+//    id("org.jetbrains.dokka")
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -116,7 +116,6 @@ kotlin {
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("net.java.dev.jna:jna:${Versions.jna}")
                 implementation("net.java.dev.jna:jna-platform:${Versions.jna}")
-                implementation("org.apache.tika:tika-core:${Versions.tika}")
             }
         }
         val androidMain by getting {
@@ -125,7 +124,6 @@ kotlin {
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("androidx.activity:activity-ktx:${Versions.activity}")
                 implementation("androidx.security:security-crypto:${Versions.crypto}")
-                implementation("org.apache.tika:tika-core:${Versions.tika}")
             }
         }
         val jsMain by getting {
@@ -207,12 +205,12 @@ rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlu
 }
 
 publishing {
-    val dokkaJar by tasks.registering(Jar::class) {
-        onlyIf { isCI }
-        dependsOn(tasks.dokkaHtml)
-        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-        archiveClassifier.set("javadoc")
-    }
+//    val dokkaJar by tasks.registering(Jar::class) {
+//        onlyIf { isCI }
+//        dependsOn(tasks.dokkaHtml)
+//        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+//        archiveClassifier.set("javadoc")
+//    }
 
     repositories {
         maven {
@@ -249,7 +247,7 @@ publishing {
                     url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
                 }
             }
-            artifact(dokkaJar)
+//            artifact(dokkaJar)
         }
     }
 }

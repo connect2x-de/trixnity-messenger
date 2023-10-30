@@ -9,11 +9,8 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.files.Download
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MetaData
-import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -26,7 +23,6 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -51,15 +47,11 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
     @Fake
     lateinit var encryptedFile: EncryptedFile
 
-    private lateinit var scope: CoroutineScope
-
     init {
         Dispatchers.setMain(testMainDispatcher)
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
-
-            scope = CoroutineScope(Dispatchers.Default)
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -73,10 +65,6 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                 every { downloadManagerMock.getSuccess(isAny()) } returns MutableStateFlow(false)
                 every { matrixClientMock.media } returns mediaServiceMock
             }
-        }
-
-        afterTest {
-            scope.cancel()
         }
 
         should("download a file and return the result if successful") {
@@ -144,17 +132,6 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                 cut.saveFileDialogOpen.value shouldBe false
             }
         }
-
-        should("guess the file's mime type correctly") {
-            mocker.everySuspending {
-                mediaServiceMock.getEncryptedMedia(encryptedFile, null, true)
-            } returns Result.success(previewImageByteArray().toByteArrayFlow())
-
-            val cut = fileBasedMessageViewModel()
-            eventually(2.seconds) {
-                cut.metaData.value shouldBe MetaData("image/png")
-            }
-        }
     }
 
     private fun fileBasedMessageViewModel(): FileBasedMessageViewModelInstance {
@@ -184,7 +161,6 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(false),
             sender = MutableStateFlow(""),
         )
-        scope.launch { fileBasedMessageViewModelInstance.metaData.collect() }
         return fileBasedMessageViewModelInstance
     }
 

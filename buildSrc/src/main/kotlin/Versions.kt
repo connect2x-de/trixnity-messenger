@@ -25,7 +25,6 @@ object Versions {
     const val dokka = "1.9.10" // https://github.com/Kotlin/dokka/releases"
     const val skie = "0.5.0" // https://github.com/touchlab/KMMBridge/releases
     const val kmmBridge = "0.5.0" // https://github.com/touchlab/KMMBridge/releases
-    const val tika = "2.9.0"
 
     // integration tests
     const val testContainers = "1.19.0" // https://github.com/testcontainers/testcontainers-java/releases
