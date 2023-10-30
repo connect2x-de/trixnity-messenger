@@ -1,10 +1,11 @@
 package de.connect2x.trixnity.messenger.util
 
+import kotlinx.browser.localStorage
+
 actual suspend fun getSecret(id: String): String? {
-    // TODO
-    return null
+    return localStorage.getItem(id) // there is no real secure way to store secrets
 }
 
 actual suspend fun setSecret(id: String, secret: String) {
-    // TODO
+    localStorage.setItem(id, secret)
 }
