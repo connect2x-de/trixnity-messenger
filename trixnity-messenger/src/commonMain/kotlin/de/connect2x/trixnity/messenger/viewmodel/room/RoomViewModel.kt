@@ -7,6 +7,7 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
@@ -44,8 +45,8 @@ interface RoomViewModel {
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
     fun setSinglePane(twoPane: Boolean)
-    fun selectFile(file: String)
-    fun dragFile(file: String)
+    fun selectFile(file: FileDescriptor)
+    fun dragFile(file: FileDescriptor)
     fun dragFileExit()
     fun showSettings()
 }
@@ -108,14 +109,14 @@ open class RoomViewModelImpl(
         }
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
         val instance = timelineStack.value.active.instance
         if (instance is TimelineRouter.TimelineWrapper.View) {
             instance.timelineViewModel.selectFile(file)
         }
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
         val instance = timelineStack.value.active.instance
         if (instance is TimelineRouter.TimelineWrapper.View) {
             instance.timelineViewModel.dragFile(file)
@@ -192,10 +193,10 @@ class PreviewRoomViewModel() : RoomViewModel {
         isTwoPane.value = twoPane
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
     }
 
     override fun dragFileExit() {

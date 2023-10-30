@@ -4,6 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
@@ -34,7 +35,7 @@ interface ProfileViewModelFactory {
     fun newProfileViewModel(
         viewModelContext: ViewModelContext,
         onCloseProfile: () -> Unit,
-        onOpenAvatarCutter: (String, String) -> Unit,
+        onOpenAvatarCutter: (String, FileDescriptor) -> Unit,
     ): ProfileViewModel {
         return ProfileViewModelImpl(viewModelContext, onCloseProfile, onOpenAvatarCutter)
     }
@@ -49,7 +50,7 @@ interface ProfileViewModel {
     fun errorDismiss()
     fun cancelEditDisplayName(accountName: String)
     fun saveDisplayName(accountName: String)
-    fun openAvatarCutter(accountName: String, file: String)
+    fun openAvatarCutter(accountName: String, file: FileDescriptor)
     fun closeAvatarCutter()
 }
 
@@ -57,7 +58,7 @@ interface ProfileViewModel {
 open class ProfileViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseProfile: () -> Unit,
-    private val onOpenAvatarCutter: (String, String) -> Unit,
+    private val onOpenAvatarCutter: (String, FileDescriptor) -> Unit,
 ) : ViewModelContext by viewModelContext, ProfileViewModel {
 
     private val initialsComputation = get<Initials>()
@@ -150,7 +151,7 @@ open class ProfileViewModelImpl(
         }
     }
 
-    override fun openAvatarCutter(accountName: String, file: String) {
+    override fun openAvatarCutter(accountName: String, file: FileDescriptor) {
         onOpenAvatarCutter(accountName, file)
     }
 

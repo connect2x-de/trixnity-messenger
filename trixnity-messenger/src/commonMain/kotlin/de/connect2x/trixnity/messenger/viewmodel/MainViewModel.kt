@@ -32,6 +32,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
@@ -92,7 +93,7 @@ interface MainViewModel {
     fun start()
     fun closeDetailsAndShowList()
     fun onRoomSelected(accountName: String, id: RoomId)
-    fun onOpenAvatarCutter(file: String, accountName: String)
+    fun onOpenAvatarCutter(accountName: String, file: FileDescriptor)
     fun setSinglePane(isSinglePane: Boolean)
     fun openModal(
         type: OpenModalType,
@@ -104,8 +105,8 @@ interface MainViewModel {
 
     fun closeAccountsOverview()
 
-    fun selectFile(file: String)
-    fun dragFile(file: String)
+    fun selectFile(file: FileDescriptor)
+    fun dragFile(file: FileDescriptor)
     fun dragFileExit()
 
     sealed class SelfVerificationWrapper {
@@ -522,7 +523,7 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun onOpenAvatarCutter(accountName: String, file: String) {
+    override fun onOpenAvatarCutter(accountName: String, file: FileDescriptor) {
         coroutineScope.launch {
             log.debug { "open avatar cutter" }
             avatarCutterRouter.show(accountName, file)
@@ -549,7 +550,7 @@ open class MainViewModelImpl(
         roomListRouter.closeAccountsOverview()
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
         log.debug { "select file $file, selected roomId: ${selectedRoomId.value}" }
         if (selectedRoomId.value != null) {
             val instance = roomRouterStack.value.active.instance
@@ -559,7 +560,7 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
         log.debug { "drag file $file, selected roomId: ${selectedRoomId.value}" }
         if (selectedRoomId.value != null) {
             val instance = roomRouterStack.value.active.instance
@@ -768,7 +769,7 @@ class PreviewMainViewModel : MainViewModel {
         selectedRoomId.value = id
     }
 
-    override fun onOpenAvatarCutter(file: String, accountName: String) {
+    override fun onOpenAvatarCutter(accountName: String, file: FileDescriptor) {
     }
 
     override fun setSinglePane(isSinglePane: Boolean) {
@@ -787,10 +788,10 @@ class PreviewMainViewModel : MainViewModel {
     override fun closeAccountsOverview() {
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
     }
 
     override fun dragFileExit() {

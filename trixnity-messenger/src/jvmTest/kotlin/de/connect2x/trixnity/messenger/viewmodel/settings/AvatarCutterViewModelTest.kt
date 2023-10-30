@@ -23,8 +23,7 @@ import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArray
-import okio.Path.Companion.toPath
-import okio.fakefilesystem.FakeFileSystem
+import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -57,12 +56,6 @@ class AvatarCutterViewModelTest : ShouldSpec() {
             injectMocks(mocker)
             mediaServiceMock = MediaServiceMock(mocker)
 
-            val fileSystem = FakeFileSystem()
-            val tmp = "tmp".toPath()
-            fileSystem.createDirectories(tmp)
-            val file = tmp / "test.png"
-            fileSystem.write(file) { write("image".encodeToByteArray()) }
-
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
                     modules(
@@ -71,11 +64,11 @@ class AvatarCutterViewModelTest : ShouldSpec() {
                         }
                     )
                 }.koin
-                every { getFileInfoMock(isAny()) } returns FileInfo(
+                everySuspending { getFileInfoMock(isAny()) } returns FileInfo(
                     "fileName",
                     100,
                     ContentType.Image.Any,
-                    fileSystem.source(file)
+                    "image".encodeToByteArray().toByteArrayFlow(),
                 )
             }
         }

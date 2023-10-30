@@ -8,6 +8,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.DefaultMatrixClientService
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -29,12 +30,12 @@ interface RootViewModel {
     /**
      * Used for DnD on Desktop: a file is dropped onto the messenger view
      */
-    fun selectFile(file: String)
+    fun selectFile(file: FileDescriptor)
 
     /**
      * Used for DnD on Desktop: file is dragged into the messenger view
      */
-    fun dragFile(file: String)
+    fun dragFile(file: FileDescriptor)
 
     /**
      * Used for DnD on Desktop: a file is no longer dragged above the messenger view
@@ -80,11 +81,11 @@ open class RootViewModelImpl(
         router.showLogout(accountName)
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
         router.selectFile(file)
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
         router.dragFile(file)
     }
 

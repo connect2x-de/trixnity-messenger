@@ -1,15 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import de.connect2x.trixnity.messenger.viewmodel.files.getFileSystem
-import de.connect2x.trixnity.messenger.viewmodel.util.MimeTypes
-import okio.FileSystem
-import okio.Path.Companion.toPath
+import io.ktor.http.*
+import js.promise.await
+import js.typedarrays.Int8Array
+import net.folivo.trixnity.utils.byteArrayFlow
+import okio.Buffer
+import web.filesystem.FileSystemFileHandle
 
-actual fun getFileInfo(file: String): FileInfo {
-    val fileSystem: FileSystem = getFileSystem()
-    val path = file.toPath()
-    val fileName: String = path.name
-    val fileSize: Long? = fileSystem.metadataOrNull(path)?.size
+actual class FileDescriptor(val handle: FileSystemFileHandle)
 
-    return FileInfo(fileName, fileSize, MimeTypes.guessByFileName(fileName), fileSystem.source(path))
+actual suspend fun getFileInfo(fileDescriptor: FileDescriptor): FileInfo {
+    val jsFile = fileDescriptor.handle.getFile().await()
+    // TODO File.stream() to avoid loading the file into memory
+    val arrayBuffer = jsFile.arrayBuffer().await()
+    return FileInfo(
+        fileName = jsFile.name,
+        fileSize = jsFile.size.toLong(),
+        mimeType = ContentType.parse(jsFile.type),
+        byteArrayFlow = byteArrayFlow { Buffer().write(Int8Array(arrayBuffer).unsafeCast<ByteArray>()) }
+    )
 }

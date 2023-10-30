@@ -412,7 +412,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
                             selectedRoomId: RoomId,
                             onMessageEditFinished: (EventId) -> Unit,
                             onMessageReplyToFinished: (EventId) -> Unit,
-                            onShowAttachmentSendView: (file: String) -> Unit
+                            onShowAttachmentSendView: (file: FileDescriptor) -> Unit
                         ): InputAreaViewModel {
                             return inputAreaViewModelMock
                         }

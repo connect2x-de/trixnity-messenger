@@ -3,14 +3,14 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.GetFileInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
-import net.folivo.trixnity.utils.toByteArrayFlow
-import okio.buffer
+import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -20,7 +20,7 @@ private val log = KotlinLogging.logger { }
 interface AvatarCutterViewModelFactory {
     fun newAvatarCutterViewModel(
         viewModelContext: MatrixClientViewModelContext,
-        file: String,
+        file: FileDescriptor,
         onClose: () -> Unit,
     ): AvatarCutterViewModel {
         return AvatarCutterViewModelImpl(viewModelContext, file, onClose)
@@ -28,22 +28,24 @@ interface AvatarCutterViewModelFactory {
 }
 
 interface AvatarCutterViewModel {
-    val image: ByteArray
-    val upload: MutableStateFlow<Boolean>
-    val error: MutableStateFlow<String?>
+    val image: StateFlow<ByteArray?>
+    val upload: StateFlow<Boolean>
+    val error: StateFlow<String?>
     fun cancel()
     fun accept()
 }
 
 open class AvatarCutterViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    file: String,
+    file: FileDescriptor,
     private val onClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {
     private val getFileInfo = get<GetFileInfo>()
 
-    private val fileInfo = getFileInfo(file)
-    override val image: ByteArray = fileInfo.source.buffer().readByteArray()
+    private val fileInfo = flow { emit(getFileInfo(file)) }
+        .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
+    override val image = fileInfo.map { it.byteArrayFlow.toByteArray() }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val upload = MutableStateFlow(false)
     override val error = MutableStateFlow<String?>(null)
@@ -64,9 +66,9 @@ open class AvatarCutterViewModelImpl(
         coroutineScope.launch {
             upload.value = true
             matrixClient.media.prepareUploadThumbnail(
-                image.toByteArrayFlow(),
+                fileInfo.first().byteArrayFlow,
                 ContentType.Image.Any
-            ) // TODO ByteArrayFlow
+            )
                 ?.let { (cache, _) ->
                     matrixClient.media.uploadMedia(cache).fold(
                         onSuccess = { url ->
