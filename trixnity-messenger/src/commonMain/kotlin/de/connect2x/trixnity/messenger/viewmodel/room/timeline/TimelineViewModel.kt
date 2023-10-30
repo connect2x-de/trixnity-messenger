@@ -120,7 +120,7 @@ interface TimelineViewModel {
     /**
      * Only for DnD on desktop: the absolute path of a dragged file.
      */
-    val draggedFile: StateFlow<String?>
+    val draggedFile: StateFlow<FileDescriptor?>
 
     fun errorDismiss()
     fun leaveRoom()
@@ -133,8 +133,8 @@ interface TimelineViewModel {
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
 
-    fun selectFile(file: String)
-    fun dragFile(file: String)
+    fun selectFile(file: FileDescriptor)
+    fun dragFile(file: FileDescriptor)
     fun dragFileExit()
 
     sealed class SendAttachmentWrapper {
@@ -147,7 +147,7 @@ interface TimelineViewModel {
         object None : SendAttachmentConfig()
 
         @Parcelize
-        data class SendAttachmentView(val file: String) : SendAttachmentConfig()
+        data class SendAttachmentView(val file: FileDescriptor) : SendAttachmentConfig()
     }
 
 }
@@ -215,7 +215,7 @@ class TimelineViewModelImpl(
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val draggedFile: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
     private val timelineEventHolderViewModelCache = mutableMapOf<EventId, TimelineElementHolderViewModel>()
     private val outboxElementHolderViewModelCache = mutableMapOf<String, OutboxElementHolderViewModel>()
@@ -567,7 +567,7 @@ class TimelineViewModelImpl(
         error.value = null
     }
 
-    private fun onShowAttachmentSendView(file: String) {
+    private fun onShowAttachmentSendView(file: FileDescriptor) {
         sendAttachmentNavigation.launchPush(coroutineScope, SendAttachmentConfig.SendAttachmentView(file))
     }
 
@@ -624,11 +624,11 @@ class TimelineViewModelImpl(
         }
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
         onShowAttachmentSendView(file)
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
         draggedFile.value = file
     }
 
@@ -877,7 +877,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
         )
     )
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val draggedFile: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
     init {
         val scope = CoroutineScope(Dispatchers.Default)
@@ -903,10 +903,10 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override fun loadBefore() {
     }
 
-    override fun selectFile(file: String) {
+    override fun selectFile(file: FileDescriptor) {
     }
 
-    override fun dragFile(file: String) {
+    override fun dragFile(file: FileDescriptor) {
     }
 
     override fun dragFileExit() {

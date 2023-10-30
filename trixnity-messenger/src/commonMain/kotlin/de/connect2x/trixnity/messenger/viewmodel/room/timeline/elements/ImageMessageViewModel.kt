@@ -68,7 +68,7 @@ interface ImageMessageViewModel : FileBasedMessageViewModel {
     fun cancelThumbnailDownload()
 }
 
-open class ImageMessageViewModelImpl(
+class ImageMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
@@ -107,7 +107,7 @@ open class ImageMessageViewModelImpl(
     override val width: Int = thumbnailWidth(content)
     override val height: Int = thumbnailHeight(content)
     override val progress: StateFlow<FileTransferProgressElement?> =
-        if (mediaUploadProgress != null) {
+        if (mediaUploadProgress.value != null) {
             thumbnails.mapProgressToProgressElement(mediaUploadProgress)
         } else {
             thumbnails.mapProgressToProgressElement(thumbnailProgressFlow)

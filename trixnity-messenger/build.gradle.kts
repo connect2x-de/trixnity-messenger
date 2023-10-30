@@ -78,6 +78,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api("net.folivo:trixnity-client:${Versions.trixnity}")
+                implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 api("io.ktor:ktor-client-core:${Versions.ktor}")
                 api("io.ktor:ktor-client-logging:${Versions.ktor}")
                 api("com.arkivanov.decompose:decompose:${Versions.decompose}")
@@ -113,7 +114,6 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
-                implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("net.java.dev.jna:jna:${Versions.jna}")
                 implementation("net.java.dev.jna:jna-platform:${Versions.jna}")
             }
@@ -121,7 +121,6 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
-                implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("androidx.activity:activity-ktx:${Versions.activity}")
                 implementation("androidx.security:security-crypto:${Versions.crypto}")
             }
@@ -131,12 +130,12 @@ kotlin {
                 implementation("net.folivo:trixnity-client-repository-indexeddb:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-indexeddb:${Versions.trixnity}")
                 api(npm("@js-joda/timezone", "2.3.0"))
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-browser:1.0.0-pre.635")
             }
         }
         val appleMain by getting {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
-                implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
             }
         }
@@ -264,7 +263,9 @@ skie {
     }
 }
 
-kmmbridge {
-    mavenPublishArtifacts()
-    spm()
+if (isCI) {
+    kmmbridge {
+        mavenPublishArtifacts()
+        spm()
+    }
 }

@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import org.koin.core.component.get
 
 class AvatarCutterRouter(
@@ -34,7 +35,7 @@ class AvatarCutterRouter(
             )
         }
 
-    suspend fun show(accountName: String, file: String) {
+    suspend fun show(accountName: String, file: FileDescriptor) {
         navigation.pushSuspending(Config.AvatarCutter(accountName, file))
     }
 
@@ -49,7 +50,7 @@ class AvatarCutterRouter(
 
     sealed class Config : Parcelable {
         @Parcelize
-        data class AvatarCutter(val accountName: String, val file: String) : Config()
+        data class AvatarCutter(val accountName: String, val file: FileDescriptor) : Config()
 
         @Parcelize
         object None : Config()

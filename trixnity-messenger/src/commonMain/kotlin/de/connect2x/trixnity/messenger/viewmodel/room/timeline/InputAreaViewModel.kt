@@ -61,7 +61,7 @@ interface InputAreaViewModelFactory {
         selectedRoomId: RoomId,
         onMessageEditFinished: (EventId) -> Unit,
         onMessageReplyToFinished: (EventId) -> Unit,
-        onShowAttachmentSendView: (file: String) -> Unit,
+        onShowAttachmentSendView: (file: FileDescriptor) -> Unit,
     ): InputAreaViewModel {
         return InputAreaViewModelImpl(
             viewModelContext,
@@ -102,7 +102,7 @@ interface InputAreaViewModel {
     fun sendMessage()
     fun selectAttachment()
     fun closeAttachmentDialog()
-    fun onAttachmentFileSelect(file: String)
+    fun onAttachmentFileSelect(file: FileDescriptor)
     fun editMessage(eventId: EventId)
     fun cancelEdit()
     fun replyToMessage(eventId: EventId)
@@ -115,7 +115,7 @@ open class InputAreaViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onMessageEditFinished: (EventId) -> Unit,
     private val onMessageReplyFinished: (EventId) -> Unit,
-    private val onShowAttachmentSendView: (file: String) -> Unit,
+    private val onShowAttachmentSendView: (file: FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
 
     private val messengerSettings = get<MessengerSettings>()
@@ -286,7 +286,7 @@ open class InputAreaViewModelImpl(
         showAttachmentSelectDialog.value = false
     }
 
-    override fun onAttachmentFileSelect(file: String) {
+    override fun onAttachmentFileSelect(file: FileDescriptor) {
         log.debug { "selected $file as attachment" }
         onShowAttachmentSendView(file)
     }
@@ -457,7 +457,7 @@ class PreviewInputViewModel : InputAreaViewModel {
     override fun closeAttachmentDialog() {
     }
 
-    override fun onAttachmentFileSelect(file: String) {
+    override fun onAttachmentFileSelect(file: FileDescriptor) {
     }
 
     override fun editMessage(eventId: EventId) {

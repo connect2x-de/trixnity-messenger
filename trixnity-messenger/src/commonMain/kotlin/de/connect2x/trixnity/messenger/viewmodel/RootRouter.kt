@@ -9,6 +9,7 @@ import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import korlibs.io.async.launch
 import org.koin.core.component.get
@@ -197,14 +198,14 @@ class RootRouter(
         navigation.launchPush(viewModelContext.coroutineScope, Config.MatrixClientLogout(accountName))
     }
 
-    fun selectFile(file: String) {
+    fun selectFile(file: FileDescriptor) {
         val instance = stack.value.active.instance
         if (instance is RootWrapper.Main) {
             instance.mainViewModel.selectFile(file)
         }
     }
 
-    fun dragFile(file: String) {
+    fun dragFile(file: FileDescriptor) {
         val instance = stack.value.active.instance
         if (instance is RootWrapper.Main) {
             instance.mainViewModel.dragFile(file)

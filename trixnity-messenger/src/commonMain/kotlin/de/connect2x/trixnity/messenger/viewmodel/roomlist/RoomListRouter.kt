@@ -8,6 +8,7 @@ import com.arkivanov.essenty.parcelable.Parcelable
 import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.settings.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,7 @@ class RoomListRouter(
     private val viewModelContext: ViewModelContext,
     private val selectedRoomId: MutableStateFlow<RoomId?>,
     private val onRoomSelected: (accountName: String, id: RoomId) -> Unit,
-    private val onOpenAvatarCutter: (accountName: String, file: String) -> Unit,
+    private val onOpenAvatarCutter: (accountName: String, file: FileDescriptor) -> Unit,
     private val onSendLogs: () -> Unit,
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (String) -> Unit
