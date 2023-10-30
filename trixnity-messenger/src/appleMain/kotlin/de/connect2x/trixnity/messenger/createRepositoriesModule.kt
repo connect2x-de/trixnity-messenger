@@ -24,7 +24,7 @@ actual suspend fun createRepositoriesModule(accountName: String, dbPassword: DbP
         } else null
         createRealmRepositoriesModule {
             directory(dbFolder)
-            if (password != null) encryptionKey(password.toByteArray())
+            if (password != null) encryptionKey(password.encodeToByteArray())
         }
     }
 
