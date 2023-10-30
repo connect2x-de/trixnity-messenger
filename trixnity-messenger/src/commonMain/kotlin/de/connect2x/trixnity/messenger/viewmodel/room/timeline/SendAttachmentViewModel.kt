@@ -48,7 +48,7 @@ interface SendAttachmentViewModel {
     fun cancel()
 }
 
-open class SendAttachmentViewModelImpl(
+class SendAttachmentViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     file: FileDescriptor,
     private val selectedRoomId: RoomId,
@@ -65,7 +65,11 @@ open class SendAttachmentViewModelImpl(
     override val fileName = fileInfo.map { it.fileName }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val fileSize =
-        fileInfo.map { it?.let { "(" + (it.fileSize?.let { formatSize(it) } ?: i18n.commonUnknown()) + ")" } }
+        fileInfo.map { info ->
+            info.let {
+                "(" + (it.fileSize?.let { size -> formatSize(size) } ?: i18n.commonUnknown()) + ")"
+            }
+        }
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val byteArray = fileInfo.map { it.byteArrayFlow.toByteArray() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -85,11 +89,12 @@ open class SendAttachmentViewModelImpl(
 
     init {
         backHandler.register(backCallback)
-        val computedFileSize = fileInfo.fileSize
-        if ((computedFileSize?.compareTo(MessengerConfig.instance.attachmentMaxSize * 1_000_000) ?: 0) > 0) {
-            _error.value = i18n.attachmentSizeMaxSizeError(MessengerConfig.instance.attachmentMaxSize)
+        coroutineScope.launch {
+            val computedFileSize = fileInfo.first().fileSize
+            if ((computedFileSize?.compareTo(MessengerConfig.instance.attachmentMaxSize * 1_000_000) ?: 0) > 0) {
+                _error.value = i18n.attachmentSizeMaxSizeError(MessengerConfig.instance.attachmentMaxSize)
+            }
         }
-        fileSize.value = " (" + (computedFileSize?.let { formatSize(it) } ?: i18n.commonUnknown()) + ")"
     }
 
     override fun send() {
