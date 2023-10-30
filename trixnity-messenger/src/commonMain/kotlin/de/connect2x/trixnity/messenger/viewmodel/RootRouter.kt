@@ -10,7 +10,7 @@ import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.async.launch
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 import org.koin.dsl.module
 

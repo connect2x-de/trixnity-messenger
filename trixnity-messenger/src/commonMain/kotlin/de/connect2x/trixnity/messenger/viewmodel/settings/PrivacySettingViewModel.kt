@@ -5,8 +5,8 @@ import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.async.launch
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.UserId

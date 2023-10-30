@@ -6,11 +6,11 @@ import de.connect2x.trixnity.messenger.getAppFolder
 import de.connect2x.trixnity.messenger.getOs
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import korlibs.io.async.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.awt.Desktop
