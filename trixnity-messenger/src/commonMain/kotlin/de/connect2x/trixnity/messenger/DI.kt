@@ -79,8 +79,12 @@ fun trixnityMessengerModule() = module {
         val userAgent = get<HttpUserAgent>()()
         HttpClientFactory { defaultTrixnityHttpClient(userAgent = userAgent) }
     }
+    single<Secrets> { object : Secrets {} }
+    single<DbPassword> {
+        DbPasswordImpl(get())
+    }
     single<CreateRepositoriesModule> {
-        CreateRepositoriesModule { createRepositoriesModule(it) }
+        CreateRepositoriesModule { createRepositoriesModule(it, get()) }
     }
     single<CreateMediaStore> {
         CreateMediaStore { createMediaStore(it) }
@@ -106,7 +110,6 @@ fun trixnityMessengerModule() = module {
     single<VerifyAccount> { VerifyAccountImpl() }
     single<IsNetworkAvailable> { object : IsNetworkAvailable {} }
     single<GetFileInfo> { object : GetFileInfo {} }
-    single<Secrets> { object : Secrets {} }
     single<RelevantTimelineEvents> { object : RelevantTimelineEvents {} }
 
     single<Languages> { DefaultLanguages }

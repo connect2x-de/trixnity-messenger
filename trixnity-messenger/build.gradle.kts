@@ -78,6 +78,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api("net.folivo:trixnity-client:${Versions.trixnity}")
+                implementation("net.folivo:trixnity-crypto-core:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
                 api("io.ktor:ktor-client-core:${Versions.ktor}")
                 api("io.ktor:ktor-client-logging:${Versions.ktor}")
