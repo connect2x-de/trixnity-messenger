@@ -10,8 +10,8 @@ object Versions {
     const val ksp = "1.9.10-1.0.13" // https://github.com/google/ksp/releases
     const val kotlinxCoroutines = "1.7.3" // https://github.com/Kotlin/kotlinx.coroutines/releases
     const val kotlinxSerialization = "1.6.0" // https://github.com/Kotlin/kotlinx.serialization/releases
-    const val decompose = "2.1.0-alpha-06" // https://github.com/arkivanov/Decompose/releases
-    const val essenty = "1.2.0-alpha-03" // https://github.com/arkivanov/Essenty/releases
+    const val decompose = "2.1.3" // https://github.com/arkivanov/Decompose/releases
+    const val essenty = "1.2.0" // https://github.com/arkivanov/Essenty/releases
     const val kotlinxDatetime = "0.4.1" // https://github.com/Kotlin/kotlinx-datetime/releases
     const val koin = "3.4.3" // https://github.com/InsertKoinIO/koin/tags
     const val ktor = "2.3.4" // https://github.com/ktorio/ktor/releases
