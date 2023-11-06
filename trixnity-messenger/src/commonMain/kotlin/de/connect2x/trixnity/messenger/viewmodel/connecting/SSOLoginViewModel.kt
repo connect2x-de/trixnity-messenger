@@ -9,8 +9,8 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import korlibs.io.async.launch
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 
@@ -92,7 +92,7 @@ open class SSOLoginViewModelImpl(
             }.collect {
                 val loginToken = it.parameters["loginToken"]
                 if (loginToken != null)
-                    this.loginToken.value = loginToken
+                    this@SSOLoginViewModelImpl.loginToken.value = loginToken
             }
         }
     }

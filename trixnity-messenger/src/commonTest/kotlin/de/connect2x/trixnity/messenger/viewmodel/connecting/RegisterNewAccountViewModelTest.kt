@@ -18,8 +18,6 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
-import korlibs.io.lang.Charset
-import korlibs.io.lang.toString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -139,7 +137,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             val cut =
                 registerNewAccountViewModel(serverUrl = "http://myMatrixServer:55678") {
                     addHandler { request ->
-                        val body = request.body.toByteArray().toString(Charset.forName("UTF-8"))
+                        val body = request.body.toByteArray().decodeToString()
                         when {
                             request.url.encodedPath.contains("validity") ->
                                 respond(
