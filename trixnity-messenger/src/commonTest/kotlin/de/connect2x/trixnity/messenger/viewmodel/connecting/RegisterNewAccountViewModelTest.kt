@@ -263,7 +263,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
     ): RegisterNewAccountViewModelImpl {
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
-            dispatcher = currentCoroutineContext.testCoroutineScheduler[CoroutineDispatcher] ?: Dispatchers.Unconfined
             if (mockEngineConfig != null) mockEngineConfig()
             else addHandler { _ -> respond("") }
         }.create()
