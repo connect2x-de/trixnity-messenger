@@ -1,7 +1,6 @@
 import co.touchlab.skie.configuration.DefaultArgumentInterop
 import co.touchlab.skie.configuration.EnumInterop
 import co.touchlab.skie.configuration.SealedInterop
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
@@ -18,11 +17,9 @@ plugins {
 //    id("org.jetbrains.dokka")
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
-    targetHierarchy.default()
     jvmToolchain(Versions.kotlinJvmTarget.number)
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
         }
@@ -44,7 +41,7 @@ kotlin {
     }
     js(IR) {
         browser {
-            testTask {
+            testTask(Action {
                 enabled = false // TODO
 //                useKarma {
 //                    useFirefoxHeadless()
@@ -52,15 +49,16 @@ kotlin {
 //                    webpackConfig.configDirectory = rootDir.resolve("webpack.config.d")
 //                }
             }
+            )
         }
         binaries.library()
         generateTypeScriptDefinitions()
     }
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
-
-    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach {
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64(),
+        iosX64()
+    ).forEach {
         it.binaries.framework {
             export("com.arkivanov.decompose:decompose:${Versions.decompose}")
             export("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
@@ -75,7 +73,7 @@ kotlin {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
         }
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api("net.folivo:trixnity-client:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-crypto-core:${Versions.trixnity}")
@@ -88,7 +86,7 @@ kotlin {
                 api("io.github.oshai:kotlin-logging:${Versions.kotlinLogging}")
                 api("io.insert-koin:koin-core:${Versions.koin}")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.kotlinxSerialization}")
-                implementation("com.squareup.okio:okio:${Versions.okio}") // TODO does not work with Browser JS -> use ByteArrayFlow
+                implementation("com.squareup.okio:okio:${Versions.okio}")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
                 implementation("com.benasher44:uuid:${Versions.uuid}")
                 implementation("com.russhwolf:multiplatform-settings:${Versions.multiplatformSettings}")
@@ -96,7 +94,7 @@ kotlin {
                 implementation("com.soywiz.korlibs.korim:korim:${Versions.korge}")
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("org.kodein.mock:mockmp-runtime:${Versions.mocKmp}")
@@ -112,21 +110,21 @@ kotlin {
                 implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
             }
         }
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("net.java.dev.jna:jna:${Versions.jna}")
                 implementation("net.java.dev.jna:jna-platform:${Versions.jna}")
             }
         }
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("androidx.activity:activity-ktx:${Versions.activity}")
                 implementation("androidx.security:security-crypto:${Versions.crypto}")
             }
         }
-        val jsMain by getting {
+        jsMain {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-indexeddb:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-indexeddb:${Versions.trixnity}")
@@ -134,13 +132,13 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-browser:1.0.0-pre.635")
             }
         }
-        val appleMain by getting {
+        appleMain {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
             }
         }
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation("io.kotest:kotest-runner-junit5:${Versions.kotest}")
                 implementation("io.ktor:ktor-client-java:${Versions.ktor}")
@@ -155,11 +153,11 @@ kotlin {
 }
 
 android {
+    namespace = "de.connect2x.trixnity.messenger"
     compileSdk = 33
 
     defaultConfig {
         minSdk = 28
-        targetSdk = 33
     }
 
     compileOptions {
@@ -171,8 +169,8 @@ android {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
-            assets.srcDir(File(buildDir, "generated/moko/androidMain/assets"))
-            res.srcDir(File(buildDir, "generated/moko/androidMain/res"))
+            assets.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/assets"))
+            res.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/res"))
         }
     }
 

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.room.*
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.RoomUserReceipts
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
@@ -43,40 +44,57 @@ class RoomUserBuilder(
     private val userService: UserService,
     private val roomId: RoomId
 ) {
-    val users = MutableStateFlow(listOf<RoomUser>())
+    data class RoomUserWithReceipts(
+        val user: RoomUser,
+        val receipts: RoomUserReceipts,
+    )
+
+    val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
     init {
         mocker.every { userService.getAll(roomId) } returns users.map {
-            it.associate { user ->
+            it.associate { (user, _) ->
                 user.userId to flowOf(
                     user
                 )
             }
         }
+        mocker.every { userService.getAllReceipts(roomId) } returns users.map {
+            it.associate { (_, receipts) ->
+                receipts.userId to flowOf(
+                    receipts
+                )
+            }
+        }
     }
 
-    operator fun RoomUser.unaryPlus() {
+    operator fun RoomUserWithReceipts.unaryPlus() {
         users.update { it + this }
     }
 
-    fun roomUser(name: String, id: UserId = UserId(name), lastReadMessage: EventId? = null): RoomUser =
-        RoomUser(
-            roomId,
-            id,
-            name,
-            StateEvent(
-                MemberEventContent(membership = Membership.JOIN),
-                EventId(""),
-                id,
+    fun roomUser(name: String, id: UserId = UserId(name), lastReadMessage: EventId? = null): RoomUserWithReceipts =
+        RoomUserWithReceipts(
+            RoomUser(
                 roomId,
-                0L,
-                stateKey = ""
+                id,
+                name,
+                StateEvent(
+                    MemberEventContent(membership = Membership.JOIN),
+                    EventId(""),
+                    id,
+                    roomId,
+                    0L,
+                    stateKey = ""
+                ),
             ),
-            lastReadMessage?.let {
-                mapOf<ReceiptType, RoomUser.RoomUserReceipt>(
-                    ReceiptType.Read to RoomUser.RoomUserReceipt(it, ReceiptEventContent.Receipt(24))
-                )
-            }.orEmpty()
+            RoomUserReceipts(
+                roomId, id,
+                lastReadMessage?.let {
+                    mapOf<ReceiptType, RoomUserReceipts.Receipt>(
+                        ReceiptType.Read to RoomUserReceipts.Receipt(it, ReceiptEventContent.Receipt(24))
+                    )
+                }.orEmpty()
+            )
         )
 }
 
