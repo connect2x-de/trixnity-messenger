@@ -30,7 +30,7 @@ object Versions {
     const val testContainers = "1.19.1" // https://github.com/testcontainers/testcontainers-java/releases
     const val h2 = "2.1.214" // https://github.com/h2database/h2database/releases
 
-    const val kotlinLogging = "5.1.0" // https://github.com/MicroUtils/kotlin-logging/releases
+    const val kotlinLogging = "5.0.2" // https://github.com/MicroUtils/kotlin-logging/releases
     const val logback = "1.4.11" // https://github.com/qos-ch/logback/tags
 
     const val crypto = "1.1.0-alpha06" // https://developer.android.com/jetpack/androidx/releases/security
