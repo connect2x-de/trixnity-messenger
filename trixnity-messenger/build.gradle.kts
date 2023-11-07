@@ -54,19 +54,19 @@ kotlin {
         binaries.library()
         generateTypeScriptDefinitions()
     }
-//    listOf(
-//        iosArm64(),
-//        iosSimulatorArm64(),
-//        iosX64()
-//    ).forEach {
-//        it.binaries.framework {
-//            export("com.arkivanov.decompose:decompose:${Versions.decompose}")
-//            export("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
-////            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
-//            export("net.folivo:trixnity-client:${Versions.trixnity}")
-//            isStatic = true
-//        }
-//    }
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64(),
+        iosX64()
+    ).forEach {
+        it.binaries.framework {
+            export("com.arkivanov.decompose:decompose:${Versions.decompose}")
+            export("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
+//            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
+            export("net.folivo:trixnity-client:${Versions.trixnity}")
+            isStatic = true
+        }
+    }
 
     sourceSets {
         all {
