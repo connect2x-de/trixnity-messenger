@@ -191,6 +191,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         ),
                     )
                 )
+                every { userServiceMock.getAllReceipts(isEqual(roomId)) } returns MutableStateFlow(emptyMap())
                 every {
                     userServiceMock.getById(isEqual(roomId), isAny())
                 } returns MutableStateFlow(null)

@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.RoomUserReceipts
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -80,7 +81,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
     @Mock
     lateinit var inputAreaViewModelMock: InputAreaViewModel
-    private lateinit var roomUser: Mocker.Every<Flow<RoomUser?>>
+    private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
 
     init {
@@ -172,7 +173,8 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                         ),
                     )
                 )
-                roomUser = every { userServiceMock.getById(isEqual(roomId), isAny()) }
+                every { userServiceMock.getAllReceipts(isEqual(roomId)) } returns MutableStateFlow(emptyMap())
+                roomUser = every { userServiceMock.getReceiptsById(isEqual(roomId), isAny()) }
                 every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
@@ -537,7 +539,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("not mark messages as read that are older than the previous last read message") {
-            roomUser returns flowOf(createRoomUser(UserId("userId", "localhost"), "Bob", EventId("3")))
+            roomUser returns flowOf(createRoomUserReceipts(UserId("userId", "localhost"), EventId("3")))
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
@@ -605,7 +607,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
-            roomUser returns flowOf(createRoomUser(me, "Me", EventId("1")))
+            roomUser returns flowOf(createRoomUserReceipts(me, EventId("1")))
 
             lifecycleRegistry.destroy()
             verifyReadMarkerCalled(null to 1, 1 to null)
@@ -630,7 +632,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.timelineElementHolderViewModels waitForSize 3
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
-            roomUser returns flowOf(createRoomUser(me, "Me", EventId("1")))
+            roomUser returns flowOf(createRoomUserReceipts(me, EventId("1")))
 
             lifecycleRegistry.pause()
             verifyReadMarkerCalled(null to 1, 1 to null)
@@ -727,20 +729,11 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         subscriberJob.cancel()
     }
 
-    private fun createRoomUser(userId: UserId, name: String, lastReadMessage: EventId) = RoomUser(
+    private fun createRoomUserReceipts(userId: UserId, lastReadMessage: EventId) = RoomUserReceipts(
         roomId = roomId,
         userId = userId,
-        name = name,
-        event = StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId("_"),
-            UserId("_"),
-            roomId,
-            0L,
-            stateKey = "",
-        ),
         mapOf(
-            ReceiptType.Read to RoomUser.RoomUserReceipt(
+            ReceiptType.Read to RoomUserReceipts.Receipt(
                 lastReadMessage, // <- important part
                 ReceiptEventContent.Receipt(0)
             )

@@ -6,6 +6,7 @@ buildscript {
     }
 
     dependencies {
+//        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin-api:${Versions.kotlin}") // FIXME
         classpath("com.android.tools.build:gradle:${Versions.androidGradle}")
         classpath(kotlin("gradle-plugin", version = Versions.kotlin))
     }

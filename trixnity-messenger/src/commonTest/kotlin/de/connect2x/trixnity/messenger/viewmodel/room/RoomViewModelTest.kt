@@ -202,6 +202,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                 every { userServiceMock.userPresence } returns MutableStateFlow(emptyMap())
                 every { userServiceMock.getAll(roomId) } returns MutableStateFlow(null)
+                every { userServiceMock.getAllReceipts(isEqual(roomId)) } returns MutableStateFlow(emptyMap())
                 every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
                 every { userServiceMock.getAccountData<DirectEventContent>("") } returns
                         MutableStateFlow(null)

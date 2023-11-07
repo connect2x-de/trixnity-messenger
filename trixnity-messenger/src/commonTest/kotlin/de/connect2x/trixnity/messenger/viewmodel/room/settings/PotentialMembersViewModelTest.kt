@@ -27,9 +27,7 @@ import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
@@ -215,9 +213,9 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 ""
             )
 
-            val roomUser4 = RoomUser(roomId, userId4, "user1a", memberEvent1, mapOf())
-            val roomUser5 = RoomUser(roomId, userId5, "user5", memberEvent2, mapOf())
-            val roomUser6 = RoomUser(roomId, userId6, "user6", memberEvent3, mapOf())
+            val roomUser4 = RoomUser(roomId, userId4, "user1a", memberEvent1)
+            val roomUser5 = RoomUser(roomId, userId5, "user5", memberEvent2)
+            val roomUser6 = RoomUser(roomId, userId6, "user6", memberEvent3)
 
             beforeTest {
                 mocker.every { userServiceMock.getAll(roomId) } returns MutableStateFlow(

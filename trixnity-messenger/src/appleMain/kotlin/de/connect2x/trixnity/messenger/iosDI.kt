@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelConfig
-import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
-import io.github.oshai.kotlinlogging.Level
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -19,8 +17,4 @@ fun trixnityMessengerApplication() = koinApplication {
         trixnityMessengerModule(),
         timelineViewModelConfigModule,
     )
-}
-
-fun setLoggingDebug() {
-    KotlinLoggingConfiguration.logLevel = Level.DEBUG
 }
