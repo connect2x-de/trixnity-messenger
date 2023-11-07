@@ -26,13 +26,12 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.flatten
+import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.Timeline
 import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
@@ -227,10 +226,16 @@ class TimelineViewModelImpl(
 
     private val roomUsers =
         matrixClient.user.getAll(selectedRoomId)
+            .flattenNotNull()
             .filterNotNull()
-            .flatten()
-            .map { it?.values?.filterNotNull().orEmpty() }
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    private val roomUsersReceipts =
+        matrixClient.user.getAllReceipts(selectedRoomId)
+            .flattenNotNull()
+            .filterNotNull()
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
         get<RoomHeaderViewModelFactory>().newRoomHeaderViewModel(
@@ -277,7 +282,7 @@ class TimelineViewModelImpl(
 
     init {
         coroutineScope.launch {
-            matrixClient.user.getById(selectedRoomId, matrixClient.userId)
+            matrixClient.user.getReceiptsById(selectedRoomId, matrixClient.userId)
                 .filterNotNull()
                 .map { it.receipts[Read]?.eventId }
                 .collect {
@@ -350,11 +355,11 @@ class TimelineViewModelImpl(
         readEventsFlow =
             combine(
                 timelineEvents,
-                roomUsers
+                roomUsersReceipts
                     .throttleFirst(5.seconds)
-                    .map { roomUsers ->
-                        roomUsers.filterNot { roomUser -> roomUser.userId == matrixClient.userId }
-                            .mapNotNull { roomUser -> roomUser.receipts[Read]?.eventId }
+                    .map { roomUserReceipts ->
+                        roomUserReceipts.filterNot { (userId, _) -> userId == matrixClient.userId }
+                            .mapNotNull { (_, receipts) -> receipts.receipts[Read]?.eventId }
                     }
             ) { timelineEvents, eventsWithReadReceipt ->
                 timelineEvents.reversed()
@@ -786,18 +791,20 @@ class TimelineViewModelImpl(
     }
 
     private suspend fun readByUsersList(eventId: EventId): Flow<List<String>> {
-        return roomUsers.map { roomUsers ->
+        return roomUsersReceipts.map { roomUsersReceipts ->
             val messagesReadBy = mutableMapOf<EventId, List<String>>()
-            roomUsers
-                .filterNot { roomUser -> roomUser.userId == matrixClient.userId }
-                .forEach { roomUser ->
-                    roomUser.receipts[Read]?.eventId?.let { lastReadMessage ->
-                        messagesReadBy[lastReadMessage] =
-                            messagesReadBy.getOrElse(lastReadMessage) { emptyList() }.plus(roomUser.name)
+            roomUsersReceipts
+                .filterNot { (userId, _) -> userId == matrixClient.userId }
+                .forEach { (userId, receipts) ->
+                    receipts.receipts[Read]?.eventId?.also { lastReadMessage ->
+                        roomUsers.first()[userId]?.name?.also { name ->
+                            messagesReadBy[lastReadMessage] =
+                                messagesReadBy.getOrElse(lastReadMessage) { emptyList() }.plus(name)
+                        }
                     }
                 }
 
-            val collectReadByUsers = collectReadByUsers(messagesReadBy, roomUsers, eventId)
+            val collectReadByUsers = collectReadByUsers(messagesReadBy, roomUsers.first().size, eventId)
             log.debug { "collected read by users for $eventId: $collectReadByUsers" }
             collectReadByUsers
         }
@@ -805,7 +812,7 @@ class TimelineViewModelImpl(
 
     private suspend fun collectReadByUsers(
         messagesReadBy: Map<EventId, List<String>>,
-        roomUsers: List<RoomUser>,
+        roomUsersSize: Int,
         eventId: EventId,
     ): List<String> {
         return matrixClient.room.getById(selectedRoomId).firstOrNull()?.lastEventId?.let { lastTimelineEvent ->
@@ -816,7 +823,7 @@ class TimelineViewModelImpl(
                     readBy + (currentEvent.first().eventId.let { eventId -> messagesReadBy[eventId] }
                         ?: emptyList())
                 }.takeWhileInclusive { readBy ->
-                    readBy.size <= 10 && readBy.size < roomUsers.size
+                    readBy.size <= 10 && readBy.size < roomUsersSize
                 }.lastOrNull()?.take(11)?.sorted() ?: emptyList()
         } ?: emptyList()
     }
