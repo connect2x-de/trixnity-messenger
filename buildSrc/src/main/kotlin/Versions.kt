@@ -14,7 +14,7 @@ object Versions {
     const val essenty = "1.2.0" // https://github.com/arkivanov/Essenty/releases
     const val kotlinxDatetime = "0.4.1" // https://github.com/Kotlin/kotlinx-datetime/releases
     const val koin = "3.5.0" // https://github.com/InsertKoinIO/koin/tags
-    const val ktor = "2.3.5" // https://github.com/ktorio/ktor/releases
+    const val ktor = "2.3.6" // https://github.com/ktorio/ktor/releases
     const val mocKmp = "1.15.0" // https://github.com/Kodein-Framework/MocKMP/releases
     const val kotest = "5.8.0" // https://github.com/kotest/kotest/releases
     const val jna = "5.13.0" // https://github.com/java-native-access/jna/tags
