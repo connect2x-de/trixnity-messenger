@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.timing.continually
 import io.kotest.assertions.timing.eventually
@@ -19,7 +18,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.*
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
@@ -83,9 +82,16 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var inputAreaViewModelMock: InputAreaViewModel
     private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
+    private lateinit var mainDispatcher: TestDispatcher
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        beforeTest {
+            mainDispatcher = StandardTestDispatcher()
+            Dispatchers.setMain(mainDispatcher)
+        }
+        afterTest {
+            Dispatchers.resetMain()
+        }
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
