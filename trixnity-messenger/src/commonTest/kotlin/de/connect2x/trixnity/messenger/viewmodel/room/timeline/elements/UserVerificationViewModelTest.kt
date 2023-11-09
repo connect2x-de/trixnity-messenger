@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
@@ -109,7 +110,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
         should("show other user's name when the request is targeted at us") {
             val cut = userVerificationViewModel(verificationRequestMessageEventContent.copy(to = me))
 
-            cut.sender.first { it == "username" }
+            cut.sender.first { it.name == "username" }
         }
 
         should("show as active when the verification has not timed out and is not done or cancelled") {
@@ -381,7 +382,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             formattedTime = null,
-            sender = MutableStateFlow("username"),
+            sender = MutableStateFlow(UserInfoElement("username")),
             content = verificationRequestMessageEventContent,
             selectedRoomId = thisRoom,
             timelineEventId = timelineEventId,

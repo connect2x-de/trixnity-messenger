@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.*
 
@@ -15,7 +16,7 @@ interface RedactedMessageViewModelFactory {
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
         showSender: Flow<Boolean>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
     ): RedactedMessageViewModel {
         return RedactedMessageViewModelImpl(
@@ -46,18 +47,18 @@ open class RedactedMessageViewModelImpl(
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
     showSender: Flow<Boolean>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val sender: StateFlow<String> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val sender: StateFlow<UserInfoElement> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val formattedMessage = sender.map { username ->
-        i18n.eventMessageRedacted(username)
+    override val formattedMessage = sender.map { userInfo ->
+        i18n.eventMessageRedacted(userInfo.name)
     }.stateIn(
         coroutineScope,
         SharingStarted.WhileSubscribed(),
@@ -71,7 +72,7 @@ class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
     override val showChatBubbleEdge: Boolean = false
     override val showBigGap: Boolean = false
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
-    override val sender: StateFlow<String> = MutableStateFlow("Martin")
+    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin"))
     override val formattedTime: String? = null
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.12.21"

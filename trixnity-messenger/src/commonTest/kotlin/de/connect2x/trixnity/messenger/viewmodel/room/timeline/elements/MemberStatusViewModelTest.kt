@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
@@ -127,7 +128,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                         stateKey = "@bob:localhost",
                     )
                 ),
-                usernameFlow = MutableStateFlow("Bob"),
+                usernameFlow = MutableStateFlow(UserInfoElement("Bob")),
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
@@ -188,7 +189,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                         stateKey = "@mallory:localhost",
                     )
                 ),
-                usernameFlow = MutableStateFlow("User1"),
+                usernameFlow = MutableStateFlow(UserInfoElement("User1")),
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
@@ -209,7 +210,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                         stateKey = "@bob:localhost",
                     )
                 ),
-                usernameFlow = MutableStateFlow("User1"),
+                usernameFlow = MutableStateFlow(UserInfoElement("User1")),
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
@@ -240,7 +241,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
         }
 
         should("update indicator on username changes") {
-            val usernameFlow = MutableStateFlow("User1")
+            val usernameFlow = MutableStateFlow(UserInfoElement("User1"))
             val cut = memberStatusViewModel(
                 timelineEventFlow = MutableStateFlow(
                     memberStateTimelineEvent(
@@ -253,7 +254,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
-            usernameFlow.value = "User1 new name"
+            usernameFlow.value = UserInfoElement("User1 new name")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.formattedMemberStatus.value shouldBe "Bob has been invited by User1 new name"
@@ -311,7 +312,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
 
     private fun memberStatusViewModel(
         timelineEventFlow: StateFlow<TimelineEvent?>,
-        usernameFlow: StateFlow<String> = MutableStateFlow(""),
+        usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("")),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
     ): MemberStatusViewModelImpl {

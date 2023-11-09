@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -17,7 +18,7 @@ interface EncryptedMessageViewModelFactory {
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
         showSender: Flow<Boolean>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         timelineEventFlow: Flow<TimelineEvent?>,
     ): EncryptedMessageViewModel {
@@ -50,14 +51,14 @@ open class EncryptedMessageViewModelImpl(
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
     showSender: Flow<Boolean>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     timelineEventFlow: Flow<TimelineEvent?>,
 ) : MatrixClientViewModelContext by viewModelContext, EncryptedMessageViewModel {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val sender: StateFlow<String> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val sender: StateFlow<UserInfoElement> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 

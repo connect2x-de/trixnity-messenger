@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.files.Download
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
@@ -159,7 +160,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showChatBubbleEdge = false,
             showBigGap = false,
             showSender = MutableStateFlow(false),
-            sender = MutableStateFlow(""),
+            sender = MutableStateFlow(UserInfoElement("")),
         )
         return fileBasedMessageViewModelInstance
     }
@@ -176,7 +177,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         override val showChatBubbleEdge: Boolean,
         override val showBigGap: Boolean,
         override val showSender: StateFlow<Boolean>,
-        override val sender: StateFlow<String>,
+        override val sender: StateFlow<UserInfoElement>,
     ) : AbstractFileBasedMessageViewModel(viewModelContext), ViewModelContext by viewModelContext {
         override val invitation: StateFlow<String?> =
             invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +21,7 @@ interface FileMessageViewModelFactory {
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
         showSender: Flow<Boolean>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         content: FileMessageEventContent,
     ): FileMessageViewModel {
@@ -55,15 +56,15 @@ open class FileMessageViewModelImpl(
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
     showSender: Flow<Boolean>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     private val content: FileMessageEventContent,
 ) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val sender: StateFlow<String> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val sender: StateFlow<UserInfoElement> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 

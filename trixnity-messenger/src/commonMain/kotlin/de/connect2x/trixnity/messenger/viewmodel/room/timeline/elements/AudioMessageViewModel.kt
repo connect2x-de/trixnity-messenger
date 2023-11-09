@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.FileNameComputations
 import io.ktor.http.*
@@ -23,7 +24,7 @@ interface AudioMessageViewModelFactory {
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
         showSender: Flow<Boolean>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         content: RoomMessageEventContent.AudioMessageEventContent,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
@@ -60,7 +61,7 @@ open class AudioMessageViewModelImpl(
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
     showSender: Flow<Boolean>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     private val content: RoomMessageEventContent.AudioMessageEventContent,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
@@ -68,8 +69,8 @@ open class AudioMessageViewModelImpl(
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val sender: StateFlow<String> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val sender: StateFlow<UserInfoElement> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     private val fileNameComputations = FileNameComputations(viewModelContext.get())

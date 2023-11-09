@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
@@ -31,7 +32,7 @@ interface UserVerificationViewModelFactory {
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
-        usernameFlow: Flow<String>,
+        userInfoFlow: Flow<UserInfoElement>,
         content: VerificationRequestMessageEventContent,
         selectedRoomId: RoomId,
         timelineEventId: EventId,
@@ -42,7 +43,7 @@ interface UserVerificationViewModelFactory {
             formattedDate,
             showDateAbove,
             formattedTime,
-            usernameFlow,
+            userInfoFlow,
             content,
             selectedRoomId,
             timelineEventId
@@ -53,7 +54,7 @@ interface UserVerificationViewModelFactory {
 interface UserVerificationViewModel : TimelineElementWithTimestampViewModel {
     val selectedRoomId: RoomId
     val timelineEventId: EventId
-    val sender: StateFlow<String>
+    val sender: StateFlow<UserInfoElement>
     val isActive: StateFlow<Boolean>
     val reachedEndState: StateFlow<Pair<Boolean, String>?>
     val verificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.VerificationWrapper>>
@@ -66,17 +67,17 @@ open class UserVerificationViewModelImpl(
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     content: VerificationRequestMessageEventContent,
     override val selectedRoomId: RoomId,
     override val timelineEventId: EventId,
 ) : MatrixClientViewModelContext by viewModelContext, UserVerificationViewModel {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val sender: StateFlow<String> =
+    override val sender: StateFlow<UserInfoElement> =
         if (content.to == matrixClient.userId)
-            sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
-        else MutableStateFlow(i18n.commonUs())
+            sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        else MutableStateFlow(UserInfoElement(i18n.commonUs()))
 
     private val activeVerifications = get<ActiveVerifications>()
 

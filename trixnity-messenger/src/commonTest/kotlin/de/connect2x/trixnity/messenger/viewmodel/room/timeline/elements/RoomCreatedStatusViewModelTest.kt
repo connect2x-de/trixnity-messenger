@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
@@ -42,7 +43,7 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
 
         should("show indicator for room creation") {
             val cut = roomCreatedStatusViewModel(
-                usernameFlow = MutableStateFlow("Bob"),
+                usernameFlow = MutableStateFlow(UserInfoElement("Bob")),
                 isDirectFlow = MutableStateFlow(false),
                 coroutineContext = coroutineContext,
             )
@@ -56,14 +57,14 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes`") {
-            val usernameFlow = MutableStateFlow("Bob")
+            val usernameFlow = MutableStateFlow(UserInfoElement("Bob"))
             val cut = roomCreatedStatusViewModel(
                 usernameFlow = usernameFlow,
                 isDirectFlow = MutableStateFlow(false),
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.roomCreatedMessage.collect {} }
-            usernameFlow.value = "Bobby"
+            usernameFlow.value = UserInfoElement("Bobby")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.roomCreatedMessage.value shouldBe "Bobby has created the group"
@@ -75,7 +76,7 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
         should("react to room's direct changes") {
             val isDirectFlow = MutableStateFlow(false)
             val cut = roomCreatedStatusViewModel(
-                usernameFlow = MutableStateFlow("Bob"),
+                usernameFlow = MutableStateFlow(UserInfoElement("Bob")),
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )
@@ -91,7 +92,7 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
     }
 
     private fun roomCreatedStatusViewModel(
-        usernameFlow: StateFlow<String>,
+        usernameFlow: StateFlow<UserInfoElement>,
         isDirectFlow: StateFlow<Boolean>,
         coroutineContext: CoroutineContext
     ): RoomCreatedStatusViewModelImpl {

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.FileNameComputations
@@ -29,7 +30,7 @@ interface ImageMessageViewModelFactory {
         showChatBubbleEdge: Boolean,
         showBigGap: Boolean,
         showSender: Flow<Boolean>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         content: ImageMessageEventContent,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
@@ -77,7 +78,7 @@ class ImageMessageViewModelImpl(
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
     showSender: Flow<Boolean>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     private val content: ImageMessageEventContent,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
@@ -86,8 +87,8 @@ class ImageMessageViewModelImpl(
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val sender: StateFlow<String> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val sender: StateFlow<UserInfoElement> =
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
@@ -214,7 +215,7 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     override val showChatBubbleEdge: Boolean = false
     override val showBigGap: Boolean = false
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
-    override val sender: StateFlow<String> = MutableStateFlow("Martin")
+    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin"))
     override val formattedTime: String? = null
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.11.21"
