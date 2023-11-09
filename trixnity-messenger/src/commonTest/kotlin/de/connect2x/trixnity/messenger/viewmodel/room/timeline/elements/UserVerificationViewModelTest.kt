@@ -104,7 +104,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                 )
             )
 
-            cut.sender.value shouldBe "us"
+            cut.sender.value.name shouldBe "us"
         }
 
         should("show other user's name when the request is targeted at us") {
