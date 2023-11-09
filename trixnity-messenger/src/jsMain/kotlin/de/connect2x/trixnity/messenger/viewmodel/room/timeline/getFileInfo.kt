@@ -5,12 +5,12 @@ import js.promise.await
 import js.typedarrays.Int8Array
 import net.folivo.trixnity.utils.byteArrayFlow
 import okio.Buffer
-import web.filesystem.FileSystemFileHandle
+import web.file.File
 
-actual class FileDescriptor(val handle: FileSystemFileHandle)
+actual class FileDescriptor(val handle: File)
 
 actual suspend fun getFileInfo(fileDescriptor: FileDescriptor): FileInfo {
-    val jsFile = fileDescriptor.handle.getFile().await()
+    val jsFile = fileDescriptor.handle
     // TODO File.stream() to avoid loading the file into memory
     val arrayBuffer = jsFile.arrayBuffer().await()
     return FileInfo(
