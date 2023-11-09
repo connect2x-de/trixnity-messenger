@@ -373,6 +373,14 @@ struct AddMatrixAccountView: View {
 }
 ```
 
+## Snapshot builds
+
+Snapshot are published on each commit to main.
+Append `-SNAPSHOT-COMMIT_SHORT_SHA` to the current version. You can find
+the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/commits/main).
+You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
+maven repositories, which contains SNAPSHOT versions of Trixnity.
+
 ## Contributions
 
 If you want to contribute to the project, you need to sign the [Contributor License Agreement](CLA.md).

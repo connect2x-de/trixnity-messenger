@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -124,11 +125,13 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.registrationOptions.value shouldBe listOf(
-                AuthenticationType.RegistrationToken,
-                AuthenticationType.Password,
-            )
-            cut.selectedRegistration.value shouldBe AuthenticationType.RegistrationToken
+            cut.registrationOptions.first {
+                it == listOf(
+                    AuthenticationType.RegistrationToken,
+                    AuthenticationType.Password,
+                )
+            }
+            cut.selectedRegistration.first { it == AuthenticationType.RegistrationToken }
 
             cancelNeverEndingCoroutines()
         }
@@ -229,7 +232,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                     }
                 }
             testCoroutineScheduler.advanceUntilIdle()
-            cut.selectedRegistration.value shouldBe AuthenticationType.RegistrationToken
+            cut.selectedRegistration.first { it == AuthenticationType.RegistrationToken }
             cut.accountName.update { "Standard" }
             cut.username.update { "user1" }
             cut.displayName.update { "user1special" }
@@ -240,17 +243,19 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             cut.tryRegistration()
             testCoroutineScheduler.advanceUntilIdle()
 
-            mocker.verifyWithSuspend {
-                matrixClientServiceMock.loginWith(
-                    isEqual(Url("http://myMatrixServer:55678")),
-                    isEqual(UserId("@user1:myMatrixServer:55678")),
-                    isEqual("GHTYAJCE"),
-                    isEqual("abc123"),
-                    isEqual("user1special"),
-                    isAny(),
-                    isEqual("Standard")
-                )
-                onLoginMock.invoke()
+            eventually(500.milliseconds) {
+                mocker.verifyWithSuspend {
+                    matrixClientServiceMock.loginWith(
+                        isEqual(Url("http://myMatrixServer:55678")),
+                        isEqual(UserId("@user1:myMatrixServer:55678")),
+                        isEqual("GHTYAJCE"),
+                        isEqual("abc123"),
+                        isEqual("user1special"),
+                        isAny(),
+                        isEqual("Standard")
+                    )
+                    onLoginMock.invoke()
+                }
             }
 
             cancelNeverEndingCoroutines()
@@ -263,7 +268,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
     ): RegisterNewAccountViewModelImpl {
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
-            dispatcher = currentCoroutineContext.testCoroutineScheduler[CoroutineDispatcher] ?: Dispatchers.Unconfined
             if (mockEngineConfig != null) mockEngineConfig()
             else addHandler { _ -> respond("") }
         }.create()

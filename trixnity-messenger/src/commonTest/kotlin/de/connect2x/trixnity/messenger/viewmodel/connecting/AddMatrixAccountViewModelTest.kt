@@ -10,14 +10,12 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountView
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -210,7 +208,6 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
     ): AddMatrixAccountViewModelImpl {
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
-            dispatcher = currentCoroutineContext.testCoroutineScheduler[CoroutineDispatcher] ?: Dispatchers.Unconfined
             if (mockEngineConfig != null) mockEngineConfig()
             else addHandler { _ -> respond("") }
         }.create()
