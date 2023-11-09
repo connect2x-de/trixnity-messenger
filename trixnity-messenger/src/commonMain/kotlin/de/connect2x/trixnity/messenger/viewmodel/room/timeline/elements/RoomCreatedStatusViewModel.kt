@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.*
 
 interface RoomCreatedStatusViewModelFactory {
-    fun newRoomCreatedStatusViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -17,6 +17,8 @@ interface RoomCreatedStatusViewModelFactory {
             viewModelContext, formattedDate, showDateAbove, invitation, sender, isDirectFlow,
         )
     }
+
+    companion object : RoomCreatedStatusViewModelFactory
 }
 
 interface RoomCreatedStatusViewModel : BaseTimelineElementViewModel {

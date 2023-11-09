@@ -18,12 +18,14 @@ import kotlin.time.Duration.Companion.milliseconds
 private val log = KotlinLogging.logger { }
 
 interface SearchGroupViewModelFactory {
-    fun newSearchGroupViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onBack: () -> Unit,
         onGroupJoined: (String, RoomId) -> Unit,
     ): SearchGroupViewModel =
         SearchGroupViewModelImpl(viewModelContext, onBack, onGroupJoined)
+
+    companion object : SearchGroupViewModelFactory
 }
 
 interface SearchGroupViewModel {

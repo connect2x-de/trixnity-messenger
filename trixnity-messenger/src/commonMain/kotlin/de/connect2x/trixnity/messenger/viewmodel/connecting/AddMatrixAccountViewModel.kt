@@ -20,7 +20,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger {}
 
 interface AddMatrixAccountViewModelFactory {
-    fun newAddMatrixAccountViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
         onCancel: () -> Unit,
@@ -31,6 +31,8 @@ interface AddMatrixAccountViewModelFactory {
             onCancel,
         )
     }
+
+    companion object : AddMatrixAccountViewModelFactory
 }
 
 interface AddMatrixAccountViewModel {

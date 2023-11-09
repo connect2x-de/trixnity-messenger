@@ -18,13 +18,15 @@ private val log = KotlinLogging.logger { }
 
 
 interface AvatarCutterViewModelFactory {
-    fun newAvatarCutterViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         file: FileDescriptor,
         onClose: () -> Unit,
     ): AvatarCutterViewModel {
         return AvatarCutterViewModelImpl(viewModelContext, file, onClose)
     }
+
+    companion object : AvatarCutterViewModelFactory
 }
 
 interface AvatarCutterViewModel {

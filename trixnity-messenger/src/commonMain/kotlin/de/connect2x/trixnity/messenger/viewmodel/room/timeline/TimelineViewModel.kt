@@ -10,6 +10,7 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnPause
 import com.arkivanov.essenty.parcelable.Parcelable
 import com.arkivanov.essenty.parcelable.Parcelize
+import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.launchPopWhile
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -50,7 +51,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger {}
 
 interface TimelineViewModelFactory {
-    fun newTimelineViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
@@ -67,6 +68,8 @@ interface TimelineViewModelFactory {
             onOpenModal,
         )
     }
+
+    companion object : TimelineViewModelFactory
 }
 
 /**
@@ -131,10 +134,6 @@ interface TimelineViewModel {
 
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
-
-    fun selectFile(file: FileDescriptor)
-    fun dragFile(file: FileDescriptor)
-    fun dragFileExit()
 
     sealed class SendAttachmentWrapper {
         object None : SendAttachmentWrapper()
@@ -238,7 +237,7 @@ class TimelineViewModelImpl(
 
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
-        get<RoomHeaderViewModelFactory>().newRoomHeaderViewModel(
+        get<RoomHeaderViewModelFactory>().create(
             viewModelContext = childContext("roomHeaderViewModel"),
             selectedRoomId = selectedRoomId,
             isBackButtonVisible = isBackButtonVisible,
@@ -248,7 +247,7 @@ class TimelineViewModelImpl(
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
-        get<InputAreaViewModelFactory>().newInputAreaViewModel(
+        get<InputAreaViewModelFactory>().create(
             viewModelContext = childContext("inputAreaViewModel"),
             selectedRoomId = selectedRoomId,
             onMessageEditFinished = ::onMessageEditFinished,
@@ -270,7 +269,7 @@ class TimelineViewModelImpl(
     ): SendAttachmentWrapper = when (config) {
         is SendAttachmentConfig.None -> SendAttachmentWrapper.None
         is SendAttachmentConfig.SendAttachmentView -> SendAttachmentWrapper.View(
-            get<SendAttachmentViewModelFactory>().newSendAttachmentViewModel(
+            get<SendAttachmentViewModelFactory>().create(
                 viewModelContext = childContext(componentContext),
                 file = config.file,
                 selectedRoomId = selectedRoomId,
@@ -388,6 +387,26 @@ class TimelineViewModelImpl(
         coroutineScope.launch {
             matrixClient.user.loadMembers(selectedRoomId, wait = false)
         }
+
+        // TODO we only support one file at the moment, but this should change in the future
+        val dragAndDropHandler = getKoin().getOrNull<DragAndDropHandler>()
+        if (dragAndDropHandler != null) {
+            coroutineScope.launch {
+                dragAndDropHandler.onDrop.collect { files ->
+                    files.firstOrNull()?.also { onShowAttachmentSendView(it) }
+                }
+            }
+            coroutineScope.launch {
+                dragAndDropHandler.onDrag.collect { files ->
+                    files.firstOrNull()?.also { draggedFile.value = it }
+                }
+            }
+            coroutineScope.launch {
+                dragAndDropHandler.onDragExit.collect {
+                    draggedFile.value = null
+                }
+            }
+        }
     }
 
     private fun initTimeline() {
@@ -480,7 +499,7 @@ class TimelineViewModelImpl(
             }
                 // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
                 .debounce(300.milliseconds)
-            get<TimelineElementHolderViewModelFactory>().newTimelineElementHolderViewModel(
+            get<TimelineElementHolderViewModelFactory>().create(
                 viewModelContext = childContext("timelineElement-$eventId"),
                 key = key,
                 timelineEventFlow = timelineEventFlow,
@@ -546,7 +565,7 @@ class TimelineViewModelImpl(
                                 log.trace { "compute outbox showChatBubbleEdge (index=$index, lastEventFromUs=$lastEventFromUs)" }
                                 index == 0 && !lastEventFromUs
                             }.distinctUntilChanged()
-                        get<OutboxElementHolderViewModelFactory>().newOutboxElementHolderViewModel(
+                        get<OutboxElementHolderViewModelFactory>().create(
                             viewModelContext = childContext("outboxTimelineElement-${transactionId}"),
                             key = transactionId,
                             outboxMessageFlow = outboxMessage,
@@ -627,18 +646,6 @@ class TimelineViewModelImpl(
             timeline.first().loadBefore()
             loadingBefore.value = false
         }
-    }
-
-    override fun selectFile(file: FileDescriptor) {
-        onShowAttachmentSendView(file)
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-        draggedFile.value = file
-    }
-
-    override fun dragFileExit() {
-        draggedFile.value = null
     }
 
     private fun loadMoreBefore() {
@@ -908,14 +915,5 @@ class PreviewTimelineViewModel : TimelineViewModel {
     }
 
     override fun loadBefore() {
-    }
-
-    override fun selectFile(file: FileDescriptor) {
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-    }
-
-    override fun dragFileExit() {
     }
 }

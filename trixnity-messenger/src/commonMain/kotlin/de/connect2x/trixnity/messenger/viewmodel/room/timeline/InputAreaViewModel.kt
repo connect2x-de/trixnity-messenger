@@ -56,7 +56,7 @@ data class Username(
 }
 
 interface InputAreaViewModelFactory {
-    fun newInputAreaViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         onMessageEditFinished: (EventId) -> Unit,
@@ -71,6 +71,8 @@ interface InputAreaViewModelFactory {
             onShowAttachmentSendView,
         )
     }
+
+    companion object : InputAreaViewModelFactory
 }
 
 interface InputAreaViewModel {
@@ -334,7 +336,7 @@ open class InputAreaViewModelImpl(
     override fun replyToMessage(eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
         replyToViewModel.value = get<ReplyToViewModelFactory>()
-            .newReplyToViewModel(this@InputAreaViewModelImpl, selectedRoomId, eventId, ::cancelReplyTo)
+            .create(this@InputAreaViewModelImpl, selectedRoomId, eventId, ::cancelReplyTo)
         _shouldFocus.value = eventId.full
     }
 

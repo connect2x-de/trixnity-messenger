@@ -7,10 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 
-expect class UrlHandler(filter: (Url) -> Boolean) : Flow<Url>
+interface UrlHandler : Flow<Url>
 
 open class UrlHandlerBase(
-    filter: (Url) -> Boolean,
+    messengerSettings: MessengerSettings,
+    filter: (Url) -> Boolean = urlFilter(messengerSettings),
     protected val urlHandlerFlow: MutableSharedFlow<Url> =
         MutableSharedFlow(
             extraBufferCapacity = 1,
@@ -18,9 +19,7 @@ open class UrlHandlerBase(
         )
 ) : Flow<Url> by urlHandlerFlow.filter(filter)
 
-fun createFilteringUrlHandler(messengerSettings: MessengerSettings): UrlHandler {
-    return UrlHandler {
-        it.protocol == URLProtocol.createOrDefault(messengerSettings.urlProtocol)
-                && it.host == messengerSettings.urlHost
-    }
+fun urlFilter(messengerSettings: MessengerSettings): (Url) -> Boolean = {
+    it.protocol == URLProtocol.createOrDefault(messengerSettings.urlProtocol)
+            && it.host == messengerSettings.urlHost
 }

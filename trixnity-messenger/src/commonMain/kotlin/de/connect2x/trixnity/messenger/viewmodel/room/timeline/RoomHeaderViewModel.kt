@@ -26,7 +26,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface RoomHeaderViewModelFactory {
-    fun newRoomHeaderViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
@@ -43,6 +43,8 @@ interface RoomHeaderViewModelFactory {
             onShowRoomSettings,
         )
     }
+
+    companion object : RoomHeaderViewModelFactory
 }
 
 interface RoomHeaderViewModel {

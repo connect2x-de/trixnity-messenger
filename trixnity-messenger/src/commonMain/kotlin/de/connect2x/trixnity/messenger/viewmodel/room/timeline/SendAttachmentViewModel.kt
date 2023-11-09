@@ -21,7 +21,7 @@ import net.folivo.trixnity.utils.toByteArray
 private val log = KotlinLogging.logger { }
 
 interface SendAttachmentViewModelFactory {
-    fun newSendAttachmentViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         file: FileDescriptor,
         selectedRoomId: RoomId,
@@ -31,6 +31,8 @@ interface SendAttachmentViewModelFactory {
             viewModelContext, file, selectedRoomId, onCloseAttachmentSendView
         )
     }
+
+    companion object : SendAttachmentViewModelFactory
 }
 
 interface SendAttachmentViewModel {

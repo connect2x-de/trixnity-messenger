@@ -17,7 +17,7 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 private val log = KotlinLogging.logger {}
 
 interface CreateNewGroupViewModelFactory {
-    fun newCreateNewGroupViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
         onBack: () -> Unit,
@@ -27,6 +27,8 @@ interface CreateNewGroupViewModelFactory {
             viewModelContext, createNewRoomViewModel, onBack, onGroupCreated
         )
     }
+
+    companion object : CreateNewGroupViewModelFactory
 }
 
 interface CreateNewGroupViewModel {

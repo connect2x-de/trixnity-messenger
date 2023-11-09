@@ -5,12 +5,14 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface AppInfoViewModelFactory {
-    fun newAppInfoViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onCloseAppInfo: () -> Unit,
     ): AppInfoViewModel {
         return AppInfoViewModelImpl(viewModelContext, onCloseAppInfo)
     }
+
+    companion object : AppInfoViewModelFactory
 }
 
 interface AppInfoViewModel {

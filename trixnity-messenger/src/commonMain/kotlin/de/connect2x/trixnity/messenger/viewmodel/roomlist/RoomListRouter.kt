@@ -50,7 +50,7 @@ class RoomListRouter(
         when (roomListConfig) {
             is RoomListConfig.None -> RoomListWrapper.None
             is RoomListConfig.RoomList -> RoomListWrapper.List(
-                viewModelContext.get<RoomListViewModelFactory>().newRoomListViewModel(
+                viewModelContext.get<RoomListViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     selectedRoomId = selectedRoomId,
                     onRoomSelected = onRoomSelected,
@@ -64,13 +64,13 @@ class RoomListRouter(
 
             is RoomListConfig.CreateNewChat -> RoomListWrapper.CreateNewChat(
                 viewModelContext.get<CreateNewChatViewModelFactory>()
-                    .newCreateNewChatViewModel(
+                    .create(
                         viewModelContext.childContext(
                             componentContext,
                             roomListConfig.accountName,
                         ),
                         viewModelContext.get<CreateNewRoomViewModelFactory>()
-                            .newCreateNewRoomViewModel(
+                            .create(
                                 viewModelContext.childContext(
                                     componentContext,
                                     roomListConfig.accountName,
@@ -85,13 +85,13 @@ class RoomListRouter(
 
             is RoomListConfig.CreateNewGroup -> RoomListWrapper.CreateNewGroup(
                 viewModelContext.get<CreateNewGroupViewModelFactory>()
-                    .newCreateNewGroupViewModel(
+                    .create(
                         viewModelContext.childContext(
                             componentContext,
                             roomListConfig.accountName,
                         ),
                         viewModelContext.get<CreateNewRoomViewModelFactory>()
-                            .newCreateNewRoomViewModel(
+                            .create(
                                 viewModelContext.childContext(
                                     componentContext,
                                     roomListConfig.accountName,
@@ -103,7 +103,7 @@ class RoomListRouter(
             )
 
             is RoomListConfig.SearchGroup -> RoomListWrapper.SearchGroup(
-                viewModelContext.get<SearchGroupViewModelFactory>().newSearchGroupViewModel(
+                viewModelContext.get<SearchGroupViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext,
                         roomListConfig.accountName,
@@ -114,7 +114,7 @@ class RoomListRouter(
             )
 
             is RoomListConfig.UserSettings -> RoomListWrapper.UserSettings(
-                viewModelContext.get<UserSettingsViewModelFactory>().newUserSettingsViewModel(
+                viewModelContext.get<UserSettingsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseUserSettings = ::onCloseUserSettings,
                     onShowDevicesSettings = ::onShowDevicesSettings,
@@ -126,14 +126,14 @@ class RoomListRouter(
 
             is RoomListConfig.DevicesSettings -> RoomListWrapper.DevicesSettings(
                 viewModelContext.get<DevicesSettingsViewModelFactory>()
-                    .newDevicesSettingsViewModel(
+                    .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         onCloseDevicesSettings = ::onCloseDevicesSettings,
                     )
             )
 
             is RoomListConfig.Profile -> RoomListWrapper.Profile(
-                viewModelContext.get<ProfileViewModelFactory>().newProfileViewModel(
+                viewModelContext.get<ProfileViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseProfile = ::onCloseProfile,
                     onOpenAvatarCutter = onOpenAvatarCutter,
@@ -142,7 +142,7 @@ class RoomListRouter(
 
             is RoomListConfig.NotificationsSettings -> RoomListWrapper.NotificationsSettings(
                 viewModelContext.get<NotificationsSettingsViewModelFactory>()
-                    .newNotificationsSettingsViewModel(
+                    .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         onCloseNotificationsSettings = ::onCloseNotificationsSettings,
                         onShowConfigureNotifications = ::onShowConfigureNotifications,
@@ -150,7 +150,7 @@ class RoomListRouter(
             )
 
             is RoomListConfig.PrivacySettings -> RoomListWrapper.PrivacySettings(
-                viewModelContext.get<PrivacySettingsViewModelFactory>().newPrivacySettingsViewModel(
+                viewModelContext.get<PrivacySettingsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onClosePrivacySettings = ::onClosePrivacySettings,
                 )
@@ -158,7 +158,7 @@ class RoomListRouter(
 
             is RoomListConfig.ConfigureNotifications -> RoomListWrapper.ConfigureNotifications(
                 viewModelContext.get<ConfigureNotificationsViewModelFactory>()
-                    .newConfigureNotificationsViewModel(
+                    .create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
                             roomListConfig.accountName,
@@ -168,14 +168,14 @@ class RoomListRouter(
             )
 
             is RoomListConfig.AppInfo -> RoomListWrapper.AppInfo(
-                viewModelContext.get<AppInfoViewModelFactory>().newAppInfoViewModel(
+                viewModelContext.get<AppInfoViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseAppInfo = ::onCloseAppInfo,
                 )
             )
 
             is RoomListConfig.AccountsOverview -> RoomListWrapper.AccountsOverview(
-                viewModelContext.get<AccountsOverviewViewModelFactory>().newAccountsOverviewViewModel(
+                viewModelContext.get<AccountsOverviewViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCreateNewAccount = onCreateNewAccount,
                     onRemoveAccount = onRemoveAccount,
@@ -211,7 +211,7 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupCreated(accountName:String, roomId: RoomId) = viewModelContext.coroutineScope.launch {
+    private fun onGroupCreated(accountName: String, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "on group created ($roomId)" }
         navigation.popWhileSuspending { it !is RoomListConfig.RoomList }
         selectedRoomId.value = roomId
@@ -228,7 +228,7 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupJoined(accountName: String, roomId: RoomId) =  viewModelContext.coroutineScope.launch {
+    private fun onGroupJoined(accountName: String, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "on group joined ($roomId)" }
         navigation.popWhileSuspending { it !is RoomListConfig.RoomList }
         selectedRoomId.value = roomId

@@ -393,7 +393,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
                 single<RoomHeaderViewModelFactory> {
                     object : RoomHeaderViewModelFactory {
-                        override fun newRoomHeaderViewModel(
+                        override fun create(
                             viewModelContext: MatrixClientViewModelContext,
                             selectedRoomId: RoomId,
                             isBackButtonVisible: MutableStateFlow<Boolean>,
@@ -407,7 +407,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
                 }
                 single<InputAreaViewModelFactory> {
                     object : InputAreaViewModelFactory {
-                        override fun newInputAreaViewModel(
+                        override fun create(
                             viewModelContext: MatrixClientViewModelContext,
                             selectedRoomId: RoomId,
                             onMessageEditFinished: (EventId) -> Unit,

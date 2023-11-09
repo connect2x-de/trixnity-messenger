@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 
 interface RedoSelfVerificationViewModelFactory {
-    fun newRedoSelfVerificationViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onStartSelfVerification: () -> Unit,
         onClose: () -> Unit,
@@ -12,6 +12,8 @@ interface RedoSelfVerificationViewModelFactory {
             viewModelContext, onStartSelfVerification, onClose,
         )
     }
+
+    companion object : RedoSelfVerificationViewModelFactory
 }
 
 interface RedoSelfVerificationViewModel {

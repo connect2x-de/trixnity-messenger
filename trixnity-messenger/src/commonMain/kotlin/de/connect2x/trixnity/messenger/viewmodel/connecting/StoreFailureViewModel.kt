@@ -7,13 +7,15 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.launch
 
 interface StoreFailureViewModelFactory {
-    fun newStoreFailureViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         accountName: String,
         exception: LoadStoreException,
     ): StoreFailureViewModel {
         return StoreFailureViewModelImpl(viewModelContext, accountName, exception)
     }
+
+    companion object : StoreFailureViewModelFactory
 }
 
 interface StoreFailureViewModel {

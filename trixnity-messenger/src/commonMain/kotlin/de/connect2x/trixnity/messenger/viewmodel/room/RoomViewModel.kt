@@ -7,7 +7,6 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
@@ -21,7 +20,7 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 private val log = KotlinLogging.logger {}
 
 interface RoomViewModelFactory {
-    fun newRoomViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
@@ -36,6 +35,8 @@ interface RoomViewModelFactory {
             onOpenModal = onOpenModal
         )
     }
+
+    companion object : RoomViewModelFactory
 }
 
 interface RoomViewModel {
@@ -45,9 +46,6 @@ interface RoomViewModel {
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
     fun setSinglePane(twoPane: Boolean)
-    fun selectFile(file: FileDescriptor)
-    fun dragFile(file: FileDescriptor)
-    fun dragFileExit()
     fun showSettings()
 }
 
@@ -106,27 +104,6 @@ open class RoomViewModelImpl(
             } else {
                 switchToMultiPane()
             }
-        }
-    }
-
-    override fun selectFile(file: FileDescriptor) {
-        val instance = timelineStack.value.active.instance
-        if (instance is TimelineRouter.TimelineWrapper.View) {
-            instance.timelineViewModel.selectFile(file)
-        }
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-        val instance = timelineStack.value.active.instance
-        if (instance is TimelineRouter.TimelineWrapper.View) {
-            instance.timelineViewModel.dragFile(file)
-        }
-    }
-
-    override fun dragFileExit() {
-        val instance = timelineStack.value.active.instance
-        if (instance is TimelineRouter.TimelineWrapper.View) {
-            instance.timelineViewModel.dragFileExit()
         }
     }
 
@@ -191,15 +168,6 @@ class PreviewRoomViewModel() : RoomViewModel {
     override fun onRoomBack() {}
     override fun setSinglePane(twoPane: Boolean) {
         isTwoPane.value = twoPane
-    }
-
-    override fun selectFile(file: FileDescriptor) {
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-    }
-
-    override fun dragFileExit() {
     }
 
     override fun showSettings() {

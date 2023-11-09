@@ -13,7 +13,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface MatrixClientLogoutViewModelFactory {
-    fun newMatrixClientLogoutViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         matrixClientService: MatrixClientService,
         accountName: String,
@@ -26,6 +26,8 @@ interface MatrixClientLogoutViewModelFactory {
             onLogoutCompleted,
         )
     }
+
+    companion object : MatrixClientLogoutViewModelFactory
 }
 
 interface MatrixClientLogoutViewModel {

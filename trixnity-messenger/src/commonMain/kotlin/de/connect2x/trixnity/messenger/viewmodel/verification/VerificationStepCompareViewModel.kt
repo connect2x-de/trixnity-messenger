@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 
 interface VerificationStepCompareViewModelFactory {
-    fun newVerificationStepCompareViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         decimals: List<Int>,
         emojisWithoutTranslation: List<Pair<Int, String>>,
@@ -14,6 +14,8 @@ interface VerificationStepCompareViewModelFactory {
             viewModelContext, decimals, emojisWithoutTranslation, onAccept, onDecline
         )
     }
+
+    companion object : VerificationStepCompareViewModelFactory
 }
 
 interface VerificationStepCompareViewModel {

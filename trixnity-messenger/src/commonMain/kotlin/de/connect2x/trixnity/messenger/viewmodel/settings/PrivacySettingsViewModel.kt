@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
 interface PrivacySettingsViewModelFactory {
-    fun newPrivacySettingsViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onClosePrivacySettings: () -> Unit,
     ): PrivacySettingsViewModel {
         return PrivacySettingsViewModelImpl(viewModelContext, onClosePrivacySettings)
     }
+
+    companion object : PrivacySettingsViewModelFactory
 }
 
 interface PrivacySettingsViewModel {
@@ -36,7 +38,7 @@ open class PrivacySettingsViewModelImpl(
         namedMatrixClients.scopedMapLatest { namedMatrixClients ->
             namedMatrixClients.map { (accountName, matrixClientFlow) ->
                 get<PrivacySettingViewModelFactory>()
-                    .newPrivacySettingViewModel(
+                    .create(
                         viewModelContext = childContext("privacySetting-${accountName}", accountName = accountName),
                         onUnblockError = { error.value = it }
                     )

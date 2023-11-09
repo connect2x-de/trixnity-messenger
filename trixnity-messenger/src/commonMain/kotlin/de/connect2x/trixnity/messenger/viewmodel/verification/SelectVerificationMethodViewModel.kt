@@ -14,7 +14,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface SelectVerificationMethodViewModelFactory {
-    fun newSelectVerificationViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         verificationMethods: Set<VerificationMethod>,
         roomId: RoomId?,
@@ -25,6 +25,8 @@ interface SelectVerificationMethodViewModelFactory {
             viewModelContext, verificationMethods, roomId, timelineEventId, isDeviceVerification,
         )
     }
+
+    companion object : SelectVerificationMethodViewModelFactory
 }
 
 interface SelectVerificationMethodViewModel {

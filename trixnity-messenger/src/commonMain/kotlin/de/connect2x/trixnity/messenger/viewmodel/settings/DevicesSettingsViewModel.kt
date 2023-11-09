@@ -36,12 +36,14 @@ data class AccountWithDevices(
 )
 
 interface DevicesSettingsViewModelFactory {
-    fun newDevicesSettingsViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onCloseDevicesSettings: () -> Unit,
     ): DevicesSettingsViewModel {
         return DevicesSettingsViewModelImpl(viewModelContext, onCloseDevicesSettings)
     }
+
+    companion object : DevicesSettingsViewModelFactory
 }
 
 interface DevicesSettingsViewModel {

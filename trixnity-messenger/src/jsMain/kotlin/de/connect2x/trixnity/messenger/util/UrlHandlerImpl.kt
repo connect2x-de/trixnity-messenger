@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import io.ktor.http.*
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -9,11 +10,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 import org.w3c.dom.events.Event
 
-actual class UrlHandler(
-    private val urlHandlerFlow: Flow<Url>
+class UrlHandlerImpl private constructor(
+    urlHandlerFlow: Flow<Url>
 ) : Flow<Url> by urlHandlerFlow {
 
-    actual constructor(filter: (Url) -> Boolean) : this(
+    constructor(messengerSettings: MessengerSettings) : this(
         callbackFlow {
             val eventListener: (Event) -> Unit = {
                 trySend(Url(document.URL))
@@ -22,6 +23,6 @@ actual class UrlHandler(
             awaitClose {
                 window.removeEventListener("locationchange", eventListener)
             }
-        }.filter(filter)
+        }.filter(urlFilter(messengerSettings))
     )
 }

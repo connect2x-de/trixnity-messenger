@@ -8,7 +8,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 private val log = KotlinLogging.logger { }
 
 interface EncryptedMessageViewModelFactory {
-    fun newEncryptedMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -35,6 +35,8 @@ interface EncryptedMessageViewModelFactory {
             timelineEventFlow
         )
     }
+
+    companion object : EncryptedMessageViewModelFactory
 }
 
 interface EncryptedMessageViewModel : RoomMessageViewModel {

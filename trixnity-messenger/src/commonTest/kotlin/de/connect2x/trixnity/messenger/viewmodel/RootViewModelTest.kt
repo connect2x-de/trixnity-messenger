@@ -112,7 +112,7 @@ class RootViewModelTest : ShouldSpec() {
                     }
                     single<MainViewModelFactory> {
                         object : MainViewModelFactory {
-                            override fun newMainViewModel(
+                            override fun create(
                                 viewModelContext: ViewModelContext,
                                 initialSyncOnceIsFinished: (Boolean) -> Unit,
                                 minimizeMessenger: () -> Unit,
@@ -126,7 +126,7 @@ class RootViewModelTest : ShouldSpec() {
                     }
                     single<AccountViewModelFactory> {
                         object : AccountViewModelFactory {
-                            override fun newAccountViewModel(
+                            override fun create(
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (String?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
@@ -136,7 +136,7 @@ class RootViewModelTest : ShouldSpec() {
                     }
                     single<RoomListViewModelFactory> {
                         object : RoomListViewModelFactory {
-                            override fun newRoomListViewModel(
+                            override fun create(
                                 viewModelContext: ViewModelContext,
                                 selectedRoomId: StateFlow<RoomId?>,
                                 onRoomSelected: (String, RoomId) -> Unit,

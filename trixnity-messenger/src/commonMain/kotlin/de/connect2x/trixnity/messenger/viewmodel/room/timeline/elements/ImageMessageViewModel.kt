@@ -20,7 +20,7 @@ import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 
 interface ImageMessageViewModelFactory {
-    fun newImageMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -51,6 +51,8 @@ interface ImageMessageViewModelFactory {
             mediaUploadProgress,
         )
     }
+
+    companion object : ImageMessageViewModelFactory
 }
 
 interface ImageMessageViewModel : FileBasedMessageViewModel {

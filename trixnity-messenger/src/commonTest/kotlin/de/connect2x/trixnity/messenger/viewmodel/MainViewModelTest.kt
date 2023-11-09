@@ -55,9 +55,6 @@ import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
@@ -654,7 +651,7 @@ class MainViewModelTest : ShouldSpec() {
                         single<MessengerSettings> { messengerSettings }
                         single<RoomHeaderViewModelFactory> {
                             object : RoomHeaderViewModelFactory {
-                                override fun newRoomHeaderViewModel(
+                                override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     isBackButtonVisible: MutableStateFlow<Boolean>,
@@ -668,7 +665,7 @@ class MainViewModelTest : ShouldSpec() {
                         }
                         single<InputAreaViewModelFactory> {
                             object : InputAreaViewModelFactory {
-                                override fun newInputAreaViewModel(
+                                override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     onMessageEditFinished: (EventId) -> Unit,
@@ -681,7 +678,7 @@ class MainViewModelTest : ShouldSpec() {
                         }
                         single<RoomListViewModelFactory> {
                             object : RoomListViewModelFactory {
-                                override fun newRoomListViewModel(
+                                override fun create(
                                     viewModelContext: ViewModelContext,
                                     selectedRoomId: StateFlow<RoomId?>,
                                     onRoomSelected: (String, RoomId) -> Unit,

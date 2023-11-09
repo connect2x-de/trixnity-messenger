@@ -39,7 +39,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger {}
 
 interface RoomListViewModelFactory {
-    fun newRoomListViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         selectedRoomId: StateFlow<RoomId?>,
         onRoomSelected: (String, RoomId) -> Unit,
@@ -60,6 +60,8 @@ interface RoomListViewModelFactory {
             onOpenAccountsOverview,
         )
     }
+
+    companion object : RoomListViewModelFactory
 }
 
 interface RoomListViewModel {
@@ -131,7 +133,7 @@ class RoomListViewModelImpl(
     private val initials = get<Initials>()
 
     override val accountViewModel =
-        viewModelContext.get<AccountViewModelFactory>().newAccountViewModel(
+        viewModelContext.get<AccountViewModelFactory>().create(
             viewModelContext = childContext("accountViewModel"),
             onAccountSelected = { accountName ->
                 activeAccount.value = accountName
@@ -299,7 +301,7 @@ class RoomListViewModelImpl(
                         if (existingViewModel != null) roomId to existingViewModel
                         else {
                             val roomListElementViewModel =
-                                viewModelContext.get<RoomListElementViewModelFactory>().newRoomListElementViewModel(
+                                viewModelContext.get<RoomListElementViewModelFactory>().create(
                                     viewModelContext = childContext(
                                         "roomListElement-${roomId.full}",
                                         accountName = namedMatrixClient.accountName,

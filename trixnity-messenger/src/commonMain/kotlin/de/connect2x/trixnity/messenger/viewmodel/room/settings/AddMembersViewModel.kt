@@ -12,7 +12,7 @@ import net.folivo.trixnity.core.model.RoomId
 private val log = KotlinLogging.logger {}
 
 interface AddMembersViewModelFactory {
-    fun newAddMembersViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         addMembersToRoomViewModel: PotentialMembersViewModel,
@@ -25,6 +25,8 @@ interface AddMembersViewModelFactory {
             onBack,
         )
     }
+
+    companion object : AddMembersViewModelFactory
 }
 
 interface AddMembersViewModel {

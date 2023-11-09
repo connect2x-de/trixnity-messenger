@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.stateIn
 
 
 interface FallbackMessageViewModelFactory {
-    fun newFallbackMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -41,6 +41,8 @@ interface FallbackMessageViewModelFactory {
             invitation,
         )
     }
+
+    companion object : FallbackMessageViewModelFactory
 }
 
 interface FallbackMessageViewModel : TextBasedViewModel

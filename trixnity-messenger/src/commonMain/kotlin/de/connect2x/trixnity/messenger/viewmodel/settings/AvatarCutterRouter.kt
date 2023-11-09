@@ -27,7 +27,7 @@ class AvatarCutterRouter(
         when (config) {
             is Config.None -> AvatarCutterWrapper.None
             is Config.AvatarCutter -> AvatarCutterWrapper.AvatarCutter(
-                viewModelContext.get<AvatarCutterViewModelFactory>().newAvatarCutterViewModel(
+                viewModelContext.get<AvatarCutterViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.accountName),
                     file = config.file,
                     onClose = ::onClose,

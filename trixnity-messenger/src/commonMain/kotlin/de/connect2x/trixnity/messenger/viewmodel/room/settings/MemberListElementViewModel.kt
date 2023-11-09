@@ -25,7 +25,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface MemberListElementViewModelFactory {
-    fun newMemberListElementViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomUser: RoomUser,
         error: MutableStateFlow<String?>,
@@ -38,6 +38,8 @@ interface MemberListElementViewModelFactory {
             selectedRoomId = selectedRoomId
         )
     }
+
+    companion object : MemberListElementViewModelFactory
 }
 
 interface MemberListElementViewModel {
@@ -151,7 +153,7 @@ open class MemberListElementViewModelImpl(
 
     override val changePowerLevelViewModel: ChangePowerLevelViewModel =
         get<ChangePowerLevelViewModelFactory>()
-            .newChangePowerLevelViewModelFactory(
+            .create(
                 viewModelContext = viewModelContext.childContext("changePowerLevel-${roomUser.userId.full}"),
                 powerLevel = powerLevel,
                 roomUser = roomUser,

@@ -19,7 +19,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface MemberListViewModelFactory {
-    fun newMemberListViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         error: MutableStateFlow<String?>
@@ -30,6 +30,8 @@ interface MemberListViewModelFactory {
             error = error
         )
     }
+
+    companion object : MemberListViewModelFactory
 }
 
 interface MemberListViewModel {
@@ -59,7 +61,7 @@ open class MemberListViewModelImpl(
                     val userId = roomUser.userId
                     val memberListElementViewModel = viewModels.getOrPut(userId) {
                         get<MemberListElementViewModelFactory>()
-                            .newMemberListElementViewModel(
+                            .create(
                                 viewModelContext = childContext("memberListElement-${roomUser.userId.full}"),
                                 roomUser,
                                 error = error,

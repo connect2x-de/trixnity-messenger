@@ -14,7 +14,7 @@ import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 
 interface AudioMessageViewModelFactory {
-    fun newAudioMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -43,6 +43,8 @@ interface AudioMessageViewModelFactory {
             onOpenModal,
         )
     }
+
+    companion object : AudioMessageViewModelFactory
 }
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {

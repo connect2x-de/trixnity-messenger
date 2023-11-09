@@ -218,6 +218,14 @@ subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/t
 If you want to add new messages, use the delegation pattern as described
 in [View model customization](#change-the-default-behavior-of-view-models) and add more messages.
 
+## Drag and Drop
+
+To support Drag and Drop, add an Implementation of `DragAndDropHandler` to the DI.
+
+## URL / SSO
+
+For Single Sign-on, add an Implementation of `UrlHandler` to the DI.
+
 ## Usage from Swift (iOS or Mac)
 
 Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac applications.

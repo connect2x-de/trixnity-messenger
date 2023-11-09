@@ -3,12 +3,14 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 
 interface VerificationStepCancelledViewModelFactory {
-    fun newVerificationStepCancelledViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onVerificationCancelledOk: () -> Unit,
     ): VerificationStepCancelledViewModel {
         return VerificationStepCancelledViewModelImpl(viewModelContext, onVerificationCancelledOk)
     }
+
+    companion object : VerificationStepCancelledViewModelFactory
 }
 
 interface VerificationStepCancelledViewModel {

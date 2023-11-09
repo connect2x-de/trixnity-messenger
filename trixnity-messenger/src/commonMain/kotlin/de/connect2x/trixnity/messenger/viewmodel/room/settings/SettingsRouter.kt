@@ -68,7 +68,7 @@ class SettingsRouterImpl(
         when (settingsConfig) {
             is SettingsConfig.None -> SettingsWrapper.None
             is SettingsConfig.Settings -> SettingsWrapper.View(
-                viewModelContext.get<RoomSettingsViewModelFactory>().newRoomSettingsViewModel(
+                viewModelContext.get<RoomSettingsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onBack = onRoomBack,
                     selectedRoomId = roomId,
@@ -78,12 +78,12 @@ class SettingsRouterImpl(
             )
 
             is SettingsConfig.AddMembers -> SettingsWrapper.AddMember(
-                viewModelContext.get<AddMembersViewModelFactory>().newAddMembersViewModel(
+                viewModelContext.get<AddMembersViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onBack = ::closeAddMembers,
                     roomId = roomId,
                     addMembersToRoomViewModel = viewModelContext.get<PotentialMembersViewModelFactory>()
-                        .newPotentialMembersViewModel(
+                        .create(
                             viewModelContext = viewModelContext.childContext(componentContext),
                             roomId = roomId
                         ),

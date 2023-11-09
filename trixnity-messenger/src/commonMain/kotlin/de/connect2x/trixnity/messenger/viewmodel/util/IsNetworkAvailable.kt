@@ -6,4 +6,6 @@ interface IsNetworkAvailable {
     operator fun invoke(): Boolean {
         return isNetworkAvailable()
     }
+
+    companion object : IsNetworkAvailable
 }

@@ -29,7 +29,7 @@ class VerificationRouter(
     private fun createChild(config: Config, componentContext: ComponentContext): VerificationWrapper =
         when (config) {
             is Config.DeviceVerification -> VerificationWrapper.Verification(
-                viewModelContext.get<VerificationViewModelFactory>().newVerificationViewModel(
+                viewModelContext.get<VerificationViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.accountName),
                     onCloseVerification = ::closeVerification,
                     onRedoSelfVerification = { onRedoSelfVerification(config.accountName) },
@@ -39,7 +39,7 @@ class VerificationRouter(
             )
 
             is Config.UserVerification -> VerificationWrapper.Verification(
-                viewModelContext.get<VerificationViewModelFactory>().newVerificationViewModel(
+                viewModelContext.get<VerificationViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.accountName),
                     onCloseVerification = ::closeVerification,
                     onRedoSelfVerification = { onRedoSelfVerification(config.accountName) },

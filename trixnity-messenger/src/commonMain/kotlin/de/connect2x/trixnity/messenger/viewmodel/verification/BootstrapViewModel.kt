@@ -22,7 +22,7 @@ enum class BootstrapStep {
 }
 
 interface BootstrapViewModelFactory {
-    fun newBootstrapViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onClose: () -> Unit,
     ): BootstrapViewModel {
@@ -30,6 +30,8 @@ interface BootstrapViewModelFactory {
             viewModelContext, onClose
         )
     }
+
+    companion object : BootstrapViewModelFactory
 }
 
 interface BootstrapViewModel {

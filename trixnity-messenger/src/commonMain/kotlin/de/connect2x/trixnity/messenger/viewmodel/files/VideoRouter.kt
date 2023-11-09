@@ -27,7 +27,7 @@ class VideoRouter(
         when (videoConfig) {
             is VideoConfig.None -> VideoWrapper.None
             is VideoConfig.Video -> VideoWrapper.Video(
-                viewModelContext.get<VideoViewModelFactory>().newVideoViewModel(
+                viewModelContext.get<VideoViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, videoConfig.accountName),
                     mxcUrl = videoConfig.mxcUrl,
                     encryptedFile = videoConfig.encryptedFile,

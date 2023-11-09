@@ -15,7 +15,7 @@ import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 
 interface OutboxElementHolderViewModelFactory {
-    fun newOutboxElementHolderViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         key: String,
         outboxMessageFlow: Flow<RoomOutboxMessage<*>?>,
@@ -36,6 +36,8 @@ interface OutboxElementHolderViewModelFactory {
             onOpenModal
         )
     }
+
+    companion object : OutboxElementHolderViewModelFactory
 }
 
 interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
@@ -71,7 +73,7 @@ open class OutboxElementHolderViewModelImpl(
             val content = outboxMessage?.content
             when (content) {
                 is TextMessageEventContent -> {
-                    get<TextMessageViewModelFactory>().newTextMessageViewModel(
+                    get<TextMessageViewModelFactory>().create(
                         viewModelContext = this,
                         fallbackMessage = content.body,
                         referencedMessage = richRepliesComputations.getReferencedMessage(
@@ -94,7 +96,7 @@ open class OutboxElementHolderViewModelImpl(
                 }
 
                 is ImageMessageEventContent -> {
-                    get<ImageMessageViewModelFactory>().newImageMessageViewModel(
+                    get<ImageMessageViewModelFactory>().create(
                         viewModelContext = this,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
@@ -112,7 +114,7 @@ open class OutboxElementHolderViewModelImpl(
                 }
 
                 is VideoMessageEventContent -> {
-                    get<VideoMessageViewModelFactory>().newVideoMessageViewModel(
+                    get<VideoMessageViewModelFactory>().create(
                         viewModelContext = this,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
@@ -129,7 +131,7 @@ open class OutboxElementHolderViewModelImpl(
                 }
 
                 is AudioMessageEventContent -> {
-                    get<AudioMessageViewModelFactory>().newAudioMessageViewModel(
+                    get<AudioMessageViewModelFactory>().create(
                         viewModelContext = this,
                         sender = MutableStateFlow(""),
                         showSender = MutableStateFlow(false),
@@ -146,7 +148,7 @@ open class OutboxElementHolderViewModelImpl(
                 }
 
                 is FileMessageEventContent -> {
-                    get<FileMessageViewModelFactory>().newFileMessageViewModel(
+                    get<FileMessageViewModelFactory>().create(
                         viewModelContext = this,
                         formattedDate = "",
                         showDateAbove = showDateAbove,
