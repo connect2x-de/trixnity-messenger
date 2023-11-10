@@ -174,7 +174,7 @@ Then, we have to register the new view model in a module:
 val addMatrixAccountModule = module {
     single<AddMatrixAccountViewModelFactory> {
         object : AddMatrixAccountViewModelFactory {
-            override fun newAddMatrixAccountViewModel(
+            override fun create(
                 viewModelContext: ViewModelContext,
                 onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
                 onCancel: () -> Unit
