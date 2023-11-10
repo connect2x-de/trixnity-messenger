@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import kotlinx.coroutines.flow.*
@@ -81,7 +82,7 @@ open class OutboxElementHolderViewModelImpl(
                         ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                         message = content.bodyWithoutFallback,
                         formattedBody = content.formattedBody,
-                        sender = MutableStateFlow(""),
+                        sender = MutableStateFlow(UserInfoElement("")),
                         showSender = MutableStateFlow(false),
                         formattedDate = "",
                         formattedTime = null,
@@ -96,7 +97,7 @@ open class OutboxElementHolderViewModelImpl(
                 is ImageMessageEventContent -> {
                     get<ImageMessageViewModelFactory>().newImageMessageViewModel(
                         viewModelContext = this,
-                        sender = MutableStateFlow(""),
+                        sender = MutableStateFlow(UserInfoElement("")),
                         showSender = MutableStateFlow(false),
                         formattedDate = "",
                         formattedTime = null,
@@ -114,7 +115,7 @@ open class OutboxElementHolderViewModelImpl(
                 is VideoMessageEventContent -> {
                     get<VideoMessageViewModelFactory>().newVideoMessageViewModel(
                         viewModelContext = this,
-                        sender = MutableStateFlow(""),
+                        sender = MutableStateFlow(UserInfoElement("")),
                         showSender = MutableStateFlow(false),
                         formattedDate = "",
                         formattedTime = null,
@@ -131,7 +132,7 @@ open class OutboxElementHolderViewModelImpl(
                 is AudioMessageEventContent -> {
                     get<AudioMessageViewModelFactory>().newAudioMessageViewModel(
                         viewModelContext = this,
-                        sender = MutableStateFlow(""),
+                        sender = MutableStateFlow(UserInfoElement("")),
                         showSender = MutableStateFlow(false),
                         formattedDate = "",
                         formattedTime = null,
@@ -155,7 +156,7 @@ open class OutboxElementHolderViewModelImpl(
                         showChatBubbleEdge = showChatBubbleEdge,
                         showBigGap = showChatBubbleEdge,
                         showSender = MutableStateFlow(false),
-                        sender = MutableStateFlow(""),
+                        sender = MutableStateFlow(UserInfoElement("")),
                         invitation = MutableStateFlow(null),
                         content = content,
                     )

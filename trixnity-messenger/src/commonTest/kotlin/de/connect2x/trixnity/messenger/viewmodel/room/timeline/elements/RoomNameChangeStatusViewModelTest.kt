@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
@@ -78,14 +79,14 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes") {
-            val usernameFlow = MutableStateFlow("Bob")
+            val usernameFlow = MutableStateFlow(UserInfoElement("Bob"))
             val cut = roomNameChangeStatusViewModel(
                 timelineEvent = timelineEvent(),
                 usernameFlow = usernameFlow,
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
-            usernameFlow.value = "Bobby"
+            usernameFlow.value = UserInfoElement("Bobby")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.roomNameChangeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
@@ -113,7 +114,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
 
     private fun roomNameChangeStatusViewModel(
         timelineEvent: TimelineEvent,
-        usernameFlow: StateFlow<String> = MutableStateFlow("Bob"),
+        usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob")),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
     ): RoomNameChangeStatusViewModelImpl {

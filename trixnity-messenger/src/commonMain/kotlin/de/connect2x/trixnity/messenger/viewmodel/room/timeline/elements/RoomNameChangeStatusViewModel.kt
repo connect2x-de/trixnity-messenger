@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -13,7 +14,7 @@ interface RoomNameChangeStatusViewModelFactory {
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         timelineEvent: TimelineEvent,
         isDirectFlow: StateFlow<Boolean>,
     ): RoomNameChangeStatusViewModel {
@@ -38,7 +39,7 @@ open class RoomNameChangeStatusViewModelImpl(
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     invitation: Flow<String?>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     timelineEvent: TimelineEvent,
     isDirectFlow: StateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomNameChangeStatusViewModel {
@@ -46,7 +47,7 @@ open class RoomNameChangeStatusViewModelImpl(
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val roomNameChangeMessage =
-        combine(sender, isDirectFlow) { username, isDirect ->
+        combine(sender, isDirectFlow) { userInfo, isDirect ->
             val content = timelineEvent.event.content
             require(content is NameEventContent)
 
@@ -61,6 +62,6 @@ open class RoomNameChangeStatusViewModelImpl(
                 if (isDirect) i18n.eventChangeChatGenitive()
                 else i18n.eventChangeGroupGenitive()
 
-            i18n.eventRoomChange(username, groupOrChat, from, content.name)
+            i18n.eventRoomChange(userInfo.name, groupOrChat, from, content.name)
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }

@@ -2,13 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
-import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
-import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -16,8 +14,10 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.user
@@ -32,6 +32,7 @@ import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
@@ -120,6 +121,7 @@ open class TimelineElementHolderViewModelImpl(
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
     private val richRepliesComputations = get<RichRepliesComputations>()
+    private val initials = get<Initials>()
 
     override val showLoadingIndicatorBefore =
         canLoadMoreBefore.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -170,8 +172,26 @@ open class TimelineElementHolderViewModelImpl(
         val sender = timelineEventFlow.flatMapLatest {
             it?.let { timelineEvent ->
                 matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
-                    .map { user -> user?.name ?: timelineEvent.event.sender.full }
-            } ?: flowOf(i18n.commonUnknown())
+                    .map { user ->
+                        UserInfoElement(
+                            name = user?.name ?: timelineEvent.event.sender.full,
+                            initials = user?.name?.let(initials::compute),
+                            image = user?.avatarUrl?.let { avatarUrl ->
+                                matrixClient.media.getThumbnail(
+                                    avatarUrl,
+                                    avatarSize().toLong(),
+                                    avatarSize().toLong()
+                                ).fold(
+                                    onSuccess = { it },
+                                    onFailure = {
+                                        log.error(it) { "Cannot load avatar image for user '${user.name}'." }
+                                        null
+                                    }
+                                )?.toByteArray()
+                            }
+                        )
+                    }
+            } ?: flowOf(UserInfoElement(i18n.commonUnknown()))
         }
 
         val invitation = timelineEventFlow
@@ -240,7 +260,7 @@ open class TimelineElementHolderViewModelImpl(
     private fun subViewModel(
         timelineEvent: TimelineEvent,
         previousRoomEvent: TimelineEvent?,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
     ): BaseTimelineElementViewModel {
         val event = timelineEvent.event
@@ -402,7 +422,7 @@ open class TimelineElementHolderViewModelImpl(
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
                             formattedTime = formatTime(receivedDateTime),
-                            usernameFlow = sender,
+                            userInfoFlow = sender,
                             content = content,
                             selectedRoomId = selectedRoomId,
                             timelineEventId = timelineEvent.eventId,
@@ -648,7 +668,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val showChatBubbleEdge: Boolean = true
             override val showBigGap: Boolean = true
             override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(true)
-            override val sender: MutableStateFlow<String> = MutableStateFlow("Benedict")
+            override val sender: MutableStateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Benedict"))
             override val formattedTime: String = "11:04"
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
@@ -731,7 +751,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val showChatBubbleEdge: Boolean = false
                 override val showBigGap: Boolean = false
                 override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(false)
-                override val sender: MutableStateFlow<String> = MutableStateFlow("Benedict")
+                override val sender: MutableStateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Benedict"))
                 override val formattedTime: String = "11:05"
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"

@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
@@ -147,7 +148,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
         showChatBubbleEdge = true,
         showBigGap = true,
         showSender = MutableStateFlow(true),
-        sender = MutableStateFlow("User1"),
+        sender = MutableStateFlow(UserInfoElement("User1")),
         invitation = flowOf(null),
         content = ImageMessageEventContent(""),
         onOpenModal = mockFunction4(mocker),

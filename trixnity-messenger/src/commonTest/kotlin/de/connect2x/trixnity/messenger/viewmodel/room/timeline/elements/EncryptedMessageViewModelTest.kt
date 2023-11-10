@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.timing.continually
@@ -106,7 +107,7 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
             showChatBubbleEdge = false,
             showBigGap = false,
             showSender = MutableStateFlow(false),
-            sender = MutableStateFlow(""),
+            sender = MutableStateFlow(UserInfoElement("")),
             invitation = flowOf(""),
             timelineEventFlow = timelineEventFlow,
         )

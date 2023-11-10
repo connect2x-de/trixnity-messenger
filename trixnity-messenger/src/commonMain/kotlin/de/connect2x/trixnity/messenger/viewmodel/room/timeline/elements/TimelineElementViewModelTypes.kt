@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +32,7 @@ interface RoomMessageViewModel : TimelineElementWithTimestampViewModel {
     val showChatBubbleEdge: Boolean
     val showBigGap: Boolean
     val showSender: StateFlow<Boolean>
-    val sender: StateFlow<String>
+    val sender: StateFlow<UserInfoElement>
 }
 
 interface TextBasedViewModel : RoomMessageViewModel {
@@ -57,10 +58,10 @@ interface TextBasedViewModel : RoomMessageViewModel {
 }
 
 sealed interface ReferencedMessage {
-    val sender: String
+    val sender: UserInfoElement
 
     data class ReferencedTextMessage(
-        override val sender: String,
+        override val sender: UserInfoElement,
         val message: String,
     ) : ReferencedMessage {
         fun messageShortened(maxLines: Int = 4, ellipsis: String = "..."): String {
@@ -74,28 +75,28 @@ sealed interface ReferencedMessage {
     }
 
     data class ReferencedImageMessage(
-        override val sender: String,
+        override val sender: UserInfoElement,
         val thumbnail: ByteArray?,
         val fileName: String,
     ) : ReferencedMessage
 
     data class ReferencedVideoMessage(
-        override val sender: String,
+        override val sender: UserInfoElement,
         val thumbnail: ByteArray?,
         val fileName: String,
     ) : ReferencedMessage
 
     data class ReferencedAudioMessage(
-        override val sender: String,
+        override val sender: UserInfoElement,
         val fileName: String,
     ) : ReferencedMessage
 
     data class ReferencedFileMessage(
-        override val sender: String,
+        override val sender: UserInfoElement,
         val fileName: String,
     ) : ReferencedMessage
 
     data class ReferencedUnknownMessage(
-        override val sender: String,
+        override val sender: UserInfoElement,
     ) : ReferencedMessage
 }

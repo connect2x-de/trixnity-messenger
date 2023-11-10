@@ -119,7 +119,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
-            viewModel.sender.first { it == "Me" }
+            viewModel.sender.first { it.name == "Me" }
 
             cancelNeverEndingCoroutines()
         }
@@ -139,7 +139,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
-            viewModel.sender.first { it == "Me changed" }
+            viewModel.sender.first { it.name == "Me changed" }
 
             cancelNeverEndingCoroutines()
         }

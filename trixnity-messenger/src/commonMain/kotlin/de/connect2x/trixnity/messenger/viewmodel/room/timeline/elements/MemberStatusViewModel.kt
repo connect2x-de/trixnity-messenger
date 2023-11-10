@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -17,7 +18,7 @@ interface MemberStatusViewModelFactory {
         showDateAbove: Boolean,
         invitation: Flow<String?>,
         timelineEventFlow: Flow<TimelineEvent?>,
-        sender: Flow<String>,
+        sender: Flow<UserInfoElement>,
         isDirectFlow: StateFlow<Boolean>,
     ): MemberStatusViewModel {
         return MemberStatusViewModelImpl(
@@ -36,7 +37,7 @@ open class MemberStatusViewModelImpl(
     override val showDateAbove: Boolean,
     invitation: Flow<String?>,
     timelineEventFlow: Flow<TimelineEvent?>,
-    sender: Flow<String>,
+    sender: Flow<UserInfoElement>,
     isDirectFlow: StateFlow<Boolean>,
 ) : MemberStatusViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
@@ -46,7 +47,7 @@ open class MemberStatusViewModelImpl(
         timelineEventFlow,
         sender,
         isDirectFlow,
-    ) { timelineEvent, username, isDirect ->
+    ) { timelineEvent, userInfo, isDirect ->
         timelineEvent?.let {
             val event = it.event
             require(event is StateEvent)
@@ -56,14 +57,14 @@ open class MemberStatusViewModelImpl(
             val previousContent = event.unsigned?.previousContent
             if (previousContent is MemberEventContent) {
                 if (content.membership != previousContent.membership) {
-                    membershipChanged(event, content, username, isDirect)
+                    membershipChanged(event, content, userInfo.name, isDirect)
                 } else if (content.avatarUrl != previousContent.avatarUrl) {
-                    i18n.eventChangeAvatar(username)
+                    i18n.eventChangeAvatar(userInfo.name)
                 } else {
                     null
                 }
             } else {
-                membershipChanged(event, content, username, isDirect)
+                membershipChanged(event, content, userInfo.name, isDirect)
             }
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
