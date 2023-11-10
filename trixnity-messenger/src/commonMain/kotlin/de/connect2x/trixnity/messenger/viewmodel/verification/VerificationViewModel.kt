@@ -39,7 +39,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface VerificationViewModelFactory {
-    fun newVerificationViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onCloseVerification: () -> Unit,
         onRedoSelfVerification: () -> Unit,
@@ -50,6 +50,8 @@ interface VerificationViewModelFactory {
             viewModelContext, onCloseVerification, onRedoSelfVerification, roomId, timelineEventId,
         )
     }
+
+    companion object : VerificationViewModelFactory
 }
 
 interface VerificationViewModel {
@@ -194,7 +196,7 @@ open class VerificationViewModelImpl(
             is None -> VerificationStepWrapper.None
             is Request -> VerificationStepWrapper.Request(
                 get<VerificationStepRequestViewModelFactory>()
-                    .newVerificationStepRequestViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext),
                         onRequestAccept = ::onRequestAccept,
                         theirUserId = config.theirUserId,
@@ -204,7 +206,7 @@ open class VerificationViewModelImpl(
 
             is Wait -> VerificationStepWrapper.Wait
             is SelectVerificationMethod -> VerificationStepWrapper.SelectVerificationMethod(
-                get<SelectVerificationMethodViewModelFactory>().newSelectVerificationViewModel(
+                get<SelectVerificationMethodViewModelFactory>().create(
                     viewModelContext = childContext(componentContext),
                     verificationMethods = config.verificationMethods,
                     roomId = config.roomId,
@@ -214,7 +216,7 @@ open class VerificationViewModelImpl(
             )
 
             is AcceptSasStart -> VerificationStepWrapper.AcceptSasStart(
-                get<AcceptSasStartViewModelFactory>().newAcceptSasStartViewModel(
+                get<AcceptSasStartViewModelFactory>().create(
                     viewModelContext = childContext(componentContext),
                     roomId = config.roomId,
                     timelineEventId = config.timelineEventId,
@@ -223,7 +225,7 @@ open class VerificationViewModelImpl(
 
             is CompareEmojisOrNumbers -> VerificationStepWrapper.CompareEmojisOrNumbers(
                 get<VerificationStepCompareViewModelFactory>()
-                    .newVerificationStepCompareViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext),
                         decimals = config.decimals,
                         emojisWithoutTranslation = config.emojis,
@@ -234,7 +236,7 @@ open class VerificationViewModelImpl(
 
             is Success -> VerificationStepWrapper.Success(
                 get<VerificationStepSuccessViewModelFactory>()
-                    .newVerificationStepSuccessViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext),
                         fromDeviceId = config.fromDeviceId,
                         onVerificationSuccessOk = ::onVerificationSuccessOk,
@@ -243,7 +245,7 @@ open class VerificationViewModelImpl(
 
             is Rejected -> VerificationStepWrapper.Rejected(
                 get<VerificationStepRejectedViewModelFactory>()
-                    .newVerificationStepRejectedViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext),
                         onVerificationRejectedOk = ::onVerificationNotOk,
                     )
@@ -251,7 +253,7 @@ open class VerificationViewModelImpl(
 
             is Timeout -> VerificationStepWrapper.Timeout(
                 get<VerificationStepTimeoutViewModelFactory>()
-                    .newVerificationStepTimeoutViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext),
                         onVerificationTimeoutOk = ::onVerificationNotOk,
                     )
@@ -259,7 +261,7 @@ open class VerificationViewModelImpl(
 
             is Cancelled -> VerificationStepWrapper.Cancelled(
                 get<VerificationStepCancelledViewModelFactory>()
-                    .newVerificationStepCancelledViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext),
                         onVerificationCancelledOk = ::onVerificationNotOk,
                     )

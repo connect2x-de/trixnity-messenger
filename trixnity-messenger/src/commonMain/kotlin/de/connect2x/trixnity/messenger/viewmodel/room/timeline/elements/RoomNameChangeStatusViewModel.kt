@@ -9,7 +9,7 @@ import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 
 interface RoomNameChangeStatusViewModelFactory {
-    fun newRoomNameChangeStatusViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -28,6 +28,8 @@ interface RoomNameChangeStatusViewModelFactory {
             isDirectFlow,
         )
     }
+
+    companion object : RoomNameChangeStatusViewModelFactory
 }
 
 interface RoomNameChangeStatusViewModel : BaseTimelineElementViewModel {

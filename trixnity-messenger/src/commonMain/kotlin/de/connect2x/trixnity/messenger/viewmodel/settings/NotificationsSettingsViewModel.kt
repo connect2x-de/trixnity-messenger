@@ -20,7 +20,7 @@ data class NotificationSettingsOfAccount(
 )
 
 interface NotificationsSettingsViewModelFactory {
-    fun newNotificationsSettingsViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onCloseNotificationsSettings: () -> Unit,
         onShowConfigureNotifications: (accountName: String) -> Unit,
@@ -29,6 +29,8 @@ interface NotificationsSettingsViewModelFactory {
             viewModelContext, onCloseNotificationsSettings, onShowConfigureNotifications
         )
     }
+
+    companion object : NotificationsSettingsViewModelFactory
 }
 
 interface NotificationsSettingsViewModel {

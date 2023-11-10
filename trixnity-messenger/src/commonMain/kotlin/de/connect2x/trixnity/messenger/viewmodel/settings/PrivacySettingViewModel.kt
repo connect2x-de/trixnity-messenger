@@ -16,7 +16,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface PrivacySettingViewModelFactory {
-    fun newPrivacySettingViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onUnblockError: (String) -> Unit,
     ): PrivacySettingViewModel =
@@ -24,6 +24,8 @@ interface PrivacySettingViewModelFactory {
             viewModelContext,
             onUnblockError,
         )
+
+    companion object : PrivacySettingViewModelFactory
 }
 
 interface PrivacySettingViewModel {

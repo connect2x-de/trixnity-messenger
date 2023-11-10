@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 
 
 interface VerificationStepSuccessViewModelFactory {
-    fun newVerificationStepSuccessViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         fromDeviceId: String?,
         onVerificationSuccessOk: () -> Unit,
@@ -15,6 +15,8 @@ interface VerificationStepSuccessViewModelFactory {
             viewModelContext, fromDeviceId, onVerificationSuccessOk
         )
     }
+
+    companion object : VerificationStepSuccessViewModelFactory
 }
 
 interface VerificationStepSuccessViewModel {

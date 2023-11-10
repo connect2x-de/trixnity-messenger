@@ -23,7 +23,7 @@ sealed interface RoomNameState {
 }
 
 interface RoomSettingsViewModelFactory {
-    fun newRoomSettingsViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         onBack: () -> Unit,
@@ -38,6 +38,8 @@ interface RoomSettingsViewModelFactory {
             onBack = onBack,
         )
     }
+
+    companion object : RoomSettingsViewModelFactory
 }
 
 interface RoomSettingsViewModel {
@@ -69,11 +71,11 @@ open class RoomSettingsViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
     override val error = MutableStateFlow<String?>(null)
     override val roomSettingsNameViewModel by lazy {
-        get<RoomSettingsNameViewModelFactory>().newRoomSettingsNameViewModel(viewModelContext, selectedRoomId, error)
+        get<RoomSettingsNameViewModelFactory>().create(viewModelContext, selectedRoomId, error)
     }
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
-            .newRoomSettingsNotificationsViewModel(viewModelContext, selectedRoomId, error)
+            .create(viewModelContext, selectedRoomId, error)
     }
 
     override val leaveRoomSettingEntryText = MutableStateFlow("")
@@ -86,7 +88,7 @@ open class RoomSettingsViewModelImpl(
     protected val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val memberListViewModel: MemberListViewModel =
-        get<MemberListViewModelFactory>().newMemberListViewModel(
+        get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
             selectedRoomId = selectedRoomId, error = error
         )

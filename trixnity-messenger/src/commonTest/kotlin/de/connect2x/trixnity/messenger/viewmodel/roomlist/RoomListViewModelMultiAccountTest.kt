@@ -938,7 +938,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 single { roomNameMock }
                 single<AccountViewModelFactory> {
                     object : AccountViewModelFactory {
-                        override fun newAccountViewModel(
+                        override fun create(
                             viewModelContext: ViewModelContext,
                             onAccountSelected: (String?) -> Unit,
                             onUserSettingsSelected: () -> Unit,

@@ -4,10 +4,13 @@ import com.russhwolf.settings.Settings
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.Search
+import de.connect2x.trixnity.messenger.util.SearchImpl
+import de.connect2x.trixnity.messenger.util.Secrets
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.RoomNameImpl
+import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManagerImpl
@@ -79,7 +82,7 @@ fun trixnityMessengerModule() = module {
         val userAgent = get<HttpUserAgent>()()
         HttpClientFactory { defaultTrixnityHttpClient(userAgent = userAgent) }
     }
-    single<Secrets> { object : Secrets {} }
+    single<Secrets> { Secrets }
     single<DbPassword> {
         DbPasswordImpl(get())
     }
@@ -104,13 +107,11 @@ fun trixnityMessengerModule() = module {
     single<MessengerSettings> { MessengerSettingsImpl(get()) }
     single<GetAccountNames> { GetAccountNamesImpl() }
 
-    single<UrlHandler> { createFilteringUrlHandler(get()) }
-
-    single<Initials> { object : Initials {} }
+    single<Initials> { Initials }
     single<VerifyAccount> { VerifyAccountImpl() }
-    single<IsNetworkAvailable> { object : IsNetworkAvailable {} }
-    single<GetFileInfo> { object : GetFileInfo {} }
-    single<RelevantTimelineEvents> { object : RelevantTimelineEvents {} }
+    single<IsNetworkAvailable> { IsNetworkAvailable }
+    single<GetFileInfo> { GetFileInfo }
+    single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
     single<Languages> { DefaultLanguages }
     single<I18n> { object : I18n(get(), get()) {} }
@@ -150,23 +151,24 @@ fun trixnityMessengerModule() = module {
         }
     }
 
-    single<MainViewModelFactory> { object : MainViewModelFactory {} }
+    single<RootViewModelFactory> { RootViewModelFactory }
+    single<MainViewModelFactory> { MainViewModelFactory }
 
-    includes(timelineElementModule)
+    includes(timelineElementModule())
 
-    includes(connectingViewModels)
-    includes(filesViewModels)
-    includes(syncViewModels)
-    includes(roomListViewModels)
-    includes(settingsViewModels)
-    includes(timelineElementsViewModels)
-    includes(timelineViewModels)
-    includes(verificationViewModels)
-    includes(roomViewModels)
-    includes(roomSettingsViewModels)
+    includes(connectingViewModels())
+    includes(filesViewModels())
+    includes(syncViewModels())
+    includes(roomListViewModels())
+    includes(settingsViewModels())
+    includes(timelineElementsViewModels())
+    includes(timelineViewModels())
+    includes(verificationViewModels())
+    includes(roomViewModels())
+    includes(roomSettingsViewModels())
 }
 
-private val timelineElementModule = module {
+private fun timelineElementModule() = module {
     single<TimelineElementRules> { DefaultTimelineElementRules }
 }
 
@@ -174,99 +176,90 @@ private val timelineElementModule = module {
  * Factories for view models; provide your own factory to change or enhance behaviour of existing view models
  */
 
-private val connectingViewModels = module {
+private fun connectingViewModels() = module {
     single<MatrixClientInitializationViewModelFactory> {
-        object : MatrixClientInitializationViewModelFactory {}
+        MatrixClientInitializationViewModelFactory
     }
-    single<MatrixClientLogoutViewModelFactory> { object : MatrixClientLogoutViewModelFactory {} }
-    single<StoreFailureViewModelFactory> { object : StoreFailureViewModelFactory {} }
-    single<AddMatrixAccountViewModelFactory> { object : AddMatrixAccountViewModelFactory {} }
-    single<PasswordLoginViewModelFactory> { object : PasswordLoginViewModelFactory {} }
-    single<SSOLoginViewModelFactory> { object : SSOLoginViewModelFactory {} }
-    single<RegisterNewAccountViewModelFactory> { object : RegisterNewAccountViewModelFactory {} }
+    single<MatrixClientLogoutViewModelFactory> { MatrixClientLogoutViewModelFactory }
+    single<StoreFailureViewModelFactory> { StoreFailureViewModelFactory }
+    single<AddMatrixAccountViewModelFactory> { AddMatrixAccountViewModelFactory }
+    single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
+    single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
+    single<RegisterNewAccountViewModelFactory> { RegisterNewAccountViewModelFactory }
 }
 
-private val filesViewModels = module {
-    single<ImageViewModelFactory> { object : ImageViewModelFactory {} }
-    single<VideoViewModelFactory> { object : VideoViewModelFactory {} }
+private fun filesViewModels() = module {
+    single<ImageViewModelFactory> { ImageViewModelFactory }
+    single<VideoViewModelFactory> { VideoViewModelFactory }
 }
 
-private val syncViewModels = module {
-    single<SyncViewModelFactory> { object : SyncViewModelFactory {} }
+private fun syncViewModels() = module {
+    single<SyncViewModelFactory> { SyncViewModelFactory }
 }
 
-private val roomListViewModels = module {
-    single<AccountViewModelFactory> { object : AccountViewModelFactory {} }
-    single<CreateNewChatViewModelFactory> { object : CreateNewChatViewModelFactory {} }
-    single<CreateNewGroupViewModelFactory> { object : CreateNewGroupViewModelFactory {} }
-    single<CreateNewRoomViewModelFactory> { object : CreateNewRoomViewModelFactory {} }
-    single<SearchGroupViewModelFactory> { object : SearchGroupViewModelFactory {} }
-    single<RoomListElementViewModelFactory> { object : RoomListElementViewModelFactory {} }
-    single<RoomListViewModelFactory> { object : RoomListViewModelFactory {} }
+private fun roomListViewModels() = module {
+    single<AccountViewModelFactory> { AccountViewModelFactory }
+    single<CreateNewChatViewModelFactory> { CreateNewChatViewModelFactory }
+    single<CreateNewGroupViewModelFactory> { CreateNewGroupViewModelFactory }
+    single<CreateNewRoomViewModelFactory> { CreateNewRoomViewModelFactory }
+    single<SearchGroupViewModelFactory> { SearchGroupViewModelFactory }
+    single<RoomListElementViewModelFactory> { RoomListElementViewModelFactory }
+    single<RoomListViewModelFactory> { RoomListViewModelFactory }
 }
 
-private val settingsViewModels = module {
-    single<AccountsOverviewViewModelFactory> { object : AccountsOverviewViewModelFactory {} }
-    single<AppInfoViewModelFactory> { object : AppInfoViewModelFactory {} }
-    single<AvatarCutterViewModelFactory> { object : AvatarCutterViewModelFactory {} }
-    single<ConfigureNotificationsViewModelFactory> {
-        object : ConfigureNotificationsViewModelFactory {}
-    }
-    single<DevicesSettingsViewModelFactory> { object : DevicesSettingsViewModelFactory {} }
-    single<NotificationsSettingsViewModelFactory> {
-        object : NotificationsSettingsViewModelFactory {}
-    }
-    single<ProfileViewModelFactory> { object : ProfileViewModelFactory {} }
-    single<UserSettingsViewModelFactory> { object : UserSettingsViewModelFactory {} }
-    single<PrivacySettingsViewModelFactory> { object : PrivacySettingsViewModelFactory {} }
-    single<PrivacySettingViewModelFactory> { object : PrivacySettingViewModelFactory {} }
+private fun settingsViewModels() = module {
+    single<AccountsOverviewViewModelFactory> { AccountsOverviewViewModelFactory }
+    single<AppInfoViewModelFactory> { AppInfoViewModelFactory }
+    single<AvatarCutterViewModelFactory> { AvatarCutterViewModelFactory }
+    single<ConfigureNotificationsViewModelFactory> { ConfigureNotificationsViewModelFactory }
+    single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
+    single<NotificationsSettingsViewModelFactory> { NotificationsSettingsViewModelFactory }
+    single<ProfileViewModelFactory> { ProfileViewModelFactory }
+    single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
+    single<PrivacySettingsViewModelFactory> { PrivacySettingsViewModelFactory }
+    single<PrivacySettingViewModelFactory> { PrivacySettingViewModelFactory }
 }
 
-private val timelineElementsViewModels = module {
-    single<EncryptedMessageViewModelFactory> { object : EncryptedMessageViewModelFactory {} }
-    single<FileMessageViewModelFactory> { object : FileMessageViewModelFactory {} }
-    single<ImageMessageViewModelFactory> { object : ImageMessageViewModelFactory {} }
-    single<VideoMessageViewModelFactory> { object : VideoMessageViewModelFactory {} }
-    single<AudioMessageViewModelFactory> { object : AudioMessageViewModelFactory {} }
-    single<MemberStatusViewModelFactory> { object : MemberStatusViewModelFactory {} }
-    single<OutboxElementHolderViewModelFactory> { object : OutboxElementHolderViewModelFactory {} }
-    single<RedactedMessageViewModelFactory> { object : RedactedMessageViewModelFactory {} }
-    single<RoomCreatedStatusViewModelFactory> { object : RoomCreatedStatusViewModelFactory {} }
-    single<RoomNameChangeStatusViewModelFactory> {
-        object : RoomNameChangeStatusViewModelFactory {}
-    }
-    single<TextMessageViewModelFactory> { object : TextMessageViewModelFactory {} }
-    single<NoticeMessageViewModelFactory> { object : NoticeMessageViewModelFactory {} }
-    single<FallbackMessageViewModelFactory> { object : FallbackMessageViewModelFactory {} }
-    single<TimelineElementHolderViewModelFactory> { object : TimelineElementHolderViewModelFactory {} }
-    single<UserVerificationViewModelFactory> { object : UserVerificationViewModelFactory {} }
+private fun timelineElementsViewModels() = module {
+    single<EncryptedMessageViewModelFactory> { EncryptedMessageViewModelFactory }
+    single<FileMessageViewModelFactory> { FileMessageViewModelFactory }
+    single<ImageMessageViewModelFactory> { ImageMessageViewModelFactory }
+    single<VideoMessageViewModelFactory> { VideoMessageViewModelFactory }
+    single<AudioMessageViewModelFactory> { AudioMessageViewModelFactory }
+    single<MemberStatusViewModelFactory> { MemberStatusViewModelFactory }
+    single<OutboxElementHolderViewModelFactory> { OutboxElementHolderViewModelFactory }
+    single<RedactedMessageViewModelFactory> { RedactedMessageViewModelFactory }
+    single<RoomCreatedStatusViewModelFactory> { RoomCreatedStatusViewModelFactory }
+    single<RoomNameChangeStatusViewModelFactory> { RoomNameChangeStatusViewModelFactory }
+    single<TextMessageViewModelFactory> { TextMessageViewModelFactory }
+    single<NoticeMessageViewModelFactory> { NoticeMessageViewModelFactory }
+    single<FallbackMessageViewModelFactory> { FallbackMessageViewModelFactory }
+    single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
+    single<UserVerificationViewModelFactory> { UserVerificationViewModelFactory }
 }
 
-private val roomViewModels = module {
-    single<RoomViewModelFactory> { object : RoomViewModelFactory {} }
+private fun roomViewModels() = module {
+    single<RoomViewModelFactory> { RoomViewModelFactory }
 }
 
-private val roomSettingsViewModels = module {
-    single<AddMembersViewModelFactory> {
-        object : AddMembersViewModelFactory {}
-    }
-    single<ChangePowerLevelViewModelFactory> { object : ChangePowerLevelViewModelFactory {} }
-    single<MemberListElementViewModelFactory> { object : MemberListElementViewModelFactory {} }
-    single<MemberListViewModelFactory> { object : MemberListViewModelFactory {} }
-    single<PotentialMembersViewModelFactory> {
-        object : PotentialMembersViewModelFactory {}
-    }
-    single<RoomSettingsViewModelFactory> { object : RoomSettingsViewModelFactory {} }
-    single<RoomSettingsNameViewModelFactory> { object : RoomSettingsNameViewModelFactory {} }
-    single<RoomSettingsNotificationsViewModelFactory> { object : RoomSettingsNotificationsViewModelFactory {} }
+private fun roomSettingsViewModels() = module {
+    single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
+    single<ChangePowerLevelViewModelFactory> { ChangePowerLevelViewModelFactory }
+    single<MemberListElementViewModelFactory> { MemberListElementViewModelFactory }
+    single<MemberListViewModelFactory> { MemberListViewModelFactory }
+    single<PotentialMembersViewModelFactory> { PotentialMembersViewModelFactory }
+    single<RoomSettingsViewModelFactory> { RoomSettingsViewModelFactory }
+    single<RoomSettingsNameViewModelFactory> { RoomSettingsNameViewModelFactory }
+    single<RoomSettingsNotificationsViewModelFactory> { RoomSettingsNotificationsViewModelFactory }
 
 }
-private val timelineViewModels = module {
-    single<InputAreaViewModelFactory> { object : InputAreaViewModelFactory {} }
-    single<ReplyToViewModelFactory> { object : ReplyToViewModelFactory {} }
-    single<RoomHeaderViewModelFactory> { object : RoomHeaderViewModelFactory {} }
-    single<SendAttachmentViewModelFactory> { object : SendAttachmentViewModelFactory {} }
-    single<TimelineViewModelFactory> { object : TimelineViewModelFactory {} }
+
+private fun timelineViewModels() = module {
+    single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
+    single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
+    single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
+    single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
+    single<TimelineViewModelFactory> { TimelineViewModelFactory }
     single<TimelineViewModelConfig> {
         object : TimelineViewModelConfig {
             override val autoLoadBefore: Boolean = true
@@ -274,35 +267,17 @@ private val timelineViewModels = module {
     }
 }
 
-private val verificationViewModels = module {
-    single<AcceptSasStartViewModelFactory> { object : AcceptSasStartViewModelFactory {} }
-    single<BootstrapViewModelFactory> { object : BootstrapViewModelFactory {} }
-    single<RedoSelfVerificationViewModelFactory> {
-        object : RedoSelfVerificationViewModelFactory {}
-    }
-    single<SelectVerificationMethodViewModelFactory> {
-        object : SelectVerificationMethodViewModelFactory {}
-    }
-    single<SelfVerificationViewModelFactory> {
-        object : SelfVerificationViewModelFactory {}
-    }
-    single<VerificationStepCancelledViewModelFactory> {
-        object : VerificationStepCancelledViewModelFactory {}
-    }
-    single<VerificationStepCompareViewModelFactory> {
-        object : VerificationStepCompareViewModelFactory {}
-    }
-    single<VerificationStepRejectedViewModelFactory> {
-        object : VerificationStepRejectedViewModelFactory {}
-    }
-    single<VerificationStepRequestViewModelFactory> {
-        object : VerificationStepRequestViewModelFactory {}
-    }
-    single<VerificationStepSuccessViewModelFactory> {
-        object : VerificationStepSuccessViewModelFactory {}
-    }
-    single<VerificationStepTimeoutViewModelFactory> {
-        object : VerificationStepTimeoutViewModelFactory {}
-    }
-    single<VerificationViewModelFactory> { object : VerificationViewModelFactory {} }
+private fun verificationViewModels() = module {
+    single<AcceptSasStartViewModelFactory> { AcceptSasStartViewModelFactory }
+    single<BootstrapViewModelFactory> { BootstrapViewModelFactory }
+    single<RedoSelfVerificationViewModelFactory> { RedoSelfVerificationViewModelFactory }
+    single<SelectVerificationMethodViewModelFactory> { SelectVerificationMethodViewModelFactory }
+    single<SelfVerificationViewModelFactory> { SelfVerificationViewModelFactory }
+    single<VerificationStepCancelledViewModelFactory> { VerificationStepCancelledViewModelFactory }
+    single<VerificationStepCompareViewModelFactory> { VerificationStepCompareViewModelFactory }
+    single<VerificationStepRejectedViewModelFactory> { VerificationStepRejectedViewModelFactory }
+    single<VerificationStepRequestViewModelFactory> { VerificationStepRequestViewModelFactory }
+    single<VerificationStepSuccessViewModelFactory> { VerificationStepSuccessViewModelFactory }
+    single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
+    single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }

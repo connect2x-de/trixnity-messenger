@@ -58,21 +58,21 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface MainViewModelFactory {
-    fun newMainViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         initialSyncOnceIsFinished: (Boolean) -> Unit,
         minimizeMessenger: () -> Unit,
         onCreateNewAccount: () -> Unit,
         onRemoveAccount: (String) -> Unit,
-    ): MainViewModel {
-        return MainViewModelImpl(
-            viewModelContext,
-            initialSyncOnceIsFinished,
-            minimizeMessenger,
-            onCreateNewAccount,
-            onRemoveAccount,
-        )
-    }
+    ): MainViewModel = MainViewModelImpl(
+        viewModelContext,
+        initialSyncOnceIsFinished,
+        minimizeMessenger,
+        onCreateNewAccount,
+        onRemoveAccount,
+    )
+
+    companion object : MainViewModelFactory
 }
 
 interface MainViewModel {
@@ -104,10 +104,6 @@ interface MainViewModel {
     )
 
     fun closeAccountsOverview()
-
-    fun selectFile(file: FileDescriptor)
-    fun dragFile(file: FileDescriptor)
-    fun dragFileExit()
 
     sealed class SelfVerificationWrapper {
         object None : SelfVerificationWrapper()
@@ -172,7 +168,7 @@ open class MainViewModelImpl(
             is SelfVerificationConfig.SelfVerification -> {
                 SelfVerificationWrapper.View(
                     get<SelfVerificationViewModelFactory>()
-                        .newSelfVerificationViewModel(
+                        .create(
                             viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
                             onClose = ::closeSelfVerification,
                         )
@@ -181,7 +177,7 @@ open class MainViewModelImpl(
 
             is SelfVerificationConfig.RedoSelfVerification -> SelfVerificationWrapper.RedoSelfVerification(
                 get<RedoSelfVerificationViewModelFactory>()
-                    .newRedoSelfVerificationViewModel(
+                    .create(
                         viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
                         onStartSelfVerification = { showSelfVerification(selfVerificationConfig.accountName) },
                         onClose = ::closeSelfVerification,
@@ -190,7 +186,7 @@ open class MainViewModelImpl(
 
             is SelfVerificationConfig.Bootstrap -> {
                 SelfVerificationWrapper.Bootstrap(
-                    get<BootstrapViewModelFactory>().newBootstrapViewModel(
+                    get<BootstrapViewModelFactory>().create(
                         viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
                         onClose = ::closeBootstrap,
                     )
@@ -550,36 +546,6 @@ open class MainViewModelImpl(
         roomListRouter.closeAccountsOverview()
     }
 
-    override fun selectFile(file: FileDescriptor) {
-        log.debug { "select file $file, selected roomId: ${selectedRoomId.value}" }
-        if (selectedRoomId.value != null) {
-            val instance = roomRouterStack.value.active.instance
-            if (instance is RoomWrapper.View) {
-                instance.roomViewModel.selectFile(file)
-            }
-        }
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-        log.debug { "drag file $file, selected roomId: ${selectedRoomId.value}" }
-        if (selectedRoomId.value != null) {
-            val instance = roomRouterStack.value.active.instance
-            if (instance is RoomWrapper.View) {
-                instance.roomViewModel.dragFile(file)
-            }
-        }
-    }
-
-    override fun dragFileExit() {
-        log.debug { "drag file exit, selected roomId: ${selectedRoomId.value}" }
-        if (selectedRoomId.value != null) {
-            val instance = roomRouterStack.value.active.instance
-            if (instance is RoomWrapper.View) {
-                instance.roomViewModel.dragFileExit()
-            }
-        }
-    }
-
     private suspend fun switchToMultiPane() {
         roomListRouter.show()
     }
@@ -787,14 +753,4 @@ class PreviewMainViewModel : MainViewModel {
 
     override fun closeAccountsOverview() {
     }
-
-    override fun selectFile(file: FileDescriptor) {
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-    }
-
-    override fun dragFileExit() {
-    }
-
 }

@@ -4,12 +4,14 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 
 
 interface VerificationStepTimeoutViewModelFactory {
-    fun newVerificationStepTimeoutViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onVerificationTimeoutOk: () -> Unit,
     ): VerificationStepTimeoutViewModel {
         return VerificationStepTimeoutViewModelImpl(viewModelContext, onVerificationTimeoutOk)
     }
+
+    companion object : VerificationStepTimeoutViewModelFactory
 }
 
 interface VerificationStepTimeoutViewModel {

@@ -27,7 +27,7 @@ class ImageRouter(
         when (imageConfig) {
             is ImageConfig.None -> ImageWrapper.None
             is ImageConfig.Image -> ImageWrapper.Image(
-                viewModelContext.get<ImageViewModelFactory>().newImageViewModel(
+                viewModelContext.get<ImageViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, imageConfig.accountName),
                     mxcUrl = imageConfig.mxcUrl,
                     encryptedFile = imageConfig.encryptedFile,

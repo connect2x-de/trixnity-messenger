@@ -359,7 +359,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                 single { activeVerifications }
                 single<VerificationViewModelFactory> {
                     object : VerificationViewModelFactory {
-                        override fun newVerificationViewModel(
+                        override fun create(
                             viewModelContext: MatrixClientViewModelContext,
                             onCloseVerification: () -> Unit,
                             onRedoSelfVerification: () -> Unit,

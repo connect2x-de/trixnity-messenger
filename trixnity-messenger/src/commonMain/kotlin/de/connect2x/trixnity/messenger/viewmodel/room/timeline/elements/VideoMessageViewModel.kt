@@ -21,7 +21,7 @@ import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 
 interface VideoMessageViewModelFactory {
-    fun newVideoMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -50,6 +50,8 @@ interface VideoMessageViewModelFactory {
             onOpenModal,
         )
     }
+
+    companion object : VideoMessageViewModelFactory
 }
 
 interface VideoMessageViewModel : FileBasedMessageViewModel {

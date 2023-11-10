@@ -19,7 +19,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface AccountViewModelFactory {
-    fun newAccountViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onAccountSelected: (String?) -> Unit,
         onUserSettingsSelected: () -> Unit,
@@ -29,6 +29,8 @@ interface AccountViewModelFactory {
             viewModelContext, onAccountSelected, onUserSettingsSelected, onShowAppInfo
         )
     }
+
+    companion object : AccountViewModelFactory
 }
 
 interface AccountViewModel {

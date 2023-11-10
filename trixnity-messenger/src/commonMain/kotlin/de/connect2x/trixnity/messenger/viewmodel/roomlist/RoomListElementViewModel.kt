@@ -33,7 +33,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface RoomListElementViewModelFactory {
-    fun newRoomListElementViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         onRoomSelected: () -> Unit,
@@ -42,6 +42,8 @@ interface RoomListElementViewModelFactory {
             viewModelContext, roomId, onRoomSelected,
         )
     }
+
+    companion object : RoomListElementViewModelFactory
 }
 
 interface RoomListElementViewModel {

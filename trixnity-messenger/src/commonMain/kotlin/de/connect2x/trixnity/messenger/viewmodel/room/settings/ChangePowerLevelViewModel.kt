@@ -20,7 +20,7 @@ import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 private val log = KotlinLogging.logger {}
 
 interface ChangePowerLevelViewModelFactory {
-    fun newChangePowerLevelViewModelFactory(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         powerLevel: StateFlow<Int>,
         error: MutableStateFlow<String?>,
@@ -37,6 +37,8 @@ interface ChangePowerLevelViewModelFactory {
             closeMemberOptions,
         )
     }
+
+    companion object : ChangePowerLevelViewModelFactory
 }
 
 interface ChangePowerLevelViewModel {

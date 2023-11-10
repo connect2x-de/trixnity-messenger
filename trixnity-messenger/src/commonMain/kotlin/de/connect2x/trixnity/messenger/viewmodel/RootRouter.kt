@@ -9,7 +9,6 @@ import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
@@ -37,7 +36,7 @@ class RootRouter(
         return when (config) {
             is Config.MatrixClientInitialization -> RootWrapper.MatrixClientInitialization(
                 viewModelContext.get<MatrixClientInitializationViewModelFactory>()
-                    .newMatrixClientInitializationViewModel(
+                    .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         matrixClientService = matrixClientService,
                         onNoAccounts = ::showAddMatrixAccount,
@@ -49,7 +48,7 @@ class RootRouter(
 
             is Config.MatrixClientLogout -> RootWrapper.MatrixClientLogout(
                 viewModelContext.get<MatrixClientLogoutViewModelFactory>()
-                    .newMatrixClientLogoutViewModel(
+                    .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         matrixClientService = matrixClientService,
                         accountName = config.accountName,
@@ -58,7 +57,7 @@ class RootRouter(
             )
 
             is Config.AddMatrixAccount -> RootWrapper.AddMatrixAccount(
-                viewModelContext.get<AddMatrixAccountViewModelFactory>().newAddMatrixAccountViewModel(
+                viewModelContext.get<AddMatrixAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onAddMatrixAccountMethod = ::showAddMatrixAccountMethod,
                     onCancel = ::cancelAddMatrixAccount,
@@ -66,7 +65,7 @@ class RootRouter(
             )
 
             is Config.PasswordLogin -> RootWrapper.PasswordLogin(
-                viewModelContext.get<PasswordLoginViewModelFactory>().newPasswordLoginViewModel(
+                viewModelContext.get<PasswordLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
                     matrixClientService = matrixClientService,
@@ -76,7 +75,7 @@ class RootRouter(
             )
 
             is Config.SSOLogin -> RootWrapper.SSOLogin(
-                viewModelContext.get<SSOLoginViewModelFactory>().newSSOLoginViewModel(
+                viewModelContext.get<SSOLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
                     matrixClientService = matrixClientService,
@@ -88,7 +87,7 @@ class RootRouter(
             )
 
             is Config.RegisterNewAccount -> RootWrapper.RegisterNewAccount(
-                viewModelContext.get<RegisterNewAccountViewModelFactory>().newRegisterNewAccountViewModel(
+                viewModelContext.get<RegisterNewAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
                     matrixClientService = matrixClientService,
@@ -113,7 +112,7 @@ class RootRouter(
                     )
                 )
                 RootWrapper.Main(
-                    viewModelContext.get<MainViewModelFactory>().newMainViewModel(
+                    viewModelContext.get<MainViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         initialSyncOnceIsFinished = initialSyncOnceIsFinished,
                         minimizeMessenger = minimizeMessenger,
@@ -124,7 +123,7 @@ class RootRouter(
             }
 
             is Config.StoreFailure -> RootWrapper.StoreFailure(
-                viewModelContext.get<StoreFailureViewModelFactory>().newStoreFailureViewModel(
+                viewModelContext.get<StoreFailureViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     accountName = config.accountName,
                     exception = config.exception,
@@ -196,27 +195,6 @@ class RootRouter(
 
     fun showLogout(accountName: String) {
         navigation.launchPush(viewModelContext.coroutineScope, Config.MatrixClientLogout(accountName))
-    }
-
-    fun selectFile(file: FileDescriptor) {
-        val instance = stack.value.active.instance
-        if (instance is RootWrapper.Main) {
-            instance.mainViewModel.selectFile(file)
-        }
-    }
-
-    fun dragFile(file: FileDescriptor) {
-        val instance = stack.value.active.instance
-        if (instance is RootWrapper.Main) {
-            instance.mainViewModel.dragFile(file)
-        }
-    }
-
-    fun dragFileExit() {
-        val instance = stack.value.active.instance
-        if (instance is RootWrapper.Main) {
-            instance.mainViewModel.dragFileExit()
-        }
     }
 
     sealed class RootWrapper {

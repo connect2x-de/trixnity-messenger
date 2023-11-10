@@ -8,9 +8,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.DefaultMatrixClientService
 import de.connect2x.trixnity.messenger.MatrixClientService
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.Koin
@@ -18,7 +16,23 @@ import org.koin.core.KoinApplication
 import org.koin.dsl.koinApplication
 import kotlin.coroutines.CoroutineContext
 
-private val log = KotlinLogging.logger { }
+interface RootViewModelFactory {
+    fun create(
+        componentContext: ComponentContext,
+        koinApplication: KoinApplication,
+        matrixClientService: MatrixClientService,
+        initialSyncOnceIsFinished: (Boolean) -> Unit,
+        minimizeMessenger: () -> Unit,
+    ): RootViewModel = RootViewModelImpl(
+        componentContext = componentContext,
+        koinApplication = koinApplication,
+        matrixClientService = matrixClientService,
+        initialSyncOnceIsFinished = initialSyncOnceIsFinished,
+        minimizeMessenger = minimizeMessenger
+    )
+
+    companion object : RootViewModelFactory
+}
 
 interface RootViewModel {
     /**
@@ -26,21 +40,6 @@ interface RootViewModel {
      */
     val koin: Koin
     val rootStack: Value<ChildStack<RootRouter.Config, RootRouter.RootWrapper>>
-
-    /**
-     * Used for DnD on Desktop: a file is dropped onto the messenger view
-     */
-    fun selectFile(file: FileDescriptor)
-
-    /**
-     * Used for DnD on Desktop: file is dragged into the messenger view
-     */
-    fun dragFile(file: FileDescriptor)
-
-    /**
-     * Used for DnD on Desktop: a file is no longer dragged above the messenger view
-     */
-    fun dragFileExit()
 
     fun removeAccount(accountName: String)
 }
@@ -79,18 +78,6 @@ open class RootViewModelImpl(
 
     private fun onRemoveAccount(accountName: String) {
         router.showLogout(accountName)
-    }
-
-    override fun selectFile(file: FileDescriptor) {
-        router.selectFile(file)
-    }
-
-    override fun dragFile(file: FileDescriptor) {
-        router.dragFile(file)
-    }
-
-    override fun dragFileExit() {
-        router.dragFileExit()
     }
 
     // for iOS, since default parameters do not work there

@@ -15,12 +15,14 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 interface PotentialMembersViewModelFactory {
-    fun newPotentialMembersViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId
     ): PotentialMembersViewModel {
         return PotentialMembersViewModelImpl(viewModelContext, roomId)
     }
+
+    companion object : PotentialMembersViewModelFactory
 }
 
 interface PotentialMembersViewModel {

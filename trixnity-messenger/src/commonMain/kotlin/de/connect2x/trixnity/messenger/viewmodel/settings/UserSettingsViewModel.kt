@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 
 
 interface UserSettingsViewModelFactory {
-    fun newUserSettingsViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onCloseUserSettings: () -> Unit,
         onShowDevicesSettings: () -> Unit,
@@ -22,6 +22,8 @@ interface UserSettingsViewModelFactory {
             onShowPrivacySettings,
         )
     }
+
+    companion object : UserSettingsViewModelFactory
 }
 
 interface UserSettingsViewModel {

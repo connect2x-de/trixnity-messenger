@@ -12,7 +12,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.File
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 
 interface FileMessageViewModelFactory {
-    fun newFileMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -39,6 +39,8 @@ interface FileMessageViewModelFactory {
             content
         )
     }
+
+    companion object : FileMessageViewModelFactory
 }
 
 interface FileMessageViewModel : FileBasedMessageViewModel {

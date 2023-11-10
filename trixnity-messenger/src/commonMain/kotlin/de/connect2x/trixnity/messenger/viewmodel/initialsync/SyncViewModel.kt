@@ -30,13 +30,15 @@ enum class AccountSyncState {
 }
 
 interface SyncViewModelFactory {
-    fun newSyncViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         accountNames: Map<String, InitialSyncState>,
         onSyncDone: () -> Unit,
     ): SyncViewModel {
         return SyncViewModelImpl(viewModelContext, accountNames, onSyncDone)
     }
+
+    companion object : SyncViewModelFactory
 }
 
 interface SyncViewModel {
@@ -88,12 +90,12 @@ open class SyncViewModelImpl(
                             }
                         }
                     } else {
-                        launch {  }
+                        launch { }
                     }
                 }.forEach { it.join() }
             }
         }
-        log.info { "initial sync done"}
+        log.info { "initial sync done" }
         onSyncDone()
     }
 

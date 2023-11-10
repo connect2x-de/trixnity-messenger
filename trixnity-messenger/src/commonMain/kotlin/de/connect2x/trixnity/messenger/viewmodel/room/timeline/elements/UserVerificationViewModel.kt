@@ -26,7 +26,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface UserVerificationViewModelFactory {
-    fun newUserVerificationViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         invitation: Flow<String?>,
         formattedDate: String,
@@ -49,6 +49,8 @@ interface UserVerificationViewModelFactory {
             timelineEventId
         )
     }
+
+    companion object : UserVerificationViewModelFactory
 }
 
 interface UserVerificationViewModel : TimelineElementWithTimestampViewModel {

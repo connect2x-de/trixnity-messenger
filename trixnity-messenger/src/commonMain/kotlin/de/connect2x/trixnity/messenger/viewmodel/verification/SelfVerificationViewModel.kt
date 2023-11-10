@@ -20,12 +20,14 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface SelfVerificationViewModelFactory {
-    fun newSelfVerificationViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onClose: () -> Unit,
     ): SelfVerificationViewModel {
         return SelfVerificationViewModelImpl(viewModelContext, onClose)
     }
+
+    companion object : SelfVerificationViewModelFactory
 }
 
 interface SelfVerificationViewModel {

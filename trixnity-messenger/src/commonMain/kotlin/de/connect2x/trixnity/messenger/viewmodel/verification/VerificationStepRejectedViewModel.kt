@@ -4,12 +4,14 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 
 
 interface VerificationStepRejectedViewModelFactory {
-    fun newVerificationStepRejectedViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onVerificationRejectedOk: () -> Unit,
     ): VerificationStepRejectedViewModel {
         return VerificationStepRejectedViewModelImpl(viewModelContext, onVerificationRejectedOk)
     }
+
+    companion object : VerificationStepRejectedViewModelFactory
 }
 
 interface VerificationStepRejectedViewModel {

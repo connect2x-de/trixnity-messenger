@@ -38,7 +38,7 @@ class InitialSyncRouter(
             is InitialSyncConfig.None -> InitialSyncWrapper.None
             is InitialSyncConfig.Undefined -> InitialSyncWrapper.Undefined
             is InitialSyncConfig.Sync -> InitialSyncWrapper.Sync(
-                viewModelContext.get<SyncViewModelFactory>().newSyncViewModel(
+                viewModelContext.get<SyncViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     accountNames = initialSyncConfig.accountNames,
                     onSyncDone = ::hideSync,

@@ -376,7 +376,7 @@ class RoomViewModelTest : ShouldSpec() {
                         single { runInitialSyncMock }
                         single<RoomHeaderViewModelFactory> {
                             object : RoomHeaderViewModelFactory {
-                                override fun newRoomHeaderViewModel(
+                                override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     isBackButtonVisible: MutableStateFlow<Boolean>,

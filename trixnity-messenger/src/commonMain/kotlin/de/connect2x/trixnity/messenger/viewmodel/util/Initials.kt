@@ -6,4 +6,6 @@ interface Initials {
         return name.split(' ')
             .map { it.firstOrNull()?.uppercaseChar() ?: "" }.take(2).joinToString("")
     }
+
+    companion object : Initials
 }

@@ -11,16 +11,18 @@ import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 
-private val log = KotlinLogging.logger {  }
+private val log = KotlinLogging.logger { }
 
 interface RoomSettingsNameViewModelFactory {
-    fun newRoomSettingsNameViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         error: MutableStateFlow<String?>,
     ): RoomSettingsNameViewModel {
         return RoomSettingsNameViewModelImpl(viewModelContext, selectedRoomId, error)
     }
+
+    companion object : RoomSettingsNameViewModelFactory
 }
 
 interface RoomSettingsNameViewModel {
@@ -39,7 +41,7 @@ open class RoomSettingsNameViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val error: MutableStateFlow<String?>,
-): MatrixClientViewModelContext by viewModelContext, RoomSettingsNameViewModel {
+) : MatrixClientViewModelContext by viewModelContext, RoomSettingsNameViewModel {
     protected val roomNameIsCurrentlyChanging = MutableStateFlow(false)
     protected val roomNameState: StateFlow<RoomNameState> = combine(
         matrixClient.room.getById(selectedRoomId),
@@ -115,7 +117,7 @@ open class RoomSettingsNameViewModelImpl(
     }
 }
 
-class PreviewRoomSettingsNameViewModel: RoomSettingsNameViewModel {
+class PreviewRoomSettingsNameViewModel : RoomSettingsNameViewModel {
     override val roomNameLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val roomName: MutableStateFlow<String> = MutableStateFlow("room name")
     override val roomNameIsBeingEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)

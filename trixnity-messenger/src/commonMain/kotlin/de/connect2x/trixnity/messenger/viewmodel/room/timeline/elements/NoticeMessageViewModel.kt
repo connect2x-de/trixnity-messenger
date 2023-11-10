@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.stateIn
 
 
 interface NoticeMessageViewModelFactory {
-    fun newNoticeMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -42,6 +42,8 @@ interface NoticeMessageViewModelFactory {
             invitation
         )
     }
+
+    companion object : NoticeMessageViewModelFactory
 }
 
 interface NoticeMessageViewModel : TextBasedViewModel

@@ -39,7 +39,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger { }
 
 interface TimelineElementHolderViewModelFactory {
-    fun newTimelineElementHolderViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         key: String,
         timelineEventFlow: Flow<TimelineEvent?>,
@@ -72,6 +72,8 @@ interface TimelineElementHolderViewModelFactory {
             onOpenModal
         )
     }
+
+    companion object : TimelineElementHolderViewModelFactory
 }
 
 interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
@@ -296,7 +298,7 @@ open class TimelineElementHolderViewModelImpl(
                 when (content) {
                     is TextMessageEventContent -> {
                         log.trace { "Create text message view model: ${event.id}" }
-                        get<TextMessageViewModelFactory>().newTextMessageViewModel(
+                        get<TextMessageViewModelFactory>().create(
                             viewModelContext = this,
                             fallbackMessage = content.body,
                             referencedMessage = richRepliesComputations.getReferencedMessage(
@@ -320,7 +322,7 @@ open class TimelineElementHolderViewModelImpl(
 
                     is NoticeMessageEventContent -> {
                         log.trace { "Create text message view model: ${event.id}" }
-                        get<NoticeMessageViewModelFactory>().newNoticeMessageViewModel(
+                        get<NoticeMessageViewModelFactory>().create(
                             viewModelContext = this,
                             fallbackMessage = content.body,
                             referencedMessage = richRepliesComputations.getReferencedMessage(
@@ -344,7 +346,7 @@ open class TimelineElementHolderViewModelImpl(
 
                     is ImageMessageEventContent -> {
                         log.trace { "Create image message view model: ${event.id}" }
-                        get<ImageMessageViewModelFactory>().newImageMessageViewModel(
+                        get<ImageMessageViewModelFactory>().create(
                             viewModelContext = this,
                             sender = sender,
                             showSender = showSender,
@@ -363,7 +365,7 @@ open class TimelineElementHolderViewModelImpl(
 
                     is VideoMessageEventContent -> {
                         log.trace { "Create video message view model: ${event.id}" }
-                        get<VideoMessageViewModelFactory>().newVideoMessageViewModel(
+                        get<VideoMessageViewModelFactory>().create(
                             viewModelContext = this,
                             sender = sender,
                             showSender = showSender,
@@ -381,7 +383,7 @@ open class TimelineElementHolderViewModelImpl(
 
                     is AudioMessageEventContent -> {
                         log.trace { "Create audio message view model: ${event.id}" }
-                        get<AudioMessageViewModelFactory>().newAudioMessageViewModel(
+                        get<AudioMessageViewModelFactory>().create(
                             viewModelContext = this,
                             sender = sender,
                             showSender = showSender,
@@ -399,7 +401,7 @@ open class TimelineElementHolderViewModelImpl(
 
                     is FileMessageEventContent -> {
                         log.trace { "Create file message view model: ${event.id}" }
-                        get<FileMessageViewModelFactory>().newFileMessageViewModel(
+                        get<FileMessageViewModelFactory>().create(
                             viewModelContext = this,
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
@@ -416,7 +418,7 @@ open class TimelineElementHolderViewModelImpl(
 
                     is VerificationRequestMessageEventContent -> {
                         log.trace { "Create user verification view model: ${event.id}" }
-                        get<UserVerificationViewModelFactory>().newUserVerificationViewModel(
+                        get<UserVerificationViewModelFactory>().create(
                             viewModelContext = this,
                             invitation = invitation,
                             formattedDate = formatDate(receivedDateTime),
@@ -432,7 +434,7 @@ open class TimelineElementHolderViewModelImpl(
                     is EmoteMessageEventContent,
                     is UnknownRoomMessageEventContent -> {
                         log.warn { "created fallback view model: ${event.id}" }
-                        get<FallbackMessageViewModelFactory>().newFallbackMessageViewModel(
+                        get<FallbackMessageViewModelFactory>().create(
                             viewModelContext = this,
                             fallbackMessage = content.body,
                             referencedMessage = richRepliesComputations.getReferencedMessage(
@@ -458,7 +460,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
-                get<RedactedMessageViewModelFactory>().newRedactedMessageViewModel(
+                get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
                     sender = sender,
                     showSender = MutableStateFlow(false),
@@ -474,7 +476,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is MegolmEncryptedEventContent -> {
                 log.trace { "Create encrypted message view model: ${event.id}" }
-                get<EncryptedMessageViewModelFactory>().newEncryptedMessageViewModel(
+                get<EncryptedMessageViewModelFactory>().create(
                     viewModelContext = this,
                     sender = sender,
                     formattedTime = formatTime(receivedDateTime),
@@ -491,7 +493,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is MemberEventContent -> {
                 log.trace { "Create member status view model: ${event.id}" }
-                get<MemberStatusViewModelFactory>().newMemberStatusViewModel(
+                get<MemberStatusViewModelFactory>().create(
                     viewModelContext = this,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
@@ -504,7 +506,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is CreateEventContent -> {
                 log.trace { "Create room created status view model: ${event.id}" }
-                get<RoomCreatedStatusViewModelFactory>().newRoomCreatedStatusViewModel(
+                get<RoomCreatedStatusViewModelFactory>().create(
                     viewModelContext = this,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
@@ -516,7 +518,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is NameEventContent -> {
                 log.trace { "Create room name change status view model: ${event.id}" }
-                get<RoomNameChangeStatusViewModelFactory>().newRoomNameChangeStatusViewModel(
+                get<RoomNameChangeStatusViewModelFactory>().create(
                     viewModelContext = this,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.*
 
 
 interface RedactedMessageViewModelFactory {
-    fun newRedactedMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -32,6 +32,8 @@ interface RedactedMessageViewModelFactory {
             invitation,
         )
     }
+
+    companion object : RedactedMessageViewModelFactory
 }
 
 interface RedactedMessageViewModel : RoomMessageViewModel {

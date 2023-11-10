@@ -15,7 +15,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface MatrixClientInitializationViewModelFactory {
-    fun newMatrixClientInitializationViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         matrixClientService: MatrixClientService,
         onNoAccounts: () -> Unit,
@@ -32,6 +32,8 @@ interface MatrixClientInitializationViewModelFactory {
             onStoreFailure
         )
     }
+
+    companion object : MatrixClientInitializationViewModelFactory
 }
 
 interface MatrixClientInitializationViewModel {

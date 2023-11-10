@@ -32,13 +32,15 @@ data class ProfileOfAccount(
 )
 
 interface ProfileViewModelFactory {
-    fun newProfileViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onCloseProfile: () -> Unit,
         onOpenAvatarCutter: (String, FileDescriptor) -> Unit,
     ): ProfileViewModel {
         return ProfileViewModelImpl(viewModelContext, onCloseProfile, onOpenAvatarCutter)
     }
+
+    companion object : ProfileViewModelFactory
 }
 
 interface ProfileViewModel {

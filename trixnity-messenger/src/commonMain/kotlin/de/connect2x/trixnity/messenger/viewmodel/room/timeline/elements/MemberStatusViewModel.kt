@@ -12,7 +12,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface MemberStatusViewModelFactory {
-    fun newMemberStatusViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -25,6 +25,8 @@ interface MemberStatusViewModelFactory {
             viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, sender, isDirectFlow
         )
     }
+
+    companion object : MemberStatusViewModelFactory
 }
 
 interface MemberStatusViewModel : BaseTimelineElementViewModel {

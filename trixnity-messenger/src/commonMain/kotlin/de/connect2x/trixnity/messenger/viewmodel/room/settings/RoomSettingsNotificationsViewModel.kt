@@ -20,7 +20,7 @@ import net.folivo.trixnity.core.model.push.PushRuleKind
 private val log = KotlinLogging.logger { }
 
 interface RoomSettingsNotificationsViewModelFactory {
-    fun newRoomSettingsNotificationsViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         error: MutableStateFlow<String?>,
@@ -31,6 +31,8 @@ interface RoomSettingsNotificationsViewModelFactory {
             error,
         )
     }
+
+    companion object : RoomSettingsNotificationsViewModelFactory
 }
 
 interface RoomSettingsNotificationsViewModel {

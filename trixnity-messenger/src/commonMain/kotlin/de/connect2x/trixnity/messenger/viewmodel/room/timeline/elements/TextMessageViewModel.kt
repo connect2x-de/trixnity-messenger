@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.*
 
 
 interface TextMessageViewModelFactory {
-    fun newTextMessageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
         showDateAbove: Boolean,
@@ -39,6 +39,8 @@ interface TextMessageViewModelFactory {
             invitation
         )
     }
+
+    companion object : TextMessageViewModelFactory
 }
 
 interface TextMessageViewModel : TextBasedViewModel

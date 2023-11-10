@@ -64,7 +64,7 @@ class RoomRouterImpl(
         when (roomConfig) {
             is RoomConfig.None -> RoomWrapper.None
             is RoomConfig.View -> RoomWrapper.View(
-                viewModelContext.get<RoomViewModelFactory>().newRoomViewModel(
+                viewModelContext.get<RoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, roomConfig.accountName),
                     selectedRoomId = RoomId(roomConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,

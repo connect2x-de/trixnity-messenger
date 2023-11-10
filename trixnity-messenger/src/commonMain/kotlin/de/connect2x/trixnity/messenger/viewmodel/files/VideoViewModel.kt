@@ -18,7 +18,7 @@ import net.folivo.trixnity.utils.toByteArray
 private val log = KotlinLogging.logger {}
 
 interface VideoViewModelFactory {
-    fun newVideoViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
@@ -27,6 +27,8 @@ interface VideoViewModelFactory {
     ): VideoViewModel {
         return VideoViewModelImpl(viewModelContext, mxcUrl, encryptedFile, fileName, onCloseVideo)
     }
+
+    companion object : VideoViewModelFactory
 }
 
 interface VideoViewModel {

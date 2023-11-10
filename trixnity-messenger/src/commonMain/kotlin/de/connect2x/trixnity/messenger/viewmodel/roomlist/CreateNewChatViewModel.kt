@@ -20,7 +20,7 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 private val log = KotlinLogging.logger {}
 
 interface CreateNewChatViewModelFactory {
-    fun newCreateNewChatViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
         onCreateGroup: (String) -> Unit,
@@ -32,6 +32,8 @@ interface CreateNewChatViewModelFactory {
             viewModelContext, createNewRoomViewModel, onCreateGroup, onSearchGroup, onCancel, goToRoom
         )
     }
+
+    companion object : CreateNewChatViewModelFactory
 }
 
 interface CreateNewChatViewModel {

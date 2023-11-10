@@ -13,7 +13,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface PasswordLoginViewModelFactory {
-    fun newPasswordLoginViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
         matrixClientService: MatrixClientService,
@@ -28,6 +28,8 @@ interface PasswordLoginViewModelFactory {
             onBack,
         )
     }
+
+    companion object : PasswordLoginViewModelFactory
 }
 
 interface PasswordLoginViewModel {

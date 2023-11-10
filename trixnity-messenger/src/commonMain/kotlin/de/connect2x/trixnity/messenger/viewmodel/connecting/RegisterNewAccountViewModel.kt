@@ -25,7 +25,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface RegisterNewAccountViewModelFactory {
-    fun newRegisterNewAccountViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
         matrixClientService: MatrixClientService,
@@ -33,6 +33,8 @@ interface RegisterNewAccountViewModelFactory {
         onBack: () -> Unit,
     ): RegisterNewAccountViewModel =
         RegisterNewAccountViewModelImpl(viewModelContext, serverUrl, matrixClientService, onLogin, onBack)
+
+    companion object : RegisterNewAccountViewModelFactory
 }
 
 interface RegisterNewAccountViewModel {

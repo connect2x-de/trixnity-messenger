@@ -8,6 +8,8 @@ interface Secrets { // for mocking
     suspend fun setSecret(id: String, secret: String) {
         de.connect2x.trixnity.messenger.util.setSecret(id, secret)
     }
+
+    companion object : Secrets
 }
 
 expect suspend fun getSecret(id: String): String?

@@ -7,7 +7,7 @@ import net.folivo.trixnity.core.model.UserId
 
 
 interface VerificationStepRequestViewModelFactory {
-    fun newVerificationStepRequestViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onRequestAccept: () -> Unit,
         theirUserId: UserId?,
@@ -17,6 +17,8 @@ interface VerificationStepRequestViewModelFactory {
             viewModelContext, onRequestAccept, theirUserId, fromDeviceId
         )
     }
+
+    companion object : VerificationStepRequestViewModelFactory
 }
 
 interface VerificationStepRequestViewModel {

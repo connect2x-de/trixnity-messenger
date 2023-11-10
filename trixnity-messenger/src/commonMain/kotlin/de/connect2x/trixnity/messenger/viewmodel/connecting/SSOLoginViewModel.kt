@@ -17,7 +17,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface SSOLoginViewModelFactory {
-    fun newSSOLoginViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         matrixClientService: MatrixClientService,
         serverUrl: String,
@@ -36,6 +36,8 @@ interface SSOLoginViewModelFactory {
             onBack,
         )
     }
+
+    companion object : SSOLoginViewModelFactory
 }
 
 interface SSOLoginViewModel {
@@ -74,7 +76,6 @@ open class SSOLoginViewModelImpl(
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.None)
-    private val urlHandler = get<UrlHandler>()
     private val messengerSettings = get<MessengerSettings>()
 
     private val redirectUrl =
@@ -85,14 +86,17 @@ open class SSOLoginViewModelImpl(
         }.build()
 
     init {
-        coroutineScope.launch {
-            urlHandler.filter {
-                it.encodedPath == redirectUrl.encodedPath
-                        && it.parameters["id"] == redirectUrl.parameters["id"]
-            }.collect {
-                val loginToken = it.parameters["loginToken"]
-                if (loginToken != null)
-                    this@SSOLoginViewModelImpl.loginToken.value = loginToken
+        val urlHandler = getKoin().getOrNull<UrlHandler>()
+        if (urlHandler != null) {
+            coroutineScope.launch {
+                urlHandler.filter {
+                    it.encodedPath == redirectUrl.encodedPath
+                            && it.parameters["id"] == redirectUrl.parameters["id"]
+                }.collect {
+                    val loginToken = it.parameters["loginToken"]
+                    if (loginToken != null)
+                        this@SSOLoginViewModelImpl.loginToken.value = loginToken
+                }
             }
         }
     }

@@ -21,7 +21,7 @@ import net.folivo.trixnity.utils.toByteArray
 private val log = KotlinLogging.logger {}
 
 interface ImageViewModelFactory {
-    fun newImageViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
@@ -30,6 +30,8 @@ interface ImageViewModelFactory {
     ): ImageViewModel {
         return ImageViewModelImpl(viewModelContext, mxcUrl, encryptedFile, fileName, onCloseImage)
     }
+
+    companion object : ImageViewModelFactory
 }
 
 interface ImageViewModel {

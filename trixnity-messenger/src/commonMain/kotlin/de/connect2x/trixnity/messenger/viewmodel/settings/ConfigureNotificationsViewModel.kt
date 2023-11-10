@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 
 
 interface ConfigureNotificationsViewModelFactory {
-    fun newConfigureNotificationsViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         onCloseConfigureNotifications: () -> Unit,
     ): ConfigureNotificationsViewModel {
@@ -15,6 +15,8 @@ interface ConfigureNotificationsViewModelFactory {
             viewModelContext, onCloseConfigureNotifications
         )
     }
+
+    companion object : ConfigureNotificationsViewModelFactory
 }
 
 interface ConfigureNotificationsViewModel {

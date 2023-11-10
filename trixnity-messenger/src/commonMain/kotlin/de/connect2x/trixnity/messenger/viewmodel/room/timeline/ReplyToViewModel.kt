@@ -23,7 +23,7 @@ private val log = KotlinLogging.logger { }
 
 
 interface ReplyToViewModelFactory {
-    fun newReplyToViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         eventId: EventId,
@@ -36,6 +36,8 @@ interface ReplyToViewModelFactory {
             onCancelReplyTo,
         )
     }
+
+    companion object : ReplyToViewModelFactory
 }
 
 interface ReplyToViewModel {

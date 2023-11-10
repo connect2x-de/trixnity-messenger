@@ -1237,7 +1237,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 single { testMessengerSettings("EN") }
                 single<AccountViewModelFactory> {
                     object : AccountViewModelFactory {
-                        override fun newAccountViewModel(
+                        override fun create(
                             viewModelContext: ViewModelContext,
                             onAccountSelected: (String?) -> Unit,
                             onUserSettingsSelected: () -> Unit,

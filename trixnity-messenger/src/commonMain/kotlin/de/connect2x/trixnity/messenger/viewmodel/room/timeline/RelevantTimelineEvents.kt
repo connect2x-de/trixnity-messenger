@@ -18,4 +18,6 @@ interface RelevantTimelineEvents {
 
         return decryptedMessageEvent || roomMessageEvent || displayedStateEvent
     }
+
+    companion object : RelevantTimelineEvents
 }

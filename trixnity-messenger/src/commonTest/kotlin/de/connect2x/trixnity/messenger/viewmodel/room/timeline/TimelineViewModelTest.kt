@@ -965,7 +965,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         single { clock }
                         single<RoomHeaderViewModelFactory> {
                             object : RoomHeaderViewModelFactory {
-                                override fun newRoomHeaderViewModel(
+                                override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     isBackButtonVisible: MutableStateFlow<Boolean>,
@@ -979,7 +979,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         }
                         single<InputAreaViewModelFactory> {
                             object : InputAreaViewModelFactory {
-                                override fun newInputAreaViewModel(
+                                override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
                                     onMessageEditFinished: (EventId) -> Unit,

@@ -14,7 +14,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger { }
 
 interface AcceptSasStartViewModelFactory {
-    fun newAcceptSasStartViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId?,
         timelineEventId: EventId?,
@@ -23,6 +23,8 @@ interface AcceptSasStartViewModelFactory {
             viewModelContext, roomId, timelineEventId,
         )
     }
+
+    companion object : AcceptSasStartViewModelFactory
 }
 
 interface AcceptSasStartViewModel {

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
 interface AccountsOverviewViewModelFactory {
-    fun newAccountsOverviewViewModel(
+    fun create(
         viewModelContext: ViewModelContext,
         onCreateNewAccount: () -> Unit,
         onRemoveAccount: (String) -> Unit,
@@ -18,6 +18,8 @@ interface AccountsOverviewViewModelFactory {
     ): AccountsOverviewViewModel {
         return AccountsOverviewViewModelImpl(viewModelContext, onCreateNewAccount, onRemoveAccount, onClose)
     }
+
+    companion object : AccountsOverviewViewModelFactory
 }
 
 interface AccountsOverviewViewModel {

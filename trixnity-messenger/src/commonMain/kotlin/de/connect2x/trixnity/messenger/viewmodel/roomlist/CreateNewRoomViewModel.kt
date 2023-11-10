@@ -14,11 +14,13 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface CreateNewRoomViewModelFactory {
-    fun newCreateNewRoomViewModel(
+    fun create(
         viewModelContext: MatrixClientViewModelContext,
     ): CreateNewRoomViewModel {
         return CreateNewRoomViewModelImpl(viewModelContext)
     }
+
+    companion object : CreateNewRoomViewModelFactory
 }
 
 interface CreateNewRoomViewModel {

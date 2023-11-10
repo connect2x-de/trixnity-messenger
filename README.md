@@ -174,7 +174,7 @@ Then, we have to register the new view model in a module:
 val addMatrixAccountModule = module {
     single<AddMatrixAccountViewModelFactory> {
         object : AddMatrixAccountViewModelFactory {
-            override fun newAddMatrixAccountViewModel(
+            override fun create(
                 viewModelContext: ViewModelContext,
                 onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
                 onCancel: () -> Unit
@@ -217,6 +217,14 @@ subclassing [I18nBase](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/t
 
 If you want to add new messages, use the delegation pattern as described
 in [View model customization](#change-the-default-behavior-of-view-models) and add more messages.
+
+## Drag and Drop
+
+To support Drag and Drop, add an Implementation of `DragAndDropHandler` to the DI.
+
+## URL / SSO
+
+For Single Sign-on, add an Implementation of `UrlHandler` to the DI.
 
 ## Usage from Swift (iOS or Mac)
 
