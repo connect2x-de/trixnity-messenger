@@ -23,7 +23,7 @@ object Versions {
     const val multiplatformSettings = "1.1.0" // https://github.com/russhwolf/multiplatform-settings/releases
     const val korge = "4.0.10" // https://github.com/korlibs/korge/releases
     const val dokka = "1.9.10" // https://github.com/Kotlin/dokka/releases"
-    const val skie = "0.5.5" // https://github.com/touchlab/KMMBridge/releases
+    const val skie = "0.5.5" // https://github.com/touchlab/SKIE/releases
     const val kmmBridge = "0.5.0" // https://github.com/touchlab/KMMBridge/releases
 
     // integration tests

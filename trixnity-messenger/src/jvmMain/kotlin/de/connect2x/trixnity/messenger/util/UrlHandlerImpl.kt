@@ -27,7 +27,7 @@ import kotlin.io.path.writeText
 
 private val log = KotlinLogging.logger { }
 
-class UrlHandlerImpl(messengerSettings: MessengerSettings) : UrlHandlerBase(messengerSettings) {
+class UrlHandlerImpl(messengerSettings: MessengerSettings) : UrlHandlerBase(messengerSettings), UrlHandler {
 
     private val started = MutableStateFlow(false)
     private val lockFileName = "port.lock"
