@@ -12,6 +12,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
@@ -64,6 +65,7 @@ open class AccountViewModelImpl(
                 val displayNameFlow = matrixClient.displayName.map { it ?: matrixClient.userId.localpart }
                     .stateIn(this, SharingStarted.WhileSubscribed(), matrixClient.userId.localpart)
                 Account(
+                    userId = matrixClient.userId,
                     accountName = accountName,
                     displayName = displayNameFlow,
                     initials = displayNameFlow.map { initials.compute(it) }
@@ -122,18 +124,21 @@ class PreviewAccountViewModel : AccountViewModel {
     override val allAccounts: MutableStateFlow<List<Account>> = MutableStateFlow(
         listOf(
             Account(
+                userId = UserId("@bruce.wayne:localhost"),
                 accountName = "@bruce.wayne:localhost",
                 displayName = MutableStateFlow("Bruce Wayne"),
                 initials = MutableStateFlow("BW"),
                 avatar = MutableStateFlow(previewImageByteArray()),
             ),
             Account(
+                userId = UserId("@scrooge.mcduck:localhost"),
                 accountName = "@scrooge.mcduck:localhost",
                 displayName = MutableStateFlow("Scrooge McDuck"),
                 initials = MutableStateFlow("SM"),
                 avatar = MutableStateFlow(null),
             ),
             Account(
+                userId = UserId("@arthur.dent:localhost"),
                 accountName = "@arthur.dent:localhost",
                 displayName = MutableStateFlow("Arthur Dent"),
                 initials = MutableStateFlow("AD"),
