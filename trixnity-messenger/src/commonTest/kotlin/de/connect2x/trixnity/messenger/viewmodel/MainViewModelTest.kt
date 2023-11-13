@@ -693,7 +693,7 @@ class MainViewModelTest : ShouldSpec() {
                                         override val error: MutableStateFlow<String?> = MutableStateFlow(null)
                                         override val errorType: MutableStateFlow<ErrorType> =
                                             MutableStateFlow(ErrorType.JUST_DISMISS)
-                                        override val sortedRoomListElementViewModels: StateFlow<List<Pair<RoomId, RoomListElementViewModel>>> =
+                                        override val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>> =
                                             MutableStateFlow(emptyList())
                                         override val syncStateError: StateFlow<Map<String, Boolean>> = MutableStateFlow(
                                             emptyMap()
