@@ -310,11 +310,11 @@ class RoomListViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             val list = cut.sortedRoomListElementViewModels.onEach { println(it) }.first { it.size == 5 }
-            list[0].first shouldBe roomId2
-            list[1].first shouldBe roomId3
-            list[2].first shouldBe roomId5
-            list[3].first shouldBe roomId1
-            list[4].first shouldBe roomId4
+            list[0].roomId shouldBe roomId2
+            list[1].roomId shouldBe roomId3
+            list[2].roomId shouldBe roomId5
+            list[3].roomId shouldBe roomId1
+            list[4].roomId shouldBe roomId4
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -982,7 +982,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 println("... $it")
                 it.size == 3
             }
-            cut.sortedRoomListElementViewModels.value[0].first shouldBe roomId1
+            cut.sortedRoomListElementViewModels.value[0].roomId shouldBe roomId1
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -1180,12 +1180,12 @@ class RoomListViewModelTest : ShouldSpec() {
 
             // all rooms, spaces, etc. are visible
             cut.sortedRoomListElementViewModels.first {
-                println("(1) ... ${it.map { it.first }}")
+                println("(1) ... ${it.map { it.roomId }}")
                 it.size == 7
             }
             cut.activeSpace.value = spaceId2
             cut.sortedRoomListElementViewModels.first {
-                println("spaces ... ${it.map { it.first }}")
+                println("spaces ... ${it.map { it.roomId }}")
                 it.size == 4 // includes direct room (room1 for test, room21 for test2)
             }
             cut.activeSpace.value = null
@@ -1194,7 +1194,7 @@ class RoomListViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             // only rooms, spaces, etc. of account 'test2' are visible
             cut.sortedRoomListElementViewModels.first {
-                println("(2) ... ${it.map { it.first }}")
+                println("(2) ... ${it.map { it.roomId }}")
                 it.size == 3
             }
             cut.spaces.first {
@@ -1204,7 +1204,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.activeSpace.value = spaceId21
             testCoroutineScheduler.advanceUntilIdle()
             cut.sortedRoomListElementViewModels.first {
-                println("(3) ... ${it.map { it.first }}")
+                println("(3) ... ${it.map { it.roomId }}")
                 it.size == 1 // only room23 is in space21
             }
 
@@ -1282,19 +1282,19 @@ class RoomListViewModelTest : ShouldSpec() {
     }
 
     private fun containRoomListElementViewModelsFor(roomIds: List<RoomId>) =
-        KoMatcher<List<Pair<RoomId, RoomListElementViewModel>>> { list ->
+        KoMatcher<List<RoomListElement>> { list ->
             MatcherResult(roomIds.all { roomId ->
-                list.any { (_, vm) -> vm.roomId == roomId }
+                list.any { element -> element.viewModel.roomId == roomId }
             },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { (_, vm) -> vm.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { (_, vm) -> vm.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 })

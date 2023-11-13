@@ -421,11 +421,11 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             val list = cut.sortedRoomListElementViewModels.onEach { println(it) }.first { it.size == 5 }
-            list[0].first shouldBe roomId2
-            list[1].first shouldBe roomId3
-            list[2].first shouldBe roomId5
-            list[3].first shouldBe roomId1
-            list[4].first shouldBe roomId4
+            list[0].roomId shouldBe roomId2
+            list[1].roomId shouldBe roomId3
+            list[2].roomId shouldBe roomId5
+            list[3].roomId shouldBe roomId1
+            list[4].roomId shouldBe roomId4
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -981,19 +981,19 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     }
 
     private fun containRoomListElementViewModelsFor(roomIds: List<RoomId>) =
-        KoMatcher<List<Pair<RoomId, RoomListElementViewModel>>> { list ->
+        KoMatcher<List<RoomListElement>> { list ->
             MatcherResult(roomIds.all { roomId ->
-                list.any { (_, vm) -> vm.roomId == roomId }
+                list.any { element -> element.viewModel.roomId == roomId }
             },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { (_, vm) -> vm.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { (_, vm) -> vm.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 })

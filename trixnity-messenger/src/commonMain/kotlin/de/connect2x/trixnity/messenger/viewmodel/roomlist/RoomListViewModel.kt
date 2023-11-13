@@ -68,7 +68,7 @@ interface RoomListViewModel {
     val selectedRoomId: StateFlow<RoomId?>
     val error: StateFlow<String?>
     val errorType: StateFlow<ErrorType>
-    val sortedRoomListElementViewModels: StateFlow<List<Pair<RoomId, RoomListElementViewModel>>>
+    val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>>
 
     val syncStateError: StateFlow<Map<String, Boolean>>
     val allSyncError: StateFlow<Boolean>
@@ -91,6 +91,13 @@ interface RoomListViewModel {
     fun openAccountsOverview()
 }
 
+data class RoomListElement(
+    val roomId: RoomId,
+    val isDirect: Boolean,
+    val isInvite: Boolean,
+    val viewModel: RoomListElementViewModel
+)
+
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class RoomListViewModelImpl(
     viewModelContext: ViewModelContext,
@@ -111,7 +118,7 @@ class RoomListViewModelImpl(
     override val errorType = _errorType.asStateFlow()
     private val errorSelectedRoom = MutableStateFlow<RoomId?>(null)
 
-    override val sortedRoomListElementViewModels: StateFlow<List<Pair<RoomId, RoomListElementViewModel>>>
+    override val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>>
 
     private val syncState: StateFlow<Map<String, SyncState>>
     override val syncStateError: StateFlow<Map<String, Boolean>>
@@ -278,7 +285,7 @@ class RoomListViewModelImpl(
                                 isInActiveSpace &&
                                 includedInSearch
                     }.onEach { log.trace { "filtered rooms: $it" } }
-                    .map { roomWithMeta -> // why map here? -> because we need the creation time and cannot call suspended functions in `sortedByDescending`
+                    .map<RoomWithMeta, SortableRoom> { roomWithMeta -> // why map here? -> because we need the creation time and cannot call suspended functions in `sortedByDescending`
                         val room = roomWithMeta.room
                         val lastRelevantEventTime = room.lastRelevantEventTimestamp
                         val sortTime =
@@ -291,15 +298,14 @@ class RoomListViewModelImpl(
                                 else -> lastRelevantEventTime
                             }
                         SortableRoom(roomWithMeta, sortTime)
-                    }.toList()
-                    .sortedByDescending { (_, sortTime) -> sortTime }
-                    .asFlow()
-                    .map { it.roomWithMeta }
+                    }.toList<SortableRoom>()
+                    .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
+                    .asFlow<SortableRoom>()
+                    .map<SortableRoom, RoomWithMeta> { it.roomWithMeta }
                     .map { (room, namedMatrixClient) ->
                         val roomId = room.roomId
                         val existingViewModel = roomListElementViewModels[roomId]
-                        if (existingViewModel != null) roomId to existingViewModel
-                        else {
+                        val viewModel = if (existingViewModel != null) existingViewModel else {
                             val roomListElementViewModel =
                                 viewModelContext.get<RoomListElementViewModelFactory>().create(
                                     viewModelContext = childContext(
@@ -310,8 +316,14 @@ class RoomListViewModelImpl(
                                     onRoomSelected = { onRoomSelected(namedMatrixClient.accountName, roomId) },
                                 )
                             roomListElementViewModels[roomId] = roomListElementViewModel
-                            roomId to roomListElementViewModel
+                            roomListElementViewModel
                         }
+                        RoomListElement(
+                            roomId = roomId,
+                            isDirect = room.isDirect,
+                            isInvite = room.membership == Membership.INVITE,
+                            viewModel = viewModel
+                        )
                     }.toList()
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
@@ -481,12 +493,12 @@ class PreviewRoomListViewModel : RoomListViewModel {
     val roomId1 = RoomId("1", "localhost")
     val roomId2 = RoomId("2", "localhost")
     val roomId3 = RoomId("3", "localhost")
-    override val sortedRoomListElementViewModels: MutableStateFlow<List<Pair<RoomId, RoomListElementViewModel>>> =
+    override val sortedRoomListElementViewModels: MutableStateFlow<List<RoomListElement>> =
         MutableStateFlow(
             listOf(
-                roomId1 to PreviewRoomListElementViewModel1(),
-                roomId2 to PreviewRoomListElementViewModel2(),
-                roomId3 to PreviewRoomListElementViewModel3(),
+                RoomListElement(roomId1, true, false, PreviewRoomListElementViewModel1()),
+                RoomListElement(roomId2, false, false, PreviewRoomListElementViewModel2()),
+                RoomListElement(roomId3, true, false, PreviewRoomListElementViewModel3()),
             )
         )
     override val syncStateError: MutableStateFlow<Map<String, Boolean>> = MutableStateFlow(mapOf())
