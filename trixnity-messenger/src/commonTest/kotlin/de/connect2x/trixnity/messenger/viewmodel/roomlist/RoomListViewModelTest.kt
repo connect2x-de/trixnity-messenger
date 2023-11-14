@@ -40,11 +40,8 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.*
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.space.ChildEventContent
 import org.kodein.mock.*
 import org.koin.core.module.Module
@@ -188,6 +185,24 @@ class RoomListViewModelTest : ShouldSpec() {
                         roomId = roomId1,
                         originTimestamp = 0L,
                         stateKey = ""
+                    )
+                )
+                every {
+                    roomServiceMock.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
+                    StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Private
+                        ),
+                        EventId("1"),
+                        me,
+                        roomId1,
+                        0L,
+                        stateKey = "",
                     )
                 )
 

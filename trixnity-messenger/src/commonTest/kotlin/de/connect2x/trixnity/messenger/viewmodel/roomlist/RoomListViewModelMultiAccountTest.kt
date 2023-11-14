@@ -47,11 +47,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.space.ChildEventContent
 import org.kodein.mock.*
 import org.koin.core.Koin
@@ -351,6 +348,78 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                                 mappings = emptyMap()
                             )
                         )
+                every {
+                    roomServiceMock1.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
+                    StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Private
+                        ),
+                        EventId("1"),
+                        user2,
+                        roomId1,
+                        0L,
+                        stateKey = "",
+                    )
+                )
+                every {
+                    roomServiceMock2.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
+                    StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Private
+                        ),
+                        EventId("1"),
+                        user2,
+                        roomId1,
+                        0L,
+                        stateKey = "",
+                    )
+                )
+                every {
+                    roomServiceMock2.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
+                    StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Private
+                        ),
+                        EventId("1"),
+                        user2,
+                        roomId1,
+                        0L,
+                        stateKey = "",
+                    )
+                )
+                every {
+                    roomServiceMock3.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
+                    StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Private
+                        ),
+                        EventId("1"),
+                        user2,
+                        roomId1,
+                        0L,
+                        stateKey = "",
+                    )
+                )
             }
         }
 

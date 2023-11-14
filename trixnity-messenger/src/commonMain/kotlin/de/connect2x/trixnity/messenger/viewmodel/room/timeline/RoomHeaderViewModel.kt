@@ -13,12 +13,14 @@ import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.TypingEventContent
+import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
@@ -123,8 +125,9 @@ open class RoomHeaderViewModelImpl(
             combine(
                 matrixClient.room.getById(selectedRoomId),
                 roomName.getRoomNameElement(selectedRoomId, matrixClient),
-                userPresence.presentEventContentFlow(matrixClient, selectedRoomId)
-            ) { room, roomNameElement, userPresence ->
+                userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
+                matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId)
+            ) { room, roomNameElement, userPresence, joinRules ->
                 val roomImage = room?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(
                         avatarUrl,
@@ -143,15 +146,19 @@ open class RoomHeaderViewModelImpl(
                     initials.compute(roomNameElement.roomName),
                     roomImage,
                     userPresence?.presence,
+                    room?.encryptionAlgorithm != null,
+                    joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
                 )
             }.stateIn(
                 coroutineScope,
                 SharingStarted.WhileSubscribed(),
                 RoomHeaderElement(
-                    "",
-                    initials.compute(selectedRoomId.full),
-                    null,
-                    Presence.OFFLINE
+                    roomName = "",
+                    roomImageInitials = initials.compute(selectedRoomId.full),
+                    roomImage = null,
+                    presence = Presence.OFFLINE,
+                    isEncrypted = false,
+                    isPublic = true,
                 )
             )
 
@@ -261,7 +268,9 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
             roomName = "Dev Channel",
             roomImageInitials = "DC",
             roomImage = null,
-            presence = null
+            presence = null,
+            isEncrypted = false,
+            isPublic = true,
         )
     )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("is typing...")

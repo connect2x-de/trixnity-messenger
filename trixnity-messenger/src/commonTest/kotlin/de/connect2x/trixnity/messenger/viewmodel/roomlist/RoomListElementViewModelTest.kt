@@ -10,8 +10,8 @@ import de.connect2x.trixnity.messenger.viewmodel.RoomNameElement
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
@@ -38,6 +38,7 @@ import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.core.model.keys.EncryptionAlgorithm
 import net.folivo.trixnity.core.model.keys.Key
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -109,6 +110,8 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
     lateinit var roomByIdMocker: Mocker.Every<Flow<Room?>>
 
+    lateinit var scope: CoroutineScope
+
     init {
         Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
@@ -116,6 +119,8 @@ class RoomListElementViewModelTest : ShouldSpec() {
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+
+            scope = CoroutineScope(Dispatchers.Default)
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -150,6 +155,24 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 } returns flowOf(null)
                 every { roomServiceMock.getLastTimelineEvent(isEqual(roomId), isAny()) } returns
                         MutableStateFlow(null)
+                every {
+                    roomServiceMock.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
+                    StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Private
+                        ),
+                        EventId("1"),
+                        me,
+                        roomId,
+                        0L,
+                        stateKey = "",
+                    )
+                )
 
                 every { userServiceMock.getById(isEqual(roomId1), isEqual(me)) } returns
                         MutableStateFlow(
@@ -198,6 +221,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                             Room(
                                 roomId,
                                 isDirect = false,
+                                encryptionAlgorithm = EncryptionAlgorithm.Megolm,
                                 unreadMessageCount = 0,
                                 membership = Membership.INVITE,
                                 membersLoaded = false
@@ -211,6 +235,10 @@ class RoomListElementViewModelTest : ShouldSpec() {
                         flowOf(RoomNameElement("RoomName"))
                 every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
             }
+        }
+
+        afterTest {
+            scope.cancel()
         }
 
         should("show time for last messages that were sent today and the date for messages from yesterday onwards") {
@@ -727,6 +755,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("show the author of a message in a room with multiple users") {
             val eventId1 = EventId("\$event1")
             val room1 = Room(
@@ -856,6 +885,16 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
+        should("provide correct information on whether the room is public and whether it is encrypted or not") {
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.isPublic.value shouldBe false
+            cut.isEncrypted.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun roomListElementViewModel(
@@ -871,7 +910,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             })
         }.koin
         di.get<I18n>().setCurrentLang("en")
-        return RoomListElementViewModelImpl(
+        val cut = RoomListElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
@@ -881,6 +920,9 @@ class RoomListElementViewModelTest : ShouldSpec() {
             roomId,
             onRoomSelected = onRoomSelectedMock,
         )
+        scope.launch { cut.isPublic.collect() }
+        scope.launch { cut.isEncrypted.collect() }
+        return cut
     }
 
     private fun timelineEvent(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2) =
