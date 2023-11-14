@@ -26,11 +26,14 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.user.getAccountData
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
+import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -114,11 +117,23 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                     IgnoredUserListEventContent(emptyMap())
                 )
 
-                mocker.every { initialsMock.compute(isAny()) } returns "MR"
-                mocker.every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+                every { initialsMock.compute(isAny()) } returns "MR"
+                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
                     Room(roomId, avatarUrl = "mxc://localhost/123456")
                 )
-                mocker.everySuspending {
+                every { roomServiceMock.getState(isAny(), isEqual(JoinRulesEventContent::class), isAny()) } returns MutableStateFlow(
+                    ClientEvent.RoomEvent.StateEvent(
+                        content = JoinRulesEventContent(
+                            joinRule = JoinRulesEventContent.JoinRule.Public
+                        ),
+                        EventId("1"),
+                        me,
+                        roomId,
+                        0L,
+                        stateKey = "",
+                    )
+                )
+                everySuspending {
                     mediaServiceMock.getThumbnail(
                         isEqual("mxc://localhost/123456"),
                         isAny(),
@@ -128,10 +143,10 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                         isAny(),
                     )
                 } returns Result.success("image".encodeToByteArray().toByteArrayFlow())
-                mocker.every { userPresenceMock.presentEventContentFlow(isAny(), isEqual(roomId)) } returns flowOf(
+                every { userPresenceMock.presentEventContentFlow(isAny(), isEqual(roomId)) } returns flowOf(
                     PresenceEventContent(presence = Presence.ONLINE)
                 )
-                mocker.every { userBlockingMock.isUserBlocked(isAny(), isAny()) } returns MutableStateFlow(false)
+                every { userBlockingMock.isUserBlocked(isAny(), isAny()) } returns MutableStateFlow(false)
             }
         }
 
@@ -144,13 +159,18 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.roomHeaderElement.value shouldBe RoomHeaderElement(
-                "My Room", "MR", "image".encodeToByteArray(), Presence.ONLINE
+                "My Room", "MR", "image".encodeToByteArray(), Presence.ONLINE, isEncrypted = false, isPublic = true,
             )
 
             roomName.value = RoomNameElement("New Room Name")
             testCoroutineScheduler.advanceUntilIdle()
             cut.roomHeaderElement.value shouldBe RoomHeaderElement(
-                "New Room Name", "MR", "image".encodeToByteArray(), Presence.ONLINE
+                "New Room Name",
+                "MR",
+                "image".encodeToByteArray(),
+                Presence.ONLINE,
+                isEncrypted = false,
+                isPublic = true,
             )
         }
 

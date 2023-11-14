@@ -11,6 +11,8 @@ data class RoomHeaderElement(
     val roomImageInitials: String,
     val roomImage: ByteArray?,
     val presence: Presence?,
+    val isEncrypted: Boolean,
+    val isPublic: Boolean,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -24,7 +26,11 @@ data class RoomHeaderElement(
             if (other.roomImage == null) return false
             if (!roomImage.contentEquals(other.roomImage)) return false
         } else if (other.roomImage != null) return false
-        return presence == other.presence
+        if (presence != other.presence) return false
+        if (isEncrypted != other.isEncrypted) return false
+        if (isPublic != other.isPublic) return false
+
+        return true
     }
 
     override fun hashCode(): Int {
@@ -32,6 +38,8 @@ data class RoomHeaderElement(
         result = 31 * result + roomImageInitials.hashCode()
         result = 31 * result + (roomImage?.contentHashCode() ?: 0)
         result = 31 * result + (presence?.hashCode() ?: 0)
+        result = 31 * result + isEncrypted.hashCode()
+        result = 31 * result + isPublic.hashCode()
         return result
     }
 }

@@ -388,7 +388,7 @@ class RoomViewModelTest : ShouldSpec() {
                                         override val error: StateFlow<String?> = MutableStateFlow(null)
                                         override val isBackButtonVisible: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val roomHeaderElement: StateFlow<RoomHeaderElement> = MutableStateFlow(
-                                            RoomHeaderElement("", "", null, null)
+                                            RoomHeaderElement("", "", null, null, false, false)
                                         )
                                         override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
                                         override val userTrustLevel: StateFlow<UserTrustLevel?> = MutableStateFlow(null)
