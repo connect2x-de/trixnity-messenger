@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.*
-import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.UserId
@@ -168,7 +167,7 @@ class DefaultMatrixClientService(
 
     override val notificationCount = matrixClients.flatMapLatest { namedMatrixClients ->
         combine(namedMatrixClients.map { namedMatrixClient ->
-            namedMatrixClient.matrixClient.value?.room?.getAll()?.flatten()?.map { rooms ->
+            namedMatrixClient.matrixClient.value?.room?.getAll()?.flattenValues()?.map { rooms ->
                 rooms.sumOf { it.unreadMessageCount }
             } ?: flowOf(0L)
         }) {

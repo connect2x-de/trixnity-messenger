@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.flatten
+import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.membership
@@ -54,7 +54,7 @@ open class MemberListViewModelImpl(
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
             matrixClient.room.getState<CreateEventContent>(selectedRoomId).map { it?.content },
-            matrixClient.user.getAll(selectedRoomId).flatten().mapNotNull { it?.values?.filterNotNull().orEmpty() }
+            matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         ) { powerLevels, createEvent, roomUsers ->
             roomUsers.mapNotNull { roomUser ->
                 if (roomUser.membership == Membership.JOIN || roomUser.membership == Membership.INVITE) {

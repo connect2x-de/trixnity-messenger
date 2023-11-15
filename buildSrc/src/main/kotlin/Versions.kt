@@ -5,7 +5,7 @@ object Versions {
     const val trixnityMessenger = "1.0.11"
 
     val kotlinJvmTarget = JavaVersion.VERSION_11
-    const val trixnity = "4.0.0-SNAPSHOT-1099a2a0" // https://gitlab.com/trixnity/trixnity/-/releases
+    const val trixnity = "4.0.0-SNAPSHOT-4a69b5b4" // https://gitlab.com/trixnity/trixnity/-/releases
     const val kotlin = "1.9.20" // https://kotlinlang.org/
     const val ksp = "1.9.20-1.0.14" // https://github.com/google/ksp/releases
     const val kotlinxCoroutines = "1.7.3" // https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -30,7 +30,7 @@ object Versions {
     const val testContainers = "1.19.1" // https://github.com/testcontainers/testcontainers-java/releases
     const val h2 = "2.1.214" // https://github.com/h2database/h2database/releases
 
-    const val kotlinLogging = "5.0.2" // https://github.com/MicroUtils/kotlin-logging/releases
+    const val kotlinLogging = "5.1.0" // https://github.com/MicroUtils/kotlin-logging/releases
     const val logback = "1.4.11" // https://github.com/qos-ch/logback/tags
 
     const val crypto = "1.1.0-alpha06" // https://developer.android.com/jetpack/androidx/releases/security
