@@ -55,7 +55,7 @@ open class RoomNameChangeStatusViewModelImpl(
 
             val unsigned = timelineEvent.event.unsigned
             val previousContent =
-                if (unsigned is UnsignedRoomEventData.UnsignedStateEventData<*>) unsigned.previousContent else null
+                if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
             val from = if (previousContent is NameEventContent) {
                 i18n.eventRoomChangeFrom(previousContent.name)
             } else ""

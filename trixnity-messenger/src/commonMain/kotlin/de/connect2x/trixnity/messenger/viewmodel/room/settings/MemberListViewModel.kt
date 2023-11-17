@@ -53,7 +53,7 @@ open class MemberListViewModelImpl(
     override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
-            matrixClient.room.getState<CreateEventContent>(selectedRoomId).map { it?.content },
+            matrixClient.room.getState<CreateEventContent>(selectedRoomId).map { it?.content }.filterNotNull(),
             matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         ) { powerLevels, createEvent, roomUsers ->
             roomUsers.mapNotNull { roomUser ->
