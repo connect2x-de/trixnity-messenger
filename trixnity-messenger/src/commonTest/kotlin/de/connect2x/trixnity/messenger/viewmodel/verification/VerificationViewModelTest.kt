@@ -28,9 +28,9 @@ import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.verification.ActiveVerification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.clientserverapi.client.DevicesApiClient
+import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.clientserverapi.model.devices.Device
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
@@ -65,10 +65,10 @@ class VerificationViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var devicesApiClientMock: DevicesApiClient
+    lateinit var devicesApiClientMock: DeviceApiClient
 
     @Mock
-    lateinit var usersApiClientMock: UsersApiClient
+    lateinit var usersApiClientMock: UserApiClient
 
     @Mock
     lateinit var getActiveVerification: GetActiveVerification

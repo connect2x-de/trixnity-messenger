@@ -120,7 +120,6 @@ fun timeline(
             lastEventId = null,
             lastRelevantEventId = null,
             unreadMessageCount = 0,
-            encryptionAlgorithm = null
         )
     )
     mocker.every { roomServiceMock.getById(roomId) } returns room

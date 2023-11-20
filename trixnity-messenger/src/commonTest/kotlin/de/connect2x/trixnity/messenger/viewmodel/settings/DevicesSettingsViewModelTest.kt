@@ -35,7 +35,7 @@ import net.folivo.trixnity.client.store.KeyStore
 import net.folivo.trixnity.client.store.repository.*
 import net.folivo.trixnity.client.verification.ActiveDeviceVerification
 import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.clientserverapi.client.DevicesApiClient
+import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.devices.Device
@@ -126,10 +126,10 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiClientMock2: MatrixClientServerApiClient
 
     @Mock
-    lateinit var devicesApiClientMock: DevicesApiClient
+    lateinit var devicesApiClientMock: DeviceApiClient
 
     @Mock
-    lateinit var devicesApiClientMock2: DevicesApiClient
+    lateinit var devicesApiClientMock2: DeviceApiClient
 
     @Mock
     lateinit var olmDecrypterMock: OlmDecrypter

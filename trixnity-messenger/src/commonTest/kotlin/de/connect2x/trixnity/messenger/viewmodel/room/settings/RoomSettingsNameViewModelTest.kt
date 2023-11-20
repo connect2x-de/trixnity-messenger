@@ -20,7 +20,7 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -57,7 +57,7 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var roomsApiClientMock: RoomsApiClient
+    lateinit var roomsApiClientMock: RoomApiClient
 
     private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
     private lateinit var roomGetById: Mocker.Every<Flow<Room?>>

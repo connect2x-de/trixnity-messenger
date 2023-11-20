@@ -141,7 +141,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         )
     }
 
-    fun timelineEvent(previousNameEvent: UnsignedStateEventData<NameEventContent>? = null) =
+    fun timelineEvent(previousNameEvent: UnsignedStateEventData? = null) =
         TimelineEvent(
             event = StateEvent(
                 NameEventContent("new name"),
