@@ -27,16 +27,12 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.flattenNotNull
-import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.room.Timeline
-import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKWARDS
 import net.folivo.trixnity.core.model.EventId
@@ -432,7 +428,7 @@ class TimelineViewModelImpl(
 
     private fun scrollToEndOnNewOutboxElement() {
         coroutineScope.launch {
-            matrixClient.room.getOutbox().flatten().scan(emptySet<String>()) { transactionIdsOld, outboxNew ->
+            matrixClient.room.getOutbox().flattenValues().scan(emptySet<String>()) { transactionIdsOld, outboxNew ->
                 val transactionIdsNew =
                     outboxNew.filter { it.roomId == selectedRoomId }.map { it.transactionId }.toSet()
                 val diff = (transactionIdsNew - transactionIdsOld).toSet()
@@ -529,7 +525,7 @@ class TimelineViewModelImpl(
     }
 
     private suspend fun computeOutbox(
-        outbox: Map<String, StateFlow<RoomOutboxMessage<*>?>>, timelineEventList: List<Flow<TimelineEvent>>
+        outbox: Map<String, Flow<RoomOutboxMessage<*>?>>, timelineEventList: List<Flow<TimelineEvent>>
     ): List<OutboxElementHolderViewModel> = coroutineScope {
         log.debug { "compute outbox" }
         if (outbox.isEmpty()) emptyList()
@@ -537,7 +533,7 @@ class TimelineViewModelImpl(
             val timelineEventsTransactionIds =
                 timelineEventList.mapNotNull { it.first().event.unsigned?.transactionId }.toSet()
             outbox.entries.asFlow()
-                .filter { (_, outboxMessage) -> outboxMessage.value?.roomId == selectedRoomId }
+                .filter { (_, outboxMessage) -> outboxMessage.first()?.roomId == selectedRoomId }
                 .filterNot { (transactionId, _) -> timelineEventsTransactionIds.contains(transactionId) }
                 .map { (transactionId, outboxMessage) ->
                     val existingViewModel = outboxElementHolderViewModelCache[transactionId]
@@ -556,7 +552,7 @@ class TimelineViewModelImpl(
                             combine(
                                 matrixClient.room.getOutbox()
                                     .map { outbox ->
-                                        outbox.filter { it.value.value?.roomId == selectedRoomId }.keys
+                                        outbox.filter { it.value.first()?.roomId == selectedRoomId }.keys
                                             .indexOf(transactionId)
                                     }.distinctUntilChanged(),
                                 timelineEvents.map { it.lastOrNull()?.first()?.sender == matrixClient.userId }

@@ -13,7 +13,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
@@ -46,7 +46,7 @@ class UserPresenceTest : ShouldSpec() {
     lateinit var matrixClientServerApiClient: MatrixClientServerApiClient
 
     @Mock
-    lateinit var usersApiClientMock: UsersApiClient
+    lateinit var usersApiClientMock: UserApiClient
 
     @Mock
     lateinit var directRoomMock: DirectRoom

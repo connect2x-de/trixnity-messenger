@@ -33,7 +33,7 @@ import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -78,7 +78,7 @@ class TimelineViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var roomsApiClientMock: RoomsApiClient
+    lateinit var roomsApiClientMock: RoomApiClient
 
     @Mock
     lateinit var roomHeaderViewModelMock: RoomHeaderViewModel

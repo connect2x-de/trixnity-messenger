@@ -30,7 +30,7 @@ import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -98,7 +98,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var roomsApiClientMock: RoomsApiClient
+    lateinit var roomsApiClientMock: RoomApiClient
 
     lateinit var i18n: I18n
 

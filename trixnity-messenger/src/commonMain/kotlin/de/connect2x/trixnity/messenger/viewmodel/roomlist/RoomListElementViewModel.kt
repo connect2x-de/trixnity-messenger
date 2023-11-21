@@ -94,7 +94,7 @@ open class RoomListElementViewModelImpl(
         roomFlow.map { it.membership == Membership.INVITE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
     override val isEncrypted: StateFlow<Boolean?> =
-        roomFlow.map { it.encryptionAlgorithm != null }
+        roomFlow.map { it.encrypted }
             .stateIn(coroutineScope, WhileSubscribed(), null)
     override val isPublic: StateFlow<Boolean?> =
         matrixClient.room.getState<JoinRulesEventContent>(roomId).map {

@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.datetime.Clock
-import net.folivo.trixnity.api.client.defaultTrixnityHttpClient
+import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
@@ -77,10 +77,12 @@ fun trixnityMessengerModule() = module {
         CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
     }
 
-    single<HttpUserAgent> { HttpUserAgent { "trixnity-messenger" } }
     single<HttpClientFactory> {
-        val userAgent = get<HttpUserAgent>()()
-        HttpClientFactory { defaultTrixnityHttpClient(userAgent = userAgent) }
+        val userAgent = getOrNull<HttpUserAgent>()?.invoke()
+        HttpClientFactory {
+            if (userAgent != null) defaultTrixnityHttpClientFactory(userAgent = userAgent)
+            else defaultTrixnityHttpClientFactory(userAgent = userAgent)
+        }
     }
     single<Secrets> { Secrets }
     single<DbPassword> {

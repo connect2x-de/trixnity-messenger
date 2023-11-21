@@ -16,9 +16,9 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.flatten
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.user
@@ -171,7 +171,7 @@ class RoomListViewModelImpl(
             val allRoomsFlows = namedMatrixClients.map { namedMatrixClient ->
                 val matrixClient = namedMatrixClient.matrixClientOrThrow()
                 matrixClient.room.getAll()
-                    .flatten()
+                    .flattenValues()
                     .map { rooms ->
                         rooms.map { room ->
                             RoomWithMeta(room, namedMatrixClient)

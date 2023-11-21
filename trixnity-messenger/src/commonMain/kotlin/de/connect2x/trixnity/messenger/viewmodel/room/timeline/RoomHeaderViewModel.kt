@@ -146,7 +146,7 @@ open class RoomHeaderViewModelImpl(
                     initials.compute(roomNameElement.roomName),
                     roomImage,
                     userPresence?.presence,
-                    room?.encryptionAlgorithm != null,
+                    room?.encrypted == true,
                     joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
                 )
             }.stateIn(

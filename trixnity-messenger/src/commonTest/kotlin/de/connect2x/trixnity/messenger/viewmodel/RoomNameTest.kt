@@ -20,9 +20,7 @@ import net.folivo.trixnity.clientserverapi.model.sync.Sync.Response.Rooms.Joined
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
@@ -149,7 +147,6 @@ class RoomNameTest : ShouldSpec() {
             name = name,
             lastEventId = null,
             unreadMessageCount = 0,
-            encryptionAlgorithm = null,
             membership = Membership.JOIN,
             membersLoaded = false,
         )

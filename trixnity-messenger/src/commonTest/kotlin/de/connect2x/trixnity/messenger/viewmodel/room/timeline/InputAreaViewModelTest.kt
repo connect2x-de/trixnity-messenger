@@ -30,7 +30,7 @@ import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -72,7 +72,7 @@ class InputAreaViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var roomsApiClientMock: RoomsApiClient
+    lateinit var roomsApiClientMock: RoomApiClient
 
     private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
 

@@ -16,8 +16,8 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
-import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomApiClient
+import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
 import org.kodein.mock.Mock
@@ -42,10 +42,10 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var usersApiClientMock: UsersApiClient
+    lateinit var usersApiClientMock: UserApiClient
 
     @Mock
-    lateinit var roomsApiClientMock: RoomsApiClient
+    lateinit var roomsApiClientMock: RoomApiClient
 
     @Mock
     lateinit var userServiceMock: UserService

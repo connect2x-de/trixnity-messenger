@@ -26,9 +26,9 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomsApiClient
+import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.client.UsersApiClient
+import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -38,7 +38,6 @@ import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
-import net.folivo.trixnity.core.model.keys.EncryptionAlgorithm
 import net.folivo.trixnity.core.model.keys.Key
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -70,10 +69,10 @@ class RoomListElementViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
 
     @Mock
-    lateinit var roomsApiClientMock: RoomsApiClient
+    lateinit var roomsApiClientMock: RoomApiClient
 
     @Mock
-    lateinit var usersApiClientMock: UsersApiClient
+    lateinit var usersApiClientMock: UserApiClient
 
     @Mock
     lateinit var userPresenceMock: UserPresence
@@ -221,7 +220,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                             Room(
                                 roomId,
                                 isDirect = false,
-                                encryptionAlgorithm = EncryptionAlgorithm.Megolm,
+                                encrypted = true,
                                 unreadMessageCount = 0,
                                 membership = Membership.INVITE,
                                 membersLoaded = false
