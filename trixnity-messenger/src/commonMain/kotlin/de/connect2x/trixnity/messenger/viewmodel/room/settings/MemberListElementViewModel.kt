@@ -53,7 +53,7 @@ interface MemberListElementViewModel {
     val kickUserWarningTitle: StateFlow<String>
     val iHavePowerToKickUser: StateFlow<Boolean>
     val role: StateFlow<Role>
-    val powerLevel: StateFlow<Int>
+    val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
     val showPowerLevel: StateFlow<Boolean>
     val changePowerLevelViewModel: ChangePowerLevelViewModel
@@ -70,16 +70,16 @@ interface MemberListElementViewModel {
 
     enum class Role {
         USER {
-            override fun getMinPowerLevel() = 0
+            override fun getMinPowerLevel() = 0L
         },
         MODERATOR {
-            override fun getMinPowerLevel() = 50
+            override fun getMinPowerLevel() = 50L
         },
         ADMIN {
-            override fun getMinPowerLevel() = 100
+            override fun getMinPowerLevel() = 100L
         };
 
-        abstract fun getMinPowerLevel(): Int
+        abstract fun getMinPowerLevel(): Long
     }
 
     data class MemberElement(
@@ -115,7 +115,7 @@ interface MemberListElementViewModel {
     }
 }
 
-open class MemberListElementViewModelImpl(
+class MemberListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomUser: RoomUser,
     override val error: MutableStateFlow<String?>,
@@ -284,7 +284,7 @@ open class MemberListElementViewModelImpl(
         }
     }
 
-    private fun getPowerRole(powerLevel: Int): Role {
+    private fun getPowerRole(powerLevel: Long): Role {
         return when {
             powerLevel >= ADMIN.getMinPowerLevel() -> ADMIN
             powerLevel >= MODERATOR.getMinPowerLevel() -> MODERATOR
