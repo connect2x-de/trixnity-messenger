@@ -517,12 +517,12 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
         DE - "Sie dürfen das Berechtigungslevel eines Nutzers nicht verändern."
     }
 
-    fun settingsRoomMemberListChangePowerLevelInputValidationPowerLevelTooLow(maximum: Int) = translate {
+    fun settingsRoomMemberListChangePowerLevelInputValidationPowerLevelTooLow(maximum: Long) = translate {
         EN - "You can only set the user's power level to a maximum of $maximum."
         DE - "Sie können das Berechtigungslevel des Nutzers nur maximal auf $maximum setzen."
     }
 
-    fun settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maximum: Int) = translate {
+    fun settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maximum: Long) = translate {
         EN - "Please enter a valid number between 0 and $maximum."
         DE - "Bitte geben Sie eine gültige Zahl zwischen 0 und $maximum ein."
     }
