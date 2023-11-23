@@ -68,6 +68,10 @@ fun interface CreateMatrixClientConfiguration {
     operator fun invoke(): MatrixClientConfiguration.() -> Unit
 }
 
+fun interface DebugName {
+    operator fun invoke(): String
+}
+
 fun trixnityMessengerModule() = module {
     single<Clock> { Clock.System }
     single<CoroutineScope> {
@@ -97,6 +101,7 @@ fun trixnityMessengerModule() = module {
     single<CreateMatrixClientConfiguration> {
         CreateMatrixClientConfiguration {
             {
+                name = getOrNull<DebugName>()?.invoke()
                 setOwnMessagesAsFullyRead = true
                 httpClientFactory = get<HttpClientFactory>()()
                 lastRelevantEventFilter =

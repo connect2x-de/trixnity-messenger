@@ -44,19 +44,19 @@ class VerificationIT {
         koinApplication1 = koinApplication {
             modules(
                 trixnityMessengerModule(),
-                itModules(),
+                itModules("client-1"),
             )
         }
         koinApplication2 = koinApplication {
             modules(
                 trixnityMessengerModule(),
-                itModules(),
+                itModules("client-2"),
             )
         }
         koinApplication3 = koinApplication {
             modules(
                 trixnityMessengerModule(),
-                itModules(),
+                itModules("client-3"),
             )
         }
         val baseUrl = URLBuilder(
