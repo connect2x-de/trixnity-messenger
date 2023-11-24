@@ -22,7 +22,7 @@ private val log = KotlinLogging.logger {}
 interface ChangePowerLevelViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        powerLevel: StateFlow<Int>,
+        powerLevel: StateFlow<Long>,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
         roomUser: RoomUser,
@@ -52,7 +52,7 @@ interface ChangePowerLevelViewModel {
 
     val showPowerLevelHelp: StateFlow<Boolean>
 
-    val canSetPowerLevelToMax: StateFlow<Int?>
+    val canSetPowerLevelToMax: StateFlow<Long?>
 
     val changingPowerLevelDialogInput: MutableStateFlow<InputWrapper>
 
@@ -68,7 +68,7 @@ interface ChangePowerLevelViewModel {
     fun setRoleToUser()
     fun setRoleToModerator()
     fun setRoleToAdmin()
-    fun setPowerLevelTo(level: Int)
+    fun setPowerLevelTo(level: Long)
 
     fun onPowerLevelEntered(input: String)
 
@@ -81,7 +81,7 @@ interface ChangePowerLevelViewModel {
 
 open class ChangePowerLevelViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    val powerLevel: StateFlow<Int>,
+    val powerLevel: StateFlow<Long>,
     val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
     private val roomUser: RoomUser,
@@ -135,7 +135,7 @@ open class ChangePowerLevelViewModelImpl(
     override fun setRoleToAdmin() =
         setUserToPowerLevel(MemberListElementViewModel.Role.ADMIN.getMinPowerLevel())
 
-    override fun setPowerLevelTo(level: Int) = setUserToPowerLevel(level)
+    override fun setPowerLevelTo(level: Long) = setUserToPowerLevel(level)
 
     override fun openChangingRoleWarningDialog(role: MemberListElementViewModel.Role) {
         changingRoleWarningDialogOpen.value = role
@@ -161,7 +161,7 @@ open class ChangePowerLevelViewModelImpl(
         showPowerLevelHelp.value = false
     }
 
-    private fun setUserToPowerLevel(powerLevel: Int) {
+    private fun setUserToPowerLevel(powerLevel: Long) {
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListChangePowerLevelErrorOffline()
@@ -205,7 +205,7 @@ open class ChangePowerLevelViewModelImpl(
 
     private fun validateNewPowerLevelInput(
         input: String,
-        maxPowerLevel: Int?,
+        maxPowerLevel: Long?,
         i18n: I18n
     ): String? {
         val powerLevel = input.toIntOrNull()

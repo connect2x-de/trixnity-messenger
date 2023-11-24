@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.closeApp
-import de.connect2x.trixnity.messenger.viewmodel.*
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,6 +110,12 @@ open class SelfVerificationViewModelImpl(
             is SelfVerificationMethod.CrossSignedDeviceVerification -> {
                 coroutineScope.launch {
                     selfVerificationMethod.createDeviceVerification()
+                        .onSuccess {
+                            log.debug { "successfully created a device verification" }
+                        }
+                        .onFailure {
+                            log.error(it) { "device verification failed" }
+                        }
                     log.debug { "close self verification view" }
                     onClose()
                 }

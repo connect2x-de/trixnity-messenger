@@ -368,7 +368,7 @@ open class VerificationViewModelImpl(
                         }
                     }
 
-                    is ActiveVerificationState.PartlyDone -> {
+                    is ActiveVerificationState.WaitForDone -> {
                         verificationJob?.cancel()
                         navigation.replaceCurrentSuspending(Wait)
                     }
