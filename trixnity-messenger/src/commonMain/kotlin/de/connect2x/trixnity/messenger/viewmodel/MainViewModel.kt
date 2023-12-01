@@ -142,9 +142,9 @@ open class MainViewModelImpl(
     private val messengerSettings = get<MessengerSettings>()
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
-        MutableStateFlow(listOf<String>()) // in case of multiple self verifications, we need to do one after another
+        MutableStateFlow(setOf<String>()) // in case of multiple self verifications, we need to do one after another
     private val activeVerifications =
-        MutableStateFlow(listOf<String>()) // in case of multiple active verifications, we need to do them one after another
+        MutableStateFlow(setOf<String>()) // in case of multiple active verifications, we need to do them one after another
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
     override val isBackButtonVisible = MutableStateFlow(true)
@@ -170,7 +170,7 @@ open class MainViewModelImpl(
                     get<SelfVerificationViewModelFactory>()
                         .create(
                             viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
-                            onClose = ::closeSelfVerification,
+                            onClose = { closeSelfVerification(selfVerificationConfig.accountName) },
                         )
                 )
             }
@@ -180,7 +180,7 @@ open class MainViewModelImpl(
                     .create(
                         viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
                         onStartSelfVerification = { showSelfVerification(selfVerificationConfig.accountName) },
-                        onClose = ::closeSelfVerification,
+                        onClose = { closeSelfVerification(selfVerificationConfig.accountName) },
                     )
             )
 
@@ -371,19 +371,29 @@ open class MainViewModelImpl(
     }
 
     /** Continually checks for new self verifications in a queue and executes them sequentially. */
+    // Changed to an unidirectional flow:
+    //
+    // To start a verification flow, add an accountName to selfVerifications
+    // This method will pick that change up and navigate accordingly
+    //
+    // To close a verification flow, remove the accountName from selfVerifications
+    // If there are still pending verifications, this method will navigate to that flow,
+    // otherwise it'll close the self verification flow entirely.
     private fun startSelfVerificationsQueue() {
         coroutineScope.launch {
             selfVerifications.collect { currentSelfVerifications ->
                 log.trace { "current self verifications: $currentSelfVerifications" }
-                currentSelfVerifications.firstOrNull()?.let { accountName ->
-                    log.debug { "selfVerification for account $accountName" }
+                val nextAccountToVerify = currentSelfVerifications.firstOrNull()
+                if (nextAccountToVerify != null) {
                     selfVerificationNavigation.replaceCurrentSuspending(
-                        SelfVerificationConfig.SelfVerification(accountName)
+                        SelfVerificationConfig.SelfVerification(nextAccountToVerify)
                     )
-                    selfVerificationStack.toFlow().first { childStack ->
-                        childStack.active.configuration == SelfVerificationConfig.None
-                    }.let {
-                        selfVerifications.value -= accountName
+                } else {
+                    // Queue is empty, close all verifications
+                    if (selfVerificationStack.backStack.any { it.configuration is SelfVerificationConfig.None }) {
+                        selfVerificationNavigation.popWhileSuspending { it !is SelfVerificationConfig.None }
+                    } else {
+                        selfVerificationNavigation.replaceCurrentSuspending(SelfVerificationConfig.None)
                     }
                 }
             }
@@ -420,24 +430,26 @@ open class MainViewModelImpl(
                                 log.debug { "self verification methods (account $accountName): $selfVerificationMethods" }
                                 when (selfVerificationMethods) {
                                     is PreconditionsNotMet -> {
-                                        log.debug { "cannot determine yet if cross-signing is needed" }
+                                        log.debug { "cannot determine yet if cross-signing is needed for $accountName" }
                                     }
 
                                     is NoCrossSigningEnabled -> {
-                                        log.debug { "start bootstrapping" }
+                                        log.debug { "start bootstrapping $accountName" }
                                         showBootstrap(accountName)
                                     }
 
                                     is AlreadyCrossSigned -> {
-                                        log.debug { "client is already cross-signed" }
+                                        log.debug { "client for $accountName is already cross-signed" }
+                                        closeSelfVerification(accountName)
                                     }
 
                                     is CrossSigningEnabled -> {
                                         if (selfVerificationMethods.methods.isNotEmpty()) {
-                                            log.debug { "start self verification" }
+                                            log.debug { "start self verification for $accountName" }
                                             showSelfVerification(accountName)
                                         } else {
-                                            closeSelfVerification()
+                                            log.debug { "no self verification methods available for $accountName" }
+                                            closeSelfVerification(accountName)
                                         }
                                     }
                                 }
@@ -598,12 +610,9 @@ open class MainViewModelImpl(
         selfVerifications.value += accountName
     }
 
-    internal fun closeSelfVerification() {
-        if (selfVerificationStack.backStack.any { it.configuration is SelfVerificationConfig.None }) {
-            selfVerificationNavigation.launchPopWhile(coroutineScope) { it !is SelfVerificationConfig.None }
-        } else {
-            selfVerificationNavigation.launchReplaceCurrent(coroutineScope, SelfVerificationConfig.None)
-        }
+    internal fun closeSelfVerification(accountName: String) {
+        log.debug { "remove account from self verification queue: $accountName" }
+        selfVerifications.value -= accountName
     }
 
     private suspend fun showBootstrap(accountName: String) {

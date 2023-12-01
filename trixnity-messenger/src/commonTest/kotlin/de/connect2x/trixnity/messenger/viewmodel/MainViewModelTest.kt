@@ -444,7 +444,7 @@ class MainViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationConfig.SelfVerification>()
             }
-            cut.closeSelfVerification()
+            cut.closeSelfVerification("test")
             eventually(2.seconds) {
                 cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationConfig.None>()
             }
@@ -511,13 +511,13 @@ class MainViewModelTest : ShouldSpec() {
                 accountName shouldBe "test"
                 accountName
             }
-            cut.closeSelfVerification()
+            cut.closeSelfVerification("test")
             eventually(2.seconds) {
                 val configuration = cut.selfVerificationStack.value.active.configuration
                 configuration.shouldBeInstanceOf<SelfVerificationConfig.SelfVerification>()
                 configuration.accountName shouldBe "test2"
             }
-            cut.closeSelfVerification()
+            cut.closeSelfVerification("test2")
             eventually(2.seconds) {
                 cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationConfig.None>()
             }
