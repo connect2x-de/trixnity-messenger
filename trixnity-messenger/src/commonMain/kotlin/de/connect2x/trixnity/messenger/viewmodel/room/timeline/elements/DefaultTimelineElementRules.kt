@@ -4,8 +4,7 @@ import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStep
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.OlmEncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -14,8 +13,7 @@ import kotlin.reflect.KClass
 object DefaultTimelineElementRules : TimelineElementRules {
     override val areVisible: Set<KClass<out RoomEventContent>> = setOf(
         // encrypted
-        MegolmEncryptedEventContent::class,
-        OlmEncryptedEventContent::class,
+        MegolmEncryptedMessageEventContent::class,
         // messages
         RoomMessageEventContent::class,
         RedactedEventContent::class,
@@ -28,8 +26,7 @@ object DefaultTimelineElementRules : TimelineElementRules {
     )
     override val canHaveUnreadMarker: Set<KClass<out RoomEventContent>> = setOf(
         // encrypted
-        MegolmEncryptedEventContent::class,
-        OlmEncryptedEventContent::class,
+        MegolmEncryptedMessageEventContent::class,
         // messages
         RoomMessageEventContent::class,
         RedactedEventContent::class,

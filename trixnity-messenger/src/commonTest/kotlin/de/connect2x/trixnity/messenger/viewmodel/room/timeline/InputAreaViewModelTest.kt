@@ -131,8 +131,6 @@ class InputAreaViewModelTest : ShouldSpec() {
                     TimelineEvent(
                         event = messageEvent,
                         content = Result.success(TextMessageEventContent("Hello")),
-                        roomId = roomId,
-                        eventId = eventId,
                         previousEventId = null,
                         nextEventId = null,
                         gap = null,

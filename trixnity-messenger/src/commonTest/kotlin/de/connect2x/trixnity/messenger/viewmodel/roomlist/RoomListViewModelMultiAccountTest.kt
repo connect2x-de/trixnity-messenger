@@ -1078,8 +1078,6 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             unsigned = null
         ),
         content = null,
-        roomId = roomId1,
-        eventId = eventId,
         previousEventId = null,
         nextEventId = null,
         gap = null,

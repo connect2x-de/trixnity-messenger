@@ -8,10 +8,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.room.*
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.RoomUserReceipts
-import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.*
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -333,8 +330,8 @@ class MessageEventBuilder {
         return result
     }
 
-    fun encrypted(): EncryptedEventContent {
-        val result = EncryptedEventContent.MegolmEncryptedEventContent(
+    fun encrypted(): EncryptedMessageEventContent {
+        val result = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
             ciphertext = "",
             sessionId = ""
         )

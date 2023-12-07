@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
@@ -26,6 +25,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -35,7 +35,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
@@ -166,7 +166,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val timelineEventFlow = MutableStateFlow(
                 timelineEvent(
                     messageEvent(
-                        MegolmEncryptedEventContent(
+                        MegolmEncryptedMessageEventContent(
                             ciphertext = "",
                             senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                             deviceId = "",
@@ -183,7 +183,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 )
             timelineEventFlow.value = timelineEvent(
                 messageEvent(
-                    MegolmEncryptedEventContent(
+                    MegolmEncryptedMessageEventContent(
                         ciphertext = "",
                         senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                         deviceId = "",
@@ -229,7 +229,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val timelineEventFlow = MutableStateFlow(
                 timelineEvent(
                     messageEvent(
-                        MegolmEncryptedEventContent(
+                        MegolmEncryptedMessageEventContent(
                             ciphertext = "",
                             senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                             deviceId = "",
@@ -254,7 +254,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             timelineEventFlow.value =
                 timelineEvent(
                     messageEvent(
-                        MegolmEncryptedEventContent(
+                        MegolmEncryptedMessageEventContent(
                             ciphertext = "",
                             senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                             deviceId = "",
@@ -340,8 +340,6 @@ class TimelineElementViewModelTest : ShouldSpec() {
         val timelineEvent = TimelineEvent(
             event = event,
             content = content,
-            roomId = roomId,
-            eventId = EventId(uuid4().toString()),
             previousEventId = previousEvent?.eventId,
             nextEventId = null,
             gap = null,

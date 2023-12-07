@@ -366,8 +366,6 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 stateKey = stateKey,
             ),
             content = null,
-            roomId = RoomId(""),
-            eventId = EventId(""),
             previousEventId = null,
             nextEventId = null,
             gap = null,

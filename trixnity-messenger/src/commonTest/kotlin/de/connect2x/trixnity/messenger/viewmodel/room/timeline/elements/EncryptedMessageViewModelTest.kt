@@ -25,7 +25,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
@@ -114,7 +114,7 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
 
     private fun timelineEvent(content: Result<RoomEventContent>?) = TimelineEvent(
         event = MessageEvent(
-            content = EncryptedEventContent.MegolmEncryptedEventContent(
+            content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
                 "",
                 Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                 "",
@@ -126,8 +126,6 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
             0L,
         ),
         content = content,
-        roomId = RoomId(""),
-        eventId = EventId(""),
         previousEventId = null,
         nextEventId = null,
         gap = null,

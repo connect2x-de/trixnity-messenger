@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.verification.ActiveVerification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.core.model.EventId
@@ -33,7 +34,7 @@ import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.Timeout
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
@@ -183,8 +184,6 @@ class UserVerificationViewModelTest : ShouldSpec() {
                                         0L,
                                     ),
                                     content = null,
-                                    roomId = thisRoom,
-                                    eventId = EventId("cancel"),
                                     previousEventId = null,
                                     nextEventId = null,
                                     gap = null,
@@ -261,7 +260,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                             flowOf(
                                 TimelineEvent(
                                     event = MessageEvent(
-                                        content = MegolmEncryptedEventContent(
+                                        content = MegolmEncryptedMessageEventContent(
                                             ciphertext = "",
                                             senderKey = Key.Curve25519Key(
                                                 value = "",
@@ -283,8 +282,6 @@ class UserVerificationViewModelTest : ShouldSpec() {
                                             transactionId = "",
                                         )
                                     ),
-                                    roomId = thisRoom,
-                                    eventId = EventId(""),
                                     previousEventId = null,
                                     nextEventId = null,
                                     gap = null,
@@ -399,8 +396,6 @@ class UserVerificationViewModelTest : ShouldSpec() {
             stateKey = ""
         ),
         content = null,
-        roomId = thisRoom,
-        eventId = eventId,
         previousEventId = null,
         nextEventId = null,
         gap = null,
@@ -418,8 +413,6 @@ class UserVerificationViewModelTest : ShouldSpec() {
             originTimestamp = 0L,
         ),
         content = null,
-        roomId = thisRoom,
-        eventId = eventId,
         previousEventId = null,
         nextEventId = null,
         gap = null,

@@ -38,7 +38,7 @@ import kotlinx.datetime.Clock
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.media.MediaStore
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent
+import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -105,7 +105,7 @@ fun trixnityMessengerModule() = module {
                 setOwnMessagesAsFullyRead = true
                 httpClientFactory = get<HttpClientFactory>()()
                 lastRelevantEventFilter =
-                    { it.content is RoomMessageEventContent || it.content is EncryptedEventContent }
+                    { it.content is RoomMessageEventContent || it.isEncrypted }
             }
         }
     }

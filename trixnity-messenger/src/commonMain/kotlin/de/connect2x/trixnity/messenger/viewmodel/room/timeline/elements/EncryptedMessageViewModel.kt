@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
 
 private val log = KotlinLogging.logger { }
 
