@@ -14,7 +14,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
@@ -45,7 +45,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
         should("consider decrypted text messages as relevant") {
             val timelineEvent = timelineEvent(
                 MessageEvent(
-                    MegolmEncryptedEventContent(
+                    MegolmEncryptedMessageEventContent(
                         ciphertext = "cipherCipher",
                         senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                         deviceId = "",
@@ -74,7 +74,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
         should("consider unknown decrypted message events as not relevant") {
             val timelineEvent = timelineEvent(
                 MessageEvent(
-                    MegolmEncryptedEventContent(
+                    MegolmEncryptedMessageEventContent(
                         ciphertext = "cipherCipher",
                         senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                         deviceId = "",
@@ -113,7 +113,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
         should("consider encrypted messages as relevant as we do not know anything about their type yet") {
             val timelineEvent = timelineEvent(
                 MessageEvent(
-                    MegolmEncryptedEventContent(
+                    MegolmEncryptedMessageEventContent(
                         ciphertext = "cipherCipher",
                         senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
                         deviceId = "",
@@ -133,8 +133,6 @@ class RelevantTimelineEventsTest : ShouldSpec() {
     ): TimelineEvent = TimelineEvent(
         roomEvent,
         content,
-        roomId,
-        eventId,
         previousEventId = null,
         nextEventId = null,
         gap = null,

@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.*
@@ -14,6 +13,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.avatarUrl
+import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.RelatesTo

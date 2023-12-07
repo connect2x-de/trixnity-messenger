@@ -37,6 +37,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import org.kodein.mock.Mock
@@ -384,7 +385,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             mocker.every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             val reaction = TimelineEvent(
                 MessageEvent(
-                    EncryptedEventContent.MegolmEncryptedEventContent(
+                    MegolmEncryptedMessageEventContent(
                         ciphertext = "78fd687dfdsf",
                         senderKey = Key.Curve25519Key(value = ""),
                         deviceId = "deviceId",
@@ -675,7 +676,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                             MutableStateFlow(
                                 TimelineEvent(
                                     MessageEvent(
-                                        EncryptedEventContent.MegolmEncryptedEventContent(
+                                        MegolmEncryptedMessageEventContent(
                                             "",
                                             Key.Curve25519Key(value = ""),
                                             deviceId = "",
@@ -942,7 +943,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
     private fun timelineEventEncrypted(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2) =
         TimelineEvent(
             event = MessageEvent(
-                content = EncryptedEventContent.MegolmEncryptedEventContent(
+                content = MegolmEncryptedMessageEventContent(
                     ciphertext = "",
                     senderKey = Key.Curve25519Key(value = ""),
                     deviceId = "",

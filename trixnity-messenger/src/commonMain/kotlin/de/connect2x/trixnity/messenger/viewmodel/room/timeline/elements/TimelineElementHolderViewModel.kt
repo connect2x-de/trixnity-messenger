@@ -16,10 +16,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.avatarUrl
-import net.folivo.trixnity.client.store.isReplaced
-import net.folivo.trixnity.client.store.isReplacing
+import net.folivo.trixnity.client.store.*
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
@@ -30,7 +27,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
-import net.folivo.trixnity.core.model.events.m.room.EncryptedEventContent.MegolmEncryptedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
@@ -474,7 +471,7 @@ open class TimelineElementHolderViewModelImpl(
                 )
             }
 
-            is MegolmEncryptedEventContent -> {
+            is MegolmEncryptedMessageEventContent -> {
                 log.trace { "Create encrypted message view model: ${event.id}" }
                 get<EncryptedMessageViewModelFactory>().create(
                     viewModelContext = this,

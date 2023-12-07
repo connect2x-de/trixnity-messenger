@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId

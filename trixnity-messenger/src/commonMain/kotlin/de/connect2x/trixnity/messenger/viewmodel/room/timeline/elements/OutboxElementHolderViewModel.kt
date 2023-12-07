@@ -182,7 +182,10 @@ open class OutboxElementHolderViewModelImpl(
             RoomOutboxMessage.SendError.NoMediaPermission -> i18n.sendErrorMediaPermission()
             RoomOutboxMessage.SendError.MediaTooLarge -> i18n.sendErrorMediaTooLarge()
             is RoomOutboxMessage.SendError.BadRequest -> i18n.sendErrorUnknown(sendError.errorResponse.error)
-            is RoomOutboxMessage.SendError.Unknown -> i18n.sendErrorUnknown(sendError.errorResponse.error)
+            is RoomOutboxMessage.SendError.Unknown -> i18n.sendErrorUnknown(sendError.errorResponse?.error)
+            RoomOutboxMessage.SendError.RoomDataNotFoundLocally -> i18n.sendErrorUnknown(sendError.toString())
+            RoomOutboxMessage.SendError.EncryptionAlgorithmNotSupported -> i18n.sendErrorUnknown(sendError.toString())
+            is RoomOutboxMessage.SendError.EncryptionError -> i18n.sendErrorUnknown(sendError.reason)
             null -> null
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
