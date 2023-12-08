@@ -1,8 +1,6 @@
 import co.touchlab.skie.configuration.DefaultArgumentInterop
 import co.touchlab.skie.configuration.EnumInterop
 import co.touchlab.skie.configuration.SealedInterop
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 plugins {
     id("com.android.library")
@@ -14,7 +12,7 @@ plugins {
     id("co.touchlab.skie")
     `maven-publish`
     id("co.touchlab.kmmbridge")
-//    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka")
 }
 
 kotlin {
@@ -196,19 +194,13 @@ dependencies {
 //    }
 //}
 
-rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin::class.java) {
-    rootProject.the<YarnRootExtension>().yarnLockMismatchReport = YarnLockMismatchReport.WARNING // NONE | FAIL
-    rootProject.the<YarnRootExtension>().reportNewYarnLock = true
-    rootProject.the<YarnRootExtension>().yarnLockAutoReplace = true
-}
-
 publishing {
-//    val dokkaJar by tasks.registering(Jar::class) {
-//        onlyIf { isCI }
-//        dependsOn(tasks.dokkaHtml)
-//        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-//        archiveClassifier.set("javadoc")
-//    }
+    val dokkaJar by tasks.registering(Jar::class) {
+        dependsOn(tasks.dokkaHtml)
+        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+        archiveClassifier.set("javadoc")
+        onlyIf { isCI }
+    }
 
     repositories {
         maven {
@@ -245,7 +237,7 @@ publishing {
                     url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
                 }
             }
-//            artifact(dokkaJar)
+            if (isCI) artifact(dokkaJar)
         }
     }
 }
