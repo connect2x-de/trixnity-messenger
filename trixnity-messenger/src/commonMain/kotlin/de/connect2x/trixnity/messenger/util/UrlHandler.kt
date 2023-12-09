@@ -10,14 +10,17 @@ import kotlinx.coroutines.flow.filter
 interface UrlHandler : Flow<Url>
 
 open class UrlHandlerBase(
-    messengerSettings: MessengerSettings,
-    filter: (Url) -> Boolean = urlFilter(messengerSettings),
     protected val urlHandlerFlow: MutableSharedFlow<Url> =
         MutableSharedFlow(
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
-) : Flow<Url> by urlHandlerFlow.filter(filter)
+) : UrlHandler, Flow<Url> by urlHandlerFlow
+
+class FilteringUrlHandler(
+    baseUrlHandler: UrlHandler,
+    messengerSettings: MessengerSettings,
+) : Flow<Url> by baseUrlHandler.filter(urlFilter(messengerSettings))
 
 fun urlFilter(messengerSettings: MessengerSettings): (Url) -> Boolean = {
     it.protocol == URLProtocol.createOrDefault(messengerSettings.urlProtocol)

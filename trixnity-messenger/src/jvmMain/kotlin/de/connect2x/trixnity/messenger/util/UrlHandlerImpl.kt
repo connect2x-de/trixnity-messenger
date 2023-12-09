@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.OS
 import de.connect2x.trixnity.messenger.closeApp
 import de.connect2x.trixnity.messenger.getAppFolder
 import de.connect2x.trixnity.messenger.getOs
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +26,7 @@ import kotlin.io.path.writeText
 
 private val log = KotlinLogging.logger { }
 
-class UrlHandlerImpl(messengerSettings: MessengerSettings) : UrlHandlerBase(messengerSettings), UrlHandler {
+class UrlHandlerImpl : UrlHandlerBase() {
 
     private val started = MutableStateFlow(false)
     private val lockFileName = "port.lock"

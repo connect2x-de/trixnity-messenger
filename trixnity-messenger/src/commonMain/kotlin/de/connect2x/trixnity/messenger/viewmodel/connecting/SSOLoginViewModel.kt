@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.util.UrlHandler
+import de.connect2x.trixnity.messenger.util.FilteringUrlHandler
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
@@ -86,17 +86,15 @@ open class SSOLoginViewModelImpl(
         }.build()
 
     init {
-        val urlHandler = getKoin().getOrNull<UrlHandler>()
-        if (urlHandler != null) {
-            coroutineScope.launch {
-                urlHandler.filter {
-                    it.encodedPath == redirectUrl.encodedPath
-                            && it.parameters["id"] == redirectUrl.parameters["id"]
-                }.collect {
-                    val loginToken = it.parameters["loginToken"]
-                    if (loginToken != null)
-                        this@SSOLoginViewModelImpl.loginToken.value = loginToken
-                }
+        val urlHandler = get<FilteringUrlHandler>()
+        coroutineScope.launch {
+            urlHandler.filter {
+                it.encodedPath == redirectUrl.encodedPath
+                        && it.parameters["id"] == redirectUrl.parameters["id"]
+            }.collect {
+                val loginToken = it.parameters["loginToken"]
+                if (loginToken != null)
+                    this@SSOLoginViewModelImpl.loginToken.value = loginToken
             }
         }
     }
