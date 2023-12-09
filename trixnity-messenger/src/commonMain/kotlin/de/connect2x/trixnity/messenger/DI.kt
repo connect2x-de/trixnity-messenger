@@ -4,9 +4,7 @@ import com.russhwolf.settings.Settings
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
-import de.connect2x.trixnity.messenger.util.Search
-import de.connect2x.trixnity.messenger.util.SearchImpl
-import de.connect2x.trixnity.messenger.util.Secrets
+import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.RoomNameImpl
@@ -110,6 +108,10 @@ fun trixnityMessengerModule() = module {
         }
     }
 
+    single<FilteringUrlHandler> {
+        val urlHandler = getOrNull<UrlHandler>() ?: UrlHandlerBase()
+        FilteringUrlHandler(urlHandler, get())
+    }
     single<Settings> { createSettings() }
     single<MessengerSettings> { MessengerSettingsImpl(get()) }
     single<GetAccountNames> { GetAccountNamesImpl() }

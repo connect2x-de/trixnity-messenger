@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import io.ktor.http.*
 
-class UrlHandlerImpl(messengerSettings: MessengerSettings) : UrlHandlerBase(messengerSettings), UrlHandler {
+class UrlHandlerImpl : UrlHandlerBase() {
 
     /**
      * This need to be called by application url handler.
