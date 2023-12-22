@@ -20,7 +20,6 @@ data class SpaceViewModel(
 
 internal fun RoomId.roomsInThisSpace(matrixClient: MatrixClient): Flow<List<RoomId>> {
     log.debug { "rooms in space: $this" }
-    println(" ------ ${matrixClient.room}")
     return matrixClient.room.getAllState<ChildEventContent>(this).map { stateEvents ->
         stateEvents?.map { (child, _) ->
             RoomId(child)

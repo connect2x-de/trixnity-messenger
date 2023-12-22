@@ -2,12 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.timing.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -18,7 +17,6 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -27,22 +25,15 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.Event
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
-import net.folivo.trixnity.core.model.push.PushAction.Notify
-import net.folivo.trixnity.core.model.push.PushCondition
-import net.folivo.trixnity.core.model.push.PushRule
-import net.folivo.trixnity.core.model.push.PushRuleSet
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class RoomSettingsViewModelTest : ShouldSpec() {
@@ -51,7 +42,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
     val mocker = Mocker()
 
     private val roomId = RoomId("room", "localhost")
-
     private val me = UserId("user1", "localhost")
 
     private val roomUserMe = RoomUser(
@@ -128,8 +118,9 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 every { matrixClientMock.api } returns matrixClientServerApiMock
                 every { matrixClientMock.userId } returns me
 
-                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
+                every { roomServiceMock.getById(isAny()) } returns flowOf(Room(roomId))
                 every {
                     roomServiceMock.getState(
                         roomId,
@@ -267,11 +258,26 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             di = koinApplication {
                 modules(
-                    trixnityMessengerModule(),
-                    testMatrixClientModule(matrixClientMock),
+                    createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
+                        single<MemberListViewModelFactory> {
+                            object : MemberListViewModelFactory {
+                                override fun create(
+                                    viewModelContext: MatrixClientViewModelContext,
+                                    selectedRoomId: RoomId,
+                                    error: MutableStateFlow<String?>
+                                ): MemberListViewModel = object : MemberListViewModel {
+                                    override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
+                                        MutableStateFlow(listOf())
+                                    override val showLoadingSpinner: StateFlow<Boolean> = MutableStateFlow(false)
+                                    override val error: StateFlow<String?> = MutableStateFlow(null)
+
+                                }
+                            }
+                        }
+                    },
                 )
             }.koin,
-            accountName = "test",
+            userId = me,
             coroutineContext = coroutineContext,
         ),
         selectedRoomId = roomId,

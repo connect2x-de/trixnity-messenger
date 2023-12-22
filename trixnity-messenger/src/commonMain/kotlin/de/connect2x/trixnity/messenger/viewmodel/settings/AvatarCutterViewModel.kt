@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.GetFileInfo
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.GetFileInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.*
@@ -46,7 +46,7 @@ open class AvatarCutterViewModelImpl(
 
     private val fileInfo = flow { emit(getFileInfo(file)) }
         .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
-    override val image = fileInfo.map { it.byteArrayFlow.toByteArray() }
+    override val image = fileInfo.map { it?.content?.toByteArray() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val upload = MutableStateFlow(false)
@@ -67,11 +67,12 @@ open class AvatarCutterViewModelImpl(
     override fun accept() {
         coroutineScope.launch {
             upload.value = true
-            matrixClient.media.prepareUploadThumbnail(
-                fileInfo.first().byteArrayFlow,
-                ContentType.Image.Any
-            )
-                ?.let { (cache, _) ->
+            val fileInfo = fileInfo.first()
+            if (fileInfo != null) {
+                matrixClient.media.prepareUploadThumbnail(
+                    fileInfo.content,
+                    ContentType.Image.Any
+                )?.let { (cache, _) ->
                     matrixClient.media.uploadMedia(cache).fold(
                         onSuccess = { url ->
                             matrixClient.setAvatarUrl(url).fold(
@@ -93,6 +94,9 @@ open class AvatarCutterViewModelImpl(
                         }
                     )
                 }
+            } else {
+                log.warn { "fileInfo is null" }
+            }
         }
     }
 

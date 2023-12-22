@@ -2,12 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -86,7 +83,7 @@ class PrivacySettingsViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             val privacySettingViewModel1 = cut.privacySettings.value[0]
-            privacySettingViewModel1.accountName shouldBe "test1"
+            privacySettingViewModel1.userId shouldBe UserId("test1", "server")
             privacySettingViewModel1.presenceIsPublic.value shouldBe false
             privacySettingViewModel1.readMarkerIsPublic.value shouldBe false
             privacySettingViewModel1.typingIsPublic.value shouldBe false
@@ -97,7 +94,7 @@ class PrivacySettingsViewModelTest : ShouldSpec() {
                     )
 
             val privacySettingViewModel2 = cut.privacySettings.value[1]
-            privacySettingViewModel2.accountName shouldBe "test2"
+            privacySettingViewModel2.userId shouldBe UserId("test2", "server")
             privacySettingViewModel2.presenceIsPublic.value shouldBe false
             privacySettingViewModel2.readMarkerIsPublic.value shouldBe false
             privacySettingViewModel2.typingIsPublic.value shouldBe false
@@ -114,14 +111,14 @@ class PrivacySettingsViewModelTest : ShouldSpec() {
     private fun privacySettingsViewModel(coroutineContext: CoroutineContext): PrivacySettingsViewModelImpl {
         val di = koinApplication {
             modules(
-                trixnityMessengerModule(),
-                testMatrixClientModule(listOf(matrixClientMock1, matrixClientMock2), listOf("test1", "test2")),
-                module {
-                    single<MessengerSettings> { testMessengerSettings("en") }
-                }
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(
+                        UserId("test1", "server") to matrixClientMock1,
+                        UserId("test2", "server") to matrixClientMock2
+                    )
+                )
             )
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         return PrivacySettingsViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 di = di,

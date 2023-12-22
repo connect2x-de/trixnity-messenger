@@ -2,13 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.VerificationStepConfig
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -34,7 +33,7 @@ import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.clientserverapi.model.devices.Device
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -78,15 +77,6 @@ class VerificationViewModelTest : ShouldSpec() {
 
     @Mock
     lateinit var activeVerification2: ActiveVerification
-
-//    private val activeDeviceVerificationMock = activeDeviceVerification(CoroutineScope())
-//    {
-//        every { state } returns activeVerificationState
-//        every { theirUserId } returns UserId("otherUserId", "localhost")
-//        every { theirDeviceId } returns "otherDeviceId"
-//    }
-
-//    private val activeDeviceVerificationStateFlowMock = MutableStateFlow(activeDeviceVerificationMock)
 
     private val onCloseDeviceVerificationMock = mockFunction0<Unit>(mocker)
     private val onRedoSelfVerificationMock = mockFunction0<Unit>(mocker)
@@ -247,7 +237,7 @@ class VerificationViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("show request screen again, whe verification is re-initiated") {
+        should("show request screen again, when verification is re-initiated") {
             with(mocker) {
                 every {
                     keyServiceMock.getTrustLevel(isEqual(ownUserId), isEqual(ownDeviceId))
@@ -256,25 +246,25 @@ class VerificationViewModelTest : ShouldSpec() {
                 every { activeVerification2.state } returns MutableStateFlow(theirRequest())
             }
 
+            println(0)
             val cut = deviceVerificationViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
 
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            coroutineScope.launch {
-                eventually(1.seconds) {
-                    cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Success>()
-                }
-            }.join()
+            println(1)
+            eventually(1.seconds) {
+                cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Success>()
+            }
 
+            println(2)
             activeDeviceVerificationFlow.value = activeVerification2
             testCoroutineScheduler.advanceUntilIdle()
 
-            coroutineScope.launch {
-                eventually(1.seconds) {
-                    cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Request>()
-                }
-            }.join()
+            println(3)
+            eventually(1.seconds) {
+                cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Request>()
+            }
 
+            println(4)
             cancelNeverEndingCoroutines()
         }
 
@@ -285,11 +275,14 @@ class VerificationViewModelTest : ShouldSpec() {
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
-                    modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                        single { getActiveVerification }
-                    })
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(UserId("test", "server") to matrixClientMock)
+                        ) + module {
+                            single { getActiveVerification }
+                        })
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
             onCloseVerification = onCloseDeviceVerificationMock,
@@ -300,7 +293,7 @@ class VerificationViewModelTest : ShouldSpec() {
     }
 
     private fun theirRequest() = ActiveVerificationState.TheirRequest(
-        content = VerificationRequestEventContent("", emptySet(), 0L, ""),
+        content = VerificationRequestToDeviceEventContent("", emptySet(), 0L, ""),
         ownDeviceId = ownDeviceId,
         supportedMethods = emptySet(),
         relatesTo = null,

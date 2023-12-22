@@ -3,11 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.Serializable
 
 
 class InitializingRouter<T, U>(
@@ -18,6 +17,7 @@ class InitializingRouter<T, U>(
     private val navigation = StackNavigation<InitializationConfig>()
     val stack = componentContext.childStack(
         source = navigation,
+        serializer = InitializationConfig.serializer(),
         initialConfiguration = InitializationConfig.Initialization,
         key = "InitializingRouter-${uuid4()}",
         childFactory = { _, c -> createChild(c) },
@@ -48,12 +48,13 @@ class InitializingRouter<T, U>(
         navigation.bringToFrontSuspending(InitializationConfig.View)
     }
 
-    sealed class InitializationConfig : Parcelable {
-        @Parcelize
-        object Initialization : InitializationConfig()
+    @Serializable
+    sealed class InitializationConfig {
+        @Serializable
+        data object Initialization : InitializationConfig()
 
-        @Parcelize
-        object View : InitializationConfig()
+        @Serializable
+        data object View : InitializationConfig()
     }
 
     sealed class InitializationWrapper<U> {

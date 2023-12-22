@@ -293,7 +293,7 @@ open class TimelineElementHolderViewModelImpl(
         return when (content) {
             is RoomMessageEventContent -> {
                 when (content) {
-                    is TextMessageEventContent -> {
+                    is TextBased -> {
                         log.trace { "Create text message view model: ${event.id}" }
                         get<TextMessageViewModelFactory>().create(
                             viewModelContext = this,
@@ -317,31 +317,7 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    is NoticeMessageEventContent -> {
-                        log.trace { "Create text message view model: ${event.id}" }
-                        get<NoticeMessageViewModelFactory>().create(
-                            viewModelContext = this,
-                            fallbackMessage = content.body,
-                            referencedMessage = richRepliesComputations.getReferencedMessage(
-                                matrixClient,
-                                content.relatesTo,
-                                selectedRoomId
-                            ),
-                            message = content.bodyWithoutFallback,
-                            formattedBody = content.formattedBody,
-                            sender = sender,
-                            showSender = showSender,
-                            formattedTime = formatTime(receivedDateTime),
-                            formattedDate = formatDate(receivedDateTime),
-                            showDateAbove = showDateAbove,
-                            isByMe = isByMe,
-                            showChatBubbleEdge = showChatBubbleEdge,
-                            showBigGap = showChatBubbleEdge,
-                            invitation = invitation,
-                        )
-                    }
-
-                    is ImageMessageEventContent -> {
+                    is FileBased.Image -> {
                         log.trace { "Create image message view model: ${event.id}" }
                         get<ImageMessageViewModelFactory>().create(
                             viewModelContext = this,
@@ -360,7 +336,7 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    is VideoMessageEventContent -> {
+                    is FileBased.Video -> {
                         log.trace { "Create video message view model: ${event.id}" }
                         get<VideoMessageViewModelFactory>().create(
                             viewModelContext = this,
@@ -378,7 +354,7 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    is AudioMessageEventContent -> {
+                    is FileBased.Audio -> {
                         log.trace { "Create audio message view model: ${event.id}" }
                         get<AudioMessageViewModelFactory>().create(
                             viewModelContext = this,
@@ -396,7 +372,7 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    is FileMessageEventContent -> {
+                    is FileBased.File -> {
                         log.trace { "Create file message view model: ${event.id}" }
                         get<FileMessageViewModelFactory>().create(
                             viewModelContext = this,
@@ -413,7 +389,7 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    is VerificationRequestMessageEventContent -> {
+                    is VerificationRequest -> {
                         log.trace { "Create user verification view model: ${event.id}" }
                         get<UserVerificationViewModelFactory>().create(
                             viewModelContext = this,
@@ -428,8 +404,7 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    is EmoteMessageEventContent,
-                    is UnknownRoomMessageEventContent -> {
+                    is Unknown -> {
                         log.warn { "created fallback view model: ${event.id}" }
                         get<FallbackMessageViewModelFactory>().create(
                             viewModelContext = this,
@@ -575,7 +550,7 @@ open class TimelineElementHolderViewModelImpl(
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow
         .filterNotNull()
         .map {
-            it.event.sender == matrixClient.userId && it.content?.getOrNull() is TextMessageEventContent
+            it.event.sender == matrixClient.userId && it.content?.getOrNull() is TextBased
         }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 

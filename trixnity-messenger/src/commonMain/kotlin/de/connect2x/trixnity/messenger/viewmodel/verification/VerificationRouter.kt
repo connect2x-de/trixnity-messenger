@@ -3,24 +3,23 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.Parcel
-import de.connect2x.trixnity.messenger.Parceler
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 class VerificationRouter(
     private val viewModelContext: ViewModelContext,
-    private val onRedoSelfVerification: (String) -> Unit,
+    private val onRedoSelfVerification: (userId: UserId) -> Unit,
 ) {
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
+        serializer = Config.serializer(),
         initialConfiguration = Config.None,
         key = "DeviceVerificationRouter",
         childFactory = ::createChild,
@@ -30,9 +29,9 @@ class VerificationRouter(
         when (config) {
             is Config.DeviceVerification -> VerificationWrapper.Verification(
                 viewModelContext.get<VerificationViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     onCloseVerification = ::closeVerification,
-                    onRedoSelfVerification = { onRedoSelfVerification(config.accountName) },
+                    onRedoSelfVerification = { onRedoSelfVerification(config.userId) },
                     roomId = null,
                     timelineEventId = null,
                 )
@@ -40,9 +39,9 @@ class VerificationRouter(
 
             is Config.UserVerification -> VerificationWrapper.Verification(
                 viewModelContext.get<VerificationViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     onCloseVerification = ::closeVerification,
-                    onRedoSelfVerification = { onRedoSelfVerification(config.accountName) },
+                    onRedoSelfVerification = { onRedoSelfVerification(config.userId) },
                     roomId = config.roomId,
                     timelineEventId = config.timelineEventId,
                 )
@@ -51,15 +50,15 @@ class VerificationRouter(
             is Config.None -> VerificationWrapper.None
         }
 
-    suspend fun startDeviceVerification(accountName: String) {
+    suspend fun startDeviceVerification(userId: UserId) {
         if (stack.value.active.configuration !is Config.DeviceVerification) {
-            navigation.pushSuspending(Config.DeviceVerification(accountName))
+            navigation.pushSuspending(Config.DeviceVerification(userId))
         }
     }
 
-    suspend fun startUserVerification(roomId: RoomId, timelineEventId: EventId, accountName: String) {
+    suspend fun startUserVerification(roomId: RoomId, timelineEventId: EventId, userId: UserId) {
         if (stack.value.active.configuration !is Config.UserVerification) {
-            navigation.pushSuspending(Config.UserVerification(roomId, timelineEventId, accountName))
+            navigation.pushSuspending(Config.UserVerification(roomId, timelineEventId, userId))
         }
     }
 
@@ -67,35 +66,20 @@ class VerificationRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    sealed class Config : Parcelable {
-        @Parcelize
-        data class DeviceVerification(val accountName: String) : Config()
+    @Serializable
+    sealed class Config {
+        @Serializable
+        data class DeviceVerification(val userId: UserId) : Config()
 
-        @Parcelize
-        data class UserVerification(val roomId: RoomId, val timelineEventId: EventId, val accountName: String) :
-            Config() {
-            private companion object : Parceler<UserVerification> {
-                override fun UserVerification.write(parcel: Parcel, flags: Int) {
-                    parcel.writeString(this.roomId.full)
-                    parcel.writeString(this.timelineEventId.full)
-                    parcel.writeString(this.accountName)
-                }
+        @Serializable
+        data class UserVerification(val roomId: RoomId, val timelineEventId: EventId, val userId: UserId) : Config()
 
-                override fun create(parcel: Parcel): UserVerification {
-                    val roomId = RoomId(parcel.readString() ?: "")
-                    val timelineEventId = EventId(parcel.readString() ?: "")
-                    val accountName = parcel.readString() ?: ""
-                    return UserVerification(roomId, timelineEventId, accountName)
-                }
-            }
-        }
-
-        @Parcelize
-        object None : Config()
+        @Serializable
+        data object None : Config()
     }
 
     sealed class VerificationWrapper {
         class Verification(val verificationViewModel: VerificationViewModel) : VerificationWrapper()
-        object None : VerificationWrapper()
+        data object None : VerificationWrapper()
     }
 }

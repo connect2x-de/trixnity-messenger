@@ -33,7 +33,7 @@ class RoomInviterTest : ShouldSpec() {
     lateinit var roomServiceMock: RoomService
 
     private val roomId = RoomId("room", "localhost")
-    private val me = UserId("me", "localhost")
+    private val me = UserId("test", "localhost")
     private val inviter = UserId("inviter", "localhost")
     private val someOtherInviter = UserId("someOtherInviter", "localhost")
 

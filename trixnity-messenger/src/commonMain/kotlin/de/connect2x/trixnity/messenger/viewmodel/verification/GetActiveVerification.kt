@@ -7,6 +7,7 @@ import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.ActiveVerification
 
 // needed to mock ActiveVerification instead of concrete subtypes
+// TODO we do not need this anymore (just mock matrixClient.di and inject VerificationService)
 interface GetActiveVerification {
     fun activeDeviceVerification(matrixClient: MatrixClient): StateFlow<ActiveVerification?>
     suspend fun activeUserVerification(matrixClient: MatrixClient, timelineEvent: TimelineEvent): ActiveVerification?

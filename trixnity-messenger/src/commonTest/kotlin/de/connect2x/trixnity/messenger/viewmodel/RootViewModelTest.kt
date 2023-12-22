@@ -9,8 +9,9 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +21,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.core.Koin
@@ -37,10 +40,10 @@ class RootViewModelTest : ShouldSpec() {
     lateinit var matrixClientMock: MatrixClient
 
     @Mock
-    lateinit var matrixClientServiceMock: MatrixClientService
+    lateinit var roomServiceMock: RoomService
 
     @Mock
-    lateinit var roomServiceMock: RoomService
+    lateinit var userServiceMock: UserService
 
     @Mock
     lateinit var downloadManagerMock: DownloadManager
@@ -69,17 +72,15 @@ class RootViewModelTest : ShouldSpec() {
                     modules(
                         module {
                             single { roomServiceMock }
+                            single { userServiceMock }
                         }
                     )
                 }.koin
-                everySuspending { matrixClientServiceMock.initFromStore(isAny()) } returns Result.success(true)
-                everySuspending { matrixClientServiceMock.login(isAny(), isAny(), isAny(), isAny(), isAny()) } returns
-                        Result.success(Unit)
-
                 everySuspending { matrixClientMock.syncOnce<Unit>(isAny(), isAny(), isAny()) } returns
                         Result.success(Unit)
 
                 every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
+                every { userServiceMock.getAllReceipts(isAny()) } returns MutableStateFlow(mapOf())
 
                 every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STOPPED)
 
@@ -88,8 +89,7 @@ class RootViewModelTest : ShouldSpec() {
         }
 
         should("show account creation when there is no account defined yet") {
-            mocker.every { matrixClientServiceMock.matrixClients } returns MutableStateFlow(emptyList())
-            val cut = rootViewModel(emptyList())
+            val cut = rootViewModel()
             eventually(1.seconds) {
                 val config = cut.rootStack.value.active.configuration
                 config.shouldBeTypeOf<RootRouter.Config.AddMatrixAccount>()
@@ -97,65 +97,54 @@ class RootViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun rootViewModel(initialAccountNames: List<String>): RootViewModelImpl {
+    private fun rootViewModel(): RootViewModelImpl {
         val koinApplication = koinApplication {
             modules(
-                trixnityMessengerModule(),
-                module {
-                    single { downloadManagerMock }
-                    single<GetAccountNames> {
-                        object : GetAccountNames {
-                            override suspend fun invoke(): List<String> {
-                                return initialAccountNames
+                createTestDefaultTrixnityMessengerModules() +
+                        module {
+                            single { downloadManagerMock }
+                            single<MainViewModelFactory> {
+                                object : MainViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: ViewModelContext,
+                                        onCreateNewAccount: () -> Unit,
+                                        onRemoveAccount: (userId: UserId) -> Unit
+                                    ): MainViewModel = mainViewModelMock
+                                }
                             }
-                        }
-                    }
-                    single<MainViewModelFactory> {
-                        object : MainViewModelFactory {
-                            override fun create(
-                                viewModelContext: ViewModelContext,
-                                initialSyncOnceIsFinished: (Boolean) -> Unit,
-                                minimizeMessenger: () -> Unit,
-                                onCreateNewAccount: () -> Unit,
-                                onRemoveAccount: (String) -> Unit,
-                            ): MainViewModel = mainViewModelMock
-                        }
-                    }
-                    single<MatrixClientInitializationViewModelFactory> {
-                        object : MatrixClientInitializationViewModelFactory {}
-                    }
-                    single<AccountViewModelFactory> {
-                        object : AccountViewModelFactory {
-                            override fun create(
-                                viewModelContext: ViewModelContext,
-                                onAccountSelected: (String?) -> Unit,
-                                onUserSettingsSelected: () -> Unit,
-                                onShowAppInfo: () -> Unit
-                            ): AccountViewModel = accountViewModelMock
-                        }
-                    }
-                    single<RoomListViewModelFactory> {
-                        object : RoomListViewModelFactory {
-                            override fun create(
-                                viewModelContext: ViewModelContext,
-                                selectedRoomId: StateFlow<RoomId?>,
-                                onRoomSelected: (String, RoomId) -> Unit,
-                                onCreateNewRoom: (String) -> Unit,
-                                onUserSettingsSelected: () -> Unit,
-                                onOpenAppInfo: () -> Unit,
-                                onSendLogs: () -> Unit,
-                                onOpenAccountsOverview: () -> Unit
-                            ) = roomListViewModelMock
-                        }
-                    }
-                })
+                            single<MatrixClientInitializationViewModelFactory> {
+                                object : MatrixClientInitializationViewModelFactory {}
+                            }
+                            single<AccountViewModelFactory> {
+                                object : AccountViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: ViewModelContext,
+                                        onAccountSelected: (UserId?) -> Unit,
+                                        onUserSettingsSelected: () -> Unit,
+                                        onShowAppInfo: () -> Unit
+                                    ): AccountViewModel = accountViewModelMock
+                                }
+                            }
+                            single<RoomListViewModelFactory> {
+                                object : RoomListViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: ViewModelContext,
+                                        selectedRoomId: StateFlow<RoomId?>,
+                                        onRoomSelected: (UserId, RoomId) -> Unit,
+                                        onStartCreateNewRoom: (UserId) -> Unit,
+                                        onUserSettingsSelected: () -> Unit,
+                                        onOpenAppInfo: () -> Unit,
+                                        onSendLogs: () -> Unit,
+                                        onOpenAccounts: () -> Unit
+                                    ): RoomListViewModel = roomListViewModelMock
+                                }
+                            }
+                        })
         }
         di = koinApplication.koin
         return RootViewModelImpl(
             componentContext = DefaultComponentContext(lifecycle),
-            matrixClientService = matrixClientServiceMock,
-            koinApplication = koinApplication,
+            di = koinApplication.koin,
         )
     }
-
 }

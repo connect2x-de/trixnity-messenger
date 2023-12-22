@@ -4,14 +4,13 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -390,42 +389,46 @@ class TimelineViewModelReadByTest : ShouldSpec() {
 
     private fun timelineViewModel(): TimelineViewModelImpl {
         val di = koinApplication {
-            modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                single<RoomHeaderViewModelFactory> {
-                    object : RoomHeaderViewModelFactory {
-                        override fun create(
-                            viewModelContext: MatrixClientViewModelContext,
-                            selectedRoomId: RoomId,
-                            isBackButtonVisible: MutableStateFlow<Boolean>,
-                            onBack: () -> Unit,
-                            onVerifyUser: () -> Unit,
-                            onShowRoomSettings: () -> Unit
-                        ): RoomHeaderViewModel {
-                            return roomHeaderViewModelMock
+            modules(
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(
+                        UserId("test", "server") to matrixClientMock
+                    )
+                ) + module {
+                    single<RoomHeaderViewModelFactory> {
+                        object : RoomHeaderViewModelFactory {
+                            override fun create(
+                                viewModelContext: MatrixClientViewModelContext,
+                                selectedRoomId: RoomId,
+                                isBackButtonVisible: MutableStateFlow<Boolean>,
+                                onBack: () -> Unit,
+                                onVerifyUser: () -> Unit,
+                                onShowRoomSettings: () -> Unit
+                            ): RoomHeaderViewModel {
+                                return roomHeaderViewModelMock
+                            }
                         }
                     }
-                }
-                single<InputAreaViewModelFactory> {
-                    object : InputAreaViewModelFactory {
-                        override fun create(
-                            viewModelContext: MatrixClientViewModelContext,
-                            selectedRoomId: RoomId,
-                            onMessageEditFinished: (EventId) -> Unit,
-                            onMessageReplyToFinished: (EventId) -> Unit,
-                            onShowAttachmentSendView: (file: FileDescriptor) -> Unit
-                        ): InputAreaViewModel {
-                            return inputAreaViewModelMock
+                    single<InputAreaViewModelFactory> {
+                        object : InputAreaViewModelFactory {
+                            override fun create(
+                                viewModelContext: MatrixClientViewModelContext,
+                                selectedRoomId: RoomId,
+                                onMessageEditFinished: (EventId) -> Unit,
+                                onMessageReplyToFinished: (EventId) -> Unit,
+                                onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                            ): InputAreaViewModel {
+                                return inputAreaViewModelMock
+                            }
                         }
                     }
-                }
-            })
+                })
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         return TimelineViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = di,
-                accountName = "test",
+                userId = UserId("test", "server"),
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),

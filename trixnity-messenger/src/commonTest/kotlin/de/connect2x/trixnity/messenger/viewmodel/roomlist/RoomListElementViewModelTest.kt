@@ -2,11 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.RoomName
-import de.connect2x.trixnity.messenger.viewmodel.RoomNameElement
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -38,7 +34,6 @@ import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -95,7 +90,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
     private val roomId3 = RoomId("room3", "localhost")
     private val roomId4 = RoomId("room4", "localhost")
 
-    private val me = UserId("me", "server")
+    private val me = UserId("test", "server")
     private val user2 = UserId("user2", "server")
     private val user3 = UserId("user3", "server")
 
@@ -231,8 +226,8 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 every { userPresenceMock.presentEventContentFlow(isEqual(matrixClientMock), isAny()) } returns
                         MutableStateFlow(null)
 
-                every { roomNameMock.getRoomNameElement(isAny<RoomId>(), isEqual(matrixClientMock)) } returns
-                        flowOf(RoomNameElement("RoomName"))
+                every { roomNameMock.getRoomName(isAny<RoomId>(), isEqual(matrixClientMock)) } returns
+                        flowOf("RoomName")
                 every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
             }
         }
@@ -357,7 +352,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                     MutableStateFlow(
                         TimelineEvent(
                             MessageEvent(
-                                TextMessageEventContent(body = "Hola"),
+                                RoomMessageEventContent.TextBased.Text(body = "Hola"),
                                 eventId1,
                                 user2,
                                 roomId1,
@@ -417,7 +412,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                     MutableStateFlow(
                         TimelineEvent(
                             MessageEvent(
-                                TextMessageEventContent(body = "Hola"),
+                                RoomMessageEventContent.TextBased.Text(body = "Hola"),
                                 eventId1,
                                 user2,
                                 roomId1,
@@ -478,7 +473,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 } else if (i > 0) {
                     TimelineEvent(
                         MessageEvent(
-                            TextMessageEventContent("Hello!"),
+                            RoomMessageEventContent.TextBased.Text("Hello!"),
                             eventId,
                             user2,
                             roomId1,
@@ -593,7 +588,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 } else if (i > 0) {
                     TimelineEvent(
                         MessageEvent(
-                            TextMessageEventContent("Hello!"),
+                            RoomMessageEventContent.TextBased.Text("Hello!"),
                             eventId,
                             user2,
                             roomId1,
@@ -659,7 +654,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                             MutableStateFlow(
                                 TimelineEvent(
                                     MessageEvent(
-                                        RoomMessageEventContent.ImageMessageEventContent(""),
+                                        RoomMessageEventContent.FileBased.Image(""),
                                         eventId1,
                                         user2,
                                         roomId1,
@@ -688,7 +683,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                                         Clock.System.now().toEpochMilliseconds(),
                                     ),
                                     Result.success(
-                                        RoomMessageEventContent.VideoMessageEventContent(""),
+                                        RoomMessageEventContent.FileBased.Video(""),
                                     ),
                                     previousEventId = null,
                                     nextEventId = null,
@@ -902,19 +897,26 @@ class RoomListElementViewModelTest : ShouldSpec() {
         coroutineContext: CoroutineContext
     ): RoomListElementViewModelImpl {
         val di = koinApplication {
-            modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                single { userPresenceMock }
-                single { roomNameMock }
-                single { roomInviter }
-                single { clock }
-            })
+            modules(
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(
+                        UserId(
+                            "test",
+                            "server"
+                        ) to matrixClientMock
+                    )
+                ) + module {
+                    single { userPresenceMock }
+                    single { roomNameMock }
+                    single { roomInviter }
+                    single { clock }
+                })
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         val cut = RoomListElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
             roomId,
@@ -928,7 +930,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
     private fun timelineEvent(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2) =
         TimelineEvent(
             event = MessageEvent(
-                content = TextMessageEventContent(body),
+                content = RoomMessageEventContent.TextBased.Text(body),
                 id = eventId,
                 sender = sender,
                 roomId = roomId1,
@@ -955,7 +957,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 originTimestamp = sentAt.toEpochMilliseconds(),
                 unsigned = null
             ),
-            content = Result.success(TextMessageEventContent(body)),
+            content = Result.success(RoomMessageEventContent.TextBased.Text(body)),
             previousEventId = null,
             nextEventId = null,
             gap = null,

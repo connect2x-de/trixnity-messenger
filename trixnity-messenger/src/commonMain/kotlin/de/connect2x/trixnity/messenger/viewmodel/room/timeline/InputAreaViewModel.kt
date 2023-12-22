@@ -1,8 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.benasher44.uuid.uuid4
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -22,7 +23,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
@@ -120,7 +121,7 @@ open class InputAreaViewModelImpl(
     private val onShowAttachmentSendView: (file: FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
 
-    private val messengerSettings = get<MessengerSettings>()
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
@@ -299,25 +300,13 @@ open class InputAreaViewModelImpl(
             matrixClient.room.getTimelineEvent(selectedRoomId, eventId).firstOrNull()?.content?.getOrNull()
                 ?.let { roomEventContent ->
                     when (roomEventContent) {
-                        is TextMessageEventContent -> {
+                        is TextBased -> {
                             editMode.value = eventId
                             message.value = roomEventContent.bodyWithoutFallback
                             _shouldFocus.value = eventId.full
                         }
 
-                        is NoticeMessageEventContent -> {
-                            editMode.value = eventId
-                            message.value = roomEventContent.bodyWithoutFallback
-                            _shouldFocus.value = eventId.full
-                        }
-
-                        is EmoteMessageEventContent -> {
-                            editMode.value = eventId
-                            message.value = roomEventContent.bodyWithoutFallback
-                            _shouldFocus.value = eventId.full
-                        }
-
-                        else -> log.warn { "cannot edit anything besides TextMessageEventContent" }
+                        else -> log.warn { "cannot edit anything besides TextBased" }
                     }
                 } ?: log.warn { "cannot get timeline event $eventId" }
         }
@@ -371,10 +360,10 @@ open class InputAreaViewModelImpl(
     private suspend fun listOfUsers(search: String): List<Username> {
         val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
         return allUsers
-            ?.entries?.asFlow()
-            ?.map { users -> users.value.first() }
-            ?.filterNotNull()
-            ?.filter { roomUser ->
+            .entries.asFlow()
+            .map { users -> users.value.first() }
+            .filterNotNull()
+            .filter { roomUser ->
                 val userId = roomUser.userId
                 userId != matrixClient.userId && (
                         roomUser.name.contains(search, ignoreCase = true) ||
@@ -382,8 +371,8 @@ open class InputAreaViewModelImpl(
                                 userId.domain.contains(search, ignoreCase = true)
                         )
             }
-            ?.take(10)
-            ?.map { roomUser ->
+            .take(10)
+            .map { roomUser ->
                 val avatar = flow {
                     emit(
                         roomUser.avatarUrl?.let { url ->
@@ -396,16 +385,15 @@ open class InputAreaViewModelImpl(
                 }
 
                 Username(roomUser.userId, roomUser.name, initials.compute(roomUser.name), avatar)
-            }?.toList()
-            ?: emptyList()
+            }.toList()
     }
 
     private suspend fun typing() {
         if (isTyping.value.not()) {
             isTyping.value = true
             try {
-                if (messengerSettings.typingIsPublic(accountName)) {
-                    matrixClient.api.rooms.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
+                if (messengerSettings[userId].first()?.typingIsPublic == true) {
+                    matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
                 }
             } catch (exc: Exception) {
                 // ignore
@@ -420,7 +408,7 @@ open class InputAreaViewModelImpl(
                 return
             }
             isTyping.value = false
-            matrixClient.api.rooms.setTyping(selectedRoomId, matrixClient.userId, typing = false)
+            matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, typing = false)
         } catch (exc: Exception) {
             // ignore
         }

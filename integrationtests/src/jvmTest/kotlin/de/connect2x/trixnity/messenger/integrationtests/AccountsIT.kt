@@ -1,29 +1,29 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
-import de.connect2x.trixnity.messenger.MessengerConfig
-import de.connect2x.trixnity.messenger.integrationtests.messenger.*
-import de.connect2x.trixnity.messenger.integrationtests.util.*
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccount
+import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
+import de.connect2x.trixnity.messenger.integrationtests.messenger.login
+import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
+import de.connect2x.trixnity.messenger.integrationtests.util.register
+import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.loginWith
-import net.folivo.trixnity.client.media.InMemoryMediaStore
-import net.folivo.trixnity.client.store.repository.exposed.createExposedRepositoriesModule
-import org.koin.core.KoinApplication
-import org.koin.dsl.koinApplication
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+private val log = KotlinLogging.logger { }
+
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
 class AccountsIT {
 
-    private lateinit var koinApplication: KoinApplication
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
 
     private val password = "user$1passw0rd"
@@ -36,67 +36,52 @@ class AccountsIT {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
 
-        MessengerConfig.instance.appName = "timmyAccountsIT" // for different DB locations
-
-        koinApplication = koinApplication {
-            modules(
-                trixnityMessengerModule(),
-                itModules(),
-            )
-        }
         val baseUrl = URLBuilder(
             protocol = URLProtocol.HTTP,
             host = synapseDocker.host,
             port = synapseDocker.firstMappedPort
         ).build()
-        val repositoriesModule1 = createExposedRepositoriesModule(newDatabase(null))
-        val repositoriesModule2 = createExposedRepositoriesModule(newDatabase(null))
 
-        MatrixClient.loginWith(
-            baseUrl = baseUrl,
-            repositoriesModule = repositoriesModule1,
-            mediaStore = InMemoryMediaStore(),
-            getLoginInfo = { it.register("user1", password) }
-        ).getOrThrow()
-        MatrixClient.loginWith(
-            baseUrl = baseUrl,
-            repositoriesModule = repositoriesModule2,
-            mediaStore = InMemoryMediaStore(),
-            getLoginInfo = { it.register("user2", password) }
-        ).getOrThrow()
+        MatrixClientServerApiClientImpl(baseUrl).register("user1", password)
+        MatrixClientServerApiClientImpl(baseUrl).register("user2", password)
     }
 
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        cleanup()
     }
 
     @Test
     fun shouldAddAnAccountAndRemoveAfterwards(): Unit = runBlocking {
         withTimeout(30_000) {
-            val messenger1 = createMessenger(koinApplication)
-            messenger1.login(
+            val messenger = createTestMatrixMessenger()
+            log.info { "login as user1" }
+            messenger.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
                 username = "user1",
                 password = password,
             )
-            messenger1.verifyAccountsArePresent("user1")
-            val recoveryKey = messenger1.createNewAccount(
+            messenger.verifyAccountsArePresent("user1")
+
+            log.info { "login as user2" }
+            val recoveryKey = messenger.createNewAccount(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
                 username = "user2",
                 password = password,
             )
-            messenger1.verifyAccountsArePresent("user1", "user2")
-            messenger1.deleteAccount("user2")
-            messenger1.verifyAccountsArePresent("user1")
-            messenger1.createNewAccount(
+            messenger.verifyAccountsArePresent("user1", "user2")
+            log.info { "logout as user2" }
+            messenger.deleteAccount("user2")
+            messenger.verifyAccountsArePresent("user1")
+
+            log.info { "login again as user2" }
+            messenger.createNewAccount(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
                 username = "user2",
                 password = password,
                 recoveryKey = recoveryKey,
             )
-            messenger1.verifyAccountsArePresent("user1", "user2")
+            messenger.verifyAccountsArePresent("user1", "user2")
         }
     }
 }

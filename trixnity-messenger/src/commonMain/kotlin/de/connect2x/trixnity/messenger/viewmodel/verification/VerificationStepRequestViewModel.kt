@@ -43,13 +43,13 @@ open class VerificationStepRequestViewModelImpl(
             theirDisplayName.value =
                 if (matrixClient.userId == theirUserId) null
                 else theirUserId?.let {
-                    matrixClient.api.users.getDisplayName(theirUserId).fold(
+                    matrixClient.api.user.getDisplayName(theirUserId).fold(
                         onSuccess = { it }, onFailure = { theirUserId.full }
                     )
                 }
                     ?: theirUserId?.full
             deviceDisplayName.value =
-                matrixClient.api.devices.getDevice(fromDeviceId).fold(
+                matrixClient.api.device.getDevice(fromDeviceId).fold(
                     onSuccess = { it.displayName ?: fromDeviceId }, onFailure = { fromDeviceId }
                 )
         }

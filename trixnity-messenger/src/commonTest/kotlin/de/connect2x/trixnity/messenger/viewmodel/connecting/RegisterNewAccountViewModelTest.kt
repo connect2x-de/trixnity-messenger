@@ -3,12 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.HttpClientFactory
-import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -23,6 +22,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.setMain
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.core.model.UserId
 import org.kodein.mock.Mock
@@ -34,12 +34,15 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RegisterNewAccountViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 3_000
+    override fun timeout(): Long = 5_000
 
     val mocker = Mocker()
 
     @Mock
-    lateinit var matrixClientServiceMock: MatrixClientService
+    lateinit var matrixClientFactoryMock: MatrixClientFactory
+
+    @Mock
+    lateinit var matrixClientMock: MatrixClient
 
     private val onLoginMock = mockFunction0<Unit>(mocker)
 
@@ -53,10 +56,11 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
             with(mocker) {
                 everySuspending {
-                    matrixClientServiceMock.loginWith(isAny(), isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
-                } returns Result.success(Unit)
+                    matrixClientFactoryMock.loginWith(isAny(), isAny(), isAny())
+                } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
 
                 every { onLoginMock.invoke() } returns Unit
+                every { matrixClientMock.userId } returns UserId("test", "server")
             }
         }
 
@@ -233,9 +237,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 }
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectedRegistration.first { it == AuthenticationType.RegistrationToken }
-            cut.accountName.update { "Standard" }
             cut.username.update { "user1" }
-            cut.displayName.update { "user1special" }
             cut.password.update { "user1-password" }
             cut.registrationToken.update { "myRegistrationToken" }
 
@@ -244,15 +246,11 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             eventually(500.milliseconds) {
-                mocker.verifyWithSuspend {
-                    matrixClientServiceMock.loginWith(
+                mocker.verifyWithSuspend(exhaustive = false) {
+                    matrixClientFactoryMock.loginWith(
                         isEqual(Url("http://myMatrixServer:55678")),
-                        isEqual(UserId("@user1:myMatrixServer:55678")),
-                        isEqual("GHTYAJCE"),
-                        isEqual("abc123"),
-                        isEqual("user1special"),
+                        isEqual(MatrixClient.LoginInfo(UserId("@user1:myMatrixServer:55678"), "GHTYAJCE", "abc123")),
                         isAny(),
-                        isEqual("Standard")
                     )
                     onLoginMock.invoke()
                 }
@@ -273,23 +271,23 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
         }.create()
         val di = koinApplication {
             modules(
-                trixnityMessengerModule(),
-                module {
-                    single { testMessengerSettings("EN") }
-                    single<HttpClientFactory> {
-                        HttpClientFactory {
-                            {
-                                HttpClient(mockEngine) {
-                                    it()
-                                    install(Logging) {
-                                        logger = Logger.DEFAULT
-                                        level = LogLevel.ALL
+                createTestDefaultTrixnityMessengerModules() +
+                        module {
+                            single<HttpClientFactory> {
+                                HttpClientFactory {
+                                    {
+                                        HttpClient(mockEngine) {
+                                            it()
+                                            install(Logging) {
+                                                logger = Logger.DEFAULT
+                                                level = LogLevel.ALL
+                                            }
+                                        }
                                     }
                                 }
                             }
+                            single<MatrixClientFactory> { matrixClientFactoryMock }
                         }
-                    }
-                }
             )
         }.koin
         return RegisterNewAccountViewModelImpl(
@@ -299,7 +297,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext,
             ),
             serverUrl,
-            matrixClientServiceMock,
             onLogin = onLoginMock,
             onBack = mockFunction0(mocker),
         )

@@ -3,14 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.*
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -112,7 +109,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(DefaultLanguages, testMessengerSettings("en")) {}
+            i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -331,11 +328,10 @@ class MemberListElementViewModelTest : ShouldSpec() {
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             di = koinApplication {
                 modules(
-                    trixnityMessengerModule(),
-                    testMatrixClientModule(matrixClientMock),
+                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
                 )
             }.koin,
-            accountName = "test",
+            userId = UserId("test","server"),
             coroutineContext = coroutineContext,
         ),
         roomUser,

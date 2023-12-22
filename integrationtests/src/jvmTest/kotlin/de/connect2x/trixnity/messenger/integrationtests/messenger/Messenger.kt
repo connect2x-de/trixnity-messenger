@@ -1,51 +1,42 @@
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.DefaultMatrixClientService
-import de.connect2x.trixnity.messenger.MatrixClientService
+import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
-import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapStep
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
-import org.koin.core.KoinApplication
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
-fun createMessenger(koinApplication: KoinApplication): RootViewModelImpl {
-    val defaultMatrixClientService1 = createDefaultMatrixClientService(koinApplication)
-    return createRootViewModel(koinApplication, defaultMatrixClientService1)
-}
-
-suspend fun RootViewModelImpl.login(
+suspend fun MatrixMessenger.login(
     serverUrl: String,
     username: String,
     password: String,
     recoveryKey: String? = null,
-    otherMessenger: RootViewModel? = null,
-): String? {
+    otherMessenger: MatrixMessenger? = null,
+): String? = with(root) {
     log.debug { " +- ADD ACCOUNT" }
     addMatrixAccountViaPassword(serverUrl, username, password)
     log.debug { " +- try login" }
@@ -64,7 +55,7 @@ suspend fun RootViewModelImpl.login(
             log.info { "self verification done successfully" }
         } else {
             if (otherMessenger != null) {
-                selfVerify(verification, mainViewModel, otherMessenger)
+                selfVerify(verification, mainViewModel, otherMessenger.root)
             } else {
                 log.error { "cannot self verify without recovery key or other device" }
                 throw IllegalStateException("cannot self verify without recovery key or other device")
@@ -76,12 +67,12 @@ suspend fun RootViewModelImpl.login(
     }
 }
 
-suspend fun RootViewModelImpl.createNewAccount(
+suspend fun MatrixMessenger.createNewAccount(
     serverUrl: String,
     username: String,
     password: String,
     recoveryKey: String? = null,
-): String? {
+): String? = with(root) {
     val accountsOverviewViewModel = openAccountsOverview()
     accountsOverviewViewModel.createNewAccount()
     val thisRecoveryKey = login(serverUrl, username, password, recoveryKey)
@@ -91,9 +82,11 @@ suspend fun RootViewModelImpl.createNewAccount(
     return thisRecoveryKey ?: recoveryKey
 }
 
-suspend fun RootViewModelImpl.deleteAccount(username: String) {
+suspend fun MatrixMessenger.deleteAccount(username: String) = with(root) {
     val accountsOverviewViewModel = openAccountsOverview()
-    accountsOverviewViewModel.removeAccount(username)
+    val userId = di.get<MatrixClients>().value.keys.find { it.localpart == username }
+    checkNotNull(userId)
+    accountsOverviewViewModel.removeAccount(userId)
     rootStack.waitFor(RootRouter.RootWrapper.MatrixClientLogout::class)
     val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
@@ -101,13 +94,11 @@ suspend fun RootViewModelImpl.deleteAccount(username: String) {
     log.debug { " +- delete account finished" }
 }
 
-suspend fun RootViewModelImpl.verifyAccountsArePresent(vararg accountNames: String) {
+suspend fun MatrixMessenger.verifyAccountsArePresent(vararg usernames: String) = with(root) {
     val accountsOverviewViewModel = openAccountsOverview()
     withTimeout(5.seconds) {
         eventually(4.seconds) {
-            val foundAccountNames = accountsOverviewViewModel.accountNames.first()
-            log.debug { "found: ${foundAccountNames.joinToString { it }}, expected: ${accountNames.joinToString { it }}" }
-            foundAccountNames.containsAll(accountNames.toList()) && accountNames.toList().containsAll(foundAccountNames)
+            di.get<MatrixClients>().value.keys.map { it.localpart }.shouldContainAll(usernames.toList())
         }
         accountsOverviewViewModel.close()
         rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
@@ -115,7 +106,7 @@ suspend fun RootViewModelImpl.verifyAccountsArePresent(vararg accountNames: Stri
     }
 }
 
-suspend fun RootViewModelImpl.registerAccountWithToken(serverUrl: String, token: String) {
+suspend fun MatrixMessenger.registerAccountWithToken(serverUrl: String, token: String) = with(root) {
     withTimeout(10.seconds) {
         val addMatrixAccountViewModel =
             rootStack.waitFor(RootRouter.RootWrapper.AddMatrixAccount::class).addMatrixAccountViewModel
@@ -133,31 +124,20 @@ suspend fun RootViewModelImpl.registerAccountWithToken(serverUrl: String, token:
         registerNewAccountViewModel.tryRegistration()
 
         val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
-        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel.accountViewModel.allAccounts.first { it.isNotEmpty() }
+        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel.accountViewModel.accounts.first { it.isNotEmpty() }
         mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.InitialSyncWrapper.None::class)
     }
 }
 
-private suspend fun RootViewModelImpl.openAccountsOverview(): AccountsOverviewViewModel {
+private suspend fun RootViewModel.openAccountsOverview(): AccountsViewModel {
     val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
     val roomListViewModel =
         mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel
     roomListViewModel.openAccountsOverview()
-    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.AccountsOverview::class).accountsOverviewViewModel
+    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.Accounts::class).accountsViewModel
 }
 
-private fun createDefaultMatrixClientService(koinApplication: KoinApplication) =
-    DefaultMatrixClientService(koinApplication.koin)
-
-private fun createRootViewModel(koinApplication: KoinApplication, matrixClientService: MatrixClientService) =
-    RootViewModelImpl(
-        DefaultComponentContext(LifecycleRegistry()),
-        matrixClientService = matrixClientService,
-        koinApplication = koinApplication,
-        coroutineContext = Dispatchers.Default,
-    )
-
-private suspend fun RootViewModelImpl.addMatrixAccountViaPassword(
+private suspend fun RootViewModel.addMatrixAccountViaPassword(
     serverUrl: String,
     username: String,
     password: String,
@@ -171,7 +151,6 @@ private suspend fun RootViewModelImpl.addMatrixAccountViaPassword(
     addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
     val passwordLoginViewModel =
         rootStack.waitFor(RootRouter.RootWrapper.PasswordLogin::class).passwordLoginViewModel
-    passwordLoginViewModel.accountName.value = username
     addMatrixAccountViewModel.serverUrl.value = serverUrl
     passwordLoginViewModel.username.value = username
     passwordLoginViewModel.password.value = password

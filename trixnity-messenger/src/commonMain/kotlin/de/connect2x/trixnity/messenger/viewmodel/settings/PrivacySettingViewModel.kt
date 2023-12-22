@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -29,10 +29,16 @@ interface PrivacySettingViewModelFactory {
 }
 
 interface PrivacySettingViewModel {
-    val accountName: String
-    val presenceIsPublic: MutableStateFlow<Boolean>
-    val readMarkerIsPublic: MutableStateFlow<Boolean>
-    val typingIsPublic: MutableStateFlow<Boolean>
+    val userId: UserId
+
+    val presenceIsPublic: StateFlow<Boolean>
+    val readMarkerIsPublic: StateFlow<Boolean>
+    val typingIsPublic: StateFlow<Boolean>
+
+    fun togglePresenceIsPublic()
+    fun toggleReadMarkerIsPublic()
+    fun toggleTypingIsPublic()
+
     val blockedUsers: StateFlow<List<UserId>?>
     val unblockingInProgress: MutableStateFlow<List<UserId>>
 
@@ -44,19 +50,38 @@ open class PrivacySettingViewModelImpl(
     private val onUnblockError: (String) -> Unit,
 ) : PrivacySettingViewModel, MatrixClientViewModelContext by viewModelContext {
 
-    private val messengerSettings = get<MessengerSettings>()
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val userBlocking = get<UserBlocking>()
 
-    override val presenceIsPublic: MutableStateFlow<Boolean> =
-        MutableStateFlow(messengerSettings.presenceIsPublic(accountName))
-    override val readMarkerIsPublic: MutableStateFlow<Boolean> =
-        MutableStateFlow(messengerSettings.readMarkerIsPublic(accountName))
-    override val typingIsPublic: MutableStateFlow<Boolean> =
-        MutableStateFlow(messengerSettings.typingIsPublic(accountName))
+    override val presenceIsPublic = messengerSettings[userId].filterNotNull().map { it.presenceIsPublic }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val readMarkerIsPublic = messengerSettings[userId].filterNotNull().map { it.readMarkerIsPublic }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val typingIsPublic = messengerSettings[userId].filterNotNull().map { it.typingIsPublic }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override fun togglePresenceIsPublic() {
+        coroutineScope.launch {
+            messengerSettings.update(userId) { it?.copy(presenceIsPublic = !it.presenceIsPublic) }
+        }
+    }
+
+    override fun toggleReadMarkerIsPublic() {
+        coroutineScope.launch {
+            messengerSettings.update(userId) { it?.copy(readMarkerIsPublic = !it.readMarkerIsPublic) }
+        }
+    }
+
+    override fun toggleTypingIsPublic() {
+        coroutineScope.launch {
+            messengerSettings.update(userId) { it?.copy(typingIsPublic = !it.typingIsPublic) }
+        }
+    }
+
     override val blockedUsers: StateFlow<List<UserId>?> = (
             matrixClient.user.getAccountData<IgnoredUserListEventContent>()
                 .map { ignoredUserListEventContent ->
-                    log.debug { "ignoredUserListEventContent (account $accountName): $ignoredUserListEventContent" }
+                    log.debug { "ignoredUserListEventContent (account $userId): $ignoredUserListEventContent" }
                     ignoredUserListEventContent?.ignoredUsers?.keys?.toList()
                         ?: emptyList()
                 }
@@ -64,30 +89,11 @@ open class PrivacySettingViewModelImpl(
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val unblockingInProgress: MutableStateFlow<List<UserId>> = MutableStateFlow(emptyList())
 
-    init {
-        // reflect changes back to settings
-        coroutineScope.launch {
-            presenceIsPublic.drop(1).collect {
-                messengerSettings.setPresenceIsPublic(accountName, it)
-            }
-        }
-        coroutineScope.launch {
-            readMarkerIsPublic.drop(1).collect {
-                messengerSettings.setReadMarkerIsPublic(accountName, it)
-            }
-        }
-        coroutineScope.launch {
-            typingIsPublic.drop(1).collect {
-                messengerSettings.setTypingIsPublic(accountName, it)
-            }
-        }
-    }
-
     override fun unblockUser(userId: UserId) {
         coroutineScope.launch {
             unblockingInProgress.value += userId
             try {
-                userBlocking.unblockUser(getMatrixClient(accountName), userId) {
+                userBlocking.unblockUser(matrixClient, userId) {
                     onUnblockError(i18n.settingsUnblockUserError(userId.full))
                 }
             } finally {

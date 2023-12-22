@@ -5,12 +5,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.Parcel
-import de.connect2x.trixnity.messenger.Parceler
-import de.connect2x.trixnity.messenger.RawValue
-import de.connect2x.trixnity.messenger.getClassLoader
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -19,12 +13,14 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.VerificationStepWrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.verification.*
@@ -59,8 +55,8 @@ interface VerificationViewModel {
     fun cancel()
 
     sealed class VerificationStepWrapper {
-        object None : VerificationStepWrapper()
-        object Wait : VerificationStepWrapper()
+        data object None : VerificationStepWrapper()
+        data object Wait : VerificationStepWrapper()
 
         class Request(val verificationStepRequestViewModel: VerificationStepRequestViewModel) :
             VerificationStepWrapper()
@@ -85,86 +81,53 @@ interface VerificationViewModel {
         class Cancelled(val verificationStepCancelledViewModel: VerificationStepCancelledViewModel) :
             VerificationStepWrapper()
 
-        object AcceptedByOtherClient : VerificationStepWrapper()
+        data object AcceptedByOtherClient : VerificationStepWrapper()
     }
 
-    sealed class VerificationStepConfig : Parcelable {
+    @Serializable
+    sealed class VerificationStepConfig {
 
-        @Parcelize
-        object None : VerificationStepConfig()
+        @Serializable
+        data object None : VerificationStepConfig()
 
-        @Parcelize
-        object Wait : VerificationStepConfig()
+        @Serializable
+        data object Wait : VerificationStepConfig()
 
-        @Parcelize
-        data class Request(val theirUserId: @RawValue UserId?, val fromDeviceId: String) : VerificationStepConfig()
+        @Serializable
+        data class Request(val theirUserId: UserId?, val fromDeviceId: String) : VerificationStepConfig()
 
-        @Parcelize
+        @Serializable
         data class SelectVerificationMethod(
             val verificationMethods: Set<VerificationMethod>,
             val roomId: RoomId?,
             val timelineEventId: EventId?,
             val isDeviceVerification: Boolean,
-        ) : VerificationStepConfig() {
+        ) : VerificationStepConfig()
 
-            private companion object : Parceler<SelectVerificationMethod> {
-
-                override fun SelectVerificationMethod.write(parcel: Parcel, flags: Int) {
-                    parcel.writeArray(verificationMethods.toTypedArray())
-                    parcel.writeString(roomId?.full)
-                    parcel.writeString(timelineEventId?.full)
-                    parcel.writeBoolean(isDeviceVerification)
-                }
-
-                override fun create(parcel: Parcel): SelectVerificationMethod {
-                    val verificationMethods = parcel.readArray(getClassLoader())?.toSet() as Set<VerificationMethod>
-                    val roomId = parcel.readString()?.let { RoomId(it) }
-                    val timelineEventId = parcel.readString()?.let { EventId(it) }
-                    val isDeviceVerification = parcel.readBoolean()
-                    return SelectVerificationMethod(verificationMethods, roomId, timelineEventId, isDeviceVerification)
-                }
-            }
-        }
-
-        @Parcelize
+        @Serializable
         data class AcceptSasStart(
             val roomId: RoomId?,
             val timelineEventId: EventId?,
-        ) : VerificationStepConfig() {
+        ) : VerificationStepConfig()
 
-            private companion object : Parceler<AcceptSasStart> {
-
-                override fun AcceptSasStart.write(parcel: Parcel, flags: Int) {
-                    parcel.writeString(roomId?.full)
-                    parcel.writeString(timelineEventId?.full)
-                }
-
-                override fun create(parcel: Parcel): AcceptSasStart {
-                    val roomId = parcel.readString()?.let { RoomId(it) }
-                    val timelineEventId = parcel.readString()?.let { EventId(it) }
-                    return AcceptSasStart(roomId, timelineEventId)
-                }
-            }
-        }
-
-        @Parcelize
+        @Serializable
         data class CompareEmojisOrNumbers(val decimals: List<Int>, val emojis: List<Pair<Int, String>>) :
             VerificationStepConfig()
 
-        @Parcelize
+        @Serializable
         data class Success(val fromDeviceId: String?) : VerificationStepConfig()
 
-        @Parcelize
-        object Rejected : VerificationStepConfig()
+        @Serializable
+        data object Rejected : VerificationStepConfig()
 
-        @Parcelize
-        object Timeout : VerificationStepConfig()
+        @Serializable
+        data object Timeout : VerificationStepConfig()
 
-        @Parcelize
-        object Cancelled : VerificationStepConfig()
+        @Serializable
+        data object Cancelled : VerificationStepConfig()
 
-        @Parcelize
-        object AcceptedByOtherClient : VerificationStepConfig()
+        @Serializable
+        data object AcceptedByOtherClient : VerificationStepConfig()
     }
 }
 
@@ -183,6 +146,7 @@ open class VerificationViewModelImpl(
     private val navigation = StackNavigation<VerificationStepConfig>()
     override val stack = childStack(
         source = navigation,
+        serializer = VerificationStepConfig.serializer(),
         initialConfiguration = None,
         handleBackButton = true,
         childFactory = ::createChild
@@ -334,6 +298,7 @@ open class VerificationViewModelImpl(
                     }
 
                     is ActiveVerificationState.Start -> {
+                        verificationJob?.cancelAndJoin()
                         verificationJob = launch {
                             when (val method = verificationState.method) {
                                 is ActiveSasVerificationMethod -> {
@@ -394,8 +359,8 @@ open class VerificationViewModelImpl(
                         }
                     }
 
-                    else -> {
-                        log.warn { "unknown verification state: $verificationState" }
+                    ActiveVerificationState.Undefined -> {
+                        log.warn { "undefined verification state: $verificationState" }
                     }
                 }
             }

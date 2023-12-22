@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 
 private val log = KotlinLogging.logger {}
@@ -25,7 +26,7 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) -> Unit,
+        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
@@ -53,7 +54,7 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) -> Unit,
+    onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
     isBackButtonVisible: MutableStateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
@@ -75,7 +76,7 @@ open class RoomViewModelImpl(
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
         onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
-            onOpenModal(type, mxcUrl, encryptedFile, fileName, accountName)
+            onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
         },
     )
 

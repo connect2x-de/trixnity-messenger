@@ -5,8 +5,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -15,7 +13,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
@@ -24,20 +24,21 @@ private val log = KotlinLogging.logger {}
 interface RoomRouter {
     val roomStack: Value<ChildStack<RoomConfig, RoomWrapper>>
     suspend fun closeRoom()
-    suspend fun showRoom(accountName: String, roomId: RoomId)
+    suspend fun showRoom(userId: UserId, roomId: RoomId)
     fun isShown(): Boolean
 
-    sealed class RoomConfig : Parcelable {
-        @Parcelize
-        object None : RoomConfig()
+    @Serializable
+    sealed class RoomConfig {
+        @Serializable
+        data object None : RoomConfig()
 
-        @Parcelize
-        data class View(val accountName: String, val roomId: String) : RoomConfig() // String to make it parcelizable
+        @Serializable
+        data class View(val userId: UserId, val roomId: String) : RoomConfig()
     }
 
     sealed class RoomWrapper {
         data class View(val roomViewModel: RoomViewModel) : RoomWrapper()
-        object None : RoomWrapper()
+        data object None : RoomWrapper()
     }
 }
 
@@ -45,13 +46,14 @@ class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) -> Unit,
+    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<RoomConfig>()
     override val roomStack: Value<ChildStack<RoomConfig, RoomWrapper>> =
         viewModelContext.childStack(
             source = roomNavigation,
+            serializer = RoomConfig.serializer(),
             initialConfiguration = RoomConfig.None,
             key = "RoomRouter",
             childFactory = ::createRoomChild,
@@ -65,20 +67,20 @@ class RoomRouterImpl(
             is RoomConfig.None -> RoomWrapper.None
             is RoomConfig.View -> RoomWrapper.View(
                 viewModelContext.get<RoomViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, roomConfig.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
                     onRoomBack = onCloseRoom,
                     onOpenModal = onOpenModal,
                 ).also {
-                    log.debug { "::: created viewModel for ${roomConfig.accountName}" }
+                    log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }
             )
         }
 
-    override suspend fun showRoom(accountName: String, roomId: RoomId) {
+    override suspend fun showRoom(userId: UserId, roomId: RoomId) {
         log.debug { "show room: $roomId" }
-        roomNavigation.bringToFrontSuspending(RoomConfig.View(accountName, roomId.full))
+        roomNavigation.bringToFrontSuspending(RoomConfig.View(userId, roomId.full))
     }
 
     override suspend fun closeRoom() {

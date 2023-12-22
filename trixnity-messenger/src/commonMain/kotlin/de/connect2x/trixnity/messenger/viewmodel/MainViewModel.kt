@@ -13,9 +13,8 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel.SelfVerificationConfig
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel.SelfVerificationWrapper
@@ -26,48 +25,45 @@ import de.connect2x.trixnity.messenger.viewmodel.files.VideoRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter.InitialSyncConfig
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter.InitialSyncWrapper
-import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncState
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListConfig
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListWrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
-import de.connect2x.trixnity.messenger.viewmodel.util.runBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.*
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
+import org.koin.core.component.inject
 
 private val log = KotlinLogging.logger {}
 
 interface MainViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        initialSyncOnceIsFinished: (Boolean) -> Unit,
-        minimizeMessenger: () -> Unit,
         onCreateNewAccount: () -> Unit,
-        onRemoveAccount: (String) -> Unit,
+        onRemoveAccount: (userId: UserId) -> Unit,
     ): MainViewModel = MainViewModelImpl(
         viewModelContext,
-        initialSyncOnceIsFinished,
-        minimizeMessenger,
         onCreateNewAccount,
         onRemoveAccount,
     )
@@ -92,21 +88,21 @@ interface MainViewModel {
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
     fun closeDetailsAndShowList()
-    fun onRoomSelected(accountName: String, id: RoomId)
-    fun onOpenAvatarCutter(accountName: String, file: FileDescriptor)
+    fun onRoomSelected(userId: UserId, id: RoomId)
+    fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun setSinglePane(isSinglePane: Boolean)
     fun openModal(
         type: OpenModalType,
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
-        accountName: String
+        userId: UserId
     )
 
     fun closeAccountsOverview()
 
     sealed class SelfVerificationWrapper {
-        object None : SelfVerificationWrapper()
+        data object None : SelfVerificationWrapper()
         class View(val selfVerificationViewModel: SelfVerificationViewModel) :
             SelfVerificationWrapper()
 
@@ -116,35 +112,34 @@ interface MainViewModel {
         class Bootstrap(val bootstrapViewModel: BootstrapViewModel) : SelfVerificationWrapper()
     }
 
-    sealed class SelfVerificationConfig : Parcelable {
-        @Parcelize
-        object None : SelfVerificationConfig()
+    @Serializable
+    sealed class SelfVerificationConfig {
+        @Serializable
+        data object None : SelfVerificationConfig()
 
-        @Parcelize
-        data class SelfVerification(val accountName: String) : SelfVerificationConfig()
+        @Serializable
+        data class SelfVerification(val userId: UserId) : SelfVerificationConfig()
 
-        @Parcelize
-        data class RedoSelfVerification(val accountName: String) : SelfVerificationConfig()
+        @Serializable
+        data class RedoSelfVerification(val userId: UserId) : SelfVerificationConfig()
 
-        @Parcelize
-        data class Bootstrap(val accountName: String) : SelfVerificationConfig()
+        @Serializable
+        data class Bootstrap(val userId: UserId) : SelfVerificationConfig()
     }
 }
 
 open class MainViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val initialSyncOnceIsFinished: (Boolean) -> Unit,
-    private val minimizeMessenger: () -> Unit,
     private val onCreateNewAccount: () -> Unit,
-    private val onRemoveAccount: (String) -> Unit,
+    private val onRemoveAccount: (UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, MainViewModel {
 
-    private val messengerSettings = get<MessengerSettings>()
+    private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
-        MutableStateFlow(setOf<String>()) // in case of multiple self verifications, we need to do one after another
+        MutableStateFlow(setOf<UserId>()) // in case of multiple self verifications, we need to do one after another
     private val activeVerifications =
-        MutableStateFlow(setOf<String>()) // in case of multiple active verifications, we need to do them one after another
+        MutableStateFlow(setOf<UserId>()) // in case of multiple active verifications, we need to do them one after another
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
     override val isBackButtonVisible = MutableStateFlow(true)
@@ -154,6 +149,7 @@ open class MainViewModelImpl(
     private val selfVerificationNavigation = StackNavigation<SelfVerificationConfig>()
     override val selfVerificationStack = childStack(
         source = selfVerificationNavigation,
+        serializer = SelfVerificationConfig.serializer(),
         initialConfiguration = SelfVerificationConfig.None,
         handleBackButton = false,
         childFactory = ::createSelfVerificationChild
@@ -169,8 +165,8 @@ open class MainViewModelImpl(
                 SelfVerificationWrapper.View(
                     get<SelfVerificationViewModelFactory>()
                         .create(
-                            viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
-                            onClose = { closeSelfVerification(selfVerificationConfig.accountName) },
+                            viewModelContext = childContext(componentContext, selfVerificationConfig.userId),
+                            onClose = { closeSelfVerification(selfVerificationConfig.userId) },
                         )
                 )
             }
@@ -178,16 +174,16 @@ open class MainViewModelImpl(
             is SelfVerificationConfig.RedoSelfVerification -> SelfVerificationWrapper.RedoSelfVerification(
                 get<RedoSelfVerificationViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
-                        onStartSelfVerification = { showSelfVerification(selfVerificationConfig.accountName) },
-                        onClose = { closeSelfVerification(selfVerificationConfig.accountName) },
+                        viewModelContext = childContext(componentContext, selfVerificationConfig.userId),
+                        onStartSelfVerification = { showSelfVerification(selfVerificationConfig.userId) },
+                        onClose = { closeSelfVerification(selfVerificationConfig.userId) },
                     )
             )
 
             is SelfVerificationConfig.Bootstrap -> {
                 SelfVerificationWrapper.Bootstrap(
                     get<BootstrapViewModelFactory>().create(
-                        viewModelContext = childContext(componentContext, selfVerificationConfig.accountName),
+                        viewModelContext = childContext(componentContext, selfVerificationConfig.userId),
                         onClose = ::closeBootstrap,
                     )
                 )
@@ -259,15 +255,17 @@ open class MainViewModelImpl(
         } else if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {
-            minimizeMessenger()
+            // TODO was "minimize", but we should use native routing without all the back press handlers
+            //  native routing could also allow to use web history
+            //  see also: https://github.com/arkivanov/Decompose/tree/master/sample/shared/shared/src/commonMain/kotlin/com/arkivanov/sample/shared/multipane
         }
     }
 
-    private fun onRemoveAccountInternal(accountName: String) {
+    private fun onRemoveAccountInternal(userId: UserId) {
         roomListRouter.closeAccountsOverview()
-        this.onRemoveAccount(accountName)
+        this.onRemoveAccount(userId)
         coroutineScope.launch {
-            if (getKoin().get<GetAccountNames>()().isEmpty()) {
+            if (messengerSettings.value.accounts.isEmpty()) {
                 log.debug { "since all account have been removed, close all navigation" }
                 roomRouter.closeRoom()
                 roomListRouter.close()
@@ -301,13 +299,12 @@ open class MainViewModelImpl(
             initialSyncRouter.stack.toFlow().collect { childStack ->
                 if (childStack.active.configuration == InitialSyncConfig.None) {
                     log.info { "initial sync / small sync is done -> now sync regularly" }
-                    initialSyncOnceIsFinished(true)
-                    namedMatrixClients.value.forEach { (accountName, matrixClientFlow) ->
-                        val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
-                        log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
+                    this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
+                        val presenceIsPublic = messengerSettings[userId].first()?.presenceIsPublic
+                        log.debug { "start sync for $userId, presence is public: $presenceIsPublic" }
                         launch {
-                            matrixClientFlow.value?.startSync(
-                                presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
+                            matrixClient.startSync(
+                                presence = if (presenceIsPublic == true) Presence.ONLINE else Presence.OFFLINE
                             )
                         }
                     }
@@ -316,41 +313,26 @@ open class MainViewModelImpl(
         }
 
         coroutineScope.launch {
-            namedMatrixClients
+            this@MainViewModelImpl.matrixClients
                 .scan(
-                    Pair<List<NamedMatrixClient>, List<NamedMatrixClient>>(emptyList(), emptyList())
-                ) { old, new -> old.second to new }
-                .map { (namedMatrixClientsOld, namedMatrixClients) ->
-                    namedMatrixClients.mapNotNull { namedMatrixClient ->
-                        if (namedMatrixClientsOld.any { namedMatrixClient.accountName == it.accountName }) {
-                            null
-                        } else {
-                            namedMatrixClient.matrixClient.value?.let { matrixClient ->
-                                log.debug { "start sync [${namedMatrixClient.accountName}] -> $matrixClient, initial sync done: ${matrixClient.initialSyncDone.value}" }
-                                val initialSyncDone = matrixClient.initialSyncDone.first()
-                                if (initialSyncDone) {
-                                    namedMatrixClient.accountName to InitialSyncState.DONE
-                                } else {
-                                    namedMatrixClient.accountName to InitialSyncState.NOT_DONE
-                                }
-                            }
-                        }
-                    }.toMap()
-                }.collect {
-                    if (it.isNotEmpty()) {
-                        initialSyncRouter.showSync(it)
-                    } else {
-                        log.debug { "no initial sync needed" }
+                    Pair<Set<UserId>, Set<UserId>>(emptySet(), emptySet())
+                ) { old, new -> old.second to new.keys }
+                .collect { (oldMatrixClients, newMatrixClients) ->
+                    if (newMatrixClients.isNotEmpty() && oldMatrixClients != newMatrixClients) {
+                        log.debug { "MatrixClient has been added, show sync" }
+                        initialSyncRouter.showSync()
                     }
                 }
         }
 
         lifecycle.doOnStop {
-            runBlocking { // even when the scope is destroyed, we want the sync to stop
-                log.debug { "app is stopped: cancel sync" }
-                namedMatrixClients.value.forEach { (accountName, matrixClientFlow) ->
-                    log.debug { "stop sync for $accountName" }
-                    matrixClientFlow.value?.cancelSync(wait = false)
+            coroutineScope.launch {
+                withContext(NonCancellable) { // even when the scope is destroyed, we want the sync to stop
+                    log.debug { "app is stopped: cancel sync" }
+                    this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
+                        log.debug { "stop sync for $userId" }
+                        matrixClient.cancelSync(wait = false)
+                    }
                 }
             }
 
@@ -358,11 +340,11 @@ open class MainViewModelImpl(
             lifecycle.doOnStart(isOneTime = true) {
                 coroutineScope.launch {
                     log.debug { "resume app: restart sync" }
-                    namedMatrixClients.value.forEach { (accountName, matrixClientFlow) ->
-                        val presenceIsPublic = messengerSettings.presenceIsPublic(accountName)
-                        log.debug { "start sync for $accountName, presence is public: $presenceIsPublic" }
-                        matrixClientFlow.value?.startSync(
-                            presence = if (presenceIsPublic) Presence.ONLINE else Presence.OFFLINE
+                    this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
+                        val presenceIsPublic = messengerSettings[userId].first()?.presenceIsPublic
+                        log.debug { "start sync for $userId, presence is public: $presenceIsPublic" }
+                        matrixClient.startSync(
+                            presence = if (presenceIsPublic == true) Presence.ONLINE else Presence.OFFLINE
                         )
                     }
                 }
@@ -404,13 +386,13 @@ open class MainViewModelImpl(
         coroutineScope.launch {
             activeVerifications.collect { currentActiveVerifications ->
                 log.trace { "current active verifications: $currentActiveVerifications" }
-                currentActiveVerifications.firstOrNull()?.let { accountName ->
-                    log.debug { "active verification in account $accountName" }
-                    verificationRouter.startDeviceVerification(accountName)
+                currentActiveVerifications.firstOrNull()?.let { userId ->
+                    log.debug { "active verification in account $userId" }
+                    verificationRouter.startDeviceVerification(userId)
                     deviceVerificationRouterStack.toFlow().first { childStack ->
                         childStack.active.configuration == VerificationRouter.Config.None
                     }.let {
-                        activeVerifications.value -= accountName
+                        activeVerifications.value -= userId
                     }
                 }
             }
@@ -419,37 +401,36 @@ open class MainViewModelImpl(
 
     private fun possiblyStartSelfVerification() {
         coroutineScope.launch {
-            namedMatrixClients.scopedCollectLatest { namedMatrixClients ->
-                namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
-                    val matrixClient = matrixClientFlow.value ?: throw IllegalStateException("")
-                    log.debug { "launch listen for self verification methods (account $accountName)" }
+            this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
+                namedMatrixClients.forEach { (userId, matrixClient) ->
+                    log.debug { "launch listen for self verification methods (account $userId)" }
                     launch {
                         matrixClient.verification.getSelfVerificationMethods()
                             .distinctUntilChanged()
                             .collect { selfVerificationMethods ->
-                                log.debug { "self verification methods (account $accountName): $selfVerificationMethods" }
+                                log.debug { "self verification methods (account $userId): $selfVerificationMethods" }
                                 when (selfVerificationMethods) {
                                     is PreconditionsNotMet -> {
-                                        log.debug { "cannot determine yet if cross-signing is needed for $accountName" }
+                                        log.debug { "cannot determine yet if cross-signing is needed for $userId" }
                                     }
 
                                     is NoCrossSigningEnabled -> {
-                                        log.debug { "start bootstrapping $accountName" }
-                                        showBootstrap(accountName)
+                                        log.debug { "start bootstrapping $userId" }
+                                        showBootstrap(userId)
                                     }
 
                                     is AlreadyCrossSigned -> {
-                                        log.debug { "client for $accountName is already cross-signed" }
-                                        closeSelfVerification(accountName)
+                                        log.debug { "client for $userId is already cross-signed" }
+                                        closeSelfVerification(userId)
                                     }
 
                                     is CrossSigningEnabled -> {
                                         if (selfVerificationMethods.methods.isNotEmpty()) {
-                                            log.debug { "start self verification for $accountName" }
-                                            showSelfVerification(accountName)
+                                            log.debug { "start self verification for $userId" }
+                                            showSelfVerification(userId)
                                         } else {
-                                            log.debug { "no self verification methods available for $accountName" }
-                                            closeSelfVerification(accountName)
+                                            log.debug { "no self verification methods available for $userId" }
+                                            closeSelfVerification(userId)
                                         }
                                     }
                                 }
@@ -462,19 +443,19 @@ open class MainViewModelImpl(
 
     private fun reactToActiveVerifications() {
         coroutineScope.launch {
-            namedMatrixClients.scopedCollectLatest { namedMatrixClients ->
-                namedMatrixClients.forEach { (accountName, matrixClient) ->
+            this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
+                namedMatrixClients.forEach { (userId, matrixClient) ->
                     launch {
-                        matrixClient.value?.verification?.activeDeviceVerification
-                            ?.filterNotNull()
-                            ?.collect {
+                        matrixClient.verification.activeDeviceVerification
+                            .filterNotNull()
+                            .collect {
                                 log.debug { "new verification: $it" }
                                 launch {
                                     it.state.collect { verificationState ->
                                         if (verificationState is ActiveVerificationState.TheirRequest ||
                                             verificationState is ActiveVerificationState.OwnRequest
                                         ) {
-                                            activeVerifications.value += accountName
+                                            activeVerifications.value += userId
                                         }
                                     }
                                 }
@@ -487,22 +468,21 @@ open class MainViewModelImpl(
 
     private fun reactToPresenceIsPublicChanges() {
         coroutineScope.launch {
-            namedMatrixClients.collectLatest { namedMatrixClients ->
-                namedMatrixClients.forEach { (accountName, matrixClientFlow) ->
-                    messengerSettings.presenceIsPublicFlow(accountName).collect { presenceIsPublic ->
-                        if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
-                            matrixClientFlow.value?.let { matrixClient ->
-                                log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }
-                                matrixClient.stopSync(wait = false)
-                                matrixClient.startSync(presence = Presence.ONLINE)
+            this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
+                namedMatrixClients.forEach { (userId, matrixClient) ->
+                    launch {
+                        messengerSettings[userId].filterNotNull().map { it.presenceIsPublic }
+                            .collect { presenceIsPublic ->
+                                if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
+                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }
+                                    matrixClient.stopSync()
+                                    matrixClient.startSync(presence = Presence.ONLINE)
+                                } else if (presenceIsPublic.not() && lifecycle.state >= Lifecycle.State.STARTED) {
+                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with OFFLINE" }
+                                    matrixClient.stopSync()
+                                    matrixClient.startSync(presence = Presence.OFFLINE)
+                                }
                             }
-                        } else if (presenceIsPublic.not() && lifecycle.state >= Lifecycle.State.STARTED) {
-                            matrixClientFlow.value?.let { matrixClient ->
-                                log.info { "the settings for `presenceIsPublic` have changed -> restart sync with OFFLINE" }
-                                matrixClient.stopSync(wait = false)
-                                matrixClient.startSync(presence = Presence.OFFLINE)
-                            }
-                        }
                     }
                 }
             }
@@ -516,10 +496,10 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun onRoomSelected(accountName: String, id: RoomId) {
+    override fun onRoomSelected(userId: UserId, id: RoomId) {
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
-            roomRouter.showRoom(accountName, id)
+            roomRouter.showRoom(userId, id)
             // hack for iOS, since the observe mechanism of line 236ff does not work
             selectedRoomId.value = id
 
@@ -531,21 +511,21 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun onOpenAvatarCutter(accountName: String, file: FileDescriptor) {
+    override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
         coroutineScope.launch {
             log.debug { "open avatar cutter" }
-            avatarCutterRouter.show(accountName, file)
+            avatarCutterRouter.show(userId, file)
         }
     }
 
-    override fun setSinglePane(singlePane: Boolean) {
-        log.debug { "set single pane: $singlePane" }
-        isBackButtonVisible.value = singlePane
+    override fun setSinglePane(isSinglePane: Boolean) {
+        log.debug { "set single pane: $isSinglePane" }
+        isBackButtonVisible.value = isSinglePane
 
-        if (singlePane != isSinglePane.value) {
-            isSinglePane.value = singlePane
+        if (isSinglePane != this.isSinglePane.value) {
+            this.isSinglePane.value = isSinglePane
             coroutineScope.launch {
-                if (singlePane) {
+                if (isSinglePane) {
                     switchToSinglePane()
                 } else {
                     switchToMultiPane()
@@ -575,7 +555,7 @@ open class MainViewModelImpl(
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
-        accountName: String
+        userId: UserId
     ) {
         when (type) {
             OpenModalType.IMAGE -> coroutineScope.launch {
@@ -583,7 +563,7 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
-                    accountName
+                    userId
                 )
             }
 
@@ -592,36 +572,36 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
-                    accountName
+                    userId
                 )
             }
         }
 
     }
 
-    private fun redoSelfVerification(accountName: String) {
-        selfVerificationNavigation.launchPush(coroutineScope, SelfVerificationConfig.RedoSelfVerification(accountName))
+    private fun redoSelfVerification(userId: UserId) {
+        selfVerificationNavigation.launchPush(coroutineScope, SelfVerificationConfig.RedoSelfVerification(userId))
     }
 
     /** @see startSelfVerificationsQueue() **/
-    private fun showSelfVerification(accountName: String) {
-        log.debug { "add account to self verification queue: $accountName" }
+    private fun showSelfVerification(userId: UserId) {
+        log.debug { "add account to self verification queue: $userId" }
         // do sequentially (for different accounts), so here just fill the list
-        selfVerifications.value += accountName
+        selfVerifications.value += userId
     }
 
-    internal fun closeSelfVerification(accountName: String) {
-        log.debug { "remove account from self verification queue: $accountName" }
-        selfVerifications.value -= accountName
+    internal fun closeSelfVerification(userId: UserId) {
+        log.debug { "remove account from self verification queue: $userId" }
+        selfVerifications.value -= userId
     }
 
-    private suspend fun showBootstrap(accountName: String) {
+    private suspend fun showBootstrap(userId: UserId) {
         // it can happen that the bootstrap is triggered twice (initial sync, then regular sync; to avoid any
         // complications, only allow one bootstrap to be shown at the time
         if (bootstrapStarted.value.not()) {
             log.debug { "show bootstrap view" }
             bootstrapStarted.value = true
-            selfVerificationNavigation.pushSuspending(SelfVerificationConfig.Bootstrap(accountName))
+            selfVerificationNavigation.pushSuspending(SelfVerificationConfig.Bootstrap(userId))
         }
     }
 
@@ -639,19 +619,23 @@ open class MainViewModelImpl(
 
     private fun onSendLogs() {
         coroutineScope.launch {
-            try {
-                log.debug { "send logs to devs (email: ${MessengerConfig.instance.sendLogsEmailAddress})" }
-                MessengerConfig.instance.sendLogsEmailAddress?.let { email ->
-                    sendLogToDevs(
-                        email,
-                        // TODO include version of trixnity-messenger or maybe move sendLogs to client
-                        "error report for ${MessengerConfig.instance.appName} (${deviceDisplayName()})",
-                        getLogContent()
-                    )
+            val sendLogToDevs = getOrNull<SendLogToDevs>()
+            if (sendLogToDevs != null)
+                try {
+                    val config = get<MatrixMessengerConfiguration>()
+                    val defaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()()
+                    log.debug { "send logs to devs (email: ${config.sendLogsEmailAddress})" }
+                    config.sendLogsEmailAddress?.let { email ->
+                        sendLogToDevs(
+                            email,
+                            // TODO include version of trixnity-messenger or maybe move sendLogs to client
+                            "error report for ${config.appName} (${defaultDeviceDisplayName})",
+                        )
+                    }
+                } catch (exc: Exception) {
+                    log.error(exc) { "Cannot send error report." }
                 }
-            } catch (exc: Exception) {
-                log.error(exc) { "Cannot send error report." }
-            }
+            else log.warn { "send log to devs is not supported on this platform" }
         }
     }
 }
@@ -740,11 +724,11 @@ class PreviewMainViewModel : MainViewModel {
     override fun closeDetailsAndShowList() {
     }
 
-    override fun onRoomSelected(accountName: String, id: RoomId) {
+    override fun onRoomSelected(userId: UserId, id: RoomId) {
         selectedRoomId.value = id
     }
 
-    override fun onOpenAvatarCutter(accountName: String, file: FileDescriptor) {
+    override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
     }
 
     override fun setSinglePane(isSinglePane: Boolean) {
@@ -756,7 +740,7 @@ class PreviewMainViewModel : MainViewModel {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
-        accountName: String
+        userId: UserId
     ) {
     }
 

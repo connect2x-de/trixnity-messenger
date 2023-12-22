@@ -36,7 +36,7 @@ open class VerificationStepSuccessViewModelImpl(
         coroutineScope.launch {
             deviceName.value =
                 fromDeviceId?.let {
-                    matrixClient.api.devices.getDevice(fromDeviceId).fold(
+                    matrixClient.api.device.getDevice(fromDeviceId).fold(
                         onSuccess = { it.displayName ?: fromDeviceId }, onFailure = { fromDeviceId }
                     )
                 }

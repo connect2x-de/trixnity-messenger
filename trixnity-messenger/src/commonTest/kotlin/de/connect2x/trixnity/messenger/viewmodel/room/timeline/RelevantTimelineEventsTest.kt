@@ -17,7 +17,7 @@ import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
 
@@ -36,8 +36,8 @@ class RelevantTimelineEventsTest : ShouldSpec() {
 
         should("consider text messages as relevant") {
             val timelineEvent = timelineEvent(
-                MessageEvent(TextMessageEventContent(body = "Hola"), eventId, alice, roomId, 0L),
-                content = Result.success(TextMessageEventContent(body = "Hola"))
+                MessageEvent(RoomMessageEventContent.TextBased.Text(body = "Hola"), eventId, alice, roomId, 0L),
+                content = Result.success(RoomMessageEventContent.TextBased.Text(body = "Hola"))
             )
             cut.isRelevantTimelineEvent(timelineEvent) shouldBe true
         }
@@ -53,7 +53,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
                     ),
                     eventId, alice, roomId, 0L
                 ),
-                content = Result.success(TextMessageEventContent(body = "Hola"))
+                content = Result.success(RoomMessageEventContent.TextBased.Text(body = "Hola"))
             )
             cut.isRelevantTimelineEvent(timelineEvent) shouldBe true
         }

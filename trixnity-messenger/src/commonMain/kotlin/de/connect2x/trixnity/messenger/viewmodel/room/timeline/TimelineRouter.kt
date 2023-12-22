@@ -5,8 +5,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -14,6 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Ti
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.TimelineWrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
@@ -26,17 +25,18 @@ interface TimelineRouter {
     suspend fun closeTimeline()
     fun isShown(): Boolean
 
-    sealed class TimelineConfig : Parcelable {
-        @Parcelize
-        object None : TimelineConfig()
+    @Serializable
+    sealed class TimelineConfig {
+        @Serializable
+        data object None : TimelineConfig()
 
-        @Parcelize
-        data class View(val roomId: String) : TimelineConfig() // String to make it parcelizable
+        @Serializable
+        data class View(val roomId: String) : TimelineConfig()
     }
 
     sealed class TimelineWrapper {
         data class View(val timelineViewModel: TimelineViewModel) : TimelineWrapper()
-        object None : TimelineWrapper()
+        data object None : TimelineWrapper()
     }
 }
 
@@ -52,6 +52,7 @@ class TimelineRouterImpl(
     override val timelineStack =
         viewModelContext.childStack(
             source = timelineNavigation,
+            serializer = TimelineConfig.serializer(),
             initialConfiguration = TimelineConfig.None,
             key = "TimelineRouter",
             childFactory = ::createTimelineChild,

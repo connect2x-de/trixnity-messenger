@@ -3,20 +3,15 @@ package de.connect2x.trixnity.messenger.viewmodel.initialsync
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.launchReplaceCurrent
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.Serializable
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
-
-enum class InitialSyncState {
-    NOT_DONE, DONE
-}
 
 class InitialSyncRouter(
     private val viewModelContext: ViewModelContext,
@@ -24,6 +19,7 @@ class InitialSyncRouter(
     private val initialSyncNavigation = StackNavigation<InitialSyncConfig>()
     val stack = viewModelContext.childStack(
         source = initialSyncNavigation,
+        serializer = InitialSyncConfig.serializer(),
         initialConfiguration = InitialSyncConfig.Undefined, // we do not yet know whether an initial sync is needed
         key = "initialSyncRouter",
         handleBackButton = false,
@@ -40,15 +36,14 @@ class InitialSyncRouter(
             is InitialSyncConfig.Sync -> InitialSyncWrapper.Sync(
                 viewModelContext.get<SyncViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    accountNames = initialSyncConfig.accountNames,
                     onSyncDone = ::hideSync,
                 )
             )
         }
 
-    suspend fun showSync(forAccounts: Map<String, InitialSyncState>) {
-        log.debug { "show sync for the following accounts: $forAccounts" }
-        initialSyncNavigation.replaceCurrentSuspending(InitialSyncConfig.Sync(forAccounts))
+    suspend fun showSync() {
+        log.debug { "show sync" }
+        initialSyncNavigation.replaceCurrentSuspending(InitialSyncConfig.Sync)
     }
 
     private fun hideSync() {
@@ -62,19 +57,20 @@ class InitialSyncRouter(
     }
 
     sealed class InitialSyncWrapper {
-        object None : InitialSyncWrapper()
-        object Undefined : InitialSyncWrapper()
+        data object None : InitialSyncWrapper()
+        data object Undefined : InitialSyncWrapper()
         class Sync(val syncViewModel: SyncViewModel) : InitialSyncWrapper()
     }
 
-    sealed class InitialSyncConfig : Parcelable {
-        @Parcelize
-        object None : InitialSyncConfig()
+    @Serializable
+    sealed class InitialSyncConfig {
+        @Serializable
+        data object None : InitialSyncConfig()
 
-        @Parcelize
-        object Undefined : InitialSyncConfig()
+        @Serializable
+        data object Undefined : InitialSyncConfig()
 
-        @Parcelize
-        data class Sync(val accountNames: Map<String, InitialSyncState>) : InitialSyncConfig()
+        @Serializable
+        data object Sync : InitialSyncConfig()
     }
 }

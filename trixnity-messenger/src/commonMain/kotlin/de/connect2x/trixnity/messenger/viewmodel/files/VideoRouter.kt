@@ -3,12 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.RawValue
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
@@ -18,6 +17,7 @@ class VideoRouter(
     private val navigation = StackNavigation<VideoConfig>()
     val stack = viewModelContext.childStack(
         source = navigation,
+        serializer = VideoConfig.serializer(),
         initialConfiguration = VideoConfig.None,
         key = "VideoRouter",
         childFactory = ::createChild,
@@ -28,7 +28,7 @@ class VideoRouter(
             is VideoConfig.None -> VideoWrapper.None
             is VideoConfig.Video -> VideoWrapper.Video(
                 viewModelContext.get<VideoViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, videoConfig.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, videoConfig.userId),
                     mxcUrl = videoConfig.mxcUrl,
                     encryptedFile = videoConfig.encryptedFile,
                     fileName = videoConfig.fileName,
@@ -37,8 +37,8 @@ class VideoRouter(
             )
         }
 
-    suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) {
-        navigation.pushSuspending(VideoConfig.Video(mxcUrl, encryptedFile, fileName, accountName))
+    suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
+        navigation.pushSuspending(VideoConfig.Video(mxcUrl, encryptedFile, fileName, userId))
     }
 
     fun closeVideo() {
@@ -49,23 +49,24 @@ class VideoRouter(
         return stack.value.active.configuration is VideoConfig.Video
     }
 
-    sealed class VideoConfig : Parcelable {
-        @Parcelize
+    @Serializable
+    sealed class VideoConfig {
+        @Serializable
         data class Video(
             val mxcUrl: String,
-            val encryptedFile: @RawValue EncryptedFile?,
+            val encryptedFile: EncryptedFile?,
             val fileName: String,
-            val accountName: String,
+            val userId: UserId,
         ) :
             VideoConfig()
 
-        @Parcelize
-        object None : VideoConfig()
+        @Serializable
+        data object None : VideoConfig()
     }
 
     sealed class VideoWrapper {
         class Video(val videoViewModel: VideoViewModel) : VideoWrapper()
-        object None : VideoWrapper()
+        data object None : VideoWrapper()
     }
 
 }

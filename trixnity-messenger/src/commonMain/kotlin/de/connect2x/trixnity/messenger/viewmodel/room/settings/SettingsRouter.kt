@@ -5,8 +5,6 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.launchBringToFront
 import de.connect2x.trixnity.messenger.util.launchPop
@@ -15,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.SettingsConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.SettingsWrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
 
@@ -27,20 +26,21 @@ interface SettingsRouter {
     fun isShown(): Boolean
 
     sealed class SettingsWrapper {
-        object None : SettingsWrapper()
+        data object None : SettingsWrapper()
         class View(val settingsViewModel: RoomSettingsViewModel) : SettingsWrapper()
         class AddMember(val addMembersViewModel: AddMembersViewModel) : SettingsWrapper()
     }
 
-    sealed class SettingsConfig : Parcelable {
-        @Parcelize
-        object None : SettingsConfig()
+    @Serializable
+    sealed class SettingsConfig {
+        @Serializable
+        data object None : SettingsConfig()
 
-        @Parcelize
-        object Settings : SettingsConfig()
+        @Serializable
+        data object Settings : SettingsConfig()
 
-        @Parcelize
-        object AddMembers : SettingsConfig()
+        @Serializable
+        data object AddMembers : SettingsConfig()
     }
 
 }
@@ -56,6 +56,7 @@ class SettingsRouterImpl(
     override val settingsStack =
         viewModelContext.childStack(
             source = settingsNavigation,
+            serializer = SettingsConfig.serializer(),
             initialConfiguration = SettingsConfig.None,
             key = "SettingsRouter",
             childFactory = ::createSettingsChild,

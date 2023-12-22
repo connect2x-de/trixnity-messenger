@@ -2,11 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.RoomHeaderElement
-import de.connect2x.trixnity.messenger.viewmodel.RoomName
-import de.connect2x.trixnity.messenger.viewmodel.RoomNameElement
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -82,7 +78,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
     @Mock
     lateinit var userBlockingMock: UserBlocking
 
-    private lateinit var roomNameElement: Mocker.Every<Flow<RoomNameElement>>
+    private lateinit var roomNameElement: Mocker.Every<Flow<String>>
     private lateinit var ignoredUsers: Mocker.Every<Flow<IgnoredUserListEventContent?>>
 
     init {
@@ -107,9 +103,9 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 every { matrixClientMock.userId } returns me
 
                 roomNameElement = every {
-                    roomNameMock.getRoomNameElement(isAny<RoomId>(), isAny())
+                    roomNameMock.getRoomName(isAny<RoomId>(), isAny())
                 }
-                roomNameElement returns MutableStateFlow(RoomNameElement("My Room"))
+                roomNameElement returns MutableStateFlow("My Room")
                 every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
 
                 ignoredUsers = every { userServiceMock.getAccountData<IgnoredUserListEventContent>() }
@@ -121,7 +117,13 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
                     Room(roomId, avatarUrl = "mxc://localhost/123456")
                 )
-                every { roomServiceMock.getState(isAny(), isEqual(JoinRulesEventContent::class), isAny()) } returns MutableStateFlow(
+                every {
+                    roomServiceMock.getState(
+                        isAny(),
+                        isEqual(JoinRulesEventContent::class),
+                        isAny()
+                    )
+                } returns MutableStateFlow(
                     ClientEvent.RoomEvent.StateEvent(
                         content = JoinRulesEventContent(
                             joinRule = JoinRulesEventContent.JoinRule.Public
@@ -151,20 +153,20 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         }
 
         should("should show correct room name with initials and avatar and react to changes") {
-            val roomName = MutableStateFlow(RoomNameElement("My Room"))
+            val roomName = MutableStateFlow("My Room")
             roomNameElement returns roomName
             mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomHeaderElement.value shouldBe RoomHeaderElement(
+            cut.roomHeaderInfo.value shouldBe RoomHeaderInfo(
                 "My Room", "MR", "image".encodeToByteArray(), Presence.ONLINE, isEncrypted = false, isPublic = true,
             )
 
-            roomName.value = RoomNameElement("New Room Name")
+            roomName.value = "New Room Name"
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomHeaderElement.value shouldBe RoomHeaderElement(
+            cut.roomHeaderInfo.value shouldBe RoomHeaderInfo(
                 "New Room Name",
                 "MR",
                 "image".encodeToByteArray(),
@@ -172,6 +174,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 isEncrypted = false,
                 isPublic = true,
             )
+            cancelNeverEndingCoroutines()
         }
 
         should("compute trust level of `null` for non-direct rooms") {
@@ -181,6 +184,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.userTrustLevel.value shouldBe null
+            cancelNeverEndingCoroutines()
         }
 
         should("react to changes in the user's trust level") {
@@ -200,6 +204,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             directRoom.value = emptyList()
             testCoroutineScheduler.advanceUntilIdle()
             cut.userTrustLevel.value shouldBe null
+
+            cancelNeverEndingCoroutines()
         }
 
         should("allow to verify other user if not yet verified and vice versa") {
@@ -214,6 +220,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             trustLevel.value = UserTrustLevel.CrossSigned(verified = true)
             testCoroutineScheduler.advanceUntilIdle()
             cut.canVerifyUser.value shouldBe false
+
+            cancelNeverEndingCoroutines()
         }
 
         should("not allow user verification in non-direct room") {
@@ -226,6 +234,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.canVerifyUser.value shouldBe false
+
+            cancelNeverEndingCoroutines()
         }
 
         should("allow to block user in a direct room with only 2 users and user is not yet blocked and unblock if already blocked") {
@@ -249,6 +259,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.canBlockUser.value shouldBe false
             cut.canUnblockUser.value shouldBe true
+
+            cancelNeverEndingCoroutines()
         }
 
 
@@ -273,6 +285,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.canBlockUser.value shouldBe false
             cut.canUnblockUser.value shouldBe false
+
+            cancelNeverEndingCoroutines()
         }
     }
 
@@ -281,18 +295,17 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             viewModelContext = MatrixClientViewModelContextImpl(
                 di = koinApplication {
                     modules(
-                        trixnityMessengerModule(),
-                        testMatrixClientModule(matrixClientMock),
-                        module {
-                            single { roomNameMock }
-                            single { userPresenceMock }
-                            single { initialsMock }
-                            single { directRoomMock }
-                            single { userBlockingMock }
-                        })
+                        createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) +
+                                module {
+                                    single { roomNameMock }
+                                    single { userPresenceMock }
+                                    single { initialsMock }
+                                    single { directRoomMock }
+                                    single { userBlockingMock }
+                                })
                 }.koin,
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
-                "test",
+                me,
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
@@ -307,7 +320,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
     private fun subscribe(roomHeaderViewModel: RoomHeaderViewModel) {
         val scope = CoroutineScope(Dispatchers.Default)
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.roomHeaderElement.collect() }
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.roomHeaderInfo.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.isBackButtonVisible.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.usersTyping.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.canVerifyUser.collect() }

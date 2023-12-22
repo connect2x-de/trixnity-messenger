@@ -2,14 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.mock.MediaServiceMock
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -121,18 +119,18 @@ class ProfileViewModelTest : ShouldSpec() {
             val profilesOfAccounts = cut.profilesOfAccounts
             profilesOfAccounts.first {
                 it.size == 2 &&
-                        it[0].accountName == "test" && it[1].accountName == "test2"
+                        it[0].userId == ownUserId && it[1].userId == ownUserId2
             }
 
             eventually(1.seconds) {
                 cut.error.value shouldBe null
                 val profileOfAccount = profilesOfAccounts.value[0]
-                profileOfAccount.userId shouldBe ownUserId.full
+                profileOfAccount.userId shouldBe ownUserId
                 profileOfAccount.displayName.value shouldBe "Bob"
                 profileOfAccount.initials.value shouldBe "B"
                 profileOfAccount.avatar.value shouldBe "avatar".encodeToByteArray()
                 val profileOfAccount2 = profilesOfAccounts.value[1]
-                profileOfAccount2.userId shouldBe ownUserId2.full
+                profileOfAccount2.userId shouldBe ownUserId2
                 profileOfAccount2.displayName.value shouldBe "Alice"
                 profileOfAccount2.initials.value shouldBe "A"
                 profileOfAccount2.avatar.value shouldBe "avatar2".encodeToByteArray()
@@ -168,7 +166,7 @@ class ProfileViewModelTest : ShouldSpec() {
                 profilesOfAccounts.value[0].editDisplayName.value = "Bobby"
             }
 
-            cut.saveDisplayName("test")
+            cut.saveDisplayName(ownUserId)
             delay(200.milliseconds)
             // this leads to matrixClient.displayName to be set to "Bobby"
             mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.setDisplayName("Bobby") }
@@ -199,7 +197,7 @@ class ProfileViewModelTest : ShouldSpec() {
             profilesOfAccounts.first { it.size == 2 }
 
             profilesOfAccounts.value[0].editDisplayName.value = "Nobby"
-            cut.saveDisplayName("test")
+            cut.saveDisplayName(ownUserId)
 
             eventually(1.seconds) {
                 cut.error.value shouldNotBe null
@@ -233,7 +231,7 @@ class ProfileViewModelTest : ShouldSpec() {
             profilesOfAccounts.first { it.size == 2 }
 
             profilesOfAccounts.value[0].editDisplayName.value = "Nobby"
-            cut.saveDisplayName("test")
+            cut.saveDisplayName(ownUserId)
 
 
             eventually(1.seconds) {
@@ -264,7 +262,7 @@ class ProfileViewModelTest : ShouldSpec() {
             profilesOfAccounts.value[1].openAvatarCutter.value = true
 
             eventually(1.seconds) {
-                openAvatarCutter.value shouldBe "test2"
+                openAvatarCutter.value shouldBe ownUserId2
             }
             cut.closeAvatarCutter()
             eventually(1.seconds) {
@@ -295,16 +293,18 @@ class ProfileViewModelTest : ShouldSpec() {
     private fun profileViewModel(): ProfileViewModelImpl {
         val di = koinApplication {
             modules(
-                trixnityMessengerModule(),
-                testMatrixClientModule(listOf(matrixClientMock, matrixClientMock2), listOf("test", "test2"))
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(
+                        ownUserId to matrixClientMock,
+                        ownUserId2 to matrixClientMock2
+                    )
+                )
             )
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         return ProfileViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
+            viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
-                accountName = "test",
             ),
             onCloseProfile = mockFunction0(mocker),
             onOpenAvatarCutter = mockFunction2(mocker),

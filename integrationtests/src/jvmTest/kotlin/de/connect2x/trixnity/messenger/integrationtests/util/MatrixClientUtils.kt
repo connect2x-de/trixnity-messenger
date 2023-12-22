@@ -9,6 +9,7 @@ import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
 import net.folivo.trixnity.clientserverapi.model.authentication.Register
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import net.folivo.trixnity.core.model.UserId
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
@@ -17,7 +18,7 @@ import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 
 const val synapseVersion =
-    "v1.88.0" // TODO you should update this from time to time. https://github.com/matrix-org/synapse/releases
+    "v1.98.0" // TODO you should update this from time to time. https://github.com/element-hq/synapse/releases
 
 fun synapseDocker(useRegistrationToken: Boolean = false): GenericContainer<Nothing> {
     return GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion"))
@@ -41,8 +42,6 @@ fun synapseDocker(useRegistrationToken: Boolean = false): GenericContainer<Nothi
         }
 }
 
-private const val password = "user$1passw0rd"
-
 suspend fun MatrixClientServerApiClient.register(
     username: String? = null,
     password: String,
@@ -63,8 +62,8 @@ suspend fun MatrixClientServerApiClient.register(
     return Result.success(MatrixClient.LoginInfo(userId, createdDeviceId, accessToken, "displayName", null))
 }
 
-fun newDatabase(accountName: String?) =
-    Database.connect("jdbc:h2:mem:${accountName?.let { "${it}_${uuid4()}" } ?: uuid4()};DB_CLOSE_DELAY=-1;")
+fun newDatabase(userId: UserId?) =
+    Database.connect("jdbc:h2:mem:${userId?.let { "${it}_${uuid4()}" } ?: uuid4()};DB_CLOSE_DELAY=-1;")
 
 data class StartedClient(
     val scope: CoroutineScope,

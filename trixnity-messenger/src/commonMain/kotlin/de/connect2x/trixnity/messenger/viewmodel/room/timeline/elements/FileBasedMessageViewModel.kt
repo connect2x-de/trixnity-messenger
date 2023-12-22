@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.files.Download
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -27,7 +29,7 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
     val saveFileDialogOpen: StateFlow<Boolean>
     val downloadProgressElement: MutableStateFlow<StateFlow<FileTransferProgressElement?>?>
     val downloadSuccessful: MutableStateFlow<StateFlow<Boolean>?>
-    fun getFileNameWithExtension(): String
+    val fileName: String
     fun downloadFile(
         progressElement: MutableStateFlow<FileTransferProgressElement?>
     ): DownloadFile
@@ -42,12 +44,14 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
 
 abstract class AbstractFileBasedMessageViewModel(
     private val viewModelContext: MatrixClientViewModelContext,
+    private val content: RoomMessageEventContent.FileBased,
 ) : FileBasedMessageViewModel {
 
+    private val computeFileName = viewModelContext.get<ComputeFileName>()
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
-    protected abstract val url: String?
-    protected abstract val encryptedFile: EncryptedFile?
+    protected val url: String? by lazy { content.file?.url ?: content.url }
+    protected val encryptedFile: EncryptedFile? by lazy { content.file }
 
     private val _saveFileDialogOpen = MutableStateFlow(false)
     override val saveFileDialogOpen = _saveFileDialogOpen.asStateFlow()
@@ -58,13 +62,14 @@ abstract class AbstractFileBasedMessageViewModel(
 
     override fun downloadFile(): DownloadFile = downloadFile(MutableStateFlow(null))
 
+    override val fileName: String by lazy { computeFileName(content) }
+
     override fun downloadFile(
         progressElement: MutableStateFlow<FileTransferProgressElement?>
     ): DownloadFile {
         return object : DownloadFile {
             override suspend fun getFileResult(): Result<ByteArray> {
                 return url?.let { fileUrl ->
-                    val fileName = getFileNameWithExtension()
                     log.debug { "download file: $fileName from $fileUrl" }
                     val progress = MutableStateFlow<FileTransferProgress?>(null)
                     val resultAsync = downloadManager.startDownloadAsync(

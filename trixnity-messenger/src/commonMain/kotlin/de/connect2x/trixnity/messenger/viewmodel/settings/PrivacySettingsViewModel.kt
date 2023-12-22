@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,11 +35,11 @@ open class PrivacySettingsViewModelImpl(
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val privacySettings: StateFlow<List<PrivacySettingViewModel>> =
-        namedMatrixClients.scopedMapLatest { namedMatrixClients ->
-            namedMatrixClients.map { (accountName, matrixClientFlow) ->
+        matrixClients.scopedMapLatest { namedMatrixClients ->
+            namedMatrixClients.map { (userId, _) ->
                 get<PrivacySettingViewModelFactory>()
                     .create(
-                        viewModelContext = childContext("privacySetting-${accountName}", accountName = accountName),
+                        viewModelContext = childContext("privacySetting-${userId}", userId = userId),
                         onUnblockError = { error.value = it }
                     )
             }

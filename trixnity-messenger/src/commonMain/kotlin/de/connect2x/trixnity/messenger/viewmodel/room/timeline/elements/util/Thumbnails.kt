@@ -11,8 +11,7 @@ import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.ImageMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VideoMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
@@ -20,7 +19,7 @@ private val log = KotlinLogging.logger { }
 interface Thumbnails {
     suspend fun loadThumbnail(
         matrixClient: MatrixClient,
-        content: ImageMessageEventContent,
+        content: RoomMessageEventContent.FileBased.Image,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
     ): ByteArray? =
         loadThumbnail(
@@ -35,7 +34,7 @@ interface Thumbnails {
 
     suspend fun loadThumbnail(
         matrixClient: MatrixClient,
-        content: VideoMessageEventContent,
+        content: RoomMessageEventContent.FileBased.Video,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
     ): ByteArray? =
         loadThumbnail(

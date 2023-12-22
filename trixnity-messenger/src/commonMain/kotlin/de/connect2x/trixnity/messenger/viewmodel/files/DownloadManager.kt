@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.files
 
+import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
-import de.connect2x.trixnity.messenger.viewmodel.util.ioCoroutineContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -29,7 +29,7 @@ interface DownloadManager {
 }
 
 class DownloadManagerImpl(
-    coroutineContext: CoroutineContext = ioCoroutineContext,
+    coroutineContext: CoroutineContext = Dispatchers.IOOrDefault,
 ) : DownloadManager {
     private val _isError = MutableStateFlow(false)
     override val isError: StateFlow<Boolean> = _isError.asStateFlow()

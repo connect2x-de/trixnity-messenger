@@ -2,12 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
@@ -63,7 +62,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     private val onBackMock = mockFunction0<Unit>(mocker)
-    private val onGroupCreatedMock = mockFunction2<Unit, String, RoomId>(mocker)
+    private val onGroupCreatedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -239,7 +238,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             cut.createNewGroup()
 
             eventually(3.seconds) {
-                mocker.verify(exhaustive = false) { onGroupCreatedMock.invoke("test", roomId) }
+                mocker.verify(exhaustive = false) { onGroupCreatedMock.invoke(UserId("test", "server"), roomId) }
             }
         }
 
@@ -313,11 +312,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        trixnityMessengerModule(),
-                        testMatrixClientModule(matrixClientMock),
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
                     )
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
             ),
             createNewRoomViewModel = createNewRoomViewModel(),
@@ -334,11 +332,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        trixnityMessengerModule(),
-                        testMatrixClientModule(matrixClientMock),
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
                     )
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
             ),
         )

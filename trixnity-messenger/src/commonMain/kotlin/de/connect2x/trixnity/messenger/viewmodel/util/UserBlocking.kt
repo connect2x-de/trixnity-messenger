@@ -40,7 +40,7 @@ class UserBlockingImpl : UserBlocking {
     ) {
         matrixClient.user.getAccountData<IgnoredUserListEventContent>().first()?.ignoredUsers?.let { ignoredUsers ->
             val newIgnoredUsers = ignoredUsers + (userToBlock to JsonObject(emptyMap()))
-            matrixClient.api.users.setAccountData(
+            matrixClient.api.user.setAccountData(
                 content = IgnoredUserListEventContent(newIgnoredUsers),
                 userId = matrixClient.userId,
             )
@@ -63,7 +63,7 @@ class UserBlockingImpl : UserBlocking {
     ) {
         matrixClient.user.getAccountData<IgnoredUserListEventContent>().first()?.ignoredUsers?.let { ignoredUsers ->
             val newIgnoredUsers = ignoredUsers - userToUnblock
-            matrixClient.api.users.setAccountData(
+            matrixClient.api.user.setAccountData(
                 content = IgnoredUserListEventContent(newIgnoredUsers),
                 userId = matrixClient.userId,
             )

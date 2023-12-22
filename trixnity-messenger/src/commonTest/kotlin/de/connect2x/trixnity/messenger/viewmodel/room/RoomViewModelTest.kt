@@ -5,23 +5,17 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.RoomHeaderElement
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
-import de.connect2x.trixnity.messenger.viewmodel.util.IsNetworkAvailable
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.timing.eventually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.types.beOfType
@@ -82,12 +76,6 @@ class RoomViewModelTest : ShouldSpec() {
 
     @Mock
     lateinit var keyServiceMock: KeyService
-
-    @Mock
-    lateinit var keySecretServiceMock: KeySecretService
-
-    @Mock
-    lateinit var keyTrustServiceMock: KeyTrustService
 
     @Mock
     lateinit var verificationServiceMock: VerificationService
@@ -369,51 +357,61 @@ class RoomViewModelTest : ShouldSpec() {
                     backHandler = backPressedHandler
                 ),
                 di = koinApplication {
-                    modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                        single { testMessengerSettings("EN") }
-                        single { downloadManagerMock }
-                        single { isNetworkAvailable }
-                        single { runInitialSyncMock }
-                        single<RoomHeaderViewModelFactory> {
-                            object : RoomHeaderViewModelFactory {
-                                override fun create(
-                                    viewModelContext: MatrixClientViewModelContext,
-                                    selectedRoomId: RoomId,
-                                    isBackButtonVisible: MutableStateFlow<Boolean>,
-                                    onBack: () -> Unit,
-                                    onVerifyUser: () -> Unit,
-                                    onShowRoomSettings: () -> Unit,
-                                ): RoomHeaderViewModel {
-                                    return object : RoomHeaderViewModel {
-                                        override val error: StateFlow<String?> = MutableStateFlow(null)
-                                        override val isBackButtonVisible: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val roomHeaderElement: StateFlow<RoomHeaderElement> = MutableStateFlow(
-                                            RoomHeaderElement("", "", null, null, false, false)
-                                        )
-                                        override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
-                                        override val userTrustLevel: StateFlow<UserTrustLevel?> = MutableStateFlow(null)
-                                        override val canVerifyUser: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(
+                                UserId(
+                                    "test",
+                                    "server"
+                                ) to matrixClientMock
+                            )
+                        ) + module {
+                            single { downloadManagerMock }
+                            single { isNetworkAvailable }
+                            single { runInitialSyncMock }
+                            single<RoomHeaderViewModelFactory> {
+                                object : RoomHeaderViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        isBackButtonVisible: MutableStateFlow<Boolean>,
+                                        onBack: () -> Unit,
+                                        onVerifyUser: () -> Unit,
+                                        onShowRoomSettings: () -> Unit,
+                                    ): RoomHeaderViewModel {
+                                        return object : RoomHeaderViewModel {
+                                            override val error: StateFlow<String?> = MutableStateFlow(null)
+                                            override val isBackButtonVisible: StateFlow<Boolean> =
+                                                MutableStateFlow(false)
+                                            override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
+                                                MutableStateFlow(
+                                                    RoomHeaderInfo("", "", null, null, false, false)
+                                                )
+                                            override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
+                                            override val userTrustLevel: StateFlow<UserTrustLevel?> =
+                                                MutableStateFlow(null)
+                                            override val canVerifyUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                            override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                            override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                            override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)
 
-                                        override fun blockUser() {}
-                                        override fun unblockUser() {}
-                                        override fun verifyUser() {}
-                                        override fun showRoomSettings() {
-                                            onShowRoomSettings()
-                                        }
+                                            override fun blockUser() {}
+                                            override fun unblockUser() {}
+                                            override fun verifyUser() {}
+                                            override fun showRoomSettings() {
+                                                onShowRoomSettings()
+                                            }
 
-                                        override fun goBack() {
-                                            onBack()
+                                            override fun goBack() {
+                                                onBack()
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    })
+                        })
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined,
             ),
             roomId = roomId,

@@ -2,12 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -44,7 +42,7 @@ import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.clientserverapi.model.uia.UIAState
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import net.folivo.trixnity.core.model.keys.DeviceKeys
 import net.folivo.trixnity.core.model.keys.Keys
 import net.folivo.trixnity.crypto.olm.OlmDecrypter
@@ -215,8 +213,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             accountsWithDevices.first { it.size == 2 }
 
             assertSoftly(accountsWithDevices.value) {
-                get(0).accountName shouldBe "test"
-                get(1).accountName shouldBe "test2"
+                get(0).userId shouldBe UserId("test", "server")
+                get(1).userId shouldBe UserId("test2", "server")
 
                 get(0).isLoading.first { it.not() }
                 get(0).devicesInAccount.first { it.thisDevice.deviceId == ourDeviceId }
@@ -355,7 +353,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
-            cut.setDisplayName("test", ourDeviceId, "device1", "device1 updated")
+            cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
             testCoroutineScheduler.advanceUntilIdle()
 
             accountsWithDevices.first {
@@ -381,7 +379,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
             cut.error.value shouldBe null
-            cut.setDisplayName("test", ourDeviceId, "device1", "device1 updated")
+            cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.error.value shouldNotBe null
@@ -407,7 +405,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             val accountsWithDevices = cut.accountsWithDevices
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
-            cut.verify("test", "deviceId2")
+            cut.verify(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             mocker.verifyWithSuspend(exhaustive = false) {
@@ -438,7 +436,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             val accountsWithDevices = cut.accountsWithDevices
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
             cut.error.value shouldBe null
-            cut.verify("test", "deviceId2")
+            cut.verify(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.error.value shouldNotBe null
@@ -476,7 +474,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
             cut.showLogin.value shouldBe null
-            cut.remove("test", "deviceId2")
+            cut.remove(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.showLogin.value shouldNotBe null
@@ -509,7 +507,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
             cut.removeError.value shouldBe null
-            cut.remove("test", "deviceId2")
+            cut.remove(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.removeError.value shouldNotBe null
@@ -552,9 +550,9 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
             cut.showRemoveDevice.value = "deviceId2" // triggered by UI
-            cut.remove("test", "deviceId2")
+            cut.remove(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
-            cut.authenticate("test", "p4ssw0rd!", "deviceId2")
+            cut.authenticate(UserId("test", "server"), "p4ssw0rd!", "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             authenticateWasCalled shouldBe true
@@ -606,9 +604,9 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             cut.passwordWrong.value shouldBe false
             cut.showRemoveDevice.value = "deviceId2" // triggered by UI
-            cut.remove("test", "deviceId2")
+            cut.remove(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
-            cut.authenticate("test", "p4ssw0rd!", "deviceId2")
+            cut.authenticate(UserId("test", "server"), "p4ssw0rd!", "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.passwordWrong.value shouldBe true
@@ -651,9 +649,9 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
             cut.removeError.value shouldBe null
-            cut.remove("test", "deviceId2")
+            cut.remove(UserId("test", "server"), "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
-            cut.authenticate("test", "p4ssw0rd!", "deviceId2")
+            cut.authenticate(UserId("test", "server"), "p4ssw0rd!", "deviceId2")
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.removeError.value shouldNotBe null
@@ -665,7 +663,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
     }
 
     private fun activeDeviceVerification(scope: CoroutineScope) = ActiveDeviceVerification(
-        request = VerificationRequestEventContent("", emptySet(), 0L, ""),
+        request = VerificationRequestToDeviceEventContent("", emptySet(), 0L, ""),
         requestIsOurs = false,
         ownUserId = ourUserId,
         ownDeviceId = ourDeviceId,
@@ -695,16 +693,19 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
     private fun devicesSettingsViewModel(coroutineContext: CoroutineContext): DevicesSettingsViewModelImpl {
         val di = koinApplication {
             modules(
-                trixnityMessengerModule(),
-                testMatrixClientModule(listOf(matrixClientMock, matrixClientMock2), listOf("test", "test2")),
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(
+                        UserId("test", "server") to matrixClientMock,
+                        UserId("test2", "server") to matrixClientMock2
+                    )
+                )
             )
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         return DevicesSettingsViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
             mockFunction0(mocker),

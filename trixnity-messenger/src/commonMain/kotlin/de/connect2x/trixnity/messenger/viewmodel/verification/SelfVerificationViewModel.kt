@@ -1,21 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import de.connect2x.trixnity.messenger.closeApp
+import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
 import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.*
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.key.RecoveryKeyInvalidException
 import org.koin.core.component.get
 
@@ -33,7 +33,7 @@ interface SelfVerificationViewModelFactory {
 }
 
 interface SelfVerificationViewModel {
-    val accountName: String
+    val userId: UserId
     val showVerificationHelp: MutableStateFlow<Boolean>
     val selfVerificationMethods: MutableStateFlow<Set<SelfVerificationMethod>>
     val showPassphraseMethod: MutableStateFlow<AesHmacSha2RecoveryKeyWithPbkdf2Passphrase?>
@@ -57,7 +57,6 @@ open class SelfVerificationViewModelImpl(
 
     private val verifyAccount = get<VerifyAccount>()
 
-    override val accountName: String = viewModelContext.accountName
     override val showVerificationHelp = MutableStateFlow(true)
     override val selfVerificationMethods = MutableStateFlow<Set<SelfVerificationMethod>>(emptySet())
     override val showPassphraseMethod = MutableStateFlow<AesHmacSha2RecoveryKeyWithPbkdf2Passphrase?>(null)
@@ -70,30 +69,29 @@ open class SelfVerificationViewModelImpl(
 
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {
-            namedMatrixClients.scopedCollectLatest { namedMatrixClients ->
-                namedMatrixClients.forEach { namedMatrixClient ->
+            matrixClients.scopedCollectLatest { matrixClients ->
+                matrixClients.forEach { (userId, matrixClient) ->
                     launch {
-                        val matrixClient = namedMatrixClient.matrixClient.filterNotNull().first()
-                        log.debug { "launch self verification method listener for account ${namedMatrixClient.accountName}" }
+                        log.debug { "launch self verification method listener for account $userId" }
                         matrixClient.verification.getSelfVerificationMethods()
                             .collectLatest { foundSelfVerificationMethods ->
                                 showVerificationHelp.value = false
 
                                 when (foundSelfVerificationMethods) {
                                     is PreconditionsNotMet -> {
-                                        log.debug { "${namedMatrixClient.accountName}: cannot determine yet if cross-signing is needed" }
+                                        log.debug { "$userId: cannot determine yet if cross-signing is needed" }
                                     }
 
                                     is NoCrossSigningEnabled -> {
-                                        log.debug { "${namedMatrixClient.accountName}: no cross-signing is enabled" }
+                                        log.debug { "$userId: no cross-signing is enabled" }
                                     }
 
                                     is AlreadyCrossSigned -> {
-                                        log.debug { "${namedMatrixClient.accountName}: client is already cross-signed" }
+                                        log.debug { "$userId: client is already cross-signed" }
                                     }
 
                                     is CrossSigningEnabled -> {
-                                        log.debug { "${namedMatrixClient.accountName}: multiple self verification methods are available" }
+                                        log.debug { "$userId: multiple self verification methods are available" }
                                         selfVerificationMethods.value = foundSelfVerificationMethods.methods
                                     }
                                 }
@@ -189,7 +187,7 @@ open class SelfVerificationViewModelImpl(
     }
 
     override fun closeMessenger() {
-        closeApp()
+        getOrNull<CloseApp>()?.invoke()
     }
 
 }

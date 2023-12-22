@@ -3,12 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.RawValue
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
@@ -18,6 +17,7 @@ class ImageRouter(
     private val navigation = StackNavigation<ImageConfig>()
     val stack = viewModelContext.childStack(
         source = navigation,
+        serializer = ImageConfig.serializer(),
         initialConfiguration = ImageConfig.None,
         key = "ImageRouter",
         childFactory = ::createChild,
@@ -28,7 +28,7 @@ class ImageRouter(
             is ImageConfig.None -> ImageWrapper.None
             is ImageConfig.Image -> ImageWrapper.Image(
                 viewModelContext.get<ImageViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, imageConfig.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, imageConfig.userId),
                     mxcUrl = imageConfig.mxcUrl,
                     encryptedFile = imageConfig.encryptedFile,
                     fileName = imageConfig.fileName,
@@ -37,8 +37,8 @@ class ImageRouter(
             )
         }
 
-    suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) {
-        navigation.pushSuspending(ImageConfig.Image(mxcUrl, encryptedFile, fileName, accountName))
+    suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
+        navigation.pushSuspending(ImageConfig.Image(mxcUrl, encryptedFile, fileName, userId))
     }
 
     fun closeImage() {
@@ -49,22 +49,22 @@ class ImageRouter(
         return stack.value.active.configuration is ImageConfig.Image
     }
 
-    sealed class ImageConfig : Parcelable {
-        @Parcelize
+    @Serializable
+    sealed class ImageConfig {
+        @Serializable
         data class Image(
             val mxcUrl: String,
-            val encryptedFile: @RawValue EncryptedFile?,
+            val encryptedFile: EncryptedFile?,
             val fileName: String,
-            val accountName: String
-        ) :
-            ImageConfig()
+            val userId: UserId
+        ) : ImageConfig()
 
-        @Parcelize
-        object None : ImageConfig()
+        @Serializable
+        data object None : ImageConfig()
     }
 
     sealed class ImageWrapper {
         class Image(val imageViewModel: ImageViewModel) : ImageWrapper()
-        object None : ImageWrapper()
+        data object None : ImageWrapper()
     }
 }

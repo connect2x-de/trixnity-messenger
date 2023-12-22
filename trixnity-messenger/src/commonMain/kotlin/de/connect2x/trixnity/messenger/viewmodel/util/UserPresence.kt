@@ -33,7 +33,7 @@ class UserPresenceImpl(
                     flowOf(presence)
                 } ?: flow {
                     emit(PresenceEventContent(presence = Presence.OFFLINE))
-                    matrixClient.api.users.getPresence(userId).getOrNull()?.let { presence -> emit(presence) }
+                    matrixClient.api.user.getPresence(userId).getOrNull()?.let { presence -> emit(presence) }
                 }
             } ?: flowOf(null)
         }.flatMapLatest { it }

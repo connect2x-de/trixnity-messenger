@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.messenger.AccountAlreadyExistsException
 import de.connect2x.trixnity.messenger.LoadStoreException.StoreAccessException
 import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
-import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.deviceDisplayName
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.i18n.I18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -11,17 +11,17 @@ import io.ktor.util.network.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
-suspend fun MatrixClientService.loginCatching(
-    accountName: String,
+suspend fun MatrixClients.loginCatching(
     serverUrl: String,
     username: String,
     password: String,
+    initialDeviceDisplayName: String,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
     onLogin: () -> Unit,
@@ -32,16 +32,15 @@ suspend fun MatrixClientService.loginCatching(
             baseUrl = Url(serverUrl),
             identifier = IdentifierType.User(username),
             password = password,
-            initialDeviceDisplayName = deviceDisplayName(),
-            accountName = accountName,
+            initialDeviceDisplayName = initialDeviceDisplayName,
         )
     }
 }
 
-suspend fun MatrixClientService.loginCatching(
-    accountName: String,
+suspend fun MatrixClients.loginCatching(
     serverUrl: String,
     token: String,
+    initialDeviceDisplayName: String,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
     onLogin: () -> Unit,
@@ -51,20 +50,14 @@ suspend fun MatrixClientService.loginCatching(
         login(
             baseUrl = Url(serverUrl),
             token = token,
-            initialDeviceDisplayName = deviceDisplayName(),
-            accountName = accountName,
+            initialDeviceDisplayName = initialDeviceDisplayName,
         )
     }
 }
 
-suspend fun MatrixClientService.loginWithCatching(
-    accountName: String,
-    serverUrl: String,
-    userId: UserId,
-    deviceId: String,
-    accessToken: String,
-    displayName: String?,
-    avatarUrl: String? = null,
+suspend fun MatrixClients.loginWithCatching(
+    baseUrl: String,
+    loginInfo: LoginInfo,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
     onLogin: () -> Unit,
@@ -72,7 +65,8 @@ suspend fun MatrixClientService.loginWithCatching(
     log.info { "try to loginWith" }
     catchLogin(addMatrixAccountState, i18n, onLogin) {
         loginWith(
-            Url(serverUrl), userId, deviceId, accessToken, displayName, avatarUrl, accountName
+            baseUrl = Url(baseUrl),
+            loginInfo = loginInfo,
         )
     }
 }
@@ -95,9 +89,9 @@ private suspend fun catchLogin(
             HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
             else -> i18n.connectingErrorStandard()
         }
-    } catch (exc: CancellationException) {
-        // do nothing as this is the case when the view model is removed
-        null
+    } catch (exc: AccountAlreadyExistsException) {
+        log.warn { "account already exists locally" }
+        i18n.connectingAccountAlreadyExists(exc.userId)
     } catch (exc: StoreLockedException) {
         log.error(exc) { "database is locked" }
         i18n.connectingErrorDbLocked()
@@ -105,6 +99,9 @@ private suspend fun catchLogin(
         log.error(exc) { "cannot access database; this is a serious problem and might only be solved by deleting the database if the problem persists" }
         // we cannot load data from the DB, so either close the App or remove the DB and try again
         i18n.connectingErrorDbAccess()
+    } catch (exc: CancellationException) {
+        // do nothing as this is the case when the view model is removed
+        null
     } catch (exc: Exception) {
         log.error(exc) { "Cannot contact Matrix Server." }
         when (exc) {

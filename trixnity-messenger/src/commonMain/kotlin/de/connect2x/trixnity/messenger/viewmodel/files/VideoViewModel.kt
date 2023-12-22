@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.files
 
+import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
-import de.connect2x.trixnity.messenger.viewmodel.util.ioCoroutineContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,7 +69,7 @@ open class VideoViewModelImpl(
                     ))
                 }
             }
-            withContext(ioCoroutineContext) {
+            withContext(Dispatchers.IOOrDefault) {
                 if (encryptedFile != null) {
                     matrixClient.media.getEncryptedMedia(encryptedFile, videoProgressFlow).fold(
                         onSuccess = {

@@ -3,16 +3,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.FileNameComputations
-import io.ktor.http.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import org.koin.core.component.get
 
 interface AudioMessageViewModelFactory {
     fun create(
@@ -26,7 +22,7 @@ interface AudioMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        content: RoomMessageEventContent.AudioMessageEventContent,
+        content: RoomMessageEventContent.FileBased.Audio,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
     ): AudioMessageViewModel {
         return AudioMessageViewModelImpl(
@@ -49,8 +45,6 @@ interface AudioMessageViewModelFactory {
 }
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {
-    val url: String?
-    val encryptedFile: EncryptedFile?
     fun openAudio()
 }
 
@@ -65,9 +59,9 @@ open class AudioMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val content: RoomMessageEventContent.AudioMessageEventContent,
+    content: RoomMessageEventContent.FileBased.Audio,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
+) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -75,20 +69,9 @@ open class AudioMessageViewModelImpl(
         sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
-    private val fileNameComputations = FileNameComputations(viewModelContext.get())
-
-    override val url: String? = content.file?.url ?: content.url
-    override val encryptedFile: EncryptedFile? = content.file
 
     override fun openAudio() {
         // TODO if you have audio working, replace with: 'url?.let { onOpenModal(OpenModalType.AUDIO, it, encryptedFile) }'
         openSaveFileDialog()
     }
-
-    override fun getFileNameWithExtension() =
-        fileNameComputations.getOrCreateFileName(
-            content.bodyWithoutFallback,
-            content.info?.mimeType,
-            ContentType.Audio.Any
-        )
 }

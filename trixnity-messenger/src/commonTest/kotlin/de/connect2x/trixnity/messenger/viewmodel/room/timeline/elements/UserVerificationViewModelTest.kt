@@ -2,13 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
@@ -21,7 +19,6 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.verification.ActiveVerification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.core.model.EventId
@@ -37,8 +34,7 @@ import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDone
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequestMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
 import org.kodein.mock.*
@@ -46,7 +42,6 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Suppress("UNUSED_CHANGED_VALUE")
 class UserVerificationViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
@@ -54,7 +49,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
 
     private val thisRoom = RoomId("room", "localhost")
     private val timelineEventId = EventId("event-0")
-    private val me = UserId("me", "localhost")
+    private val me = UserId("test", "localhost")
 
     @Mock
     lateinit var matrixClientMock: MatrixClient
@@ -72,7 +67,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
     lateinit var activeVerification: ActiveVerification
 
     @Fake
-    lateinit var verificationRequestMessageEventContent: VerificationRequestMessageEventContent
+    lateinit var verificationRequestMessageEventContent: RoomMessageEventContent.VerificationRequest
 
     @Fake
     lateinit var ready: ActiveVerificationState.Ready
@@ -207,7 +202,6 @@ class UserVerificationViewModelTest : ShouldSpec() {
                 )
             } returns null
 
-            var eventIdNo = 0
             mocker.every {
                 roomServiceMock.getTimelineEvent(
                     isEqual(thisRoom),
@@ -223,7 +217,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                                 flowOf(
                                     timelineEventMessage(
                                         EventId("event-${eventIdNo}"),
-                                        TextMessageEventContent("")
+                                        RoomMessageEventContent.TextBased.Text("")
                                     )
                                 )
                             )
@@ -349,30 +343,30 @@ class UserVerificationViewModelTest : ShouldSpec() {
     }
 
     private fun userVerificationViewModel(
-        verificationRequestMessageEventContent: VerificationRequestMessageEventContent
+        verificationRequestMessageEventContent: RoomMessageEventContent.VerificationRequest
     ): UserVerificationViewModelImpl {
         val di = koinApplication {
-            modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock, me.full), module {
-                single { activeVerifications }
-                single<VerificationViewModelFactory> {
-                    object : VerificationViewModelFactory {
-                        override fun create(
-                            viewModelContext: MatrixClientViewModelContext,
-                            onCloseVerification: () -> Unit,
-                            onRedoSelfVerification: () -> Unit,
-                            roomId: RoomId?,
-                            timelineEventId: EventId?,
-                        ): VerificationViewModel = verificationViewModel
+            modules(
+                createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
+                    single { activeVerifications }
+                    single<VerificationViewModelFactory> {
+                        object : VerificationViewModelFactory {
+                            override fun create(
+                                viewModelContext: MatrixClientViewModelContext,
+                                onCloseVerification: () -> Unit,
+                                onRedoSelfVerification: () -> Unit,
+                                roomId: RoomId?,
+                                timelineEventId: EventId?,
+                            ): VerificationViewModel = verificationViewModel
+                        }
                     }
-                }
-            })
+                })
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         return UserVerificationViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
-                accountName = "@me:localhost",
+                userId = me,
                 coroutineContext = Dispatchers.Unconfined
             ),
             invitation = MutableStateFlow(""),
@@ -417,22 +411,4 @@ class UserVerificationViewModelTest : ShouldSpec() {
         nextEventId = null,
         gap = null,
     )
-
-    private fun ArgConstraintsBuilder.isTimelineEventUntil50(
-        capture: MutableList<TimelineEvent>? = null
-    ): TimelineEvent =
-        isValid(ArgConstraint(capture, { "isTimelineEventUntil50" }) {
-            if (it.eventId.full.split("-")[1].toInt() < 50) ArgConstraint.Result.Success
-            else ArgConstraint.Result.Failure { "Expected timelineEvent with Id < 50, but got $it" }
-        })
-
-    private fun ArgConstraintsBuilder.isTimelineEvent50(
-        capture: MutableList<TimelineEvent>? = null
-    ): TimelineEvent =
-        isValid(ArgConstraint(capture, { "isTimelineEvent50" }) {
-            if (it.eventId.full.split("-")[1].toInt() == 50) ArgConstraint.Result.Success
-            else ArgConstraint.Result.Failure { "Expected timelineEvent with Id == 50, but got $it" }
-        })
-
-
 }

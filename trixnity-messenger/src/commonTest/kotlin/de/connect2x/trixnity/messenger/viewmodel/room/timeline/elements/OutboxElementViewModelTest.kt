@@ -2,11 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -18,9 +17,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -58,7 +59,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = TextMessageEventContent(body = "Hello World")
+                    content = TextBased.Text(body = "Hello World")
                 )
             )
 
@@ -73,7 +74,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = ImageMessageEventContent(body = "", url = "mxc://localhost/123456")
+                    content = FileBased.Image(body = "", url = "mxc://localhost/123456")
                 )
             )
 
@@ -88,7 +89,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = VideoMessageEventContent(body = "", url = "mxc://localhost/123456")
+                    content = FileBased.Video(body = "", url = "mxc://localhost/123456")
                 )
             )
 
@@ -103,7 +104,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = FileMessageEventContent(body = "", url = "mxc://localhost/123456")
+                    content = FileBased.File(body = "", url = "mxc://localhost/123456")
                 )
             )
 
@@ -118,7 +119,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = EmoteMessageEventContent(body = "")
+                    content = Unknown("m.dino", "I love unicorns.", JsonObject(mapOf()))
                 )
             )
 
@@ -131,12 +132,20 @@ class OutboxElementViewModelTest : ShouldSpec() {
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
-                    modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                        single { downloadManagerMock }
-                        single { clock }
-                    })
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(
+                                UserId(
+                                    "test",
+                                    "server"
+                                ) to matrixClientMock
+                            )
+                        ) + module {
+                            single { downloadManagerMock }
+                            single { clock }
+                        })
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
             ),
             key = outboxMessage.transactionId,
             outboxMessageFlow = flowOf(outboxMessage),

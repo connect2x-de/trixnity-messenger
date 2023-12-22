@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.rooms.GetPublicRoomsWithFilter
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -21,7 +22,7 @@ interface SearchGroupViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onBack: () -> Unit,
-        onGroupJoined: (String, RoomId) -> Unit,
+        onGroupJoined: (UserId, RoomId) -> Unit,
     ): SearchGroupViewModel =
         SearchGroupViewModelImpl(viewModelContext, onBack, onGroupJoined)
 
@@ -51,7 +52,7 @@ interface SearchGroupViewModel {
 open class SearchGroupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onBack: () -> Unit,
-    private val onGroupJoined: (String, RoomId) -> Unit,
+    private val onGroupJoined: (UserId, RoomId) -> Unit,
 ) : SearchGroupViewModel, MatrixClientViewModelContext by viewModelContext {
 
     private val initials = get<Initials>()
@@ -65,7 +66,7 @@ open class SearchGroupViewModelImpl(
         .scopedMapLatest { searchTerm ->
             groupSearchInProgress.update { true }
             try {
-                matrixClient.api.rooms.getPublicRooms(
+                matrixClient.api.room.getPublicRooms(
                     filter = if (searchTerm.isBlank()) null
                     else GetPublicRoomsWithFilter.Request.Filter(genericSearchTerm = searchTerm),
                 ).fold(
@@ -104,13 +105,13 @@ open class SearchGroupViewModelImpl(
         coroutineScope.launch {
             joinGroupInProgress.update { true }
             try {
-                matrixClient.api.rooms.joinRoom(roomId)
+                matrixClient.api.room.joinRoom(roomId)
                     .onFailure {
                         log.error(it) { "cannot join room" }
                         // TODO error msg
                     }
                     .onSuccess {
-                        onGroupJoined(accountName, roomId)
+                        onGroupJoined(userId, roomId)
                     }
             } finally {
                 joinGroupInProgress.update { false }

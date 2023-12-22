@@ -2,11 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.Matcher
@@ -271,11 +270,10 @@ class MemberListViewModelTest : ShouldSpec() {
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             di = koinApplication {
                 modules(
-                    trixnityMessengerModule(),
-                    testMatrixClientModule(matrixClientMock),
+                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
                 )
             }.koin,
-            accountName = "test",
+            userId = UserId("test", "server"),
             coroutineContext = coroutineContext,
         ),
         selectedRoomId = roomId,

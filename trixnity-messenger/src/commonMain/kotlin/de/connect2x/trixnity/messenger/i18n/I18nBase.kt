@@ -1,26 +1,26 @@
 package de.connect2x.trixnity.messenger.i18n
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.TimeZone
 
 private val log = KotlinLogging.logger { }
 
-abstract class I18nBase(private val languages: Languages, messengerSettings: MessengerSettings) {
+abstract class I18nBase(
+    private val languages: Languages,
+    private val settings: MatrixMessengerSettingsHolder,
+    private val getSystemLang: GetSystemLang
+) {
 
-    var currentLang: Language = getLang(languages, messengerSettings)
-        private set
+    val currentLang: Language
+        get() = getLang(languages, settings, getSystemLang)
 
     val currentTimezone = TimeZone.of(timezone())
 
-    /**
-     * Used to explicitly set the language, e.g., for testing.
-     */
-    fun setCurrentLang(newLang: String) {
-        this.currentLang =
-            languages.langOf(newLang) ?: throw IllegalArgumentException("language $newLang not supported")
+    suspend fun setCurrentLang(language: Language) {
+        setLang(language, settings)
     }
 
     fun translate(block: TranslateBuilder.() -> Unit): String {

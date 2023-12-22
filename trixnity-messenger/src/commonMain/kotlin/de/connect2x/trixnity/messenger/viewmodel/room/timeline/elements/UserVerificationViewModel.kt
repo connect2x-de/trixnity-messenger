@@ -22,7 +22,7 @@ import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequestMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -35,7 +35,7 @@ interface UserVerificationViewModelFactory {
         showDateAbove: Boolean,
         formattedTime: String?,
         userInfoFlow: Flow<UserInfoElement>,
-        content: VerificationRequestMessageEventContent,
+        content: RoomMessageEventContent.VerificationRequest,
         selectedRoomId: RoomId,
         timelineEventId: EventId,
     ): UserVerificationViewModel {
@@ -72,7 +72,7 @@ open class UserVerificationViewModelImpl(
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
     sender: Flow<UserInfoElement>,
-    content: VerificationRequestMessageEventContent,
+    content: RoomMessageEventContent.VerificationRequest,
     override val selectedRoomId: RoomId,
     override val timelineEventId: EventId,
 ) : MatrixClientViewModelContext by viewModelContext, UserVerificationViewModel {
@@ -98,7 +98,7 @@ open class UserVerificationViewModelImpl(
 
     init {
         coroutineScope.launch {
-            verificationRouter.startUserVerification(selectedRoomId, timelineEventId, accountName)
+            verificationRouter.startUserVerification(selectedRoomId, timelineEventId, userId)
         }
         coroutineScope.launch {
             val activeVerification =

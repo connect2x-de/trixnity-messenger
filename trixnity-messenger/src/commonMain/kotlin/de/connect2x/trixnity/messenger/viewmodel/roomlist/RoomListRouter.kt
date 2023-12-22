@@ -4,16 +4,15 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.settings.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -21,16 +20,17 @@ private val log = KotlinLogging.logger { }
 class RoomListRouter(
     private val viewModelContext: ViewModelContext,
     private val selectedRoomId: MutableStateFlow<RoomId?>,
-    private val onRoomSelected: (accountName: String, id: RoomId) -> Unit,
-    private val onOpenAvatarCutter: (accountName: String, file: FileDescriptor) -> Unit,
+    private val onRoomSelected: (userId: UserId, roomId: RoomId) -> Unit,
+    private val onOpenAvatarCutter: (userId: UserId, file: FileDescriptor) -> Unit,
     private val onSendLogs: () -> Unit,
     private val onCreateNewAccount: () -> Unit,
-    private val onRemoveAccount: (String) -> Unit
+    private val onRemoveAccount: (userId: UserId) -> Unit
 ) {
 
     private val navigation = StackNavigation<RoomListConfig>()
     val stack = viewModelContext.childStack(
         source = navigation,
+        serializer = RoomListConfig.serializer(),
         initialConfiguration = RoomListConfig.RoomList,
         key = "RoomListRouter",
         childFactory = ::createChild,
@@ -54,7 +54,7 @@ class RoomListRouter(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     selectedRoomId = selectedRoomId,
                     onRoomSelected = onRoomSelected,
-                    onCreateNewRoom = ::onCreateNewChat,
+                    onStartCreateNewRoom = ::onStartCreateNewRoom,
                     onUserSettingsSelected = ::onOpenUserSettings,
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
@@ -67,13 +67,13 @@ class RoomListRouter(
                     .create(
                         viewModelContext.childContext(
                             componentContext,
-                            roomListConfig.accountName,
+                            roomListConfig.userId,
                         ),
                         viewModelContext.get<CreateNewRoomViewModelFactory>()
                             .create(
                                 viewModelContext.childContext(
                                     componentContext,
-                                    roomListConfig.accountName,
+                                    roomListConfig.userId,
                                 )
                             ),
                         onCreateGroup = ::onCreateGroup,
@@ -88,13 +88,13 @@ class RoomListRouter(
                     .create(
                         viewModelContext.childContext(
                             componentContext,
-                            roomListConfig.accountName,
+                            roomListConfig.userId,
                         ),
                         viewModelContext.get<CreateNewRoomViewModelFactory>()
                             .create(
                                 viewModelContext.childContext(
                                     componentContext,
-                                    roomListConfig.accountName,
+                                    roomListConfig.userId,
                                 )
                             ),
                         onBack = ::onCancelCreateNewGroup,
@@ -106,7 +106,7 @@ class RoomListRouter(
                 viewModelContext.get<SearchGroupViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext,
-                        roomListConfig.accountName,
+                        roomListConfig.userId,
                     ),
                     onBack = ::onCancelSearchGroup,
                     onGroupJoined = ::onGroupJoined,
@@ -161,7 +161,7 @@ class RoomListRouter(
                     .create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
-                            roomListConfig.accountName,
+                            roomListConfig.userId,
                         ),
                         onCloseConfigureNotifications = ::onCloseConfigureNotifications,
                     )
@@ -184,9 +184,9 @@ class RoomListRouter(
             )
         }
 
-    private fun onCreateNewChat(accountName: String) {
+    private fun onStartCreateNewRoom(userId: UserId) {
         log.debug { "on create new chat" }
-        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.CreateNewChat(accountName))
+        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.CreateNewChat(userId))
     }
 
     private fun onCancelCreateNewChat() {
@@ -201,9 +201,9 @@ class RoomListRouter(
         navigation.popSuspending()
     }
 
-    private fun onCreateGroup(accountName: String) {
-        log.debug { "on create group in account $accountName" }
-        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.CreateNewGroup(accountName))
+    private fun onCreateGroup(userId: UserId) {
+        log.debug { "on create group in account $userId" }
+        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.CreateNewGroup(userId))
     }
 
     private fun onCancelCreateNewGroup() {
@@ -211,16 +211,16 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupCreated(accountName: String, roomId: RoomId) = viewModelContext.coroutineScope.launch {
+    private fun onGroupCreated(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "on group created ($roomId)" }
         navigation.popWhileSuspending { it !is RoomListConfig.RoomList }
         selectedRoomId.value = roomId
-        onRoomSelected(accountName, roomId)
+        onRoomSelected(userId, roomId)
     }
 
-    private fun onSearchGroup(accountName: String) {
-        log.debug { "on search group in account $accountName" }
-        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.SearchGroup(accountName))
+    private fun onSearchGroup(userId: UserId) {
+        log.debug { "on search group in account $userId" }
+        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.SearchGroup(userId))
     }
 
     private fun onCancelSearchGroup() {
@@ -228,11 +228,11 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupJoined(accountName: String, roomId: RoomId) = viewModelContext.coroutineScope.launch {
+    private fun onGroupJoined(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "on group joined ($roomId)" }
         navigation.popWhileSuspending { it !is RoomListConfig.RoomList }
         selectedRoomId.value = roomId
-        onRoomSelected(accountName, roomId)
+        onRoomSelected(userId, roomId)
     }
 
     private fun onOpenUserSettings() {
@@ -295,18 +295,14 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowConfigureNotifications(accountName: String) {
-        log.debug { "configure notifications for account $accountName" }
-        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.ConfigureNotifications(accountName))
+    private fun onShowConfigureNotifications(userId: UserId) {
+        log.debug { "configure notifications for account $userId" }
+        navigation.launchPush(viewModelContext.coroutineScope, RoomListConfig.ConfigureNotifications(userId))
     }
 
     private fun onCloseConfigureNotifications() = viewModelContext.coroutineScope.launch {
         log.debug { "close configure notification settings" }
         navigation.popSuspending()
-        if (stack.value.active.configuration is RoomListConfig.NotificationsSettings) {
-            (stack.value.active.instance as RoomListWrapper.NotificationsSettings)
-                .notificationsSettingsViewModel.reloadNotificationSettings()
-        }
     }
 
     private fun onOpenAccountsOverview() {
@@ -342,45 +338,46 @@ class RoomListRouter(
         return stack.value.active.configuration is RoomListConfig.RoomList
     }
 
-    sealed class RoomListConfig : Parcelable {
-        @Parcelize
-        object RoomList : RoomListConfig()
+    @Serializable
+    sealed class RoomListConfig {
+        @Serializable
+        data object RoomList : RoomListConfig()
 
-        @Parcelize
-        data class CreateNewChat(val accountName: String) : RoomListConfig()
+        @Serializable
+        data class CreateNewChat(val userId: UserId) : RoomListConfig()
 
-        @Parcelize
-        data class CreateNewGroup(val accountName: String) : RoomListConfig()
+        @Serializable
+        data class CreateNewGroup(val userId: UserId) : RoomListConfig()
 
-        @Parcelize
-        data class SearchGroup(val accountName: String) : RoomListConfig()
+        @Serializable
+        data class SearchGroup(val userId: UserId) : RoomListConfig()
 
-        @Parcelize
-        object UserSettings : RoomListConfig()
+        @Serializable
+        data object UserSettings : RoomListConfig()
 
-        @Parcelize
-        object DevicesSettings : RoomListConfig()
+        @Serializable
+        data object DevicesSettings : RoomListConfig()
 
-        @Parcelize
-        object Profile : RoomListConfig()
+        @Serializable
+        data object Profile : RoomListConfig()
 
-        @Parcelize
-        object NotificationsSettings : RoomListConfig()
+        @Serializable
+        data object NotificationsSettings : RoomListConfig()
 
-        @Parcelize
-        object PrivacySettings : RoomListConfig()
+        @Serializable
+        data object PrivacySettings : RoomListConfig()
 
-        @Parcelize
-        data class ConfigureNotifications(val accountName: String) : RoomListConfig()
+        @Serializable
+        data class ConfigureNotifications(val userId: UserId) : RoomListConfig()
 
-        @Parcelize
-        object AppInfo : RoomListConfig()
+        @Serializable
+        data object AppInfo : RoomListConfig()
 
-        @Parcelize
-        object AccountsOverview : RoomListConfig()
+        @Serializable
+        data object AccountsOverview : RoomListConfig()
 
-        @Parcelize
-        object None : RoomListConfig()
+        @Serializable
+        data object None : RoomListConfig()
     }
 
     sealed class RoomListWrapper {
@@ -407,6 +404,6 @@ class RoomListRouter(
         class AppInfo(val appInfoViewModel: AppInfoViewModel) : RoomListWrapper()
         class AccountsOverview(val accountsOverviewViewModel: AccountsOverviewViewModel) : RoomListWrapper()
 
-        object None : RoomListWrapper()
+        data object None : RoomListWrapper()
     }
 }

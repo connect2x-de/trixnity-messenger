@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.koin.core.component.get
 
 
 interface ConfigureNotificationsViewModelFactory {
@@ -20,9 +21,13 @@ interface ConfigureNotificationsViewModelFactory {
 }
 
 interface ConfigureNotificationsViewModel {
-    val playSound: MutableStateFlow<Boolean>
-    val showPopup: MutableStateFlow<Boolean>
-    val showText: MutableStateFlow<Boolean>
+    val playSound: StateFlow<Boolean>
+    val showPopup: StateFlow<Boolean>
+    val showText: StateFlow<Boolean>
+
+    fun togglePlaySound()
+    fun toggleShowPopup()
+    fun toggleShowText()
     fun back()
 }
 
@@ -31,33 +36,30 @@ open class ConfigureNotificationsViewModelImpl(
     private val onCloseConfigureNotifications: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ConfigureNotificationsViewModel {
 
-    private val messengerSettings = getKoin().get<MessengerSettings>()
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
-    override val playSound = MutableStateFlow(
-        messengerSettings.notificationsPlaySound(accountName)
-    )
-    override val showPopup = MutableStateFlow(
-        messengerSettings.notificationsShowPopup(accountName)
-    )
-    override val showText = MutableStateFlow(
-        messengerSettings.notificationsShowText(accountName)
-    )
+    override val playSound = messengerSettings[userId].filterNotNull().map { it.notificationsPlaySound }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val showPopup = messengerSettings[userId].filterNotNull().map { it.notificationsShowPopup }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val showText = messengerSettings[userId].filterNotNull().map { it.notificationsShowText }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    init {
+    override fun togglePlaySound() {
         coroutineScope.launch {
-            playSound.collectLatest {
-                messengerSettings.setNotificationsPlaySound(accountName, it)
-            }
+            messengerSettings.update(userId) { it?.copy(notificationsPlaySound = !it.notificationsPlaySound) }
         }
+    }
+
+    override fun toggleShowPopup() {
         coroutineScope.launch {
-            showPopup.collectLatest {
-                messengerSettings.setNotificationsShowPopup(accountName, it)
-            }
+            messengerSettings.update(userId) { it?.copy(notificationsShowPopup = !it.notificationsShowPopup) }
         }
+    }
+
+    override fun toggleShowText() {
         coroutineScope.launch {
-            showText.collectLatest {
-                messengerSettings.setNotificationsShowText(accountName, it)
-            }
+            messengerSettings.update(userId) { it?.copy(notificationsShowText = !it.notificationsShowText) }
         }
     }
 

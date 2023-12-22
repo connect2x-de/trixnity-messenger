@@ -11,6 +11,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
@@ -72,100 +73,102 @@ open class OutboxElementHolderViewModelImpl(
             showChatBubbleEdgeFlow
         ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
             val content = outboxMessage?.content
-            when (content) {
-                is TextMessageEventContent -> {
-                    get<TextMessageViewModelFactory>().create(
-                        viewModelContext = this,
-                        fallbackMessage = content.body,
-                        referencedMessage = richRepliesComputations.getReferencedMessage(
-                            matrixClient,
-                            content.relatesTo,
-                            selectedRoomId
-                        ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
-                        message = content.bodyWithoutFallback,
-                        formattedBody = content.formattedBody,
-                        sender = MutableStateFlow(UserInfoElement("")),
-                        showSender = MutableStateFlow(false),
-                        formattedDate = "",
-                        formattedTime = null,
-                        showDateAbove = showDateAbove,
-                        isByMe = true,
-                        showChatBubbleEdge = showChatBubbleEdge,
-                        showBigGap = showChatBubbleEdge,
-                        invitation = MutableStateFlow(null),
-                    )
-                }
+            if (content is RoomMessageEventContent)
+                when (content) {
+                    is TextBased -> {
+                        get<TextMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            fallbackMessage = content.body,
+                            referencedMessage = richRepliesComputations.getReferencedMessage(
+                                matrixClient,
+                                content.relatesTo,
+                                selectedRoomId
+                            ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
+                            message = content.bodyWithoutFallback,
+                            formattedBody = content.formattedBody,
+                            sender = MutableStateFlow(UserInfoElement("")),
+                            showSender = MutableStateFlow(false),
+                            formattedDate = "",
+                            formattedTime = null,
+                            showDateAbove = showDateAbove,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            invitation = MutableStateFlow(null),
+                        )
+                    }
 
-                is ImageMessageEventContent -> {
-                    get<ImageMessageViewModelFactory>().create(
-                        viewModelContext = this,
-                        sender = MutableStateFlow(UserInfoElement("")),
-                        showSender = MutableStateFlow(false),
-                        formattedDate = "",
-                        formattedTime = null,
-                        showDateAbove = showDateAbove,
-                        isByMe = true,
-                        showChatBubbleEdge = showChatBubbleEdge,
-                        showBigGap = showChatBubbleEdge,
-                        invitation = MutableStateFlow(null),
-                        content = content,
-                        onOpenModal = onOpenModal,
-                        mediaUploadProgress = outboxMessage.mediaUploadProgress,
-                    )
-                }
+                    is FileBased.Image -> {
+                        get<ImageMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            sender = MutableStateFlow(UserInfoElement("")),
+                            showSender = MutableStateFlow(false),
+                            formattedDate = "",
+                            formattedTime = null,
+                            showDateAbove = showDateAbove,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            invitation = MutableStateFlow(null),
+                            content = content,
+                            onOpenModal = onOpenModal,
+                            mediaUploadProgress = outboxMessage.mediaUploadProgress,
+                        )
+                    }
 
-                is VideoMessageEventContent -> {
-                    get<VideoMessageViewModelFactory>().create(
-                        viewModelContext = this,
-                        sender = MutableStateFlow(UserInfoElement("")),
-                        showSender = MutableStateFlow(false),
-                        formattedDate = "",
-                        formattedTime = null,
-                        showDateAbove = showDateAbove,
-                        isByMe = true,
-                        showChatBubbleEdge = showChatBubbleEdge,
-                        showBigGap = showChatBubbleEdge,
-                        invitation = MutableStateFlow(null),
-                        content = content,
-                        onOpenModal = onOpenModal,
-                    )
-                }
+                    is FileBased.Video -> {
+                        get<VideoMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            sender = MutableStateFlow(UserInfoElement("")),
+                            showSender = MutableStateFlow(false),
+                            formattedDate = "",
+                            formattedTime = null,
+                            showDateAbove = showDateAbove,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            invitation = MutableStateFlow(null),
+                            content = content,
+                            onOpenModal = onOpenModal,
+                        )
+                    }
 
-                is AudioMessageEventContent -> {
-                    get<AudioMessageViewModelFactory>().create(
-                        viewModelContext = this,
-                        sender = MutableStateFlow(UserInfoElement("")),
-                        showSender = MutableStateFlow(false),
-                        formattedDate = "",
-                        formattedTime = null,
-                        showDateAbove = showDateAbove,
-                        isByMe = true,
-                        showChatBubbleEdge = showChatBubbleEdge,
-                        showBigGap = showChatBubbleEdge,
-                        invitation = MutableStateFlow(null),
-                        content = content,
-                        onOpenModal = onOpenModal,
-                    )
-                }
+                    is FileBased.Audio -> {
+                        get<AudioMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            sender = MutableStateFlow(UserInfoElement("")),
+                            showSender = MutableStateFlow(false),
+                            formattedDate = "",
+                            formattedTime = null,
+                            showDateAbove = showDateAbove,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            invitation = MutableStateFlow(null),
+                            content = content,
+                            onOpenModal = onOpenModal,
+                        )
+                    }
 
-                is FileMessageEventContent -> {
-                    get<FileMessageViewModelFactory>().create(
-                        viewModelContext = this,
-                        formattedDate = "",
-                        showDateAbove = showDateAbove,
-                        formattedTime = null,
-                        isByMe = true,
-                        showChatBubbleEdge = showChatBubbleEdge,
-                        showBigGap = showChatBubbleEdge,
-                        showSender = MutableStateFlow(false),
-                        sender = MutableStateFlow(UserInfoElement("")),
-                        invitation = MutableStateFlow(null),
-                        content = content,
-                    )
-                }
+                    is FileBased.File -> {
+                        get<FileMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            formattedDate = "",
+                            showDateAbove = showDateAbove,
+                            formattedTime = null,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            showSender = MutableStateFlow(false),
+                            sender = MutableStateFlow(UserInfoElement("")),
+                            invitation = MutableStateFlow(null),
+                            content = content,
+                        )
+                    }
 
-                else -> createNullTimelineElementViewModel()
-            }
+                    is Unknown,
+                    is VerificationRequest -> createNullTimelineElementViewModel()
+                } else createNullTimelineElementViewModel()
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private fun createNullTimelineElementViewModel() =

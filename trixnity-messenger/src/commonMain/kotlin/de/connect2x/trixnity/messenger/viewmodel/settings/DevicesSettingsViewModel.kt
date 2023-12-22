@@ -4,7 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.uia.UIA.reactToResponse
 import de.connect2x.trixnity.messenger.viewmodel.uia.UIAReaction
 import de.connect2x.trixnity.messenger.viewmodel.uia.UIAResponse
@@ -19,6 +19,7 @@ import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.model.devices.Device
+import net.folivo.trixnity.core.model.UserId
 
 
 private val log = KotlinLogging.logger {}
@@ -29,7 +30,7 @@ data class DevicesInAccount(
 )
 
 data class AccountWithDevices(
-    val accountName: String,
+    val userId: UserId,
     val devicesInAccount: StateFlow<DevicesInAccount>,
     val isLoading: StateFlow<Boolean>,
     val loadingError: StateFlow<String?>,
@@ -55,11 +56,11 @@ interface DevicesSettingsViewModel {
     val passwordWrong: MutableStateFlow<Boolean>
 
     fun back()
-    fun setDisplayName(accountName: String, deviceId: String, oldDisplayName: String, newDisplayName: String)
-    fun verify(accountName: String, deviceId: String)
-    fun remove(accountName: String, deviceId: String)
+    fun setDisplayName(userId: UserId, deviceId: String, oldDisplayName: String, newDisplayName: String)
+    fun verify(userId: UserId, deviceId: String)
+    fun remove(userId: UserId, deviceId: String)
     fun closeRemoveDialog()
-    fun authenticate(accountName: String, password: String, deviceId: String)
+    fun authenticate(userId: UserId, password: String, deviceId: String)
 }
 
 open class DevicesSettingsViewModelImpl(
@@ -82,22 +83,20 @@ open class DevicesSettingsViewModelImpl(
 
     init {
         backHandler.register(backCallback)
-        accountsWithDevices = namedMatrixClients.scopedMapLatest { namedMatrixClients ->
-            namedMatrixClients.map { (accountName, matrixClientFlow) ->
-                log.trace { "devices for account '$accountName' will be loaded" }
+        accountsWithDevices = matrixClients.scopedMapLatest { matrixClients ->
+            matrixClients.map { (userId, matrixClient) ->
+                log.trace { "devices for account '$userId' will be loaded" }
                 val isLoading = MutableStateFlow(true)
                 val error = MutableStateFlow<String?>(null)
                 AccountWithDevices(
                     isLoading = isLoading,
                     loadingError = error,
-                    accountName = accountName,
+                    userId = userId,
                     devicesInAccount = run {
-                        val matrixClient = matrixClientFlow.value
-                            ?: throw IllegalStateException("cannot find MatrixClient for account $accountName")
                         log.trace { "get device keys for user ${matrixClient.userId}" }
                         matrixClient.key.getDeviceKeys(matrixClient.userId).map {
                             log.trace { "loading info for devices ${it?.map { it.deviceId }}" }
-                            val devices = matrixClient.api.devices.getDevices().getOrNull()
+                            val devices = matrixClient.api.device.getDevices().getOrNull()
                             log.trace { "devices: $devices" }
                             val thisDevice = devices?.find { it.deviceId == matrixClient.deviceId }?.let {
                                 DeviceInfo(
@@ -139,12 +138,12 @@ open class DevicesSettingsViewModelImpl(
                                 otherDevices = otherDevices,
                             )
                             if (devices == null) {
-                                val exc = matrixClient.api.devices.getDevices().exceptionOrNull()
+                                val exc = matrixClient.api.device.getDevices().exceptionOrNull()
                                 log.error(exc) { "Cannot load devices." }
                                 error.value = i18n.settingsDevicesLoadError()
                             }
 
-                            log.trace { "device list for account $accountName: $result" }
+                            log.trace { "device list for account $userId: $result" }
                             result
                         }.also {
                             log.trace { "mapping of devices to DeviceInfo List finished -> inLoading == false" }
@@ -180,16 +179,21 @@ open class DevicesSettingsViewModelImpl(
         onCloseDevicesSettings()
     }
 
-    override fun setDisplayName(accountName: String, deviceId: String, oldDisplayName: String, newDisplayName: String) {
-        val matrixClient = getMatrixClient(accountName)
+    override fun setDisplayName(
+        userId: UserId,
+        deviceId: String,
+        oldDisplayName: String,
+        newDisplayName: String
+    ) {
+        val matrixClient = getMatrixClient(userId)
         if (oldDisplayName != newDisplayName) {
             coroutineScope.launch {
                 initialLoad.first { it.not() }
                 log.debug { "try to update the device's name ($deviceId, new display name: $newDisplayName)" }
-                matrixClient.api.devices.updateDevice(deviceId, newDisplayName).fold(
+                matrixClient.api.device.updateDevice(deviceId, newDisplayName).fold(
                     onSuccess = {
                         log.debug { "successfully updated device's display name on the server, now update locally" }
-                        accountsWithDevices.value.find { accountWithDevices -> accountWithDevices.accountName == accountName }
+                        accountsWithDevices.value.find { accountWithDevices -> accountWithDevices.userId == userId }
                             ?.let { accountWithDevices ->
                                 accountWithDevices.devicesInAccount.value.let { accountDevice ->
                                     if (accountDevice.thisDevice.deviceId == deviceId)
@@ -212,8 +216,8 @@ open class DevicesSettingsViewModelImpl(
         }
     }
 
-    override fun verify(accountName: String, deviceId: String) {
-        val matrixClient = getMatrixClient(accountName)
+    override fun verify(userId: UserId, deviceId: String) {
+        val matrixClient = getMatrixClient(userId)
         coroutineScope.launch {
             initialLoad.first { it.not() }
             try {
@@ -228,11 +232,11 @@ open class DevicesSettingsViewModelImpl(
         }
     }
 
-    override fun remove(accountName: String, deviceId: String) {
-        val matrixClient = getMatrixClient(accountName)
+    override fun remove(userId: UserId, deviceId: String) {
+        val matrixClient = getMatrixClient(userId)
         coroutineScope.launch {
             initialLoad.first { it.not() }
-            val uiaReaction = reactToResponse(matrixClient.api.devices.deleteDevice(deviceId))
+            val uiaReaction = reactToResponse(matrixClient.api.device.deleteDevice(deviceId))
             if (uiaReaction is UIAReaction.ShowLogin) {
                 showLogin.value = uiaReaction.response
             }
@@ -250,8 +254,8 @@ open class DevicesSettingsViewModelImpl(
         showLogin.value = null
     }
 
-    override fun authenticate(accountName: String, password: String, deviceId: String) {
-        val matrixClient = getMatrixClient(accountName)
+    override fun authenticate(userId: UserId, password: String, deviceId: String) {
+        val matrixClient = getMatrixClient(userId)
         coroutineScope.launch {
             initialLoad.first { it.not() }
             showLogin.value?.let {
