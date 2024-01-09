@@ -10,7 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMeth
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapStep
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
@@ -129,12 +129,12 @@ suspend fun MatrixMessenger.registerAccountWithToken(serverUrl: String, token: S
     }
 }
 
-private suspend fun RootViewModel.openAccountsOverview(): AccountsViewModel {
+private suspend fun RootViewModel.openAccountsOverview(): AccountsOverviewViewModel {
     val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
     val roomListViewModel =
         mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel
     roomListViewModel.openAccountsOverview()
-    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.Accounts::class).accountsViewModel
+    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.AccountsOverview::class).accountsOverviewViewModel
 }
 
 private suspend fun RootViewModel.addMatrixAccountViaPassword(

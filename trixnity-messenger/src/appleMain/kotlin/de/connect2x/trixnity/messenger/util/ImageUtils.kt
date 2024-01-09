@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.util
 
-import arrow.resilience.common.platform
 import kotlinx.cinterop.*
 import platform.Foundation.NSData
 import platform.Foundation.create

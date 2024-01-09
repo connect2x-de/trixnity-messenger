@@ -70,7 +70,11 @@ open class MatrixClientInitializationViewModelImpl(
                     loadStoreException.value as LoadStoreException
                 )
 
+                // TODO This method might be too simplistic for the complex method of loading multiple MatrixClients.
+                //  For the future: return a list of successul and failed initializations to the caller and let the caller decide
+                //  what to do (e.g., a failed account might get a warning page, but one could still use the other accounts).
                 initFromStoreResult.failures.isNotEmpty() -> onInitializationFailure()
+                
                 else -> {
                     currentState.value = i18n.matrixClientInitSuccess()
                     onInitializationSuccess()

@@ -16,7 +16,6 @@ import org.koin.dsl.module
 
 private val log = KotlinLogging.logger {}
 
-// FIXME README
 interface MatrixMessenger {
     companion object
 
