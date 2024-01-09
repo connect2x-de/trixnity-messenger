@@ -31,7 +31,7 @@ import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeyStore
 import net.folivo.trixnity.client.store.repository.*
-import net.folivo.trixnity.client.verification.ActiveDeviceVerification
+import net.folivo.trixnity.client.verification.ActiveDeviceVerificationImpl
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -662,7 +662,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun activeDeviceVerification(scope: CoroutineScope) = ActiveDeviceVerification(
+    private fun activeDeviceVerification(scope: CoroutineScope) = ActiveDeviceVerificationImpl(
         request = VerificationRequestToDeviceEventContent("", emptySet(), 0L, ""),
         requestIsOurs = false,
         ownUserId = ourUserId,

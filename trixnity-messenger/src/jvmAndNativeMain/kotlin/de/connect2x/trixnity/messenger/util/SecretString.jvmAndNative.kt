@@ -19,7 +19,7 @@ actual fun platformConvertSecretString(): Module = module {
     single<ConvertSecretString> {
         val getSecretStringKey = get<GetSecretStringKey>()
         object : ConvertSecretString {
-            override suspend fun get(raw: String): SecretString {
+            override suspend operator fun invoke(raw: String): SecretString {
                 val secretStringKey = getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
                     ?: return SecretString.Unencrypted(raw)
                 val encryptedStringSecret =
@@ -35,7 +35,7 @@ actual fun platformConvertSecretString(): Module = module {
                 )
             }
 
-            override suspend fun get(secret: SecretString): String = when (secret) {
+            override suspend operator fun invoke(secret: SecretString): String = when (secret) {
                 is SecretString.Unencrypted -> secret.value
                 is SecretString.AesHmacSha2 -> {
                     decryptAesHmacSha2(

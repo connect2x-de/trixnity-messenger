@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.*
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -139,8 +140,6 @@ open class VerificationViewModelImpl(
     private val timelineEventId: EventId?,
 ) : MatrixClientViewModelContext by viewModelContext, VerificationViewModel {
 
-    private val getActiveVerification = get<GetActiveVerification>()
-
     private val activeVerification = MutableStateFlow<ActiveVerification?>(null)
 
     private val navigation = StackNavigation<VerificationStepConfig>()
@@ -238,7 +237,7 @@ open class VerificationViewModelImpl(
     init {
         coroutineScope.launch {
             if (timelineEventId == null) {
-                getActiveVerification.activeDeviceVerification(matrixClient)
+                matrixClient.verification.activeDeviceVerification
                     .filterNotNull()
                     .collectLatest {
                         log.debug { "new device verification" }
@@ -250,7 +249,7 @@ open class VerificationViewModelImpl(
                     matrixClient.room.getTimelineEvent(roomId, timelineEventId).collectLatest {
                         it?.let { timelineEvent ->
                             activeVerification.value =
-                                getActiveVerification.activeUserVerification(matrixClient, timelineEvent)
+                                matrixClient.verification.getActiveUserVerification(timelineEvent)
                             if (activeVerification.value != null) {
                                 log.debug { "new user verification in room $roomId (timelineEvent $timelineEvent)" }
                                 verificationSteps()

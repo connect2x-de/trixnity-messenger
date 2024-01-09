@@ -81,7 +81,9 @@ open class SyncViewModelImpl(
     // TODO currently canceling a sync is not a good idea, because it can lead to Timeline loops in edge cases
     //  (see also https://gitlab.com/trixnity/trixnity/-/issues/241)
     //  Do we really need this viewmodel? On slow mobile devices it feels a bit weired to wait 10 or more seconds until
-    //  the app can be used.
+    //  the app can be used. This viewmodel was created, because the room list could make many jumps after a large sync.
+    //  We should remove this viewmodel or at least only wait for `ClientEventEmitter.Prioity.ROOM_LIST - 1` and not for
+    //  the complete sync.
     override fun cancel() {
         syncJob.cancel(CancellationException("User aborted initial small sync."))
         onSyncDone()

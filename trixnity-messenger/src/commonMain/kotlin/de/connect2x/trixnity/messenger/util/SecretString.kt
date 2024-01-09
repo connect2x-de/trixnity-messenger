@@ -22,8 +22,8 @@ sealed interface SecretString {
 }
 
 interface ConvertSecretString {
-    suspend fun get(raw: String): SecretString
-    suspend fun get(secret: SecretString): String
+    suspend operator fun invoke(raw: String): SecretString
+    suspend operator fun invoke(secret: SecretString): String
 }
 
 expect fun platformConvertSecretString(): Module

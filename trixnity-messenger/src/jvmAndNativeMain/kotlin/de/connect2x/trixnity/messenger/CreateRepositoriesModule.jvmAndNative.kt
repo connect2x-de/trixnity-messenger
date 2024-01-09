@@ -24,7 +24,8 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
                 withContext(Dispatchers.IO) {
                     val realmEncryptionKey = SecureRandom.nextBytes(Realm.ENCRYPTION_KEY_LENGTH)
-                    val realmEncryptionKeyAsSecretString = convertSecretString.get(realmEncryptionKey.encodeBase64())
+                    val realmEncryptionKeyAsSecretString =
+                        convertSecretString(realmEncryptionKey.encodeBase64())
                     CreateRepositoriesModule.CreateResult(
                         module = createRealmRepositoriesModule {
                             directory(dbFolder(userId))
@@ -42,7 +43,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 databasePassword: SecretString?,
             ): Module =
                 withContext(Dispatchers.IO) {
-                    val rawDatabasePassword = databasePassword?.let { convertSecretString.get(it) }
+                    val rawDatabasePassword = databasePassword?.let { convertSecretString(it) }
                     createRealmRepositoriesModule {
                         directory(dbFolder(userId))
                         if (rawDatabasePassword != null)

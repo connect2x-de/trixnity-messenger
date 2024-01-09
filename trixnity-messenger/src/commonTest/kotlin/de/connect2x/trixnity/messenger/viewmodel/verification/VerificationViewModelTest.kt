@@ -25,8 +25,9 @@ import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.verification.ActiveVerification
+import net.folivo.trixnity.client.verification.ActiveDeviceVerification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
+import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
@@ -70,17 +71,17 @@ class VerificationViewModelTest : ShouldSpec() {
     lateinit var usersApiClientMock: UserApiClient
 
     @Mock
-    lateinit var getActiveVerification: GetActiveVerification
+    lateinit var verificationService: VerificationService
 
     @Mock
-    lateinit var activeVerification: ActiveVerification
+    lateinit var activeVerification: ActiveDeviceVerification
 
     @Mock
-    lateinit var activeVerification2: ActiveVerification
+    lateinit var activeVerification2: ActiveDeviceVerification
 
     private val onCloseDeviceVerificationMock = mockFunction0<Unit>(mocker)
     private val onRedoSelfVerificationMock = mockFunction0<Unit>(mocker)
-    private lateinit var activeDeviceVerificationFlow: MutableStateFlow<ActiveVerification>
+    private lateinit var activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification>
 
     init {
         Dispatchers.setMain(testMainDispatcher)
@@ -98,6 +99,7 @@ class VerificationViewModelTest : ShouldSpec() {
                     modules(
                         module {
                             single { keyServiceMock }
+                            single { verificationService }
                         }
                     )
                 }.koin
@@ -105,15 +107,15 @@ class VerificationViewModelTest : ShouldSpec() {
                 every { matrixClientMock.deviceId } returns ownDeviceId
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
                 every { matrixClientServerApiClientMock.json } returns Json
-                every { matrixClientServerApiClientMock.devices } returns devicesApiClientMock
-                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
+                every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
+                every { matrixClientServerApiClientMock.user } returns usersApiClientMock
 
                 everySuspending {
                     devicesApiClientMock.getDevice(isAny(), isNull())
                 } returns Result.success(Device(ownDeviceId))
                 everySuspending { usersApiClientMock.getDisplayName(isAny()) } returns Result.success("otherUser")
 
-                every { getActiveVerification.activeDeviceVerification(isAny()) } returns activeDeviceVerificationFlow
+                every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
                 every { activeVerification.theirDeviceId } returns otherDeviceId
                 every { activeVerification.theirUserId } returns otherUserId
                 every { activeVerification2.theirDeviceId } returns otherDeviceId
@@ -278,9 +280,8 @@ class VerificationViewModelTest : ShouldSpec() {
                     modules(
                         createTestDefaultTrixnityMessengerModules(
                             mapOf(UserId("test", "server") to matrixClientMock)
-                        ) + module {
-                            single { getActiveVerification }
-                        })
+                        )
+                    )
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext

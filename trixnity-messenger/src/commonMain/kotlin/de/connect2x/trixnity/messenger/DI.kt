@@ -93,7 +93,6 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Thumbnails> { ThumbnailsImpl() }
         single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get(), get()) }
         single<DirectRoom> { DirectRoomImpl() }
-        single<GetActiveVerification> { GetActiveVerificationImpl() }
         single<ActiveVerifications> { ActiveVerificationsImpl() }
         single<UserPresence> { UserPresenceImpl(get()) }
         single<Search> { SearchImpl(get(), get()) }
