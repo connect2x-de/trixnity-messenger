@@ -6,7 +6,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.VerificationStepConfig
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
@@ -136,7 +136,7 @@ class VerificationViewModelTest : ShouldSpec() {
             val coroutineScope = CoroutineScope(Dispatchers.Default)
             coroutineScope.launch {
                 eventually(1.seconds) {
-                    cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Request>()
+                    cut.stack.value.active.configuration should beOfType<Config.Request>()
                 }
             }.join()
 
@@ -162,7 +162,7 @@ class VerificationViewModelTest : ShouldSpec() {
             val coroutineScope = CoroutineScope(Dispatchers.Default)
             coroutineScope.launch {
                 eventually(1.seconds) {
-                    cut.stack.value.active.configuration should beOfType<VerificationStepConfig.SelectVerificationMethod>()
+                    cut.stack.value.active.configuration should beOfType<Config.SelectVerificationMethod>()
                 }
             }.join()
 
@@ -192,8 +192,8 @@ class VerificationViewModelTest : ShouldSpec() {
             coroutineScope.launch {
                 eventually(1.seconds) {
                     val deviceVerificationStepWrapper = cut.stack.value.active.instance
-                    deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.VerificationStepWrapper.Cancelled>()
-                    deviceVerificationStepWrapper.verificationStepCancelledViewModel.ok()
+                    deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Cancelled>()
+                    deviceVerificationStepWrapper.viewModel.ok()
                 }
             }.join()
             testCoroutineScheduler.advanceUntilIdle()
@@ -225,8 +225,8 @@ class VerificationViewModelTest : ShouldSpec() {
             coroutineScope.launch {
                 eventually(1.seconds) {
                     val deviceVerificationStepWrapper = cut.stack.value.active.instance
-                    deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.VerificationStepWrapper.Success>()
-                    deviceVerificationStepWrapper.verificationStepSuccessViewModel.ok()
+                    deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Success>()
+                    deviceVerificationStepWrapper.viewModel.ok()
                 }
             }.join()
             testCoroutineScheduler.advanceUntilIdle()
@@ -254,7 +254,7 @@ class VerificationViewModelTest : ShouldSpec() {
 
             println(1)
             eventually(1.seconds) {
-                cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Success>()
+                cut.stack.value.active.configuration should beOfType<Config.Success>()
             }
 
             println(2)
@@ -263,7 +263,7 @@ class VerificationViewModelTest : ShouldSpec() {
 
             println(3)
             eventually(1.seconds) {
-                cut.stack.value.active.configuration should beOfType<VerificationStepConfig.Request>()
+                cut.stack.value.active.configuration should beOfType<Config.Request>()
             }
 
             println(4)

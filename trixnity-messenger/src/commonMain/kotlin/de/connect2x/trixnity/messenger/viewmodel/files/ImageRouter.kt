@@ -14,19 +14,19 @@ import org.koin.core.component.get
 class ImageRouter(
     private val viewModelContext: ViewModelContext,
 ) {
-    private val navigation = StackNavigation<ImageConfig>()
+    private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
-        serializer = ImageConfig.serializer(),
-        initialConfiguration = ImageConfig.None,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.None,
         key = "ImageRouter",
         childFactory = ::createChild,
     )
 
-    private fun createChild(imageConfig: ImageConfig, componentContext: ComponentContext): ImageWrapper =
+    private fun createChild(imageConfig: Config, componentContext: ComponentContext): Wrapper =
         when (imageConfig) {
-            is ImageConfig.None -> ImageWrapper.None
-            is ImageConfig.Image -> ImageWrapper.Image(
+            is Config.None -> Wrapper.None
+            is Config.Image -> Wrapper.Image(
                 viewModelContext.get<ImageViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, imageConfig.userId),
                     mxcUrl = imageConfig.mxcUrl,
@@ -38,7 +38,7 @@ class ImageRouter(
         }
 
     suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.pushSuspending(ImageConfig.Image(mxcUrl, encryptedFile, fileName, userId))
+        navigation.pushSuspending(Config.Image(mxcUrl, encryptedFile, fileName, userId))
     }
 
     fun closeImage() {
@@ -46,25 +46,25 @@ class ImageRouter(
     }
 
     fun isImageOpen(): Boolean {
-        return stack.value.active.configuration is ImageConfig.Image
+        return stack.value.active.configuration is Config.Image
     }
 
     @Serializable
-    sealed class ImageConfig {
+    sealed class Config {
         @Serializable
         data class Image(
             val mxcUrl: String,
             val encryptedFile: EncryptedFile?,
             val fileName: String,
             val userId: UserId
-        ) : ImageConfig()
+        ) : Config()
 
         @Serializable
-        data object None : ImageConfig()
+        data object None : Config()
     }
 
-    sealed class ImageWrapper {
-        class Image(val imageViewModel: ImageViewModel) : ImageWrapper()
-        data object None : ImageWrapper()
+    sealed class Wrapper {
+        class Image(val viewModel: ImageViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 }

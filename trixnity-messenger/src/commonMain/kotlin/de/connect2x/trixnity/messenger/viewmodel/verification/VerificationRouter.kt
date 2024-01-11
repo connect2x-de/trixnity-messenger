@@ -25,9 +25,9 @@ class VerificationRouter(
         childFactory = ::createChild,
     )
 
-    private fun createChild(config: Config, componentContext: ComponentContext): VerificationWrapper =
+    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {
-            is Config.DeviceVerification -> VerificationWrapper.Verification(
+            is Config.DeviceVerification -> Wrapper.Verification(
                 viewModelContext.get<VerificationViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     onCloseVerification = ::closeVerification,
@@ -37,7 +37,7 @@ class VerificationRouter(
                 )
             )
 
-            is Config.UserVerification -> VerificationWrapper.Verification(
+            is Config.UserVerification -> Wrapper.Verification(
                 viewModelContext.get<VerificationViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     onCloseVerification = ::closeVerification,
@@ -47,7 +47,7 @@ class VerificationRouter(
                 )
             )
 
-            is Config.None -> VerificationWrapper.None
+            is Config.None -> Wrapper.None
         }
 
     suspend fun startDeviceVerification(userId: UserId) {
@@ -78,8 +78,8 @@ class VerificationRouter(
         data object None : Config()
     }
 
-    sealed class VerificationWrapper {
-        class Verification(val verificationViewModel: VerificationViewModel) : VerificationWrapper()
-        data object None : VerificationWrapper()
+    sealed class Wrapper {
+        class Verification(val viewModel: VerificationViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 }

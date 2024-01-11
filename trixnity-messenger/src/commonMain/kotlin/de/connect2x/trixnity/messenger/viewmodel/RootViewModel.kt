@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ interface RootViewModelFactory {
 }
 
 interface RootViewModel {
-    val rootStack: Value<ChildStack<RootRouter.Config, RootRouter.RootWrapper>>
+    val rootStack: Value<ChildStack<Config, RootRouter.Wrapper>>
 }
 
 
@@ -36,6 +37,7 @@ open class RootViewModelImpl(
 
     private val router = RootRouter(
         viewModelContext = ViewModelContextImpl(di, componentContext),
-    )
-    override val rootStack: Value<ChildStack<RootRouter.Config, RootRouter.RootWrapper>> = router.stack
+    ).apply { showInitialization() }
+
+    override val rootStack: Value<ChildStack<Config, RootRouter.Wrapper>> = router.stack
 }

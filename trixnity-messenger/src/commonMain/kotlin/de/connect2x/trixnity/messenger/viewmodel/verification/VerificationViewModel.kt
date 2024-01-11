@@ -8,9 +8,9 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.VerificationStepConfig
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.VerificationStepConfig.*
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.VerificationStepWrapper
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.*
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -52,50 +52,43 @@ interface VerificationViewModelFactory {
 }
 
 interface VerificationViewModel {
-    val stack: Value<ChildStack<VerificationStepConfig, VerificationStepWrapper>>
+    val stack: Value<ChildStack<Config, Wrapper>>
     fun cancel()
 
-    sealed class VerificationStepWrapper {
-        data object None : VerificationStepWrapper()
-        data object Wait : VerificationStepWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        data object Wait : Wrapper()
 
-        class Request(val verificationStepRequestViewModel: VerificationStepRequestViewModel) :
-            VerificationStepWrapper()
+        class Request(val viewModel: VerificationStepRequestViewModel) : Wrapper()
 
-        class SelectVerificationMethod(val selectVerificationMethodViewModel: SelectVerificationMethodViewModel) :
-            VerificationStepWrapper()
+        class SelectVerificationMethod(val viewModel: SelectVerificationMethodViewModel) : Wrapper()
 
-        class AcceptSasStart(val acceptSasStartViewModel: AcceptSasStartViewModel) : VerificationStepWrapper()
+        class AcceptSasStart(val viewModel: AcceptSasStartViewModel) : Wrapper()
 
-        class CompareEmojisOrNumbers(val verificationStepCompareViewModel: VerificationStepCompareViewModel) :
-            VerificationStepWrapper()
+        class CompareEmojisOrNumbers(val viewModel: VerificationStepCompareViewModel) : Wrapper()
 
-        class Success(val verificationStepSuccessViewModel: VerificationStepSuccessViewModel) :
-            VerificationStepWrapper()
+        class Success(val viewModel: VerificationStepSuccessViewModel) : Wrapper()
 
-        class Rejected(val verificationStepRejectedViewModel: VerificationStepRejectedViewModel) :
-            VerificationStepWrapper()
+        class Rejected(val viewModel: VerificationStepRejectedViewModel) : Wrapper()
 
-        class Timeout(val verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel) :
-            VerificationStepWrapper()
+        class Timeout(val viewModel: VerificationStepTimeoutViewModel) : Wrapper()
 
-        class Cancelled(val verificationStepCancelledViewModel: VerificationStepCancelledViewModel) :
-            VerificationStepWrapper()
+        class Cancelled(val viewModel: VerificationStepCancelledViewModel) : Wrapper()
 
-        data object AcceptedByOtherClient : VerificationStepWrapper()
+        data object AcceptedByOtherClient : Wrapper()
     }
 
     @Serializable
-    sealed class VerificationStepConfig {
+    sealed class Config {
 
         @Serializable
-        data object None : VerificationStepConfig()
+        data object None : Config()
 
         @Serializable
-        data object Wait : VerificationStepConfig()
+        data object Wait : Config()
 
         @Serializable
-        data class Request(val theirUserId: UserId?, val fromDeviceId: String) : VerificationStepConfig()
+        data class Request(val theirUserId: UserId?, val fromDeviceId: String) : Config()
 
         @Serializable
         data class SelectVerificationMethod(
@@ -103,32 +96,32 @@ interface VerificationViewModel {
             val roomId: RoomId?,
             val timelineEventId: EventId?,
             val isDeviceVerification: Boolean,
-        ) : VerificationStepConfig()
+        ) : Config()
 
         @Serializable
         data class AcceptSasStart(
             val roomId: RoomId?,
             val timelineEventId: EventId?,
-        ) : VerificationStepConfig()
+        ) : Config()
 
         @Serializable
         data class CompareEmojisOrNumbers(val decimals: List<Int>, val emojis: List<Pair<Int, String>>) :
-            VerificationStepConfig()
+            Config()
 
         @Serializable
-        data class Success(val fromDeviceId: String?) : VerificationStepConfig()
+        data class Success(val fromDeviceId: String?) : Config()
 
         @Serializable
-        data object Rejected : VerificationStepConfig()
+        data object Rejected : Config()
 
         @Serializable
-        data object Timeout : VerificationStepConfig()
+        data object Timeout : Config()
 
         @Serializable
-        data object Cancelled : VerificationStepConfig()
+        data object Cancelled : Config()
 
         @Serializable
-        data object AcceptedByOtherClient : VerificationStepConfig()
+        data object AcceptedByOtherClient : Config()
     }
 }
 
@@ -142,22 +135,22 @@ open class VerificationViewModelImpl(
 
     private val activeVerification = MutableStateFlow<ActiveVerification?>(null)
 
-    private val navigation = StackNavigation<VerificationStepConfig>()
+    private val navigation = StackNavigation<Config>()
     override val stack = childStack(
         source = navigation,
-        serializer = VerificationStepConfig.serializer(),
+        serializer = Config.serializer(),
         initialConfiguration = None,
         handleBackButton = true,
         childFactory = ::createChild
     )
 
     private fun createChild(
-        config: VerificationStepConfig,
+        config: Config,
         componentContext: ComponentContext
-    ): VerificationStepWrapper =
+    ): Wrapper =
         when (config) {
-            is None -> VerificationStepWrapper.None
-            is Request -> VerificationStepWrapper.Request(
+            is None -> Wrapper.None
+            is Request -> Wrapper.Request(
                 get<VerificationStepRequestViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
@@ -167,8 +160,8 @@ open class VerificationViewModelImpl(
                     )
             )
 
-            is Wait -> VerificationStepWrapper.Wait
-            is SelectVerificationMethod -> VerificationStepWrapper.SelectVerificationMethod(
+            is Wait -> Wrapper.Wait
+            is SelectVerificationMethod -> Wrapper.SelectVerificationMethod(
                 get<SelectVerificationMethodViewModelFactory>().create(
                     viewModelContext = childContext(componentContext),
                     verificationMethods = config.verificationMethods,
@@ -178,7 +171,7 @@ open class VerificationViewModelImpl(
                 )
             )
 
-            is AcceptSasStart -> VerificationStepWrapper.AcceptSasStart(
+            is AcceptSasStart -> Wrapper.AcceptSasStart(
                 get<AcceptSasStartViewModelFactory>().create(
                     viewModelContext = childContext(componentContext),
                     roomId = config.roomId,
@@ -186,7 +179,7 @@ open class VerificationViewModelImpl(
                 )
             )
 
-            is CompareEmojisOrNumbers -> VerificationStepWrapper.CompareEmojisOrNumbers(
+            is CompareEmojisOrNumbers -> Wrapper.CompareEmojisOrNumbers(
                 get<VerificationStepCompareViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
@@ -197,7 +190,7 @@ open class VerificationViewModelImpl(
                     )
             )
 
-            is Success -> VerificationStepWrapper.Success(
+            is Success -> Wrapper.Success(
                 get<VerificationStepSuccessViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
@@ -206,7 +199,7 @@ open class VerificationViewModelImpl(
                     )
             )
 
-            is Rejected -> VerificationStepWrapper.Rejected(
+            is Rejected -> Wrapper.Rejected(
                 get<VerificationStepRejectedViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
@@ -214,7 +207,7 @@ open class VerificationViewModelImpl(
                     )
             )
 
-            is Timeout -> VerificationStepWrapper.Timeout(
+            is Timeout -> Wrapper.Timeout(
                 get<VerificationStepTimeoutViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
@@ -222,7 +215,7 @@ open class VerificationViewModelImpl(
                     )
             )
 
-            is Cancelled -> VerificationStepWrapper.Cancelled(
+            is Cancelled -> Wrapper.Cancelled(
                 get<VerificationStepCancelledViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
@@ -230,7 +223,7 @@ open class VerificationViewModelImpl(
                     )
             )
 
-            is AcceptedByOtherClient -> VerificationStepWrapper.AcceptedByOtherClient
+            is AcceptedByOtherClient -> Wrapper.AcceptedByOtherClient
         }
 
 

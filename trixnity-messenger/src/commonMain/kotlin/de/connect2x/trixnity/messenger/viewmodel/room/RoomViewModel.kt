@@ -41,8 +41,8 @@ interface RoomViewModelFactory {
 }
 
 interface RoomViewModel {
-    val timelineStack: Value<ChildStack<TimelineRouter.TimelineConfig, TimelineRouter.TimelineWrapper>>
-    val settingsStack: Value<ChildStack<SettingsRouter.SettingsConfig, SettingsRouter.SettingsWrapper>>
+    val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
+    val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>>
     val isShowSettings: StateFlow<Boolean>
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
@@ -80,16 +80,16 @@ open class RoomViewModelImpl(
         },
     )
 
-    override val timelineStack: Value<ChildStack<TimelineRouter.TimelineConfig, TimelineRouter.TimelineWrapper>> =
+    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         timelineRouter.timelineStack
-    override val settingsStack: Value<ChildStack<SettingsRouter.SettingsConfig, SettingsRouter.SettingsWrapper>> =
+    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
         settingsRouter.settingsStack
 
     init {
         log.debug { "create RoomViewModel " + roomId.full }
         coroutineScope.launch { timelineRouter.showTimeline(roomId) }
         settingsStack.subscribe {
-            isShowSettings.value = it.active.instance !is SettingsRouter.SettingsWrapper.None
+            isShowSettings.value = it.active.instance !is SettingsRouter.Wrapper.None
         }
     }
 
@@ -146,21 +146,21 @@ open class RoomViewModelImpl(
 }
 
 class PreviewRoomViewModel() : RoomViewModel {
-    override val timelineStack: Value<ChildStack<TimelineRouter.TimelineConfig, TimelineRouter.TimelineWrapper>> =
+    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = TimelineRouter.TimelineConfig.None,
-                    instance = TimelineRouter.TimelineWrapper.None,
+                    configuration = TimelineRouter.Config.None,
+                    instance = TimelineRouter.Wrapper.None,
                 )
             )
         )
-    override val settingsStack: Value<ChildStack<SettingsRouter.SettingsConfig, SettingsRouter.SettingsWrapper>> =
+    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = SettingsRouter.SettingsConfig.None,
-                    instance = SettingsRouter.SettingsWrapper.None,
+                    configuration = SettingsRouter.Config.None,
+                    instance = SettingsRouter.Wrapper.None,
                 )
             )
         )

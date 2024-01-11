@@ -9,15 +9,14 @@ import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
-import de.connect2x.trixnity.messenger.viewmodel.MainViewModel.SelfVerificationConfig
 import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
-import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter.InitialSyncConfig
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
-import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter.RoomListWrapper
 import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
@@ -230,8 +229,8 @@ class MainViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 assertSoftly {
                     cut.selectedRoomId.value shouldBe null
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
                 }
             }
 
@@ -250,8 +249,8 @@ class MainViewModelTest : ShouldSpec() {
                     cut.isSinglePane.value shouldBe true
                     cut.selectedRoomId.value shouldBe roomId
 
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.None>() // since single pane
+                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>() // since single pane
                 }
             }
 
@@ -269,8 +268,8 @@ class MainViewModelTest : ShouldSpec() {
                 assertSoftly {
                     cut.isSinglePane.value shouldBe false
                     cut.selectedRoomId.value shouldBe roomId
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>() // since multi pane
+                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>() // since multi pane
                 }
             }
 
@@ -285,8 +284,8 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(2.seconds) {
                 cut.selectedRoomId.value shouldBe null
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
             }
 
         }
@@ -299,8 +298,8 @@ class MainViewModelTest : ShouldSpec() {
             cut.setSinglePane(false)
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
             }
 
         }
@@ -311,8 +310,8 @@ class MainViewModelTest : ShouldSpec() {
             cut.setSinglePane(false)
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
             }
 
         }
@@ -325,8 +324,8 @@ class MainViewModelTest : ShouldSpec() {
             cut.setSinglePane(true)
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.None>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.View>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
             }
 
         }
@@ -337,8 +336,8 @@ class MainViewModelTest : ShouldSpec() {
             cut.setSinglePane(true)
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
             }
 
         }
@@ -349,14 +348,14 @@ class MainViewModelTest : ShouldSpec() {
             cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
             cut.setSinglePane(true)
             eventually(2.seconds) { // wait for single pane to be set async
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
             }
 
             backPressedHandler.back()
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
             }
         }
 
@@ -368,8 +367,8 @@ class MainViewModelTest : ShouldSpec() {
             backPressedHandler.back()
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
             }
 
         }
@@ -381,8 +380,8 @@ class MainViewModelTest : ShouldSpec() {
             backPressedHandler.back()
 
             eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListWrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomWrapper.None>()
+                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
+                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
             }
 
         }
@@ -434,11 +433,11 @@ class MainViewModelTest : ShouldSpec() {
 
 
             eventually(2.seconds) {
-                cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationConfig.SelfVerification>()
+                cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.SelfVerification>()
             }
-            cut.closeSelfVerification(UserId("test", "server"))
+            cut.selfVerificationRouter.closeSelfVerification(UserId("test", "server"))
             eventually(2.seconds) {
-                cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationConfig.None>()
+                cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.None>()
             }
         }
 
@@ -498,18 +497,18 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(2.seconds) {
                 val configuration = cut.selfVerificationStack.value.active.configuration
-                configuration.shouldBeInstanceOf<SelfVerificationConfig.SelfVerification>()
+                configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.SelfVerification>()
                 configuration.userId shouldBe UserId("test", "server")
             }
-            cut.closeSelfVerification(UserId("test", "server"))
+            cut.selfVerificationRouter.closeSelfVerification(UserId("test", "server"))
             eventually(2.seconds) {
                 val configuration = cut.selfVerificationStack.value.active.configuration
-                configuration.shouldBeInstanceOf<SelfVerificationConfig.SelfVerification>()
+                configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.SelfVerification>()
                 configuration.userId shouldBe UserId("test2", "server")
             }
-            cut.closeSelfVerification(UserId("test2", "server"))
+            cut.selfVerificationRouter.closeSelfVerification(UserId("test2", "server"))
             eventually(2.seconds) {
-                cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationConfig.None>()
+                cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>()
             }
         }
 
@@ -528,11 +527,11 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(300.milliseconds) {
                 val configuration = cut.initialSyncStack.value.active.configuration
-                configuration.shouldBeTypeOf<InitialSyncConfig.Sync>()
+                configuration.shouldBeTypeOf<InitialSyncRouter.Config.Sync>()
             }
 
             eventually(700.milliseconds) {
-                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncConfig.None>()
+                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
             }
 
@@ -553,11 +552,11 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(300.milliseconds) {
                 val configuration = cut.initialSyncStack.value.active.configuration
-                configuration.shouldBeTypeOf<InitialSyncConfig.Sync>()
+                configuration.shouldBeTypeOf<InitialSyncRouter.Config.Sync>()
             }
 
             eventually(2.seconds) {
-                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncConfig.None>()
+                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
             }
         }
@@ -570,7 +569,7 @@ class MainViewModelTest : ShouldSpec() {
             val cut = mainViewModel()
 
             eventually(800.milliseconds) {
-                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncConfig.None>()
+                cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
             }
         }

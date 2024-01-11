@@ -10,8 +10,8 @@ import de.connect2x.trixnity.messenger.util.launchBringToFront
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.SettingsConfig
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.SettingsWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
@@ -20,27 +20,27 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface SettingsRouter {
-    val settingsStack: Value<ChildStack<SettingsConfig, SettingsWrapper>>
+    val settingsStack: Value<ChildStack<Config, Wrapper>>
     suspend fun showSettings()
     suspend fun closeSettings()
     fun isShown(): Boolean
 
-    sealed class SettingsWrapper {
-        data object None : SettingsWrapper()
-        class View(val settingsViewModel: RoomSettingsViewModel) : SettingsWrapper()
-        class AddMember(val addMembersViewModel: AddMembersViewModel) : SettingsWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        class View(val viewModel: RoomSettingsViewModel) : Wrapper()
+        class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
     }
 
     @Serializable
-    sealed class SettingsConfig {
+    sealed class Config {
         @Serializable
-        data object None : SettingsConfig()
+        data object None : Config()
 
         @Serializable
-        data object Settings : SettingsConfig()
+        data object Settings : Config()
 
         @Serializable
-        data object AddMembers : SettingsConfig()
+        data object AddMembers : Config()
     }
 
 }
@@ -52,23 +52,23 @@ class SettingsRouterImpl(
     private val onRoomBack: () -> Unit,
 ) : SettingsRouter {
 
-    private val settingsNavigation = StackNavigation<SettingsConfig>()
+    private val settingsNavigation = StackNavigation<Config>()
     override val settingsStack =
         viewModelContext.childStack(
             source = settingsNavigation,
-            serializer = SettingsConfig.serializer(),
-            initialConfiguration = SettingsConfig.None,
+            serializer = Config.serializer(),
+            initialConfiguration = Config.None,
             key = "SettingsRouter",
             childFactory = ::createSettingsChild,
         )
 
     private fun createSettingsChild(
-        settingsConfig: SettingsConfig,
+        settingsConfig: Config,
         componentContext: ComponentContext
-    ): SettingsWrapper =
+    ): Wrapper =
         when (settingsConfig) {
-            is SettingsConfig.None -> SettingsWrapper.None
-            is SettingsConfig.Settings -> SettingsWrapper.View(
+            is Config.None -> Wrapper.None
+            is Config.Settings -> Wrapper.View(
                 viewModelContext.get<RoomSettingsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onBack = onRoomBack,
@@ -78,7 +78,7 @@ class SettingsRouterImpl(
                 )
             )
 
-            is SettingsConfig.AddMembers -> SettingsWrapper.AddMember(
+            is Config.AddMembers -> Wrapper.AddMember(
                 viewModelContext.get<AddMembersViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onBack = ::closeAddMembers,
@@ -94,15 +94,15 @@ class SettingsRouterImpl(
 
     override suspend fun showSettings() {
         log.debug { "show settings" }
-        settingsNavigation.bringToFrontSuspending(SettingsConfig.Settings)
+        settingsNavigation.bringToFrontSuspending(Config.Settings)
     }
 
     override suspend fun closeSettings() {
-        settingsNavigation.popWhileSuspending { it != SettingsConfig.None }
+        settingsNavigation.popWhileSuspending { it != Config.None }
     }
 
     private fun showAddMembers() {
-        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, SettingsConfig.AddMembers)
+        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.AddMembers)
     }
 
     private fun closeAddMembers() {
@@ -111,8 +111,8 @@ class SettingsRouterImpl(
 
     override fun isShown(): Boolean =
         when (settingsStack.value.active.configuration) {
-            is SettingsConfig.Settings -> true
-            is SettingsConfig.AddMembers -> true
-            is SettingsConfig.None -> false
+            is Config.Settings -> true
+            is Config.AddMembers -> true
+            is Config.None -> false
         }
 }

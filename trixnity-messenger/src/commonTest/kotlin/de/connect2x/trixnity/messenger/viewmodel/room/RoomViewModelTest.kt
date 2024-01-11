@@ -223,8 +223,8 @@ class RoomViewModelTest : ShouldSpec() {
 
                     eventually(1.seconds) {
                         assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.None>()
+                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                         }
                     }
                 }
@@ -236,8 +236,8 @@ class RoomViewModelTest : ShouldSpec() {
 
                     eventually(1.seconds) {
                         assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.None>()
+                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                         }
                     }
                 }
@@ -248,15 +248,15 @@ class RoomViewModelTest : ShouldSpec() {
                     cut.shouldShowInitialView()
 
                     val timelineWrapper =
-                        cut.timelineStack.value.active.instance as TimelineRouter.TimelineWrapper.View
-                    timelineWrapper.timelineViewModel.roomHeaderViewModel.showRoomSettings()
+                        cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
+                    timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
 
                     cut.setSinglePane(true)
 
                     eventually(1.seconds) {
                         assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.None>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.View>()
+                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
+                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                         }
                     }
                 }
@@ -266,15 +266,15 @@ class RoomViewModelTest : ShouldSpec() {
                     cut.shouldShowInitialView()
 
                     val timelineWrapper =
-                        cut.timelineStack.value.active.instance as TimelineRouter.TimelineWrapper.View
-                    timelineWrapper.timelineViewModel.roomHeaderViewModel.showRoomSettings()
+                        cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
+                    timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
 
                     cut.setSinglePane(false)
 
                     eventually(1.seconds) {
                         assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.View>()
+                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                         }
                     }
                 }
@@ -289,8 +289,8 @@ class RoomViewModelTest : ShouldSpec() {
 
             eventually(1.seconds) {
                 assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.None>()
+                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                 }
             }
         }
@@ -304,8 +304,8 @@ class RoomViewModelTest : ShouldSpec() {
 
             eventually(1.seconds) {
                 assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.None>()
+                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                 }
             }
         }
@@ -319,8 +319,8 @@ class RoomViewModelTest : ShouldSpec() {
 
             eventually(1.seconds) {
                 assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.None>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.View>()
+                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
+                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                 }
             }
         }
@@ -334,8 +334,8 @@ class RoomViewModelTest : ShouldSpec() {
 
             eventually(1.seconds) {
                 assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.View>()
+                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                 }
             }
         }
@@ -344,8 +344,8 @@ class RoomViewModelTest : ShouldSpec() {
     private suspend fun RoomViewModelImpl.shouldShowInitialView() =
         eventually(1.seconds) {
             assertSoftly {
-                timelineStack.value.active.instance should beOfType<TimelineRouter.TimelineWrapper.View>()
-                settingsStack.value.active.instance should beOfType<SettingsRouter.SettingsWrapper.None>()
+                timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
             }
         }
 

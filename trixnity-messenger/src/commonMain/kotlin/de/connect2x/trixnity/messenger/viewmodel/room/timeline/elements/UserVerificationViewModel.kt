@@ -61,7 +61,7 @@ interface UserVerificationViewModel : TimelineElementWithTimestampViewModel {
     val sender: StateFlow<UserInfoElement>
     val isActive: StateFlow<Boolean>
     val reachedEndState: StateFlow<Pair<Boolean, String>?>
-    val verificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.VerificationWrapper>>
+    val verificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     fun cancel()
 }
 
@@ -93,7 +93,7 @@ open class UserVerificationViewModelImpl(
             viewModelContext = viewModelContext,
             onRedoSelfVerification = {},
         )
-    override val verificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.VerificationWrapper>> =
+    override val verificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
         verificationRouter.stack
 
     init {

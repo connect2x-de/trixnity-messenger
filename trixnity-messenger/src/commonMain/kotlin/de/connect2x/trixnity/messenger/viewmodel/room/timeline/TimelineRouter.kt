@@ -8,8 +8,8 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.TimelineConfig
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.TimelineWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
@@ -20,23 +20,23 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface TimelineRouter {
-    val timelineStack: Value<ChildStack<TimelineConfig, TimelineWrapper>>
+    val timelineStack: Value<ChildStack<Config, Wrapper>>
     suspend fun showTimeline(id: RoomId)
     suspend fun closeTimeline()
     fun isShown(): Boolean
 
     @Serializable
-    sealed class TimelineConfig {
+    sealed class Config {
         @Serializable
-        data object None : TimelineConfig()
+        data object None : Config()
 
         @Serializable
-        data class View(val roomId: String) : TimelineConfig()
+        data class View(val roomId: String) : Config()
     }
 
-    sealed class TimelineWrapper {
-        data class View(val timelineViewModel: TimelineViewModel) : TimelineWrapper()
-        data object None : TimelineWrapper()
+    sealed class Wrapper {
+        data class View(val viewModel: TimelineViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 }
 
@@ -48,23 +48,23 @@ class TimelineRouterImpl(
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : TimelineRouter {
 
-    private val timelineNavigation = StackNavigation<TimelineConfig>()
+    private val timelineNavigation = StackNavigation<Config>()
     override val timelineStack =
         viewModelContext.childStack(
             source = timelineNavigation,
-            serializer = TimelineConfig.serializer(),
-            initialConfiguration = TimelineConfig.None,
+            serializer = Config.serializer(),
+            initialConfiguration = Config.None,
             key = "TimelineRouter",
             childFactory = ::createTimelineChild,
         )
 
     private fun createTimelineChild(
-        timelineConfig: TimelineConfig,
+        timelineConfig: Config,
         componentContext: ComponentContext
-    ): TimelineWrapper =
+    ): Wrapper =
         when (timelineConfig) {
-            is TimelineConfig.None -> TimelineWrapper.None
-            is TimelineConfig.View -> TimelineWrapper.View(
+            is Config.None -> Wrapper.None
+            is Config.View -> Wrapper.View(
                 viewModelContext.get<TimelineViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     selectedRoomId = RoomId(timelineConfig.roomId),
@@ -79,17 +79,17 @@ class TimelineRouterImpl(
 
     override suspend fun showTimeline(id: RoomId) {
         log.debug { "show timeline: $id" }
-        timelineNavigation.bringToFrontSuspending(TimelineConfig.View(roomId = id.full))
+        timelineNavigation.bringToFrontSuspending(Config.View(roomId = id.full))
     }
 
     override suspend fun closeTimeline() {
-        timelineNavigation.popWhileSuspending { it !is TimelineConfig.None }
+        timelineNavigation.popWhileSuspending { it !is Config.None }
     }
 
     override fun isShown(): Boolean =
         when (timelineStack.value.active.configuration) {
-            is TimelineConfig.View -> true
-            is TimelineConfig.None -> false
+            is Config.View -> true
+            is Config.None -> false
         }
 
 }

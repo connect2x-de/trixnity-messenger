@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.viewmodel.connecting.InitializingRouter.InitializationConfig
+import de.connect2x.trixnity.messenger.viewmodel.connecting.InitializingRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.connecting.InitializingRouter.InitializationWrapper
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -30,7 +30,7 @@ open class InitializingViewModel<T, U>(
         initializingObject = initializingObject,
         viewModelBuilder = viewModelBuilder
     )
-    val initializingStack: Value<ChildStack<InitializationConfig, InitializationWrapper<U>>> = router.stack
+    val initializingStack: Value<ChildStack<Config, InitializationWrapper<U>>> = router.stack
 
     init {
         launch {

@@ -21,10 +21,10 @@ class AvatarCutterRouter(
         childFactory = ::createChild,
     )
 
-    private fun createChild(config: Config, componentContext: ComponentContext): AvatarCutterWrapper =
+    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {
-            is Config.None -> AvatarCutterWrapper.None
-            is Config.AvatarCutter -> AvatarCutterWrapper.AvatarCutter(
+            is Config.None -> Wrapper.None
+            is Config.AvatarCutter -> Wrapper.AvatarCutter(
                 viewModelContext.get<AvatarCutterViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     file = config.file,
@@ -58,8 +58,8 @@ class AvatarCutterRouter(
         data object None : Config()
     }
 
-    sealed class AvatarCutterWrapper {
-        class AvatarCutter(val avatarCutterViewModel: AvatarCutterViewModel) : AvatarCutterWrapper()
-        data object None : AvatarCutterWrapper()
+    sealed class Wrapper {
+        class AvatarCutter(val viewModel: AvatarCutterViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 }

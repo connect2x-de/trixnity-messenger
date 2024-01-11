@@ -14,19 +14,19 @@ import org.koin.core.component.get
 class VideoRouter(
     private val viewModelContext: ViewModelContext,
 ) {
-    private val navigation = StackNavigation<VideoConfig>()
+    private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
-        serializer = VideoConfig.serializer(),
-        initialConfiguration = VideoConfig.None,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.None,
         key = "VideoRouter",
         childFactory = ::createChild,
     )
 
-    private fun createChild(videoConfig: VideoConfig, componentContext: ComponentContext): VideoWrapper =
+    private fun createChild(videoConfig: Config, componentContext: ComponentContext): Wrapper =
         when (videoConfig) {
-            is VideoConfig.None -> VideoWrapper.None
-            is VideoConfig.Video -> VideoWrapper.Video(
+            is Config.None -> Wrapper.None
+            is Config.Video -> Wrapper.Video(
                 viewModelContext.get<VideoViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, videoConfig.userId),
                     mxcUrl = videoConfig.mxcUrl,
@@ -38,7 +38,7 @@ class VideoRouter(
         }
 
     suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.pushSuspending(VideoConfig.Video(mxcUrl, encryptedFile, fileName, userId))
+        navigation.pushSuspending(Config.Video(mxcUrl, encryptedFile, fileName, userId))
     }
 
     fun closeVideo() {
@@ -46,11 +46,11 @@ class VideoRouter(
     }
 
     fun isVideoOpen(): Boolean {
-        return stack.value.active.configuration is VideoConfig.Video
+        return stack.value.active.configuration is Config.Video
     }
 
     @Serializable
-    sealed class VideoConfig {
+    sealed class Config {
         @Serializable
         data class Video(
             val mxcUrl: String,
@@ -58,15 +58,15 @@ class VideoRouter(
             val fileName: String,
             val userId: UserId,
         ) :
-            VideoConfig()
+            Config()
 
         @Serializable
-        data object None : VideoConfig()
+        data object None : Config()
     }
 
-    sealed class VideoWrapper {
-        class Video(val videoViewModel: VideoViewModel) : VideoWrapper()
-        data object None : VideoWrapper()
+    sealed class Wrapper {
+        class Video(val viewModel: VideoViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 
 }

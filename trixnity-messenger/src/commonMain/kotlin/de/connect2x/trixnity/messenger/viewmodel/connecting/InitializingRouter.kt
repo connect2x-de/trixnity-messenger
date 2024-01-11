@@ -14,11 +14,11 @@ class InitializingRouter<T, U>(
     private val initializingObject: StateFlow<T?>,
     private val viewModelBuilder: (T, ComponentContext) -> U,
 ) {
-    private val navigation = StackNavigation<InitializationConfig>()
+    private val navigation = StackNavigation<Config>()
     val stack = componentContext.childStack(
         source = navigation,
-        serializer = InitializationConfig.serializer(),
-        initialConfiguration = InitializationConfig.Initialization,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.Initialization,
         key = "InitializingRouter-${uuid4()}",
         childFactory = { _, c -> createChild(c) },
     )
@@ -41,20 +41,20 @@ class InitializingRouter<T, U>(
     }
 
     suspend fun showInitialization() {
-        navigation.bringToFrontSuspending(InitializationConfig.Initialization)
+        navigation.bringToFrontSuspending(Config.Initialization)
     }
 
     suspend fun showView() {
-        navigation.bringToFrontSuspending(InitializationConfig.View)
+        navigation.bringToFrontSuspending(Config.View)
     }
 
     @Serializable
-    sealed class InitializationConfig {
+    sealed class Config {
         @Serializable
-        data object Initialization : InitializationConfig()
+        data object Initialization : Config()
 
         @Serializable
-        data object View : InitializationConfig()
+        data object View : Config()
     }
 
     sealed class InitializationWrapper<U> {

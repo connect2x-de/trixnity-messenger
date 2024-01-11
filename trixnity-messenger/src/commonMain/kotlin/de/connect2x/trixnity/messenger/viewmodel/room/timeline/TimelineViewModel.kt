@@ -13,8 +13,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.SendAttachmentConfig
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.SendAttachmentWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -112,7 +112,7 @@ interface TimelineViewModel {
     val error: StateFlow<String?>
     val roomHeaderViewModel: RoomHeaderViewModel
     val inputAreaViewModel: InputAreaViewModel
-    val sendAttachmentStack: Value<ChildStack<SendAttachmentConfig, SendAttachmentWrapper>>
+    val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
 
     /**
      * Only for DnD on desktop: the absolute path of a dragged file.
@@ -130,20 +130,20 @@ interface TimelineViewModel {
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
 
-    sealed class SendAttachmentWrapper {
-        data object None : SendAttachmentWrapper()
-        class View(val sendAttachmentViewModel: SendAttachmentViewModel) : SendAttachmentWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        class View(val viewModel: SendAttachmentViewModel) : Wrapper()
     }
 
     @Serializable
-    sealed class SendAttachmentConfig {
+    sealed class Config {
         @Serializable
-        data object None : SendAttachmentConfig()
+        data object None : Config()
 
         @Serializable
         data class SendAttachmentView(
             @Serializable(with = FileDescriptorSerializer::class) val file: FileDescriptor
-        ) : SendAttachmentConfig()
+        ) : Config()
     }
 }
 
@@ -252,21 +252,21 @@ class TimelineViewModelImpl(
             onShowAttachmentSendView = ::onShowAttachmentSendView,
         )
 
-    private val sendAttachmentNavigation = StackNavigation<SendAttachmentConfig>()
-    override val sendAttachmentStack: Value<ChildStack<SendAttachmentConfig, SendAttachmentWrapper>> = childStack(
+    private val sendAttachmentNavigation = StackNavigation<Config>()
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = childStack(
         source = sendAttachmentNavigation,
-        serializer = SendAttachmentConfig.serializer(),
-        initialConfiguration = SendAttachmentConfig.None,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.None,
         handleBackButton = true,
         childFactory = ::createChild,
         key = "sendAttachmentRouter",
     )
 
     private fun createChild(
-        config: SendAttachmentConfig, componentContext: ComponentContext
-    ): SendAttachmentWrapper = when (config) {
-        is SendAttachmentConfig.None -> SendAttachmentWrapper.None
-        is SendAttachmentConfig.SendAttachmentView -> SendAttachmentWrapper.View(
+        config: Config, componentContext: ComponentContext
+    ): Wrapper = when (config) {
+        is Config.None -> Wrapper.None
+        is Config.SendAttachmentView -> Wrapper.View(
             get<SendAttachmentViewModelFactory>().create(
                 viewModelContext = childContext(componentContext),
                 file = config.file,
@@ -590,11 +590,11 @@ class TimelineViewModelImpl(
     }
 
     private fun onShowAttachmentSendView(file: FileDescriptor) {
-        sendAttachmentNavigation.launchPush(coroutineScope, SendAttachmentConfig.SendAttachmentView(file))
+        sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
     }
 
     private fun closeAttachmentSendView() {
-        sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is SendAttachmentConfig.None }
+        sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is Config.None }
     }
 
     private fun onMessageEdited(eventId: EventId) {
@@ -883,10 +883,10 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()
     override val inputAreaViewModel: InputAreaViewModel = PreviewInputViewModel()
-    override val sendAttachmentStack: Value<ChildStack<SendAttachmentConfig, SendAttachmentWrapper>> = MutableValue(
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = MutableValue(
         ChildStack(
-            configuration = SendAttachmentConfig.None,
-            instance = SendAttachmentWrapper.None,
+            configuration = Config.None,
+            instance = Wrapper.None,
         )
     )
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)

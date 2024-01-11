@@ -24,14 +24,15 @@ class RootRouter(
     val stack = viewModelContext.childStack(
         source = navigation,
         serializer = Config.serializer(),
-        initialConfiguration = Config.MatrixClientInitialization,
+        initialConfiguration = Config.None,
         key = "RootRouter-${uuid4()}",
         childFactory = ::createChild,
     )
 
-    private fun createChild(config: Config, componentContext: ComponentContext): RootWrapper {
+    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper {
         return when (config) {
-            is Config.MatrixClientInitialization -> RootWrapper.MatrixClientInitialization(
+            is Config.None -> Wrapper.None
+            is Config.MatrixClientInitialization -> Wrapper.MatrixClientInitialization(
                 viewModelContext.get<MatrixClientInitializationViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
@@ -42,7 +43,7 @@ class RootRouter(
                     )
             )
 
-            is Config.RemoveMatrixAccount -> RootWrapper.MatrixClientLogout(
+            is Config.RemoveMatrixAccount -> Wrapper.MatrixClientLogout(
                 viewModelContext.get<RemoveMatrixAccountViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
@@ -51,7 +52,7 @@ class RootRouter(
                     )
             )
 
-            is Config.AddMatrixAccount -> RootWrapper.AddMatrixAccount(
+            is Config.AddMatrixAccount -> Wrapper.AddMatrixAccount(
                 viewModelContext.get<AddMatrixAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onAddMatrixAccountMethod = ::showAddMatrixAccountMethod,
@@ -59,7 +60,7 @@ class RootRouter(
                 )
             )
 
-            is Config.PasswordLogin -> RootWrapper.PasswordLogin(
+            is Config.PasswordLogin -> Wrapper.PasswordLogin(
                 viewModelContext.get<PasswordLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
@@ -68,7 +69,7 @@ class RootRouter(
                 )
             )
 
-            is Config.SSOLogin -> RootWrapper.SSOLogin(
+            is Config.SSOLogin -> Wrapper.SSOLogin(
                 viewModelContext.get<SSOLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
@@ -79,7 +80,7 @@ class RootRouter(
                 )
             )
 
-            is Config.RegisterNewAccount -> RootWrapper.RegisterNewAccount(
+            is Config.RegisterNewAccount -> Wrapper.RegisterNewAccount(
                 viewModelContext.get<RegisterNewAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
@@ -90,7 +91,7 @@ class RootRouter(
 
             is Config.Main -> {
                 log.debug { "MatrixClients: $matrixClients" }
-                RootWrapper.Main(
+                Wrapper.Main(
                     viewModelContext.get<MainViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         onCreateNewAccount = ::showAddMatrixAccount,
@@ -99,7 +100,7 @@ class RootRouter(
                 )
             }
 
-            is Config.StoreFailure -> RootWrapper.StoreFailure(
+            is Config.StoreFailure -> Wrapper.StoreFailure(
                 viewModelContext.get<StoreFailureViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     userId = config.userId,
@@ -109,7 +110,11 @@ class RootRouter(
         }
     }
 
-    private fun showInitialization() {
+    fun showNone() {
+        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.None)
+    }
+
+    fun showInitialization() {
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
     }
 
@@ -120,8 +125,8 @@ class RootRouter(
     private fun showMainOnLogin() = viewModelContext.coroutineScope.launch {
         navigation.replaceAllSuspending(Config.Main)
         val instance = stack.value.active.instance
-        if (instance is RootWrapper.Main) {
-            instance.mainViewModel.closeAccountsOverview()
+        if (instance is Wrapper.Main) {
+            instance.viewModel.closeAccountsOverview()
         }
     }
 
@@ -174,23 +179,26 @@ class RootRouter(
         navigation.launchPush(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
-    sealed class RootWrapper {
-        data object None : RootWrapper()
-        class MatrixClientInitialization(val matrixClientInitializationViewModel: MatrixClientInitializationViewModel) :
-            RootWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        class MatrixClientInitialization(val viewModel: MatrixClientInitializationViewModel) :
+            Wrapper()
 
-        class MatrixClientLogout(val removeMatrixAccountViewModel: RemoveMatrixAccountViewModel) : RootWrapper()
+        class MatrixClientLogout(val viewModel: RemoveMatrixAccountViewModel) : Wrapper()
 
-        class Main(val mainViewModel: MainViewModel) : RootWrapper()
-        class AddMatrixAccount(val addMatrixAccountViewModel: AddMatrixAccountViewModel) : RootWrapper()
-        class PasswordLogin(val passwordLoginViewModel: PasswordLoginViewModel) : RootWrapper()
-        class SSOLogin(val ssoLoginViewModel: SSOLoginViewModel) : RootWrapper()
-        class RegisterNewAccount(val registerNewAccountViewModel: RegisterNewAccountViewModel) : RootWrapper()
-        class StoreFailure(val storeFailureViewModel: StoreFailureViewModel) : RootWrapper()
+        class Main(val viewModel: MainViewModel) : Wrapper()
+        class AddMatrixAccount(val viewModel: AddMatrixAccountViewModel) : Wrapper()
+        class PasswordLogin(val viewModel: PasswordLoginViewModel) : Wrapper()
+        class SSOLogin(val viewModel: SSOLoginViewModel) : Wrapper()
+        class RegisterNewAccount(val viewModel: RegisterNewAccountViewModel) : Wrapper()
+        class StoreFailure(val viewModel: StoreFailureViewModel) : Wrapper()
     }
 
     @Serializable
     sealed class Config {
+        @Serializable
+        data object None : Config()
+
         @Serializable
         data object MatrixClientInitialization : Config()
 

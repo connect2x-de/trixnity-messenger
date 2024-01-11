@@ -16,24 +16,24 @@ private val log = KotlinLogging.logger { }
 class InitialSyncRouter(
     private val viewModelContext: ViewModelContext,
 ) {
-    private val initialSyncNavigation = StackNavigation<InitialSyncConfig>()
+    private val initialSyncNavigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = initialSyncNavigation,
-        serializer = InitialSyncConfig.serializer(),
-        initialConfiguration = InitialSyncConfig.Undefined, // we do not yet know whether an initial sync is needed
+        serializer = Config.serializer(),
+        initialConfiguration = Config.Undefined, // we do not yet know whether an initial sync is needed
         key = "initialSyncRouter",
         handleBackButton = false,
         childFactory = ::createInitialSyncChild,
     )
 
     private fun createInitialSyncChild(
-        initialSyncConfig: InitialSyncConfig,
+        initialSyncConfig: Config,
         componentContext: ComponentContext,
-    ): InitialSyncWrapper =
+    ): Wrapper =
         when (initialSyncConfig) {
-            is InitialSyncConfig.None -> InitialSyncWrapper.None
-            is InitialSyncConfig.Undefined -> InitialSyncWrapper.Undefined
-            is InitialSyncConfig.Sync -> InitialSyncWrapper.Sync(
+            is Config.None -> Wrapper.None
+            is Config.Undefined -> Wrapper.Undefined
+            is Config.Sync -> Wrapper.Sync(
                 viewModelContext.get<SyncViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onSyncDone = ::hideSync,
@@ -43,12 +43,12 @@ class InitialSyncRouter(
 
     suspend fun showSync() {
         log.debug { "show sync" }
-        initialSyncNavigation.replaceCurrentSuspending(InitialSyncConfig.Sync)
+        initialSyncNavigation.replaceCurrentSuspending(Config.Sync)
     }
 
     private fun hideSync() {
         log.debug { "hide sync" }
-        initialSyncNavigation.launchReplaceCurrent(viewModelContext.coroutineScope, InitialSyncConfig.None)
+        initialSyncNavigation.launchReplaceCurrent(viewModelContext.coroutineScope, Config.None)
     }
 
     suspend fun close() {
@@ -56,21 +56,21 @@ class InitialSyncRouter(
         initialSyncNavigation.popSuspending()
     }
 
-    sealed class InitialSyncWrapper {
-        data object None : InitialSyncWrapper()
-        data object Undefined : InitialSyncWrapper()
-        class Sync(val syncViewModel: SyncViewModel) : InitialSyncWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        data object Undefined : Wrapper()
+        class Sync(val viewModel: SyncViewModel) : Wrapper()
     }
 
     @Serializable
-    sealed class InitialSyncConfig {
+    sealed class Config {
         @Serializable
-        data object None : InitialSyncConfig()
+        data object None : Config()
 
         @Serializable
-        data object Undefined : InitialSyncConfig()
+        data object Undefined : Config()
 
         @Serializable
-        data object Sync : InitialSyncConfig()
+        data object Sync : Config()
     }
 }

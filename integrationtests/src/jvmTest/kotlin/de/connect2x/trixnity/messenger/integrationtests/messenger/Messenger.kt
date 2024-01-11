@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapStep
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -40,18 +41,18 @@ suspend fun MatrixMessenger.login(
     log.debug { " +- ADD ACCOUNT" }
     addMatrixAccountViaPassword(serverUrl, username, password)
     log.debug { " +- try login" }
-    val main = rootStack.waitFor(RootRouter.RootWrapper.Main::class)
+    val main = rootStack.waitFor(RootRouter.Wrapper.Main::class)
     log.info { " +- main view" }
-    val mainViewModel = main.mainViewModel
+    val mainViewModel = main.viewModel
     val verification = mainViewModel.selfVerificationStack.toFlow().first { childStack ->
         log.debug { " active: ${childStack.active.instance}" }
-        childStack.active.instance is MainViewModel.SelfVerificationWrapper.Bootstrap ||
-                childStack.active.instance is MainViewModel.SelfVerificationWrapper.View
+        childStack.active.instance is SelfVerificationRouter.Wrapper.Bootstrap ||
+                childStack.active.instance is SelfVerificationRouter.Wrapper.View
     }.active.instance
-    if (verification is MainViewModel.SelfVerificationWrapper.View) {
+    if (verification is SelfVerificationRouter.Wrapper.View) {
         if (recoveryKey != null) {
             selfVerify(verification, recoveryKey)
-            mainViewModel.selfVerificationStack.waitFor(MainViewModel.SelfVerificationWrapper.None::class)
+            mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.None::class)
             log.info { "self verification done successfully" }
         } else {
             if (otherMessenger != null) {
@@ -76,9 +77,9 @@ suspend fun MatrixMessenger.createNewAccount(
     val accountsOverviewViewModel = openAccountsOverview()
     accountsOverviewViewModel.createNewAccount()
     val thisRecoveryKey = login(serverUrl, username, password, recoveryKey)
-    val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
-    mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
-    mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.InitialSyncWrapper.None::class)
+    val mainViewModel = rootStack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+    mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
+    mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.Wrapper.None::class)
     return thisRecoveryKey ?: recoveryKey
 }
 
@@ -87,10 +88,10 @@ suspend fun MatrixMessenger.deleteAccount(username: String) = with(root) {
     val userId = di.get<MatrixClients>().value.keys.find { it.localpart == username }
     checkNotNull(userId)
     accountsOverviewViewModel.removeAccount(userId)
-    rootStack.waitFor(RootRouter.RootWrapper.MatrixClientLogout::class)
-    val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
-    mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
-    mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.InitialSyncWrapper.None::class)
+    rootStack.waitFor(RootRouter.Wrapper.MatrixClientLogout::class)
+    val mainViewModel = rootStack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+    mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
+    mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.Wrapper.None::class)
     log.debug { " +- delete account finished" }
 }
 
@@ -101,40 +102,40 @@ suspend fun MatrixMessenger.verifyAccountsArePresent(vararg usernames: String) =
             di.get<MatrixClients>().value.keys.map { it.localpart }.shouldContainAll(usernames.toList())
         }
         accountsOverviewViewModel.close()
-        rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
-            .roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class)
+        rootStack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+            .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
     }
 }
 
 suspend fun MatrixMessenger.registerAccountWithToken(serverUrl: String, token: String) = with(root) {
     withTimeout(10.seconds) {
         val addMatrixAccountViewModel =
-            rootStack.waitFor(RootRouter.RootWrapper.AddMatrixAccount::class).addMatrixAccountViewModel
+            rootStack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class).viewModel
         addMatrixAccountViewModel.serverUrl.value = serverUrl
         val registerMethod = addMatrixAccountViewModel.serverDiscoveryState
             .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
             .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Register>().first()
         addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
         val registerNewAccountViewModel =
-            rootStack.waitFor(RootRouter.RootWrapper.RegisterNewAccount::class).registerNewAccountViewModel
+            rootStack.waitFor(RootRouter.Wrapper.RegisterNewAccount::class).viewModel
         registerNewAccountViewModel.username.update { "user1" }
         registerNewAccountViewModel.password.update { "user1password" }
         registerNewAccountViewModel.registrationToken.update { token }
         registerNewAccountViewModel.selectedRegistration.first { it is AuthenticationType.RegistrationToken }
         registerNewAccountViewModel.tryRegistration()
 
-        val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
-        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel.accountViewModel.accounts.first { it.isNotEmpty() }
-        mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.InitialSyncWrapper.None::class)
+        val mainViewModel = rootStack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel.accountViewModel.accounts.first { it.isNotEmpty() }
+        mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.Wrapper.None::class)
     }
 }
 
 private suspend fun RootViewModel.openAccountsOverview(): AccountsOverviewViewModel {
-    val mainViewModel = rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
+    val mainViewModel = rootStack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     val roomListViewModel =
-        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.List::class).roomListViewModel
+        mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
     roomListViewModel.openAccountsOverview()
-    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.RoomListWrapper.AccountsOverview::class).accountsOverviewViewModel
+    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.AccountsOverview::class).viewModel
 }
 
 private suspend fun RootViewModel.addMatrixAccountViaPassword(
@@ -142,15 +143,15 @@ private suspend fun RootViewModel.addMatrixAccountViaPassword(
     username: String,
     password: String,
 ) {
-    val addMatrixAccount = rootStack.waitFor(RootRouter.RootWrapper.AddMatrixAccount::class)
-    val addMatrixAccountViewModel = addMatrixAccount.addMatrixAccountViewModel
+    val addMatrixAccount = rootStack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
+    val addMatrixAccountViewModel = addMatrixAccount.viewModel
     addMatrixAccountViewModel.serverUrl.value = serverUrl
     val registerMethod = addMatrixAccountViewModel.serverDiscoveryState
         .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
         .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Password>().first()
     addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
     val passwordLoginViewModel =
-        rootStack.waitFor(RootRouter.RootWrapper.PasswordLogin::class).passwordLoginViewModel
+        rootStack.waitFor(RootRouter.Wrapper.PasswordLogin::class).viewModel
     addMatrixAccountViewModel.serverUrl.value = serverUrl
     passwordLoginViewModel.username.value = username
     passwordLoginViewModel.password.value = password
@@ -159,13 +160,13 @@ private suspend fun RootViewModel.addMatrixAccountViaPassword(
 }
 
 private suspend fun bootstrap(
-    verification: MainViewModel.SelfVerificationWrapper,
+    verification: SelfVerificationRouter.Wrapper,
     username: String,
     password: String,
 ): String? {
     log.info { "  +- bootstrap" }
     val bootstrapViewModel =
-        (verification as MainViewModel.SelfVerificationWrapper.Bootstrap).bootstrapViewModel
+        (verification as SelfVerificationRouter.Wrapper.Bootstrap).viewModel
     val step = bootstrapViewModel.step
     val shouldAuthenticate = bootstrapViewModel.shouldAuthenticate
     bootstrapViewModel.bootstrap()
@@ -184,12 +185,12 @@ private suspend fun bootstrap(
 }
 
 private suspend fun selfVerify(
-    verification: MainViewModel.SelfVerificationWrapper,
+    verification: SelfVerificationRouter.Wrapper,
     recoveryKey: String,
 ) {
     log.info { "  +- self verification with recovery key" }
     val selfVerificationViewModel =
-        (verification as MainViewModel.SelfVerificationWrapper.View).selfVerificationViewModel
+        (verification as SelfVerificationRouter.Wrapper.View).viewModel
     selfVerificationViewModel.waitForAvailableVerificationMethods()
     selfVerificationViewModel.selfVerificationMethods.first { it.any { selfVerificationMethod -> selfVerificationMethod is SelfVerificationMethod.AesHmacSha2RecoveryKey } }
     selfVerificationViewModel.launchVerification(
@@ -200,53 +201,53 @@ private suspend fun selfVerify(
 }
 
 private suspend fun selfVerify(
-    verification: MainViewModel.SelfVerificationWrapper,
+    verification: SelfVerificationRouter.Wrapper,
     mainViewModel: MainViewModel,
     otherMessenger: RootViewModel,
 ) {
     log.info { "  +- self verification with other device" }
     val selfVerificationViewModel =
-        (verification as MainViewModel.SelfVerificationWrapper.View).selfVerificationViewModel
+        (verification as SelfVerificationRouter.Wrapper.View).viewModel
     selfVerificationViewModel.waitForAvailableVerificationMethods()
     selfVerificationViewModel.selfVerificationMethods.first { it.any { selfVerificationMethod -> selfVerificationMethod is SelfVerificationMethod.CrossSignedDeviceVerification } }
     selfVerificationViewModel.launchVerification(selfVerificationViewModel.selfVerificationMethods.value.find {
         it is SelfVerificationMethod.CrossSignedDeviceVerification
     } ?: throw IllegalStateException("can only use device verification"))
 
-    mainViewModel.selfVerificationStack.waitFor(MainViewModel.SelfVerificationWrapper.None::class)
+    mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.None::class)
     val verificationViewModel =
-        mainViewModel.deviceVerificationRouterStack.waitFor(VerificationRouter.VerificationWrapper.Verification::class).verificationViewModel
-    verificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.Wait::class)
+        mainViewModel.deviceVerificationRouterStack.waitFor(VerificationRouter.Wrapper.Verification::class).viewModel
+    verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Wait::class)
 
-    val otherMainViewModel = otherMessenger.rootStack.waitFor(RootRouter.RootWrapper.Main::class).mainViewModel
+    val otherMainViewModel = otherMessenger.rootStack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     val otherVerificationViewModel =
-        otherMainViewModel.deviceVerificationRouterStack.waitFor(VerificationRouter.VerificationWrapper.Verification::class).verificationViewModel
+        otherMainViewModel.deviceVerificationRouterStack.waitFor(VerificationRouter.Wrapper.Verification::class).viewModel
     val otherVerificationStepRequestViewModel =
-        otherVerificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.Request::class).verificationStepRequestViewModel
+        otherVerificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Request::class).viewModel
     otherVerificationStepRequestViewModel.next()
 
     val selectVerificationMethodViewModel =
-        verificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.SelectVerificationMethod::class).selectVerificationMethodViewModel
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.SelectVerificationMethod::class).viewModel
     selectVerificationMethodViewModel.verificationMethods.size shouldBe 1
     selectVerificationMethodViewModel.acceptVerificationMethod(selectVerificationMethodViewModel.verificationMethods[0].first)
 
     val otherAcceptSasStartViewModel =
-        otherVerificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.AcceptSasStart::class).acceptSasStartViewModel
+        otherVerificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.AcceptSasStart::class).viewModel
     otherAcceptSasStartViewModel.accept()
 
     val verificationStepCompareViewModel =
-        verificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.CompareEmojisOrNumbers::class).verificationStepCompareViewModel
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.CompareEmojisOrNumbers::class).viewModel
     val otherVerificationStepCompareViewModel =
-        otherVerificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.CompareEmojisOrNumbers::class).verificationStepCompareViewModel
+        otherVerificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.CompareEmojisOrNumbers::class).viewModel
     verificationStepCompareViewModel.emojis shouldBeEqual otherVerificationStepCompareViewModel.emojis
 
     verificationStepCompareViewModel.accept()
     otherVerificationStepCompareViewModel.accept()
 
     val verificationStepSuccessViewModel =
-        verificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.Success::class).verificationStepSuccessViewModel
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class).viewModel
     val otherVerificationStepSuccessViewModel =
-        otherVerificationViewModel.stack.waitFor(VerificationViewModel.VerificationStepWrapper.Success::class).verificationStepSuccessViewModel
+        otherVerificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class).viewModel
     verificationStepSuccessViewModel.ok()
     otherVerificationStepSuccessViewModel.ok()
 
