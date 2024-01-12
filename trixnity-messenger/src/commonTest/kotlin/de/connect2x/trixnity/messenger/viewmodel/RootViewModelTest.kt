@@ -91,7 +91,7 @@ class RootViewModelTest : ShouldSpec() {
         should("show account creation when there is no account defined yet") {
             val cut = rootViewModel()
             eventually(1.seconds) {
-                val config = cut.rootStack.value.active.configuration
+                val config = cut.stack.value.active.configuration
                 config.shouldBeTypeOf<RootRouter.Config.AddMatrixAccount>()
             }
         }

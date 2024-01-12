@@ -23,7 +23,7 @@ interface RootViewModelFactory {
 }
 
 interface RootViewModel {
-    val rootStack: Value<ChildStack<Config, RootRouter.Wrapper>>
+    val stack: Value<ChildStack<Config, RootRouter.Wrapper>>
 }
 
 
@@ -39,5 +39,5 @@ open class RootViewModelImpl(
         viewModelContext = ViewModelContextImpl(di, componentContext),
     ).apply { showInitialization() }
 
-    override val rootStack: Value<ChildStack<Config, RootRouter.Wrapper>> = router.stack
+    override val stack: Value<ChildStack<Config, RootRouter.Wrapper>> = router.stack
 }

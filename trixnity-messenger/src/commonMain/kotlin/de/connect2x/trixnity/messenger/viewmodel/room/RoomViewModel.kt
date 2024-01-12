@@ -81,9 +81,9 @@ open class RoomViewModelImpl(
     )
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
-        timelineRouter.timelineStack
+        timelineRouter.stack
     override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
-        settingsRouter.settingsStack
+        settingsRouter.stack
 
     init {
         log.debug { "create RoomViewModel " + roomId.full }

@@ -22,7 +22,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface RoomRouter {
-    val roomStack: Value<ChildStack<Config, Wrapper>>
+    val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun closeRoom()
     suspend fun showRoom(userId: UserId, roomId: RoomId)
     fun isShown(): Boolean
@@ -50,7 +50,7 @@ class RoomRouterImpl(
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()
-    override val roomStack: Value<ChildStack<Config, Wrapper>> =
+    override val stack: Value<ChildStack<Config, Wrapper>> =
         viewModelContext.childStack(
             source = roomNavigation,
             serializer = Config.serializer(),
@@ -88,7 +88,7 @@ class RoomRouterImpl(
     }
 
     override fun isShown(): Boolean =
-        when (roomStack.value.active.configuration) {
+        when (stack.value.active.configuration) {
             is Config.View -> true
             is Config.None -> false
         }

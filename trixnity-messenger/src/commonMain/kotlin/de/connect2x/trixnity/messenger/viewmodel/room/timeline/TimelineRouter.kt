@@ -20,7 +20,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface TimelineRouter {
-    val timelineStack: Value<ChildStack<Config, Wrapper>>
+    val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun showTimeline(id: RoomId)
     suspend fun closeTimeline()
     fun isShown(): Boolean
@@ -49,7 +49,7 @@ class TimelineRouterImpl(
 ) : TimelineRouter {
 
     private val timelineNavigation = StackNavigation<Config>()
-    override val timelineStack =
+    override val stack =
         viewModelContext.childStack(
             source = timelineNavigation,
             serializer = Config.serializer(),
@@ -87,7 +87,7 @@ class TimelineRouterImpl(
     }
 
     override fun isShown(): Boolean =
-        when (timelineStack.value.active.configuration) {
+        when (stack.value.active.configuration) {
             is Config.View -> true
             is Config.None -> false
         }

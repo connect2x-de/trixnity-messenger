@@ -20,7 +20,7 @@ import org.koin.core.component.get
 private val log = KotlinLogging.logger {}
 
 interface SettingsRouter {
-    val settingsStack: Value<ChildStack<Config, Wrapper>>
+    val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun showSettings()
     suspend fun closeSettings()
     fun isShown(): Boolean
@@ -53,7 +53,7 @@ class SettingsRouterImpl(
 ) : SettingsRouter {
 
     private val settingsNavigation = StackNavigation<Config>()
-    override val settingsStack =
+    override val stack =
         viewModelContext.childStack(
             source = settingsNavigation,
             serializer = Config.serializer(),
@@ -110,7 +110,7 @@ class SettingsRouterImpl(
     }
 
     override fun isShown(): Boolean =
-        when (settingsStack.value.active.configuration) {
+        when (stack.value.active.configuration) {
             is Config.Settings -> true
             is Config.AddMembers -> true
             is Config.None -> false

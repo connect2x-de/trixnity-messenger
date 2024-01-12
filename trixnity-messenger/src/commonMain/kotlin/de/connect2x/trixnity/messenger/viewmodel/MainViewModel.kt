@@ -142,7 +142,7 @@ open class MainViewModelImpl(
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenModal = ::openModal,
         )
-    override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.roomStack
+    override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
     init {
         coroutineScope.launch {
@@ -203,7 +203,7 @@ open class MainViewModelImpl(
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     override fun start() {
-        roomRouter.roomStack.observe(lifecycle) { routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
+        roomRouter.stack.observe(lifecycle) { routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
             log.debug { "roomRouter has changed: ${routerStack.active.configuration::class.simpleName} (roomId: ${routerStack.active.configuration.getRoomId()})" }
             selectedRoomId.value = routerStack.active.configuration.getRoomId()
         }
