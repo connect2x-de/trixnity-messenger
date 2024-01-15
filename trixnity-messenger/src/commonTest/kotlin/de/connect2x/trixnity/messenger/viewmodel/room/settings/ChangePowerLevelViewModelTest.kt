@@ -5,13 +5,14 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.setMain
@@ -38,8 +39,6 @@ import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class ChangePowerLevelViewModelTest : ShouldSpec() {
-
-    override fun timeout(): Long = 2_000
 
     val mocker = Mocker()
 
@@ -95,7 +94,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
 
@@ -394,25 +392,28 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun changePowerLevelViewModel(
+    private suspend fun changePowerLevelViewModel(
         coroutineContext: CoroutineContext,
         roomUser: RoomUser,
         powerLevel: StateFlow<Long>,
-    ) = ChangePowerLevelViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
-                )
-            }.koin,
-            userId = UserId("test", "server"),
-            coroutineContext = coroutineContext
-        ),
-        roomUser = roomUser,
-        error = MutableStateFlow(""),
-        selectedRoomId = roomId,
-        closeMemberOptions = closeMemberOptions,
-        powerLevel = powerLevel,
-    )
+    ): ChangePowerLevelViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return ChangePowerLevelViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                    )
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext
+            ),
+            roomUser = roomUser,
+            error = MutableStateFlow(""),
+            selectedRoomId = roomId,
+            closeMemberOptions = closeMemberOptions,
+            powerLevel = powerLevel,
+        )
+    }
 }

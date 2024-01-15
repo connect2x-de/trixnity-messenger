@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.retry
 import io.kotest.assertions.withClue
@@ -107,7 +106,7 @@ class TimelineViewModelTest : ShouldSpec() {
     )
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             coroutineScope = CoroutineScope(Dispatchers.Default)
             mocker.reset()

@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -41,7 +40,6 @@ class ImageMessageViewModelTest : ShouldSpec() {
     lateinit var thumbnailsMock: Thumbnails
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -130,30 +128,33 @@ class ImageMessageViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun imageMessageViewModel(coroutineContext: CoroutineContext) = ImageMessageViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
-                            + module {
-                        single { thumbnailsMock }
-                    })
-            }.koin,
-            userId = UserId("test", "server"),
-            coroutineContext = coroutineContext,
-        ),
-        formattedDate = "21.11.2021",
-        showDateAbove = true,
-        formattedTime = null,
-        isByMe = false,
-        showChatBubbleEdge = true,
-        showBigGap = true,
-        showSender = MutableStateFlow(true),
-        sender = MutableStateFlow(UserInfoElement("User1")),
-        invitation = flowOf(null),
-        content = RoomMessageEventContent.FileBased.Image(""),
-        onOpenModal = mockFunction4(mocker),
-        mediaUploadProgress = MutableStateFlow(null),
-    )
+    private suspend fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageMessageViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return ImageMessageViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
+                                + module {
+                            single { thumbnailsMock }
+                        })
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext,
+            ),
+            formattedDate = "21.11.2021",
+            showDateAbove = true,
+            formattedTime = null,
+            isByMe = false,
+            showChatBubbleEdge = true,
+            showBigGap = true,
+            showSender = MutableStateFlow(true),
+            sender = MutableStateFlow(UserInfoElement("User1")),
+            invitation = flowOf(null),
+            content = RoomMessageEventContent.FileBased.Image(""),
+            onOpenModal = mockFunction4(mocker),
+            mediaUploadProgress = MutableStateFlow(null),
+        )
+    }
 }

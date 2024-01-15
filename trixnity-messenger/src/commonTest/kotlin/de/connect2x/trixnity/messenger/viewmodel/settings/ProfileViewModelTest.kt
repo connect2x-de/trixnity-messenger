@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.mock.MediaServiceMock
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -59,7 +58,7 @@ class ProfileViewModelTest : ShouldSpec() {
     private lateinit var setDisplayNameMocker: Mocker.EverySuspend<Result<Unit>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
 
         beforeTest {
             mocker.reset()

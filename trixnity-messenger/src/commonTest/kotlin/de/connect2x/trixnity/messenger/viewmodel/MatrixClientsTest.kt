@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -59,7 +58,7 @@ class MatrixClientsTest : ShouldSpec() {
     private lateinit var initFromStore: Mocker.EverySuspend<Result<MatrixClient?>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             mocker.reset()
             injectMocks(mocker)

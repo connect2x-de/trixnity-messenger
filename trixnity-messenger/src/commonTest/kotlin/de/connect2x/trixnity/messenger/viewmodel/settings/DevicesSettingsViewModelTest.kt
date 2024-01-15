@@ -5,16 +5,13 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -142,7 +139,6 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
     private lateinit var deviceKeysMocker: Mocker.Every<Flow<List<DeviceKeys>?>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -690,7 +686,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
         ),
     )
 
-    private fun devicesSettingsViewModel(coroutineContext: CoroutineContext): DevicesSettingsViewModelImpl {
+    private suspend fun devicesSettingsViewModel(coroutineContext: CoroutineContext): DevicesSettingsViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(

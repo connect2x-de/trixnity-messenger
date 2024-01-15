@@ -103,7 +103,6 @@ class RoomListViewModelTest : ShouldSpec() {
     private val spaceCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Space)
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -1240,10 +1239,11 @@ class RoomListViewModelTest : ShouldSpec() {
         launch { cut.showSpaces.collect() }
     }
 
-    private fun roomListViewModel(
+    private suspend fun roomListViewModel(
         coroutineContext: CoroutineContext,
         matrixClients: Map<UserId, MatrixClient> = mapOf(user1 to matrixClientMock),
     ): RoomListViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val koin = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(matrixClients) + module {

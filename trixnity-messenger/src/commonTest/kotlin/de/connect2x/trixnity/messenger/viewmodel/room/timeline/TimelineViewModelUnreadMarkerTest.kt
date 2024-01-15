@@ -82,12 +82,10 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var inputAreaViewModelMock: InputAreaViewModel
     private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
-    private lateinit var mainDispatcher: TestDispatcher
 
     init {
         beforeTest {
-            mainDispatcher = StandardTestDispatcher()
-            Dispatchers.setMain(mainDispatcher)
+            Dispatchers.setMain(Dispatchers.Unconfined)
         }
         afterTest {
             Dispatchers.resetMain()

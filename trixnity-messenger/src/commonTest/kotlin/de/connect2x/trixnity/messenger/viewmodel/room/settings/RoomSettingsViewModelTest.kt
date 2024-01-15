@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -97,7 +96,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
     private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -250,40 +248,43 @@ class RoomSettingsViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun roomSettingsViewModel(
+    private suspend fun roomSettingsViewModel(
         coroutineContext: CoroutineContext,
         onBackMock: () -> Unit = mockFunction0(mocker),
-    ) = RoomSettingsViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
-                        single<MemberListViewModelFactory> {
-                            object : MemberListViewModelFactory {
-                                override fun create(
-                                    viewModelContext: MatrixClientViewModelContext,
-                                    selectedRoomId: RoomId,
-                                    error: MutableStateFlow<String?>
-                                ): MemberListViewModel = object : MemberListViewModel {
-                                    override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
-                                        MutableStateFlow(listOf())
-                                    override val showLoadingSpinner: StateFlow<Boolean> = MutableStateFlow(false)
-                                    override val error: StateFlow<String?> = MutableStateFlow(null)
+    ): RoomSettingsViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return RoomSettingsViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
+                            single<MemberListViewModelFactory> {
+                                object : MemberListViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        error: MutableStateFlow<String?>
+                                    ): MemberListViewModel = object : MemberListViewModel {
+                                        override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
+                                            MutableStateFlow(listOf())
+                                        override val showLoadingSpinner: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val error: StateFlow<String?> = MutableStateFlow(null)
 
+                                    }
                                 }
                             }
-                        }
-                    },
-                )
-            }.koin,
-            userId = me,
-            coroutineContext = coroutineContext,
-        ),
-        selectedRoomId = roomId,
-        onBack = onBackMock,
-        onCloseRoomSettings = mockFunction0(mocker),
+                        },
+                    )
+                }.koin,
+                userId = me,
+                coroutineContext = coroutineContext,
+            ),
+            selectedRoomId = roomId,
+            onBack = onBackMock,
+            onCloseRoomSettings = mockFunction0(mocker),
 
-        onShowAddMembers = mockFunction0(mocker)
-    )
+            onShowAddMembers = mockFunction0(mocker)
+        )
+    }
 }

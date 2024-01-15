@@ -5,13 +5,14 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
@@ -60,7 +61,6 @@ class SelfVerificationViewModelTest : ShouldSpec() {
     private val onCloseMock = mockFunction0<Unit>(mocker)
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -350,8 +350,9 @@ class SelfVerificationViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun selfVerificationViewModel(coroutineContext: CoroutineContext) =
-        SelfVerificationViewModelImpl(
+    private suspend fun selfVerificationViewModel(coroutineContext: CoroutineContext): SelfVerificationViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return SelfVerificationViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
@@ -372,5 +373,6 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             ),
             onClose = onCloseMock,
         )
+    }
 
 }

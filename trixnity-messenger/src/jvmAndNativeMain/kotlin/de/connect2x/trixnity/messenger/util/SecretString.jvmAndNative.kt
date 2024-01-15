@@ -13,46 +13,47 @@ fun interface GetSecretStringKey {
     suspend operator fun invoke(id: String, create: () -> ByteArray): ByteArray?
 }
 
+open class ConvertSecretStringImpl(private val getSecretStringKey: GetSecretStringKey) : ConvertSecretString {
+    override suspend operator fun invoke(raw: String): SecretString {
+        val secretStringKey = getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
+            ?: return SecretString.Unencrypted(raw)
+        val encryptedStringSecret =
+            encryptAesHmacSha2(
+                raw.encodeToByteArray(),
+                secretStringKey,
+                SECRET_STRING_KEY_AES_HMAC_SHA2_ID
+            )
+        return SecretString.AesHmacSha2(
+            iv = encryptedStringSecret.iv,
+            ciphertext = encryptedStringSecret.ciphertext,
+            mac = encryptedStringSecret.mac,
+        )
+    }
+
+    override suspend operator fun invoke(secret: SecretString): String = when (secret) {
+        is SecretString.Unencrypted -> secret.value
+        is SecretString.AesHmacSha2 -> {
+            decryptAesHmacSha2(
+                content = AesHmacSha2EncryptedData(
+                    iv = secret.iv,
+                    ciphertext = secret.ciphertext,
+                    mac = secret.mac,
+                ),
+                key = checkNotNull(
+                    getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
+                ) { "could not retrieve StringSecretkey $SECRET_STRING_KEY_AES_HMAC_SHA2_ID" },
+                name = SECRET_STRING_KEY_AES_HMAC_SHA2_ID
+            ).decodeToString()
+        }
+    }
+
+    private fun createNewKey() = SecureRandom.nextBytes(32)
+}
+
 expect fun platformGetSecretStringKeyModule(): Module
 actual fun platformConvertSecretString(): Module = module {
     includes(platformGetSecretStringKeyModule())
     single<ConvertSecretString> {
-        val getSecretStringKey = get<GetSecretStringKey>()
-        object : ConvertSecretString {
-            override suspend operator fun invoke(raw: String): SecretString {
-                val secretStringKey = getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
-                    ?: return SecretString.Unencrypted(raw)
-                val encryptedStringSecret =
-                    encryptAesHmacSha2(
-                        raw.encodeToByteArray(),
-                        secretStringKey,
-                        SECRET_STRING_KEY_AES_HMAC_SHA2_ID
-                    )
-                return SecretString.AesHmacSha2(
-                    iv = encryptedStringSecret.iv,
-                    ciphertext = encryptedStringSecret.ciphertext,
-                    mac = encryptedStringSecret.mac,
-                )
-            }
-
-            override suspend operator fun invoke(secret: SecretString): String = when (secret) {
-                is SecretString.Unencrypted -> secret.value
-                is SecretString.AesHmacSha2 -> {
-                    decryptAesHmacSha2(
-                        content = AesHmacSha2EncryptedData(
-                            iv = secret.iv,
-                            ciphertext = secret.ciphertext,
-                            mac = secret.mac,
-                        ),
-                        key = checkNotNull(
-                            getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
-                        ) { "could not retrieve StringSecretkey $SECRET_STRING_KEY_AES_HMAC_SHA2_ID" },
-                        name = SECRET_STRING_KEY_AES_HMAC_SHA2_ID
-                    ).decodeToString()
-                }
-            }
-
-            fun createNewKey() = SecureRandom.nextBytes(32)
-        }
+        ConvertSecretStringImpl(get())
     }
 }

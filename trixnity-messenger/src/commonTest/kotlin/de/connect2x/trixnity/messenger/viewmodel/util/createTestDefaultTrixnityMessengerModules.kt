@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.util.SecretString
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -30,7 +31,11 @@ fun createTestDefaultTrixnityMessengerModules(
     matrixClients: StateFlow<Map<UserId, MatrixClient>>? = null,
     settings: MatrixMessengerSettingsHolder = createTestMatrixMessengerSettingsHolder(),
 ) = createDefaultTrixnityMessengerModules() + module {
-    single<CoroutineScope> { CoroutineScope(Dispatchers.Default) }
+    single<CoroutineScope> {
+        CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, throwable ->
+            throwable.printStackTrace()
+        })
+    }
     single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }
     single<MatrixMessengerSettingsHolder> { settings }
     if (matrixClients != null)

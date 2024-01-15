@@ -15,11 +15,8 @@ import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
 import isNot
 import isRoomOf
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
@@ -123,7 +120,6 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     private val spaceCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Space)
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -961,7 +957,8 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         launch { cut.showSpaces.collect() }
     }
 
-    private fun roomListViewModel(coroutineContext: CoroutineContext): RoomListViewModelImpl {
+    private suspend fun roomListViewModel(coroutineContext: CoroutineContext): RoomListViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         matrixClients = MutableStateFlow(
             mapOf(
                 UserId("test1", "server") to matrixClientMock1,

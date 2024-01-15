@@ -5,18 +5,15 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -45,8 +42,6 @@ import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberListViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
-
     val mocker = Mocker()
 
     private val roomId = RoomId("room", "localhost")
@@ -109,7 +104,6 @@ class MemberListViewModelTest : ShouldSpec() {
     lateinit var roomsApiClientMock: RoomApiClient
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -263,21 +257,24 @@ class MemberListViewModelTest : ShouldSpec() {
         }
 
 
-    private fun memberListViewModel(
+    private suspend fun memberListViewModel(
         coroutineContext: CoroutineContext
-    ) = MemberListViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
-                )
-            }.koin,
-            userId = UserId("test", "server"),
-            coroutineContext = coroutineContext,
-        ),
-        selectedRoomId = roomId,
+    ): MemberListViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return MemberListViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                    )
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext,
+            ),
+            selectedRoomId = roomId,
 
-        error = MutableStateFlow("")
-    )
+            error = MutableStateFlow("")
+        )
+    }
 }

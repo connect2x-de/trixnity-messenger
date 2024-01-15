@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -48,7 +47,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
     init {
         coroutineTestScope = true
-        Dispatchers.setMain(testMainDispatcher)
 
         beforeTest {
             mocker.reset()
@@ -245,14 +243,22 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             cut.tryRegistration()
             testCoroutineScheduler.advanceUntilIdle()
 
-            eventually(500.milliseconds) {
-                mocker.verifyWithSuspend(exhaustive = false) {
-                    matrixClientFactoryMock.loginWith(
-                        isEqual(Url("http://myMatrixServer:55678")),
-                        isEqual(MatrixClient.LoginInfo(UserId("@user1:myMatrixServer:55678"), "GHTYAJCE", "abc123")),
-                        isAny(),
-                    )
-                    onLoginMock.invoke()
+            withContext(Dispatchers.Default) { // eventually does not work with TestDispatcher
+                eventually(500.milliseconds) {
+                    mocker.verifyWithSuspend(exhaustive = false) {
+                        matrixClientFactoryMock.loginWith(
+                            isEqual(Url("http://myMatrixServer:55678")),
+                            isEqual(
+                                MatrixClient.LoginInfo(
+                                    UserId("@user1:myMatrixServer:55678"),
+                                    "GHTYAJCE",
+                                    "abc123"
+                                )
+                            ),
+                            isAny(),
+                        )
+                        onLoginMock.invoke()
+                    }
                 }
             }
 
@@ -264,6 +270,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
         serverUrl: String = "https://local.host",
         mockEngineConfig: (MockEngineConfig.() -> Unit)? = null,
     ): RegisterNewAccountViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
             if (mockEngineConfig != null) mockEngineConfig()

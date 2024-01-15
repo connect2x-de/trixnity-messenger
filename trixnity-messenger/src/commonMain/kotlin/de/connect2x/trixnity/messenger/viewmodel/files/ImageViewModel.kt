@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.files
 
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
@@ -38,7 +39,7 @@ interface ImageViewModelFactory {
 interface ImageViewModel {
     val onCloseImage: () -> Unit
     val image: StateFlow<ByteArray?>
-    val progressElement: StateFlow<FileTransferProgressElement?>
+    val progress: StateFlow<FileTransferProgressElement?>
     val fileName: String
     fun cancelLoadImage()
     fun closeImage()
@@ -54,7 +55,7 @@ open class ImageViewModelImpl(
 
     private val _image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
     override val image = _image.asStateFlow()
-    override val progressElement = MutableStateFlow<FileTransferProgressElement?>(null)
+    override val progress = MutableStateFlow<FileTransferProgressElement?>(null)
     private val loadImageJob: Job
 
     init {
@@ -66,7 +67,7 @@ open class ImageViewModelImpl(
             val imageProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
             launch {
                 imageProgressFlow.collectLatest {
-                    progressElement.emit(FileTransferProgressElement(
+                    progress.emit(FileTransferProgressElement(
                         percent = it?.transferred?.let { transferred -> transferred / it.total.toFloat() } ?: 0f,
                         formattedProgress = formatProgress(it)
                     ))
@@ -80,7 +81,7 @@ open class ImageViewModelImpl(
                         },
                         onFailure = {
                             log.error(it) { "Cannot load encrypted image from '${encryptedFile.url}'." }
-                            progressElement.emit(null)
+                            progress.emit(null)
                         }
                     )
                 } else {
@@ -90,7 +91,7 @@ open class ImageViewModelImpl(
                         },
                         onFailure = {
                             log.error(it) { "Cannot load image from '$mxcUrl'." }
-                            progressElement.emit(null)
+                            progress.emit(null)
                         }
                     )
                 }
@@ -111,7 +112,7 @@ open class ImageViewModelImpl(
 class PreviewImageViewModel : ImageViewModel {
     override val onCloseImage: () -> Unit = {}
     override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
-    override val progressElement: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
+    override val progress: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val fileName: String = "image.png"
 
     override fun cancelLoadImage() {

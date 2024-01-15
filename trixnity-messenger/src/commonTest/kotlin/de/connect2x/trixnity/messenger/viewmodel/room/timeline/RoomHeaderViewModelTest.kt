@@ -83,7 +83,6 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
     init {
         coroutineTestScope = true
-        Dispatchers.setMain(testMainDispatcher)
 
         beforeTest {
             mocker.reset()
@@ -290,7 +289,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun roomHeaderViewModel(coroutineContext: CoroutineContext): RoomHeaderViewModelImpl {
+    private suspend fun roomHeaderViewModel(coroutineContext: CoroutineContext): RoomHeaderViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val roomHeaderViewModel = RoomHeaderViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 di = koinApplication {

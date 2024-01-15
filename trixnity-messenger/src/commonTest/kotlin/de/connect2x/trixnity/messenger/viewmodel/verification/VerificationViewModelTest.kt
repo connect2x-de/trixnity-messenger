@@ -5,7 +5,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
@@ -15,11 +14,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
@@ -84,7 +80,6 @@ class VerificationViewModelTest : ShouldSpec() {
     private lateinit var activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
         isolationMode = IsolationMode.InstancePerTest
 
@@ -272,7 +267,8 @@ class VerificationViewModelTest : ShouldSpec() {
 
     }
 
-    private fun deviceVerificationViewModel(coroutineContext: CoroutineContext): VerificationViewModel {
+    private suspend fun deviceVerificationViewModel(coroutineContext: CoroutineContext): VerificationViewModel {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return VerificationViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),

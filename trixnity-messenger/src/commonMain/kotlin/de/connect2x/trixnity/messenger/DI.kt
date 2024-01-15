@@ -8,8 +8,6 @@ import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync

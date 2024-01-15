@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.files
 
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
@@ -35,7 +36,7 @@ interface VideoViewModelFactory {
 interface VideoViewModel {
     val onCloseVideo: () -> Unit
     val video: StateFlow<ByteArray?>
-    val progressElement: StateFlow<FileTransferProgressElement?>
+    val progress: StateFlow<FileTransferProgressElement?>
     val fileName: String
     fun cancelVideoDownload()
     fun closeVideo()
@@ -50,7 +51,7 @@ open class VideoViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, VideoViewModel {
 
     override val video = MutableStateFlow<ByteArray?>(null)
-    override val progressElement = MutableStateFlow<FileTransferProgressElement?>(null)
+    override val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
     private val loadVideoJob: Job
 
@@ -63,7 +64,7 @@ open class VideoViewModelImpl(
             val videoProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
             launch {
                 videoProgressFlow.collect {
-                    progressElement.emit(FileTransferProgressElement(
+                    progress.emit(FileTransferProgressElement(
                         percent = it?.transferred?.let { transferred -> transferred / it.total.toFloat() } ?: 0f,
                         formattedProgress = formatProgress(it)
                     ))
@@ -77,7 +78,7 @@ open class VideoViewModelImpl(
                         },
                         onFailure = {
                             log.error(it) { "Cannot load encrypted video from '${encryptedFile.url}'." }
-                            progressElement.emit(null)
+                            progress.emit(null)
                         }
                     )
                 } else {
@@ -87,7 +88,7 @@ open class VideoViewModelImpl(
                         },
                         onFailure = {
                             log.error(it) { "Cannot load video from '$mxcUrl'." }
-                            progressElement.emit(null)
+                            progress.emit(null)
                         }
                     )
                 }

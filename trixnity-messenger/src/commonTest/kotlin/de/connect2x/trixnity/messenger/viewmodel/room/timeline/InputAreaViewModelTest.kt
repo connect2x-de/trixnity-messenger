@@ -5,7 +5,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.nulls.beNull
@@ -15,11 +14,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
@@ -81,7 +77,6 @@ class InputAreaViewModelTest : ShouldSpec() {
     private lateinit var allRoomUsersMock: Mocker.Every<Flow<Map<UserId, Flow<RoomUser?>>?>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         val eventId = EventId("0")
@@ -727,23 +722,26 @@ class InputAreaViewModelTest : ShouldSpec() {
         )
     )
 
-    private fun inputAreaViewModel(coroutineContext: CoroutineContext) = InputAreaViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
-                )
-            }.koin,
-            userId = UserId("test", "server"),
-            coroutineContext = coroutineContext,
-        ),
-        selectedRoomId = roomId,
-        onMessageEditFinished = onMessageEditFinishedMock,
-        onMessageReplyFinished = onMessageReplToFinishedMock,
-        onShowAttachmentSendView = mockFunction1(mocker),
+    private suspend fun inputAreaViewModel(coroutineContext: CoroutineContext): InputAreaViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return InputAreaViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                    )
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext,
+            ),
+            selectedRoomId = roomId,
+            onMessageEditFinished = onMessageEditFinishedMock,
+            onMessageReplyFinished = onMessageReplToFinishedMock,
+            onShowAttachmentSendView = mockFunction1(mocker),
 
-        )
+            )
+    }
 
     private fun CoroutineScope.subscribe(cut: InputAreaViewModelImpl) = launch {
         launch { cut.isAllowedToSendMessages.collect() }

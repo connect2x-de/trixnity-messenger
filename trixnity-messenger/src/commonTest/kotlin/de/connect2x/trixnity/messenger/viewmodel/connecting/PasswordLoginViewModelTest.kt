@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -50,7 +49,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
     init {
         beforeTest {
             mocker.reset()
-            Dispatchers.setMain(testMainDispatcher)
+            Dispatchers.setMain(Dispatchers.Unconfined)
             injectMocks(mocker)
 
             with(mocker) {

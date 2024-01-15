@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
@@ -17,6 +16,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -38,7 +38,6 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
 
     init {
         coroutineTestScope = true
-        Dispatchers.setMain(testMainDispatcher)
 
         beforeTest {
             mocker.reset()
@@ -207,6 +206,7 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
     private suspend fun viewModel(
         mockEngineConfig: (MockEngineConfig.() -> Unit)? = null,
     ): AddMatrixAccountViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
             if (mockEngineConfig != null) mockEngineConfig()

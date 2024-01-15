@@ -7,9 +7,9 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
@@ -26,10 +26,7 @@ import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -126,8 +123,6 @@ class MainViewModelTest : ShouldSpec() {
     private val startSyncPresenceCapture = mutableListOf<Presence>()
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
-
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
@@ -626,9 +621,11 @@ class MainViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun mainViewModel(
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend fun mainViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(UserId("test", "server") to matrixClientMock),
     ): MainViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val mainViewModel = MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),

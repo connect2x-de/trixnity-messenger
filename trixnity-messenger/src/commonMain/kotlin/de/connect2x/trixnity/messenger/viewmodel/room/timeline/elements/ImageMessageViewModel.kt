@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
 
 interface ImageMessageViewModelFactory {
@@ -160,22 +161,18 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     }
 
     override val saveFileDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
-    override val downloadProgressElement: MutableStateFlow<StateFlow<FileTransferProgressElement?>?> =
-        MutableStateFlow(null)
-    override val downloadSuccessful: MutableStateFlow<StateFlow<Boolean>?> = MutableStateFlow(null)
+    override val downloadProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
+    override val downloadSuccessful: StateFlow<Boolean> = MutableStateFlow(false)
     override val fileName: String = "image-1234567890123456678901234567890.jpg"
+    override val fileSize: Int? = 200
+    override val fileMimeType: String? = "image/jpg"
 
     override fun downloadFile(): DownloadFile {
         return object : DownloadFile {
-            override suspend fun getFileResult(): Result<ByteArray> = Result.success(previewImageByteArray())
-            override suspend fun getFile(): ByteArray? = previewImageByteArray()
-        }
-    }
+            override suspend fun getFileResult(): Result<ByteArrayFlow> =
+                Result.success(flowOf(previewImageByteArray()))
 
-    override fun downloadFile(progressElement: MutableStateFlow<FileTransferProgressElement?>): DownloadFile {
-        return object : DownloadFile {
-            override suspend fun getFileResult(): Result<ByteArray> = Result.success(previewImageByteArray())
-            override suspend fun getFile(): ByteArray? = previewImageByteArray()
+            override suspend fun getFile(): ByteArrayFlow? = flowOf(previewImageByteArray())
         }
     }
 

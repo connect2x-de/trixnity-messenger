@@ -5,7 +5,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
@@ -41,8 +40,6 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddMembersViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 4_000
-
     val mocker = Mocker()
 
     private val roomId = RoomId("room", "localhost")
@@ -72,7 +69,7 @@ class AddMembersViewModelTest : ShouldSpec() {
 
     init {
         beforeTest {
-            Dispatchers.setMain(testMainDispatcher)
+            Dispatchers.setMain(Dispatchers.Unconfined)
             mocker.reset()
             injectMocks(mocker)
 

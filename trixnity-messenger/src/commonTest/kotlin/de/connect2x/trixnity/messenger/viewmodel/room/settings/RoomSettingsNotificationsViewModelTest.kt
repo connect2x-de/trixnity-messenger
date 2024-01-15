@@ -5,14 +5,11 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
@@ -46,7 +43,6 @@ class RoomSettingsNotificationsViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -166,22 +162,25 @@ class RoomSettingsNotificationsViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun roomSettingsNotificationsViewModel(
+    private suspend fun roomSettingsNotificationsViewModel(
         coroutineContext: CoroutineContext,
         error: MutableStateFlow<String?>,
-    ) = RoomSettingsNotificationsViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
-                )
-            }.koin,
-            userId = UserId("test", "server"),
-            coroutineContext = coroutineContext,
-        ),
-        selectedRoomId = roomId,
-        error = error,
-    )
+    ): RoomSettingsNotificationsViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return RoomSettingsNotificationsViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                    )
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext,
+            ),
+            selectedRoomId = roomId,
+            error = error,
+        )
+    }
 
 }

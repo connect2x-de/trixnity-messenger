@@ -108,7 +108,6 @@ class RoomListElementViewModelTest : ShouldSpec() {
     lateinit var scope: CoroutineScope
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -892,10 +891,11 @@ class RoomListElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun roomListElementViewModel(
+    private suspend fun roomListElementViewModel(
         roomId: RoomId = this.roomId,
         coroutineContext: CoroutineContext
     ): RoomListElementViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(
