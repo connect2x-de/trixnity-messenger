@@ -387,7 +387,7 @@ class RoomListRouter(
         class SearchGroup(val viewModel: SearchGroupViewModel) : Wrapper()
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
         class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
-        class Profile(val profileViewModel: ProfileViewModel) : Wrapper()
+        class Profile(val viewModel: ProfileViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationsSettingsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsViewModel) : Wrapper()
         class ConfigureNotifications(val viewModel: ConfigureNotificationsViewModel) : Wrapper()
