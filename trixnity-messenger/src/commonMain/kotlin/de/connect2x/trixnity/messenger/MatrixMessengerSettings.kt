@@ -20,6 +20,7 @@ data class MatrixMessengerAccountSettings(
     val userId: UserId,
     val databasePassword: SecretString?,
     val displayName: String? = null,
+    val displayColor: Long? = null,
     val pushMode: PushMode = PushMode.NONE,
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
@@ -32,10 +33,12 @@ data class MatrixMessengerAccountSettings(
         fun withConfigDefaults(
             userId: UserId,
             databasePassword: SecretString?,
+            displayColor: Long?,
             config: MatrixMessengerConfiguration
         ) = MatrixMessengerAccountSettings(
             userId = userId,
             databasePassword = databasePassword,
+            displayColor = displayColor,
             pushMode = config.defaultPushMode,
             presenceIsPublic = config.defaultPresenceIsPublic,
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,

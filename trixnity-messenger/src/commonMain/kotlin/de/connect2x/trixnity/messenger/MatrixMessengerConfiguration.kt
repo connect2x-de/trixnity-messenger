@@ -12,6 +12,8 @@ data class MatrixMessengerConfiguration(
     var urlHost: String = "localhost",
     var ssoRedirectPath: String = "sso",
 
+    var generateInitialAccountColor: (suspend (alreadyUsedColors: Set<Long>) -> Long)? = null,
+
     // for privacy-first, override these values
     var defaultPushMode: PushMode = PushMode.PUSH,
     var defaultPresenceIsPublic: Boolean = true,

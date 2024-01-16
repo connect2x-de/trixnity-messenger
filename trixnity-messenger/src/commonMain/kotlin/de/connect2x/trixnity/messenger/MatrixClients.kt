@@ -103,8 +103,19 @@ class MatrixClientsImpl(
 
     private suspend fun applyLogin(loginResult: MatrixClientFactory.LoginResult) {
         val (matrixClient, databasePassword) = loginResult
+        val displayColor =
+            config.generateInitialAccountColor?.let { generateInitialAccountColor ->
+                generateInitialAccountColor(
+                    settings.value.accounts.map { it.value.displayColor }.filterNotNull().toSet()
+                )
+            }
         settings.update(matrixClient.userId) {
-            MatrixMessengerAccountSettings.withConfigDefaults(matrixClient.userId, databasePassword, config)
+            MatrixMessengerAccountSettings.withConfigDefaults(
+                userId = matrixClient.userId,
+                databasePassword = databasePassword,
+                displayColor = displayColor,
+                config = config
+            )
         }
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }

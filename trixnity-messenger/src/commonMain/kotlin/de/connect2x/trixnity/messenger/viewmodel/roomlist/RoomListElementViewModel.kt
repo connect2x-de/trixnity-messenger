@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -58,7 +58,7 @@ interface RoomListElementViewModel {
     val time: StateFlow<String?>
     val unreadMessages: StateFlow<String?>
     val presence: StateFlow<Presence?>
-    val multipleAccounts: StateFlow<Boolean>
+    val accountColor: StateFlow<Long?>
     fun acceptInvitation()
     fun rejectInvitation()
     fun rejectInvitationAndBlockInviter()
@@ -82,8 +82,12 @@ open class RoomListElementViewModelImpl(
     private val roomFlow = matrixClient.room.getById(roomId).filterNotNull()
         .shareIn(coroutineScope, WhileSubscribed(), 1)
 
-    override val multipleAccounts: StateFlow<Boolean> =
-        matrixClients.map { it.size > 1 }.stateIn(coroutineScope, WhileSubscribed(), false)
+    override val accountColor: StateFlow<Long?> =
+        get<MatrixMessengerSettingsHolder>().map {
+            if (it.accounts.size > 1) {
+                it.accounts[userId]?.displayColor
+            } else null
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val account: UserId = matrixClient.userId
     override val error = MutableStateFlow<String?>(null)
     override val isDirect: StateFlow<Boolean?> =
@@ -286,7 +290,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("20:46")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("99+")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
@@ -310,7 +314,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("24.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("2")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
@@ -334,7 +338,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
@@ -358,7 +362,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.OFFLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
