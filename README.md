@@ -206,7 +206,7 @@ val dragAndDropHandler = matrixMessenger.defaultDragAndDropHandler // helper ext
 To support URL handling, you need to get `UrlHandler` from the DI:
 
 ```kotlin
-val dragAndDropHandler = matrixMessenger.defaultUrlHandler // helper extension
+val urlHandler = matrixMessenger.defaultUrlHandler // helper extension
 // call functions on urlHandler depending on the platform (only on Android, iOS, JVM)
 ```
 

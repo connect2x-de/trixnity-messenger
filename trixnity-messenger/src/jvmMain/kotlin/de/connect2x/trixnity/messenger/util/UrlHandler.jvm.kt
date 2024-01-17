@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -9,7 +10,6 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.client.MatrixClient
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.awt.Desktop
@@ -183,7 +183,7 @@ actual fun platformUrlHandlerModule(): Module = module {
     }
 }
 
-val MatrixClient.defaultUrlHandler: UrlHandlerImpl
+val MatrixMessenger.defaultUrlHandler: UrlHandlerImpl
     get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
         "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
     }
