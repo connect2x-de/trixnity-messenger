@@ -175,7 +175,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { matrixClientMock1.api } returns matrixClientServerApiClientMock
                 every { matrixClientMock2.api } returns matrixClientServerApiClientMock
                 every { matrixClientMock3.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
                 every { userServiceMock1.getById(isEqual(roomId1), isEqual(me1)) } returns
                         MutableStateFlow(roomUser(roomId1, me1))

@@ -78,8 +78,4 @@ value class MatrixMessengerSettingsHolderImpl(private val delegate: SettingsHold
     }
 }
 
-fun interface CreateMatrixMessengerSettingsHolder {
-    suspend operator fun invoke(): MatrixMessengerSettingsHolder
-}
-
-expect fun platformCreateMatrixMessengerSettingsHolderModule(): Module
+expect fun platformMatrixMessengerSettingsHolderModule(): Module

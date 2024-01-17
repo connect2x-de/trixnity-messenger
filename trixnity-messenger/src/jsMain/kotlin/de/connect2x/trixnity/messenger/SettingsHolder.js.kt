@@ -4,7 +4,7 @@ import kotlinx.browser.localStorage
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-suspend inline fun <reified S : Any> createLocalStorageSettingsHolder(
+inline fun <reified S : Any> createLocalStorageSettingsHolder(
     name: String,
     crossinline initialSettings: () -> S,
 ) = createSettingsHolder(object : SettingsStorage<S> {

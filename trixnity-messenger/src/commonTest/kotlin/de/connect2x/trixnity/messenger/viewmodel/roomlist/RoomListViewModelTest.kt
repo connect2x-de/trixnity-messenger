@@ -127,7 +127,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 every { matrixClientMock.room } returns roomServiceMock
                 every { matrixClientMock.user } returns userServiceMock
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
                 every { userServiceMock.getById(isEqual(roomId1), isEqual(user1)) } returns
                         MutableStateFlow(roomUser(roomId1, user1))

@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path
 
-suspend inline fun <reified S : Any> createFilesystemSettingsHolder(
+inline fun <reified S : Any> createFilesystemSettingsHolder(
     path: Path,
     fileSystem: FileSystem,
     crossinline initialSettings: () -> S,

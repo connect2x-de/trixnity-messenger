@@ -119,7 +119,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformGetSystemLangModule(),
     platformGetFileInfoModule(),
     platformDeleteAccountDataModule(),
-    platformCreateMatrixMessengerSettingsHolderModule(),
+    platformMatrixMessengerSettingsHolderModule(),
     platformSendLogToDevsModule(),
     platformGetDefaultDisplayNameModule(),
     platformIsNetworkAvailableModule(),
