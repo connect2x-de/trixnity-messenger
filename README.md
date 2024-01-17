@@ -50,16 +50,16 @@ implementation("de.connect2x:trixnity-messenger:<version>")
 Just create `MatrixMessenger` including the view model tree that is used in your app.
 
 ```kotlin
-val matrixMessenger = createMatrixMessenger()
+val matrixMessenger = MatrixMessenger.create()
 ```
 
-Create a root node in your UI framework and pass the `RootViewModel` to it by calling `matrixMessenger.root`.
+Create a root node in your UI framework and pass the `RootViewModel` to it by calling `matrixMessenger.createRoot()`.
 In Compose Multiplatform on the desktop, it looks something like this:
 
 ```kotlin
 application {
     Window("My App") {
-        MyMatrixClient(matrixMessenger.root)
+        MyMatrixClient(matrixMessenger.createRoot())
     }
 }
 ```
@@ -112,10 +112,10 @@ Trixnity Messenger has multiple ways to configure the client to your needs.
 
 The class `MatrixMessengerConfiguration` contains information that is used to determine some folder names and other data
 in
-the lifecycle of the messenger. To override the standard configuration use `createMatrixMessenger`:
+the lifecycle of the messenger. To override the standard configuration use `MatrixMessenger.create`:
 
 ```kotlin
-val matrixMessenger = createMatrixMessenger {
+val matrixMessenger = MatrixMessenger.create {
     appName = "Dino Messenger"
     // ... more config ...
 }
@@ -169,7 +169,7 @@ Finally, add it to the modules of `MatrixMessenger`. You should always extend th
 from `createDefaultTrixnityMessengerModules()`:
 
 ```kotlin
-val matrixMessenger = createMatrixMessenger {
+val matrixMessenger = MatrixMessenger.create {
     modules = createDefaultTrixnityMessengerModules() + addMatrixAccountModule()
 }
 ```
@@ -228,7 +228,7 @@ In order to use the library from Swift, always ```import trixnity_messenger``` i
 To create an instance of Trixnity Messenger do the following:
 
 ```swift
-let rootViewModel = RootViewModelImpl.companion.create(koinApplication: IosDIKt.trixnityMessengerApplication())
+let matrixMessenger = MatrixMessenger.companion.create()
 ```
 
 Pass this view model to your root UI node, e.g., a view in SwiftUI:
@@ -236,7 +236,7 @@ Pass this view model to your root UI node, e.g., a view in SwiftUI:
 ```swift
 var body: some Scene {
     WindowGroup {
-        RootView(rootViewModel)
+        RootView(matrixMessenger.createRoot())
     }
 }
 ```

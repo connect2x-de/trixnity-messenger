@@ -129,5 +129,7 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
 
         override suspend fun update(updater: (MatrixMessengerSettings) -> MatrixMessengerSettings) =
             settingsHolder.update(updater)
+
+        override suspend fun init() {}
     }
 }

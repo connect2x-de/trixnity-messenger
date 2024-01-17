@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.integrationtests.messenger
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.createRoot
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
@@ -31,12 +32,17 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
-suspend fun MatrixMessenger.login(
+class MatrixMessengerWithRoot(
+    delegate: MatrixMessenger,
+    val root: RootViewModel = delegate.createRoot()
+) : MatrixMessenger by delegate
+
+suspend fun MatrixMessengerWithRoot.login(
     serverUrl: String,
     username: String,
     password: String,
     recoveryKey: String? = null,
-    otherMessenger: MatrixMessenger? = null,
+    otherMessenger: MatrixMessengerWithRoot? = null,
 ): String? = with(root) {
     log.debug { " +- ADD ACCOUNT" }
     addMatrixAccountViaPassword(serverUrl, username, password)
@@ -68,7 +74,7 @@ suspend fun MatrixMessenger.login(
     }
 }
 
-suspend fun MatrixMessenger.createNewAccount(
+suspend fun MatrixMessengerWithRoot.createNewAccount(
     serverUrl: String,
     username: String,
     password: String,
@@ -83,7 +89,7 @@ suspend fun MatrixMessenger.createNewAccount(
     return thisRecoveryKey ?: recoveryKey
 }
 
-suspend fun MatrixMessenger.deleteAccount(username: String) = with(root) {
+suspend fun MatrixMessengerWithRoot.deleteAccount(username: String) = with(root) {
     val accountsOverviewViewModel = openAccountsOverview()
     val userId = di.get<MatrixClients>().value.keys.find { it.localpart == username }
     checkNotNull(userId)
@@ -95,7 +101,7 @@ suspend fun MatrixMessenger.deleteAccount(username: String) = with(root) {
     log.debug { " +- delete account finished" }
 }
 
-suspend fun MatrixMessenger.verifyAccountsArePresent(vararg usernames: String) = with(root) {
+suspend fun MatrixMessengerWithRoot.verifyAccountsArePresent(vararg usernames: String) = with(root) {
     val accountsOverviewViewModel = openAccountsOverview()
     withTimeout(5.seconds) {
         eventually(4.seconds) {
@@ -107,7 +113,7 @@ suspend fun MatrixMessenger.verifyAccountsArePresent(vararg usernames: String) =
     }
 }
 
-suspend fun MatrixMessenger.registerAccountWithToken(serverUrl: String, token: String) = with(root) {
+suspend fun MatrixMessengerWithRoot.registerAccountWithToken(serverUrl: String, token: String) = with(root) {
     withTimeout(10.seconds) {
         val addMatrixAccountViewModel =
             stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class).viewModel

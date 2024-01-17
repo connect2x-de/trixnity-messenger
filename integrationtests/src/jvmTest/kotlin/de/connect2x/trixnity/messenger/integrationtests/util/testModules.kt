@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.integrationtests.util
 
 import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.util.Paths
 import de.connect2x.trixnity.messenger.util.SecretString
 import io.ktor.client.*
@@ -57,6 +58,7 @@ fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
     }
 }
 
-suspend fun createTestMatrixMessenger() = createMatrixMessenger {
+suspend fun createTestMatrixMessenger() = MatrixMessengerWithRoot(MatrixMessenger.create {
     modules = createDefaultTrixnityMessengerModules() + createTestTrixnityMessengerModule()
 }
+)

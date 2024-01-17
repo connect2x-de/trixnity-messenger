@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
@@ -19,7 +21,6 @@ private val log = KotlinLogging.logger {}
 interface MatrixMessenger {
     companion object
 
-    val root: RootViewModel
     val di: Koin
 
     val notificationCount: StateFlow<Long>
@@ -33,8 +34,7 @@ interface MatrixMessenger {
     fun stop()
 }
 
-internal suspend fun MatrixMessenger.Companion.create(
-    componentContext: ComponentContext,
+internal suspend fun MatrixMessenger.Companion.internalCreate(
     configuration: MatrixMessengerConfiguration.() -> Unit,
     defaultModule: Module.() -> Unit = {},
 ): MatrixMessenger {
@@ -59,22 +59,13 @@ internal suspend fun MatrixMessenger.Companion.create(
     }
 
     return MatrixMessengerImpl(
-        componentContext = componentContext,
         di = koinApplication.koin,
     )
 }
 
-class MatrixMessengerImpl internal constructor(
-    componentContext: ComponentContext,
+open class MatrixMessengerImpl internal constructor(
     override val di: Koin,
 ) : MatrixMessenger {
-    override val root: RootViewModel by lazy {
-        di.get<RootViewModelFactory>().create(
-            componentContext = componentContext,
-            di = di,
-        )
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override val notificationCount = di.get<MatrixClients>().map { it.values }.flatMapLatest { matrixClients ->
         combine(
@@ -92,6 +83,13 @@ class MatrixMessengerImpl internal constructor(
     }
 }
 
+fun MatrixMessenger.createRoot(
+    componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
+): RootViewModel =
+    di.get<RootViewModelFactory>().create(
+        componentContext = componentContext,
+        di = di,
+    )
 
 val MatrixMessenger.urlHandler: UrlHandler
     get() = di.get<UrlHandler>()
