@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
+import korlibs.io.async.launch
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -19,10 +20,11 @@ private val log = KotlinLogging.logger { }
 
 data class NotificationSettingsOfAccount(
     val userId: UserId,
-    val displayName:String?,
+    val displayName: String?,
     val pushMode: PushMode,
     val notificationSettings: String,
     val showNotificationSettings: Boolean,
+    val setPushMode: (PushMode) -> Unit,
 )
 
 interface NotificationsSettingsViewModelFactory {
@@ -41,8 +43,9 @@ interface NotificationsSettingsViewModelFactory {
 
 interface NotificationsSettingsViewModel {
     val notificationSettingsOfAccounts: StateFlow<List<NotificationSettingsOfAccount>>
-    fun back()
+    fun setPushMode(userId: UserId, pushMode: PushMode)
     fun configureNotifications(userId: UserId)
+    fun back()
 }
 
 open class NotificationsSettingsViewModelImpl(
@@ -52,6 +55,7 @@ open class NotificationsSettingsViewModelImpl(
 ) : ViewModelContext by viewModelContext, NotificationsSettingsViewModel {
 
     private val i18n = get<I18n>()
+    private val settings = get<MatrixMessengerSettingsHolder>()
     override val notificationSettingsOfAccounts: StateFlow<List<NotificationSettingsOfAccount>>
 
     private val backCallback = BackCallback {
@@ -63,7 +67,7 @@ open class NotificationsSettingsViewModelImpl(
 
         notificationSettingsOfAccounts = combine(
             matrixClients,
-            get<MatrixMessengerSettingsHolder>()
+            settings
         ) { namedMatrixClients, settings ->
             namedMatrixClients.map { (userId, _) ->
                 log.trace { "notification settings for account $userId will be loaded" }
@@ -73,7 +77,8 @@ open class NotificationsSettingsViewModelImpl(
                     displayName = accountSettings.displayName,
                     pushMode = accountSettings.pushMode,
                     notificationSettings = getNotificationSettings(accountSettings),
-                    showNotificationSettings = accountSettings.pushMode != PushMode.NONE
+                    showNotificationSettings = accountSettings.pushMode != PushMode.NONE,
+                    setPushMode = { setPushMode(userId, it) }
                 )
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -93,11 +98,17 @@ open class NotificationsSettingsViewModelImpl(
         return listOf(sound, bubble, text).joinToString(", ")
     }
 
-    override fun back() {
-        onCloseNotificationsSettings()
+    override fun setPushMode(userId: UserId, pushMode: PushMode) {
+        coroutineScope.launch {
+            settings.update(userId) { it?.copy(pushMode = pushMode) }
+        }
     }
 
     override fun configureNotifications(userId: UserId) {
         onShowConfigureNotifications(userId)
+    }
+
+    override fun back() {
+        onCloseNotificationsSettings()
     }
 }
