@@ -14,28 +14,29 @@ actual fun platformPathsModule(): Module = module {
             override val fileSystem: FileSystem = FileSystem.SYSTEM
             override val rootPath: Path
                 get() {
-                    val appName = config.appName
-                    val path = when (getOs()) {
-                        OS.MAC_OS -> {
-                            System.getenv("HOME").toPath()
-                                .resolve("Library")
-                                .resolve("Application Support")
-                                .resolve(appName)
-                        }
-
-                        OS.WINDOWS -> {
-                            System.getenv("LOCALAPPDATA").toPath()
-                                .resolve(appName)
-                        }
-
-                        OS.LINUX -> {
-                            System.getenv("HOME").toPath()
-                                .resolve(".$appName")
-                        }
-                    }
+                    val path = getAppPath(config.appName)
                     FileSystem.SYSTEM.createDirectories(path)
                     return path
                 }
         }
+    }
+}
+
+fun getAppPath(appName: String) = when (getOs()) {
+    OS.MAC_OS -> {
+        System.getenv("HOME").toPath()
+            .resolve("Library")
+            .resolve("Application Support")
+            .resolve(appName)
+    }
+
+    OS.WINDOWS -> {
+        System.getenv("LOCALAPPDATA").toPath()
+            .resolve(appName)
+    }
+
+    OS.LINUX -> {
+        System.getenv("HOME").toPath()
+            .resolve(".$appName")
     }
 }
