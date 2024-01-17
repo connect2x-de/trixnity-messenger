@@ -18,8 +18,9 @@ private val log = KotlinLogging.logger { }
 data class AccountInfo(
     val userId: UserId,
     val displayName: String,
+    val displayColor: Long?,
     val initials: String,
-    val avatar: ByteArray?
+    val avatar: ByteArray?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -27,20 +28,24 @@ data class AccountInfo(
 
         other as AccountInfo
 
+        if (userId != other.userId) return false
         if (displayName != other.displayName) return false
         if (initials != other.initials) return false
         if (avatar != null) {
             if (other.avatar == null) return false
             if (!avatar.contentEquals(other.avatar)) return false
         } else if (other.avatar != null) return false
+        if (displayColor != other.displayColor) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = displayName.hashCode()
+        var result = userId.hashCode()
+        result = 31 * result + displayName.hashCode()
         result = 31 * result + initials.hashCode()
         result = 31 * result + (avatar?.contentHashCode() ?: 0)
+        result = 31 * result + (displayColor?.hashCode() ?: 0)
         return result
     }
 }
@@ -68,14 +73,15 @@ fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initial
                 }
                 combine(
                     serverDisplayNameFlow,
-                    settings[userId].map { it?.displayName },
+                    settings[userId],
                     avatarFlow
-                ) { serverDisplayName, localDisplayName, avatar ->
+                ) { serverDisplayName, settings, avatar ->
                     AccountInfo(
                         userId = userId,
-                        displayName = localDisplayName ?: serverDisplayName,
+                        displayName = settings?.displayName ?: serverDisplayName,
                         initials = initials.compute(serverDisplayName),
                         avatar = avatar,
+                        displayColor = settings?.displayColor,
                     )
                 }
             }

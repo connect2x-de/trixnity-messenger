@@ -84,18 +84,21 @@ class PreviewAccountViewModel : AccountViewModel {
                 displayName = "Bruce Wayne",
                 initials = "BW",
                 avatar = previewImageByteArray(),
+                displayColor = null,
             ),
             AccountInfo(
                 userId = UserId("@scrooge.mcduck:localhost"),
                 displayName = "Scrooge McDuck",
                 initials = "SM",
                 avatar = null,
+                displayColor = null,
             ),
             AccountInfo(
                 userId = UserId("@arthur.dent:localhost"),
                 displayName = "Arthur Dent",
                 initials = "AD",
                 avatar = null,
+                displayColor = null,
             ),
         )
     )
