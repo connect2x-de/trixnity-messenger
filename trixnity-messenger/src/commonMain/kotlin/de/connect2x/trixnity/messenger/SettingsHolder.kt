@@ -36,11 +36,11 @@ fun <S : Any> createSettingsHolder(storage: SettingsStorage<S>): SettingsHolder<
         override val replayCache: List<S>
             get() = settings.replayCache.filterNotNull()
         override val value: S
-            get() = checkNotNull(settings.value) { "SettingsHolder has not been init" }
+            get() = checkNotNull(settings.value) { "SettingsHolder has not been initialized" }
 
         override suspend fun collect(collector: FlowCollector<S>): Nothing =
             settings.collect {
-                if (it != null) collector.emit(it)
+                collector.emit(checkNotNull(it) { "SettingsHolder has not been initialized" })
             }
     }
 }

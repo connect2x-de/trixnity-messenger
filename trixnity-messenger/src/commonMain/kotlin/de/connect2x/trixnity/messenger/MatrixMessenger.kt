@@ -53,7 +53,10 @@ internal suspend fun MatrixMessenger.Companion.create(
         modules(config.modules)
     }
     val settingsHolder = koinApplication.koin.getAll<SettingsHolder<*>>()
-    settingsHolder.forEach { it.init() }
+    settingsHolder.forEach {
+        log.debug { "initialize SettingsHolder ($it)" }
+        it.init()
+    }
 
     return MatrixMessengerImpl(
         componentContext = componentContext,
