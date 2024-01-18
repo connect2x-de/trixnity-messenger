@@ -14,12 +14,15 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
+import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.should
 import io.kotest.matchers.types.beOfType
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,12 +53,9 @@ import org.kodein.mock.mockFunction0
 import org.kodein.mock.mockFunction5
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
     private val mocker = Mocker()
 
     private lateinit var lifecycle: LifecycleRegistry
@@ -104,7 +104,7 @@ class RoomViewModelTest : ShouldSpec() {
     lateinit var syncState: Mocker.Every<StateFlow<SyncState>>
 
     init {
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        coroutineTestScope = true
 
         beforeTest {
             mocker.reset()
@@ -209,146 +209,145 @@ class RoomViewModelTest : ShouldSpec() {
         should("show selected room without settings initially") {
             val cut = roomViewModel()
 
-            cut.shouldShowInitialView()
+            shouldShowInitialView(cut)
+            testCoroutineScheduler.advanceUntilIdle()
         }
 
         context(RoomViewModel::setSinglePane.toString()) {
             context("settings aren't activated") {
                 should("show room list in single-pane view") {
                     val cut = roomViewModel()
-                    cut.shouldShowInitialView()
+                    shouldShowInitialView(cut)
 
                     cut.setSinglePane(true)
+                    testCoroutineScheduler.advanceUntilIdle()
 
-                    eventually(1.seconds) {
-                        assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
-                        }
+                    assertSoftly {
+                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                     }
                 }
                 should("show room list in multi-pane view") {
                     val cut = roomViewModel()
-                    cut.shouldShowInitialView()
+                    shouldShowInitialView(cut)
 
                     cut.setSinglePane(false)
+                    testCoroutineScheduler.advanceUntilIdle()
 
-                    eventually(1.seconds) {
-                        assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
-                        }
+                    assertSoftly {
+                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                     }
                 }
             }
             context("settings are activated") {
                 should("show room's settings when settings are activated in single-pane view") {
                     val cut = roomViewModel()
-                    cut.shouldShowInitialView()
+                    shouldShowInitialView(cut)
 
                     val timelineWrapper =
                         cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
                     timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
 
                     cut.setSinglePane(true)
+                    testCoroutineScheduler.advanceUntilIdle()
 
-                    eventually(1.seconds) {
-                        assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
-                        }
+                    assertSoftly {
+                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
+                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                     }
                 }
 
                 should("show room view and room settings when settings are activated in multi-pane view") {
                     val cut = roomViewModel()
-                    cut.shouldShowInitialView()
+                    shouldShowInitialView(cut)
 
                     val timelineWrapper =
                         cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
                     timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
 
                     cut.setSinglePane(false)
+                    testCoroutineScheduler.advanceUntilIdle()
 
-                    eventually(1.seconds) {
-                        assertSoftly {
-                            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
-                        }
+                    assertSoftly {
+                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                     }
                 }
             }
         }
         should("show the room when room settings are getting disabled in two-pane view") {
             val cut = roomViewModel()
-            cut.shouldShowInitialView()
+            shouldShowInitialView(cut)
             cut.setSinglePane(true)
+            testCoroutineScheduler.advanceUntilIdle()
 
             cut.onSettingsBack()
+            testCoroutineScheduler.advanceUntilIdle()
 
-            eventually(1.seconds) {
-                assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
-                }
+            assertSoftly {
+                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
             }
         }
 
         should("show the room when room settings are getting disabled in multi-pane view") {
             val cut = roomViewModel()
-            cut.shouldShowInitialView()
+            shouldShowInitialView(cut)
             cut.setSinglePane(false)
+            testCoroutineScheduler.advanceUntilIdle()
 
             cut.onSettingsBack()
+            testCoroutineScheduler.advanceUntilIdle()
 
-            eventually(1.seconds) {
-                assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
-                }
+            assertSoftly {
+                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
             }
         }
 
         should("show the room settings view when room settings are getting disabled in two-pane view") {
             val cut = roomViewModel()
-            cut.shouldShowInitialView()
+            shouldShowInitialView(cut)
             cut.setSinglePane(true)
+            testCoroutineScheduler.advanceUntilIdle()
 
             cut.onShowSettings()
+            testCoroutineScheduler.advanceUntilIdle()
 
-            eventually(1.seconds) {
-                assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
-                }
+            assertSoftly {
+                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
+                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
             }
         }
 
         should("show the room view and the room settings view when room settings are getting disabled in multi-pane view") {
             val cut = roomViewModel()
-            cut.shouldShowInitialView()
+            shouldShowInitialView(cut)
             cut.setSinglePane(false)
+            testCoroutineScheduler.advanceUntilIdle()
 
             cut.onShowSettings()
+            testCoroutineScheduler.advanceUntilIdle()
 
-            eventually(1.seconds) {
-                assertSoftly {
-                    cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                    cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
-                }
+            assertSoftly {
+                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
             }
         }
     }
 
-    private suspend fun RoomViewModelImpl.shouldShowInitialView() =
-        eventually(1.seconds) {
-            assertSoftly {
-                timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
-            }
+    private fun TestScope.shouldShowInitialView(cut: RoomViewModel) {
+        testCoroutineScheduler.advanceUntilIdle()
+        assertSoftly {
+            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
         }
+    }
 
-    private fun roomViewModel(): RoomViewModelImpl {
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend fun roomViewModel(): RoomViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val roomViewModel = RoomViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(

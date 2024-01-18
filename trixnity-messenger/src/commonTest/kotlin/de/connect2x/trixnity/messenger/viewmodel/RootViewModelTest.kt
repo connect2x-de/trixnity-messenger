@@ -10,13 +10,16 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import io.kotest.assertions.nondeterministic.eventually
+import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.types.shouldBeTypeOf
+import io.kotest.core.test.testCoroutineScheduler
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -29,9 +32,8 @@ import org.kodein.mock.Mocker
 import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RootViewModelTest : ShouldSpec() {
     private val mocker = Mocker()
 
@@ -61,7 +63,8 @@ class RootViewModelTest : ShouldSpec() {
     private lateinit var di: Koin
 
     init {
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        coroutineTestScope = true
+
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
@@ -89,14 +92,14 @@ class RootViewModelTest : ShouldSpec() {
 
         should("show account creation when there is no account defined yet") {
             val cut = rootViewModel()
-            eventually(1.seconds) {
-                val config = cut.stack.value.active.configuration
-                config.shouldBeTypeOf<RootRouter.Config.AddMatrixAccount>()
-            }
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.stack.toFlow().first { it.active.configuration == RootRouter.Config.AddMatrixAccount }
         }
     }
 
-    private fun rootViewModel(): RootViewModelImpl {
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend fun rootViewModel(): RootViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val koinApplication = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules() +
