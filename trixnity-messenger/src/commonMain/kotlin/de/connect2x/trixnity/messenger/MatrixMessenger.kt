@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -90,6 +89,3 @@ fun MatrixMessenger.createRoot(
         componentContext = componentContext,
         di = di,
     )
-
-val MatrixMessenger.urlHandler: UrlHandler
-    get() = di.get<UrlHandler>()
