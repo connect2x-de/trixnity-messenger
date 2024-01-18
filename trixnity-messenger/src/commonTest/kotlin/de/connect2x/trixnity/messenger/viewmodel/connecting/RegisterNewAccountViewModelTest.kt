@@ -33,8 +33,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RegisterNewAccountViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
     val mocker = Mocker()
 
     @Mock

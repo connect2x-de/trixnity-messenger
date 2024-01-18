@@ -40,8 +40,6 @@ import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomHeaderViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
-
     val mocker = Mocker()
 
     private val roomId = RoomId("room1", "localhost")
