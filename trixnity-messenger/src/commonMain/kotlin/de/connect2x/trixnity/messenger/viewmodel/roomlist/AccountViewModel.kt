@@ -1,19 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.matrixClientOrThrow
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.toAccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -22,7 +19,7 @@ private val log = KotlinLogging.logger {}
 interface AccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        onAccountSelected: (String?) -> Unit,
+        onAccountSelected: (UserId?) -> Unit,
         onUserSettingsSelected: () -> Unit,
         onShowAppInfo: () -> Unit,
     ): AccountViewModel {
@@ -35,76 +32,35 @@ interface AccountViewModelFactory {
 }
 
 interface AccountViewModel {
-    val allAccounts: StateFlow<List<Account>>
-    val activeAccount: StateFlow<Account?>
+    val accounts: StateFlow<List<AccountInfo>>
+    val activeAccount: StateFlow<UserId?>
 
-    fun selectActiveAccount(accountName: String?)
+    fun selectActiveAccount(userId: UserId?)
     fun userSettings()
     fun appInfo()
 }
 
 open class AccountViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val onAccountSelected: (String?) -> Unit,
+    private val onAccountSelected: (UserId?) -> Unit,
     private val onUserSettingsSelected: () -> Unit,
     private val onShowAppInfo: () -> Unit,
 ) : ViewModelContext by viewModelContext, AccountViewModel {
     private val initials = get<Initials>()
-    private val messengerSettings = get<MessengerSettings>()
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
-    private val activeAccountName: MutableStateFlow<String?> = MutableStateFlow(messengerSettings.activeAccount)
-    override val allAccounts: StateFlow<List<Account>>
-    override val activeAccount: StateFlow<Account?>
+    override val accounts: StateFlow<List<AccountInfo>> =
+        matrixClients.toAccountInfo(messengerSettings, initials)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
-    init {
-        allAccounts = namedMatrixClients.scopedMapLatest { namedMatrixClients ->
-            namedMatrixClients.map { namedMatrixClient ->
-                val accountName = namedMatrixClient.accountName
-                log.info { "account: $accountName" }
-                val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                val displayNameFlow = matrixClient.displayName.map { it ?: matrixClient.userId.localpart }
-                    .stateIn(this, SharingStarted.WhileSubscribed(), matrixClient.userId.localpart)
-                Account(
-                    userId = matrixClient.userId,
-                    accountName = accountName,
-                    displayName = displayNameFlow,
-                    initials = displayNameFlow.map { initials.compute(it) }
-                        .stateIn(this, SharingStarted.WhileSubscribed(), ""),
-                    avatar = matrixClient.avatarUrl.map { avatarUrlOrNull ->
-                        avatarUrlOrNull?.let { avatarUrl ->
-                            matrixClient.media.getThumbnail(
-                                avatarUrl,
-                                avatarSize().toLong(),
-                                avatarSize().toLong(),
-                            ).fold(
-                                onSuccess = { it.toByteArray() },
-                                onFailure = {
-                                    log.error(it) { "Cannot load user avatar" }
-                                    null
-                                }
-                            )
-                        }
-                    }.stateIn(this, SharingStarted.WhileSubscribed(), null)
-                )
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+    override val activeAccount: StateFlow<UserId?> =
+        messengerSettings.map { it.selectedAccount }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-        activeAccount = combine(
-            allAccounts,
-            activeAccountName,
-        ) { allAccounts, activeAccountName ->
-            when {
-                allAccounts.size == 1 -> allAccounts[0]
-                activeAccountName != null -> allAccounts.find { account -> account.accountName == activeAccountName }
-                else -> null
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    }
-
-    override fun selectActiveAccount(accountName: String?) {
-        activeAccountName.value = accountName
-        messengerSettings.activeAccount = accountName
-        onAccountSelected(accountName)
+    override fun selectActiveAccount(userId: UserId?) {
+        coroutineScope.launch {
+            messengerSettings.update { it.copy(selectedAccount = userId) }
+            onAccountSelected(userId)
+        }
     }
 
     override fun userSettings() {
@@ -121,34 +77,34 @@ open class AccountViewModelImpl(
 }
 
 class PreviewAccountViewModel : AccountViewModel {
-    override val allAccounts: MutableStateFlow<List<Account>> = MutableStateFlow(
+    override val accounts: MutableStateFlow<List<AccountInfo>> = MutableStateFlow(
         listOf(
-            Account(
+            AccountInfo(
                 userId = UserId("@bruce.wayne:localhost"),
-                accountName = "@bruce.wayne:localhost",
-                displayName = MutableStateFlow("Bruce Wayne"),
-                initials = MutableStateFlow("BW"),
-                avatar = MutableStateFlow(previewImageByteArray()),
+                displayName = "Bruce Wayne",
+                initials = "BW",
+                avatar = previewImageByteArray(),
+                displayColor = null,
             ),
-            Account(
+            AccountInfo(
                 userId = UserId("@scrooge.mcduck:localhost"),
-                accountName = "@scrooge.mcduck:localhost",
-                displayName = MutableStateFlow("Scrooge McDuck"),
-                initials = MutableStateFlow("SM"),
-                avatar = MutableStateFlow(null),
+                displayName = "Scrooge McDuck",
+                initials = "SM",
+                avatar = null,
+                displayColor = null,
             ),
-            Account(
+            AccountInfo(
                 userId = UserId("@arthur.dent:localhost"),
-                accountName = "@arthur.dent:localhost",
-                displayName = MutableStateFlow("Arthur Dent"),
-                initials = MutableStateFlow("AD"),
-                avatar = MutableStateFlow(null),
+                displayName = "Arthur Dent",
+                initials = "AD",
+                avatar = null,
+                displayColor = null,
             ),
         )
     )
-    override val activeAccount: MutableStateFlow<Account?> = MutableStateFlow(null)
+    override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
 
-    override fun selectActiveAccount(accountName: String?) {
+    override fun selectActiveAccount(userId: UserId?) {
     }
 
     override fun userSettings() {

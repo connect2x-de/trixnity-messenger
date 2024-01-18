@@ -3,57 +3,52 @@ package de.connect2x.trixnity.messenger.viewmodel.initialsync
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.launchReplaceCurrent
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.Serializable
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
-enum class InitialSyncState {
-    NOT_DONE, DONE
-}
-
 class InitialSyncRouter(
     private val viewModelContext: ViewModelContext,
 ) {
-    private val initialSyncNavigation = StackNavigation<InitialSyncConfig>()
+    private val initialSyncNavigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = initialSyncNavigation,
-        initialConfiguration = InitialSyncConfig.Undefined, // we do not yet know whether an initial sync is needed
+        serializer = Config.serializer(),
+        initialConfiguration = Config.Undefined, // we do not yet know whether an initial sync is needed
         key = "initialSyncRouter",
         handleBackButton = false,
         childFactory = ::createInitialSyncChild,
     )
 
     private fun createInitialSyncChild(
-        initialSyncConfig: InitialSyncConfig,
+        initialSyncConfig: Config,
         componentContext: ComponentContext,
-    ): InitialSyncWrapper =
+    ): Wrapper =
         when (initialSyncConfig) {
-            is InitialSyncConfig.None -> InitialSyncWrapper.None
-            is InitialSyncConfig.Undefined -> InitialSyncWrapper.Undefined
-            is InitialSyncConfig.Sync -> InitialSyncWrapper.Sync(
+            is Config.None -> Wrapper.None
+            is Config.Undefined -> Wrapper.Undefined
+            is Config.Sync -> Wrapper.Sync(
                 viewModelContext.get<SyncViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    accountNames = initialSyncConfig.accountNames,
                     onSyncDone = ::hideSync,
                 )
             )
         }
 
-    suspend fun showSync(forAccounts: Map<String, InitialSyncState>) {
-        log.debug { "show sync for the following accounts: $forAccounts" }
-        initialSyncNavigation.replaceCurrentSuspending(InitialSyncConfig.Sync(forAccounts))
+    suspend fun showSync() {
+        log.debug { "show sync" }
+        initialSyncNavigation.replaceCurrentSuspending(Config.Sync)
     }
 
     private fun hideSync() {
         log.debug { "hide sync" }
-        initialSyncNavigation.launchReplaceCurrent(viewModelContext.coroutineScope, InitialSyncConfig.None)
+        initialSyncNavigation.launchReplaceCurrent(viewModelContext.coroutineScope, Config.None)
     }
 
     suspend fun close() {
@@ -61,20 +56,21 @@ class InitialSyncRouter(
         initialSyncNavigation.popSuspending()
     }
 
-    sealed class InitialSyncWrapper {
-        object None : InitialSyncWrapper()
-        object Undefined : InitialSyncWrapper()
-        class Sync(val syncViewModel: SyncViewModel) : InitialSyncWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        data object Undefined : Wrapper()
+        class Sync(val viewModel: SyncViewModel) : Wrapper()
     }
 
-    sealed class InitialSyncConfig : Parcelable {
-        @Parcelize
-        object None : InitialSyncConfig()
+    @Serializable
+    sealed class Config {
+        @Serializable
+        data object None : Config()
 
-        @Parcelize
-        object Undefined : InitialSyncConfig()
+        @Serializable
+        data object Undefined : Config()
 
-        @Parcelize
-        data class Sync(val accountNames: Map<String, InitialSyncState>) : InitialSyncConfig()
+        @Serializable
+        data object Sync : Config()
     }
 }

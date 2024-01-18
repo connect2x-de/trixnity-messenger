@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,6 +18,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.*
@@ -44,6 +44,7 @@ interface RoomListElementViewModelFactory {
 }
 
 interface RoomListElementViewModel {
+    val account: UserId
     val roomId: RoomId
     val error: StateFlow<String?>
     val isDirect: StateFlow<Boolean?>
@@ -57,8 +58,7 @@ interface RoomListElementViewModel {
     val time: StateFlow<String?>
     val unreadMessages: StateFlow<String?>
     val presence: StateFlow<Presence?>
-    val multipleAccounts: StateFlow<Boolean>
-    val accountNumber: StateFlow<Int>
+    val accountColor: StateFlow<Long?>
     fun acceptInvitation()
     fun rejectInvitation()
     fun rejectInvitationAndBlockInviter()
@@ -82,10 +82,13 @@ open class RoomListElementViewModelImpl(
     private val roomFlow = matrixClient.room.getById(roomId).filterNotNull()
         .shareIn(coroutineScope, WhileSubscribed(), 1)
 
-    override val multipleAccounts: StateFlow<Boolean> =
-        matrixClients.map { it.size > 1 }.stateIn(coroutineScope, WhileSubscribed(), false)
-    override val accountNumber: StateFlow<Int> =
-        matrixClients.map { it.indexOf(matrixClient) }.stateIn(coroutineScope, WhileSubscribed(), 0)
+    override val accountColor: StateFlow<Long?> =
+        get<MatrixMessengerSettingsHolder>().map {
+            if (it.accounts.size > 1) {
+                it.accounts[userId]?.displayColor
+            } else null
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val account: UserId = matrixClient.userId
     override val error = MutableStateFlow<String?>(null)
     override val isDirect: StateFlow<Boolean?> =
         roomFlow.map { it.isDirect }
@@ -101,7 +104,7 @@ open class RoomListElementViewModelImpl(
             it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
         }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val roomName: StateFlow<String?> =
-        roomNameCalculations.getRoomNameElement(roomId, matrixClient).map { it.roomName }
+        roomNameCalculations.getRoomName(roomId, matrixClient).map { it }
             .stateIn(coroutineScope, WhileSubscribed(), null)
     override val roomImageInitials: StateFlow<String?> =
         roomName.map { it?.let { initials.compute(it) } }
@@ -185,7 +188,7 @@ open class RoomListElementViewModelImpl(
                 error.value = i18n.roomListInvitationOffline()
             } else {
                 log.debug { "try to join room $roomId" }
-                matrixClient.api.rooms.joinRoom(roomId).fold(
+                matrixClient.api.room.joinRoom(roomId).fold(
                     onSuccess = {
                         onRoomSelected()
                     },
@@ -226,7 +229,7 @@ open class RoomListElementViewModelImpl(
             log.debug { "try to reject room invitation while not connected" }
             error.value = i18n.roomListInvitationOffline()
         } else {
-            matrixClient.api.rooms.leaveRoom(roomId).fold(
+            matrixClient.api.room.leaveRoom(roomId).fold(
                 onSuccess = { log.info { "successfully rejected invitation" } },
                 onFailure = {
                     log.error(it) { "Cannot reject invitation" }
@@ -238,13 +241,19 @@ open class RoomListElementViewModelImpl(
 
     private fun lastTimelineEventType(lastTimelineEvent: TimelineEvent): String =
         if (lastTimelineEvent.content?.isSuccess == true) {
-            when (val content = lastTimelineEvent.content?.getOrNull()) {
-                is ImageMessageEventContent -> i18n.roomListContentImage()
-                is VideoMessageEventContent -> i18n.roomListContentVideo()
-                is AudioMessageEventContent -> i18n.roomListContentAudio()
-                is RoomMessageEventContent -> content.bodyWithoutFallback
-                else -> ""
-            }
+            val content = lastTimelineEvent.content?.getOrNull()
+            if (content is RoomMessageEventContent)
+                when (content) {
+
+                    is FileBased.Image -> i18n.roomListContentImage()
+                    is FileBased.Video -> i18n.roomListContentVideo()
+                    is FileBased.Audio -> i18n.roomListContentAudio()
+                    is FileBased.File -> i18n.roomListContentFile()
+                    is TextBased,
+                    is VerificationRequest,
+                    is Unknown -> content.bodyWithoutFallback
+                }
+            else ""
         } else ""
 
     private fun getRelevantLastTimelineEvent(
@@ -267,6 +276,7 @@ open class RoomListElementViewModelImpl(
 
 class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     private val roomId1 = RoomId("1", "localhost")
+    override val account: UserId = UserId("user", "server")
     override val roomId: RoomId = roomId1
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -280,8 +290,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("20:46")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("99+")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val accountNumber: MutableStateFlow<Int> = MutableStateFlow(0)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
@@ -290,6 +299,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
 
 class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     private val roomId2 = RoomId("2", "localhost")
+    override val account: UserId = UserId("0", "server")
     override val roomId: RoomId = roomId2
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -304,8 +314,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("24.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("2")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val accountNumber: MutableStateFlow<Int> = MutableStateFlow(0)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
@@ -314,6 +323,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
 
 class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     private val roomId3 = RoomId("3", "localhost")
+    override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -328,8 +338,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val accountNumber: MutableStateFlow<Int> = MutableStateFlow(1)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}
@@ -338,6 +347,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
 
 class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     private val roomId3 = RoomId("4", "localhost")
+    override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -352,8 +362,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.OFFLINE)
-    override val multipleAccounts: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val accountNumber: MutableStateFlow<Int> = MutableStateFlow(1)
+    override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
     override fun rejectInvitationAndBlockInviter() {}

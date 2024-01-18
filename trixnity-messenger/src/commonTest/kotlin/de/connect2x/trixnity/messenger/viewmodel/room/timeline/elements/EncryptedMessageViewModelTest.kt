@@ -2,12 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.timing.continually
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +24,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
 import org.kodein.mock.Mock
@@ -42,7 +40,7 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
     lateinit var matrixClientMock: MatrixClient
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
@@ -67,7 +65,17 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
 
         should("not wait for decryption when the encrypted event could be decrypted successfully") {
             val cut =
-                encryptedMessageViewModel(MutableStateFlow(timelineEvent(Result.success(TextMessageEventContent("")))))
+                encryptedMessageViewModel(
+                    MutableStateFlow(
+                        timelineEvent(
+                            Result.success(
+                                RoomMessageEventContent.TextBased.Text(
+                                    ""
+                                )
+                            )
+                        )
+                    )
+                )
 
             cut.waitForDecryption.first { it.not() }
         }
@@ -80,7 +88,7 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
             continually(200.milliseconds) {
                 cut.waitForDecryption.value shouldBe true
             }
-            timelineEventFlow.value = timelineEvent(Result.success(TextMessageEventContent("")))
+            timelineEventFlow.value = timelineEvent(Result.success(RoomMessageEventContent.TextBased.Text("")))
             cut.waitForDecryption.first { it.not() }
 
             subscriberJob.cancel()
@@ -93,11 +101,10 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        trixnityMessengerModule(),
-                        testMatrixClientModule(matrixClientMock),
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
                     )
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined,
             ),
             formattedDate = "",

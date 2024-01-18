@@ -2,22 +2,17 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -41,7 +36,6 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
     lateinit var matrixClientMock: MatrixClient
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -112,24 +106,23 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun roomNameChangeStatusViewModel(
+    private suspend fun roomNameChangeStatusViewModel(
         timelineEvent: TimelineEvent,
         usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob")),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
     ): RoomNameChangeStatusViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
-                trixnityMessengerModule(),
-                testMatrixClientModule(matrixClientMock),
+                createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        di.get<I18n>().setCurrentLang("en")
         return RoomNameChangeStatusViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
-                accountName = "test",
+                userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
             formattedDate = "",
@@ -141,7 +134,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         )
     }
 
-    fun timelineEvent(previousNameEvent: UnsignedStateEventData? = null) =
+    private fun timelineEvent(previousNameEvent: UnsignedStateEventData? = null) =
         TimelineEvent(
             event = StateEvent(
                 NameEventContent("new name"),

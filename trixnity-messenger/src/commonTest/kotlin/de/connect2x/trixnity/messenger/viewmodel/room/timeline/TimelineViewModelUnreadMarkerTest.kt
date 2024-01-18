@@ -2,16 +2,16 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.*
-import com.russhwolf.settings.MapSettings
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettingsImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.timing.continually
-import io.kotest.assertions.timing.eventually
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
+
+import io.kotest.assertions.nondeterministic.continually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -53,7 +53,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
-    private val messengerSettings = MessengerSettingsImpl(MapSettings())
+    private lateinit var messengerSettings: MatrixMessengerSettingsHolder
     private val roomId = RoomId("room1", "localhost")
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -82,12 +82,10 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var inputAreaViewModelMock: InputAreaViewModel
     private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
-    private lateinit var mainDispatcher: TestDispatcher
 
     init {
         beforeTest {
-            mainDispatcher = StandardTestDispatcher()
-            Dispatchers.setMain(mainDispatcher)
+            Dispatchers.setMain(Dispatchers.Unconfined)
         }
         afterTest {
             Dispatchers.resetMain()
@@ -99,6 +97,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             lifecycleRegistry = LifecycleRegistry()
             lifecycleRegistry.start()
 
+            messengerSettings = createTestMatrixMessengerSettingsHolder()
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
                     modules(
@@ -185,8 +184,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
             }
-            messengerSettings.preferredLang = "en"
-            messengerSettings.setReadMarkerIsPublic("test", true)
+            messengerSettings.update(UserId("test", "server")) { it?.copy(readMarkerIsPublic = true) }
         }
         afterTest {
             lifecycleRegistry.destroy()
@@ -571,7 +569,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark messages as read privately if the setting is set to privacy-first") {
-            messengerSettings.setReadMarkerIsPublic("test", false)
+            messengerSettings.update(UserId("test", "server")) { it?.copy(readMarkerIsPublic = false) }
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
@@ -650,38 +648,40 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koinApplication {
-                    modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                        single<RoomHeaderViewModelFactory> {
-                            object : RoomHeaderViewModelFactory {
-                                override fun create(
-                                    viewModelContext: MatrixClientViewModelContext,
-                                    selectedRoomId: RoomId,
-                                    isBackButtonVisible: MutableStateFlow<Boolean>,
-                                    onBack: () -> Unit,
-                                    onVerifyUser: () -> Unit,
-                                    onShowRoomSettings: () -> Unit
-                                ): RoomHeaderViewModel {
-                                    return roomHeaderViewModelMock
-                                }
-                            }
-                        }
-                        single<InputAreaViewModelFactory> {
-                            object : InputAreaViewModelFactory {
-                                override fun create(
-                                    viewModelContext: MatrixClientViewModelContext,
-                                    selectedRoomId: RoomId,
-                                    onMessageEditFinished: (EventId) -> Unit,
-                                    onMessageReplyToFinished: (EventId) -> Unit,
-                                    onShowAttachmentSendView: (file: FileDescriptor) -> Unit
-                                ): InputAreaViewModel {
-                                    return inputAreaViewModelMock
-                                }
-                            }
-                        }
-                        single<MessengerSettings> { messengerSettings }
-                    })
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                                module {
+                                    single<RoomHeaderViewModelFactory> {
+                                        object : RoomHeaderViewModelFactory {
+                                            override fun create(
+                                                viewModelContext: MatrixClientViewModelContext,
+                                                selectedRoomId: RoomId,
+                                                isBackButtonVisible: MutableStateFlow<Boolean>,
+                                                onBack: () -> Unit,
+                                                onVerifyUser: () -> Unit,
+                                                onShowRoomSettings: () -> Unit
+                                            ): RoomHeaderViewModel {
+                                                return roomHeaderViewModelMock
+                                            }
+                                        }
+                                    }
+                                    single<InputAreaViewModelFactory> {
+                                        object : InputAreaViewModelFactory {
+                                            override fun create(
+                                                viewModelContext: MatrixClientViewModelContext,
+                                                selectedRoomId: RoomId,
+                                                onMessageEditFinished: (EventId) -> Unit,
+                                                onMessageReplyToFinished: (EventId) -> Unit,
+                                                onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                                            ): InputAreaViewModel {
+                                                return inputAreaViewModelMock
+                                            }
+                                        }
+                                    }
+                                    single<MatrixMessengerSettingsHolder> { messengerSettings }
+                                })
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),

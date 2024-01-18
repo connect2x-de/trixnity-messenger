@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -72,11 +70,10 @@ interface ChangePowerLevelViewModel {
 
     fun onPowerLevelEntered(input: String)
 
-    @Parcelize
     data class InputWrapper(
         val value: String = "",
         val errorId: String? = null
-    ) : Parcelable
+    )
 }
 
 open class ChangePowerLevelViewModelImpl(
@@ -88,10 +85,10 @@ open class ChangePowerLevelViewModelImpl(
     private val closeMemberOptions: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
 
-    private val userId = roomUser.userId
+    private val targetUser = roomUser.userId
 
     override val canSetPowerLevelToMax =
-        matrixClient.user.canSetPowerLevelToMax(selectedRoomId, userId)
+        matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
@@ -171,7 +168,7 @@ open class ChangePowerLevelViewModelImpl(
                         roomId = selectedRoomId,
                         stateKey = ""
                     ).first()?.content ?: PowerLevelsEventContent()
-                val newUsers = oldPowerLevelsEventContent.users.plus(userId to powerLevel)
+                val newUsers = oldPowerLevelsEventContent.users.plus(targetUser to powerLevel)
                 matrixClient.api.rooms.sendStateEvent(
                     roomId = selectedRoomId,
                     oldPowerLevelsEventContent.copy(users = newUsers)
@@ -184,7 +181,7 @@ open class ChangePowerLevelViewModelImpl(
                             if (it is CancellationException) {
                                 return@launch
                             }
-                            log.error(it) { "cannot set user $userId to role $powerLevel in room $selectedRoomId" }
+                            log.error(it) { "cannot set user $targetUser to role $powerLevel in room $selectedRoomId" }
                             error.value = i18n.settingsRoomMemberListChangePowerLevelError(roomUser.name)
                         })
             }

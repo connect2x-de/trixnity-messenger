@@ -1,7 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.MessengerConfig
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.FileInfo
+import de.connect2x.trixnity.messenger.util.GetFileInfo
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -17,6 +20,7 @@ import net.folivo.trixnity.client.room.message.image
 import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.toByteArray
+import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
@@ -57,32 +61,34 @@ class SendAttachmentViewModelImpl(
     private val onCloseAttachmentSendView: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SendAttachmentViewModel {
 
+    private val messengerConfiguration = get<MatrixMessengerConfiguration>()
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
-    private val fileInfo: SharedFlow<FileInfo> = flow { emit(getFileInfo(file)) }
+    private val getFileInfo = get<GetFileInfo>()
+    private val fileInfo: SharedFlow<FileInfo?> = flow { emit(getFileInfo(file)) }
         .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
     private val _sendEnabled = MutableStateFlow(_error.value == null)
 
     override val error: StateFlow<String?> = _error.asStateFlow()
     override val sendEnabled: StateFlow<Boolean> = _sendEnabled.asStateFlow()
-    override val fileName = fileInfo.map { it.fileName }
+    override val fileName = fileInfo.map { it?.fileName }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val fileSize =
         fileInfo.map { info ->
             info.let {
-                "(" + (it.fileSize?.let { size -> formatSize(size) } ?: i18n.commonUnknown()) + ")"
+                "(" + (it?.fileSize?.let { size -> formatSize(size.toLong()) } ?: i18n.commonUnknown()) + ")"
             }
         }
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
-    override val byteArray = fileInfo.map { it.byteArrayFlow.toByteArray() }
+    override val byteArray = fileInfo.map { it?.content?.toByteArray() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val isImage = fileInfo.map { it.mimeType.match("image/*") }
+    override val isImage = fileInfo.map { it?.mimeType?.match("image/*") }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
-    override val isVideo = fileInfo.map { it.mimeType.match("video/*") }
+    override val isVideo = fileInfo.map { it?.mimeType?.match("video/*") }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
-    override val isAudio = fileInfo.map { it.mimeType.match("audio/*") }
+    override val isAudio = fileInfo.map { it?.mimeType?.match("audio/*") }
         .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     private val backCallback = BackCallback {
@@ -92,9 +98,12 @@ class SendAttachmentViewModelImpl(
     init {
         backHandler.register(backCallback)
         coroutineScope.launch {
-            val computedFileSize = fileInfo.first().fileSize
-            if ((computedFileSize?.compareTo(MessengerConfig.instance.attachmentMaxSize * 1_000_000) ?: 0) > 0) {
-                _error.value = i18n.attachmentSizeMaxSizeError(MessengerConfig.instance.attachmentMaxSize)
+            val computedFileSize = fileInfo.first()?.fileSize
+            if ((computedFileSize?.compareTo(messengerConfiguration.attachmentMaxSize * 1_000_000)
+                    ?: 0) > 0
+            ) {
+                _error.value =
+                    i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
             }
         }
     }
@@ -104,51 +113,55 @@ class SendAttachmentViewModelImpl(
         coroutineScope.launch {
             matrixClient.room.sendMessage(selectedRoomId) {
                 val fileInfo = fileInfo.first()
-                val byteArrayFlow = fileInfo.byteArrayFlow
-                when {
-                    isImage.value ?: false -> {
-                        log.debug { "send an image" }
-                        val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
-                        image(
-                            body = fileInfo.fileName,
-                            image = byteArrayFlow,
-                            type = fileInfo.mimeType,
-                            size = fileInfo.fileSize?.toInt(),
-                            width = width,
-                            height = height,
-                        )
-                    }
+                if (fileInfo != null) {
+                    val byteArrayFlow = fileInfo.content
+                    when {
+                        isImage.value ?: false -> {
+                            log.debug { "send an image" }
+                            val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
+                            image(
+                                body = fileInfo.fileName,
+                                image = byteArrayFlow,
+                                type = fileInfo.mimeType,
+                                size = fileInfo.fileSize,
+                                width = width,
+                                height = height,
+                            )
+                        }
 
-                    isVideo.value ?: false -> {
-                        log.debug { "send a video" }
-                        video(
-                            body = fileInfo.fileName,
-                            video = byteArrayFlow,
-                            type = fileInfo.mimeType,
-                            size = fileInfo.fileSize?.toInt(),
-                        )
-                    } // TODO width, height, duration
+                        isVideo.value ?: false -> {
+                            log.debug { "send a video" }
+                            video(
+                                body = fileInfo.fileName,
+                                video = byteArrayFlow,
+                                type = fileInfo.mimeType,
+                                size = fileInfo.fileSize,
+                            )
+                        } // TODO width, height, duration
 
-                    isAudio.value ?: false -> {
-                        log.debug { "send an audio" }
-                        audio(
-                            body = fileInfo.fileName,
-                            audio = byteArrayFlow,
-                            type = fileInfo.mimeType,
-                            size = fileInfo.fileSize?.toInt(),
-                        ) // TODO duration
-                    }
+                        isAudio.value ?: false -> {
+                            log.debug { "send an audio" }
+                            audio(
+                                body = fileInfo.fileName,
+                                audio = byteArrayFlow,
+                                type = fileInfo.mimeType,
+                                size = fileInfo.fileSize,
+                            ) // TODO duration
+                        }
 
-                    else -> {
-                        log.debug { "send a file" }
-                        file(
-                            body = fileInfo.fileName,
-                            file = byteArrayFlow,
-                            type = fileInfo.mimeType,
-                            name = fileInfo.fileName,
-                            size = fileInfo.fileSize?.toInt()
-                        )
+                        else -> {
+                            log.debug { "send a file" }
+                            file(
+                                body = fileInfo.fileName,
+                                file = byteArrayFlow,
+                                type = fileInfo.mimeType,
+                                name = fileInfo.fileName,
+                                size = fileInfo.fileSize
+                            )
+                        }
                     }
+                } else {
+                    log.warn { "fileInfo is null" }
                 }
             }
             onCloseAttachmentSendView()

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 
 private val log = KotlinLogging.logger {}
@@ -25,7 +26,7 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) -> Unit,
+        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
@@ -40,8 +41,8 @@ interface RoomViewModelFactory {
 }
 
 interface RoomViewModel {
-    val timelineStack: Value<ChildStack<TimelineRouter.TimelineConfig, TimelineRouter.TimelineWrapper>>
-    val settingsStack: Value<ChildStack<SettingsRouter.SettingsConfig, SettingsRouter.SettingsWrapper>>
+    val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
+    val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>>
     val isShowSettings: StateFlow<Boolean>
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
@@ -53,7 +54,7 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) -> Unit,
+    onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
     isBackButtonVisible: MutableStateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
@@ -75,20 +76,20 @@ open class RoomViewModelImpl(
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
         onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
-            onOpenModal(type, mxcUrl, encryptedFile, fileName, accountName)
+            onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
         },
     )
 
-    override val timelineStack: Value<ChildStack<TimelineRouter.TimelineConfig, TimelineRouter.TimelineWrapper>> =
-        timelineRouter.timelineStack
-    override val settingsStack: Value<ChildStack<SettingsRouter.SettingsConfig, SettingsRouter.SettingsWrapper>> =
-        settingsRouter.settingsStack
+    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
+        timelineRouter.stack
+    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
+        settingsRouter.stack
 
     init {
         log.debug { "create RoomViewModel " + roomId.full }
         coroutineScope.launch { timelineRouter.showTimeline(roomId) }
         settingsStack.subscribe {
-            isShowSettings.value = it.active.instance !is SettingsRouter.SettingsWrapper.None
+            isShowSettings.value = it.active.instance !is SettingsRouter.Wrapper.None
         }
     }
 
@@ -145,21 +146,21 @@ open class RoomViewModelImpl(
 }
 
 class PreviewRoomViewModel() : RoomViewModel {
-    override val timelineStack: Value<ChildStack<TimelineRouter.TimelineConfig, TimelineRouter.TimelineWrapper>> =
+    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = TimelineRouter.TimelineConfig.None,
-                    instance = TimelineRouter.TimelineWrapper.None,
+                    configuration = TimelineRouter.Config.None,
+                    instance = TimelineRouter.Wrapper.None,
                 )
             )
         )
-    override val settingsStack: Value<ChildStack<SettingsRouter.SettingsConfig, SettingsRouter.SettingsWrapper>> =
+    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = SettingsRouter.SettingsConfig.None,
-                    instance = SettingsRouter.SettingsWrapper.None,
+                    configuration = SettingsRouter.Config.None,
+                    instance = SettingsRouter.Wrapper.None,
                 )
             )
         )

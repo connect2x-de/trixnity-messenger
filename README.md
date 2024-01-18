@@ -47,19 +47,19 @@ Now you are able to add trixnity-messenger as dependency to your project:
 implementation("de.connect2x:trixnity-messenger:<version>")
 ```
 
-Just create the root node of the view model tree that is used in your app.
+Just create `MatrixMessenger` including the view model tree that is used in your app.
 
 ```kotlin
-val rootViewModel = RootViewModelImpl()
+val matrixMessenger = MatrixMessenger.create()
 ```
 
-Create a root node in your UI framework and pass the created `rootViewModel` to it. In Compose Multiplatform on the
-desktop, it looks something like this:
+Create a root node in your UI framework and pass the `RootViewModel` to it by calling `matrixMessenger.createRoot()`.
+In Compose Multiplatform on the desktop, it looks something like this:
 
 ```kotlin
 application {
     Window("My App") {
-        MyMatrixClient(rootViewModel)
+        MyMatrixClient(matrixMessenger.createRoot())
     }
 }
 ```
@@ -67,28 +67,6 @@ application {
 where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel` as a parameter.
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
-
-### Override defaults
-
-There are some parameters of `RootViewModelImpl`, that you can override to change the behaviour.
-
-* The `KoinApplication` (see [DI](#change-the-default-behavior-of-view-models)) can be used to override view models and
-  other components.
-  ```kotlin
-  val koinApplication = koinApplication {
-    modules(trixnityMessengerModule())
-  }
-  ```
-* The `MatrixClientService` (holds `MatrixClient`s that can be used to access Matrix APIs,
-  see [Trixnity](https://gitlab.com/trixnity/trixnity)) can be extended to a service (e. g. for Android).
-  ```kotlin
-     val matrixClientService = DefaultMatrixClientService(koinApplication.koin)
-  ```
-* The `ComponentContext` (from [Decompose](https://github.com/arkivanov/Decompose)) may need to be adapted to your UI
-  technology.
-  ```kotlin
-  val componentContext = DefaultComponentContext(LifecycleRegistry())
-  ```
 
 ### Routing
 
@@ -130,19 +108,17 @@ left out for clarity.
 
 Trixnity Messenger has multiple ways to configure the client to your needs.
 
-### MessengerConfig
+### Change default configuration
 
-The class `MessengerConfig` contains static information that is used to determine some folder names and other data in
-the lifecycle of the messenger. To override the standard configuration, put this in your code:
+The class `MatrixMessengerConfiguration` contains information that is used to determine some folder names and other data
+in
+the lifecycle of the messenger. To override the standard configuration use `MatrixMessenger.create`:
 
 ```kotlin
-val messengerConfig: MessengerConfig.() -> Unit = {
-    appName = "MyMatrixClient"
-    // more things you would like to change
+val matrixMessenger = MatrixMessenger.create {
+    appName = "Dino Messenger"
+    // ... more config ...
 }
-
-// before a view model is created
-MessengerConfig.instance.apply(messengerConfig)
 ```
 
 ### Change the default behavior of view models
@@ -171,7 +147,7 @@ tries to login the user to a Matrix server. To do this, you have to do the follo
 Then, we have to register the new view model in a module:
 
 ```kotlin
-val addMatrixAccountModule = module {
+fun addMatrixAccountModule() = module {
     single<AddMatrixAccountViewModelFactory> {
         object : AddMatrixAccountViewModelFactory {
             override fun create(
@@ -189,14 +165,12 @@ val addMatrixAccountModule = module {
 }
 ```
 
-Finally, add it to the modules of `KoinApplication`:
+Finally, add it to the modules of `MatrixMessenger`. You should always extend the default modules
+from `createDefaultTrixnityMessengerModules()`:
 
 ```kotlin
-val koinApplication = koinApplication {
-    modules(
-        trixnityMessengerModule(),
-        addMatrixAccountModule,
-    )
+val matrixMessenger = MatrixMessenger.create {
+    modules = createDefaultTrixnityMessengerModules() + addMatrixAccountModule()
 }
 ```
 
@@ -220,11 +194,21 @@ in [View model customization](#change-the-default-behavior-of-view-models) and a
 
 ## Drag and Drop
 
-To support Drag and Drop, add an Implementation of `DragAndDropHandler` to the DI.
+To support Drag and Drop, you need to get `DragAndDropHandler` from the DI:
+
+```kotlin
+val dragAndDropHandler = matrixMessenger.defaultDragAndDropHandler // helper extension
+// call functions on dragAndDropHandler
+```
 
 ## URL / SSO
 
-For Single Sign-on, add an Implementation of `UrlHandler` to the DI.
+To support URL handling, you need to get `UrlHandler` from the DI:
+
+```kotlin
+val urlHandler = matrixMessenger.defaultUrlHandler // helper extension
+// call functions on urlHandler depending on the platform (only on Android, iOS, JVM)
+```
 
 ## Usage from Swift (iOS or Mac)
 
@@ -244,7 +228,7 @@ In order to use the library from Swift, always ```import trixnity_messenger``` i
 To create an instance of Trixnity Messenger do the following:
 
 ```swift
-let rootViewModel = RootViewModelImpl.companion.create(koinApplication: IosDIKt.trixnityMessengerApplication())
+let matrixMessenger = MatrixMessenger.companion.create()
 ```
 
 Pass this view model to your root UI node, e.g., a view in SwiftUI:
@@ -252,7 +236,7 @@ Pass this view model to your root UI node, e.g., a view in SwiftUI:
 ```swift
 var body: some Scene {
     WindowGroup {
-        RootView(rootViewModel)
+        RootView(matrixMessenger.createRoot())
     }
 }
 ```

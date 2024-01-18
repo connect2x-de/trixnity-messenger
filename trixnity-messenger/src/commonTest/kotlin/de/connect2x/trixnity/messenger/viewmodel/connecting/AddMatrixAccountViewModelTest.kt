@@ -3,12 +3,12 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.HttpClientFactory
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
@@ -16,6 +16,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -37,7 +38,6 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
 
     init {
         coroutineTestScope = true
-        Dispatchers.setMain(testMainDispatcher)
 
         beforeTest {
             mocker.reset()
@@ -206,13 +206,14 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
     private suspend fun viewModel(
         mockEngineConfig: (MockEngineConfig.() -> Unit)? = null,
     ): AddMatrixAccountViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
             if (mockEngineConfig != null) mockEngineConfig()
             else addHandler { _ -> respond("") }
         }.create()
         val di = koinApplication {
-            modules(trixnityMessengerModule(), module {
+            modules(createTestDefaultTrixnityMessengerModules() + module {
                 single<HttpClientFactory> {
                     HttpClientFactory {
                         {
@@ -228,7 +229,7 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
                 }
             })
         }.koin
-        di.get<I18n>().setCurrentLang("en")
+        di.get<I18n>().setCurrentLang(DefaultLanguages.EN)
         return AddMatrixAccountViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 di,

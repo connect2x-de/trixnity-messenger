@@ -8,17 +8,14 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnPause
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.util.DragAndDropHandler
-import de.connect2x.trixnity.messenger.util.launchPopWhile
-import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.SendAttachmentConfig
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.SendAttachmentWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
@@ -27,6 +24,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.room.Timeline
 import net.folivo.trixnity.client.room.getAccountData
@@ -114,7 +112,7 @@ interface TimelineViewModel {
     val error: StateFlow<String?>
     val roomHeaderViewModel: RoomHeaderViewModel
     val inputAreaViewModel: InputAreaViewModel
-    val sendAttachmentStack: Value<ChildStack<SendAttachmentConfig, SendAttachmentWrapper>>
+    val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
 
     /**
      * Only for DnD on desktop: the absolute path of a dragged file.
@@ -132,19 +130,21 @@ interface TimelineViewModel {
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
 
-    sealed class SendAttachmentWrapper {
-        object None : SendAttachmentWrapper()
-        class View(val sendAttachmentViewModel: SendAttachmentViewModel) : SendAttachmentWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        class View(val viewModel: SendAttachmentViewModel) : Wrapper()
     }
 
-    sealed class SendAttachmentConfig : Parcelable {
-        @Parcelize
-        object None : SendAttachmentConfig()
+    @Serializable
+    sealed class Config {
+        @Serializable
+        data object None : Config()
 
-        @Parcelize
-        data class SendAttachmentView(val file: FileDescriptor) : SendAttachmentConfig()
+        @Serializable
+        data class SendAttachmentView(
+            @Serializable(with = FileDescriptorSerializer::class) val file: FileDescriptor
+        ) : Config()
     }
-
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -167,7 +167,7 @@ class TimelineViewModelImpl(
         val viewModel: TimelineElementHolderViewModel,
     )
 
-    private val timelineViewModelConfig = get<TimelineViewModelConfig>()
+    private val config = get<MatrixMessengerConfiguration>()
     private val outerScope = get<CoroutineScope>()
 
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
@@ -218,7 +218,7 @@ class TimelineViewModelImpl(
     private val clock = get<Clock>()
     private val directRoom = get<DirectRoom>()
     private val timelineElementRules = get<TimelineElementRules>()
-    private val messengerSettings = get<MessengerSettings>()
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
     private val roomUsers =
         matrixClient.user.getAll(selectedRoomId)
@@ -252,20 +252,21 @@ class TimelineViewModelImpl(
             onShowAttachmentSendView = ::onShowAttachmentSendView,
         )
 
-    private val sendAttachmentNavigation = StackNavigation<SendAttachmentConfig>()
-    override val sendAttachmentStack: Value<ChildStack<SendAttachmentConfig, SendAttachmentWrapper>> = childStack(
+    private val sendAttachmentNavigation = StackNavigation<Config>()
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = childStack(
         source = sendAttachmentNavigation,
-        initialConfiguration = SendAttachmentConfig.None,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.None,
         handleBackButton = true,
         childFactory = ::createChild,
         key = "sendAttachmentRouter",
     )
 
     private fun createChild(
-        config: SendAttachmentConfig, componentContext: ComponentContext
-    ): SendAttachmentWrapper = when (config) {
-        is SendAttachmentConfig.None -> SendAttachmentWrapper.None
-        is SendAttachmentConfig.SendAttachmentView -> SendAttachmentWrapper.View(
+        config: Config, componentContext: ComponentContext
+    ): Wrapper = when (config) {
+        is Config.None -> Wrapper.None
+        is Config.SendAttachmentView -> Wrapper.View(
             get<SendAttachmentViewModelFactory>().create(
                 viewModelContext = childContext(componentContext),
                 file = config.file,
@@ -386,7 +387,7 @@ class TimelineViewModelImpl(
         }
 
         // TODO we only support one file at the moment, but this should change in the future
-        val dragAndDropHandler = getKoin().getOrNull<DragAndDropHandler>()
+        val dragAndDropHandler = getOrNull<DragAndDropHandler>()
         if (dragAndDropHandler != null) {
             coroutineScope.launch {
                 dragAndDropHandler.onDrop.collect { files ->
@@ -589,11 +590,11 @@ class TimelineViewModelImpl(
     }
 
     private fun onShowAttachmentSendView(file: FileDescriptor) {
-        sendAttachmentNavigation.launchPush(coroutineScope, SendAttachmentConfig.SendAttachmentView(file))
+        sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
     }
 
     private fun closeAttachmentSendView() {
-        sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is SendAttachmentConfig.None }
+        sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is Config.None }
     }
 
     private fun onMessageEdited(eventId: EventId) {
@@ -621,7 +622,7 @@ class TimelineViewModelImpl(
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.timelineLeaveRoomErrorOffline()
             } else {
-                matrixClient.api.rooms.leaveRoom(selectedRoomId).fold(onSuccess = {
+                matrixClient.api.room.leaveRoom(selectedRoomId).fold(onSuccess = {
                     onBack()
                 }, onFailure = {
                     if (it is CancellationException) {
@@ -646,7 +647,7 @@ class TimelineViewModelImpl(
     }
 
     private fun loadMoreBefore() {
-        if (timelineViewModelConfig.autoLoadBefore) {
+        if (config.timelineAutoLoadBefore) {
             coroutineScope.launch {
                 timeline.collectLatest { timeline ->
                     combine(
@@ -761,10 +762,11 @@ class TimelineViewModelImpl(
             } else requestedNextReadUntil
 
         readEvent.value = eventId
-        matrixClient.api.rooms.setReadMarkers(
+        val readMarkerIsPublic = messengerSettings[userId].first()?.readMarkerIsPublic == true
+        matrixClient.api.room.setReadMarkers(
             roomId = selectedRoomId,
-            read = if (messengerSettings.readMarkerIsPublic(accountName)) eventId else null,
-            privateRead = if (messengerSettings.readMarkerIsPublic(accountName)) null else eventId,
+            read = if (readMarkerIsPublic) eventId else null,
+            privateRead = if (readMarkerIsPublic) null else eventId,
         ).onFailure { log.error(it) { "cannot set read marker for event $eventId" } }
             .onSuccess { log.debug { "successfully set read marker for message: $eventId" } }
     }
@@ -781,7 +783,7 @@ class TimelineViewModelImpl(
                     if (readUntil != null && readUntil != currentFullyReadMarker) {
                         log.debug { "mark last seen message as fully read (readUntil=$readUntil currentFullyReadMarker=$currentFullyReadMarker)" }
                         fullyReadEvent.value = readUntil
-                        matrixClient.api.rooms.setReadMarkers(selectedRoomId, fullyRead = readUntil)
+                        matrixClient.api.room.setReadMarkers(selectedRoomId, fullyRead = readUntil)
                             .onFailure { log.error(it) { "cannot set message as fully read: $readUntil" } }
                             .onSuccess { log.debug { "set message as fully read: $readUntil" } }
                     } else {
@@ -881,10 +883,10 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()
     override val inputAreaViewModel: InputAreaViewModel = PreviewInputViewModel()
-    override val sendAttachmentStack: Value<ChildStack<SendAttachmentConfig, SendAttachmentWrapper>> = MutableValue(
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = MutableValue(
         ChildStack(
-            configuration = SendAttachmentConfig.None,
-            instance = SendAttachmentWrapper.None,
+            configuration = Config.None,
+            instance = Wrapper.None,
         )
     )
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)

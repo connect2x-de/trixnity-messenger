@@ -4,7 +4,6 @@ import co.touchlab.skie.configuration.SealedInterop
 
 plugins {
     id("com.android.library")
-    id("kotlin-parcelize")
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("io.kotest.multiplatform")
@@ -59,13 +58,12 @@ kotlin {
     ).forEach {
         it.binaries.framework {
             export("com.arkivanov.decompose:decompose:${Versions.decompose}")
-            export("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
 //            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
             export("net.folivo:trixnity-client:${Versions.trixnity}")
             isStatic = true
         }
     }
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
@@ -79,7 +77,6 @@ kotlin {
                 api("io.ktor:ktor-client-core:${Versions.ktor}")
                 api("io.ktor:ktor-client-logging:${Versions.ktor}")
                 api("com.arkivanov.decompose:decompose:${Versions.decompose}")
-                api("com.arkivanov.essenty:lifecycle:${Versions.essenty}")
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
                 api("io.github.oshai:kotlin-logging:${Versions.kotlinLogging}")
                 api("io.insert-koin:koin-core:${Versions.koin}")
@@ -87,8 +84,6 @@ kotlin {
                 implementation("com.squareup.okio:okio:${Versions.okio}")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
                 implementation("com.benasher44:uuid:${Versions.uuid}")
-                implementation("com.russhwolf:multiplatform-settings:${Versions.multiplatformSettings}")
-                implementation("com.russhwolf:multiplatform-settings-coroutines:${Versions.multiplatformSettings}")
                 implementation("com.soywiz.korlibs.korim:korim:${Versions.korge}")
             }
         }
@@ -98,7 +93,6 @@ kotlin {
                 implementation("org.kodein.mock:mockmp-runtime:${Versions.mocKmp}")
 
                 implementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
-                implementation("com.russhwolf:multiplatform-settings-test:${Versions.multiplatformSettings}")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
                 implementation("io.kotest:kotest-common:${Versions.kotest}")
                 implementation("io.kotest:kotest-framework-engine:${Versions.kotest}")
@@ -108,32 +102,41 @@ kotlin {
                 implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
             }
         }
-        jvmMain {
+        val jvmAndNativeMain by creating {
+            dependsOn(commonMain.get())
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
+            }
+        }
+        jvmMain {
+            dependsOn(jvmAndNativeMain)
+            dependencies {
                 implementation("net.java.dev.jna:jna:${Versions.jna}")
                 implementation("net.java.dev.jna:jna-platform:${Versions.jna}")
             }
         }
         androidMain {
+            dependsOn(jvmAndNativeMain)
             dependencies {
-                implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
                 implementation("androidx.activity:activity-ktx:${Versions.activity}")
                 implementation("androidx.security:security-crypto:${Versions.crypto}")
+            }
+        }
+        nativeMain {
+            dependsOn(jvmAndNativeMain)
+        }
+        appleMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
             }
         }
         jsMain {
             dependencies {
                 implementation("net.folivo:trixnity-client-repository-indexeddb:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-indexeddb:${Versions.trixnity}")
-                api(npm("@js-joda/timezone", "2.3.0"))
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-browser:1.0.0-pre.635")
-            }
-        }
-        appleMain {
-            dependencies {
-                implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
-                implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
+                api(npm("@js-joda/timezone", Versions.jsJoda))
+                implementation(project.dependencies.platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:${Versions.kotlinWrappers}"))
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
             }
         }
         jvmTest {
@@ -186,13 +189,6 @@ dependencies {
             add(it.name, "org.kodein.mock:mockmp-processor:${Versions.mocKmp}")
         }
 }
-
-//afterEvaluate {
-//    rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension> {
-//        versions.webpackDevServer.version = "4.0.0"
-//        versions.webpackCli.version = "4.10.0"
-//    }
-//}
 
 publishing {
     val dokkaJar by tasks.registering(Jar::class) {

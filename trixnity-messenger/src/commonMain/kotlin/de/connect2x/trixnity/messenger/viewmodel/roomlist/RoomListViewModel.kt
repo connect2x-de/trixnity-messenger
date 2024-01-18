@@ -1,14 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.NamedMatrixClient
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.matrixClientOrThrow
-import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.namedMatrixClients
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,12 +14,9 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import net.folivo.trixnity.client.flattenValues
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.*
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
@@ -42,8 +37,8 @@ interface RoomListViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         selectedRoomId: StateFlow<RoomId?>,
-        onRoomSelected: (String, RoomId) -> Unit,
-        onCreateNewRoom: (String) -> Unit,
+        onRoomSelected: (UserId, RoomId) -> Unit,
+        onStartCreateNewRoom: (UserId) -> Unit,
         onUserSettingsSelected: () -> Unit,
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
@@ -53,7 +48,7 @@ interface RoomListViewModelFactory {
             viewModelContext,
             selectedRoomId,
             onRoomSelected,
-            onCreateNewRoom,
+            onStartCreateNewRoom,
             onUserSettingsSelected,
             onOpenAppInfo,
             onSendLogs,
@@ -70,7 +65,7 @@ interface RoomListViewModel {
     val errorType: StateFlow<ErrorType>
     val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>>
 
-    val syncStateError: StateFlow<Map<String, Boolean>>
+    val syncStateError: StateFlow<Map<UserId, Boolean>>
     val allSyncError: StateFlow<Boolean>
     val initialSyncFinished: StateFlow<Boolean>
 
@@ -84,7 +79,7 @@ interface RoomListViewModel {
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
     fun createNewRoom()
-    fun createNewRoomFor(accountName: String)
+    fun createNewRoomFor(userId: UserId)
     fun selectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
@@ -102,15 +97,15 @@ data class RoomListElement(
 class RoomListViewModelImpl(
     viewModelContext: ViewModelContext,
     override val selectedRoomId: StateFlow<RoomId?>,
-    private val onRoomSelected: (String, RoomId) -> Unit,
-    private val onCreateNewRoom: (String) -> Unit,
+    private val onRoomSelected: (UserId, RoomId) -> Unit,
+    private val onCreateNewRoom: (UserId) -> Unit,
     onUserSettingsSelected: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
-    private val messengerSettings = get<MessengerSettings>()
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val error = _error.asStateFlow()
@@ -120,8 +115,8 @@ class RoomListViewModelImpl(
 
     override val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>>
 
-    private val syncState: StateFlow<Map<String, SyncState>>
-    override val syncStateError: StateFlow<Map<String, Boolean>>
+    private val syncState: StateFlow<Map<UserId, SyncState>>
+    override val syncStateError: StateFlow<Map<UserId, Boolean>>
     override val allSyncError: StateFlow<Boolean>
     override val initialSyncFinished: StateFlow<Boolean>
 
@@ -134,7 +129,9 @@ class RoomListViewModelImpl(
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
-    private val activeAccount: MutableStateFlow<String?> = MutableStateFlow(messengerSettings.activeAccount)
+    private val activeAccount: StateFlow<UserId?> =
+        messengerSettings.map { it.selectedAccount }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()
     private val initials = get<Initials>()
@@ -142,8 +139,7 @@ class RoomListViewModelImpl(
     override val accountViewModel =
         viewModelContext.get<AccountViewModelFactory>().create(
             viewModelContext = childContext("accountViewModel"),
-            onAccountSelected = { accountName ->
-                activeAccount.value = accountName
+            onAccountSelected = {
                 // reset the active space as it might filter rooms in another account where it is not even present
                 activeSpace.value = null
             },
@@ -153,28 +149,27 @@ class RoomListViewModelImpl(
 
     private val roomListElementViewModels = mutableMapOf<RoomId, RoomListElementViewModel>()
 
-    private data class RoomWithMeta(
+    private data class RoomWithMatrixClient(
         val room: Room,
-        val namedMatrixClient: NamedMatrixClient,
+        val matrixClient: MatrixClient,
     )
 
-    private val selectedMatrixClients = combine(namedMatrixClients, activeAccount) { nmc, account ->
-        if (account != null) {
-            nmc.filter { it.accountName == account }
+    private val selectedMatrixClients = combine(matrixClients, activeAccount) { matrixClients, activeAccount ->
+        if (activeAccount != null) {
+            listOfNotNull(matrixClients[activeAccount])
         } else {
-            nmc
+            matrixClients.values.toList()
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
-    private val allRoomsFlow: SharedFlow<Map<RoomId, RoomWithMeta>> =
-        selectedMatrixClients.flatMapLatest { namedMatrixClients ->
-            val allRoomsFlows = namedMatrixClients.map { namedMatrixClient ->
-                val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                matrixClient.room.getAll()
+    private val allRoomsFlow: SharedFlow<Map<RoomId, RoomWithMatrixClient>> =
+        selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
+            val allRoomsFlows = selectedMatrixClients.map { selectedMatrixClient ->
+                selectedMatrixClient.room.getAll()
                     .flattenValues()
                     .map { rooms ->
                         rooms.map { room ->
-                            RoomWithMeta(room, namedMatrixClient)
+                            RoomWithMatrixClient(room, selectedMatrixClient)
                         }
                     }
             }
@@ -190,19 +185,17 @@ class RoomListViewModelImpl(
         )
 
         val activeSpaceInfoFlow =
-            combine(selectedMatrixClients, activeSpace) { namedMatrixClients, activeSpace ->
+            combine(selectedMatrixClients, activeSpace) { selectedMatrixClients, activeSpace ->
                 if (activeSpace != null) {
                     val roomsInThisSpaceFlow =
-                        combine(namedMatrixClients
-                            .map { namedMatrixClient ->
-                                val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                                log.trace { "get rooms in space ${activeSpace.full} for account ${namedMatrixClient.accountName}" }
-                                activeSpace.roomsInThisSpace(matrixClient)
+                        combine(selectedMatrixClients
+                            .map { selectedMatrixClient ->
+                                log.trace { "get rooms in space ${activeSpace.full} for account ${selectedMatrixClient.userId}" }
+                                activeSpace.roomsInThisSpace(selectedMatrixClient)
                             }) { it.toList().flatten() }
                     val usersInThisSpaceFlow =
-                        combine(namedMatrixClients.map { namedMatrixClient ->
-                            val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                            matrixClient.user.getAll(activeSpace).map { it?.keys.orEmpty() }
+                        combine(selectedMatrixClients.map { selectedMatrixClient ->
+                            selectedMatrixClient.user.getAll(activeSpace).map { it.keys }
                         }) { it.toList().flatten() }
                     combine(roomsInThisSpaceFlow, usersInThisSpaceFlow) { roomsInThisSpace, usersInThisSpace ->
                         log.trace { "$activeSpace: rooms in this space -> $roomsInThisSpace, users in this space -> ${usersInThisSpace.joinToString { it.full }}" }
@@ -211,11 +204,10 @@ class RoomListViewModelImpl(
                 } else flowOf(null)
             }.flatMapLatest { it }
 
-        val directRoomsFlow = selectedMatrixClients.flatMapLatest { namedMatrixClients ->
-            combine(namedMatrixClients
-                .map { namedMatrixClient ->
-                    val matrixClient = namedMatrixClient.matrixClientOrThrow()
-                    matrixClient.user.getAccountData<DirectEventContent>().map { it?.mappings.orEmpty() }
+        val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
+            combine(selectedMatrixClients
+                .map { selectedMatrixClient ->
+                    selectedMatrixClient.user.getAccountData<DirectEventContent>().map { it?.mappings.orEmpty() }
                 }) { allDirectEventContents ->
                 allDirectEventContents
                     .flatMap { it.entries }
@@ -229,9 +221,9 @@ class RoomListViewModelImpl(
         val allRoomNamesFlow = // This is a heavy operation! Use it with care!
             allRoomsFlow.flatMapLatest { allRooms ->
                 combine(allRooms.map { (roomId, roomWithMeta) ->
-                    roomName.getRoomNameElement(
+                    roomName.getRoomName(
                         roomWithMeta.room,
-                        roomWithMeta.namedMatrixClient.matrixClientOrThrow()
+                        roomWithMeta.matrixClient
                     ).map { roomId to it }
                 }) { allRoomNames ->
                     allRoomNames.toMap()
@@ -248,7 +240,7 @@ class RoomListViewModelImpl(
                 if (currentSearchTerm.isNotBlank()) {
                     allRoomNamesFlow.map { allRoomNames ->
                         allRoomNames.filter { (_, roomName) ->
-                            roomName.roomName.contains(currentSearchTerm, ignoreCase = true)
+                            roomName.contains(currentSearchTerm, ignoreCase = true)
                         }.keys
                     }
                 } else {
@@ -264,7 +256,7 @@ class RoomListViewModelImpl(
                 searchedRoomsFlow
             ) { roomsWithMeta, activeSpaceInfo, directRooms, searchedRooms ->
                 data class SortableRoom(
-                    val roomWithMeta: RoomWithMeta,
+                    val roomWithMatrixClient: RoomWithMatrixClient,
                     val sortTime: Instant?,
                 )
                 roomsWithMeta.values.asFlow()
@@ -285,13 +277,13 @@ class RoomListViewModelImpl(
                                 isInActiveSpace &&
                                 includedInSearch
                     }.onEach { log.trace { "filtered rooms: $it" } }
-                    .map<RoomWithMeta, SortableRoom> { roomWithMeta -> // why map here? -> because we need the creation time and cannot call suspended functions in `sortedByDescending`
+                    .map<RoomWithMatrixClient, SortableRoom> { roomWithMeta -> // why map here? -> because we need the creation time and cannot call suspended functions in `sortedByDescending`
                         val room = roomWithMeta.room
                         val lastRelevantEventTime = room.lastRelevantEventTimestamp
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
-                                lastRelevantEventTime == null -> roomWithMeta.namedMatrixClient.matrixClientOrThrow()
+                                lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
 
@@ -301,8 +293,8 @@ class RoomListViewModelImpl(
                     }.toList<SortableRoom>()
                     .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
                     .asFlow<SortableRoom>()
-                    .map<SortableRoom, RoomWithMeta> { it.roomWithMeta }
-                    .map { (room, namedMatrixClient) ->
+                    .map<SortableRoom, RoomWithMatrixClient> { it.roomWithMatrixClient }
+                    .map { (room, matrixClient) ->
                         val roomId = room.roomId
                         val existingViewModel = roomListElementViewModels[roomId]
                         val viewModel = if (existingViewModel != null) existingViewModel else {
@@ -310,10 +302,10 @@ class RoomListViewModelImpl(
                                 viewModelContext.get<RoomListElementViewModelFactory>().create(
                                     viewModelContext = childContext(
                                         "roomListElement-${roomId.full}",
-                                        accountName = namedMatrixClient.accountName,
+                                        userId = matrixClient.userId,
                                     ),
                                     roomId,
-                                    onRoomSelected = { onRoomSelected(namedMatrixClient.accountName, roomId) },
+                                    onRoomSelected = { onRoomSelected(matrixClient.userId, roomId) },
                                 )
                             roomListElementViewModels[roomId] = roomListElementViewModel
                             roomListElementViewModel
@@ -333,16 +325,15 @@ class RoomListViewModelImpl(
                     .filter { (room, _) ->
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         isSpace && (room.membership == Membership.INVITE || room.membership == Membership.JOIN)
-                    }.map { (space, namedMatrixClient) ->
-                        roomName.getRoomNameElement(space, namedMatrixClient.matrixClientOrThrow())
-                            .map { it.roomName }
+                    }.map { (space, matrixClient) ->
+                        roomName.getRoomName(space, matrixClient)
                             .map { roomName ->
                                 val isInvite = space.membership == Membership.INVITE
                                 val spaceImage = if (isInvite) {
                                     null
                                 } else {
                                     space.avatarUrl?.let { avatarUrl ->
-                                        namedMatrixClient.matrixClientOrThrow().media
+                                        matrixClient.media
                                             .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                                             .fold(
                                                 onSuccess = { it.toByteArray() },
@@ -366,17 +357,17 @@ class RoomListViewModelImpl(
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
-        syncState = namedMatrixClients.flatMapLatest { namedMatrixClients ->
-            combine(namedMatrixClients.map { namedMatrixClient ->
-                namedMatrixClient.matrixClientOrThrow().syncState.map { namedMatrixClient.accountName to it }
+        syncState = matrixClients.flatMapLatest { matrixClients ->
+            combine(matrixClients.map { (userId, matrixClient) ->
+                matrixClient.syncState.map { userId to it }
             }) {
                 it.toMap()
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), mapOf())
 
         syncStateError = syncState.map {
-            it.entries.associate { (accountName, syncState) ->
-                accountName to (syncState == SyncState.ERROR)
+            it.entries.associate { (userId, syncState) ->
+                userId to (syncState == SyncState.ERROR)
             }
         }
             .debounce(3.seconds)
@@ -399,7 +390,7 @@ class RoomListViewModelImpl(
         resetSearchWhenNotShown()
 
         canCreateNewRoomWithAccount =
-            combine(accountViewModel.allAccounts, activeAccount) { allAccounts, activeAccount ->
+            combine(accountViewModel.accounts, activeAccount) { allAccounts, activeAccount ->
                 allAccounts.size == 1 || activeAccount != null
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     }
@@ -426,26 +417,25 @@ class RoomListViewModelImpl(
 
     override fun createNewRoom() {
         if (canCreateNewRoomWithAccount.value) {
-            onCreateNewRoom(activeAccount.value ?: accountViewModel.allAccounts.value[0].accountName)
+            onCreateNewRoom(activeAccount.value ?: accountViewModel.accounts.value[0].userId)
         } else {
             log.warn { "This should be prevented: select an active account first, then create a room." }
         }
     }
 
-    override fun createNewRoomFor(accountName: String) {
-        onCreateNewRoom(accountName)
+    override fun createNewRoomFor(userId: UserId) {
+        onCreateNewRoom(userId)
     }
 
     override fun selectRoom(roomId: RoomId) {
         coroutineScope.launch {
-            val namedMatrixClient = allRoomsFlow.first()[roomId]?.namedMatrixClient
+            val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: throw IllegalStateException("cannot find NamedMatrixClient for room $roomId")
-            val matrixClient = namedMatrixClient.matrixClientOrThrow()
             val isInvite =
                 matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
             log.debug { "switch to room $roomId (isInvite: $isInvite)" }
             when {
-                isInvite && syncState.value[namedMatrixClient.accountName] == SyncState.ERROR -> {
+                isInvite && syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
                     _errorType.value = ErrorType.JUST_DISMISS
                     _error.value = i18n.roomListInvitationOffline()
@@ -455,7 +445,7 @@ class RoomListViewModelImpl(
                     log.debug { "try to join room $roomId" }
                     matrixClient.api.rooms.joinRoom(roomId).fold(
                         onSuccess = {
-                            onRoomSelected(namedMatrixClient.accountName, roomId)
+                            onRoomSelected(matrixClient.userId, roomId)
                         },
                         onFailure = {
                             log.error(it) { "Cannot join room." }
@@ -466,7 +456,7 @@ class RoomListViewModelImpl(
                     )
                 }
 
-                else -> onRoomSelected(namedMatrixClient.accountName, roomId)
+                else -> onRoomSelected(matrixClient.userId, roomId)
             }
         }
     }
@@ -501,7 +491,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 RoomListElement(roomId3, true, false, PreviewRoomListElementViewModel3()),
             )
         )
-    override val syncStateError: MutableStateFlow<Map<String, Boolean>> = MutableStateFlow(mapOf())
+    override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
     override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -515,7 +505,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun createNewRoom() {
     }
 
-    override fun createNewRoomFor(accountName: String) {
+    override fun createNewRoomFor(userId: UserId) {
     }
 
     override fun selectRoom(roomId: RoomId) {

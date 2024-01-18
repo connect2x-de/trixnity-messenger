@@ -1,17 +1,18 @@
 package de.connect2x.trixnity.messenger.i18n
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
-import de.connect2x.trixnity.messenger.viewmodel.settings.MessengerSettings
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) :
-    I18nBase(languages, messengerSettings) {
+abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang) :
+    I18nBase(languages, settings, getSystemLang) {
 
     // ---- translations -----
     fun commonUnknown() = translate {
@@ -256,6 +257,11 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
         DE - "Audio"
     }
 
+    fun roomListContentFile() = translate {
+        EN - "File"
+        DE - "Datei"
+    }
+
     fun roomHeaderTypingSingle(username: String) = translate {
         EN - "$username is typing..."
         DE - "$username schreibt..."
@@ -299,6 +305,11 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
     fun connectingErrorHttps() = translate {
         EN - "Only secure connections (https) are allowed."
         DE - "Es muss eine sichere Verbindung (https) genutzt werden."
+    }
+
+    fun connectingAccountAlreadyExists(userId: UserId) = translate {
+        EN - "There already is a local account for the user $userId."
+        DE - "Es gibt bereits ein lokales Konto für den Nutzer $userId."
     }
 
     fun connectingErrorDbLocked() = translate {
@@ -669,16 +680,6 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
         DE - "Fehler beim Löschen der Nachricht."
     }
 
-    fun accountAlreadyExistsLocally(accountName: String) = translate {
-        EN - "There already is a local account for the name $accountName."
-        DE - "Es gibt bereits ein lokales Konto für den Namen $accountName."
-    }
-
-    fun defaultAccountName() = translate {
-        EN - "default"
-        DE - "Standard"
-    }
-
     fun serverDiscoveryFailed() = translate {
         EN - "Server could not be determined or is not valid."
         DE - "Server konnte nicht ermittelt werden oder ist nicht gültig."
@@ -710,23 +711,18 @@ abstract class I18n(languages: Languages, messengerSettings: MessengerSettings) 
     }
 }
 
-internal fun getLang(languages: Languages, messengerSettings: MessengerSettings): Language {
-    val preferredLang = getPreferredLang(messengerSettings)
-    val systemLang = getSystemLang()
-    log.debug { "preferred language: $preferredLang, system language: $systemLang" }
+internal fun getLang(
+    languages: Languages,
+    settings: MatrixMessengerSettingsHolder,
+    getSystemLang: GetSystemLang
+): Language {
+    val preferredLang = settings.value.preferredLang
+    log.debug { "preferred language: $preferredLang" }
     return preferredLang?.let { languages.langOf(it) }
-        ?: systemLang?.let { languages.langOf(it) }
+        ?: languages.langOf(getSystemLang())
         ?: EN// fallback is english
 }
 
-fun setLang(languages: Languages, preferredLang: String) {
-    languages.langOf(preferredLang)
+internal suspend fun setLang(language: Language, settings: MatrixMessengerSettingsHolder) {
+    settings.update { it.copy(preferredLang = language.code) }
 }
-
-fun setPreferredLang(lang: String, messengerSettings: MessengerSettings) {
-    messengerSettings.preferredLang = lang
-}
-
-fun getPreferredLang(messengerSettings: MessengerSettings): String? = messengerSettings.preferredLang
-
-internal expect fun getSystemLang(): String?

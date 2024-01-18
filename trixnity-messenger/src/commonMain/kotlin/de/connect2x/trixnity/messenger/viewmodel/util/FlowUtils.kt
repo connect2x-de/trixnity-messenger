@@ -27,10 +27,9 @@ fun <T> Flow<T>.throttleFirst(delay: Duration): Flow<T> =
     throttleFirst(delay.inWholeMilliseconds)
 
 fun <T : Any> Value<T>.toFlow(): Flow<T> = callbackFlow {
-    val trySend: (T) -> Unit = { trySend(it) }
-    subscribe(trySend)
+    val cancelable = observe { trySend(it) }
     awaitClose {
-        unsubscribe(trySend)
+        cancelable.cancel()
     }
 }
 
@@ -43,6 +42,7 @@ internal fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow6: Flow<T6>,
     transform: suspend (T1, T2, T3, T4, T5, T6) -> R
 ): Flow<R> = combine(flow, flow2, flow3, flow4, flow5, flow6) { args: Array<*> ->
+    @Suppress("UNCHECKED_CAST")
     transform(
         args[0] as T1,
         args[1] as T2,
@@ -63,6 +63,7 @@ internal fun <T1, T2, T3, T4, T5, T6, T7, R> combine(
     flow7: Flow<T7>,
     transform: suspend (T1, T2, T3, T4, T5, T6, T7) -> R
 ): Flow<R> = combine(flow, flow2, flow3, flow4, flow5, flow6, flow7) { args: Array<*> ->
+    @Suppress("UNCHECKED_CAST")
     transform(
         args[0] as T1,
         args[1] as T2,

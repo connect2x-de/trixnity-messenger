@@ -121,7 +121,7 @@ open class RoomSettingsViewModelImpl(
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomLeaveRoomErrorOffline()
             } else {
-                matrixClient.api.rooms.leaveRoom(selectedRoomId).fold(
+                matrixClient.api.room.leaveRoom(selectedRoomId).fold(
                     onSuccess = { onBack() },
                     onFailure = {
                         if (it is CancellationException) {

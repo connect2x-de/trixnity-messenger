@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Referenc
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.MatrixClient
@@ -34,7 +33,7 @@ interface RichRepliesComputations {
 class RichRepliesComputationsImpl(
     private val initials: Initials,
     private val thumbnails: Thumbnails,
-    private val fileNameComputations: FileNameComputations,
+    private val computeFileName: ComputeFileName,
 ) : RichRepliesComputations {
 
     @OptIn(FlowPreview::class)
@@ -80,66 +79,50 @@ class RichRepliesComputationsImpl(
                 ) { timelineEvent, sender ->
                     val content = timelineEvent.content?.getOrNull()
                     log.debug { "referenced message: ${timelineEvent.eventId} (of type ${content?.let { it::class } ?: "unknown"})" }
-                    when (content) {
-                        is RoomMessageEventContent.TextMessageEventContent ->
-                            ReferencedTextMessage(sender, content.bodyWithoutFallback)
+                    if (content is RoomMessageEventContent)
+                        when (content) {
+                            is RoomMessageEventContent.TextBased ->
+                                ReferencedTextMessage(sender, content.bodyWithoutFallback)
 
-                        is RoomMessageEventContent.NoticeMessageEventContent ->
-                            ReferencedTextMessage(sender, content.bodyWithoutFallback)
+                            is RoomMessageEventContent.FileBased.Image -> {
+                                val thumbnail = thumbnails.loadThumbnail(
+                                    matrixClient,
+                                    content,
+                                    MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
+                                )
+                                ReferencedImageMessage(
+                                    sender,
+                                    thumbnail,
+                                    computeFileName(content),
+                                )
+                            }
 
-                        is RoomMessageEventContent.EmoteMessageEventContent ->
-                            ReferencedTextMessage(sender, content.bodyWithoutFallback)
+                            is RoomMessageEventContent.FileBased.Video -> {
+                                val thumbnail = thumbnails.loadThumbnail(
+                                    matrixClient,
+                                    content,
+                                    MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
+                                )
+                                ReferencedVideoMessage(
+                                    sender,
+                                    thumbnail,
+                                    computeFileName(content),
+                                )
+                            }
 
-                        is RoomMessageEventContent.ImageMessageEventContent -> {
-                            val thumbnail = thumbnails.loadThumbnail(
-                                matrixClient,
-                                content,
-                                MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
-                            )
-                            ReferencedImageMessage(
+                            is RoomMessageEventContent.FileBased.Audio -> ReferencedAudioMessage(
                                 sender,
-                                thumbnail,
-                                fileNameComputations.getOrCreateFileName(
-                                    content.bodyWithoutFallback,
-                                    content.info?.mimeType,
-                                    ContentType.Image.Any
-                                ),
+                                computeFileName(content),
                             )
-                        }
 
-                        is RoomMessageEventContent.VideoMessageEventContent -> {
-                            val thumbnail = thumbnails.loadThumbnail(
-                                matrixClient,
-                                content,
-                                MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
-                            )
-                            ReferencedVideoMessage(
+                            is RoomMessageEventContent.FileBased.File -> ReferencedFileMessage(
                                 sender,
-                                thumbnail,
-                                fileNameComputations.getOrCreateFileName(
-                                    content.bodyWithoutFallback,
-                                    content.info?.mimeType,
-                                    ContentType.Video.Any
-                                ),
+                                content.fileName ?: content.bodyWithoutFallback
                             )
-                        }
 
-                        is RoomMessageEventContent.AudioMessageEventContent -> ReferencedAudioMessage(
-                            sender,
-                            fileNameComputations.getOrCreateFileName(
-                                content.bodyWithoutFallback,
-                                content.info?.mimeType,
-                                ContentType.Audio.Any
-                            ),
-                        )
-
-                        is RoomMessageEventContent.FileMessageEventContent -> ReferencedFileMessage(
-                            sender,
-                            content.fileName ?: content.bodyWithoutFallback
-                        )
-
-                        else -> ReferencedUnknownMessage(sender)
-                    }
+                            is RoomMessageEventContent.Unknown,
+                            is RoomMessageEventContent.VerificationRequest -> ReferencedUnknownMessage(sender)
+                        } else ReferencedUnknownMessage(sender)
                 }
             } else {
                 flowOf(null)

@@ -7,9 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 interface FileMessageViewModelFactory {
     fun create(
@@ -23,7 +21,7 @@ interface FileMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        content: FileMessageEventContent,
+        content: RoomMessageEventContent.FileBased.File,
     ): FileMessageViewModel {
         return FileMessageViewModelImpl(
             viewModelContext,
@@ -44,8 +42,6 @@ interface FileMessageViewModelFactory {
 }
 
 interface FileMessageViewModel : FileBasedMessageViewModel {
-    val url: String?
-    val encryptedFile: EncryptedFile?
     val formattedSize: String
 }
 
@@ -60,8 +56,8 @@ open class FileMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val content: FileMessageEventContent,
-) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext),
+    content: RoomMessageEventContent.FileBased.File,
+) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -69,11 +65,6 @@ open class FileMessageViewModelImpl(
         sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
-
-    override val url: String? = content.file?.url ?: content.url
-    override val encryptedFile: EncryptedFile? = content.file
-
-    override fun getFileNameWithExtension() = content.fileName ?: content.bodyWithoutFallback
 
     override val formattedSize: String = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
 }

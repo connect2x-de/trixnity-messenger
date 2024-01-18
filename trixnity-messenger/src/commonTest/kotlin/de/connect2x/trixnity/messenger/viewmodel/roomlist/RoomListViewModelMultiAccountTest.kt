@@ -3,15 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
-import de.connect2x.trixnity.messenger.GetAccountNames
-import de.connect2x.trixnity.messenger.NamedMatrixClient
-import de.connect2x.trixnity.messenger.NamedMatrixClients
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.*
-import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.MatcherResult
@@ -19,13 +12,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.http.*
 import isNot
 import isRoomOf
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
@@ -34,7 +25,6 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.user.getAccountData
@@ -44,7 +34,6 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.*
@@ -73,9 +62,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     private val spaceId1 = RoomId("space1", "localhost")
     private val spaceId2 = RoomId("space2", "localhost")
 
-    private val me1 = UserId("me1", "server")
-    private val me2 = UserId("me2", "server")
-    private val me3 = UserId("me3", "server")
+    private val me1 = UserId("test1", "server")
+    private val me2 = UserId("test2", "server")
+    private val me3 = UserId("test3", "server")
     private val user2 = UserId("user2", "server")
     private val user3 = UserId("user3", "server")
 
@@ -117,21 +106,20 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     @Mock
     lateinit var roomNameMock: RoomName
 
-    private val onRoomSelectedMock = mockFunction2<Unit, String, RoomId>(mocker)
+    private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
 
     private lateinit var syncStateMocker1: Mocker.Every<StateFlow<SyncState>>
     private lateinit var syncStateMocker2: Mocker.Every<StateFlow<SyncState>>
     private lateinit var syncStateMocker3: Mocker.Every<StateFlow<SyncState>>
-    private lateinit var roomName3Mocker: Mocker.Every<Flow<RoomNameElement>>
+    private lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
 
     private lateinit var di: Koin
-    private lateinit var namedMatrixClients: MutableStateFlow<List<NamedMatrixClient>>
+    private lateinit var matrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
 
     private val roomCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Room)
     private val spaceCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Space)
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -187,7 +175,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { matrixClientMock1.api } returns matrixClientServerApiClientMock
                 every { matrixClientMock2.api } returns matrixClientServerApiClientMock
                 every { matrixClientMock3.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
                 every { userServiceMock1.getById(isEqual(roomId1), isEqual(me1)) } returns
                         MutableStateFlow(roomUser(roomId1, me1))
@@ -284,42 +272,42 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { onRoomSelectedMock.invoke(isAny(), isAny()) } returns Unit
 
                 every {
-                    roomNameMock.getRoomNameElement(isRoomOf(roomId1), isEqual(matrixClientMock1))
-                } returns flowOf(RoomNameElement("room1"))
+                    roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock1))
+                } returns flowOf("room1")
                 every {
-                    roomNameMock.getRoomNameElement(roomId1, matrixClientMock1)
-                } returns flowOf(RoomNameElement("room1"))
+                    roomNameMock.getRoomName(roomId1, matrixClientMock1)
+                } returns flowOf("room1")
                 every {
-                    roomNameMock.getRoomNameElement(isRoomOf(roomId2), isEqual(matrixClientMock1))
-                } returns flowOf(RoomNameElement("room2"))
+                    roomNameMock.getRoomName(isRoomOf(roomId2), isEqual(matrixClientMock1))
+                } returns flowOf("room2")
                 every {
-                    roomNameMock.getRoomNameElement(roomId2, matrixClientMock1)
-                } returns flowOf(RoomNameElement("room2"))
+                    roomNameMock.getRoomName(roomId2, matrixClientMock1)
+                } returns flowOf("room2")
                 roomName3Mocker =
-                    every { roomNameMock.getRoomNameElement(isRoomOf(roomId3), isEqual(matrixClientMock2)) }
-                roomName3Mocker returns flowOf(RoomNameElement("room3-but-also-room2"))
+                    every { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock2)) }
+                roomName3Mocker returns flowOf("room3-but-also-room2")
                 every {
-                    roomNameMock.getRoomNameElement(roomId3, matrixClientMock2)
-                } returns flowOf(RoomNameElement("room3-but-also-room2"))
+                    roomNameMock.getRoomName(roomId3, matrixClientMock2)
+                } returns flowOf("room3-but-also-room2")
                 every {
-                    roomNameMock.getRoomNameElement(isRoomOf(roomId4), isEqual(matrixClientMock2))
-                } returns flowOf(RoomNameElement("room4"))
+                    roomNameMock.getRoomName(isRoomOf(roomId4), isEqual(matrixClientMock2))
+                } returns flowOf("room4")
                 every {
-                    roomNameMock.getRoomNameElement(roomId4, matrixClientMock2)
-                } returns flowOf(RoomNameElement("room4"))
+                    roomNameMock.getRoomName(roomId4, matrixClientMock2)
+                } returns flowOf("room4")
                 every {
-                    roomNameMock.getRoomNameElement(isRoomOf(roomId5), isEqual(matrixClientMock3))
-                } returns flowOf(RoomNameElement("room5"))
+                    roomNameMock.getRoomName(isRoomOf(roomId5), isEqual(matrixClientMock3))
+                } returns flowOf("room5")
                 every {
-                    roomNameMock.getRoomNameElement(roomId5, matrixClientMock3)
-                } returns flowOf(RoomNameElement("room5"))
+                    roomNameMock.getRoomName(roomId5, matrixClientMock3)
+                } returns flowOf("room5")
                 every {
-                    roomNameMock.getRoomNameElement(isRoomOf(spaceId1), isEqual(matrixClientMock1))
+                    roomNameMock.getRoomName(isRoomOf(spaceId1), isEqual(matrixClientMock1))
                 } returns
-                        flowOf(RoomNameElement("space and beyond"))
+                        flowOf("space and beyond")
                 every {
-                    roomNameMock.getRoomNameElement(isRoomOf(spaceId2), isEqual(matrixClientMock2))
-                } returns flowOf(RoomNameElement("space and beyond and beyonder"))
+                    roomNameMock.getRoomName(isRoomOf(spaceId2), isEqual(matrixClientMock2))
+                } returns flowOf("space and beyond and beyonder")
                 every { roomServiceMock1.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
                 every { roomServiceMock2.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
                 every { roomServiceMock3.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
@@ -657,7 +645,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            val room3NameFlow = MutableStateFlow(RoomNameElement("room2-other"))
+            val room3NameFlow = MutableStateFlow("room2-other")
             with(mocker) {
                 every { roomServiceMock1.getAll() } returns MutableStateFlow(
                     mapOf(
@@ -675,7 +663,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { roomServiceMock1.getById(roomId2) } returns MutableStateFlow(room2)
                 every { roomServiceMock2.getById(roomId3) } returns MutableStateFlow(room3)
                 every {
-                    roomNameMock.getRoomNameElement(isEqual(room3), isEqual(matrixClientMock2))
+                    roomNameMock.getRoomName(isEqual(room3), isEqual(matrixClientMock2))
                 } returns room3NameFlow
                 roomName3Mocker returns room3NameFlow
             }
@@ -688,7 +676,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             testCoroutineScheduler.runCurrent()
             cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
 
-            room3NameFlow.value = RoomNameElement("I am number 1")
+            room3NameFlow.value = "I am number 1"
             testCoroutineScheduler.advanceUntilIdle() // no debounce, since search term stays the same
             cut.sortedRoomListElementViewModels.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId1, roomId3))
@@ -943,12 +931,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.sortedRoomListElementViewModels.value shouldHaveSize 3
 
-            namedMatrixClients.value =
-                listOf(
-                    NamedMatrixClient(
-                        accountName = "test1",
-                        MutableStateFlow(matrixClientMock1),
-                    ),
+            matrixClients.value =
+                mapOf(
+                    UserId("test1", "server") to matrixClientMock1
                 )
             testCoroutineScheduler.advanceUntilIdle()
             cut.sortedRoomListElementViewModels.value shouldHaveSize 2
@@ -972,71 +957,53 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         launch { cut.showSpaces.collect() }
     }
 
-    private fun roomListViewModel(coroutineContext: CoroutineContext): RoomListViewModelImpl {
-        namedMatrixClients = MutableStateFlow(
-            listOf(
-                NamedMatrixClient(
-                    accountName = "test1",
-                    MutableStateFlow(matrixClientMock1),
-                ),
-                NamedMatrixClient(
-                    accountName = "test2",
-                    MutableStateFlow(matrixClientMock2),
-                ),
-                NamedMatrixClient(
-                    accountName = "test3",
-                    MutableStateFlow(matrixClientMock3),
-                )
+    private suspend fun roomListViewModel(coroutineContext: CoroutineContext): RoomListViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        matrixClients = MutableStateFlow(
+            mapOf(
+                UserId("test1", "server") to matrixClientMock1,
+                UserId("test2", "server") to matrixClientMock2,
+                UserId("test3", "server") to matrixClientMock3,
             )
         )
         di = koinApplication {
-            modules(trixnityMessengerModule(), module {
-                single {
-                    NamedMatrixClients(
-                        namedMatrixClients
-                    )
-                }
-                single {
-                    object : GetAccountNames {
-                        override suspend fun invoke(): List<String> {
-                            return listOf("test1", "test2", "test3")
-                        }
-                    }
-                }
-                single { testMessengerSettings("EN") }
-                single { roomNameMock }
-                single<AccountViewModelFactory> {
-                    object : AccountViewModelFactory {
-                        override fun create(
-                            viewModelContext: ViewModelContext,
-                            onAccountSelected: (String?) -> Unit,
-                            onUserSettingsSelected: () -> Unit,
-                            onShowAppInfo: () -> Unit
-                        ): AccountViewModel {
-                            return object : AccountViewModel {
-                                override val activeAccount: StateFlow<Account?> = MutableStateFlow(null)
-                                override val allAccounts: StateFlow<List<Account>> = MutableStateFlow(listOf())
+            modules(
+                createTestDefaultTrixnityMessengerModules(matrixClients) +
+                        module {
+                            single { roomNameMock }
+                            single<AccountViewModelFactory> {
+                                object : AccountViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: ViewModelContext,
+                                        onAccountSelected: (UserId?) -> Unit,
+                                        onUserSettingsSelected: () -> Unit,
+                                        onShowAppInfo: () -> Unit
+                                    ): AccountViewModel {
+                                        return object : AccountViewModel {
+                                            override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+                                            override val accounts: StateFlow<List<AccountInfo>> =
+                                                MutableStateFlow(listOf())
 
-                                override fun selectActiveAccount(accountName: String?) {
-                                }
+                                            override fun selectActiveAccount(userId: UserId?) {
+                                            }
 
-                                override fun userSettings() {
-                                }
+                                            override fun userSettings() {
+                                            }
 
-                                override fun appInfo() {
+                                            override fun appInfo() {
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                }
-            })
+                        })
         }.koin
         di.createScope<RootViewModelImpl>()
         return RoomListViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = di,
-                accountName = "test1",
+                userId = UserId("test1", "server"),
                 coroutineContext = coroutineContext
             ),
             selectedRoomId = MutableStateFlow(RoomId("roomId", "localhost")),
@@ -1067,21 +1034,6 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                     }] not found"
                 })
         }
-
-    private fun timelineEvent(eventId: EventId, sentAt: Instant) = TimelineEvent(
-        event = MessageEvent(
-            content = RoomMessageEventContent.TextMessageEventContent(""),
-            id = eventId,
-            sender = user2,
-            roomId = roomId1,
-            originTimestamp = sentAt.toEpochMilliseconds(),
-            unsigned = null
-        ),
-        content = null,
-        previousEventId = null,
-        nextEventId = null,
-        gap = null,
-    )
 
     private fun roomUser(roomId: RoomId, userId: UserId) = RoomUser(
         roomId,

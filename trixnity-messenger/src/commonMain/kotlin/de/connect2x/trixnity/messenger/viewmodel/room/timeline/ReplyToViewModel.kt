@@ -3,11 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.*
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.FileNameComputations
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileName
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.room
@@ -55,7 +54,7 @@ open class ReplyToViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, ReplyToViewModel {
 
     private val thumbnails = get<Thumbnails>()
-    private val fileNameComputations = FileNameComputations(get())
+    private val computeFileName = get<ComputeFileName>()
     override val replyTo: StateFlow<ReplyType?>
 
     private val thumbnailLoading = MutableStateFlow(false)
@@ -74,10 +73,8 @@ open class ReplyToViewModelImpl(
         ) { timelineEvent, roomUser ->
             val sender = roomUser?.name ?: i18n.commonUnknown()
             when (val content = timelineEvent?.content?.getOrNull()) { // in case the event has to be decrypted
-                is TextMessageEventContent -> TextReply(content.bodyWithoutFallback, sender)
-                is NoticeMessageEventContent -> TextReply(content.bodyWithoutFallback, sender)
-                is EmoteMessageEventContent -> TextReply(content.bodyWithoutFallback, sender)
-                is ImageMessageEventContent -> {
+                is TextBased -> TextReply(content.bodyWithoutFallback, sender)
+                is FileBased.Image -> {
                     val thumbnail = if (thumbnailCache.value == null && thumbnailLoading.value.not()) {
                         thumbnailLoading.value = true
                         val t = thumbnails.loadThumbnail(
@@ -91,16 +88,12 @@ open class ReplyToViewModelImpl(
                     } else thumbnailCache.value
                     ImageReply(
                         thumbnail,
-                        fileNameComputations.getOrCreateFileName(
-                            content.bodyWithoutFallback,
-                            content.info?.mimeType,
-                            ContentType.Image.Any
-                        ),
+                        computeFileName(content),
                         sender
                     )
                 }
 
-                is VideoMessageEventContent -> {
+                is FileBased.Video -> {
                     val thumbnail = if (thumbnailCache.value == null && thumbnailLoading.value.not()) {
                         thumbnailLoading.value = true
                         val t = thumbnails.loadThumbnail(
@@ -113,24 +106,16 @@ open class ReplyToViewModelImpl(
                         t
                     } else thumbnailCache.value
                     VideoReply(
-                        thumbnail, fileNameComputations.getOrCreateFileName(
-                            content.bodyWithoutFallback,
-                            content.info?.mimeType,
-                            ContentType.Video.Any
-                        ), sender
+                        thumbnail, computeFileName(content), sender
                     )
                 }
 
-                is AudioMessageEventContent -> AudioReply(
-                    fileNameComputations.getOrCreateFileName(
-                        content.bodyWithoutFallback,
-                        content.info?.mimeType,
-                        ContentType.Audio.Any
-                    ),
+                is FileBased.Audio -> AudioReply(
+                    computeFileName(content),
                     sender,
                 )
 
-                is FileMessageEventContent -> FileReply(
+                is FileBased.File -> FileReply(
                     content.fileName ?: content.bodyWithoutFallback,
                     sender,
                 )

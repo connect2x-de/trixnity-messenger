@@ -3,17 +3,14 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.childContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
-import de.connect2x.trixnity.messenger.NamedMatrixClient
-import de.connect2x.trixnity.messenger.NamedMatrixClients
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -27,14 +24,15 @@ interface ViewModelContext : KoinComponent, ComponentContext {
     val coroutineScope: CoroutineScope
     fun childContext(key: String, lifecycle: Lifecycle? = null): ViewModelContext
     fun childContext(componentContext: ComponentContext): ViewModelContext
-    fun childContext(key: String, lifecycle: Lifecycle? = null, accountName: String): MatrixClientViewModelContext
+    fun childContext(key: String, lifecycle: Lifecycle? = null, userId: UserId): MatrixClientViewModelContext
 
-    fun childContext(componentContext: ComponentContext, accountName: String): MatrixClientViewModelContext
+    fun childContext(componentContext: ComponentContext, userId: UserId): MatrixClientViewModelContext
 }
 
 interface MatrixClientViewModelContext : ViewModelContext {
     val matrixClient: MatrixClient
-    val accountName: String
+    val userId: UserId
+
     override fun childContext(key: String, lifecycle: Lifecycle?): MatrixClientViewModelContext
     override fun childContext(componentContext: ComponentContext): MatrixClientViewModelContext
 }
@@ -42,19 +40,11 @@ interface MatrixClientViewModelContext : ViewModelContext {
 val ViewModelContext.i18n: I18n
     get() = get<I18n>()
 
-val ViewModelContext.namedMatrixClients: StateFlow<List<NamedMatrixClient>>
-    get() = get<NamedMatrixClients>().list
+val ViewModelContext.matrixClients: MatrixClients
+    get() = get<MatrixClients>()
 
-val ViewModelContext.matrixClients: StateFlow<List<MatrixClient>>
-    get() = namedMatrixClients.map { namedMatrixClients ->
-        namedMatrixClients.map {
-            it.matrixClient.value ?: throw IllegalStateException("Cannot find MatrixClient for ${it.accountName}.")
-        }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
-
-fun ViewModelContext.getMatrixClient(accountName: String) =
-    get<NamedMatrixClients>().list.value.find { it.accountName == accountName }?.matrixClient?.value
-        ?: throw IllegalStateException("Cannot find MatrixClient for ${accountName}.")
+fun ViewModelContext.getMatrixClient(userId: UserId) =
+    checkNotNull(get<MatrixClients>().value[userId]) { "cannot find MatrixClient for $userId" }
 
 open class ViewModelContextImpl(
     private val di: Koin,
@@ -79,16 +69,16 @@ open class ViewModelContextImpl(
         )
     }
 
-    override fun childContext(key: String, lifecycle: Lifecycle?, accountName: String): MatrixClientViewModelContext {
+    override fun childContext(key: String, lifecycle: Lifecycle?, userId: UserId): MatrixClientViewModelContext {
         val componentContext = this as ComponentContext
-        return childContext(componentContext.childContext(key, lifecycle), accountName)
+        return childContext(componentContext.childContext(key, lifecycle), userId)
     }
 
-    override fun childContext(componentContext: ComponentContext, accountName: String): MatrixClientViewModelContext {
+    override fun childContext(componentContext: ComponentContext, userId: UserId): MatrixClientViewModelContext {
         return MatrixClientViewModelContextImpl(
             getKoin(),
             componentContext,
-            accountName,
+            userId,
             coroutineContext
         )
     }
@@ -97,10 +87,10 @@ open class ViewModelContextImpl(
 open class MatrixClientViewModelContextImpl(
     di: Koin,
     componentContext: ComponentContext,
-    override val accountName: String,
+    override val userId: UserId,
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ) : MatrixClientViewModelContext, ViewModelContextImpl(di, componentContext, coroutineContext) {
-    override val matrixClient by lazy { getMatrixClient(accountName) }
+    override val matrixClient by lazy { getMatrixClient(userId) }
 
     override fun childContext(key: String, lifecycle: Lifecycle?): MatrixClientViewModelContext {
         val componentContext = this as ComponentContext
@@ -111,7 +101,7 @@ open class MatrixClientViewModelContextImpl(
         return MatrixClientViewModelContextImpl(
             getKoin(),
             componentContext,
-            accountName,
+            userId,
             coroutineContext
         )
     }

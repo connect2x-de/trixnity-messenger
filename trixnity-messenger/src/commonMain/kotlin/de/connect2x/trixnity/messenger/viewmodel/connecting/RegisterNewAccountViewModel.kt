@@ -1,17 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.HttpClientFactory
-import de.connect2x.trixnity.messenger.MatrixClientService
-import de.connect2x.trixnity.messenger.deviceDisplayName
+import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel.RegistrationState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.combine
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
@@ -28,11 +27,10 @@ interface RegisterNewAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
-        matrixClientService: MatrixClientService,
         onLogin: () -> Unit,
         onBack: () -> Unit,
     ): RegisterNewAccountViewModel =
-        RegisterNewAccountViewModelImpl(viewModelContext, serverUrl, matrixClientService, onLogin, onBack)
+        RegisterNewAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
 
     companion object : RegisterNewAccountViewModelFactory
 }
@@ -49,10 +47,8 @@ interface RegisterNewAccountViewModel {
 
     val serverUrl: String
 
-    val accountName: MutableStateFlow<String>
     val username: MutableStateFlow<String>
     val password: MutableStateFlow<String>
-    val displayName: MutableStateFlow<String?>
 
     val registrationToken: MutableStateFlow<String>
 
@@ -73,15 +69,13 @@ interface RegisterNewAccountViewModel {
 open class RegisterNewAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
-    private val matrixClientService: MatrixClientService,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 
     private val httpClientFactory = get<HttpClientFactory>()()
-    private val accountNames = channelFlow { send(get<GetAccountNames>()()) }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
-    override val isFirstMatrixClient: StateFlow<Boolean?> = accountNames.map { it.isNullOrEmpty() }
+    private val getDefaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()
+    override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -90,9 +84,7 @@ open class RegisterNewAccountViewModelImpl(
     override val loadingRegistrationOptions: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val selectedRegistration: MutableStateFlow<AuthenticationType?> = MutableStateFlow(null)
 
-    override val accountName: MutableStateFlow<String> = MutableStateFlow(i18n.defaultAccountName())
     override val username: MutableStateFlow<String> = MutableStateFlow("")
-    override val displayName: MutableStateFlow<String?> = MutableStateFlow(null)
     override val password: MutableStateFlow<String> = MutableStateFlow("")
 
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("")
@@ -100,11 +92,10 @@ open class RegisterNewAccountViewModelImpl(
         MutableStateFlow(AddMatrixAccountState.None)
 
     override val canRegisterNewUser: StateFlow<Boolean> = combine(
-        accountName, accountNames, username, password, selectedRegistration, registrationToken
-    ) { accountName, existingAccountNames, username, password, selectedRegistration, registrationToken ->
-        log.debug { "canRegisterNewUser: accountName=$accountName, existingAccountNames=$existingAccountNames, username=$username, selectedRegistration=$selectedRegistration, registrationToken=$registrationToken" }
+        username, password, selectedRegistration, registrationToken
+    ) { username, password, selectedRegistration, registrationToken ->
+        log.debug { "canRegisterNewUser: username=$username, selectedRegistration=$selectedRegistration, registrationToken=$registrationToken" }
         when {
-            existingAccountNames?.contains(accountName) != false -> false
             username.isBlank() -> false
             password.isBlank() -> false
             selectedRegistration == AuthenticationType.RegistrationToken && registrationToken.isBlank() -> false
@@ -144,7 +135,7 @@ open class RegisterNewAccountViewModelImpl(
 
     override fun tryRegistration() {
         val canRegisterNewUser = canRegisterNewUser.value
-        log.info { "try registration (canRegisterNewUser: $canRegisterNewUser, accountName = ${accountName.value}, username = ${username.value}, password = *******)" }
+        log.info { "try registration (canRegisterNewUser = $canRegisterNewUser, username = ${username.value}, password = *******)" }
         coroutineScope.launch {
             registrationState.update { RegistrationState.Registering }
             if (selectedRegistration.value is AuthenticationType.RegistrationToken && canRegisterNewUser) {
@@ -162,7 +153,7 @@ open class RegisterNewAccountViewModelImpl(
                                 accountType = AccountType.USER,
                                 username = username.value,
                                 password = password.value,
-                                initialDeviceDisplayName = deviceDisplayName()
+                                initialDeviceDisplayName = getDefaultDeviceDisplayName()
                             )
                                 .onFailure { exc ->
                                     log.error(exc) { "cannot initiate UIA" }
@@ -187,20 +178,19 @@ open class RegisterNewAccountViewModelImpl(
                                     val deviceId = registerResponse?.deviceId
                                     val accessToken = registerResponse?.accessToken
                                     if (deviceId != null && accessToken != null) {
-                                        matrixClientService.loginWithCatching(
-                                            accountName = accountName.value,
-                                            serverUrl = serverUrl,
-                                            userId = registerResponse.userId,
-                                            deviceId = deviceId,
-                                            accessToken = accessToken,
-                                            displayName = displayName.value ?: username.value,
-                                            avatarUrl = null,
+                                        matrixClients.loginWithCatching(
+                                            baseUrl = serverUrl,
+                                            loginInfo = MatrixClient.LoginInfo(
+                                                userId = registerResponse.userId,
+                                                deviceId = deviceId,
+                                                accessToken = accessToken,
+                                            ),
                                             addMatrixAccountState = addMatrixAccountState,
                                             i18n = i18n,
                                             onLogin = onLogin,
                                         )
                                     } else {
-                                        log.error { "access token cannot be accessed" }
+                                        log.error { "accessToken or deviceId missing in registration response" }
                                         registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
                                     }
                                 }
@@ -243,7 +233,7 @@ open class RegisterNewAccountViewModelImpl(
         }
     }
 
-    private suspend fun doFlows(uia: UIA<Register.Response>): Register.Response? {
+    private tailrec suspend fun doFlows(uia: UIA<Register.Response>): Register.Response? {
         log.info { uia }
         when (uia) {
             is UIA.Success -> {
@@ -314,11 +304,9 @@ class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
     override val selectedRegistration: MutableStateFlow<AuthenticationType?> =
         MutableStateFlow(AuthenticationType.RegistrationToken)
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
-    override val accountName: MutableStateFlow<String> = MutableStateFlow("Standard")
     override val serverUrl: String = "http://localhost:8008"
     override val username: MutableStateFlow<String> = MutableStateFlow("user1")
     override val password: MutableStateFlow<String> = MutableStateFlow("user1-password")
-    override val displayName: MutableStateFlow<String?> = MutableStateFlow(null)
     override val registrationToken: MutableStateFlow<String> = MutableStateFlow("myRegistrationToken")
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.None)

@@ -5,39 +5,40 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomConfig
-import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.RoomWrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
 
 interface RoomRouter {
-    val roomStack: Value<ChildStack<RoomConfig, RoomWrapper>>
+    val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun closeRoom()
-    suspend fun showRoom(accountName: String, roomId: RoomId)
+    suspend fun showRoom(userId: UserId, roomId: RoomId)
     fun isShown(): Boolean
 
-    sealed class RoomConfig : Parcelable {
-        @Parcelize
-        object None : RoomConfig()
+    @Serializable
+    sealed class Config {
+        @Serializable
+        data object None : Config()
 
-        @Parcelize
-        data class View(val accountName: String, val roomId: String) : RoomConfig() // String to make it parcelizable
+        @Serializable
+        data class View(val userId: UserId, val roomId: String) : Config()
     }
 
-    sealed class RoomWrapper {
-        data class View(val roomViewModel: RoomViewModel) : RoomWrapper()
-        object None : RoomWrapper()
+    sealed class Wrapper {
+        data class View(val viewModel: RoomViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 }
 
@@ -45,49 +46,50 @@ class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, accountName: String) -> Unit,
+    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
 ) : RoomRouter {
 
-    private val roomNavigation = StackNavigation<RoomConfig>()
-    override val roomStack: Value<ChildStack<RoomConfig, RoomWrapper>> =
+    private val roomNavigation = StackNavigation<Config>()
+    override val stack: Value<ChildStack<Config, Wrapper>> =
         viewModelContext.childStack(
             source = roomNavigation,
-            initialConfiguration = RoomConfig.None,
+            serializer = Config.serializer(),
+            initialConfiguration = Config.None,
             key = "RoomRouter",
             childFactory = ::createRoomChild,
         )
 
     private fun createRoomChild(
-        roomConfig: RoomConfig,
+        roomConfig: Config,
         componentContext: ComponentContext
-    ): RoomWrapper =
+    ): Wrapper =
         when (roomConfig) {
-            is RoomConfig.None -> RoomWrapper.None
-            is RoomConfig.View -> RoomWrapper.View(
+            is Config.None -> Wrapper.None
+            is Config.View -> Wrapper.View(
                 viewModelContext.get<RoomViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, roomConfig.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
                     onRoomBack = onCloseRoom,
                     onOpenModal = onOpenModal,
                 ).also {
-                    log.debug { "::: created viewModel for ${roomConfig.accountName}" }
+                    log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }
             )
         }
 
-    override suspend fun showRoom(accountName: String, roomId: RoomId) {
+    override suspend fun showRoom(userId: UserId, roomId: RoomId) {
         log.debug { "show room: $roomId" }
-        roomNavigation.bringToFrontSuspending(RoomConfig.View(accountName, roomId.full))
+        roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
     }
 
     override suspend fun closeRoom() {
-        roomNavigation.popWhileSuspending { it !is RoomConfig.None }
+        roomNavigation.popWhileSuspending { it !is Config.None }
     }
 
     override fun isShown(): Boolean =
-        when (roomStack.value.active.configuration) {
-            is RoomConfig.View -> true
-            is RoomConfig.None -> false
+        when (stack.value.active.configuration) {
+            is Config.View -> true
+            is Config.None -> false
         }
 }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -23,8 +24,8 @@ interface CreateNewChatViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
-        onCreateGroup: (String) -> Unit,
-        onSearchGroup: (String) -> Unit,
+        onCreateGroup: (UserId) -> Unit,
+        onSearchGroup: (UserId) -> Unit,
         onCancel: () -> Unit,
         goToRoom: (RoomId) -> Unit,
     ): CreateNewChatViewModel {
@@ -49,8 +50,8 @@ interface CreateNewChatViewModel {
 open class CreateNewChatViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val createNewRoomViewModel: CreateNewRoomViewModel,
-    private val onCreateGroup: (String) -> Unit,
-    private val onSearchGroup: (String) -> Unit,
+    private val onCreateGroup: (UserId) -> Unit,
+    private val onSearchGroup: (UserId) -> Unit,
     private val onCancel: () -> Unit,
     private val goToRoom: (RoomId) -> Unit,
 ) : CreateNewChatViewModel,
@@ -68,11 +69,11 @@ open class CreateNewChatViewModelImpl(
     }
 
     override fun createGroup() {
-        onCreateGroup(accountName)
+        onCreateGroup(userId)
     }
 
     override fun searchGroup() {
-        onSearchGroup(accountName)
+        onSearchGroup(userId)
     }
 
     override fun errorDismiss() {

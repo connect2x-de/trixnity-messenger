@@ -1,21 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.initialsync
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.Flow
 import net.folivo.trixnity.client.MatrixClient
 
 private val log = KotlinLogging.logger { }
-
-object InitialSync {
-    suspend fun run(matrixClient: MatrixClient): Boolean {
-        return matrixClient.syncOnce {
-            true
-        }.getOrElse {
-            log.error(it) { "cannot perform initial sync" }
-            false
-        }
-    }
-}
 
 /**
  * Since the initial sync (small and the big, "real" initial sync) can take some time due to thousands of events and
@@ -25,7 +13,17 @@ object InitialSync {
  * sync can be performed in the background via a Service, so that the sync is performed even if the device's screen is
  * locked, etc.
  *
+ * On Desktop, when the scope of the caller (a view model) is ended, the app in most cases is ended as well
+ *  -> it is OK to cancel the initial sync in this case as the JVM is not running anymore
+ *
  */
 interface RunInitialSync {
-    operator fun invoke(accountName: String): Flow<Boolean>
+    suspend operator fun invoke(matrixClient: MatrixClient): Boolean =
+        matrixClient.syncOnce { true }
+            .getOrElse {
+                log.error(it) { "cannot perform initial sync" }
+                false
+            }
+
+    companion object : RunInitialSync
 }

@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
+import de.connect2x.trixnity.messenger.MatrixMessenger
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,7 +24,7 @@ interface DragAndDropHandler {
     val onDragExit: Flow<Unit>
 }
 
-open class DragAndDropHandlerImpl : DragAndDropHandler {
+open class DragAndDropHandlerBase : DragAndDropHandler {
     fun drop(files: List<FileDescriptor>) {
         _onDrop.tryEmit(files)
     }
@@ -55,3 +55,8 @@ open class DragAndDropHandlerImpl : DragAndDropHandler {
     )
     override val onDragExit: SharedFlow<Unit> = _onDragExit.asSharedFlow()
 }
+
+val MatrixMessenger.defaultDragAndDropHandler: DragAndDropHandlerBase
+    get() = checkNotNull(di.get<DragAndDropHandler>() as? DragAndDropHandlerBase) {
+        "default DragAndDropHandler has been overridden and is not of expected type DragAndDropHandlerBase"
+    }

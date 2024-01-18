@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import de.connect2x.trixnity.messenger.GetAccountNames
 import de.connect2x.trixnity.messenger.HttpClientFactory
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -59,7 +59,7 @@ open class AddMatrixAccountViewModelImpl(
     private val onCancel: () -> Unit,
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel {
     override val isFirstMatrixClient: StateFlow<Boolean?> =
-        flow { emit(get<GetAccountNames>()()) }
+        get<MatrixClients>()
             .map { it.isEmpty() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 

@@ -88,7 +88,7 @@ open class RoomSettingsNameViewModelImpl(
             roomNameIsCurrentlyChanging.value = true
             coroutineScope.launch {
                 try {
-                    matrixClient.api.rooms.sendStateEvent(
+                    matrixClient.api.room.sendStateEvent(
                         selectedRoomId,
                         NameEventContent(roomName.value),
                         stateKey = ""

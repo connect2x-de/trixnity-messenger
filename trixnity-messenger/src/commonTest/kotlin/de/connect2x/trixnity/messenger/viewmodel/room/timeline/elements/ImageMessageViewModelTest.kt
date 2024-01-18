@@ -2,14 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import io.kotest.assertions.timing.eventually
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -18,7 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.ImageMessageEventContent
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction4
@@ -41,7 +40,6 @@ class ImageMessageViewModelTest : ShouldSpec() {
     lateinit var thumbnailsMock: Thumbnails
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -130,28 +128,33 @@ class ImageMessageViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun imageMessageViewModel(coroutineContext: CoroutineContext) = ImageMessageViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                    single { thumbnailsMock }
-                })
-            }.koin,
-            accountName = "test",
-            coroutineContext = coroutineContext,
-        ),
-        formattedDate = "21.11.2021",
-        showDateAbove = true,
-        formattedTime = null,
-        isByMe = false,
-        showChatBubbleEdge = true,
-        showBigGap = true,
-        showSender = MutableStateFlow(true),
-        sender = MutableStateFlow(UserInfoElement("User1")),
-        invitation = flowOf(null),
-        content = ImageMessageEventContent(""),
-        onOpenModal = mockFunction4(mocker),
-        mediaUploadProgress = MutableStateFlow(null),
-    )
+    private suspend fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageMessageViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return ImageMessageViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
+                                + module {
+                            single { thumbnailsMock }
+                        })
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext,
+            ),
+            formattedDate = "21.11.2021",
+            showDateAbove = true,
+            formattedTime = null,
+            isByMe = false,
+            showChatBubbleEdge = true,
+            showBigGap = true,
+            showSender = MutableStateFlow(true),
+            sender = MutableStateFlow(UserInfoElement("User1")),
+            invitation = flowOf(null),
+            content = RoomMessageEventContent.FileBased.Image(""),
+            onOpenModal = mockFunction4(mocker),
+            mediaUploadProgress = MutableStateFlow(null),
+        )
+    }
 }

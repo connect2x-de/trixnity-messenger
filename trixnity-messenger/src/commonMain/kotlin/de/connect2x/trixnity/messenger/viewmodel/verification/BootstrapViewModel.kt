@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import de.connect2x.trixnity.messenger.GetAccountNames
-import de.connect2x.trixnity.messenger.closeApp
+import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapStep.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
@@ -13,7 +14,7 @@ import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import net.folivo.trixnity.core.ErrorResponse
-import org.koin.core.component.get
+import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
@@ -35,7 +36,7 @@ interface BootstrapViewModelFactory {
 }
 
 interface BootstrapViewModel {
-    val accountName: String
+    val userId: UserId
     val showAccountName: StateFlow<Boolean>
     val step: StateFlow<BootstrapStep>
     val recoveryKey: StateFlow<String?>
@@ -63,10 +64,8 @@ open class BootstrapViewModelImpl(
     private val onClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, BootstrapViewModel {
 
-    private val getAccountNames = get<GetAccountNames>()
 
-    override val accountName: String = viewModelContext.accountName
-    override val showAccountName: StateFlow<Boolean> = channelFlow { send(getAccountNames().isNotEmpty()) }
+    override val showAccountName: StateFlow<Boolean> = matrixClients.map { it.isNotEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val step = MutableStateFlow(EXPLANATION)
 
@@ -194,6 +193,6 @@ open class BootstrapViewModelImpl(
     }
 
     override fun closeMessenger() {
-        closeApp()
+        getOrNull<CloseApp>()?.invoke()
     }
 }

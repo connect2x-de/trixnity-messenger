@@ -21,7 +21,6 @@ import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.core.model.events.m.room.*
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
 import org.kodein.mock.Mocker
 import kotlin.time.Duration.Companion.seconds
 
@@ -303,8 +302,8 @@ fun messageEvent(
 
 class MessageEventBuilder {
     var content: MessageEventContent? = null
-    fun text(message: String): TextMessageEventContent {
-        val result = TextMessageEventContent(message)
+    fun text(message: String): RoomMessageEventContent.TextBased.Text {
+        val result = RoomMessageEventContent.TextBased.Text(message)
         content = result
         return result
     }

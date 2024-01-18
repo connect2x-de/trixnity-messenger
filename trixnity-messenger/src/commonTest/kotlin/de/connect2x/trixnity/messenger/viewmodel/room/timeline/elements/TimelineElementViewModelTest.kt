@@ -2,12 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.should
@@ -15,10 +13,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import isTimelineEvent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
@@ -38,7 +34,7 @@ import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
 import org.kodein.mock.Mock
@@ -75,7 +71,6 @@ class TimelineElementViewModelTest : ShouldSpec() {
     private lateinit var roomUserMeMocker: Mocker.Every<Flow<RoomUser?>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -109,7 +104,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
         should("display a text message") {
             val cut = timelineElementViewModel(
                 timelineEventFlow = MutableStateFlow(
-                    timelineEvent(messageEvent(TextMessageEventContent(body = "Hello World")))
+                    timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Hello World")))
                 ),
                 eventId = EventId("bla"),
                 coroutineContext = coroutineContext,
@@ -129,7 +124,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             roomUserMeMocker returns roomUserMutableStateFlow
             val cut = timelineElementViewModel(
                 timelineEventFlow = MutableStateFlow(
-                    timelineEvent(messageEvent(TextMessageEventContent(body = "Hello World")))
+                    timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Hello World")))
                 ),
                 eventId = EventId("bla"),
                 coroutineContext = coroutineContext,
@@ -152,7 +147,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     eventId = EventId("bla"),
                     coroutineContext = coroutineContext
                 )
-            timelineEventFlow.value = timelineEvent(messageEvent(TextMessageEventContent(body = "Hello World")))
+            timelineEventFlow.value =
+                timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Hello World")))
             testCoroutineScheduler.advanceUntilIdle()
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
@@ -190,7 +186,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                         sessionId = ""
                     )
                 ),
-                content = Result.success(TextMessageEventContent(body = "Hello World"))
+                content = Result.success(RoomMessageEventContent.TextBased.Text(body = "Hello World"))
             )
             testCoroutineScheduler.advanceUntilIdle()
 
@@ -203,7 +199,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
 
         should("replace any message with its redacted counterpart") {
             val timelineEventFlow = MutableStateFlow(
-                timelineEvent(messageEvent(TextMessageEventContent(body = "Saying things I do not want to say")))
+                timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Saying things I do not want to say")))
             )
             val cut =
                 timelineElementViewModel(
@@ -276,7 +272,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val timelineEventFlow = MutableStateFlow(
                 timelineEvent(
                     messageEvent(
-                        TextMessageEventContent(
+                        RoomMessageEventContent.TextBased.Text(
                             body = "I am replacing something else",
                             relatesTo = RelatesTo.Replace(eventId = EventId("I am replaced"))
                         )
@@ -299,38 +295,43 @@ class TimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun timelineElementViewModel(
+    private suspend fun timelineElementViewModel(
         timelineEventFlow: StateFlow<TimelineEvent?>,
         eventId: EventId,
         canLoadMoreBefore: StateFlow<Boolean> = MutableStateFlow(false),
         canLoadMoreAfter: StateFlow<Boolean> = MutableStateFlow(false),
         isDirect: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ) = TimelineElementHolderViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                    single { downloadManagerMock }
-                })
-            }.koin,
-            accountName = "test",
-            coroutineContext = coroutineContext
-        ),
-        key = eventId.full,
-        selectedRoomId = roomId,
-        timelineEventFlow = timelineEventFlow,
-        eventId = eventId,
-        canLoadMoreBefore = canLoadMoreBefore,
-        canLoadMoreAfter = canLoadMoreAfter,
-        isDirect = isDirect,
-        isReadFlow = MutableStateFlow(false),
-        readBy = MutableStateFlow(listOf()),
-        shouldShowUnreadMarkerFlow = MutableStateFlow(false),
-        onMessageEdited = mockFunction1(mocker),
-        onMessageRepliedTo = mockFunction1(mocker),
-        onOpenModal = mockFunction4(mocker),
-    )
+    ): TimelineElementHolderViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return TimelineElementHolderViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                                module {
+                                    single { downloadManagerMock }
+                                })
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext
+            ),
+            key = eventId.full,
+            selectedRoomId = roomId,
+            timelineEventFlow = timelineEventFlow,
+            eventId = eventId,
+            canLoadMoreBefore = canLoadMoreBefore,
+            canLoadMoreAfter = canLoadMoreAfter,
+            isDirect = isDirect,
+            isReadFlow = MutableStateFlow(false),
+            readBy = MutableStateFlow(listOf()),
+            shouldShowUnreadMarkerFlow = MutableStateFlow(false),
+            onMessageEdited = mockFunction1(mocker),
+            onMessageRepliedTo = mockFunction1(mocker),
+            onOpenModal = mockFunction4(mocker),
+        )
+    }
 
     private fun timelineEvent(
         event: RoomEvent<*>,

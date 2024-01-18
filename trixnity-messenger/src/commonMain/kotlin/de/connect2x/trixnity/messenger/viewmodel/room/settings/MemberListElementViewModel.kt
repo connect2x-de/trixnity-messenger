@@ -237,7 +237,7 @@ class MemberListElementViewModelImpl(
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListKickUserErrorOffline()
             } else {
-                matrixClient.api.rooms.kickUser(
+                matrixClient.api.room.kickUser(
                     selectedRoomId,
                     userId = userId,
                     null,

@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.RoomHeaderElement
-import de.connect2x.trixnity.messenger.viewmodel.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -49,10 +47,48 @@ interface RoomHeaderViewModelFactory {
     companion object : RoomHeaderViewModelFactory
 }
 
+data class RoomHeaderInfo(
+    val roomName: String,
+    val roomImageInitials: String,
+    val roomImage: ByteArray?,
+    val presence: Presence?,
+    val isEncrypted: Boolean,
+    val isPublic: Boolean,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as RoomHeaderInfo
+
+        if (roomName != other.roomName) return false
+        if (roomImageInitials != other.roomImageInitials) return false
+        if (roomImage != null) {
+            if (other.roomImage == null) return false
+            if (!roomImage.contentEquals(other.roomImage)) return false
+        } else if (other.roomImage != null) return false
+        if (presence != other.presence) return false
+        if (isEncrypted != other.isEncrypted) return false
+        if (isPublic != other.isPublic) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = roomName.hashCode()
+        result = 31 * result + roomImageInitials.hashCode()
+        result = 31 * result + (roomImage?.contentHashCode() ?: 0)
+        result = 31 * result + (presence?.hashCode() ?: 0)
+        result = 31 * result + isEncrypted.hashCode()
+        result = 31 * result + isPublic.hashCode()
+        return result
+    }
+}
+
 interface RoomHeaderViewModel {
     val error: StateFlow<String?>
     val isBackButtonVisible: StateFlow<Boolean>
-    val roomHeaderElement: StateFlow<RoomHeaderElement>
+    val roomHeaderInfo: StateFlow<RoomHeaderInfo>
     val usersTyping: StateFlow<String?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val canVerifyUser: StateFlow<Boolean>
@@ -85,7 +121,7 @@ open class RoomHeaderViewModelImpl(
     private val onShowRoomSettings: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
 
-    override val roomHeaderElement: StateFlow<RoomHeaderElement>
+    override val roomHeaderInfo: StateFlow<RoomHeaderInfo>
     override val userTrustLevel: StateFlow<UserTrustLevel?>
     override val canVerifyUser: StateFlow<Boolean>
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -121,10 +157,10 @@ open class RoomHeaderViewModelImpl(
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     init {
-        roomHeaderElement =
+        roomHeaderInfo =
             combine(
                 matrixClient.room.getById(selectedRoomId),
-                roomName.getRoomNameElement(selectedRoomId, matrixClient),
+                roomName.getRoomName(selectedRoomId, matrixClient),
                 userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
                 matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId)
             ) { room, roomNameElement, userPresence, joinRules ->
@@ -136,14 +172,14 @@ open class RoomHeaderViewModelImpl(
                     ).fold(
                         onSuccess = { it },
                         onFailure = {
-                            log.error(it) { "Cannot load avatar image for room '${roomNameElement.roomName}'." }
+                            log.error(it) { "Cannot load avatar image for room '${roomNameElement}'." }
                             null
                         }
                     )
                 }?.toByteArray()
-                RoomHeaderElement(
-                    roomNameElement.roomName,
-                    initials.compute(roomNameElement.roomName),
+                RoomHeaderInfo(
+                    roomNameElement,
+                    initials.compute(roomNameElement),
                     roomImage,
                     userPresence?.presence,
                     room?.encrypted == true,
@@ -152,7 +188,7 @@ open class RoomHeaderViewModelImpl(
             }.stateIn(
                 coroutineScope,
                 SharingStarted.WhileSubscribed(),
-                RoomHeaderElement(
+                RoomHeaderInfo(
                     roomName = "",
                     roomImageInitials = initials.compute(selectedRoomId.full),
                     roomImage = null,
@@ -263,8 +299,8 @@ open class RoomHeaderViewModelImpl(
 class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isBackButtonVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val roomHeaderElement: MutableStateFlow<RoomHeaderElement> = MutableStateFlow(
-        RoomHeaderElement(
+    override val roomHeaderInfo: MutableStateFlow<RoomHeaderInfo> = MutableStateFlow(
+        RoomHeaderInfo(
             roomName = "Dev Channel",
             roomImageInitials = "DC",
             roomImage = null,

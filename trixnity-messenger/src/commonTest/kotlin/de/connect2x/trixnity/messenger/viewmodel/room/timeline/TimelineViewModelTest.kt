@@ -5,15 +5,13 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import com.benasher44.uuid.uuid4
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.retry
-import io.kotest.assertions.timing.continually
-import io.kotest.assertions.until.fixed
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -42,7 +40,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -108,7 +106,7 @@ class TimelineViewModelTest : ShouldSpec() {
     )
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             coroutineScope = CoroutineScope(Dispatchers.Default)
             mocker.reset()
@@ -442,17 +440,17 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = RoomId("not this room", "localhost"),
-                        content = TextMessageEventContent(body = "Hello"),
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                     ),
                     RoomOutboxMessage(
                         transactionId = "2",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "Right")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Right")
                     ),
                     RoomOutboxMessage(
                         transactionId = "3",
                         roomId = RoomId("totally not this room", "localhost"),
-                        content = TextMessageEventContent(body = "from outer space")
+                        content = RoomMessageEventContent.TextBased.Text(body = "from outer space")
                     )
                 )
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
@@ -499,7 +497,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "Hello World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
                     )
                 )
             timeline(mocker, roomServiceMock, roomId) {}
@@ -518,7 +516,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "Hello World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
                     )
                 )
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
@@ -544,7 +542,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "Hello World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
                     )
                 )
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
@@ -762,12 +760,12 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "Hello"),
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                     ),
                     RoomOutboxMessage(
                         transactionId = "2",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "World")
                     ),
                 )
 
@@ -784,7 +782,7 @@ class TimelineViewModelTest : ShouldSpec() {
             val cut = timelineViewModel()
 
             val result = cut.timelineElementHolderViewModels waitForSize 3  // 1 message + 2 outbox
-            continually(2.seconds, interval = 10.milliseconds.fixed()) {
+            continually(2.seconds) {
                 (result[1].timelineElementViewModel.value as RoomMessageViewModel).showChatBubbleEdge shouldBe true
                 (result[2].timelineElementViewModel.value as RoomMessageViewModel).showChatBubbleEdge shouldBe false
             }
@@ -796,12 +794,12 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "Hello"),
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                     ),
                     RoomOutboxMessage(
                         transactionId = "2",
                         roomId = roomId,
-                        content = TextMessageEventContent(body = "World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "World")
                     ),
                 )
 
@@ -827,7 +825,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "transactionId-1",
                     roomId = roomId,
-                    content = TextMessageEventContent(body = "Hello"),
+                    content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                 ),
             )
             cut.timelineElementHolderViewModels waitForSize 1
@@ -840,7 +838,7 @@ class TimelineViewModelTest : ShouldSpec() {
             }
             timelineMock.mockRoomServiceTimelineEventCalls()
 
-            continually(2.seconds, interval = 10.milliseconds.fixed()) {
+            continually(2.seconds) {
                 cut.timelineElementHolderViewModels.first() shouldHaveSize 1
                 cut.timelineElementHolderViewModels.first()[0].key shouldBe "transactionId-1"
             }
@@ -863,7 +861,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "transactionId-1",
                     roomId = roomId,
-                    content = TextMessageEventContent(body = "Hello to you!"),
+                    content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
                 ),
             )
             cut.timelineElementHolderViewModels waitForSize 2
@@ -872,12 +870,12 @@ class TimelineViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "transactionId-1",
                     roomId = roomId,
-                    content = TextMessageEventContent(body = "Hello to you!"),
+                    content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
                 ),
                 RoomOutboxMessage(
                     transactionId = "transactionId-2",
                     roomId = roomId,
-                    content = TextMessageEventContent(body = "My second message.")
+                    content = RoomMessageEventContent.TextBased.Text(body = "My second message.")
                 )
             )
             cut.timelineElementHolderViewModels waitForSize 3
@@ -961,38 +959,46 @@ class TimelineViewModelTest : ShouldSpec() {
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koinApplication {
-                    modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                        single { clock }
-                        single<RoomHeaderViewModelFactory> {
-                            object : RoomHeaderViewModelFactory {
-                                override fun create(
-                                    viewModelContext: MatrixClientViewModelContext,
-                                    selectedRoomId: RoomId,
-                                    isBackButtonVisible: MutableStateFlow<Boolean>,
-                                    onBack: () -> Unit,
-                                    onVerifyUser: () -> Unit,
-                                    onShowRoomSettings: () -> Unit
-                                ): RoomHeaderViewModel {
-                                    return roomHeaderViewModelMock
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(
+                                UserId(
+                                    "test",
+                                    "server"
+                                ) to matrixClientMock
+                            )
+                        ) + module {
+                            single { clock }
+                            single<RoomHeaderViewModelFactory> {
+                                object : RoomHeaderViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        isBackButtonVisible: MutableStateFlow<Boolean>,
+                                        onBack: () -> Unit,
+                                        onVerifyUser: () -> Unit,
+                                        onShowRoomSettings: () -> Unit
+                                    ): RoomHeaderViewModel {
+                                        return roomHeaderViewModelMock
+                                    }
                                 }
                             }
-                        }
-                        single<InputAreaViewModelFactory> {
-                            object : InputAreaViewModelFactory {
-                                override fun create(
-                                    viewModelContext: MatrixClientViewModelContext,
-                                    selectedRoomId: RoomId,
-                                    onMessageEditFinished: (EventId) -> Unit,
-                                    onMessageReplyToFinished: (EventId) -> Unit,
-                                    onShowAttachmentSendView: (file: FileDescriptor) -> Unit
-                                ): InputAreaViewModel {
-                                    return inputAreaViewModelMock
+                            single<InputAreaViewModelFactory> {
+                                object : InputAreaViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        onMessageEditFinished: (EventId) -> Unit,
+                                        onMessageReplyToFinished: (EventId) -> Unit,
+                                        onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                                    ): InputAreaViewModel {
+                                        return inputAreaViewModelMock
+                                    }
                                 }
                             }
-                        }
-                    })
+                        })
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),

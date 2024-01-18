@@ -3,13 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
-import de.connect2x.trixnity.messenger.util.launchPop
-import de.connect2x.trixnity.messenger.util.popSuspending
-import de.connect2x.trixnity.messenger.util.pushSuspending
+import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileDescriptor
+import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 class AvatarCutterRouter(
@@ -18,25 +15,26 @@ class AvatarCutterRouter(
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
+        serializer = Config.serializer(),
         initialConfiguration = Config.None,
         key = "avatarCutter",
         childFactory = ::createChild,
     )
 
-    private fun createChild(config: Config, componentContext: ComponentContext): AvatarCutterWrapper =
+    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {
-            is Config.None -> AvatarCutterWrapper.None
-            is Config.AvatarCutter -> AvatarCutterWrapper.AvatarCutter(
+            is Config.None -> Wrapper.None
+            is Config.AvatarCutter -> Wrapper.AvatarCutter(
                 viewModelContext.get<AvatarCutterViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.accountName),
+                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     file = config.file,
                     onClose = ::onClose,
                 )
             )
         }
 
-    suspend fun show(accountName: String, file: FileDescriptor) {
-        navigation.pushSuspending(Config.AvatarCutter(accountName, file))
+    suspend fun show(userId: UserId, file: FileDescriptor) {
+        navigation.pushSuspending(Config.AvatarCutter(userId, file))
     }
 
     suspend fun close() {
@@ -48,16 +46,20 @@ class AvatarCutterRouter(
     }
 
 
-    sealed class Config : Parcelable {
-        @Parcelize
-        data class AvatarCutter(val accountName: String, val file: FileDescriptor) : Config()
+    @Serializable
+    sealed class Config {
+        @Serializable
+        data class AvatarCutter(
+            val userId: UserId,
+            @Serializable(with = FileDescriptorSerializer::class) val file: FileDescriptor
+        ) : Config()
 
-        @Parcelize
-        object None : Config()
+        @Serializable
+        data object None : Config()
     }
 
-    sealed class AvatarCutterWrapper {
-        class AvatarCutter(val avatarCutterViewModel: AvatarCutterViewModel) : AvatarCutterWrapper()
-        object None : AvatarCutterWrapper()
+    sealed class Wrapper {
+        class AvatarCutter(val viewModel: AvatarCutterViewModel) : Wrapper()
+        data object None : Wrapper()
     }
 }

@@ -1,12 +1,8 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
-import de.connect2x.trixnity.messenger.MessengerConfig
-import de.connect2x.trixnity.messenger.integrationtests.messenger.createMessenger
 import de.connect2x.trixnity.messenger.integrationtests.messenger.registerAccountWithToken
-import de.connect2x.trixnity.messenger.integrationtests.util.cleanup
-import de.connect2x.trixnity.messenger.integrationtests.util.itModules
+import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -14,8 +10,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.setMain
-import org.koin.core.KoinApplication
-import org.koin.dsl.koinApplication
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import javax.crypto.Mac
@@ -29,7 +23,6 @@ private val log = KotlinLogging.logger { }
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 @Testcontainers
 class RegistrationIT {
-    private lateinit var koinApplication: KoinApplication
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
 
     @Container
@@ -39,21 +32,11 @@ class RegistrationIT {
     fun beforeEach(): Unit = runBlocking {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
-
-        MessengerConfig.instance.appName = "timmyRegistrationIT" // for different DB locations
-
-        koinApplication = koinApplication {
-            modules(
-                trixnityMessengerModule(),
-                itModules(),
-            )
-        }
     }
 
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        cleanup()
     }
 
     @Test
@@ -70,7 +53,7 @@ class RegistrationIT {
                 }.bodyAsText()
             "\"token\":\\s*\"([^\"]*)\"".toRegex().find(body)?.groupValues?.getOrNull(1)?.let { token ->
                 log.info { "token: $token" }
-                val messenger = createMessenger(koinApplication)
+                val messenger = createTestMatrixMessenger()
                 messenger.registerAccountWithToken(
                     serverUrl = baseUrl,
                     token = token
@@ -90,7 +73,12 @@ class RegistrationIT {
             log.info("nonceBody: $nonceBody")
             "\"nonce\":\\s*\"([^\"]*)\"".toRegex().find(nonceBody)?.groupValues?.getOrNull(1)?.let { nonce ->
                 val macAlgorithm = Mac.getInstance("HmacSHA1")
-                macAlgorithm.init(SecretKeySpec("8XRC-cObB+9MaK+f~n=,9TL&;5+#w6Djp&cI3:FFJay=h4FkHS".encodeToByteArray(), "HmacSHA1"))
+                macAlgorithm.init(
+                    SecretKeySpec(
+                        "8XRC-cObB+9MaK+f~n=,9TL&;5+#w6Djp&cI3:FFJay=h4FkHS".encodeToByteArray(),
+                        "HmacSHA1"
+                    )
+                )
                 val mac =
                     macAlgorithm.doFinal(nonce.encodeToByteArray() + ByteArray(1) { 0x00 } +
                             username.encodeToByteArray() + ByteArray(1) { 0x00 } +

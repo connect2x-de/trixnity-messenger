@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import net.folivo.trixnity.core.model.UserId
 
 interface RedoSelfVerificationViewModelFactory {
     fun create(
@@ -17,7 +18,7 @@ interface RedoSelfVerificationViewModelFactory {
 }
 
 interface RedoSelfVerificationViewModel {
-    val accountName: String
+    val userId: UserId
     fun startSelfVerification()
     fun close()
 }
@@ -27,8 +28,6 @@ open class RedoSelfVerificationViewModelImpl(
     private val onStartSelfVerification: () -> Unit,
     private val onClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RedoSelfVerificationViewModel {
-
-    override val accountName: String = viewModelContext.accountName
 
     override fun startSelfVerification() {
         onStartSelfVerification()

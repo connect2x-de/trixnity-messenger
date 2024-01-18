@@ -2,16 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.files.Download
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
-import de.connect2x.trixnity.messenger.viewmodel.files.FileTransferProgressElement
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -23,7 +19,11 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.media.MediaService
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.utils.toByteArray
+import net.folivo.trixnity.utils.toByteArrayFlow
 import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -45,11 +45,8 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
     @Mock
     lateinit var mediaServiceMock: MediaService
 
-    @Fake
-    lateinit var encryptedFile: EncryptedFile
-
     init {
-        Dispatchers.setMain(testMainDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
@@ -62,8 +59,6 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                         }
                     )
                 }.koin
-                every { downloadManagerMock.getProgressElement(isAny()) } returns MutableStateFlow(null)
-                every { downloadManagerMock.getSuccess(isAny()) } returns MutableStateFlow(false)
                 every { matrixClientMock.media } returns mediaServiceMock
             }
         }
@@ -71,30 +66,28 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         should("download a file and return the result if successful") {
             val file = "download".encodeToByteArray()
             mocker.every {
-                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isDownload(), isAny())
-            } returns async { Result.success(file) }
+                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isAny(), isAny(), isAny(), isAny())
+            } returns async { Result.success(file.toByteArrayFlow()) }
 
             val cut = fileBasedMessageViewModel()
             cut.openSaveFileDialog()
 
-            val progressElement = MutableStateFlow<FileTransferProgressElement?>(FileTransferProgressElement(0f, ""))
-            val downloadFile = cut.downloadFile(progressElement)
+            val downloadFile = cut.downloadFile()
 
-            downloadFile.getFileResult().getOrNull() shouldBe file
+            downloadFile.getFileResult().getOrNull()?.toByteArray() shouldBe file
             cut.saveFileDialogOpen.value shouldBe false
         }
 
         should("download a file and set Result to 'failure' if not successful") {
             mocker.every {
-                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isDownload(), isAny())
+                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isAny(), isAny(), isAny(), isAny())
             } returns async { Result.failure(RuntimeException("Oh no!")) }
 
 
             val cut = fileBasedMessageViewModel()
             cut.openSaveFileDialog()
 
-            val progressElement = MutableStateFlow<FileTransferProgressElement?>(FileTransferProgressElement(0f, ""))
-            val downloadFile = cut.downloadFile(progressElement)
+            val downloadFile = cut.downloadFile()
 
             downloadFile.getFileResult().exceptionOrNull() should beOfType<RuntimeException>()
             cut.saveFileDialogOpen.value shouldBe true // to show error message
@@ -104,18 +97,16 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             val scope = CoroutineScope(Dispatchers.Default)
 
             mocker.every {
-                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isDownload(), isAny())
+                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isAny(), isAny(), isAny(), isAny())
             } returns scope.async {
                 delay(5.seconds)
-                Result.success("download".encodeToByteArray())
+                Result.success("download".encodeToByteArray().toByteArrayFlow())
             }
 
             val cut = fileBasedMessageViewModel()
             cut.openSaveFileDialog()
 
-            val progressElement =
-                MutableStateFlow<FileTransferProgressElement?>(FileTransferProgressElement(0f, ""))
-            val downloadFile = cut.downloadFile(progressElement)
+            val downloadFile = cut.downloadFile()
 
             val job = scope.launch(Dispatchers.Default) {
                 delay(100.milliseconds)
@@ -142,16 +133,15 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        trixnityMessengerModule(),
-                        testMatrixClientModule(matrixClientMock),
-                        module {
-                            single { downloadManagerMock }
-                        })
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                                module {
+                                    single { downloadManagerMock }
+                                })
                 }.koin,
-                accountName = "test",
+                userId = UserId("test", "server"),
             ),
-            url = "mxc://localhost/123456",
-            encryptedFile = encryptedFile,
+            url = "mxc://localhost/unencrypted123456",
+            encryptedFile = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
             invitation = flowOf(""),
             formattedDate = "",
             showDateAbove = false,
@@ -167,8 +157,8 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
 
     private class FileBasedMessageViewModelInstance(
         viewModelContext: MatrixClientViewModelContext,
-        override val url: String?,
-        override val encryptedFile: EncryptedFile?,
+        url: String?,
+        encryptedFile: EncryptedFile?,
         invitation: Flow<String?>,
         override val formattedDate: String,
         override val showDateAbove: Boolean,
@@ -178,18 +168,11 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         override val showBigGap: Boolean,
         override val showSender: StateFlow<Boolean>,
         override val sender: StateFlow<UserInfoElement>,
-    ) : AbstractFileBasedMessageViewModel(viewModelContext), ViewModelContext by viewModelContext {
+    ) : AbstractFileBasedMessageViewModel(
+        viewModelContext,
+        RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile)
+    ), ViewModelContext by viewModelContext {
         override val invitation: StateFlow<String?> =
             invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-        override fun getFileNameWithExtension(): String = "test.jpg"
     }
-
-    private fun ArgConstraintsBuilder.isDownload(
-        capture: MutableList<Download>? = null
-    ): Download =
-        isValid(ArgConstraint(capture, { "isDownload" }) {
-            if (it.fileUrl == "mxc://localhost/123456" && it.fileName == "test.jpg") ArgConstraint.Result.Success
-            else ArgConstraint.Result.Failure { "Expected download 'mxc://localhost/123456' with 'test.jpg', but got $it." }
-        })
 }

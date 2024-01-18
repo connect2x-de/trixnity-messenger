@@ -1,20 +1,15 @@
 package de.connect2x.trixnity.messenger
 
-import com.russhwolf.settings.Settings
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.RoomName
-import de.connect2x.trixnity.messenger.viewmodel.RoomNameImpl
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManager
-import de.connect2x.trixnity.messenger.viewmodel.files.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
@@ -26,24 +21,14 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
 import de.connect2x.trixnity.messenger.viewmodel.settings.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import de.connect2x.trixnity.messenger.viewmodel.verification.*
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.datetime.Clock
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
 import org.koin.dsl.module
-
-private val log = KotlinLogging.logger {}
-
-data class NamedMatrixClients(val list: StateFlow<List<NamedMatrixClient>>)
 
 fun interface HttpUserAgent {
     operator fun invoke(): String
@@ -51,15 +36,6 @@ fun interface HttpUserAgent {
 
 fun interface HttpClientFactory {
     operator fun invoke(): (HttpClientConfig<*>.() -> Unit) -> HttpClient
-}
-
-// error is only in IDE (@see https://youtrack.jetbrains.com/issue/KTIJ-7642/HMPP-IDE-False-positive-suspend-modifier-is-not-allowed-on-a-single-abstract-member-for-common-code-if-JVM-target-present)
-fun interface CreateRepositoriesModule {
-    suspend operator fun invoke(accountName: String): Module
-}
-
-fun interface CreateMediaStore {
-    suspend operator fun invoke(accountName: String): MediaStore
 }
 
 fun interface CreateMatrixClientConfiguration {
@@ -70,112 +46,86 @@ fun interface DebugName {
     operator fun invoke(): String
 }
 
-fun trixnityMessengerModule() = module {
-    single<Clock> { Clock.System }
-    single<CoroutineScope> {
-        val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            log.error(throwable) { "Exception in coroutineContext $coroutineContext" }
-        }
-        CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
-    }
+fun createDefaultTrixnityMessengerModules() = listOf(
+    module {
+        single<Clock> { Clock.System }
 
-    single<HttpClientFactory> {
-        val userAgent = getOrNull<HttpUserAgent>()?.invoke()
-        HttpClientFactory {
-            if (userAgent != null) defaultTrixnityHttpClientFactory(userAgent = userAgent)
-            else defaultTrixnityHttpClientFactory(userAgent = userAgent)
-        }
-    }
-    single<Secrets> { Secrets }
-    single<DbPassword> {
-        DbPasswordImpl(get())
-    }
-    single<CreateRepositoriesModule> {
-        CreateRepositoriesModule { createRepositoriesModule(it, get()) }
-    }
-    single<CreateMediaStore> {
-        CreateMediaStore { createMediaStore(it) }
-    }
-    single<CreateMatrixClientConfiguration> {
-        CreateMatrixClientConfiguration {
-            {
-                name = getOrNull<DebugName>()?.invoke()
-                setOwnMessagesAsFullyRead = true
-                httpClientFactory = get<HttpClientFactory>()()
-                lastRelevantEventFilter =
-                    { it.content is RoomMessageEventContent || it.isEncrypted }
+        single<HttpClientFactory> {
+            val userAgent = getOrNull<HttpUserAgent>()?.invoke()
+            HttpClientFactory {
+                if (userAgent != null) defaultTrixnityHttpClientFactory(userAgent = userAgent)
+                else defaultTrixnityHttpClientFactory(userAgent = userAgent)
             }
         }
-    }
-
-    single<FilteringUrlHandler> {
-        val urlHandler = getOrNull<UrlHandler>() ?: UrlHandlerBase()
-        FilteringUrlHandler(urlHandler, get())
-    }
-    single<Settings> { createSettings() }
-    single<MessengerSettings> { MessengerSettingsImpl(get()) }
-    single<GetAccountNames> { GetAccountNamesImpl() }
-
-    single<Initials> { Initials }
-    single<VerifyAccount> { VerifyAccountImpl() }
-    single<IsNetworkAvailable> { IsNetworkAvailable }
-    single<GetFileInfo> { GetFileInfo }
-    single<RelevantTimelineEvents> { RelevantTimelineEvents }
-
-    single<Languages> { DefaultLanguages }
-    single<I18n> { object : I18n(get(), get()) {} }
-    single<RoomName> { RoomNameImpl(get(), get()) }
-    single<RoomInviter> { RoomInviterImpl() }
-    single<UserBlocking> { UserBlockingImpl() }
-
-    single<DownloadManager> { DownloadManagerImpl() }
-    single<Thumbnails> { ThumbnailsImpl() }
-    single<RichRepliesComputations> {
-        RichRepliesComputationsImpl(
-            get(),
-            get(),
-            FileNameComputations(get())
-        )
-    }
-    single<DirectRoom> { DirectRoomImpl() }
-    single<GetActiveVerification> { GetActiveVerificationImpl() }
-    single<ActiveVerifications> { ActiveVerificationsImpl() }
-    single<UserPresence> { UserPresenceImpl(get()) }
-    single<Search> { SearchImpl(get(), get()) }
-    single<RunInitialSync> {
-        object : RunInitialSync {
-            override fun invoke(accountName: String): Flow<Boolean> {
-                // on Desktop, when the scope of the caller (a view model) is ended, the app in most cases is ended as well
-                // -> it is OK to cancel the initial sync in this case as the JVM is not running anymore
-                return channelFlow {
-                    val matrixClient =
-                        (get<NamedMatrixClients>().list.value.find { it.accountName == accountName }?.matrixClient?.value
-                            ?: throw IllegalStateException("Cannot find account '$accountName'."))
-                    log.info { "matrixClient: $matrixClient" }
-                    send(
-                        InitialSync.run(matrixClient)
-                    )
+        single<CreateMatrixClientConfiguration> {
+            CreateMatrixClientConfiguration {
+                {
+                    name = getOrNull<DebugName>()?.invoke()
+                    setOwnMessagesAsFullyRead = true
+                    httpClientFactory = get<HttpClientFactory>()()
+                    lastRelevantEventFilter =
+                        { it.content is RoomMessageEventContent || it.isEncrypted }
                 }
             }
         }
-    }
 
-    single<RootViewModelFactory> { RootViewModelFactory }
-    single<MainViewModelFactory> { MainViewModelFactory }
+        single<MatrixClientFactory> {
+            MatrixClientFactoryImpl(get(), get(), get(), get())
+        }
+        single<MatrixClients> {
+            MatrixClientsImpl(get(), get(), get(), get())
+        }
 
-    includes(timelineElementModule())
+        single<Initials> { Initials }
+        single<VerifyAccount> { VerifyAccountImpl() }
+        single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
-    includes(connectingViewModels())
-    includes(filesViewModels())
-    includes(syncViewModels())
-    includes(roomListViewModels())
-    includes(settingsViewModels())
-    includes(timelineElementsViewModels())
-    includes(timelineViewModels())
-    includes(verificationViewModels())
-    includes(roomViewModels())
-    includes(roomSettingsViewModels())
-}
+        single<Languages> { DefaultLanguages }
+        single<I18n> { object : I18n(get(), get(), get()) {} }
+        single<RoomName> { RoomNameImpl(get(), get()) }
+        single<RoomInviter> { RoomInviterImpl() }
+        single<UserBlocking> { UserBlockingImpl() }
+        single<ComputeFileName> { ComputeFileNameImpl(get()) }
+
+        single<DownloadManager> { DownloadManagerImpl() }
+        single<Thumbnails> { ThumbnailsImpl() }
+        single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get(), get()) }
+        single<DirectRoom> { DirectRoomImpl() }
+        single<ActiveVerifications> { ActiveVerificationsImpl() }
+        single<UserPresence> { UserPresenceImpl(get()) }
+        single<Search> { SearchImpl(get(), get()) }
+        single<RunInitialSync> { RunInitialSync }
+        single<DragAndDropHandler> { DragAndDropHandlerBase() }
+
+        single<RootViewModelFactory> { RootViewModelFactory }
+        single<MainViewModelFactory> { MainViewModelFactory }
+    },
+    timelineElementModule(),
+    connectingViewModels(),
+    filesViewModels(),
+    syncViewModels(),
+    roomListViewModels(),
+    settingsViewModels(),
+    timelineElementsViewModels(),
+    timelineViewModels(),
+    verificationViewModels(),
+    roomViewModels(),
+    roomSettingsViewModels(),
+    // platform-specific implementations
+    generalPlatformModule(),
+    platformCreateRepositoriesModuleModule(),
+    platformCreateMediaStoreModule(),
+    platformConvertSecretString(),
+    platformGetSystemLangModule(),
+    platformGetFileInfoModule(),
+    platformDeleteAccountDataModule(),
+    platformMatrixMessengerSettingsHolderModule(),
+    platformSendLogToDevsModule(),
+    platformGetDefaultDisplayNameModule(),
+    platformIsNetworkAvailableModule(),
+    platformCloseAppModule(),
+    platformUrlHandlerModule(),
+)
 
 private fun timelineElementModule() = module {
     single<TimelineElementRules> { DefaultTimelineElementRules }
@@ -189,7 +139,7 @@ private fun connectingViewModels() = module {
     single<MatrixClientInitializationViewModelFactory> {
         MatrixClientInitializationViewModelFactory
     }
-    single<MatrixClientLogoutViewModelFactory> { MatrixClientLogoutViewModelFactory }
+    single<RemoveMatrixAccountViewModelFactory> { RemoveMatrixAccountViewModelFactory }
     single<StoreFailureViewModelFactory> { StoreFailureViewModelFactory }
     single<AddMatrixAccountViewModelFactory> { AddMatrixAccountViewModelFactory }
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
@@ -269,11 +219,6 @@ private fun timelineViewModels() = module {
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }
-    single<TimelineViewModelConfig> {
-        object : TimelineViewModelConfig {
-            override val autoLoadBefore: Boolean = true
-        }
-    }
 }
 
 private fun verificationViewModels() = module {
@@ -290,3 +235,5 @@ private fun verificationViewModels() = module {
     single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
+
+expect fun generalPlatformModule(): Module

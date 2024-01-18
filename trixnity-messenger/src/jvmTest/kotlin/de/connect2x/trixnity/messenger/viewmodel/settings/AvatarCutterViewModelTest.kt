@@ -2,28 +2,30 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
+import de.connect2x.trixnity.messenger.util.FileInfo
+import de.connect2x.trixnity.messenger.util.GetFileInfo
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.mock.MediaServiceMock
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.FileInfo
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.GetFileInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
+import okio.Path.Companion.toPath
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -48,7 +50,6 @@ class AvatarCutterViewModelTest : ShouldSpec() {
     private val onCloseMock = mockFunction0<Unit>(mocker)
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
@@ -136,19 +137,24 @@ class AvatarCutterViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun avatarCutterViewModel(coroutineContext: CoroutineContext) = AvatarCutterViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(trixnityMessengerModule(), testMatrixClientModule(matrixClientMock), module {
-                    single { getFileInfoMock }
-                })
-            }.koin,
-            accountName = "test",
-            coroutineContext = coroutineContext
-        ),
-        "file",
-        onCloseMock,
-    )
+    private suspend fun avatarCutterViewModel(coroutineContext: CoroutineContext): AvatarCutterViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return AvatarCutterViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                                module {
+                                    single { getFileInfoMock }
+                                })
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext
+            ),
+            "file".toPath(),
+            onCloseMock,
+        )
+    }
 
 }

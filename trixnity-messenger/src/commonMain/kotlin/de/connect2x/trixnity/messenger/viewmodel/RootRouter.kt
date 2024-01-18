@@ -3,42 +3,39 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.essenty.parcelable.Parcelable
-import com.arkivanov.essenty.parcelable.Parcelize
 import com.benasher44.uuid.uuid4
-import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.LoadStoreException
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
 class RootRouter(
     private val viewModelContext: ViewModelContext,
-    private val matrixClientService: MatrixClientService,
-    private val initialSyncOnceIsFinished: (Boolean) -> Unit,
-    private val onRemoveAccount: (String) -> Unit,
-    private val minimizeMessenger: () -> Unit,
 ) {
-    private val getAccountNames = viewModelContext.get<GetAccountNames>()
+    private val matrixClients = viewModelContext.get<MatrixClients>()
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
-        initialConfiguration = Config.MatrixClientInitialization,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.None,
         key = "RootRouter-${uuid4()}",
         childFactory = ::createChild,
     )
 
-    private fun createChild(config: Config, componentContext: ComponentContext): RootWrapper {
+    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper {
         return when (config) {
-            is Config.MatrixClientInitialization -> RootWrapper.MatrixClientInitialization(
+            is Config.None -> Wrapper.None
+            is Config.MatrixClientInitialization -> Wrapper.MatrixClientInitialization(
                 viewModelContext.get<MatrixClientInitializationViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        matrixClientService = matrixClientService,
                         onNoAccounts = ::showAddMatrixAccount,
                         onInitializationSuccess = ::showMain,
                         onInitializationFailure = ::showAddMatrixAccount,
@@ -46,17 +43,16 @@ class RootRouter(
                     )
             )
 
-            is Config.MatrixClientLogout -> RootWrapper.MatrixClientLogout(
-                viewModelContext.get<MatrixClientLogoutViewModelFactory>()
+            is Config.RemoveMatrixAccount -> Wrapper.MatrixClientLogout(
+                viewModelContext.get<RemoveMatrixAccountViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        matrixClientService = matrixClientService,
-                        accountName = config.accountName,
-                        onLogoutCompleted = ::showInitialization,
+                        userId = config.userId,
+                        onRemoveCompleted = ::showInitialization,
                     )
             )
 
-            is Config.AddMatrixAccount -> RootWrapper.AddMatrixAccount(
+            is Config.AddMatrixAccount -> Wrapper.AddMatrixAccount(
                 viewModelContext.get<AddMatrixAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onAddMatrixAccountMethod = ::showAddMatrixAccountMethod,
@@ -64,21 +60,19 @@ class RootRouter(
                 )
             )
 
-            is Config.PasswordLogin -> RootWrapper.PasswordLogin(
+            is Config.PasswordLogin -> Wrapper.PasswordLogin(
                 viewModelContext.get<PasswordLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    matrixClientService = matrixClientService,
                     onLogin = ::showMainOnLogin,
                     onBack = ::backToAddMatrixAccount,
                 )
             )
 
-            is Config.SSOLogin -> RootWrapper.SSOLogin(
+            is Config.SSOLogin -> Wrapper.SSOLogin(
                 viewModelContext.get<SSOLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    matrixClientService = matrixClientService,
                     providerId = config.providerId,
                     providerName = config.providerName,
                     onLogin = ::showMainOnLogin,
@@ -86,53 +80,41 @@ class RootRouter(
                 )
             )
 
-            is Config.RegisterNewAccount -> RootWrapper.RegisterNewAccount(
+            is Config.RegisterNewAccount -> Wrapper.RegisterNewAccount(
                 viewModelContext.get<RegisterNewAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    matrixClientService = matrixClientService,
                     onLogin = ::showMainOnLogin,
                     onBack = ::backToAddMatrixAccount,
                 )
             )
 
             is Config.Main -> {
-                val matrixClients = matrixClientService.matrixClients.value
-                matrixClients.forEach {
-                    val matrixClient = it.matrixClient.value
-                    checkNotNull(matrixClient) { "matrixClient ${it.accountName} missing" }
-                }
-
                 log.debug { "MatrixClients: $matrixClients" }
-                viewModelContext.getKoin().loadModules(
-                    listOf(
-                        module {
-                            single { NamedMatrixClients(matrixClientService.matrixClients) }
-                        }
-                    )
-                )
-                RootWrapper.Main(
+                Wrapper.Main(
                     viewModelContext.get<MainViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        initialSyncOnceIsFinished = initialSyncOnceIsFinished,
-                        minimizeMessenger = minimizeMessenger,
                         onCreateNewAccount = ::showAddMatrixAccount,
-                        onRemoveAccount = onRemoveAccount,
+                        onRemoveAccount = ::showRemoveAccount,
                     ).apply { start() }
                 )
             }
 
-            is Config.StoreFailure -> RootWrapper.StoreFailure(
+            is Config.StoreFailure -> Wrapper.StoreFailure(
                 viewModelContext.get<StoreFailureViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    accountName = config.accountName,
+                    userId = config.userId,
                     exception = config.exception,
                 )
             )
         }
     }
 
-    private fun showInitialization() {
+    fun showNone() {
+        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.None)
+    }
+
+    fun showInitialization() {
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
     }
 
@@ -143,8 +125,8 @@ class RootRouter(
     private fun showMainOnLogin() = viewModelContext.coroutineScope.launch {
         navigation.replaceAllSuspending(Config.Main)
         val instance = stack.value.active.instance
-        if (instance is RootWrapper.Main) {
-            instance.mainViewModel.closeAccountsOverview()
+        if (instance is Wrapper.Main) {
+            instance.viewModel.closeAccountsOverview()
         }
     }
 
@@ -153,9 +135,9 @@ class RootRouter(
     }
 
     private fun cancelAddMatrixAccount() = viewModelContext.coroutineScope.launch {
-        if (getAccountNames().isEmpty()) {
+        if (matrixClients.value.isEmpty()) {
             log.info { "There are no MatrixClients configured yet, so close the app" }
-            closeApp()
+            viewModelContext.getOrNull<CloseApp>()?.invoke()
         } else {
             navigation.popSuspending()
         }
@@ -189,55 +171,59 @@ class RootRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun showStoreFailure(accountName: String, exception: LoadStoreException) {
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.StoreFailure(accountName, exception))
+    private fun showStoreFailure(userId: UserId, exception: LoadStoreException) {
+        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.StoreFailure(userId, exception))
     }
 
-    fun showLogout(accountName: String) {
-        navigation.launchPush(viewModelContext.coroutineScope, Config.MatrixClientLogout(accountName))
+    private fun showRemoveAccount(userId: UserId) {
+        navigation.launchPush(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
-    sealed class RootWrapper {
-        object None : RootWrapper()
-        class MatrixClientInitialization(val matrixClientInitializationViewModel: MatrixClientInitializationViewModel) :
-            RootWrapper()
+    sealed class Wrapper {
+        data object None : Wrapper()
+        class MatrixClientInitialization(val viewModel: MatrixClientInitializationViewModel) :
+            Wrapper()
 
-        class MatrixClientLogout(val matrixClientLogoutViewModel: MatrixClientLogoutViewModel) : RootWrapper()
+        class MatrixClientLogout(val viewModel: RemoveMatrixAccountViewModel) : Wrapper()
 
-        class Main(val mainViewModel: MainViewModel) : RootWrapper()
-        class AddMatrixAccount(val addMatrixAccountViewModel: AddMatrixAccountViewModel) : RootWrapper()
-        class PasswordLogin(val passwordLoginViewModel: PasswordLoginViewModel) : RootWrapper()
-        class SSOLogin(val ssoLoginViewModel: SSOLoginViewModel) : RootWrapper()
-        class RegisterNewAccount(val registerNewAccountViewModel: RegisterNewAccountViewModel) : RootWrapper()
-        class StoreFailure(val storeFailureViewModel: StoreFailureViewModel) : RootWrapper()
+        class Main(val viewModel: MainViewModel) : Wrapper()
+        class AddMatrixAccount(val viewModel: AddMatrixAccountViewModel) : Wrapper()
+        class PasswordLogin(val viewModel: PasswordLoginViewModel) : Wrapper()
+        class SSOLogin(val viewModel: SSOLoginViewModel) : Wrapper()
+        class RegisterNewAccount(val viewModel: RegisterNewAccountViewModel) : Wrapper()
+        class StoreFailure(val viewModel: StoreFailureViewModel) : Wrapper()
     }
 
-    sealed class Config : Parcelable {
-        @Parcelize
-        object MatrixClientInitialization : Config()
+    @Serializable
+    sealed class Config {
+        @Serializable
+        data object None : Config()
 
-        @Parcelize
-        object Main : Config()
+        @Serializable
+        data object MatrixClientInitialization : Config()
 
-        @Parcelize
-        data class MatrixClientLogout(val accountName: String) : Config()
+        @Serializable
+        data object Main : Config()
 
-        @Parcelize
-        object AddMatrixAccount : Config()
+        @Serializable
+        data class RemoveMatrixAccount(val userId: UserId) : Config()
 
-        @Parcelize
+        @Serializable
+        data object AddMatrixAccount : Config()
+
+        @Serializable
         data class PasswordLogin(val serverUrl: String) : Config()
 
-        @Parcelize
+        @Serializable
         data class SSOLogin(val serverUrl: String, val providerId: String, val providerName: String) : Config()
 
-        @Parcelize
+        @Serializable
         data class RegisterNewAccount(val serverUrl: String) : Config()
 
-        @Parcelize
+        @Serializable
         data class StoreFailure(
-            val accountName: String,
-            val exception: @RawValue LoadStoreException,
+            val userId: UserId,
+            val exception: LoadStoreException,
         ) : Config()
     }
 }

@@ -3,23 +3,17 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.trixnityMessengerModule
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.*
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
-import de.connect2x.trixnity.messenger.viewmodel.util.testMainDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.testMatrixClientModule
-import de.connect2x.trixnity.messenger.viewmodel.util.testMessengerSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -44,11 +38,10 @@ import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberListElementViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
-
     val mocker = Mocker()
 
     private val me = UserId("user1", "localhost")
@@ -105,14 +98,13 @@ class MemberListElementViewModelTest : ShouldSpec() {
     private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
 
     init {
-        Dispatchers.setMain(testMainDispatcher)
         coroutineTestScope = true
 
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
 
-            i18n = object : I18n(DefaultLanguages, testMessengerSettings("en")) {}
+            i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -201,7 +193,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
                 val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
                 cut.kickUser(alice)
-                testCoroutineScheduler.advanceUntilIdle()
+                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
 
                 cut.error.value shouldBe ""
                 mocker.verifyWithSuspend(exhaustive = false, false) {
@@ -218,7 +210,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
                 cut.kickUser(alice)
 
-                testCoroutineScheduler.advanceUntilIdle()
+                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
                 // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
 
                 cut.error.value shouldNotBe null
@@ -239,7 +231,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
                 cut.kickUser(alice)
 
-                testCoroutineScheduler.advanceUntilIdle()
+                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
                 // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
 
                 cut.error.value shouldNotBe null
@@ -324,22 +316,24 @@ class MemberListElementViewModelTest : ShouldSpec() {
     }
 
 
-    private fun memberListElementViewModel(
+    private suspend fun memberListElementViewModel(
         coroutineContext: CoroutineContext, roomUser: RoomUser
-    ) = MemberListElementViewModelImpl(
-        viewModelContext = MatrixClientViewModelContextImpl(
-            componentContext = DefaultComponentContext(LifecycleRegistry()),
-            di = koinApplication {
-                modules(
-                    trixnityMessengerModule(),
-                    testMatrixClientModule(matrixClientMock),
-                )
-            }.koin,
-            accountName = "test",
-            coroutineContext = coroutineContext,
-        ),
-        roomUser,
-        error = MutableStateFlow(""),
-        selectedRoomId = roomId
-    )
+    ): MemberListElementViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        return MemberListElementViewModelImpl(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
+                di = koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                    )
+                }.koin,
+                userId = UserId("test", "server"),
+                coroutineContext = coroutineContext,
+            ),
+            roomUser,
+            error = MutableStateFlow(""),
+            selectedRoomId = roomId
+        )
+    }
 }

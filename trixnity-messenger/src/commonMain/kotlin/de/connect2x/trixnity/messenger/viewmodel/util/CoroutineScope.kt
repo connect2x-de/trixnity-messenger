@@ -57,7 +57,3 @@ fun coroutineScope(
     lifecycle.doOnDestroy(scope::cancel)
     return scope
 }
-
-expect val ioCoroutineContext: CoroutineContext
-
-expect fun runBlocking(block: suspend () -> Unit)

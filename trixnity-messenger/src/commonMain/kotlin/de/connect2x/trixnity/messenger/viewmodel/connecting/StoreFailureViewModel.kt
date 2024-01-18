@@ -1,18 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.LoadStoreException
-import de.connect2x.trixnity.messenger.closeApp
-import de.connect2x.trixnity.messenger.deleteAccountDataLocally
+import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.DeleteAccountData
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.core.model.UserId
+import org.koin.core.component.inject
 
 interface StoreFailureViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        accountName: String,
+        userId: UserId,
         exception: LoadStoreException,
     ): StoreFailureViewModel {
-        return StoreFailureViewModelImpl(viewModelContext, accountName, exception)
+        return StoreFailureViewModelImpl(viewModelContext, userId, exception)
     }
 
     companion object : StoreFailureViewModelFactory
@@ -26,19 +29,21 @@ interface StoreFailureViewModel {
 
 open class StoreFailureViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val _accountName: String,
+    private val userId: UserId,
     exception: LoadStoreException,
 ) : ViewModelContext by viewModelContext, StoreFailureViewModel {
 
     override val deleteEnabled = exception is LoadStoreException.StoreAccessException
 
     override fun closeApplication() {
-        closeApp()
+        getOrNull<CloseApp>()?.invoke()
     }
+
+    private val deleteAccountData by inject<DeleteAccountData>()
 
     override fun deleteDb() {
         coroutineScope.launch {
-            deleteAccountDataLocally(_accountName)
+            deleteAccountData(userId)
         }
     }
 }
