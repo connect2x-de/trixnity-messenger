@@ -22,12 +22,16 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
+import net.folivo.trixnity.core.model.RoomId
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
@@ -133,6 +137,97 @@ suspend fun MatrixMessengerWithRoot.registerAccountWithToken(serverUrl: String, 
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
         mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel.accountViewModel.accounts.first { it.isNotEmpty() }
         mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.Wrapper.None::class)
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(root) {
+    withTimeout(15.seconds) {
+        log.info { "create a chat with user '$username'" }
+        val roomListRouterStack = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel.roomListRouterStack
+        val roomListViewModel = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        roomListViewModel.createNewRoom()
+        val createNewChatViewModel = roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewChat::class).viewModel
+        log.debug { "search for user '$username'" }
+        createNewChatViewModel.createNewRoomViewModel.userSearchTerm.update { username }
+        createNewChatViewModel.createNewRoomViewModel.waitForUserResults.first { it.not() }
+        val users =
+            createNewChatViewModel.createNewRoomViewModel.foundUsers.first { users -> users.any { it.displayName == username } }
+        createNewChatViewModel.onUserClick(users.first())
+        log.debug { "chat should have been created -> check to find it in the list" }
+        val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
+            .viewModel.sortedRoomListElementViewModels
+        sortedRoomListElementViewModels.flatMapLatest { roomListElements ->
+            combine(roomListElements.map { it.viewModel.roomName }) { roomNames ->
+                log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
+                roomNames.any { it == username }
+            }
+        }.first { it }
+        log.debug { "found room -> return" }
+        sortedRoomListElementViewModels.value.first { it.viewModel.roomName.value == username }
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun MatrixMessengerWithRoot.createGroupWithUsers(groupName: String, vararg usernames: String) = with(root) {
+    withTimeout(20.seconds) {
+        log.info { "create a group '$groupName' with users '${usernames.joinToString { it }}'" }
+        val roomListRouterStack = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel.roomListRouterStack
+        val roomListViewModel = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        roomListViewModel.createNewRoom()
+        roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewChat::class).viewModel.createGroup()
+        val createNewGroupViewModel =
+            roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewGroup::class).viewModel
+        usernames.forEach { username ->
+            log.debug { "search for user '$username'" }
+            createNewGroupViewModel.createNewRoomViewModel.userSearchTerm.update { username }
+            createNewGroupViewModel.createNewRoomViewModel.waitForUserResults.first { it.not() }
+            val users =
+                createNewGroupViewModel.createNewRoomViewModel.foundUsers.first { users -> users.any { it.displayName == username } }
+            createNewGroupViewModel.onUserClick(users.first())
+        }
+        createNewGroupViewModel.optionalRoomName.update { groupName }
+        createNewGroupViewModel.createNewGroup()
+        log.debug { "group '$groupName' should have been created -> check to find it in the list" }
+        val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
+            .viewModel.sortedRoomListElementViewModels
+        sortedRoomListElementViewModels.flatMapLatest { roomListElements ->
+            combine(roomListElements.map { it.viewModel.roomName }) { roomNames ->
+                log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
+                roomNames.any { it == groupName }
+            }
+        }.first { it }
+        log.debug { "found group -> return" }
+        sortedRoomListElementViewModels.value.first { it.viewModel.roomName.value == groupName }
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: RoomId) = with(root) {
+    withTimeout(10.seconds) {
+        log.info { "reject the invitation at $roomId" }
+        log.debug { "found room $roomId, now reject the invitation" }
+        findRoomWithId(roomId).viewModel.rejectInvitationAndBlockInviter()
+        stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+            .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+            .sortedRoomListElementViewModels.first { it.none { it.roomId == roomId } }
+        Unit
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.findRoomWithId(roomId: RoomId) = with(root) {
+    withTimeout(10.seconds) {
+        log.info { "try to find the room $roomId" }
+        val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+        val roomListRouterStack = mainViewModel.roomListRouterStack
+        val roomListElements = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
+            .viewModel.sortedRoomListElementViewModels.first { roomListElements ->
+                log.debug { "found ${roomListElements.size} rooms" }
+                roomListElements.any {
+                    log.trace { "found ${it.roomId}" }
+                    it.roomId == roomId
+                }
+            }
+        roomListElements.first()
     }
 }
 

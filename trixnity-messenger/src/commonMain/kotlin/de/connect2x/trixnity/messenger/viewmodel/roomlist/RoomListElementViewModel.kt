@@ -209,12 +209,15 @@ open class RoomListElementViewModelImpl(
 
     override fun rejectInvitationAndBlockInviter() {
         coroutineScope.launch {
+            log.debug { "reject the invitation to ${roomId}and block inviter" }
             roomInviter.getInviter(matrixClient, roomId)?.let { inviter ->
-                userBlocking.blockUser(matrixClient, inviter) {
-                    error.value = i18n.blockUserError(inviter.full)
-                }
-                if (error.value == null) {
+                log.debug { "inviter to block: ${inviter.full}" }
+                userBlocking.blockUser(matrixClient, inviter, onSuccess = {
+                    log.debug { "blocked user $inviter" }
                     rejectInvitationSuspend()
+                }) {
+                    log.error { "cannot block user $inviter" }
+                    error.value = i18n.blockUserError(inviter.full)
                 }
             }
         }

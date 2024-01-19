@@ -36,12 +36,16 @@ fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
     }
     single<CreateRepositoriesModule> {
         object : CreateRepositoriesModule {
-            val module by lazy { createInMemoryRepositoriesModule() }
+            val modules: MutableMap<UserId, Module> = HashMap()
 
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
-                CreateRepositoriesModule.CreateResult(module, null)
+            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+                val module = createInMemoryRepositoriesModule()
+                modules += (userId to module)
+                return CreateRepositoriesModule.CreateResult(module, null)
+            }
 
-            override suspend fun load(userId: UserId, databasePassword: SecretString?): Module = module
+            override suspend fun load(userId: UserId, databasePassword: SecretString?): Module =
+                modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
         }
     }
     single<CreateMediaStore> {
@@ -53,12 +57,12 @@ fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
     single<Paths> {
         object : Paths {
             override val fileSystem: FileSystem = FakeFileSystem()
-            override val rootPath: Path = "/test".toPath()
+            override val rootPath: Path = "/test/$debugName".toPath()
         }
     }
 }
 
-suspend fun createTestMatrixMessenger() = MatrixMessengerWithRoot(MatrixMessenger.create {
-    modules = createDefaultTrixnityMessengerModules() + createTestTrixnityMessengerModule()
+suspend fun createTestMatrixMessenger(debugName: String = "client") = MatrixMessengerWithRoot(MatrixMessenger.create {
+    modules = createDefaultTrixnityMessengerModules() + createTestTrixnityMessengerModule(debugName)
 }
 )

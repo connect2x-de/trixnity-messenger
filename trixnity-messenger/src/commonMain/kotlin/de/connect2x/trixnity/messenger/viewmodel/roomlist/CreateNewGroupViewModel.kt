@@ -6,7 +6,12 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
@@ -102,7 +107,7 @@ open class CreateNewGroupViewModelImpl(
         val optionalName = optionalRoomName.value.ifBlank { null }
 
         coroutineScope.launch {
-            matrixClient.api.rooms.createRoom(
+            matrixClient.api.room.createRoom(
                 name = optionalName,
                 preset = preset,
                 isDirect = false,
