@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.util.SecretString
+import de.connect2x.trixnity.messenger.util.SecretByteArray
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -18,7 +18,7 @@ data class MatrixMessengerSettings(
 @Serializable
 data class MatrixMessengerAccountSettings(
     val userId: UserId,
-    val databasePassword: SecretString?,
+    val databasePassword: SecretByteArray?,
     val displayName: String? = null,
     val displayColor: Long? = null,
     val pushMode: PushMode = PushMode.NONE,
@@ -32,7 +32,7 @@ data class MatrixMessengerAccountSettings(
     companion object {
         fun withConfigDefaults(
             userId: UserId,
-            databasePassword: SecretString?,
+            databasePassword: SecretByteArray?,
             displayColor: Long?,
             config: MatrixMessengerConfiguration
         ) = MatrixMessengerAccountSettings(
