@@ -115,7 +115,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     generalPlatformModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
-    platformConvertSecretString(),
+    platformConvertSecretByteArray(),
     platformGetSystemLangModule(),
     platformGetFileInfoModule(),
     platformDeleteAccountDataModule(),

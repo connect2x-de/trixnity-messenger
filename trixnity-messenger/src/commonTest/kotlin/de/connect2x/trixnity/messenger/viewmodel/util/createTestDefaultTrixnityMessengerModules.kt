@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.*
-import de.connect2x.trixnity.messenger.util.SecretString
+import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -82,7 +82,7 @@ fun createTestDefaultTrixnityMessengerModules(
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
                 CreateRepositoriesModule.CreateResult(module, null)
 
-            override suspend fun load(userId: UserId, databasePassword: SecretString?): Module = module
+            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module = module
         }
     }
     single<CreateMediaStore> {

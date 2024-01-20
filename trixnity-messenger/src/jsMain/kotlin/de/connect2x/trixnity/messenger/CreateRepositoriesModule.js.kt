@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.util.SecretString
+import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.getRepositoryDatabaseName
 import net.folivo.trixnity.client.store.repository.indexeddb.createIndexedDBRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
@@ -16,7 +16,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                     databasePassword = null,
                 )
 
-            override suspend fun load(userId: UserId, databasePassword: SecretString?): Module =
+            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module =
                 createInternal(userId)
 
             private suspend fun createInternal(userId: UserId): Module =

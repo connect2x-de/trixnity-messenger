@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -48,6 +49,7 @@ open class MatrixClientInitializationViewModelImpl(
 
     override val currentState = MutableStateFlow("")
     private val matrixClients = get<MatrixClients>()
+    private val settings = get<MatrixMessengerSettingsHolder>()
 
     init {
         coroutineScope.launch {
@@ -59,7 +61,7 @@ open class MatrixClientInitializationViewModelImpl(
         currentState.value = i18n.matrixClientInitLoading()
 
         log.info { "init MatrixClients ${matrixClients.value.keys} from settings and store" }
-        if (matrixClients.value.isEmpty()) { // no account defined yet, show account creation
+        if (settings.value.accounts.isEmpty()) { // no account defined yet, show account creation
             onNoAccounts()
         } else {
             val initFromStoreResult = matrixClients.initFromStore()
@@ -74,7 +76,7 @@ open class MatrixClientInitializationViewModelImpl(
                 //  For the future: return a list of successul and failed initializations to the caller and let the caller decide
                 //  what to do (e.g., a failed account might get a warning page, but one could still use the other accounts).
                 initFromStoreResult.failures.isNotEmpty() -> onInitializationFailure()
-                
+
                 else -> {
                     currentState.value = i18n.matrixClientInitSuccess()
                     onInitializationSuccess()

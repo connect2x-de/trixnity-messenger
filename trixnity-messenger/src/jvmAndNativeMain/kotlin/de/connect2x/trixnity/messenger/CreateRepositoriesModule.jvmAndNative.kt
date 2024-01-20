@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.util.ConvertSecretString
+import de.connect2x.trixnity.messenger.util.ConvertSecretByteArray
 import de.connect2x.trixnity.messenger.util.Paths
-import de.connect2x.trixnity.messenger.util.SecretString
-import io.ktor.util.*
+import de.connect2x.trixnity.messenger.util.SecretByteArray
+import de.connect2x.trixnity.messenger.util.asFilesystemSafeString
 import io.realm.kotlin.Realm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -18,41 +18,41 @@ import org.koin.dsl.module
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val paths = get<Paths>()
-        val convertSecretString = get<ConvertSecretString>()
+        val convertSecretByteArray = get<ConvertSecretByteArray>()
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
                 withContext(Dispatchers.IO) {
                     val realmEncryptionKey = SecureRandom.nextBytes(Realm.ENCRYPTION_KEY_LENGTH)
                     val realmEncryptionKeyAsSecretString =
-                        convertSecretString(realmEncryptionKey.encodeBase64())
+                        convertSecretByteArray(realmEncryptionKey)
                     CreateRepositoriesModule.CreateResult(
                         module = createRealmRepositoriesModule {
                             directory(dbFolder(userId))
-                            if (realmEncryptionKeyAsSecretString !is SecretString.Unencrypted)
+                            if (realmEncryptionKeyAsSecretString !is SecretByteArray.Unencrypted)
                                 encryptionKey(realmEncryptionKey)
                         },
                         databasePassword =
-                        if (realmEncryptionKeyAsSecretString !is SecretString.Unencrypted) realmEncryptionKeyAsSecretString
+                        if (realmEncryptionKeyAsSecretString !is SecretByteArray.Unencrypted) realmEncryptionKeyAsSecretString
                         else null,
                     )
                 }
 
             override suspend fun load(
                 userId: UserId,
-                databasePassword: SecretString?,
+                databasePassword: SecretByteArray?,
             ): Module =
                 withContext(Dispatchers.IO) {
-                    val rawDatabasePassword = databasePassword?.let { convertSecretString(it) }
+                    val rawDatabasePassword = databasePassword?.let { convertSecretByteArray(it) }
                     createRealmRepositoriesModule {
                         directory(dbFolder(userId))
                         if (rawDatabasePassword != null)
-                            encryptionKey(rawDatabasePassword.encodeToByteArray())
+                            encryptionKey(rawDatabasePassword)
                     }
                 }
 
             private fun dbFolder(userId: UserId) =
-                paths.rootPath.resolve(userId.full).resolve("database").toString()
+                paths.rootPath.resolve(userId.asFilesystemSafeString()).resolve("database").toString()
 
         }
     }
