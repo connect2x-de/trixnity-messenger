@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.Paths
+import de.connect2x.trixnity.messenger.util.asFilesystemSafeString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -13,7 +14,9 @@ actual fun platformCreateMediaStoreModule(): Module = module {
         val paths = get<Paths>()
         CreateMediaStore { userId ->
             withContext(Dispatchers.IO) {
-                OkioMediaStore(paths.rootPath.resolve(userId.full).resolve("media"))
+                OkioMediaStore(
+                    paths.rootPath.resolve(userId.asFilesystemSafeString()).resolve("media")
+                )
             }
         }
     }

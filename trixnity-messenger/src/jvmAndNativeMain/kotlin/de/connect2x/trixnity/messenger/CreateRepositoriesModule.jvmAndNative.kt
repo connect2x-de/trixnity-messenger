@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.util.ConvertSecretString
 import de.connect2x.trixnity.messenger.util.Paths
 import de.connect2x.trixnity.messenger.util.SecretString
-import io.ktor.util.*
+import de.connect2x.trixnity.messenger.util.asFilesystemSafeString
 import io.realm.kotlin.Realm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -11,6 +11,8 @@ import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.store.repository.realm.createRealmRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.core.SecureRandom
+import okio.ByteString.Companion.decodeHex
+import okio.ByteString.Companion.toByteString
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -25,7 +27,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 withContext(Dispatchers.IO) {
                     val realmEncryptionKey = SecureRandom.nextBytes(Realm.ENCRYPTION_KEY_LENGTH)
                     val realmEncryptionKeyAsSecretString =
-                        convertSecretString(realmEncryptionKey.encodeBase64())
+                        convertSecretString(realmEncryptionKey.toByteString().hex())
                     CreateRepositoriesModule.CreateResult(
                         module = createRealmRepositoriesModule {
                             directory(dbFolder(userId))
@@ -47,12 +49,12 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                     createRealmRepositoriesModule {
                         directory(dbFolder(userId))
                         if (rawDatabasePassword != null)
-                            encryptionKey(rawDatabasePassword.encodeToByteArray())
+                            encryptionKey(rawDatabasePassword.decodeHex().toByteArray())
                     }
                 }
 
             private fun dbFolder(userId: UserId) =
-                paths.rootPath.resolve(userId.full).resolve("database").toString()
+                paths.rootPath.resolve(userId.asFilesystemSafeString()).resolve("database").toString()
 
         }
     }
