@@ -13,26 +13,26 @@ fun interface GetSecretStringKey {
     suspend operator fun invoke(id: String, create: () -> ByteArray): ByteArray?
 }
 
-open class ConvertSecretStringImpl(private val getSecretStringKey: GetSecretStringKey) : ConvertSecretString {
-    override suspend operator fun invoke(raw: String): SecretString {
-        val secretStringKey = getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
-            ?: return SecretString.Unencrypted(raw)
+open class ConvertSecretByteArrayImpl(private val getSecretStringKey: GetSecretStringKey) : ConvertSecretByteArray {
+    override suspend operator fun invoke(raw: ByteArray): SecretByteArray {
+        val secretByteArrayKey = getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
+            ?: return SecretByteArray.Unencrypted(raw)
         val encryptedStringSecret =
             encryptAesHmacSha2(
-                raw.encodeToByteArray(),
-                secretStringKey,
+                raw,
+                secretByteArrayKey,
                 SECRET_STRING_KEY_AES_HMAC_SHA2_ID
             )
-        return SecretString.AesHmacSha2(
+        return SecretByteArray.AesHmacSha2(
             iv = encryptedStringSecret.iv,
             ciphertext = encryptedStringSecret.ciphertext,
             mac = encryptedStringSecret.mac,
         )
     }
 
-    override suspend operator fun invoke(secret: SecretString): String = when (secret) {
-        is SecretString.Unencrypted -> secret.value
-        is SecretString.AesHmacSha2 -> {
+    override suspend operator fun invoke(secret: SecretByteArray): ByteArray = when (secret) {
+        is SecretByteArray.Unencrypted -> secret.value
+        is SecretByteArray.AesHmacSha2 -> {
             decryptAesHmacSha2(
                 content = AesHmacSha2EncryptedData(
                     iv = secret.iv,
@@ -43,7 +43,7 @@ open class ConvertSecretStringImpl(private val getSecretStringKey: GetSecretStri
                     getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
                 ) { "could not retrieve StringSecretkey $SECRET_STRING_KEY_AES_HMAC_SHA2_ID" },
                 name = SECRET_STRING_KEY_AES_HMAC_SHA2_ID
-            ).decodeToString()
+            )
         }
     }
 
@@ -51,9 +51,9 @@ open class ConvertSecretStringImpl(private val getSecretStringKey: GetSecretStri
 }
 
 expect fun platformGetSecretStringKeyModule(): Module
-actual fun platformConvertSecretString(): Module = module {
+actual fun platformConvertSecretByteArray(): Module = module {
     includes(platformGetSecretStringKeyModule())
-    single<ConvertSecretString> {
-        ConvertSecretStringImpl(get())
+    single<ConvertSecretByteArray> {
+        ConvertSecretByteArrayImpl(get())
     }
 }

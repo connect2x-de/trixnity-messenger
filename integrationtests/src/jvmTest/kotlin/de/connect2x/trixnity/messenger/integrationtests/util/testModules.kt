@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.util.Paths
-import de.connect2x.trixnity.messenger.util.SecretString
+import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.client.*
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
@@ -44,7 +44,7 @@ fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
                 return CreateRepositoriesModule.CreateResult(module, null)
             }
 
-            override suspend fun load(userId: UserId, databasePassword: SecretString?): Module =
+            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module =
                 modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
         }
     }

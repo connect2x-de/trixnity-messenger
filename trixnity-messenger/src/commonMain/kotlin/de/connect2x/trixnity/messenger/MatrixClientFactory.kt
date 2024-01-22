@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.MatrixClientFactory.LoginResult
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
-import de.connect2x.trixnity.messenger.util.SecretString
+import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import net.folivo.trixnity.client.MatrixClient
@@ -21,7 +21,7 @@ private val log = KotlinLogging.logger { }
 interface MatrixClientFactory {
     data class LoginResult(
         val matrixClient: MatrixClient,
-        val databasePassword: SecretString?,
+        val databasePassword: SecretByteArray?,
     )
 
     suspend fun login(
@@ -47,7 +47,7 @@ interface MatrixClientFactory {
 
     suspend fun initFromStore(
         userId: UserId,
-        databasePassword: SecretString?,
+        databasePassword: SecretByteArray?,
     ): Result<MatrixClient?>
 }
 
@@ -66,7 +66,7 @@ class MatrixClientFactoryImpl(
         checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<LoginResult> = kotlin.runCatching {
         log.debug { "login to account" }
-        var databasePassword: SecretString? = null
+        var databasePassword: SecretByteArray? = null
         LoginResult(
             matrixClient = MatrixClient.login(
                 baseUrl = baseUrl,
@@ -96,7 +96,7 @@ class MatrixClientFactoryImpl(
         checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<LoginResult> = kotlin.runCatching {
         log.debug { "login to account" }
-        var databasePassword: SecretString? = null
+        var databasePassword: SecretByteArray? = null
         LoginResult(
             matrixClient = MatrixClient.login(
                 loginType = LoginType.Token(),
@@ -125,7 +125,7 @@ class MatrixClientFactoryImpl(
         checkExisting: suspend (LoginInfo) -> Unit
     ): Result<LoginResult> = kotlin.runCatching {
         log.debug { "loginWith to account" }
-        var databasePassword: SecretString? = null
+        var databasePassword: SecretByteArray? = null
         LoginResult(
             matrixClient = MatrixClient.loginWith(
                 baseUrl = baseUrl,
@@ -148,7 +148,7 @@ class MatrixClientFactoryImpl(
 
     override suspend fun initFromStore(
         userId: UserId,
-        databasePassword: SecretString?,
+        databasePassword: SecretByteArray?,
     ): Result<MatrixClient?> = kotlin.runCatching {
         log.debug { "initFromStore (userId=$userId)" }
         MatrixClient.fromStore(
@@ -173,7 +173,7 @@ class MatrixClientFactoryImpl(
 
     private suspend fun loadRepositoriesModuleOrThrow(
         userId: UserId,
-        databasePassword: SecretString?,
+        databasePassword: SecretByteArray?,
     ): Module {
         log.debug { "load repositories module" }
         val repositoriesModule = try {

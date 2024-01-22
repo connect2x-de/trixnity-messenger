@@ -7,7 +7,10 @@ internal actual fun platformDeleteAccountDataModule(): Module = module {
     single<DeleteAccountData> {
         val paths = get<Paths>()
         DeleteAccountData { userId ->
-            paths.fileSystem.deleteRecursively(paths.rootPath.resolve(userId.full), mustExist = false)
+            paths.fileSystem.deleteRecursively(
+                paths.rootPath.resolve(userId.asFilesystemSafeString()),
+                mustExist = false
+            )
         }
     }
 }
