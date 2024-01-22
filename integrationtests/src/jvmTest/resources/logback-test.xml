@@ -12,7 +12,6 @@
 
     <logger name="de.connect2x.trixnity.messenger.integrationtests" level="DEBUG"/>
     <logger name="de.connect2x.trixnity.messenger" level="TRACE"/>
-    <!--    <logger name="net.folivo.trixnity.client.verification" level="TRACE"/>-->
     <logger name="org.testcontainers" level="INFO"/>
     <logger name="com.github.dockerjava" level="WARN"/>
 </configuration>

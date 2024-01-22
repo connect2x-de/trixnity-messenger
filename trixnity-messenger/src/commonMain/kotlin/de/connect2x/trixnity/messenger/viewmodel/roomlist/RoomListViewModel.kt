@@ -392,7 +392,7 @@ class RoomListViewModelImpl(
         canCreateNewRoomWithAccount =
             combine(accountViewModel.accounts, activeAccount) { allAccounts, activeAccount ->
                 allAccounts.size == 1 || activeAccount != null
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+            }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // has to eager as it is used as a helper
     }
 
     private fun resetSpacesWhenNotShown() {

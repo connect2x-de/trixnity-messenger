@@ -25,6 +25,9 @@ enable_registration_without_verification: true
 registration_requires_token: false
 registration_shared_secret: "8XRC-cObB+9MaK+f~n=,9TL&;5+#w6Djp&cI3:FFJay=h4FkHS"
 macaroon_secret_key: "Mt5JGQEpCPS~atJD,-2kX5QqG*NHW^lSCz+0w,o9Y:QGu7F2MY"
+user_directory:
+  enabled: true
+  search_all_users: true
 
 rc_message:
   per_second: 1000
