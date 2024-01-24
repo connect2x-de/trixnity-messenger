@@ -473,7 +473,7 @@ class RoomListViewModelImpl(
             when {
                 isInRoom -> onRoomSelected(matrixClient.userId, roomId)
                 else -> {
-                    // @TODO open preview, handle invites
+                    // TODO open preview, handle invites
                     log.info {"cannot select room, because we are not member of it"}
                 }
             }
