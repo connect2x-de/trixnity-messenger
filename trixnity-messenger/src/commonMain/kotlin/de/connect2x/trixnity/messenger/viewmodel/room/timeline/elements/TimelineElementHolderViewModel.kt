@@ -585,7 +585,7 @@ open class TimelineElementHolderViewModelImpl(
                         launch {
                             _redactionInProgress.value = true
                             _redactionError.value = null
-                            matrixClient.api.rooms.redactEvent(
+                            matrixClient.api.room.redactEvent(
                                 selectedRoomId,
                                 timelineEvent.eventId,
                                 txnId = uuid4().toString()

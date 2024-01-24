@@ -90,7 +90,7 @@ open class CreateNewChatViewModelImpl(
                 createNewRoomViewModel.existingDirectRooms.value[userId]?.iterator()?.next()?.let { goToRoom(it) }
             } else {
                 log.info { "create new room with $userId" }
-                matrixClient.api.rooms.createRoom(
+                matrixClient.api.room.createRoom(
                     isDirect = true,
                     invite = setOf(userId),
                     initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),

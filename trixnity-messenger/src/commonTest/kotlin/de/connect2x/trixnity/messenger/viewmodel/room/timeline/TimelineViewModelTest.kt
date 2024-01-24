@@ -127,7 +127,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 syncStateMocker = every { matrixClientMock.syncState }
                 syncStateMocker returns MutableStateFlow(SyncState.STARTED)
 
-                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiMock.room } returns roomsApiClientMock
                 everySuspending {
                     roomsApiClientMock.setReadMarkers(isAny(), isAny(), isAny(), isAny(), isNull())
                 } returns Result.success(Unit)

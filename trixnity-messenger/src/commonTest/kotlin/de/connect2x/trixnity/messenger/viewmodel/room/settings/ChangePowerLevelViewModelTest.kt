@@ -114,7 +114,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 syncStateMocker returns MutableStateFlow(SyncState.STARTED)
 
                 every { matrixClientMock.api } returns matrixClientServerApiMock
-                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
                 every {
                     roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")

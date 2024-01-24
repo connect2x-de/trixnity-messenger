@@ -120,7 +120,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 syncStateMocker returns MutableStateFlow(SyncState.STARTED)
                 every { matrixClientMock.api } returns matrixClientServerApiMock
 
-                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
                 every { matrixClientMock.userId } returns me
 

@@ -169,7 +169,7 @@ open class ChangePowerLevelViewModelImpl(
                         stateKey = ""
                     ).first()?.content ?: PowerLevelsEventContent()
                 val newUsers = oldPowerLevelsEventContent.users.plus(targetUser to powerLevel)
-                matrixClient.api.rooms.sendStateEvent(
+                matrixClient.api.room.sendStateEvent(
                     roomId = selectedRoomId,
                     oldPowerLevelsEventContent.copy(users = newUsers)
                 )

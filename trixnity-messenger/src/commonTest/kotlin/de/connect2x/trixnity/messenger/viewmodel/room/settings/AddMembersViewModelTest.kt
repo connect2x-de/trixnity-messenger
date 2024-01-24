@@ -87,7 +87,7 @@ class AddMembersViewModelTest : ShouldSpec() {
                 every { matrixClientMock.userId } returns userId1
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
                 every { matrixClientServerApiClientMock.users } returns usersApiClientMock
-                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
                 every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
             }
         }

@@ -111,7 +111,7 @@ class InputAreaViewModelTest : ShouldSpec() {
                 }.koin
                 every { matrixClientMock.userId } returns ourUserId
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
                 canSendEventMocker = every {
                     userServiceMock.canSendEvent(isAny(), isAny())

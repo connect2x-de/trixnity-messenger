@@ -78,7 +78,7 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
                 }.koin
                 every { matrixClientMock.userId } returns me
                 every { matrixClientMock.api } returns matrixClientServerApiMock
-                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
                 roomGetById = every { roomServiceMock.getById(roomId) }
                 roomGetById returns MutableStateFlow(
