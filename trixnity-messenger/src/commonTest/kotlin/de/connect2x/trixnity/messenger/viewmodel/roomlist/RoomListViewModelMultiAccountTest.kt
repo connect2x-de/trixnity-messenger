@@ -272,41 +272,41 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { onRoomSelectedMock.invoke(isAny(), isAny()) } returns Unit
 
                 every {
-                    roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock1))
+                    roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room1")
                 every {
-                    roomNameMock.getRoomName(roomId1, matrixClientMock1)
+                    roomNameMock.getRoomName(isEqual(roomId1), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room1")
                 every {
-                    roomNameMock.getRoomName(isRoomOf(roomId2), isEqual(matrixClientMock1))
+                    roomNameMock.getRoomName(isRoomOf(roomId2), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room2")
                 every {
-                    roomNameMock.getRoomName(roomId2, matrixClientMock1)
+                    roomNameMock.getRoomName(isEqual(roomId2), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room2")
                 roomName3Mocker =
-                    every { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock2)) }
+                    every { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock2), isAny()) }
                 roomName3Mocker returns flowOf("room3-but-also-room2")
                 every {
-                    roomNameMock.getRoomName(roomId3, matrixClientMock2)
+                    roomNameMock.getRoomName(isEqual(roomId3), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("room3-but-also-room2")
                 every {
-                    roomNameMock.getRoomName(isRoomOf(roomId4), isEqual(matrixClientMock2))
+                    roomNameMock.getRoomName(isRoomOf(roomId4), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("room4")
                 every {
-                    roomNameMock.getRoomName(roomId4, matrixClientMock2)
+                    roomNameMock.getRoomName(isEqual(roomId4), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("room4")
                 every {
-                    roomNameMock.getRoomName(isRoomOf(roomId5), isEqual(matrixClientMock3))
+                    roomNameMock.getRoomName(isRoomOf(roomId5), isEqual(matrixClientMock3), isAny())
                 } returns flowOf("room5")
                 every {
-                    roomNameMock.getRoomName(roomId5, matrixClientMock3)
+                    roomNameMock.getRoomName(isEqual(roomId5), isEqual(matrixClientMock3), isAny())
                 } returns flowOf("room5")
                 every {
-                    roomNameMock.getRoomName(isRoomOf(spaceId1), isEqual(matrixClientMock1))
+                    roomNameMock.getRoomName(isRoomOf(spaceId1), isEqual(matrixClientMock1), isAny())
                 } returns
                         flowOf("space and beyond")
                 every {
-                    roomNameMock.getRoomName(isRoomOf(spaceId2), isEqual(matrixClientMock2))
+                    roomNameMock.getRoomName(isRoomOf(spaceId2), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("space and beyond and beyonder")
                 every { roomServiceMock1.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
                 every { roomServiceMock2.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
@@ -663,7 +663,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { roomServiceMock1.getById(roomId2) } returns MutableStateFlow(room2)
                 every { roomServiceMock2.getById(roomId3) } returns MutableStateFlow(room3)
                 every {
-                    roomNameMock.getRoomName(isEqual(room3), isEqual(matrixClientMock2))
+                    roomNameMock.getRoomName(isEqual(room3), isEqual(matrixClientMock2), isAny())
                 } returns room3NameFlow
                 roomName3Mocker returns room3NameFlow
             }

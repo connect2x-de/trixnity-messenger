@@ -19,11 +19,13 @@ interface RoomName {
     fun getRoomName(
         roomId: RoomId,
         matrixClient: MatrixClient,
+        formatted: Boolean = true
     ): Flow<String>
 
     fun getRoomName(
         room: Room,
         matrixClient: MatrixClient,
+        formatted: Boolean = true
     ): Flow<String>
 
     suspend fun getInviterName(
@@ -38,6 +40,7 @@ open class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInv
     override fun getRoomName(
         roomId: RoomId,
         matrixClient: MatrixClient,
+        formatted: Boolean
     ): Flow<String> {
         return matrixClient.room.getById(roomId).flatMapLatest { room ->
             if (room == null) {
@@ -51,8 +54,9 @@ open class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInv
     override fun getRoomName(
         room: Room,
         matrixClient: MatrixClient,
+        formatted: Boolean
     ): Flow<String> {
-        return if (room.membership == Membership.INVITE) {
+        return if (room.membership == Membership.INVITE && formatted) {
             if (room.name != null) {
                 calculateRoomName(
                     room.roomId,
