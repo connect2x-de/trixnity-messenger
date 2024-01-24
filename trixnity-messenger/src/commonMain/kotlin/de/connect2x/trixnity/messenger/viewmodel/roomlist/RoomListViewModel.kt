@@ -530,6 +530,9 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun selectRoom(roomId: RoomId) {
     }
 
+    override fun redirectRoom(roomId: RoomId) {
+    }
+
     override fun errorDismiss() {
     }
 
