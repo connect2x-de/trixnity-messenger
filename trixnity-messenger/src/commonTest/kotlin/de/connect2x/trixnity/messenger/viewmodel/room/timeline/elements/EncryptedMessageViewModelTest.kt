@@ -24,6 +24,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
@@ -107,6 +108,8 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined,
             ),
+            timelineEventFlow = timelineEventFlow,
+            content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(ciphertext = "", sessionId = ""),
             formattedDate = "",
             showDateAbove = false,
             formattedTime = null,
@@ -116,7 +119,6 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(false),
             sender = MutableStateFlow(UserInfoElement("")),
             invitation = flowOf(""),
-            timelineEventFlow = timelineEventFlow,
         )
 
     private fun timelineEvent(content: Result<RoomEventContent>?) = TimelineEvent(

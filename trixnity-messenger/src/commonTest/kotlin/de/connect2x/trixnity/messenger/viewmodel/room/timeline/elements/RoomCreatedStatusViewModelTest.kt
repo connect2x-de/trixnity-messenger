@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
@@ -104,6 +105,8 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
+            timelineEvent = null,
+            content = CreateEventContent(creator = UserId("me", "local")),
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),

@@ -3,11 +3,16 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 
 interface TextMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: RoomMessageEventContent.TextBased,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -24,6 +29,8 @@ interface TextMessageViewModelFactory {
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             formattedDate,
             showDateAbove,
             formattedTime,
@@ -47,6 +54,8 @@ interface TextMessageViewModel : TextBasedViewModel
 
 open class TextMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    content: RoomMessageEventContent.TextBased,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,

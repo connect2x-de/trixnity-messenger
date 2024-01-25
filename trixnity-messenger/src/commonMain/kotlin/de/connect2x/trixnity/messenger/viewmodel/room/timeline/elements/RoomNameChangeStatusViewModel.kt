@@ -3,7 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
@@ -11,20 +15,22 @@ import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 interface RoomNameChangeStatusViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: NameEventContent,
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
         sender: Flow<UserInfoElement>,
-        timelineEvent: TimelineEvent,
         isDirectFlow: StateFlow<Boolean>,
     ): RoomNameChangeStatusViewModel {
         return RoomNameChangeStatusViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             formattedDate,
             showDateAbove,
             invitation,
             sender,
-            timelineEvent,
             isDirectFlow,
         )
     }
@@ -38,11 +44,12 @@ interface RoomNameChangeStatusViewModel : BaseTimelineElementViewModel {
 
 open class RoomNameChangeStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    content: NameEventContent,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     invitation: Flow<String?>,
     sender: Flow<UserInfoElement>,
-    timelineEvent: TimelineEvent,
     isDirectFlow: StateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomNameChangeStatusViewModel {
     override val invitation: StateFlow<String?> =
@@ -50,10 +57,7 @@ open class RoomNameChangeStatusViewModelImpl(
 
     override val roomNameChangeMessage =
         combine(sender, isDirectFlow) { userInfo, isDirect ->
-            val content = timelineEvent.event.content
-            require(content is NameEventContent)
-
-            val unsigned = timelineEvent.event.unsigned
+            val unsigned = timelineEvent?.event?.unsigned
             val previousContent =
                 if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
             val from = if (previousContent is NameEventContent) {

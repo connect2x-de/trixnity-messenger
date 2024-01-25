@@ -4,10 +4,14 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 
 interface RoomCreatedStatusViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: CreateEventContent,
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
@@ -15,7 +19,7 @@ interface RoomCreatedStatusViewModelFactory {
         isDirectFlow: StateFlow<Boolean>,
     ): RoomCreatedStatusViewModel {
         return RoomCreatedStatusViewModelImpl(
-            viewModelContext, formattedDate, showDateAbove, invitation, sender, isDirectFlow,
+            viewModelContext, timelineEvent, content, formattedDate, showDateAbove, invitation, sender, isDirectFlow,
         )
     }
 
@@ -28,6 +32,8 @@ interface RoomCreatedStatusViewModel : BaseTimelineElementViewModel {
 
 open class RoomCreatedStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    content: CreateEventContent,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     invitation: Flow<String?>,

@@ -6,12 +6,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.core.model.events.RedactedEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 
 private val log = KotlinLogging.logger { }
 
 interface EncryptedMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEventFlow: Flow<TimelineEvent?>,
+        content: EncryptedMessageEventContent,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -21,10 +25,11 @@ interface EncryptedMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        timelineEventFlow: Flow<TimelineEvent?>,
     ): EncryptedMessageViewModel {
         return EncryptedMessageViewModelImpl(
             viewModelContext,
+            timelineEventFlow,
+            content,
             formattedDate,
             showDateAbove,
             formattedTime,
@@ -33,8 +38,7 @@ interface EncryptedMessageViewModelFactory {
             showBigGap,
             showSender,
             sender,
-            invitation,
-            timelineEventFlow
+            invitation
         )
     }
 
@@ -47,6 +51,8 @@ interface EncryptedMessageViewModel : RoomMessageViewModel {
 
 open class EncryptedMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEventFlow: Flow<TimelineEvent?>,
+    content: EncryptedMessageEventContent,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -56,7 +62,6 @@ open class EncryptedMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    timelineEventFlow: Flow<TimelineEvent?>,
 ) : MatrixClientViewModelContext by viewModelContext, EncryptedMessageViewModel {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)

@@ -368,12 +368,13 @@ class UserVerificationViewModelTest : ShouldSpec() {
                 userId = me,
                 coroutineContext = Dispatchers.Unconfined
             ),
+            timelineEvent = null,
+            content = verificationRequestMessageEventContent,
             invitation = MutableStateFlow(""),
             formattedDate = "",
             showDateAbove = false,
             formattedTime = null,
             sender = MutableStateFlow(UserInfoElement("username")),
-            content = verificationRequestMessageEventContent,
             selectedRoomId = thisRoom,
             timelineEventId = timelineEventId,
         )

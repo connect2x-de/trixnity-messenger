@@ -12,6 +12,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
+import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -21,6 +22,8 @@ import org.koin.core.component.get
 interface VideoMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: RoomMessageEventContent.FileBased.Video,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -30,11 +33,12 @@ interface VideoMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        content: RoomMessageEventContent.FileBased.Video,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
     ): VideoMessageViewModel {
         return VideoMessageViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             formattedDate,
             showDateAbove,
             formattedTime,
@@ -44,7 +48,6 @@ interface VideoMessageViewModelFactory {
             showSender,
             sender,
             invitation,
-            content,
             onOpenModal,
         )
     }
@@ -66,6 +69,8 @@ interface VideoMessageViewModel : FileBasedMessageViewModel {
 
 open class VideoMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    private val content: RoomMessageEventContent.FileBased.Video,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -75,7 +80,6 @@ open class VideoMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val content: RoomMessageEventContent.FileBased.Video,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
