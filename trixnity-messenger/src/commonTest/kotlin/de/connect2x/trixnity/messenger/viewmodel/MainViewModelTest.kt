@@ -719,6 +719,9 @@ class MainViewModelTest : ShouldSpec() {
                                         override fun selectRoom(roomId: RoomId) {
                                         }
 
+                                        override fun redirectRoom(roomId: RoomId) {
+                                        }
+
                                         override fun errorDismiss() {
                                         }
 
