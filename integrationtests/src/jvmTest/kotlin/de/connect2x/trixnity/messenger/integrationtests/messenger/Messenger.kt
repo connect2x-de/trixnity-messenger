@@ -10,6 +10,8 @@ import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
@@ -211,6 +214,45 @@ suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: Ro
             .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
             .sortedRoomListElementViewModels.first { it.none { it.roomId == roomId } }
         Unit
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.acceptInvitationToRoom(roomId: RoomId) = with(root) {
+    withTimeout(10.seconds) {
+        log.info { "accept the invitation to room $roomId" }
+        val roomListElementViewModel = findRoomWithId(roomId).viewModel
+        roomListElementViewModel.isInvite.first { it ?: false }
+        roomListElementViewModel.acceptInvitation()
+        val roomName = roomListElementViewModel.roomName.first {
+            it?.startsWith("invitation")?.not() ?: false
+        } // TODO set language
+        log.info { "accepted invitation to room $roomId -> check whether room is open" }
+        val timelineViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+            .roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+            .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.map { it.roomName }.first { it == roomName }
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.leaveRoom(roomId: RoomId) = with(root) {
+    withTimeout(15.seconds) {
+        log.info { "leave room $roomId" }
+        val roomName = findRoomWithId(roomId).viewModel.roomName.first { it != null }
+        val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+        val roomListViewModel = mainViewModel
+            .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        roomListViewModel.selectRoom(roomId)
+        val timelineViewModel = mainViewModel
+            .roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+            .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.map { it.roomName }.first { it == roomName }
+        timelineViewModel.leaveRoom()
+        log.debug { "left room $roomId" }
+        mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.None::class)
+        roomListViewModel.sortedRoomListElementViewModels.first { roomListElements ->
+            roomListElements.none { it.roomId == roomId }
+        }
+        log.debug { "left room is no longer in room list" }
     }
 }
 
