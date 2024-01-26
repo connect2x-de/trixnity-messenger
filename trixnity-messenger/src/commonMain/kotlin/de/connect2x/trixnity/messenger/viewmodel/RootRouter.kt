@@ -9,6 +9,8 @@ import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
@@ -16,10 +18,12 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
     private val matrixClients = viewModelContext.get<MatrixClients>()
+
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
@@ -107,6 +111,16 @@ class RootRouter(
                     exception = config.exception,
                 )
             )
+        }
+    }
+
+    init {
+        viewModelContext.coroutineScope.launch {
+            matrixClients.scan(0 to 0) { old, new ->
+                old.second to new.size
+            }.collect { (old, new) ->
+                if (new < old) showInitialization()
+            }
         }
     }
 

@@ -1,25 +1,14 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
-import de.connect2x.trixnity.messenger.integrationtests.messenger.createChatWithUser
-import de.connect2x.trixnity.messenger.integrationtests.messenger.createGroupWithUsers
-import de.connect2x.trixnity.messenger.integrationtests.messenger.findRoomWithId
-import de.connect2x.trixnity.messenger.integrationtests.messenger.login
-import de.connect2x.trixnity.messenger.integrationtests.messenger.rejectTheInvitationToRoomAndBlock
-import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.messenger.*
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
+import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -43,7 +32,7 @@ class BlockUserIT {
     val synapseDocker = synapseDocker()
 
     @BeforeTest
-    fun beforeEach(): Unit = runBlocking {
+    fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
         val baseUrl = URLBuilder(
@@ -62,7 +51,7 @@ class BlockUserIT {
     }
 
     @Test
-    fun shouldBlockAUserOnInvitation(): Unit = runBlocking {
+    fun shouldBlockAUserOnInvitation(): Unit = runBlockingWithTimeout {
         withTimeout(30_000) {
             val messenger1 = createTestMatrixMessenger("client-1")
             val recoveryKey =

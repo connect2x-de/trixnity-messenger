@@ -73,7 +73,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
             MatrixClientFactoryImpl(get(), get(), get(), get())
         }
         single<MatrixClients> {
-            MatrixClientsImpl(get(), get(), get(), get())
+            MatrixClientsImpl(get(), get(), get(), get(), get())
         }
 
         single<Initials> { Initials }

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.integrationtests
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
+import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.ktor.http.*
 import kotlinx.coroutines.*
@@ -26,7 +27,7 @@ class VerificationIT {
     val synapseDocker = synapseDocker()
 
     @BeforeTest
-    fun beforeEach(): Unit = runBlocking {
+    fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
         val baseUrl = URLBuilder(
@@ -44,7 +45,7 @@ class VerificationIT {
     }
 
     @Test
-    fun shouldDoSelfVerificationWithRecoveryKeyAndEmojiCompare(): Unit = runBlocking {
+    fun shouldDoSelfVerificationWithRecoveryKeyAndEmojiCompare(): Unit = runBlockingWithTimeout {
         withTimeout(30_000) {
             val messenger1 = createTestMatrixMessenger()
             val recoveryKey =

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.trixnity.messenger.integrationtests.messenger.registerAccountWithToken
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
+import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
@@ -29,7 +30,7 @@ class RegistrationIT {
     val synapseDocker = synapseDocker(useRegistrationToken = true)
 
     @BeforeTest
-    fun beforeEach(): Unit = runBlocking {
+    fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
     }
@@ -40,7 +41,7 @@ class RegistrationIT {
     }
 
     @Test
-    fun shouldRegisterNewUserWithRegistrationToken(): Unit = runBlocking {
+    fun shouldRegisterNewUserWithRegistrationToken(): Unit = runBlockingWithTimeout {
         withTimeout(30_000) {
             val baseUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}"
             val httpClient = HttpClient()

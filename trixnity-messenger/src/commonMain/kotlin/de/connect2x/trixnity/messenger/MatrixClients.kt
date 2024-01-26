@@ -4,12 +4,8 @@ import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -53,11 +49,13 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
 data class AccountAlreadyExistsException(val userId: UserId) :
     IllegalStateException("account $userId already exists locally")
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MatrixClientsImpl(
     private val factory: MatrixClientFactory,
     private val deleteAccountData: DeleteAccountData,
     private val settings: MatrixMessengerSettingsHolder,
     private val config: MatrixMessengerConfiguration,
+    coroutineScope: CoroutineScope,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
     private val matrixClientServerApiClientFactory: (baseUrl: Url, accessToken: String) -> MatrixClientServerApiClient =
         { baseUrl, accessToken ->
@@ -65,6 +63,29 @@ class MatrixClientsImpl(
                 .apply { this.accessToken.value = accessToken }
         }
 ) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
+    init {
+        coroutineScope.launch {
+            flatMapLatest { matrixClients ->
+                combine(
+                    matrixClients.map { matrixClient -> matrixClient.value.loginState.map { matrixClient.key to it } }
+                ) { it.toMap() }
+            }.distinctUntilChanged()
+                .collect { matrixClientLoginStates ->
+                    log.debug { "check login states $matrixClientLoginStates" }
+                    matrixClientLoginStates.forEach { (userId, loginState) ->
+                        when (loginState) {
+                            MatrixClient.LoginState.LOGGED_OUT_SOFT, // TODO soft logout
+                            MatrixClient.LoginState.LOGGED_OUT -> {
+                                remove(userId)
+                            }
+
+                            MatrixClient.LoginState.LOGGED_IN, null -> {}
+                        }
+                    }
+                }
+        }
+    }
+
     override suspend fun login(
         baseUrl: Url,
         identifier: IdentifierType,

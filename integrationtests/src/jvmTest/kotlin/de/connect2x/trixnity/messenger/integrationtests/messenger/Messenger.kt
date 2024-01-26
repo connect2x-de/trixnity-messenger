@@ -21,16 +21,10 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
@@ -112,7 +106,9 @@ suspend fun MatrixMessengerWithRoot.verifyAccountsArePresent(vararg usernames: S
     val accountsOverviewViewModel = openAccountsOverview()
     withTimeout(5.seconds) {
         eventually(4.seconds) {
-            di.get<MatrixClients>().value.keys.map { it.localpart }.shouldContainAll(usernames.toList())
+            accountsOverviewViewModel.accounts
+                .map { accounts -> accounts.map { it.userId.localpart } }
+                .first { it.containsAll(usernames.toList()) }
         }
         accountsOverviewViewModel.close()
         stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
