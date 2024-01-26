@@ -539,7 +539,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("pass invalid room") {
+        should("log when passing invalid roomId") {
             val room = Room(roomId1, membership = Membership.JOIN)
             mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
             mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
@@ -575,7 +575,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("log when trying to join a unjoined room") {
+        should("log when trying to redirect to a unjoined room") {
             val room = Room(roomId1, membership = Membership.LEAVE)
             mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
             mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
