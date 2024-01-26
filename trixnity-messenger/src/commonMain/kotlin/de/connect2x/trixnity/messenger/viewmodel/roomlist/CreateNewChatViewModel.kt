@@ -8,7 +8,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
@@ -85,12 +87,15 @@ open class CreateNewChatViewModelImpl(
     override fun onUserClick(user: SearchUserElement) {
         val userId = user.userId
         coroutineScope.launch {
-            if (createNewRoomViewModel.existingDirectRooms.value[userId]?.isNotEmpty() == true) {
+            val existingRoomIds = createNewRoomViewModel.existingDirectRooms.value[userId]
+            if (existingRoomIds?.isNotEmpty() == true &&
+                existingRoomIds.any { matrixClient.room.getById(it).first() != null }
+            ) {
                 log.info { "go to existing room with $userId" }
-                createNewRoomViewModel.existingDirectRooms.value[userId]?.iterator()?.next()?.let { goToRoom(it) }
+                existingRoomIds.find { matrixClient.room.getById(it).first() != null }?.let { goToRoom(it) }
             } else {
                 log.info { "create new room with $userId" }
-                matrixClient.api.rooms.createRoom(
+                matrixClient.api.room.createRoom(
                     isDirect = true,
                     invite = setOf(userId),
                     initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
