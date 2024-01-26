@@ -225,7 +225,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 every { userPresenceMock.presentEventContentFlow(isEqual(matrixClientMock), isAny()) } returns
                         MutableStateFlow(null)
 
-                every { roomNameMock.getRoomName(isAny<RoomId>(), isEqual(matrixClientMock)) } returns
+                every { roomNameMock.getRoomName(isAny<RoomId>(), isEqual(matrixClientMock), isAny()) } returns
                         flowOf("RoomName")
                 every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
             }

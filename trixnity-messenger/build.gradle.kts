@@ -60,7 +60,6 @@ kotlin {
             export("com.arkivanov.decompose:decompose:${Versions.decompose}")
 //            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
             export("net.folivo:trixnity-client:${Versions.trixnity}")
-            isStatic = true
         }
     }
     applyDefaultHierarchyTemplate()
@@ -251,9 +250,9 @@ skie {
     }
 }
 
-if (isCI) {
+//if (isCI) {
     kmmbridge {
         mavenPublishArtifacts()
         spm()
     }
-}
+//}

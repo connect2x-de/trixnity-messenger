@@ -98,7 +98,7 @@ class RoomNameTest : ShouldSpec() {
 
             val scope = CoroutineScope(Dispatchers.Unconfined)
             val cut = RoomNameImpl(i18n, roomInviter)
-            val result = cut.getRoomName(roomId, matrixClientMock).stateIn(scope)
+            val result = cut.getRoomName(roomId, matrixClientMock, true).stateIn(scope)
 
             result.value shouldBe "user1 and one other"
             room.value =
