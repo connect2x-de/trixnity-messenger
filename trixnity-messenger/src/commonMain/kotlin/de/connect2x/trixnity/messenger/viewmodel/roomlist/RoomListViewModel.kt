@@ -431,7 +431,7 @@ class RoomListViewModelImpl(
     override fun selectRoom(roomId: RoomId) {
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
-                ?: throw IllegalStateException("cannot find NamedMatrixClient for room $roomId")
+                ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
             val isInvite =
                 matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
             log.debug { "switch to room $roomId (isInvite: $isInvite)" }
