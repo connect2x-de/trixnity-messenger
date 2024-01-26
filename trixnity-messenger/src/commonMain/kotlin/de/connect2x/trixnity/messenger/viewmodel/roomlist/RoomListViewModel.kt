@@ -444,7 +444,7 @@ class RoomListViewModelImpl(
 
                 isInvite -> {
                     log.debug { "try to join room $roomId" }
-                    matrixClient.api.rooms.joinRoom(roomId).fold(
+                    matrixClient.api.room.joinRoom(roomId).fold(
                         onSuccess = {
                             onRoomSelected(matrixClient.userId, roomId)
                         },
