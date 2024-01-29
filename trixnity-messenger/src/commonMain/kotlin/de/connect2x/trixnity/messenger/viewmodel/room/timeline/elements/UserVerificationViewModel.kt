@@ -30,23 +30,25 @@ private val log = KotlinLogging.logger { }
 interface UserVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: RoomMessageEventContent.VerificationRequest,
         invitation: Flow<String?>,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
         userInfoFlow: Flow<UserInfoElement>,
-        content: RoomMessageEventContent.VerificationRequest,
         selectedRoomId: RoomId,
         timelineEventId: EventId,
     ): UserVerificationViewModel {
         return UserVerificationViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             invitation,
             formattedDate,
             showDateAbove,
             formattedTime,
             userInfoFlow,
-            content,
             selectedRoomId,
             timelineEventId
         )
@@ -67,12 +69,13 @@ interface UserVerificationViewModel : TimelineElementWithTimestampViewModel {
 
 open class UserVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    content: RoomMessageEventContent.VerificationRequest,
     invitation: Flow<String?>,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
     sender: Flow<UserInfoElement>,
-    content: RoomMessageEventContent.VerificationRequest,
     override val selectedRoomId: RoomId,
     override val timelineEventId: EventId,
 ) : MatrixClientViewModelContext by viewModelContext, UserVerificationViewModel {

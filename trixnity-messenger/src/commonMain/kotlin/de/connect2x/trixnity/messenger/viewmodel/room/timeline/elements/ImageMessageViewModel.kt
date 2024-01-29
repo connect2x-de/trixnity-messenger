@@ -11,7 +11,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -21,6 +28,8 @@ import org.koin.core.component.get
 interface ImageMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: RoomMessageEventContent.FileBased.Image,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -30,12 +39,13 @@ interface ImageMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        content: RoomMessageEventContent.FileBased.Image,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
     ): ImageMessageViewModel {
         return ImageMessageViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             formattedDate,
             showDateAbove,
             formattedTime,
@@ -45,7 +55,6 @@ interface ImageMessageViewModelFactory {
             showSender,
             sender,
             invitation,
-            content,
             onOpenModal,
             mediaUploadProgress,
         )
@@ -69,6 +78,8 @@ interface ImageMessageViewModel : FileBasedMessageViewModel {
 
 class ImageMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    private val content: RoomMessageEventContent.FileBased.Image,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -78,7 +89,6 @@ class ImageMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val content: RoomMessageEventContent.FileBased.Image,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
 ) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),

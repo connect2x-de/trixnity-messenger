@@ -6,17 +6,31 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
+import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
+import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.*
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.avatarUrl
+import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.isReplaced
+import net.folivo.trixnity.client.store.isReplacing
+import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
@@ -26,9 +40,16 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.room.*
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
+import net.folivo.trixnity.core.model.events.m.room.getFormattedBody
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -297,6 +318,8 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create text message view model: ${event.id}" }
                         get<TextMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
                             fallbackMessage = content.body,
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
@@ -321,16 +344,17 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create image message view model: ${event.id}" }
                         get<ImageMessageViewModelFactory>().create(
                             viewModelContext = this,
-                            sender = sender,
-                            showSender = showSender,
-                            formattedTime = formatTime(receivedDateTime),
+                            timelineEvent = timelineEvent,
+                            content = content,
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
+                            formattedTime = formatTime(receivedDateTime),
                             isByMe = isByMe,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
+                            showSender = showSender,
+                            sender = sender,
                             invitation = invitation,
-                            content = content,
                             onOpenModal = onOpenModal,
                             mediaUploadProgress = MutableStateFlow(null),
                         )
@@ -340,16 +364,17 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create video message view model: ${event.id}" }
                         get<VideoMessageViewModelFactory>().create(
                             viewModelContext = this,
-                            sender = sender,
-                            showSender = showSender,
-                            formattedTime = formatTime(receivedDateTime),
+                            timelineEvent = timelineEvent,
+                            content = content,
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
+                            formattedTime = formatTime(receivedDateTime),
                             isByMe = isByMe,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
+                            showSender = showSender,
+                            sender = sender,
                             invitation = invitation,
-                            content = content,
                             onOpenModal = onOpenModal,
                         )
                     }
@@ -358,6 +383,8 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create audio message view model: ${event.id}" }
                         get<AudioMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent= timelineEvent,
+                            content = content,
                             sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
@@ -367,7 +394,6 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
-                            content = content,
                             onOpenModal = onOpenModal,
                         )
                     }
@@ -376,6 +402,8 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create file message view model: ${event.id}" }
                         get<FileMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
                             formattedTime = formatTime(receivedDateTime),
@@ -385,7 +413,6 @@ open class TimelineElementHolderViewModelImpl(
                             showSender = showSender,
                             sender = sender,
                             invitation = invitation,
-                            content = content,
                         )
                     }
 
@@ -393,12 +420,13 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create user verification view model: ${event.id}" }
                         get<UserVerificationViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
                             invitation = invitation,
                             formattedDate = formatDate(receivedDateTime),
                             showDateAbove = showDateAbove,
                             formattedTime = formatTime(receivedDateTime),
                             userInfoFlow = sender,
-                            content = content,
                             selectedRoomId = selectedRoomId,
                             timelineEventId = timelineEvent.eventId,
                         )
@@ -408,6 +436,8 @@ open class TimelineElementHolderViewModelImpl(
                         log.warn { "created fallback view model: ${event.id}" }
                         get<FallbackMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
                             fallbackMessage = content.body,
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
@@ -434,6 +464,8 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create redacted text message view model: ${event.id}" }
                 get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
                     sender = sender,
                     showSender = MutableStateFlow(false),
                     formattedTime = formatTime(receivedDateTime),
@@ -450,16 +482,17 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create encrypted message view model: ${event.id}" }
                 get<EncryptedMessageViewModelFactory>().create(
                     viewModelContext = this,
-                    sender = sender,
-                    formattedTime = formatTime(receivedDateTime),
+                    timelineEventFlow = timelineEventFlow,
+                    content = content,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
+                    formattedTime = formatTime(receivedDateTime),
                     isByMe = isByMe,
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     showSender = showSender,
+                    sender = sender,
                     invitation = invitation,
-                    timelineEventFlow = timelineEventFlow,
                 )
             }
 
@@ -467,10 +500,11 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create member status view model: ${event.id}" }
                 get<MemberStatusViewModelFactory>().create(
                     viewModelContext = this,
+                    timelineEventFlow = timelineEventFlow,
+                    content = content,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     invitation = invitation,
-                    timelineEventFlow = timelineEventFlow,
                     sender = sender,
                     isDirectFlow = isDirect,
                 )
@@ -480,6 +514,8 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create room created status view model: ${event.id}" }
                 get<RoomCreatedStatusViewModelFactory>().create(
                     viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     invitation = invitation,
@@ -492,11 +528,12 @@ open class TimelineElementHolderViewModelImpl(
                 log.trace { "Create room name change status view model: ${event.id}" }
                 get<RoomNameChangeStatusViewModelFactory>().create(
                     viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     invitation = invitation,
                     sender = sender,
-                    timelineEvent = timelineEvent,
                     isDirectFlow = isDirect,
                 )
             }

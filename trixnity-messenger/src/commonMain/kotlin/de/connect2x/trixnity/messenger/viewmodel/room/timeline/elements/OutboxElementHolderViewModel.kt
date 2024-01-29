@@ -5,7 +5,13 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
@@ -78,6 +84,8 @@ open class OutboxElementHolderViewModelImpl(
                     is TextBased -> {
                         get<TextMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
                             fallbackMessage = content.body,
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
@@ -101,16 +109,17 @@ open class OutboxElementHolderViewModelImpl(
                     is FileBased.Image -> {
                         get<ImageMessageViewModelFactory>().create(
                             viewModelContext = this,
-                            sender = MutableStateFlow(UserInfoElement("")),
-                            showSender = MutableStateFlow(false),
+                            timelineEvent = null,
+                            content = content,
                             formattedDate = "",
-                            formattedTime = null,
                             showDateAbove = showDateAbove,
+                            formattedTime = null,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
+                            showSender = MutableStateFlow(false),
+                            sender = MutableStateFlow(UserInfoElement("")),
                             invitation = MutableStateFlow(null),
-                            content = content,
                             onOpenModal = onOpenModal,
                             mediaUploadProgress = outboxMessage.mediaUploadProgress,
                         )
@@ -119,6 +128,8 @@ open class OutboxElementHolderViewModelImpl(
                     is FileBased.Video -> {
                         get<VideoMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
                             sender = MutableStateFlow(UserInfoElement("")),
                             showSender = MutableStateFlow(false),
                             formattedDate = "",
@@ -128,7 +139,6 @@ open class OutboxElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
-                            content = content,
                             onOpenModal = onOpenModal,
                         )
                     }
@@ -136,6 +146,8 @@ open class OutboxElementHolderViewModelImpl(
                     is FileBased.Audio -> {
                         get<AudioMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
                             sender = MutableStateFlow(UserInfoElement("")),
                             showSender = MutableStateFlow(false),
                             formattedDate = "",
@@ -145,7 +157,6 @@ open class OutboxElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
-                            content = content,
                             onOpenModal = onOpenModal,
                         )
                     }
@@ -153,6 +164,8 @@ open class OutboxElementHolderViewModelImpl(
                     is FileBased.File -> {
                         get<FileMessageViewModelFactory>().create(
                             viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
                             formattedDate = "",
                             showDateAbove = showDateAbove,
                             formattedTime = null,
@@ -162,7 +175,6 @@ open class OutboxElementHolderViewModelImpl(
                             showSender = MutableStateFlow(false),
                             sender = MutableStateFlow(UserInfoElement("")),
                             invitation = MutableStateFlow(null),
-                            content = content,
                         )
                     }
 

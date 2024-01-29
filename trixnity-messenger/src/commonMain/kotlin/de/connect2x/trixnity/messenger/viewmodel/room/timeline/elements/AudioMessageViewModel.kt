@@ -7,12 +7,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 interface AudioMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: RoomMessageEventContent.FileBased.Audio,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -22,11 +25,12 @@ interface AudioMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        content: RoomMessageEventContent.FileBased.Audio,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
     ): AudioMessageViewModel {
         return AudioMessageViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             formattedDate,
             showDateAbove,
             formattedTime,
@@ -36,7 +40,6 @@ interface AudioMessageViewModelFactory {
             showSender,
             sender,
             invitation,
-            content,
             onOpenModal,
         )
     }
@@ -50,6 +53,8 @@ interface AudioMessageViewModel : FileBasedMessageViewModel {
 
 open class AudioMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    content: RoomMessageEventContent.FileBased.Audio,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -59,7 +64,6 @@ open class AudioMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    content: RoomMessageEventContent.FileBased.Audio,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {

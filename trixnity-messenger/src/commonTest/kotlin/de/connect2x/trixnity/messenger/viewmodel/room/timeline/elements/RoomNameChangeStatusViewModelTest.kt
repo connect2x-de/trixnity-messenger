@@ -125,11 +125,12 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
+            timelineEvent = timelineEvent,
+            content = timelineEvent.event.content as NameEventContent,
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
             sender = usernameFlow,
-            timelineEvent = timelineEvent,
             isDirectFlow = isDirectFlow,
         )
     }

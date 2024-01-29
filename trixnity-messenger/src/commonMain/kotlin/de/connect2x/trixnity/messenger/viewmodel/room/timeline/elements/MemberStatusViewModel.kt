@@ -3,7 +3,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.UserId
@@ -14,15 +19,16 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 interface MemberStatusViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEventFlow: Flow<TimelineEvent?>,
+        content: MemberEventContent,
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
-        timelineEventFlow: Flow<TimelineEvent?>,
         sender: Flow<UserInfoElement>,
         isDirectFlow: StateFlow<Boolean>,
     ): MemberStatusViewModel {
         return MemberStatusViewModelImpl(
-            viewModelContext, formattedDate, showDateAbove, invitation, timelineEventFlow, sender, isDirectFlow
+            viewModelContext, timelineEventFlow, content, formattedDate, showDateAbove, invitation, sender, isDirectFlow
         )
     }
 
@@ -35,10 +41,11 @@ interface MemberStatusViewModel : BaseTimelineElementViewModel {
 
 open class MemberStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEventFlow: Flow<TimelineEvent?>,
+    content: MemberEventContent,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     invitation: Flow<String?>,
-    timelineEventFlow: Flow<TimelineEvent?>,
     sender: Flow<UserInfoElement>,
     isDirectFlow: StateFlow<Boolean>,
 ) : MemberStatusViewModel, MatrixClientViewModelContext by viewModelContext {

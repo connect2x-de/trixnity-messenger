@@ -323,10 +323,11 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
+            timelineEventFlow = timelineEventFlow,
+            content = memberEventContent(),
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
-            timelineEventFlow = timelineEventFlow,
             sender = usernameFlow,
             isDirectFlow = isDirectFlow,
         )

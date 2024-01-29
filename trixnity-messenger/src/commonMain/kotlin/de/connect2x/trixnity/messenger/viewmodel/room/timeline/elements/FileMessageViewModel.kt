@@ -7,11 +7,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 interface FileMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        timelineEvent: TimelineEvent?,
+        content: RoomMessageEventContent.FileBased.File,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -21,10 +24,11 @@ interface FileMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        content: RoomMessageEventContent.FileBased.File,
     ): FileMessageViewModel {
         return FileMessageViewModelImpl(
             viewModelContext,
+            timelineEvent,
+            content,
             formattedDate,
             showDateAbove,
             formattedTime,
@@ -33,8 +37,7 @@ interface FileMessageViewModelFactory {
             showBigGap,
             showSender,
             sender,
-            invitation,
-            content
+            invitation
         )
     }
 
@@ -47,6 +50,8 @@ interface FileMessageViewModel : FileBasedMessageViewModel {
 
 open class FileMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    timelineEvent: TimelineEvent?,
+    content: RoomMessageEventContent.FileBased.File,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -56,7 +61,6 @@ open class FileMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    content: RoomMessageEventContent.FileBased.File,
 ) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =

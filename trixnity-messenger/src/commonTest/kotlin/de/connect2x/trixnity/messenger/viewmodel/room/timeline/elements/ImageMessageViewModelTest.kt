@@ -143,6 +143,8 @@ class ImageMessageViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext,
             ),
+            timelineEvent = null,
+            content = RoomMessageEventContent.FileBased.Image(""),
             formattedDate = "21.11.2021",
             showDateAbove = true,
             formattedTime = null,
@@ -152,7 +154,6 @@ class ImageMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(true),
             sender = MutableStateFlow(UserInfoElement("User1")),
             invitation = flowOf(null),
-            content = RoomMessageEventContent.FileBased.Image(""),
             onOpenModal = mockFunction4(mocker),
             mediaUploadProgress = MutableStateFlow(null),
         )
