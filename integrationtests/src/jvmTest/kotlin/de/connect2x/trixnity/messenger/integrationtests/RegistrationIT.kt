@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.trixnity.messenger.integrationtests.messenger.registerAccountWithToken
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
+import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
@@ -29,7 +30,7 @@ class RegistrationIT {
     val synapseDocker = synapseDocker(useRegistrationToken = true)
 
     @BeforeTest
-    fun beforeEach(): Unit = runBlocking {
+    fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
     }
@@ -40,26 +41,24 @@ class RegistrationIT {
     }
 
     @Test
-    fun shouldRegisterNewUserWithRegistrationToken(): Unit = runBlocking {
-        withTimeout(30_000) {
-            val baseUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}"
-            val httpClient = HttpClient()
-            val accessToken = createAdminAccount(httpClient, baseUrl)
+    fun shouldRegisterNewUserWithRegistrationToken(): Unit = runBlockingWithTimeout {
+        val baseUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}"
+        val httpClient = HttpClient()
+        val accessToken = createAdminAccount(httpClient, baseUrl)
 
-            val body =
-                httpClient.post("$baseUrl/_synapse/admin/v1/registration_tokens/new?access_token=$accessToken") {
-                    contentType(ContentType.Application.Json)
-                    setBody("{}")
-                }.bodyAsText()
-            "\"token\":\\s*\"([^\"]*)\"".toRegex().find(body)?.groupValues?.getOrNull(1)?.let { token ->
-                log.info { "token: $token" }
-                val messenger = createTestMatrixMessenger()
-                messenger.registerAccountWithToken(
-                    serverUrl = baseUrl,
-                    token = token
-                )
-            } ?: throw IllegalStateException(body)
-        }
+        val body =
+            httpClient.post("$baseUrl/_synapse/admin/v1/registration_tokens/new?access_token=$accessToken") {
+                contentType(ContentType.Application.Json)
+                setBody("{}")
+            }.bodyAsText()
+        "\"token\":\\s*\"([^\"]*)\"".toRegex().find(body)?.groupValues?.getOrNull(1)?.let { token ->
+            log.info { "token: $token" }
+            val messenger = createTestMatrixMessenger()
+            messenger.registerAccountWithToken(
+                serverUrl = baseUrl,
+                token = token
+            )
+        } ?: throw IllegalStateException(body)
     }
 
     private fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x".format(eachByte) }

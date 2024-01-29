@@ -1,25 +1,14 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
-import de.connect2x.trixnity.messenger.integrationtests.messenger.createChatWithUser
-import de.connect2x.trixnity.messenger.integrationtests.messenger.createGroupWithUsers
-import de.connect2x.trixnity.messenger.integrationtests.messenger.findRoomWithId
-import de.connect2x.trixnity.messenger.integrationtests.messenger.login
-import de.connect2x.trixnity.messenger.integrationtests.messenger.rejectTheInvitationToRoomAndBlock
-import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.messenger.*
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
+import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -43,7 +32,7 @@ class BlockUserIT {
     val synapseDocker = synapseDocker()
 
     @BeforeTest
-    fun beforeEach(): Unit = runBlocking {
+    fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
         val baseUrl = URLBuilder(
@@ -62,30 +51,28 @@ class BlockUserIT {
     }
 
     @Test
-    fun shouldBlockAUserOnInvitation(): Unit = runBlocking {
-        withTimeout(30_000) {
-            val messenger1 = createTestMatrixMessenger("client-1")
-            val recoveryKey =
-                messenger1.login(
-                    serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                    username = user1,
-                    password = passwordUser1,
-                )
-            messenger1.verifyAccountsArePresent(user1)
-            val messenger2 = createTestMatrixMessenger("client-2")
-            messenger2.login(
+    fun shouldBlockAUserOnInvitation(): Unit = runBlockingWithTimeout {
+        val messenger1 = createTestMatrixMessenger("client-1")
+        val recoveryKey =
+            messenger1.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                username = user2,
-                password = passwordUser2,
-                recoveryKey = recoveryKey,
+                username = user1,
+                password = passwordUser1,
             )
-            messenger2.verifyAccountsArePresent(user2)
-            messenger1.verifyAccountsArePresent(user1)
-            val roomId = messenger1.createChatWithUser(user2).roomId
-            messenger2.rejectTheInvitationToRoomAndBlock(roomId)
-            delay(3.seconds) // wait for the block information to be distributed
-            val roomId2 = messenger1.createGroupWithUsers("Hello user2", user2).roomId
-            runCatching { messenger2.findRoomWithId(roomId2) }.isFailure shouldBe true
-        }
+        messenger1.verifyAccountsArePresent(user1)
+        val messenger2 = createTestMatrixMessenger("client-2")
+        messenger2.login(
+            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+            username = user2,
+            password = passwordUser2,
+            recoveryKey = recoveryKey,
+        )
+        messenger2.verifyAccountsArePresent(user2)
+        messenger1.verifyAccountsArePresent(user1)
+        val roomId = messenger1.createChatWithUser(user2).roomId
+        messenger2.rejectTheInvitationToRoomAndBlock(roomId)
+        delay(3.seconds) // wait for the block information to be distributed
+        val roomId2 = messenger1.createGroupWithUsers("Hello user2", user2).roomId
+        runCatching { messenger2.findRoomWithId(roomId2) }.isFailure shouldBe true
     }
 }
