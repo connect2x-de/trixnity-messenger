@@ -53,35 +53,33 @@ class DirectRoomsIT {
 
     @Test
     fun shouldUseDirectRoomEvenIfDirectRoomExistedBefore(): Unit = runBlockingWithTimeout {
-        withTimeout(30_000) {
-            val messenger1 = createTestMatrixMessenger("client-1")
-            val recoveryKey =
-                messenger1.login(
-                    serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                    username = user1,
-                    password = passwordUser1,
-                )
-            messenger1.verifyAccountsArePresent(user1)
-            val messenger2 = createTestMatrixMessenger("client-2")
-            messenger2.login(
+        val messenger1 = createTestMatrixMessenger("client-1")
+        val recoveryKey =
+            messenger1.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                username = user2,
-                password = passwordUser2,
-                recoveryKey = recoveryKey,
+                username = user1,
+                password = passwordUser1,
             )
-            messenger2.verifyAccountsArePresent(user2)
-            messenger1.verifyAccountsArePresent(user1)
-            log.info { "--- create chat" }
-            val roomId = messenger1.createChatWithUser(user2).roomId
-            messenger2.acceptInvitationToRoom(roomId)
-            delay(2.seconds) // wait for the block information to be distributed
-            log.info { "--- leave chat" }
-            messenger2.leaveRoom(roomId)
-            messenger1.leaveRoom(roomId)
-            delay(2.seconds) // wait for the block information to be distributed
-            log.info { "--- create chat, again" }
-            val roomId2 = messenger1.createChatWithUser(user2).roomId
-            messenger2.acceptInvitationToRoom(roomId2)
-        }
+        messenger1.verifyAccountsArePresent(user1)
+        val messenger2 = createTestMatrixMessenger("client-2")
+        messenger2.login(
+            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+            username = user2,
+            password = passwordUser2,
+            recoveryKey = recoveryKey,
+        )
+        messenger2.verifyAccountsArePresent(user2)
+        messenger1.verifyAccountsArePresent(user1)
+        log.info { "--- create chat" }
+        val roomId = messenger1.createChatWithUser(user2).roomId
+        messenger2.acceptInvitationToRoom(roomId)
+        delay(2.seconds) // wait for the block information to be distributed
+        log.info { "--- leave chat" }
+        messenger2.leaveRoom(roomId)
+        messenger1.leaveRoom(roomId)
+        delay(2.seconds) // wait for the block information to be distributed
+        log.info { "--- create chat, again" }
+        val roomId2 = messenger1.createChatWithUser(user2).roomId
+        messenger2.acceptInvitationToRoom(roomId2)
     }
 }

@@ -58,36 +58,34 @@ class AccountsIT {
 
     @Test
     fun shouldAddAnAccountAndRemoveAfterwards(): Unit = runBlockingWithTimeout {
-        withTimeout(30_000) {
-            val messenger = createTestMatrixMessenger()
-            log.info { "login as user1" }
-            messenger.login(
-                serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                username = "user1",
-                password = password,
-            )
-            messenger.verifyAccountsArePresent("user1")
+        val messenger = createTestMatrixMessenger()
+        log.info { "login as user1" }
+        messenger.login(
+            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+            username = "user1",
+            password = password,
+        )
+        messenger.verifyAccountsArePresent("user1")
 
-            log.info { "login as user2" }
-            val recoveryKey = messenger.createNewAccount(
-                serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                username = "user2",
-                password = password,
-            )
-            messenger.verifyAccountsArePresent("user1", "user2")
-            log.info { "logout as user2" }
-            messenger.deleteAccount("user2")
-            messenger.verifyAccountsArePresent("user1")
+        log.info { "login as user2" }
+        val recoveryKey = messenger.createNewAccount(
+            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+            username = "user2",
+            password = password,
+        )
+        messenger.verifyAccountsArePresent("user1", "user2")
+        log.info { "logout as user2" }
+        messenger.deleteAccount("user2")
+        messenger.verifyAccountsArePresent("user1")
 
-            log.info { "login again as user2" }
-            messenger.createNewAccount(
-                serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-                username = "user2",
-                password = password,
-                recoveryKey = recoveryKey,
-            )
-            messenger.verifyAccountsArePresent("user1", "user2")
-        }
+        log.info { "login again as user2" }
+        messenger.createNewAccount(
+            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+            username = "user2",
+            password = password,
+            recoveryKey = recoveryKey,
+        )
+        messenger.verifyAccountsArePresent("user1", "user2")
     }
 
     @Test

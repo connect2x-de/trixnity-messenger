@@ -42,25 +42,23 @@ class RegistrationIT {
 
     @Test
     fun shouldRegisterNewUserWithRegistrationToken(): Unit = runBlockingWithTimeout {
-        withTimeout(30_000) {
-            val baseUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}"
-            val httpClient = HttpClient()
-            val accessToken = createAdminAccount(httpClient, baseUrl)
+        val baseUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}"
+        val httpClient = HttpClient()
+        val accessToken = createAdminAccount(httpClient, baseUrl)
 
-            val body =
-                httpClient.post("$baseUrl/_synapse/admin/v1/registration_tokens/new?access_token=$accessToken") {
-                    contentType(ContentType.Application.Json)
-                    setBody("{}")
-                }.bodyAsText()
-            "\"token\":\\s*\"([^\"]*)\"".toRegex().find(body)?.groupValues?.getOrNull(1)?.let { token ->
-                log.info { "token: $token" }
-                val messenger = createTestMatrixMessenger()
-                messenger.registerAccountWithToken(
-                    serverUrl = baseUrl,
-                    token = token
-                )
-            } ?: throw IllegalStateException(body)
-        }
+        val body =
+            httpClient.post("$baseUrl/_synapse/admin/v1/registration_tokens/new?access_token=$accessToken") {
+                contentType(ContentType.Application.Json)
+                setBody("{}")
+            }.bodyAsText()
+        "\"token\":\\s*\"([^\"]*)\"".toRegex().find(body)?.groupValues?.getOrNull(1)?.let { token ->
+            log.info { "token: $token" }
+            val messenger = createTestMatrixMessenger()
+            messenger.registerAccountWithToken(
+                serverUrl = baseUrl,
+                token = token
+            )
+        } ?: throw IllegalStateException(body)
     }
 
     private fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x".format(eachByte) }
