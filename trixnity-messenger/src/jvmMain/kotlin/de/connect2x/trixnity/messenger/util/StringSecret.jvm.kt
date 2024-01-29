@@ -12,9 +12,9 @@ import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
-actual fun platformGetSecretStringKeyModule(): Module = module {
-    single<GetSecretStringKey> {
-        GetSecretStringKey { id, create ->
+actual fun platformGetSecretByteArrayKeyModule(): Module = module {
+    single<GetSecretByteArrayKey> {
+        GetSecretByteArrayKey { id, create ->
             when (getOs()) {
                 OS.MAC_OS, OS.WINDOWS -> {
                     try {

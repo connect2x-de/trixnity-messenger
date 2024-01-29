@@ -11,10 +11,10 @@ import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
-actual fun platformGetSecretStringKeyModule(): Module = module {
-    single<GetSecretStringKey> {
+actual fun platformGetSecretByteArrayKeyModule(): Module = module {
+    single<GetSecretByteArrayKey> {
         val context = get<Context>()
-        GetSecretStringKey { id, create ->
+        GetSecretByteArrayKey { id, create ->
             try {
                 val encryptedSharedPreferences = getEncryptedSharedPreferences(context)
                 val existingKey = encryptedSharedPreferences.getString(id, null)?.decodeBase64Bytes()
