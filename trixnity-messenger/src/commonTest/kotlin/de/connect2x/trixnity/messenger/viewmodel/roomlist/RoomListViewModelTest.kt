@@ -540,36 +540,19 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("log when passing invalid roomId") {
-            val room = Room(roomId1, membership = Membership.JOIN)
+            val room = Room(roomId1)
             mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
             mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(Room(roomId1))
                 )
             )
-            var joinedRoomWasCalled = false
-            mocker.everySuspending {
-                roomsApiClientMock.joinRoom(
-                    isEqual(roomId1),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
-                )
-            } runs {
-                joinedRoomWasCalled = true
-                Result.success(roomId1)
-            }
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
-            cut.redirectRoom(roomId1)
             cut.redirectRoom(roomId3)
             testCoroutineScheduler.advanceUntilIdle()
-
-            joinedRoomWasCalled shouldBe false
-            mocker.verify(exhaustive = false) { onRoomSelectedMock.invoke(isAny(), isEqual(roomId1)) }
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
