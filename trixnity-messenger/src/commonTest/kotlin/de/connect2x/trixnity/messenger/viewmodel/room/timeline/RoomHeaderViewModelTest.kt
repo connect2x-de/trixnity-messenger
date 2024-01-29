@@ -100,7 +100,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 every { matrixClientMock.userId } returns me
 
                 roomNameElement = every {
-                    roomNameMock.getRoomName(isAny<RoomId>(), isAny())
+                    roomNameMock.getRoomName(isAny<RoomId>(), isAny(), isAny())
                 }
                 roomNameElement returns MutableStateFlow("My Room")
                 every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
