@@ -7,21 +7,22 @@ import net.folivo.trixnity.crypto.core.encryptAesHmacSha2
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-private const val SECRET_STRING_KEY_AES_HMAC_SHA2_ID = "secret_string_key_aes_hmac_sha2"
+private const val SECRET_BYTE_ARRAY_KEY_AES_HMAC_SHA2_ID = "secret_byte_array_key_aes_hmac_sha2"
 
-fun interface GetSecretStringKey {
+fun interface GetSecretByteArrayKey {
     suspend operator fun invoke(id: String, create: () -> ByteArray): ByteArray?
 }
 
-open class ConvertSecretByteArrayImpl(private val getSecretStringKey: GetSecretStringKey) : ConvertSecretByteArray {
+open class ConvertSecretByteArrayImpl(private val getSecretByteArrayKey: GetSecretByteArrayKey) :
+    ConvertSecretByteArray {
     override suspend operator fun invoke(raw: ByteArray): SecretByteArray {
-        val secretByteArrayKey = getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
+        val secretByteArrayKey = getSecretByteArrayKey(SECRET_BYTE_ARRAY_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
             ?: return SecretByteArray.Unencrypted(raw)
         val encryptedStringSecret =
             encryptAesHmacSha2(
                 raw,
                 secretByteArrayKey,
-                SECRET_STRING_KEY_AES_HMAC_SHA2_ID
+                SECRET_BYTE_ARRAY_KEY_AES_HMAC_SHA2_ID
             )
         return SecretByteArray.AesHmacSha2(
             iv = encryptedStringSecret.iv,
@@ -40,9 +41,9 @@ open class ConvertSecretByteArrayImpl(private val getSecretStringKey: GetSecretS
                     mac = secret.mac,
                 ),
                 key = checkNotNull(
-                    getSecretStringKey(SECRET_STRING_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
-                ) { "could not retrieve StringSecretkey $SECRET_STRING_KEY_AES_HMAC_SHA2_ID" },
-                name = SECRET_STRING_KEY_AES_HMAC_SHA2_ID
+                    getSecretByteArrayKey(SECRET_BYTE_ARRAY_KEY_AES_HMAC_SHA2_ID, ::createNewKey)
+                ) { "could not retrieve StringSecretkey $SECRET_BYTE_ARRAY_KEY_AES_HMAC_SHA2_ID" },
+                name = SECRET_BYTE_ARRAY_KEY_AES_HMAC_SHA2_ID
             )
         }
     }
@@ -50,9 +51,9 @@ open class ConvertSecretByteArrayImpl(private val getSecretStringKey: GetSecretS
     private fun createNewKey() = SecureRandom.nextBytes(32)
 }
 
-expect fun platformGetSecretStringKeyModule(): Module
+expect fun platformGetSecretByteArrayKeyModule(): Module
 actual fun platformConvertSecretByteArray(): Module = module {
-    includes(platformGetSecretStringKeyModule())
+    includes(platformGetSecretByteArrayKeyModule())
     single<ConvertSecretByteArray> {
         ConvertSecretByteArrayImpl(get())
     }
