@@ -123,7 +123,7 @@ class MemberListViewModelTest : ShouldSpec() {
 
                 every { matrixClientMock.api } returns matrixClientServerApiMock
 
-                every { matrixClientServerApiMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
                 every { matrixClientMock.userId } returns me
 

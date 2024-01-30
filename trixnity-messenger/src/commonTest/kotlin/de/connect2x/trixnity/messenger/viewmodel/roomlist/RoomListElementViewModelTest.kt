@@ -130,7 +130,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 every { matrixClientMock.displayName } returns MutableStateFlow("")
                 every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.rooms } returns roomsApiClientMock
+                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
                 every { matrixClientServerApiClientMock.users } returns usersApiClientMock
 
                 every {

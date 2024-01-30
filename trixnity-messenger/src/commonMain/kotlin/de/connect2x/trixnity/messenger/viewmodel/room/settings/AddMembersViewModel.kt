@@ -72,7 +72,7 @@ open class AddMembersViewModelImpl(
         coroutineScope.launch {
             val failedInvitations = mutableListOf<Pair<Search.SearchUserElement, Throwable>>()
             for (user in groupUsers.value) {
-                matrixClient.api.rooms.inviteUser(roomId, user.userId)
+                matrixClient.api.room.inviteUser(roomId, user.userId)
                     .fold(onSuccess = {
                         log.debug { "user ${user.userId.full} was invited" }
 
