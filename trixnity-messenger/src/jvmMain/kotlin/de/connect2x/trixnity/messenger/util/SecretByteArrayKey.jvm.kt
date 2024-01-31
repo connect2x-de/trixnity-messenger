@@ -7,20 +7,21 @@ import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.ptr.PointerByReference
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.*
+import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
-actual fun platformGetSecretByteArrayKeyModule(): Module = module {
-    single<GetSecretByteArrayKey> {
-        GetSecretByteArrayKey { id, create ->
+actual fun platformGetPlatformSecret(): Module = module {
+    single<GetPlatformSecret> {
+        GetPlatformSecret { id, sizeOnCreate ->
             when (getOs()) {
                 OS.MAC_OS, OS.WINDOWS -> {
                     try {
                         val existingKey = getSecret(id)?.decodeBase64Bytes()
                         if (existingKey == null) {
-                            val newKey = create()
+                            val newKey = SecureRandom.nextBytes(sizeOnCreate)
                             setSecret(id, newKey.encodeBase64())
                             newKey
                         } else {
@@ -38,7 +39,7 @@ actual fun platformGetSecretByteArrayKeyModule(): Module = module {
     }
 }
 
-private suspend fun getSecret(id: String): String? {
+private fun getSecret(id: String): String? {
     return when (getOs()) {
         OS.WINDOWS -> {
             val credentialRef = PointerByReference()
@@ -105,7 +106,7 @@ private suspend fun getSecret(id: String): String? {
     }
 }
 
-private suspend fun setSecret(id: String, secret: String) {
+private fun setSecret(id: String, secret: String) {
     when (getOs()) {
         OS.WINDOWS -> {
             val byteArray = secret.toByteArray()

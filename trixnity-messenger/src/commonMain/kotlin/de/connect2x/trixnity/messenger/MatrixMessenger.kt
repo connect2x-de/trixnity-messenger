@@ -43,22 +43,21 @@ internal suspend fun MatrixMessenger.Companion.internalCreate(
     }
     val coroutineScope =
         CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
-    val koinApplication = koinApplication {
+    val di = koinApplication {
         modules(module {
             single { coroutineScope }
             single { config }
             defaultModule()
         })
         modules(config.modules)
-    }
-    val settingsHolder = koinApplication.koin.getAll<SettingsHolder<*>>()
+    }.koin
+    val settingsHolder = di.getAll<SettingsHolder<*>>()
     settingsHolder.forEach {
         log.debug { "initialize SettingsHolder ($it)" }
         it.init()
     }
-
     return MatrixMessengerImpl(
-        di = koinApplication.koin,
+        di = di,
     )
 }
 
