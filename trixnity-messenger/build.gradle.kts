@@ -250,9 +250,9 @@ skie {
     }
 }
 
-//if (isCI) {
+if (isCI) {
     kmmbridge {
         mavenPublishArtifacts()
         spm()
     }
-//}
+}

@@ -14,26 +14,32 @@ import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
+fun interface EncryptRepository {
+    operator fun invoke(): Boolean
+}
+
+expect fun platformEncryptRepositoryModule(): Module
 
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
+    includes(platformEncryptRepositoryModule())
     single<CreateRepositoriesModule> {
         val paths = get<Paths>()
         val convertSecretByteArray = get<ConvertSecretByteArray>()
+        val encryptRepository = get<EncryptRepository>()
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
                 withContext(Dispatchers.IO) {
-                    val realmEncryptionKey = SecureRandom.nextBytes(Realm.ENCRYPTION_KEY_LENGTH)
-                    val realmEncryptionKeyAsSecretByteArray = convertSecretByteArray(realmEncryptionKey)
+                    val realmEncryptionKey =
+                        if (encryptRepository()) SecureRandom.nextBytes(Realm.ENCRYPTION_KEY_LENGTH)
+                        else null
                     CreateRepositoriesModule.CreateResult(
                         module = createRealmRepositoriesModule {
                             directory(dbFolder(userId))
-                            if (realmEncryptionKeyAsSecretByteArray !is SecretByteArray.Unencrypted)
-                                encryptionKey(realmEncryptionKey)
+                            if (realmEncryptionKey != null) encryptionKey(realmEncryptionKey)
                         },
                         databasePassword =
-                        if (realmEncryptionKeyAsSecretByteArray !is SecretByteArray.Unencrypted) realmEncryptionKeyAsSecretByteArray
-                        else null,
+                        realmEncryptionKey?.let { convertSecretByteArray(it) },
                     )
                 }
 
