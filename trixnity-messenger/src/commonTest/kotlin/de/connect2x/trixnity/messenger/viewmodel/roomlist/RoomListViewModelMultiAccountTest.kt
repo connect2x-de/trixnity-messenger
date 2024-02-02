@@ -1053,7 +1053,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
 
     private fun spaceChildEvent(spaceId: RoomId, containedId: RoomId) =
         StateEvent(
-            content = ChildEventContent(),
+            content = ChildEventContent(via = setOf()),
             id = EventId(""),
             sender = me2,
             roomId = spaceId,
