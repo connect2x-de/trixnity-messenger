@@ -365,6 +365,10 @@ struct AddMatrixAccountView: View {
 }
 ```
 
+## Root path
+
+On the JVM the root path can be overridden by adding a system property named `ROOT_PATH`.
+
 ## Snapshot builds
 
 Snapshot are published on each commit to main.
