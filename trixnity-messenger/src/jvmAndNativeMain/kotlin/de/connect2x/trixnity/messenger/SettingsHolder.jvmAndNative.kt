@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.util.IOOrDefault
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path
 
@@ -18,7 +17,7 @@ inline fun <reified S : Any> createFilesystemSettingsHolder(
     }
     return createSettingsHolder(object : SettingsStorage<S> {
         override suspend fun write(settings: S) {
-            val json = Json.encodeToString(settings)
+            val json = settingsJson.encodeToString(settings)
             withContext(Dispatchers.IOOrDefault) {
                 fileSystem.write(path) {
                     writeUtf8(json)
@@ -33,7 +32,7 @@ inline fun <reified S : Any> createFilesystemSettingsHolder(
                         readUtf8()
                     }
                 }
-                Json.decodeFromString<S>(json)
+                settingsJson.decodeFromString<S>(json)
             } else initialSettings()
         }
     })

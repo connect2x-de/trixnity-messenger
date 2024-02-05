@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.json.Json
 
 interface SettingsHolder<S : Any> : StateFlow<S> {
     suspend fun init()
@@ -43,4 +44,10 @@ fun <S : Any> createSettingsHolder(storage: SettingsStorage<S>): SettingsHolder<
                 collector.emit(checkNotNull(it) { "SettingsHolder has not been initialized" })
             }
     }
+}
+
+@PublishedApi
+internal val settingsJson = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
 }
