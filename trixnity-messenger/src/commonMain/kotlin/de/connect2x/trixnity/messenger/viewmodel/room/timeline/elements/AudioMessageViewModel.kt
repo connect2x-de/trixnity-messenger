@@ -48,6 +48,7 @@ interface AudioMessageViewModelFactory {
 }
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {
+    val duration: Int?
     fun openAudio()
 }
 
@@ -67,6 +68,7 @@ open class AudioMessageViewModelImpl(
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
+    override val duration: Int? = content.info?.duration
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
