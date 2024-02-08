@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.matchUsers
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
@@ -79,6 +80,9 @@ open class TextMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val mentionedUsers: Map<String, UserInfoElement> = matchUsers(message).map {
+        it.key to it.value.toUserInfoElement(matrixClient)
+    }
 
     override fun toString(): String {
         return fallbackMessage
@@ -99,5 +103,5 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = true
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
-
+    override val mentionedUsers: Map<String, UserInfoElement> = mapOf()
 }

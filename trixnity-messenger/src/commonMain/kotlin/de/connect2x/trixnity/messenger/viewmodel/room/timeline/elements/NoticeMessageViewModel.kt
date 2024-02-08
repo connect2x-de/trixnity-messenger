@@ -2,10 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.matchUsers
+import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
@@ -80,6 +78,9 @@ open class NoticeMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val mentionedUsers: Map<String, UserInfoElement> = matchUsers(message).map {
+        it.key to it.value.toUserInfoElement(matrixClient)
+    }
 
     override fun toString(): String {
         return fallbackMessage
