@@ -41,12 +41,11 @@ private val servernameRegex by lazy {
 
 fun matchUsers(message: String): Map<String, UserId> {
     val matches = userRegex.findAll(message)
-    println("""(?:$baseUserIdRegex)|(?:$baseUserUriRegex)|(?:$baseUserLinkRegex)|(?:$baseUserHtmlAnchorRegex)""".replace("/", """\/"""))
+
     return matches.associate {
         val matched = it.groupValues[0]
         val localpart = it.groupValues[1] + it.groupValues[3] + it.groupValues[5] + it.groupValues[7]
         val domain = it.groupValues[2] + it.groupValues[4] + it.groupValues[6] + it.groupValues[8]
-        println(domain)
         matched to UserId(localpart, domain)
     }
 }
