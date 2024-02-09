@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.StoragePrefix
+import de.connect2x.trixnity.messenger.util.getMediaDatabaseName
 import net.folivo.trixnity.client.store.repository.indexeddb.createIndexedDBRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
@@ -21,7 +22,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 createInternal(userId)
 
             private suspend fun createInternal(userId: UserId): Module =
-                createIndexedDBRepositoriesModule("$storagePrefix$userId/media")
+                createIndexedDBRepositoriesModule(getMediaDatabaseName(storagePrefix, userId))
         }
     }
 }
