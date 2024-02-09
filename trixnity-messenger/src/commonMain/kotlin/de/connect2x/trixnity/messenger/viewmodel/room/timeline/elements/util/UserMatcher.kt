@@ -6,14 +6,14 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.UserId
 
 // https://spec.matrix.org/v1.8/appendices/#user-identifiers
-private const val baseLocalpartRegex = """[a-z0-9.-_=/+]+"""
+private const val baseLocalpartRegex = """[a-z0-9.\-_=/+]+"""
 
 // https://spec.matrix.org/latest/appendices/#server-name
-private const val basePortRegex = """:\d{4}"""
-private const val baseDomainRegex = """(?:[\w-]+\.)?[\w-]+\.[\w-]+"""
-private const val baseIPV4Regex = """\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"""
-private const val baseIPV6Regex = """\[[0-9a-fA-F:]+\]"""
-private const val baseServernameRegex = """(?:$baseDomainRegex)|(?:$baseIPV4Regex)|(?:$baseIPV6Regex)(?:$basePortRegex)?"""
+private const val basePortRegex = """:[0-9]{4}"""
+private const val baseDomainRegex = """(?:[\w-]+\.)?[\w-]+\.[\w-]+(?:$basePortRegex)?"""
+private const val baseIPV4Regex = """\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:$basePortRegex)?"""
+private const val baseIPV6Regex = """\[[0-9a-fA-F:]+\](?:$basePortRegex)?"""
+private const val baseServernameRegex = """(?:$baseIPV4Regex)|(?:$baseDomainRegex)|(?:$baseIPV6Regex)"""
 
 // https://spec.matrix.org/v1.8/appendices/#user-identifiers
 private const val baseUserIdRegex = """@($baseLocalpartRegex):($baseServernameRegex)"""
@@ -31,13 +31,22 @@ private val userRegex by lazy {
     """(?:$baseUserIdRegex)|(?:$baseUserUriRegex)|(?:$baseUserLinkRegex)|(?:$baseUserHtmlAnchorRegex)""".toRegex()
 }
 
+private val localpartRegex by lazy {
+    baseLocalpartRegex.toRegex()
+}
+
+private val servernameRegex by lazy {
+    baseServernameRegex.toRegex()
+}
+
 fun matchUsers(message: String): Map<String, UserId> {
     val matches = userRegex.findAll(message)
+    println("""(?:$baseUserIdRegex)|(?:$baseUserUriRegex)|(?:$baseUserLinkRegex)|(?:$baseUserHtmlAnchorRegex)""".replace("/", """\/"""))
     return matches.associate {
         val matched = it.groupValues[0]
         val localpart = it.groupValues[1] + it.groupValues[3] + it.groupValues[5] + it.groupValues[7]
         val domain = it.groupValues[2] + it.groupValues[4] + it.groupValues[6] + it.groupValues[8]
-
+        println(domain)
         matched to UserId(localpart, domain)
     }
 }
