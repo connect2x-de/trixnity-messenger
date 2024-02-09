@@ -22,7 +22,7 @@ actual fun platformPathsModule(): Module = module {
     }
 }
 
-private fun getAppPath(appName: String) = when (getOs()) {
+fun getAppPath(appName: String) = when (getOs()) {
     OS.MAC_OS -> {
         System.getenv("HOME").toPath()
             .resolve("Library")
