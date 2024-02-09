@@ -717,7 +717,7 @@ internal fun getLang(
     getSystemLang: GetSystemLang
 ): Language {
     val preferredLang = settings.value.preferredLang
-    log.debug { "preferred language: $preferredLang" }
+    log.trace { "preferred language: $preferredLang" }
     return preferredLang?.let { languages.langOf(it) }
         ?: languages.langOf(getSystemLang())
         ?: EN// fallback is english
