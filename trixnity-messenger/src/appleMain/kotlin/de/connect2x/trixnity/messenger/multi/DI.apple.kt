@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger
+package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import org.koin.core.module.Module

@@ -68,6 +68,16 @@ where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel`
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
 
+### Multi profiles / tenancy
+
+`MatrixMultiMessenger` allows you to manage multiple profiles. Currently it is not possible to migrate from
+`MatrixMessenger` to `MatrixMultiMessenger`, so we recommend to always use `MatrixMultiMessenger` and create a single
+profile on first start.
+
+```kotlin
+val matrixMessenger = MatrixMessenger.create()
+```
+
 ### Routing
 
 The `RootViewModel` itself does not do much on its own, but is a point where routing kicks in. Different views in the

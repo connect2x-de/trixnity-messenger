@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import org.koin.core.Koin
-import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger {}
 
@@ -25,7 +25,7 @@ interface MatrixMessenger {
     val notificationCount: StateFlow<Long>
 
     /**
-     * Stop the MatrixMessenger and its [CoroutineScope].
+     * Stop this [MatrixMessenger] and its [CoroutineScope].
      * It should be called to clean up all resources used by [MatrixMessenger].
      *
      * After calling this, this instance should not be used anymore!
@@ -33,37 +33,37 @@ interface MatrixMessenger {
     fun stop()
 }
 
-internal suspend fun MatrixMessenger.Companion.internalCreate(
-    configuration: MatrixMessengerConfiguration.() -> Unit,
-    defaultModule: Module.() -> Unit = {},
-): MatrixMessenger {
-    val config = MatrixMessengerConfiguration().apply(configuration)
-    val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        log.error(throwable) { "Exception in global CoroutineScope $coroutineContext" }
-    }
-    val coroutineScope =
-        CoroutineScope(Dispatchers.Default + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
-    val di = koinApplication {
-        modules(module {
-            single { coroutineScope }
-            single { config }
-            defaultModule()
-        })
-        modules(config.modules)
-    }.koin
-    val settingsHolder = di.getAll<SettingsHolder<*>>()
-    settingsHolder.forEach {
-        log.debug { "initialize SettingsHolder ($it)" }
-        it.init()
-    }
-    return MatrixMessengerImpl(
-        di = di,
-    )
-}
-
-open class MatrixMessengerImpl internal constructor(
+class MatrixMessengerImpl private constructor(
     override val di: Koin,
 ) : MatrixMessenger {
+    companion object {
+        suspend operator fun invoke(
+            coroutineContext: CoroutineContext = Dispatchers.Default,
+            configuration: MatrixMessengerConfiguration.() -> Unit,
+        ): MatrixMessengerImpl {
+            val config = MatrixMessengerConfiguration().apply(configuration)
+            val exceptionHandler = CoroutineExceptionHandler { exceptionCoroutineContext, throwable ->
+                log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
+            }
+            val coroutineScope =
+                CoroutineScope(coroutineContext + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
+            val di = koinApplication {
+                modules(module {
+                    single { coroutineScope }
+                    single { config }
+                })
+                modules(config.modules)
+            }.koin
+            val settingsHolder = di.getAll<SettingsHolder<*>>()
+            settingsHolder.forEach {
+                log.debug { "initialize SettingsHolder ($it)" }
+                it.init()
+            }
+            return MatrixMessengerImpl(di)
+        }
+    }
+
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override val notificationCount = di.get<MatrixClients>().map { it.values }.flatMapLatest { matrixClients ->
         combine(

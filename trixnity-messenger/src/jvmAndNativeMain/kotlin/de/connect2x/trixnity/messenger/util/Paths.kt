@@ -1,12 +1,15 @@
 package de.connect2x.trixnity.messenger.util
 
-import okio.FileSystem
+import net.folivo.trixnity.core.model.UserId
+import okio.ByteString.Companion.toByteString
 import okio.Path
 import org.koin.core.module.Module
+import kotlin.jvm.JvmInline
 
-interface Paths {
-    val fileSystem: FileSystem
-    val rootPath: Path
+@JvmInline
+value class RootPath(val path: Path) {
+    fun forAccount(userId: UserId) = path.resolve(userId.asFilesystemSafeString())
+    private fun UserId.asFilesystemSafeString() = full.encodeToByteArray().toByteString().sha256().base64Url()
 }
 
 expect fun platformPathsModule(): Module

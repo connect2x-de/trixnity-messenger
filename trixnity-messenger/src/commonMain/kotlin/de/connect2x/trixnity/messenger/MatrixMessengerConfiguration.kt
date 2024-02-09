@@ -37,7 +37,7 @@ data class MatrixMessengerConfiguration(
     var sendLogsEmailAddress: String? = null,
 
     /**
-     * Inject and override modules into Trixnity Messenger.
+     * Inject and override modules.
      */
     var modules: List<Module> = createDefaultTrixnityMessengerModules(),
 )

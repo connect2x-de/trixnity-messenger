@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.awt.Desktop
@@ -22,10 +23,16 @@ import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger { }
 
-class UrlHandlerImpl(config: MatrixMessengerConfiguration, private val paths: Paths, private val closeApp: CloseApp) :
+class UrlHandlerImpl(
+    config: MatrixMessengerConfiguration,
+    private val fileSystem: FileSystem,
+    rootPath: RootPath,
+    private val closeApp: CloseApp
+) :
     UrlHandlerBase(config) {
 
     private val started = MutableStateFlow(false)
+    private val rootPath = rootPath.path
     private val lockFileName = "port.lock"
 
     /**
@@ -67,22 +74,22 @@ class UrlHandlerImpl(config: MatrixMessengerConfiguration, private val paths: Pa
     }
 
     private fun readPortFromLockFile(): Int? {
-        val lockFile = paths.rootPath.resolve(lockFileName)
-        return if (paths.fileSystem.exists(lockFile)) {
-            paths.fileSystem.read(lockFile) { readInt() }
+        val lockFile = rootPath.resolve(lockFileName)
+        return if (fileSystem.exists(lockFile)) {
+            fileSystem.read(lockFile) { readInt() }
         } else null
     }
 
     private fun writePortToLockFile(port: Int) {
         log.debug { "write port $port to lock file" }
-        val lockFile = paths.rootPath.resolve(lockFileName)
-        paths.fileSystem.write(lockFile) { writeInt(port) }
+        val lockFile = rootPath.resolve(lockFileName)
+        fileSystem.write(lockFile) { writeInt(port) }
         val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
         val channel = randomAccessFile.getChannel()
         val lock = channel.tryLock(0, Long.MAX_VALUE, true)
         fun releaseFile() {
             randomAccessFile.close()
-            paths.fileSystem.delete(lockFile)
+            fileSystem.delete(lockFile)
         }
         if (lock == null) {
             channel.close()
@@ -179,7 +186,7 @@ class UrlHandlerImpl(config: MatrixMessengerConfiguration, private val paths: Pa
 
 actual fun platformUrlHandlerModule(): Module = module {
     single<UrlHandler> {
-        UrlHandlerImpl(get(), get(), get())
+        UrlHandlerImpl(get(), get(), get(), get())
     }
 }
 

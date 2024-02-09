@@ -19,7 +19,6 @@ data class MatrixMessengerSettings(
 
 @Serializable
 data class MatrixMessengerAccountSettings(
-    val userId: UserId,
     val databasePassword: SecretByteArray?,
     val displayName: String? = null,
     val displayColor: Long? = null,
@@ -33,12 +32,10 @@ data class MatrixMessengerAccountSettings(
 ) {
     companion object {
         fun withConfigDefaults(
-            userId: UserId,
             databasePassword: SecretByteArray?,
             displayColor: Long?,
             config: MatrixMessengerConfiguration
         ) = MatrixMessengerAccountSettings(
-            userId = userId,
             databasePassword = databasePassword,
             displayColor = displayColor,
             pushMode = config.defaultPushMode,
