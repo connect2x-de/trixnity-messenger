@@ -33,10 +33,8 @@ private val userRegex by lazy {
 
 fun matchUsers(message: String): Map<String, UserId> {
     val matches = userRegex.findAll(message)
-    println("""(?:$baseUserIdRegex)|(?:$baseUserUriRegex)|(?:$baseUserLinkRegex)|(?:$baseUserHtmlAnchorRegex)""".replace("/", "\\/"))
     return matches.associate {
         val matched = it.groupValues[0]
-        println(it.groupValues)
         val localpart = it.groupValues[1] + it.groupValues[3] + it.groupValues[5] + it.groupValues[7]
         val domain = it.groupValues[2] + it.groupValues[4] + it.groupValues[6] + it.groupValues[8]
 
@@ -46,7 +44,7 @@ fun matchUsers(message: String): Map<String, UserId> {
 
 fun UserId.toUserInfoElement(matrixClient: MatrixClient): UserInfoElement {
     return UserInfoElement(
-        name = matrixClient.api.user.getProfile(this).getOrNullLoggingError()?.displayName ?: "",
+        name = "",
         userId = this
     )
 }
