@@ -180,7 +180,7 @@ from `createDefaultTrixnityMessengerModules()`:
 
 ```kotlin
 val matrixMessenger = MatrixMessenger.create {
-    modules = createDefaultTrixnityMessengerModules() + addMatrixAccountModule()
+    modules += addMatrixAccountModule()
 }
 ```
 
