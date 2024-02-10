@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
@@ -191,6 +192,11 @@ actual fun platformUrlHandlerModule(): Module = module {
 }
 
 val MatrixMessenger.defaultUrlHandler: UrlHandlerImpl
+    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
+        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
+    }
+
+val MatrixMultiMessenger.defaultUrlHandler: UrlHandlerImpl
     get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
         "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
     }
