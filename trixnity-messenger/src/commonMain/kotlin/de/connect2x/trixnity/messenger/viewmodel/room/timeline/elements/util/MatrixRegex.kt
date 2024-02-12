@@ -16,8 +16,6 @@ private const val baseServernameRegex = """(?:(?:$baseIPV4Regex)|(?:$baseDomainR
 private const val baseUserIdRegex = """@($baseLocalpartRegex):($baseServernameRegex)"""
 
 // https://spec.matrix.org/v1.8/appendices/#matrix-uri-scheme
-const val e = "(?:action=chat)|(?:via=$baseServernameRegex)"
-const val ee = "(?:action=chat(?:&via=example.com)?)|(?:via=example.com(?:&action=chat)?)"
 private const val baseUserUriRegex =
     """matrix:u/($baseLocalpartRegex):($baseServernameRegex)(?:(?:\?action=chat(?:&via=$baseServernameRegex)?)|(?:\?via=$baseServernameRegex(?:&action=chat)?))?"""
 
