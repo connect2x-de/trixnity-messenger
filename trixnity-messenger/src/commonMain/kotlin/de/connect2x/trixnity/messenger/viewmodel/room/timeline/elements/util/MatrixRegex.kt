@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 import net.folivo.trixnity.core.model.UserId
 
 // https://spec.matrix.org/v1.8/appendices/#user-identifiers
-private const val baseLocalpartRegex = """[a-z0-9.\-_=/+]+"""
+private const val baseLocalpartRegex = """[a-z0-9.\-_=\/+]+"""
 
 // https://spec.matrix.org/latest/appendices/#server-name
 private const val basePortRegex = """:[0-9]{4}"""
@@ -17,11 +17,11 @@ private const val baseUserIdRegex = """@($baseLocalpartRegex):($baseServernameRe
 
 // https://spec.matrix.org/v1.8/appendices/#matrix-uri-scheme
 private const val baseUserUriRegex =
-    """matrix:u/($baseLocalpartRegex):($baseServernameRegex)(?:(?:\?action=chat(?:&via=$baseServernameRegex)?)|(?:\?via=$baseServernameRegex(?:&action=chat)?))?"""
+    """matrix:u\/($baseLocalpartRegex):($baseServernameRegex)(?:(?:\?action=chat(?:&via=$baseServernameRegex)?)|(?:\?via=$baseServernameRegex(?:&action=chat)?))?"""
 
 // https://spec.matrix.org/v1.8/appendices/#matrixto-navigation
-private const val baseUserLinkRegex = """https?://matrix\.to/#/@($baseLocalpartRegex):($baseServernameRegex)"""
-private const val baseUserHtmlAnchorRegex = """<a href="$baseUserLinkRegex">.*</a>"""
+private const val baseUserLinkRegex = """https?:\/\/matrix\.to\/#\/@($baseLocalpartRegex):($baseServernameRegex)"""
+private const val baseUserHtmlAnchorRegex = """<a href="$baseUserLinkRegex">.*<\/a>"""
 
 
 private val userRegex by lazy {
