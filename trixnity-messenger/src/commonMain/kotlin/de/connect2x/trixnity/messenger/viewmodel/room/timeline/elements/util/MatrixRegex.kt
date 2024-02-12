@@ -28,14 +28,6 @@ private val userRegex by lazy {
     """(?:(?:$baseUserIdRegex)|(?:$baseUserUriRegex)|(?:$baseUserLinkRegex)|(?:$baseUserHtmlAnchorRegex))$""".toRegex()
 }
 
-private val localpartRegex by lazy {
-    baseLocalpartRegex.toRegex()
-}
-
-private val servernameRegex by lazy {
-    baseServernameRegex.toRegex()
-}
-
 fun matchUsers(message: String): Map<String, UserId> {
     val matches = userRegex.findAll(message)
     return matches.associate {
