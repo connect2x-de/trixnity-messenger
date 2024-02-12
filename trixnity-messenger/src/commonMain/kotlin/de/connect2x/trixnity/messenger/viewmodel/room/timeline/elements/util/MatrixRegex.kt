@@ -1,11 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import korlibs.io.util.getOrNullLoggingError
-import kotlinx.coroutines.flow.firstOrNull
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 
 // https://spec.matrix.org/v1.8/appendices/#user-identifiers
