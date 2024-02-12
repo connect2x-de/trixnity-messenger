@@ -5,8 +5,10 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.matchUsers
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
+import korlibs.io.async.runBlockingNoSuspensions
+import net.folivo.trixnity.core.model.RoomId
 
 
 interface TextMessageViewModelFactory {
@@ -27,6 +29,7 @@ interface TextMessageViewModelFactory {
         message: String,
         formattedBody: String?,
         invitation: Flow<String?>,
+        roomId: RoomId,
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
             viewModelContext,
@@ -44,7 +47,8 @@ interface TextMessageViewModelFactory {
             referencedMessage,
             message,
             formattedBody,
-            invitation
+            invitation,
+            roomId
         )
     }
 
@@ -70,6 +74,7 @@ open class TextMessageViewModelImpl(
     override val message: String,
     override val formattedBody: String?,
     invitation: Flow<String?>,
+    roomId: RoomId,
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
 
     override val invitation: StateFlow<String?> =
@@ -80,8 +85,10 @@ open class TextMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionedUsers: Map<String, UserInfoElement> = matchUsers(message).map {
-        it.key to it.value.toUserInfoElement(matrixClient)
+    override val mentionedUsers: Map<String, UserInfoElement> = matchUsers(message).mapValues {
+        runBlockingNoSuspensions {
+            it.value.toUserInfoElement(matrixClient, roomId)
+        }
     }
 
     override fun toString(): String {

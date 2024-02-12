@@ -337,6 +337,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
+                            roomId = selectedRoomId,
                         )
                     }
 
@@ -455,6 +456,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
+                            roomId = selectedRoomId,
                         )
                     }
                 }

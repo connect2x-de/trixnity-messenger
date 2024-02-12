@@ -103,6 +103,7 @@ open class OutboxElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
+                            roomId = selectedRoomId,
                         )
                     }
 

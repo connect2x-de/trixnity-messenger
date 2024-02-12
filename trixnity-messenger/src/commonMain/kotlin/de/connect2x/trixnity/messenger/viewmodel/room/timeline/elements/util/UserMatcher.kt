@@ -2,7 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import korlibs.io.util.getOrNullLoggingError
+import kotlinx.coroutines.flow.firstOrNull
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.user
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 
 // https://spec.matrix.org/v1.8/appendices/#user-identifiers
@@ -52,11 +55,4 @@ fun matchUsers(message: String): Map<String, UserId> {
         val domain = it.groupValues[2] + it.groupValues[4] + it.groupValues[6] + it.groupValues[8]
         matched to UserId(localpart, domain)
     }
-}
-
-fun UserId.toUserInfoElement(matrixClient: MatrixClient): UserInfoElement {
-    return UserInfoElement(
-        name = "",
-        userId = this
-    )
 }
