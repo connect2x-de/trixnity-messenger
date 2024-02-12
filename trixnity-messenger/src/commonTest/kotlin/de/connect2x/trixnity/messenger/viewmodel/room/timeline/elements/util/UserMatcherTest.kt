@@ -29,11 +29,41 @@ class UserMatcherTest : ShouldSpec() {
                 .shouldBe(UserId("user", "example.com"))
         }
 
-        should("match valid user identifier with matrix:u link") {
+        should("match valid user identifier with matrix:u link and action attribute") {
             val message = "Hello matrix:u/user:example.com?action=chat"
             val result = matchUsers(message)
             result.size shouldBe 1
             result["matrix:u/user:example.com?action=chat"]
+                .shouldBe(UserId("user", "example.com"))
+        }
+
+        should("match valid user identifier with matrix:u link and via attribute") {
+            val message = "Hello matrix:u/user:example.com?via=example.com"
+            val result = matchUsers(message)
+            result.size shouldBe 1
+            result["matrix:u/user:example.com?via=example.com"]
+                .shouldBe(UserId("user", "example.com"))
+        }
+
+        should("match valid user identifier with matrix:u link, via and action attribute") {
+            val message1 = "Hello matrix:u/user:example.com?action=chat&via=example.com"
+            val result1 = matchUsers(message1)
+            result1.size shouldBe 1
+            result1["matrix:u/user:example.com?action=chat&via=example.com"]
+                .shouldBe(UserId("user", "example.com"))
+
+            val message2 = "Hello matrix:u/user:example.com?via=example.com&action=chat"
+            val result2 = matchUsers(message2)
+            result2.size shouldBe 1
+            result2["matrix:u/user:example.com?via=example.com&action=chat"]
+                .shouldBe(UserId("user", "example.com"))
+        }
+
+        should("match valid user identifier with matrix:u link") {
+            val message = "Hello matrix:u/user:example.com"
+            val result = matchUsers(message)
+            result.size shouldBe 1
+            result["matrix:u/user:example.com"]
                 .shouldBe(UserId("user", "example.com"))
         }
 
