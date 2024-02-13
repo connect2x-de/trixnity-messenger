@@ -9,12 +9,12 @@ actual fun platformMatrixMessengerFactory(): Module = module {
     single<MatrixMessengerFactory> {
         val configuration = get<MatrixMultiMessengerConfiguration>().messengerWithBase
         val storagePrefix = get<StoragePrefix>().storagePrefix
-        MatrixMessengerFactory { profile ->
+        MatrixMessengerFactory { profileId ->
             MatrixMessengerImpl {
                 configuration()
                 modules += module {
                     single<StoragePrefix> {
-                        StoragePrefix("$storagePrefix$profile/")
+                        StoragePrefix("$storagePrefix$profileId/")
                     }
                     copyMultiMessengerSingletons(this@single)
                 }

@@ -6,7 +6,7 @@ import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 
 fun interface MatrixMessengerFactory {
-    suspend operator fun invoke(profile: String): MatrixMessenger
+    suspend operator fun invoke(profileId: String): MatrixMessenger
 }
 
 internal fun Module.copyMultiMessengerSingletons(from: Scope) {

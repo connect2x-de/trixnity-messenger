@@ -2,11 +2,11 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
-import de.connect2x.trixnity.messenger.multi.create
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.client.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
@@ -16,6 +16,7 @@ import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
 
 fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
     single<DebugName> {
@@ -67,16 +68,22 @@ suspend fun createTestMatrixMessenger(debugName: String = "client") =
         }
     )
 
+suspend fun createTestMatrixMultiMessenger(
+    debugName: String = "client",
+    coroutineContext: CoroutineContext = Dispatchers.Default
+) =
+    MatrixMultiMessengerImpl(coroutineContext) {
+        messenger = {
+            modules += createTestTrixnityMessengerModule(debugName)
+        }
+        modules += module {
+            single<FileSystem> {
+                FakeFileSystem()
+            }
+        }
+    }
+
 suspend fun createTestMatrixMessengerFromMultiMessenger(debugName: String = "client") =
     MatrixMessengerWithRoot(
-        MatrixMultiMessenger.create {
-            messenger = {
-                modules += createTestTrixnityMessengerModule(debugName)
-            }
-            modules += module {
-                single<FileSystem> {
-                    FakeFileSystem()
-                }
-            }
-        }.singleModeMatrixMessenger().first()
+        createTestMatrixMultiMessenger(debugName).singleModeMatrixMessenger().first()
     )

@@ -9,12 +9,12 @@ actual fun platformMatrixMessengerFactory(): Module = module {
     single<MatrixMessengerFactory> {
         val configuration = get<MatrixMultiMessengerConfiguration>().messengerWithBase
         val rootPath = get<RootPath>().path
-        MatrixMessengerFactory { profile ->
+        MatrixMessengerFactory { profileId ->
             MatrixMessengerImpl {
                 configuration()
                 modules += module {
                     single<RootPath> {
-                        RootPath(rootPath.resolve(profile))
+                        RootPath(rootPath.resolve(profileId))
                     }
                     copyMultiMessengerSingletons(this@single)
                 }

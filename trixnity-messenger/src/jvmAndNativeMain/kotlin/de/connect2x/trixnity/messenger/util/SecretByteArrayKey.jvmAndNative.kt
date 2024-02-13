@@ -4,8 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-const val SECRET_BYTE_ARRAY_KEY_KEY =
-    "secret_byte_array_key_key" // FIXME seems to be exposed, when mac UI asks to access this key
+const val SECRET_BYTE_ARRAY_KEY_KEY = "secret_byte_array_key_key"
 
 fun interface GetPlatformSecret {
     suspend operator fun invoke(id: String, sizeOnCreate: Int): ByteArray?

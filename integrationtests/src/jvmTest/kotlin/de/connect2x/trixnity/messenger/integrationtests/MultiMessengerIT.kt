@@ -4,13 +4,13 @@ import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccou
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
-import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessengerFromMultiMessenger
-import de.connect2x.trixnity.messenger.integrationtests.util.register
-import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
-import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
+import de.connect2x.trixnity.messenger.integrationtests.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
 
@@ -54,7 +55,26 @@ class MultiMessengerIT {
     }
 
     @Test
-    fun shouldAddAnAccountAndRemoveAfterwards(): Unit = runBlockingWithTimeout {
+    fun shouldHandleMultipleProfiles(): Unit = runTest {
+        val multiMessenger = createTestMatrixMultiMessenger(coroutineContext = backgroundScope.coroutineContext)
+        val profile1 = multiMessenger.createProfile()
+        val profile2 = multiMessenger.createProfile()
+
+        testScheduler.advanceTimeBy(1.seconds)
+        multiMessenger.profiles.value shouldHaveSize 2
+        multiMessenger.selectProfile(profile1)
+        testScheduler.advanceUntilIdle()
+        val matrixMessenger1 = multiMessenger.activeMatrixMessenger.value shouldNotBe null
+
+        multiMessenger.selectProfile(profile2)
+        testScheduler.advanceUntilIdle()
+        val matrixMessenger2 = multiMessenger.activeMatrixMessenger.value shouldNotBe null
+
+        matrixMessenger1 shouldNotBe matrixMessenger2
+    }
+
+    @Test
+    fun shouldAddAnAccountAndRemoveAfterwardsOnMultiMatrixMessengerSingleMode(): Unit = runBlockingWithTimeout {
         val messenger = createTestMatrixMessengerFromMultiMessenger()
         log.info { "login as user1" }
         messenger.login(
