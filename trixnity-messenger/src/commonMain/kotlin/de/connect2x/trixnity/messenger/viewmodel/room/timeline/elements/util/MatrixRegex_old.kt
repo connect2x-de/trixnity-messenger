@@ -28,6 +28,7 @@ private val userRegex by lazy {
     """(?:(?:$baseUserIdRegex)|(?:$baseUserUriRegex)|(?:$baseUserLinkRegex)|(?:$baseUserHtmlAnchorRegex))$""".toRegex()
 }
 
+@Deprecated("Use the functionality in trixnity-core once its merged instead")
 fun matchUsers(message: String): Map<String, UserId> {
     val matches = userRegex.findAll(message)
     return matches.associate {
