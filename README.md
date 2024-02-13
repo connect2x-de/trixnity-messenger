@@ -68,18 +68,28 @@ where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel`
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
 
-### Multi profiles / tenancy
+### Multi profiles/tenancy
 
-`MatrixMultiMessenger` allows you to manage multiple profiles. Currently it is not possible to migrate from
-`MatrixMessenger` to `MatrixMultiMessenger`, so we recommend to always use `MatrixMultiMessenger` and create a single
-profile on first start (for example by using the helper extension `MatrixMultiMessenger.singleMode`).
+`MatrixMessenger` has support for multiple Matrix accounts, but by default it is not possible to have
+different `MatrixMessenger` instances in the same application (e.g., for a multi-tenancy feature).
+
+This feature is added by `MatrixMultiMessenger` (which inherits from `ProfileManager`). It allows to create, delete and
+select profiles. Profiles are used to separate `MatrixMessenger`s . When you want to use a `MatrixMessenger`, you first
+decide on the profile and then have access to the current active `MatrixMessenger`. Unlike multiple Matrix accounts
+within `MatrixMessenger`, which are active at the same time, only one profile in `MatrixMultiMessenger` can be active at
+the same time. Under the hood, `MatrixMultiMessenger` creates another directory level on targets supporting filesystems
+or adds a prefix to all storage-keys on the web target. By default, the last active profile is loaded on start
+of `MatrixMultiMessenger`.
+
+Currently, it is not possible to migrate from `MatrixMessenger` to `MatrixMultiMessenger`, so we recommend to always use
+`MatrixMultiMessenger` and create a single profile on first start (for example by using the helper
+extension `MatrixMultiMessenger.singleMode`).
+
+Creating a `MatrixMultiMessenger` is similar to creating a `MatrixMessenger`:
 
 ```kotlin
-val matrixMessenger = MatrixMessenger.create()
+val matrixMultiMessenger = MatrixMultiMessenger.create()
 ```
-
-Under the hood, using `MatrixMultiMessenger` creates another directory level on targets supporting filesystems or
-adds a prefix to all data-keys on the web target.
 
 ### Routing
 
