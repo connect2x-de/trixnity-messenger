@@ -14,6 +14,7 @@ import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesMod
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun createTestDefaultTrixnityMessengerModules(
@@ -36,7 +37,7 @@ fun createTestDefaultTrixnityMessengerModules(
             throwable.printStackTrace()
         })
     }
-    single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }
+    single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }.bind<MatrixMessengerBaseConfiguration>()
     single<MatrixMessengerSettingsHolder> { settings }
     if (matrixClients != null)
         single<MatrixClients> {
@@ -102,7 +103,6 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
                 if (it.accounts.containsKey(userId)) it
                 else it.copy(
                     accounts = it.accounts + (userId to MatrixMessengerAccountSettings(
-                        userId = userId,
                         databasePassword = null
                     ))
                 )
@@ -117,7 +117,6 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
             val oldAccounts = it.accounts
             val newAccount = updater(
                 oldAccounts[userId] ?: MatrixMessengerAccountSettings(
-                    userId = userId,
                     databasePassword = null
                 )
             )
