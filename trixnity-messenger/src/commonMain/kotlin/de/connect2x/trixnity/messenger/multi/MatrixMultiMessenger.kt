@@ -4,6 +4,8 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.SettingsHolder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -70,4 +72,13 @@ class MatrixMultiMessengerImpl private constructor(
         activeMatrixMessenger.value?.stop()
         di.get<CoroutineScope>().cancel()
     }
+}
+
+suspend fun MatrixMultiMessenger.singleMode(block: suspend (MatrixMessenger) -> Unit) {
+    if (activeProfile.value == null) {
+        val firstProfile = profiles.value.keys.firstOrNull()
+            ?: createProfile()
+        selectProfile(firstProfile)
+    }
+    activeMatrixMessenger.filterNotNull().collectLatest(block)
 }

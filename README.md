@@ -72,7 +72,7 @@ Now you are ready to react to different states of the routing in the `RootViewMo
 
 `MatrixMultiMessenger` allows you to manage multiple profiles. Currently it is not possible to migrate from
 `MatrixMessenger` to `MatrixMultiMessenger`, so we recommend to always use `MatrixMultiMessenger` and create a single
-profile on first start.
+profile on first start (for example by using the helper extensions `MatrixMultiMessenger.singleMode`).
 
 ```kotlin
 val matrixMessenger = MatrixMessenger.create()
