@@ -6,7 +6,7 @@ import net.folivo.trixnity.core.model.UserId
 private const val baseLocalpartRegex = """[a-z0-9.\-_=\/+]+"""
 
 // https://spec.matrix.org/latest/appendices/#server-name
-private const val basePortRegex = """:[0-9]{4}"""
+private const val basePortRegex = """:[0-9]{1,5}"""
 private const val baseDomainRegex = """(?:[\w-]+\.)?[\w-]+\.[\w-]+(?:$basePortRegex)?"""
 private const val baseIPV4Regex = """\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:$basePortRegex)?"""
 private const val baseIPV6Regex = """\[[0-9a-fA-F:]+\](?:$basePortRegex)?"""
