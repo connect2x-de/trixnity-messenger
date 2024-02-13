@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -25,7 +25,7 @@ import kotlin.concurrent.thread
 private val log = KotlinLogging.logger { }
 
 class UrlHandlerImpl(
-    config: MatrixMessengerConfiguration,
+    config: MatrixMessengerBaseConfiguration,
     private val fileSystem: FileSystem,
     rootPath: RootPath,
     private val closeApp: CloseApp

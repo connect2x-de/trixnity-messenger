@@ -9,7 +9,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
@@ -482,7 +482,7 @@ open class MainViewModelImpl(
             val sendLogToDevs = getOrNull<SendLogToDevs>()
             if (sendLogToDevs != null)
                 try {
-                    val config = get<MatrixMessengerConfiguration>()
+                    val config = get<MatrixMessengerBaseConfiguration>()
                     val defaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()()
                     log.debug { "send logs to devs (email: ${config.sendLogsEmailAddress})" }
                     config.sendLogsEmailAddress?.let { email ->

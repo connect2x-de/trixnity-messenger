@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import io.ktor.http.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +11,7 @@ import org.koin.core.module.Module
 interface UrlHandler : Flow<Url>
 
 open class UrlHandlerBase(
-    config: MatrixMessengerConfiguration,
+    config: MatrixMessengerBaseConfiguration,
     filter: (Url) -> Boolean = urlFilter(config),
     protected val urlHandlerFlow: MutableSharedFlow<Url> =
         MutableSharedFlow(
@@ -20,7 +20,7 @@ open class UrlHandlerBase(
         )
 ) : UrlHandler, Flow<Url> by urlHandlerFlow.filter(filter)
 
-fun urlFilter(config: MatrixMessengerConfiguration): (Url) -> Boolean = {
+fun urlFilter(config: MatrixMessengerBaseConfiguration): (Url) -> Boolean = {
     it.protocol == URLProtocol.createOrDefault(config.urlProtocol)
             && it.host == config.urlHost
 }

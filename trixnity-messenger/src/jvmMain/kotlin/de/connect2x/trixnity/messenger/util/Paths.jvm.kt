@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
@@ -9,7 +9,7 @@ import org.koin.dsl.module
 actual fun platformPathsModule(): Module = module {
     single { FileSystem.SYSTEM }
     single<RootPath> {
-        val config = get<MatrixMessengerConfiguration>()
+        val config = get<MatrixMessengerBaseConfiguration>()
         val path = getAppPath(config.appName)
         FileSystem.SYSTEM.createDirectories(path)
         RootPath(path)

@@ -7,7 +7,7 @@ import org.koin.dsl.module
 
 actual fun platformMatrixMessengerFactory(): Module = module {
     single<MatrixMessengerFactory> {
-        val configuration = get<MatrixMultiMessengerConfiguration>().messenger
+        val configuration = get<MatrixMultiMessengerConfiguration>().messengerWithBase
         val storagePrefix = get<StoragePrefix>().storagePrefix
         MatrixMessengerFactory { profile ->
             MatrixMessengerImpl {

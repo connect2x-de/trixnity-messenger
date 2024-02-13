@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import org.koin.core.Koin
+import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -50,7 +51,7 @@ class MatrixMessengerImpl private constructor(
             val di = koinApplication {
                 modules(module {
                     single { coroutineScope }
-                    single { config }
+                    single { config }.bind<MatrixMessengerBaseConfiguration>()
                 })
                 modules(config.modules)
             }.koin

@@ -2,16 +2,17 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
-import de.connect2x.trixnity.messenger.util.Paths
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
+import de.connect2x.trixnity.messenger.multi.create
+import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.client.*
+import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import okio.FileSystem
-import okio.Path
-import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -54,15 +55,28 @@ fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
             override suspend fun invoke(userId: UserId): MediaStore = store
         }
     }
-    single<Paths> {
-        object : Paths {
-            override val fileSystem: FileSystem = FakeFileSystem()
-            override val rootPath: Path = "/test/$debugName".toPath()
-        }
+    single<FileSystem> {
+        FakeFileSystem()
     }
 }
 
-suspend fun createTestMatrixMessenger(debugName: String = "client") = MatrixMessengerWithRoot(MatrixMessenger.create {
-    modules = createDefaultTrixnityMessengerModules() + createTestTrixnityMessengerModule(debugName)
-}
-)
+suspend fun createTestMatrixMessenger(debugName: String = "client") =
+    MatrixMessengerWithRoot(
+        MatrixMessenger.create {
+            modules += createTestTrixnityMessengerModule(debugName)
+        }
+    )
+
+suspend fun createTestMatrixMessengerFromMultiMessenger(debugName: String = "client") =
+    MatrixMessengerWithRoot(
+        MatrixMultiMessenger.create {
+            messenger = {
+                modules += createTestTrixnityMessengerModule(debugName)
+            }
+            modules += module {
+                single<FileSystem> {
+                    FakeFileSystem()
+                }
+            }
+        }.singleModeMatrixMessenger().first()
+    )
