@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger
 
-import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 
 inline fun <reified S : Any> createLocalStorageSettingsHolder(
@@ -9,11 +9,13 @@ inline fun <reified S : Any> createLocalStorageSettingsHolder(
 ) = createSettingsHolder(object : SettingsStorage<S> {
     override suspend fun write(settings: S) {
         val json = settingsJson.encodeToString(settings)
-        localStorage.setItem(name, json)
+        println("write ${json}")
+        window.localStorage.setItem(name, json)
+        println("wrote json")
     }
 
     override suspend fun read(): S {
-        val json = localStorage.getItem(name) ?: return initialSettings()
+        val json = window.localStorage.getItem(name) ?: return initialSettings()
         return settingsJson.decodeFromString<S>(json)
     }
 })
