@@ -9,9 +9,7 @@ inline fun <reified S : Any> createLocalStorageSettingsHolder(
 ) = createSettingsHolder(object : SettingsStorage<S> {
     override suspend fun write(settings: S) {
         val json = settingsJson.encodeToString(settings)
-        println("write ${json}")
         window.localStorage.setItem(name, json)
-        println("wrote json")
     }
 
     override suspend fun read(): S {
