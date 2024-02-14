@@ -10,6 +10,7 @@ import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
@@ -60,14 +61,14 @@ class MultiMessengerIT {
         val profile1 = multiMessenger.createProfile()
         val profile2 = multiMessenger.createProfile()
 
-        testScheduler.advanceTimeBy(1.seconds)
+        advanceTimeBy(1.seconds)
         multiMessenger.profiles.value shouldHaveSize 2
         multiMessenger.selectProfile(profile1)
-        testScheduler.advanceUntilIdle()
+        advanceTimeBy(1.seconds)
         val matrixMessenger1 = multiMessenger.activeMatrixMessenger.value shouldNotBe null
 
         multiMessenger.selectProfile(profile2)
-        testScheduler.advanceUntilIdle()
+        advanceTimeBy(1.seconds)
         val matrixMessenger2 = multiMessenger.activeMatrixMessenger.value shouldNotBe null
 
         matrixMessenger1 shouldNotBe matrixMessenger2
