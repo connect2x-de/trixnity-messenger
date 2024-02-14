@@ -6,9 +6,10 @@ import org.koin.dsl.module
 
 internal actual fun platformDeleteAccountDataModule(): Module = module {
     single<DeleteAccountData> {
+        val storagePrefix = get<StoragePrefix>().storagePrefix
         DeleteAccountData { userId ->
-            deleteDatabase(getRepositoryDatabaseName(userId))
-            deleteDatabase(getMediaDatabaseName(userId))
+            deleteDatabase(getRepositoryDatabaseName(storagePrefix, userId))
+            deleteDatabase(getMediaDatabaseName(storagePrefix, userId))
         }
     }
 }

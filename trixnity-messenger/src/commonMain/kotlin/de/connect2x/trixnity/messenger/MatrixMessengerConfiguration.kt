@@ -3,13 +3,13 @@ package de.connect2x.trixnity.messenger
 import org.koin.core.module.Module
 
 data class MatrixMessengerConfiguration(
-    var appName: String = "Trixnity Messenger",
-    var packageName: String = "de.connect2x",
+    override var appName: String = "Trixnity Messenger",
+    override var packageName: String = "de.connect2x",
 
     var encryptLocalData: Boolean = true,
 
-    var urlProtocol: String = "trixnity",
-    var urlHost: String = "localhost",
+    override var urlProtocol: String = "trixnity",
+    override var urlHost: String = "localhost",
     var ssoRedirectPath: String = "sso",
 
     var generateInitialAccountColor: (suspend (alreadyUsedColors: Set<Long>) -> Long)? = null,
@@ -34,10 +34,10 @@ data class MatrixMessengerConfiguration(
 
     var defaultHomeServer: String? = null,
 
-    var sendLogsEmailAddress: String? = null,
+    override var sendLogsEmailAddress: String? = null,
 
     /**
-     * Inject and override modules into Trixnity Messenger.
+     * Inject and override modules.
      */
     var modules: List<Module> = createDefaultTrixnityMessengerModules(),
-)
+) : MatrixMessengerBaseConfiguration

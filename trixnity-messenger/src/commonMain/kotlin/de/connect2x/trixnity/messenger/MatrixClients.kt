@@ -132,7 +132,6 @@ class MatrixClientsImpl(
             }
         settings.update(matrixClient.userId) {
             MatrixMessengerAccountSettings.withConfigDefaults(
-                userId = matrixClient.userId,
                 databasePassword = databasePassword,
                 displayColor = displayColor,
                 config = config

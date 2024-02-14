@@ -11,7 +11,7 @@ import org.koin.dsl.module
 actual fun platformSendLogToDevsModule(): Module = module {
     single<SendLogToDevs> {
         val context = get<Context>()
-        val paths = get<Paths>()
+        val rootPath = get<RootPath>().path
         SendLogToDevs { emailAddress, subject ->
             val intent = Intent(Intent.ACTION_SEND).apply {
                 data = Uri.parse("mailto:")
@@ -22,7 +22,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
                     FileProvider.getUriForFile(
                         context,
                         "de.connect2x.timmy.provider",  // TODO must be configurable
-                        paths.rootPath.resolve("timmy.log").toFile() // TODO must be configurable
+                        rootPath.resolve("timmy.log").toFile() // TODO must be configurable
                     )
                 )
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK

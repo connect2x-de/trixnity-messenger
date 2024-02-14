@@ -7,6 +7,8 @@ import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.ptr.PointerByReference
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -39,13 +41,13 @@ actual fun platformGetPlatformSecret(): Module = module {
     }
 }
 
-private fun getSecret(id: String): String? {
-    return when (getOs()) {
+private suspend fun getSecret(id: String): String? = withContext(Dispatchers.IO) {
+    when (getOs()) {
         OS.WINDOWS -> {
             val credentialRef = PointerByReference()
             val success = WinCredentials.CredReadA(targetName = id, credentialRef = credentialRef)
             log.debug { "Read secret ('$id') from credentials store: $success" }
-            return if (success) {
+            if (success) {
                 try {
                     val credential = Credential(credentialRef.value)
                     credential.credentialBlob.getByteArray(0, credential.credentialBlobSize).decodeToString()

@@ -112,7 +112,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     roomViewModels(),
     roomSettingsViewModels(),
     // platform-specific implementations
-    generalPlatformModule(),
+    commonPlatformModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
     platformGetSecretByteArrayKey(),
@@ -237,4 +237,4 @@ private fun verificationViewModels() = module {
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
 
-expect fun generalPlatformModule(): Module
+expect fun commonPlatformModule(): Module

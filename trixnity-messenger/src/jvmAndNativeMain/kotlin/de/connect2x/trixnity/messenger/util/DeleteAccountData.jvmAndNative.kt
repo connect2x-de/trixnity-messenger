@@ -1,14 +1,16 @@
 package de.connect2x.trixnity.messenger.util
 
+import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 internal actual fun platformDeleteAccountDataModule(): Module = module {
     single<DeleteAccountData> {
-        val paths = get<Paths>()
+        val fileSystem = get<FileSystem>()
+        val rootPath = get<RootPath>()
         DeleteAccountData { userId ->
-            paths.fileSystem.deleteRecursively(
-                paths.rootPath.resolve(userId.asFilesystemSafeString()),
+            fileSystem.deleteRecursively(
+                rootPath.forAccount(userId),
                 mustExist = false
             )
         }

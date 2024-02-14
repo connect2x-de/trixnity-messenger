@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.ConvertSecretByteArray
-import de.connect2x.trixnity.messenger.util.Paths
+import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.util.SecretByteArray
-import de.connect2x.trixnity.messenger.util.asFilesystemSafeString
 import io.realm.kotlin.Realm
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -23,7 +22,7 @@ expect fun platformEncryptRepositoryModule(): Module
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
     includes(platformEncryptRepositoryModule())
     single<CreateRepositoriesModule> {
-        val paths = get<Paths>()
+        val rootPath = get<RootPath>()
         val convertSecretByteArray = get<ConvertSecretByteArray>()
         val encryptRepository = get<EncryptRepository>()
 
@@ -57,7 +56,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 }
 
             private fun dbFolder(userId: UserId) =
-                paths.rootPath.resolve(userId.asFilesystemSafeString()).resolve("database").toString()
+                rootPath.forAccount(userId).resolve("database").toString()
 
         }
     }
