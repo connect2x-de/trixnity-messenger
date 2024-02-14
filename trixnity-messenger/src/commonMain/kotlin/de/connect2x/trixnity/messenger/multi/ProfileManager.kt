@@ -18,6 +18,11 @@ interface ProfileManager {
     suspend fun closeProfile()
     suspend fun selectProfile(profile: String)
     suspend fun createProfile(settings: MatrixMultiMessengerProfileSettings = MatrixMultiMessengerProfileSettings()): String
+    suspend fun updateProfile(
+        profile: String,
+        updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
+    )
+
     suspend fun deleteProfile(profile: String)
 }
 
@@ -65,6 +70,18 @@ class ProfileManagerImpl(
             oldSettings.copy(profiles = oldSettings.profiles + (updateNextId to settings))
         }
         return checkNotNull(nextId)
+    }
+
+    override suspend fun updateProfile(
+        profile: String,
+        updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
+    ) {
+        settingsHolder.update { oldSettings ->
+            val newProfileSettings = oldSettings.profiles[profile]?.also { updateSettings(it) }
+            if (newProfileSettings != null)
+                oldSettings.copy(profiles = oldSettings.profiles + (profile to newProfileSettings))
+            else oldSettings
+        }
     }
 
     override suspend fun deleteProfile(profile: String) {
