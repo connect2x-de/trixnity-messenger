@@ -7,7 +7,7 @@ import org.koin.dsl.module
 
 actual fun platformMatrixMessengerSettingsHolderModule(): Module = module {
     single<MatrixMessengerSettingsHolder> {
-        val storagePrefix = get<StoragePrefix>()
+        val storagePrefix = get<StoragePrefix>().storagePrefix
         MatrixMessengerSettingsHolderImpl(
             createLocalStorageSettingsHolder("${storagePrefix}settings.json") { MatrixMessengerSettings() })
     }.bind<SettingsHolder<*>>()
