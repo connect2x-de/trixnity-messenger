@@ -59,7 +59,12 @@ interface TextBasedViewModel : RoomMessageViewModel {
     /**
      * Users mentioned in the event's message
      */
-    val mentionedUsers: Map<String, UserInfoElement>
+    val mentionedUsersInMessage: StateFlow<Map<String, UserInfoElement>>
+
+    /**
+     * Users mentioned in the event's formatted body
+     */
+    val mentionedUsersInFormattedBody: StateFlow<Map<String, UserInfoElement>?>
 }
 
 sealed interface ReferencedMessage {

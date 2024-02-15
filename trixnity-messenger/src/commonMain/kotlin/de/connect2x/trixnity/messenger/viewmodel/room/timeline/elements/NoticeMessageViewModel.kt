@@ -2,13 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.matchUsers
+import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import korlibs.io.async.runBlockingNoSuspensions
+import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 interface NoticeMessageViewModelFactory {
     fun create(
@@ -83,11 +82,18 @@ open class NoticeMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionedUsers: Map<String, UserInfoElement> = matchUsers(message).mapValues {
-        runBlockingNoSuspensions {
-            it.value.toUserInfoElement(matrixClient, roomId)
-        }
-    }
+    override val mentionedUsersInFormattedBody: StateFlow<Map<String, UserInfoElement>?> =
+    // To the reviewer: Added !! because IntelliJ complained, however,
+        // it may just not infer types properly due to its current state...
+        (if (formattedBody == null) null else combine(
+            MatrixRegex.findUserMentions(formattedBody!!)
+        ) { allMentionedUsers ->
+            allMentionedUsers.mapValues { it.toUserInfoElement(matrixClient, roomId) }
+        })?.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null) ?: MutableStateFlow(null)
+    override val mentionedUsersInMessage: StateFlow<Map<String, UserInfoElement>> =
+        combine(MatrixRegex.findUserMentions(message)) { allMentionedUsers ->
+            allMentionedUsers.mapValues { it.toUserInfoElement(matrixClient, roomId) }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun toString(): String {
         return fallbackMessage

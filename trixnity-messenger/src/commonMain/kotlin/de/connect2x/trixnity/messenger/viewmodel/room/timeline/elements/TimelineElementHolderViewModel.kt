@@ -686,8 +686,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionedUsers: Map<String, UserInfoElement> = mapOf()
-        }
+            override val mentionedUsersInFormattedBody: StateFlow<Map<String, UserInfoElement>?> = MutableStateFlow(emptyMap())
+            override val mentionedUsersInMessage: StateFlow<Map<String, UserInfoElement>> = MutableStateFlow(emptyMap())        }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -770,7 +770,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionedUsers: Map<String, UserInfoElement> = mapOf()
+                override val mentionedUsersInFormattedBody: StateFlow<Map<String, UserInfoElement>?> = MutableStateFlow(emptyMap())
+                override val mentionedUsersInMessage: StateFlow<Map<String, UserInfoElement>> = MutableStateFlow(emptyMap())
             }
         }
     }
