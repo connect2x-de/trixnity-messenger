@@ -53,7 +53,7 @@ open class MemberListViewModelImpl(
     override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
-            matrixClient.room.getState<CreateEventContent>(selectedRoomId).map { it?.content }.filterNotNull(),
+            matrixClient.room.getState<CreateEventContent>(selectedRoomId).filterNotNull(),
             matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         ) { powerLevels, createEvent, roomUsers ->
             roomUsers.mapNotNull { roomUser ->
@@ -70,7 +70,13 @@ open class MemberListViewModelImpl(
                     }
                     Pair(userId, memberListElementViewModel)
                 } else null
-            }.sortedByDescending { (userId, _) -> matrixClient.user.getPowerLevel(userId, powerLevels, createEvent) }
+            }.sortedByDescending { (userId, _) ->
+                matrixClient.user.getPowerLevel(
+                    userId,
+                    createEvent.sender,
+                    powerLevels
+                )
+            }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
     init {
