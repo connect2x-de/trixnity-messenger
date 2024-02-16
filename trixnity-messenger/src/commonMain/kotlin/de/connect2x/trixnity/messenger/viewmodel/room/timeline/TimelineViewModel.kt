@@ -511,6 +511,7 @@ class TimelineViewModelImpl(
                 shouldShowUnreadMarkerFlow = unreadElementFlow.map { it == eventId },
                 onMessageEdited = ::onMessageEdited,
                 onMessageRepliedTo = ::onMessageRepliedTo,
+                onMessageReport = ::onMessageReport,
                 onOpenModal = onOpenModal,
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
@@ -610,6 +611,10 @@ class TimelineViewModelImpl(
     private fun onMessageRepliedTo(eventId: EventId) {
         timelineElements.value.filterNot { it.key == eventId.full }.forEach { it.viewModel.endReplyTo() }
         inputAreaViewModel.replyToMessage(eventId)
+    }
+
+    private fun onMessageReport(eventId: EventId, repostReason: String?) {
+        // TODO: Need to write implent
     }
 
     private fun onMessageReplyToFinished(eventId: EventId) {

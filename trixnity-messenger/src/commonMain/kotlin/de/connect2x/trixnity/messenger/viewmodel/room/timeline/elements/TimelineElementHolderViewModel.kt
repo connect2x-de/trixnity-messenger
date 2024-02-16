@@ -71,6 +71,7 @@ interface TimelineElementHolderViewModelFactory {
         readBy: Flow<List<String>>,
         onMessageEdited: (EventId) -> Unit,
         onMessageRepliedTo: (EventId) -> Unit,
+        onMessageReport: (EventId, String?) -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
     ): TimelineElementHolderViewModel {
         return TimelineElementHolderViewModelImpl(
@@ -87,7 +88,8 @@ interface TimelineElementHolderViewModelFactory {
             shouldShowUnreadMarkerFlow,
             onMessageEdited,
             onMessageRepliedTo,
-            onOpenModal
+            onOpenModal = onOpenModal,
+            onMessageReport = onMessageReport
         )
     }
 
@@ -112,11 +114,14 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val redactionError: StateFlow<String?>
     val canBeRepliedTo: StateFlow<Boolean>
     val highlight: StateFlow<Boolean>
+    val canBeReported: StateFlow<Boolean>
     fun edit()
     fun endEdit()
     fun redact()
     fun replyTo()
     fun endReplyTo()
+    fun report()
+    fun endReport()
 
     /** returns no Flow! -> for current value, recompute every time needed (Flow computation would be expensive) */
     suspend fun isReadBy(): String
@@ -137,6 +142,7 @@ open class TimelineElementHolderViewModelImpl(
     shouldShowUnreadMarkerFlow: Flow<Boolean>,
     private val onMessageEdited: (EventId) -> Unit,
     private val onMessageRepliedTo: (EventId) -> Unit,
+    private val onMessageReport: (EventId,String?) -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
@@ -165,6 +171,9 @@ open class TimelineElementHolderViewModelImpl(
     override val canBeRepliedTo: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val canBeReported: StateFlow<Boolean> =  matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     private val _replyToInProgress = MutableStateFlow(false)
     override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
@@ -660,6 +669,14 @@ open class TimelineElementHolderViewModelImpl(
         _replyToInProgress.value = false
     }
 
+    override fun report() {
+        TODO("Not yet implemented")
+    }
+
+    override fun endReport() {
+        TODO("Not yet implemented")
+    }
+
     override fun toString(): String {
         return "TimelineElementViewModel(showLoadingIndicator=${showLoadingIndicatorBefore.value}, shouldShowUnreadMarker=${shouldShowUnreadMarkerFlow.value}, isDirect=${isDirect.value})"
     }
@@ -697,6 +714,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun edit() {
     }
@@ -711,6 +729,14 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     }
 
     override fun endReplyTo() {
+    }
+
+    override fun report() {
+        TODO("Not yet implemented")
+    }
+
+    override fun endReport() {
+        TODO("Not yet implemented")
     }
 
     override suspend fun isReadBy(): String = "Bob, Alice"
@@ -731,6 +757,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun edit() {
     }
@@ -745,6 +772,14 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     }
 
     override fun endReplyTo() {
+    }
+
+    override fun report() {
+        TODO("Not yet implemented")
+    }
+
+    override fun endReport() {
+        TODO("Not yet implemented")
     }
 
     override suspend fun isReadBy(): String = "Bob, Alice"
