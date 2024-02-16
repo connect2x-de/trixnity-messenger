@@ -8,8 +8,10 @@ suspend fun MatrixMultiMessenger.Companion.create(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit = {},
 ): MatrixMultiMessenger = MatrixMultiMessengerImpl {
     configuration()
+    val oldMessenger = messenger
     messenger = {
-        messenger()
+        oldMessenger()
         modules += module { single<Context> { context } }
     }
+    modules += module { single<Context> { context } }
 }
