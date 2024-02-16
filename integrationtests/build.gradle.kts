@@ -14,7 +14,9 @@ kotlin {
             // testLogging.showStandardStreams = true   // activate when detailed information in tests is required
         }
         tasks.withType<Test>().configureEach {
-            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+            maxParallelForks =
+                if (isCI) 2
+                else (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
 
