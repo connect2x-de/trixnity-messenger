@@ -30,13 +30,16 @@ interface ReportMessageViewModel {
     fun reportMessage(eventId: EventId)
     fun updateReportReason(text: String)
     fun submitReportToMessage()
+
+    fun finishReportToMessage()
+
 }
 
 open class ReportMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onMessageReportFinished: (EventId) -> Unit,
-    ) : MatrixClientViewModelContext by viewModelContext, ReportMessageViewModel {
+) : MatrixClientViewModelContext by viewModelContext, ReportMessageViewModel {
 
 
     var eventId: MutableStateFlow<EventId?> = MutableStateFlow(null)
@@ -71,6 +74,15 @@ open class ReportMessageViewModelImpl(
             onMessageReportFinished(eventId.value!!)
         }
     }
+
+    override fun finishReportToMessage() {
+        clearAllFields()
+    }
+
+    private fun clearAllFields() {
+        eventId.value = null
+        messageReportReason.value = ""
+    }
 }
 
 class ReportMessagePreviewViewModel : ReportMessageViewModel {
@@ -87,6 +99,11 @@ class ReportMessagePreviewViewModel : ReportMessageViewModel {
 
     override fun submitReportToMessage() {
         log.trace { "submit message report" }
+
+    }
+
+    override fun finishReportToMessage() {
+        log.trace { "submit message finished" }
 
     }
 

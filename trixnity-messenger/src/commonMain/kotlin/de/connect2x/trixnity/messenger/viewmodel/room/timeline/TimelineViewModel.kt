@@ -661,6 +661,7 @@ class TimelineViewModelImpl(
     private fun onMessageReportToFinished(eventId: EventId) {
         log.debug { "message report to finished $eventId" }
         timelineElements.value.single { it.key == eventId.full }.viewModel.endReportTo()
+        reportMessageViewModel.finishReportToMessage()
     }
 
     private fun onMessageReplyToFinished(eventId: EventId) {

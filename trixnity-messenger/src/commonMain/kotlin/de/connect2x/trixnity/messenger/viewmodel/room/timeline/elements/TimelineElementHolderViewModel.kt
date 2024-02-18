@@ -181,9 +181,7 @@ open class TimelineElementHolderViewModelImpl(
 
     private val _replyToInProgress = MutableStateFlow(false)
 
-    private val _reportToInProgress = MutableStateFlow(false)
-
-    override val reportToMessageInProgress: MutableSharedFlow<Boolean> = MutableSharedFlow()
+    override val reportToMessageInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
         override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
@@ -684,9 +682,7 @@ open class TimelineElementHolderViewModelImpl(
 
     override fun reportTo() {
         log.trace { "Calling reportToMessage function" }
-        coroutineScope.launch {
-            reportToMessageInProgress.emit(true)
-        }
+        reportToMessageInProgress.value = true
         coroutineScope.launch {
             timelineEventFlow.first()?.event?.let {
                 if (it is MessageEvent<*>) onMessageReportTo(it.id)
@@ -697,9 +693,8 @@ open class TimelineElementHolderViewModelImpl(
 
     override fun endReportTo() {
         log.trace { "Calling endReportTo function" }
-        coroutineScope.launch {
-            reportToMessageInProgress.emit(false)
-        }
+        reportToMessageInProgress.value = false
+
     }
 
     override fun toString(): String {
