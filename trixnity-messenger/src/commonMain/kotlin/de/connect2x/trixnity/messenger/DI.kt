@@ -216,6 +216,7 @@ private fun roomSettingsViewModels() = module {
 
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
+    single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
     single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
