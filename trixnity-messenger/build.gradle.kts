@@ -152,7 +152,7 @@ kotlin {
             dependsOn(jvmAndNativeTest)
         }
         val androidUnitTest by getting {
-            dependsOn(jvmAndNativeMain)
+            dependsOn(jvmAndNativeTest)
             dependencies {
                 implementation("io.ktor:ktor-client-android:${Versions.ktor}")
             }
