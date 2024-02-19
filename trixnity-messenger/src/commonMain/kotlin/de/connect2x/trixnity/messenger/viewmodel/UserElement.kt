@@ -1,9 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import kotlinx.coroutines.flow.firstOrNull
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.core.model.UserId
 
 data class UserInfoElement(
@@ -37,9 +34,9 @@ data class UserInfoElement(
     }
 }
 
-suspend fun UserId.toUserInfoElement(matrixClient: MatrixClient, roomId: RoomId): UserInfoElement {
-    return UserInfoElement(
-        name = matrixClient.user.getById(roomId, this).firstOrNull()?.name ?: this.localpart,
-        userId = this
+fun RoomUser.toUserInfoElement(): UserInfoElement =
+    UserInfoElement(
+        name = this.name,
+        userId = this.userId
     )
-}
+

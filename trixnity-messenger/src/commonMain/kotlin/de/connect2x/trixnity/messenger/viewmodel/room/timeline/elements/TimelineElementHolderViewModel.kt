@@ -384,7 +384,7 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create audio message view model: ${event.id}" }
                         get<AudioMessageViewModelFactory>().create(
                             viewModelContext = this,
-                            timelineEvent= timelineEvent,
+                            timelineEvent = timelineEvent,
                             content = content,
                             sender = sender,
                             showSender = showSender,
@@ -686,8 +686,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionedUsersInFormattedBody: StateFlow<Map<String, UserInfoElement>?> = MutableStateFlow(emptyMap())
-            override val mentionedUsersInMessage: StateFlow<Map<String, UserInfoElement>> = MutableStateFlow(emptyMap())        }
+            override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+            override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
+        }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -770,8 +771,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionedUsersInFormattedBody: StateFlow<Map<String, UserInfoElement>?> = MutableStateFlow(emptyMap())
-                override val mentionedUsersInMessage: StateFlow<Map<String, UserInfoElement>> = MutableStateFlow(emptyMap())
+                override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+                override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
             }
         }
     }
