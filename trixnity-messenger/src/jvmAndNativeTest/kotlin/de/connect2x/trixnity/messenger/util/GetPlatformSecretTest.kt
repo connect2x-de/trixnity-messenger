@@ -13,6 +13,7 @@ class GetPlatformSecretTest : ShouldSpec({
 
     val id: String = GetPlatformSecretTest::class.qualifiedName ?: "trixnity-messenger-GetPlatformSecretTest"
 
+    // disabled, because iOSSimulator seems to have no working keychain for this test
     // enable for local testing
     xshould("create and get secret") {
         val createdSecret = cut(id, 32).shouldNotBeNull()
