@@ -1,11 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.decompose.value.getValue
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnPause
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -13,6 +15,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
@@ -112,8 +116,9 @@ interface TimelineViewModel {
     val error: StateFlow<String?>
     val roomHeaderViewModel: RoomHeaderViewModel
     val inputAreaViewModel: InputAreaViewModel
-    val reportMessageViewModel: ReportMessageViewModel
     val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
+    val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
+
 
     /**
      * Only for DnD on desktop: the absolute path of a dragged file.
@@ -130,6 +135,8 @@ interface TimelineViewModel {
 
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
+
+//    fun reportToMessage(eventId: EventId)
 
     sealed class Wrapper {
         data object None : Wrapper()
@@ -256,13 +263,19 @@ class TimelineViewModelImpl(
             onMessageReplyToFinished = ::onMessageReplyToFinished,
             onShowAttachmentSendView = ::onShowAttachmentSendView,
         )
+    private val reportMessageRouter: ReportMessageRouter = ReportMessageRouterImpl(
+        viewModelContext = viewModelContext,
+        roomId = selectedRoomId,
+        onShowReportMessageDialog = ::showReportMessageDialog,
+        onDismiss = ::onReportMessageDialogDismiss
+    )
+    internal fun onReportMessageDialogDismiss() = coroutineScope.launch {
+        reportMessageRouter.closeReportMessage()
+    }
 
-    override val reportMessageViewModel: ReportMessageViewModel =
-        get<ReportToMessageViewModelFactory>().create(
-            viewModelContext = childContext("reportMessageViewModel"),
-            selectedRoomId = selectedRoomId,
-            onMessageReportFinished = ::onMessageReportToFinished
-        )
+    internal fun showReportMessageDialog() = coroutineScope.launch {
+        reportMessageRouter.showReportMessage()
+    }
 
     private val sendAttachmentNavigation = StackNavigation<Config>()
     override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = childStack(
@@ -273,6 +286,9 @@ class TimelineViewModelImpl(
         childFactory = ::createChild,
         key = "sendAttachmentRouter",
     )
+
+    override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>> =
+        reportMessageRouter.stack
 
     private fun createChild(
         config: Config, componentContext: ComponentContext
@@ -287,7 +303,6 @@ class TimelineViewModelImpl(
             )
         )
     }
-
 
     init {
         coroutineScope.launch {
@@ -537,7 +552,7 @@ class TimelineViewModelImpl(
                 shouldShowUnreadMarkerFlow = unreadElementFlow.map { it == eventId },
                 onMessageEdited = ::onMessageEdited,
                 onMessageRepliedTo = ::onMessageRepliedTo,
-                onMessageReportTo = ::onMessageReport,
+                onMessageReportTo = ::onShowReportMessageModal,
                 onOpenModal = onOpenModal,
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
@@ -631,6 +646,11 @@ class TimelineViewModelImpl(
         sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
     }
 
+    private fun onShowReportMessageModal(eventId: EventId) = coroutineScope.launch {
+        log.debug { "report to message $eventId" }
+        reportMessageRouter.showReportMessage()
+    }
+
     private fun closeAttachmentSendView() {
         sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is Config.None }
     }
@@ -650,18 +670,6 @@ class TimelineViewModelImpl(
         timelineElements.value.filterNot { it.key == eventId.full }
             .forEach { it.viewModel.endReplyTo() }
         inputAreaViewModel.replyToMessage(eventId)
-    }
-
-    private fun onMessageReport(eventId: EventId) {
-        log.debug { "report to message ${eventId}" }
-        reportMessageViewModel.reportMessage(eventId)
-    }
-
-
-    private fun onMessageReportToFinished(eventId: EventId) {
-        log.debug { "message report to finished $eventId" }
-        timelineElements.value.single { it.key == eventId.full }.viewModel.endReportTo()
-        reportMessageViewModel.finishReportToMessage()
     }
 
     private fun onMessageReplyToFinished(eventId: EventId) {
@@ -946,13 +954,25 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()
     override val inputAreaViewModel: InputAreaViewModel = PreviewInputViewModel()
-    override val reportMessageViewModel: ReportMessageViewModel = ReportMessagePreviewViewModel()
+
+    //override val reportMessageViewModel: ReportMessageViewModel = ReportMessagePreviewViewModel()
     override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = MutableValue(
         ChildStack(
             configuration = Config.None,
             instance = Wrapper.None,
         )
     )
+
+    override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = ReportMessageRouter.Config.None,
+                    instance = ReportMessageRouter.Wrapper.None
+                )
+            )
+        )
+
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 

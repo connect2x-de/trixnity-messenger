@@ -122,7 +122,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun replyTo()
     fun endReplyTo()
     fun reportTo()
-    fun endReportTo()
 
     /** returns no Flow! -> for current value, recompute every time needed (Flow computation would be expensive) */
     suspend fun isReadBy(): String
@@ -682,21 +681,14 @@ open class TimelineElementHolderViewModelImpl(
     }
 
     override fun reportTo() {
-        log.trace { "Calling reportToMessage function" }
-        reportToMessageInProgress.value = true
         coroutineScope.launch {
+            log.trace { "Calling reportToMessage function" }
             timelineEventFlow.first()?.event?.let {
                 if (it is MessageEvent<*>) onMessageReportTo(it.id)
-                else log.warn { "Try to report to non-message event is not allowed." }
             }
         }
     }
 
-    override fun endReportTo() {
-        log.trace { "Calling endReportTo function" }
-        reportToMessageInProgress.value = false
-
-    }
 
     override fun toString(): String {
         return "TimelineElementViewModel(showLoadingIndicator=${showLoadingIndicatorBefore.value}, shouldShowUnreadMarker=${shouldShowUnreadMarkerFlow.value}, isDirect=${isDirect.value})"
@@ -755,9 +747,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 
     override fun reportTo() {
     }
-
-    override fun endReportTo() {
-    }
+//
+//    override fun endReportTo() {
+//    }
 
     override suspend fun isReadBy(): String = "Bob, Alice"
 }
@@ -798,9 +790,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
 
     override fun reportTo() {
     }
-
-    override fun endReportTo() {
-    }
+//
+//    override fun endReportTo() {
+//    }
 
     override suspend fun isReadBy(): String = "Bob, Alice"
 

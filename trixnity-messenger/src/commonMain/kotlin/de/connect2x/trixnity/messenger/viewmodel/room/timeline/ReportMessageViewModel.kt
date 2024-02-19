@@ -13,7 +13,8 @@ interface ReportToMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onMessageReportFinished: (EventId) -> Unit,
+        onShowReportMessageDialog: () -> Unit,
+        onMessageReportFinished: () -> Unit,
     ): ReportMessageViewModel {
         return ReportMessageViewModelImpl(
             viewModelContext,
@@ -26,27 +27,28 @@ interface ReportToMessageViewModelFactory {
 }
 
 interface ReportMessageViewModel {
+    val reportMessageDialogState: MutableStateFlow<Boolean>
+
     val messageReportReason: MutableStateFlow<String>
-    fun reportMessage(eventId: EventId)
     fun submitReportToMessage()
-    fun finishReportToMessage()
+    fun closeReportMessageDialog()
+    fun showReportMessageDialog(eventId: EventId)
+
 
 }
 
 open class ReportMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    private val onMessageReportFinished: (EventId) -> Unit,
+    private val onReportMessageFinished: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ReportMessageViewModel {
 
 
     var eventId: MutableStateFlow<EventId?> = MutableStateFlow(null)
 
+    override val reportMessageDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val messageReportReason: MutableStateFlow<String> = MutableStateFlow("")
-    override fun reportMessage(eventId: EventId) {
-        this.eventId.value = eventId
-    }
 
     override fun submitReportToMessage() {
         eventId.value?.let { eventIdValue ->
@@ -57,46 +59,50 @@ open class ReportMessageViewModelImpl(
                     reason = messageReportReason.value
                 ).fold(
                     onSuccess = {
-                        clearAllFields()
                         log.debug { "successfully message has been reported $eventIdValue" }
                     },
                     onFailure = {
                         log.debug { "failed to report message $eventIdValue" }
                     }
                 )
-                onMessageReportFinished(eventIdValue)
+
+//                onShowReportMessageDialogView(eventIdValue)
+                closeReportMessageDialog()
             }
         } ?: run {
             log.warn { "Event id is null can not submit report" }
         }
     }
 
-    override fun finishReportToMessage() {
-        clearAllFields()
-    }
-
-    private fun clearAllFields() {
+    override fun closeReportMessageDialog() {
         eventId.value = null
         messageReportReason.value = ""
+        reportMessageDialogState.value = false
+    }
+
+    override fun showReportMessageDialog(eventId: EventId) {
+        log.trace { "Report message dialog initiated $eventId" }
+        this.eventId.value = eventId
+//        reportMessageDialogState.value = true
+//        onMessageReportDialogDisplay(eventId)
+
     }
 }
 
 class ReportMessagePreviewViewModel : ReportMessageViewModel {
+    override val reportMessageDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val messageReportReason: MutableStateFlow<String> = MutableStateFlow("")
-    override fun reportMessage(eventId: EventId) {
-        log.trace { "Update eventId $eventId" }
-
-    }
 
     override fun submitReportToMessage() {
         log.trace { "submit message report" }
-
     }
 
-    override fun finishReportToMessage() {
-        log.trace { "submit message finished" }
-
+    override fun closeReportMessageDialog() {
+        log.trace { "close report message dialog state" }
     }
 
+    override fun showReportMessageDialog(eventId: EventId) {
+        log.trace { "show report message dialog state" }
+    }
 
 }

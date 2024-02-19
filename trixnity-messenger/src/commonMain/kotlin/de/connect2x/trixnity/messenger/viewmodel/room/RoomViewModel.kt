@@ -164,6 +164,7 @@ class PreviewRoomViewModel() : RoomViewModel {
                 )
             )
         )
+
     override val isShowSettings: StateFlow<Boolean> = MutableStateFlow(false)
     override val isTwoPane: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun onRoomBack() {}
