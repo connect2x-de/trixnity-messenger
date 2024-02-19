@@ -678,6 +678,7 @@ open class TimelineElementHolderViewModelImpl(
     }
 
     override fun endReplyTo() {
+        _replyToInProgress.value = false
     }
 
     override fun reportTo() {
