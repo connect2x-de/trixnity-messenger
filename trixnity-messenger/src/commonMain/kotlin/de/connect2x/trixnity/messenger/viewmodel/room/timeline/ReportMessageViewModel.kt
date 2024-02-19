@@ -28,9 +28,7 @@ interface ReportToMessageViewModelFactory {
 interface ReportMessageViewModel {
     val messageReportReason: MutableStateFlow<String>
     fun reportMessage(eventId: EventId)
-    fun updateReportReason(text: String)
     fun submitReportToMessage()
-
     fun finishReportToMessage()
 
 }
@@ -50,28 +48,26 @@ open class ReportMessageViewModelImpl(
         this.eventId.value = eventId
     }
 
-    override fun updateReportReason(text: String) {
-        messageReportReason.value = text
-    }
-
     override fun submitReportToMessage() {
-        if (eventId.value == null) {
+        eventId.value?.let { eventIdValue ->
+            coroutineScope.launch {
+                matrixClient.api.room.reportEvent(
+                    selectedRoomId,
+                    eventIdValue,
+                    reason = messageReportReason.value
+                ).fold(
+                    onSuccess = {
+                        clearAllFields()
+                        log.debug { "successfully message has been reported $eventIdValue" }
+                    },
+                    onFailure = {
+                        log.debug { "failed to report message $eventIdValue" }
+                    }
+                )
+                onMessageReportFinished(eventIdValue)
+            }
+        } ?: run {
             log.warn { "Event id is null can not submit report" }
-            return
-        }
-        coroutineScope.launch {
-            matrixClient.api.room.reportEvent(
-                selectedRoomId,
-                eventId.value!!,
-                reason = messageReportReason.value
-            )
-                .fold(onSuccess = {
-                    log.debug { "successfully message has been reported ${eventId.value!!}" }
-                }, onFailure = {
-                    log.debug { "failed to report message ${eventId.value!!}" }
-
-                })
-            onMessageReportFinished(eventId.value!!)
         }
     }
 
@@ -89,11 +85,6 @@ class ReportMessagePreviewViewModel : ReportMessageViewModel {
     override val messageReportReason: MutableStateFlow<String> = MutableStateFlow("")
     override fun reportMessage(eventId: EventId) {
         log.trace { "Update eventId $eventId" }
-
-    }
-
-    override fun updateReportReason(text: String) {
-        log.trace { "Update report reason $text" }
 
     }
 
