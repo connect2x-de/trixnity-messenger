@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import korlibs.io.net.http.createHttpClient
-import kotlinx.coroutines.coroutineScope
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.originalName
