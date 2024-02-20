@@ -138,13 +138,21 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
             }
         }
+        val jvmAndNativeTest by creating {
+            dependsOn(commonTest.get())
+        }
         jvmTest {
+            dependsOn(jvmAndNativeTest)
             dependencies {
                 implementation("io.kotest:kotest-runner-junit5:${Versions.kotest}")
                 implementation("io.ktor:ktor-client-java:${Versions.ktor}")
             }
         }
+        nativeTest {
+            dependsOn(jvmAndNativeTest)
+        }
         val androidUnitTest by getting {
+            dependsOn(jvmAndNativeTest)
             dependencies {
                 implementation("io.ktor:ktor-client-android:${Versions.ktor}")
             }
