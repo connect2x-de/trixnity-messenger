@@ -56,7 +56,7 @@ open class ReportMessageViewModelImpl(
             ).fold(onSuccess = {
                 log.info { "successfully message has been reported ${eventId.value}" }
             }, onFailure = {
-                log.error { "failed to report message ${eventId.value}" }
+                log.error(it) { "failed to report message ${eventId.value}" }
             })
             closeReportMessageDialog()
         }
