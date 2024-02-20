@@ -285,8 +285,7 @@ class TimelineViewModelImpl(
         key = "sendAttachmentRouter",
     )
 
-    override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>> =
-        reportMessageRouter.stack
+    override val reportMessageStack = reportMessageRouter.stack
 
     private fun createChild(
         config: Config, componentContext: ComponentContext

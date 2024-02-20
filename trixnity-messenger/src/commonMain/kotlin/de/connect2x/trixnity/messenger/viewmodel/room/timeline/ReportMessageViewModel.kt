@@ -29,8 +29,6 @@ interface ReportToMessageViewModelFactory {
 }
 
 interface ReportMessageViewModel {
-    val reportMessageDialogState: MutableStateFlow<Boolean>
-
     val messageReportReason: MutableStateFlow<String?>
     fun submitReportToMessage()
     fun closeReportMessageDialog()
@@ -46,14 +44,11 @@ open class ReportMessageViewModelImpl(
 
 
     private val eventId: MutableStateFlow<EventId> = MutableStateFlow(eventId)
-
-    override val reportMessageDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun submitReportToMessage() {
         coroutineScope.launch {
-            log.info { "Message report to roomId: ${selectedRoomId} eventId: ${eventId.value} and reasons< ${messageReportReason.value}" }
+            log.info { "Message report to roomId: ${selectedRoomId} eventId: ${eventId.value}" }
             matrixClient.api.room.reportEvent(
                 roomId = selectedRoomId,
                 eventId = eventId.value,
@@ -61,7 +56,7 @@ open class ReportMessageViewModelImpl(
             ).fold(onSuccess = {
                 log.info { "successfully message has been reported ${eventId.value}" }
             }, onFailure = {
-                log.error { "failed to report message ${eventId.value} cause: ${it.message}" }
+                log.error { "Failed..." }
             })
             closeReportMessageDialog()
         }
@@ -69,13 +64,11 @@ open class ReportMessageViewModelImpl(
 
     override fun closeReportMessageDialog() {
         messageReportReason.value = null
-        reportMessageDialogState.value = false
         onReportMessageFinished(eventId.value)
     }
 }
 
 class ReportMessagePreviewViewModel : ReportMessageViewModel {
-    override val reportMessageDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun submitReportToMessage() {

@@ -30,6 +30,7 @@ import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
@@ -174,7 +175,8 @@ open class TimelineElementHolderViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val canBeReported: StateFlow<Boolean> =
-        matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
+        matrixClient.user.getById(selectedRoomId, userId = matrixClient.userId)
+            .map { it?.membership == Membership.JOIN }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
 
@@ -182,7 +184,7 @@ open class TimelineElementHolderViewModelImpl(
 
     override val reportToMessageInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-        override val highlight: StateFlow<Boolean> =
+    override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
             editInProgress || replyToInProgress
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -702,14 +704,16 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         MutableStateFlow(object : TextBasedViewModel {
             override val fallbackMessage: String = "Hello everyone!"
-            override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
+            override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
+                MutableStateFlow(null)
             override val message: String = "Hello everyone!"
             override val formattedBody: String = "Hello <b>everyone!</b>"
             override val isByMe: Boolean = false
             override val showChatBubbleEdge: Boolean = true
             override val showBigGap: Boolean = true
             override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(true)
-            override val sender: MutableStateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Benedict"))
+            override val sender: MutableStateFlow<UserInfoElement> =
+                MutableStateFlow(UserInfoElement("Benedict"))
             override val formattedTime: String = "11:04"
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
@@ -729,7 +733,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reportToMessageInProgress: MutableSharedFlow<Boolean>  = MutableSharedFlow()
+    override val reportToMessageInProgress: MutableSharedFlow<Boolean> = MutableSharedFlow()
     override fun edit() {
     }
 
@@ -769,7 +773,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reportToMessageInProgress: MutableSharedFlow<Boolean>  = MutableSharedFlow()
+    override val reportToMessageInProgress: MutableSharedFlow<Boolean> = MutableSharedFlow()
     override fun edit() {
     }
 
