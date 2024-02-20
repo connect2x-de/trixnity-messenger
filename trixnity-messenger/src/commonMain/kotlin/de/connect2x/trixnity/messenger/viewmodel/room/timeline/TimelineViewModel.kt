@@ -339,23 +339,14 @@ class TimelineViewModelImpl(
                 // be AWARE: the timelineEvents pair first element might NOT be the real EventId (our messages have the transaction ID)
 
                 val unreadElement =
-                    timelineEvents.takeLastWhile { it.first().eventId != fullyReadEvent }
-                        .firstOrNull { eventFlow ->
-                            val timelineEvent = eventFlow.first()
-                            val isByMe = timelineEvent.event.sender == matrixClient.userId
-                            val origEventContent = timelineEvent.event.content
-                            timelineElementRules.canHaveUnreadMarker.any {
-                                it.isInstance(
-                                    origEventContent
-                                )
-                            }
-                                    && timelineElementRules.areVisible.any {
-                                it.isInstance(
-                                    origEventContent
-                                )
-                            }
-                                    && isByMe.not()
-                        }?.first()?.eventId
+                    timelineEvents.takeLastWhile { it.first().eventId != fullyReadEvent }.firstOrNull { eventFlow ->
+                        val timelineEvent = eventFlow.first()
+                        val isByMe = timelineEvent.event.sender == matrixClient.userId
+                        val origEventContent = timelineEvent.event.content
+                        timelineElementRules.canHaveUnreadMarker.any { it.isInstance(origEventContent) }
+                                && timelineElementRules.areVisible.any { it.isInstance(origEventContent) }
+                                && isByMe.not()
+                    }?.first()?.eventId
                 log.debug { "new unread marker at $unreadElement" }
                 unreadElement
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
