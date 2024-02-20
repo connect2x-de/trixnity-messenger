@@ -1,6 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import korlibs.io.net.http.createHttpClient
+import kotlinx.coroutines.coroutineScope
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.avatarUrl
+import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.core.model.UserId
 
 data class UserInfoElement(
@@ -34,9 +39,13 @@ data class UserInfoElement(
     }
 }
 
-fun RoomUser.toUserInfoElement(): UserInfoElement =
+suspend fun RoomUser.toUserInfoElement(): UserInfoElement =
     UserInfoElement(
-        name = this.name,
-        userId = this.userId
+        name = this.originalName ?: this.name,
+        userId = this.userId,
+        initials = Initials.compute(this.originalName ?: this.name),
+        image = this.avatarUrl?.let {
+            createHttpClient().readBytes(it)
+        }
     )
 
