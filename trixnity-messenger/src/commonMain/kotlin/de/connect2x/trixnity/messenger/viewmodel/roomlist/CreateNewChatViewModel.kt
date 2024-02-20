@@ -29,7 +29,7 @@ interface CreateNewChatViewModelFactory {
         onCreateGroup: (UserId) -> Unit,
         onSearchGroup: (UserId) -> Unit,
         onCancel: () -> Unit,
-        goToRoom: (RoomId) -> Unit,
+        goToRoom: (UserId, RoomId) -> Unit,
     ): CreateNewChatViewModel {
         return CreateNewChatViewModelImpl(
             viewModelContext, createNewRoomViewModel, onCreateGroup, onSearchGroup, onCancel, goToRoom
@@ -55,7 +55,7 @@ open class CreateNewChatViewModelImpl(
     private val onCreateGroup: (UserId) -> Unit,
     private val onSearchGroup: (UserId) -> Unit,
     private val onCancel: () -> Unit,
-    private val goToRoom: (RoomId) -> Unit,
+    private val goToRoom: (UserId, RoomId) -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
 
@@ -92,7 +92,7 @@ open class CreateNewChatViewModelImpl(
                 existingRoomIds.any { matrixClient.room.getById(it).first() != null }
             ) {
                 log.info { "go to existing room with $userId" }
-                existingRoomIds.find { matrixClient.room.getById(it).first() != null }?.let { goToRoom(it) }
+                existingRoomIds.find { matrixClient.room.getById(it).first() != null }?.let { goToRoom(matrixClient.userId, it) }
             } else {
                 log.info { "create new room with $userId" }
                 matrixClient.api.room.createRoom(
@@ -102,7 +102,7 @@ open class CreateNewChatViewModelImpl(
                 ).fold(
                     onSuccess = { roomId ->
                         log.debug { "created room ${roomId.full}" }
-                        goToRoom(roomId)
+                        goToRoom(matrixClient.userId, roomId)
                     },
                     onFailure = {
                         log.error(it) { "Cannot create room." }

@@ -4,7 +4,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.launchPop
+import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.util.popSuspending
+import de.connect2x.trixnity.messenger.util.popWhileSuspending
+import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.*
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -194,11 +199,11 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun goToRoom(roomId: RoomId) = viewModelContext.coroutineScope.launch {
+    private fun goToRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "go to room $roomId" }
         selectedRoomId.value = roomId
-//        onRoomSelected(roomId)
         navigation.popSuspending()
+        onRoomSelected(userId, roomId)
     }
 
     private fun onCreateGroup(userId: UserId) {
