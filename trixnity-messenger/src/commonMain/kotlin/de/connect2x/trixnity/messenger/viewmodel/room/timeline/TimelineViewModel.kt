@@ -7,7 +7,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.decompose.value.getValue
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnPause
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -15,8 +14,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
@@ -135,8 +132,6 @@ interface TimelineViewModel {
 
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
-
-//    fun reportToMessage(eventId: EventId)
 
     sealed class Wrapper {
         data object None : Wrapper()
@@ -263,18 +258,21 @@ class TimelineViewModelImpl(
             onMessageReplyToFinished = ::onMessageReplyToFinished,
             onShowAttachmentSendView = ::onShowAttachmentSendView,
         )
+
     private val reportMessageRouter: ReportMessageRouter = ReportMessageRouterImpl(
         viewModelContext = viewModelContext,
         roomId = selectedRoomId,
         onShowReportMessageDialog = ::showReportMessageDialog,
-        onDismiss = ::onReportMessageDialogDismiss
+        onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
-    internal fun onReportMessageDialogDismiss() = coroutineScope.launch {
+
+    internal fun onReportMessageDialogDismiss(eventId: EventId) = coroutineScope.launch {
+        log.trace { "Closing report popup dialog: $eventId" }
         reportMessageRouter.closeReportMessage()
     }
 
-    internal fun showReportMessageDialog() = coroutineScope.launch {
-        reportMessageRouter.showReportMessage()
+    internal fun showReportMessageDialog(eventId: EventId) = coroutineScope.launch {
+        reportMessageRouter.showReportMessage(eventId)
     }
 
     private val sendAttachmentNavigation = StackNavigation<Config>()
@@ -648,7 +646,7 @@ class TimelineViewModelImpl(
 
     private fun onShowReportMessageModal(eventId: EventId) = coroutineScope.launch {
         log.debug { "report to message $eventId" }
-        reportMessageRouter.showReportMessage()
+        reportMessageRouter.showReportMessage(eventId)
     }
 
     private fun closeAttachmentSendView() {
@@ -954,8 +952,6 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()
     override val inputAreaViewModel: InputAreaViewModel = PreviewInputViewModel()
-
-    //override val reportMessageViewModel: ReportMessageViewModel = ReportMessagePreviewViewModel()
     override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = MutableValue(
         ChildStack(
             configuration = Config.None,

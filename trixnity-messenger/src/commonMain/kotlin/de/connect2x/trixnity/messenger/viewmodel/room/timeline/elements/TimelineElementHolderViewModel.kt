@@ -747,9 +747,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 
     override fun reportTo() {
     }
-//
-//    override fun endReportTo() {
-//    }
 
     override suspend fun isReadBy(): String = "Bob, Alice"
 }
@@ -790,9 +787,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
 
     override fun reportTo() {
     }
-//
-//    override fun endReportTo() {
-//    }
 
     override suspend fun isReadBy(): String = "Bob, Alice"
 

@@ -12,13 +12,15 @@ private val log = KotlinLogging.logger { }
 interface ReportToMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        eventId: EventId,
         selectedRoomId: RoomId,
-        onShowReportMessageDialog: () -> Unit,
-        onMessageReportFinished: () -> Unit,
+        onShowReportMessageDialog: (EventId) -> Unit,
+        onMessageReportFinished: (EventId) -> Unit,
     ): ReportMessageViewModel {
         return ReportMessageViewModelImpl(
             viewModelContext,
             selectedRoomId,
+            eventId,
             onMessageReportFinished,
         )
     }
@@ -29,69 +31,52 @@ interface ReportToMessageViewModelFactory {
 interface ReportMessageViewModel {
     val reportMessageDialogState: MutableStateFlow<Boolean>
 
-    val messageReportReason: MutableStateFlow<String>
+    val messageReportReason: MutableStateFlow<String?>
     fun submitReportToMessage()
     fun closeReportMessageDialog()
-    fun showReportMessageDialog(eventId: EventId)
-
 
 }
 
 open class ReportMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    private val onReportMessageFinished: () -> Unit,
+    eventId: EventId,
+    private val onReportMessageFinished: (EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ReportMessageViewModel {
 
 
-    var eventId: MutableStateFlow<EventId?> = MutableStateFlow(null)
+    private val eventId: MutableStateFlow<EventId> = MutableStateFlow(eventId)
 
     override val reportMessageDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    override val messageReportReason: MutableStateFlow<String> = MutableStateFlow("")
+    override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun submitReportToMessage() {
-        eventId.value?.let { eventIdValue ->
-            coroutineScope.launch {
-                matrixClient.api.room.reportEvent(
-                    selectedRoomId,
-                    eventIdValue,
-                    reason = messageReportReason.value
-                ).fold(
-                    onSuccess = {
-                        log.debug { "successfully message has been reported $eventIdValue" }
-                    },
-                    onFailure = {
-                        log.debug { "failed to report message $eventIdValue" }
-                    }
-                )
-
-//                onShowReportMessageDialogView(eventIdValue)
-                closeReportMessageDialog()
-            }
-        } ?: run {
-            log.warn { "Event id is null can not submit report" }
+        coroutineScope.launch {
+            log.info { "Message report to roomId: ${selectedRoomId} eventId: ${eventId.value} and reasons< ${messageReportReason.value}" }
+            matrixClient.api.room.reportEvent(
+                roomId = selectedRoomId,
+                eventId = eventId.value,
+                reason = messageReportReason.value
+            ).fold(onSuccess = {
+                log.info { "successfully message has been reported ${eventId.value}" }
+            }, onFailure = {
+                log.error { "failed to report message ${eventId.value} cause: ${it.message}" }
+            })
+            closeReportMessageDialog()
         }
     }
 
     override fun closeReportMessageDialog() {
-        eventId.value = null
-        messageReportReason.value = ""
+        messageReportReason.value = null
         reportMessageDialogState.value = false
-    }
-
-    override fun showReportMessageDialog(eventId: EventId) {
-        log.trace { "Report message dialog initiated $eventId" }
-        this.eventId.value = eventId
-//        reportMessageDialogState.value = true
-//        onMessageReportDialogDisplay(eventId)
-
+        onReportMessageFinished(eventId.value)
     }
 }
 
 class ReportMessagePreviewViewModel : ReportMessageViewModel {
     override val reportMessageDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val messageReportReason: MutableStateFlow<String> = MutableStateFlow("")
+    override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun submitReportToMessage() {
         log.trace { "submit message report" }
@@ -99,10 +84,6 @@ class ReportMessagePreviewViewModel : ReportMessageViewModel {
 
     override fun closeReportMessageDialog() {
         log.trace { "close report message dialog state" }
-    }
-
-    override fun showReportMessageDialog(eventId: EventId) {
-        log.trace { "show report message dialog state" }
     }
 
 }

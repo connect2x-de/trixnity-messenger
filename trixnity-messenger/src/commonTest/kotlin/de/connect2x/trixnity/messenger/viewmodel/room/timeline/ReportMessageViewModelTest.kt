@@ -117,7 +117,13 @@ class ReportMessageViewModelTest : ShouldSpec() {
                 }
 
                 canSendEventMocker returns flowOf(true)
-                everySuspending { roomServiceMock.sendMessage(isEqual(roomId), isAny(), isAny()) } returns ""
+                everySuspending {
+                    roomServiceMock.sendMessage(
+                        isEqual(roomId),
+                        isAny(),
+                        isAny()
+                    )
+                } returns ""
                 every {
                     roomServiceMock.getTimelineEvent(isAny(), isEqual(eventId), isAny())
                 } returns flowOf(
@@ -129,56 +135,35 @@ class ReportMessageViewModelTest : ShouldSpec() {
                         gap = null,
                     )
                 )
-                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
-                every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
+                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+                    Room(
+                        roomId,
+                        isDirect = true
+                    )
+                )
+                every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(
+                    aliceRoomUser
+                )
                 every { onMessageReportFinished.invoke(isAny()) } returns Unit
 
-                everySuspending { roomsApiClientMock.reportEvent(isAny(), isAny(), isAny(), isAny(), isAny()) } returns Result.success(Unit)
+                everySuspending {
+                    roomsApiClientMock.reportEvent(
+                        isAny(),
+                        isAny(),
+                        isAny(),
+                        isAny(),
+                        isAny()
+                    )
+                } returns Result.success(Unit)
             }
         }
 
 
-        should("Correctly set eventId and reportReason") {
+        should("Clear report reason after successfully report to message") {
             val cut = reportToMessageViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.reportMessage(messageEvent.id)
-            cut.messageReportReason.value = "Report Reason"
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.eventId.value shouldBe messageEvent.id
-            cut.messageReportReason.value shouldBe "Report Reason"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-
-        should("Clear eventId and report reason after finishing report reason") {
-            val cut = reportToMessageViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.reportMessage(messageEvent.id)
-            cut.messageReportReason.value = "Report Reason"
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.finishReportToMessage()
-
-            cut.eventId.value shouldBe null
-            cut.messageReportReason.value shouldBe ""
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("Clear eventId and report reason after successfully report to message") {
-            val cut = reportToMessageViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.reportMessage(messageEvent.id)
             cut.messageReportReason.value = "Report Reason"
             testCoroutineScheduler.advanceUntilIdle()
 
@@ -189,8 +174,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
             }
 
 
-            cut.eventId.value shouldBe null
-            cut.messageReportReason.value shouldBe ""
+            cut.messageReportReason.value shouldBe null
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -219,7 +203,8 @@ class ReportMessageViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            onMessageReportFinished = onMessageReportFinished,
+            eventId = EventId("0"),
+            onReportMessageFinished = onMessageReportFinished,
         )
     }
 
@@ -236,7 +221,6 @@ class ReportMessageViewModelTest : ShouldSpec() {
 
     private fun CoroutineScope.subscribe(cut: ReportMessageViewModelImpl) = launch {
         launch { cut.messageReportReason.collect() }
-        launch { cut.eventId.collect() }
     }
 
 }

@@ -16,17 +16,20 @@ import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Config
+import net.folivo.trixnity.core.model.EventId
 
 private val log = KotlinLogging.logger {}
 
 interface ReportMessageRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    suspend fun showReportMessage()
+    suspend fun showReportMessage(eventId: EventId)
     suspend fun closeReportMessage()
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class ReportMessageView(val viewModel: ReportMessageViewModel) : Wrapper()
+        class ReportMessageView(
+            val viewModel: ReportMessageViewModel
+        ) : Wrapper()
     }
 
     @Serializable
@@ -35,7 +38,7 @@ interface ReportMessageRouter {
         data object None : Config()
 
         @Serializable
-        data object ReportMessage : Config()
+        data class ReportMessage(val eventId: EventId) : Config()
     }
 
 }
@@ -43,14 +46,14 @@ interface ReportMessageRouter {
 class ReportMessageRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val onShowReportMessageDialog: () -> Unit,
-    private val onDismiss: () -> Unit,
+    private val onShowReportMessageDialog: (EventId) -> Unit,
+    private val onReportMessageDialogDismiss: (EventId) -> Unit,
 ) : ReportMessageRouter {
 
-    private val settingsNavigation = StackNavigation<Config>()
+    private val reportMessageNavigation = StackNavigation<Config>()
     override val stack =
         viewModelContext.childStack(
-            source = settingsNavigation,
+            source = reportMessageNavigation,
             serializer = Config.serializer(),
             initialConfiguration = Config.None,
             key = "reportMessageRouter",
@@ -58,30 +61,31 @@ class ReportMessageRouterImpl(
         )
 
     private fun createSettingsChild(
-        settingsConfig: Config,
+        reportConfig: Config,
         componentContext: ComponentContext
     ): Wrapper =
-        when (settingsConfig) {
+        when (reportConfig) {
             is Config.None -> Wrapper.None
             is Config.ReportMessage -> Wrapper.ReportMessageView(
                 viewModelContext.get<ReportToMessageViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
+                    eventId = reportConfig.eventId,
                     selectedRoomId = roomId,
                     onShowReportMessageDialog = onShowReportMessageDialog,
-                    onMessageReportFinished = onDismiss,
+                    onMessageReportFinished = onReportMessageDialogDismiss,
                 ),
             )
 
         }
 
-    override suspend fun showReportMessage() {
-        log.debug { "show ReportMessage Dialog" }
-        settingsNavigation.bringToFrontSuspending(Config.ReportMessage)
+    override suspend fun showReportMessage(eventId: EventId) {
+        log.debug { "show ReportMessage Dialog $eventId" }
+        reportMessageNavigation.bringToFrontSuspending(Config.ReportMessage(eventId))
     }
 
     override suspend fun closeReportMessage() {
         log.debug { "close ReportMessage Dialog" }
-        settingsNavigation.popWhileSuspending { it != Config.None }
+        reportMessageNavigation.popWhileSuspending { it != Config.None }
     }
 
 }
