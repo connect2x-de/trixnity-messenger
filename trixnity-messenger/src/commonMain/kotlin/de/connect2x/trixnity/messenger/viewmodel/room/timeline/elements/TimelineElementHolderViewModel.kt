@@ -684,9 +684,9 @@ open class TimelineElementHolderViewModelImpl(
 
     override fun reportTo() {
         coroutineScope.launch {
-            log.trace { "Calling reportToMessage function" }
+            log.trace { "reportToMessage initiated" }
             timelineEventFlow.first()?.event?.let {
-                if (it is MessageEvent<*>) onMessageReportTo(it.id)
+                onMessageReportTo(it.id)
             }
         }
     }
