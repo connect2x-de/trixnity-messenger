@@ -115,8 +115,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val canBeRepliedTo: StateFlow<Boolean>
     val highlight: StateFlow<Boolean>
     val canBeReported: StateFlow<Boolean>
-    val reportToMessageInProgress: MutableSharedFlow<Boolean>
-
     fun edit()
     fun endEdit()
     fun redact()
@@ -165,7 +163,6 @@ open class TimelineElementHolderViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     private val _editInProgress = MutableStateFlow(false)
-    private val _reportInProgress = MutableStateFlow(false)
     private val _redactionInProgress = MutableStateFlow(false)
     override val redactionInProgress: StateFlow<Boolean> = _redactionInProgress.asStateFlow()
     private val _redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -181,8 +178,6 @@ open class TimelineElementHolderViewModelImpl(
 
 
     private val _replyToInProgress = MutableStateFlow(false)
-
-    override val reportToMessageInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
@@ -733,7 +728,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reportToMessageInProgress: MutableSharedFlow<Boolean> = MutableSharedFlow()
     override fun edit() {
     }
 
@@ -773,7 +767,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reportToMessageInProgress: MutableSharedFlow<Boolean> = MutableSharedFlow()
     override fun edit() {
     }
 
