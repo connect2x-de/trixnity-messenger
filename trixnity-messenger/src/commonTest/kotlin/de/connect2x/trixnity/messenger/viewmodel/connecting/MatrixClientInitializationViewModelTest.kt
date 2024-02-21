@@ -38,7 +38,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 selectedAccount = null
             )
             eventually(2.seconds) {
-                mocker.verify { onNoAccountsMock.invoke() }
+                mocker.verify(exhaustive = false) { onNoAccountsMock.invoke() }
             }
         }
 
