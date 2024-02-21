@@ -10,6 +10,7 @@ import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteReadChannel
 
 data class UserInfoElement(
@@ -49,7 +50,7 @@ suspend fun RoomUser.toUserInfoElement(matrixClient: MatrixClient): UserInfoElem
         userId = this.userId,
         initials = Initials.compute(this.originalName ?: this.name),
         image = this.avatarUrl?.let {
-            matrixClient.media.getMedia(it).getOrNull()?.first()
+            matrixClient.media.getMedia(it).getOrNull()?.toByteArray()
         }
     )
 
