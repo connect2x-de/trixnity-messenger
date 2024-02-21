@@ -20,6 +20,6 @@ fun mentionedUsersStateFlow(
             matrixClient.user.getById(roomId, userId)
                 .filterNotNull()
                 .map {
-                    it.toUserInfoElement()
+                    it.toUserInfoElement(matrixClient)
                 }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
         }
