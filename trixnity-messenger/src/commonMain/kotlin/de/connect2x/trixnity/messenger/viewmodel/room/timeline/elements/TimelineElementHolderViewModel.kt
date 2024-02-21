@@ -30,6 +30,7 @@ import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
@@ -71,6 +72,7 @@ interface TimelineElementHolderViewModelFactory {
         readBy: Flow<List<String>>,
         onMessageEdited: (EventId) -> Unit,
         onMessageRepliedTo: (EventId) -> Unit,
+        onMessageReportTo: (EventId) -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
     ): TimelineElementHolderViewModel {
         return TimelineElementHolderViewModelImpl(
@@ -87,7 +89,8 @@ interface TimelineElementHolderViewModelFactory {
             shouldShowUnreadMarkerFlow,
             onMessageEdited,
             onMessageRepliedTo,
-            onOpenModal
+            onOpenModal = onOpenModal,
+            onMessageReportTo = onMessageReportTo
         )
     }
 
@@ -105,18 +108,19 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val isRead: StateFlow<Boolean>
 
     val isReplaced: StateFlow<Boolean>
-
     val canBeEdited: StateFlow<Boolean>
     val canBeRedacted: StateFlow<Boolean>
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
     val canBeRepliedTo: StateFlow<Boolean>
     val highlight: StateFlow<Boolean>
+    val canBeReported: StateFlow<Boolean>
     fun edit()
     fun endEdit()
     fun redact()
     fun replyTo()
     fun endReplyTo()
+    fun reportTo()
 
     /** returns no Flow! -> for current value, recompute every time needed (Flow computation would be expensive) */
     suspend fun isReadBy(): String
@@ -137,6 +141,7 @@ open class TimelineElementHolderViewModelImpl(
     shouldShowUnreadMarkerFlow: Flow<Boolean>,
     private val onMessageEdited: (EventId) -> Unit,
     private val onMessageRepliedTo: (EventId) -> Unit,
+    private val onMessageReportTo: (EventId) -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
@@ -165,7 +170,15 @@ open class TimelineElementHolderViewModelImpl(
     override val canBeRepliedTo: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val canBeReported: StateFlow<Boolean> =
+        matrixClient.user.getById(selectedRoomId, userId = matrixClient.userId)
+            .map { it?.membership == Membership.JOIN }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+
     private val _replyToInProgress = MutableStateFlow(false)
+
     override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
             editInProgress || replyToInProgress
@@ -383,7 +396,7 @@ open class TimelineElementHolderViewModelImpl(
                         log.trace { "Create audio message view model: ${event.id}" }
                         get<AudioMessageViewModelFactory>().create(
                             viewModelContext = this,
-                            timelineEvent= timelineEvent,
+                            timelineEvent = timelineEvent,
                             content = content,
                             sender = sender,
                             showSender = showSender,
@@ -618,7 +631,11 @@ open class TimelineElementHolderViewModelImpl(
         if (redactionInProgress.value.not()) {
             coroutineScope.launch {
                 timelineEventFlow.first()?.let { timelineEvent ->
-                    if (matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId).first()) {
+                    if (matrixClient.user.canRedactEvent(
+                            timelineEvent.roomId,
+                            timelineEvent.eventId
+                        ).first()
+                    ) {
                         launch {
                             _redactionInProgress.value = true
                             _redactionError.value = null
@@ -660,6 +677,16 @@ open class TimelineElementHolderViewModelImpl(
         _replyToInProgress.value = false
     }
 
+    override fun reportTo() {
+        coroutineScope.launch {
+            timelineEventFlow.first()?.event?.let {
+                log.trace { "reportToMessage initiated ${it.id}" }
+                onMessageReportTo(it.id)
+            }
+        }
+    }
+
+
     override fun toString(): String {
         return "TimelineElementViewModel(showLoadingIndicator=${showLoadingIndicatorBefore.value}, shouldShowUnreadMarker=${shouldShowUnreadMarkerFlow.value}, isDirect=${isDirect.value})"
     }
@@ -672,14 +699,16 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         MutableStateFlow(object : TextBasedViewModel {
             override val fallbackMessage: String = "Hello everyone!"
-            override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
+            override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
+                MutableStateFlow(null)
             override val message: String = "Hello everyone!"
             override val formattedBody: String = "Hello <b>everyone!</b>"
             override val isByMe: Boolean = false
             override val showChatBubbleEdge: Boolean = true
             override val showBigGap: Boolean = true
             override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(true)
-            override val sender: MutableStateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Benedict"))
+            override val sender: MutableStateFlow<UserInfoElement> =
+                MutableStateFlow(UserInfoElement("Benedict"))
             override val formattedTime: String = "11:04"
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
@@ -697,6 +726,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun edit() {
     }
@@ -713,13 +743,17 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun endReplyTo() {
     }
 
+    override fun reportTo() {
+    }
+
     override suspend fun isReadBy(): String = "Bob, Alice"
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
-    override val timelineElementViewModel: MutableStateFlow<BaseTimelineElementViewModel?> = MutableStateFlow(null)
+    override val timelineElementViewModel: MutableStateFlow<BaseTimelineElementViewModel?> =
+        MutableStateFlow(null)
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -731,6 +765,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun edit() {
     }
@@ -747,6 +782,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun endReplyTo() {
     }
 
+    override fun reportTo() {
+    }
+
     override suspend fun isReadBy(): String = "Bob, Alice"
 
     init {
@@ -755,14 +793,16 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
             delay(3.seconds)
             timelineElementViewModel.value = object : TextBasedViewModel {
                 override val fallbackMessage: String = "I have good news."
-                override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
+                override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
+                    MutableStateFlow(null)
                 override val message: String = "I have good news."
                 override val formattedBody: String = "<b>I</b> have good news."
                 override val isByMe: Boolean = false
                 override val showChatBubbleEdge: Boolean = false
                 override val showBigGap: Boolean = false
                 override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(false)
-                override val sender: MutableStateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Benedict"))
+                override val sender: MutableStateFlow<UserInfoElement> =
+                    MutableStateFlow(UserInfoElement("Benedict"))
                 override val formattedTime: String = "11:05"
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
