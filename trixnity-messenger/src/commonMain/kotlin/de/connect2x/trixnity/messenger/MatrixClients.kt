@@ -4,8 +4,19 @@ import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -136,6 +147,9 @@ class MatrixClientsImpl(
                 displayColor = displayColor,
                 config = config
             )
+        }
+        if (settings.value.accounts.size == 1) { // if first account, set as the active account
+            settings.update { it.copy(selectedAccount = matrixClient.userId) }
         }
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }

@@ -8,7 +8,11 @@ import de.connect2x.trixnity.messenger.viewmodel.toAccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
@@ -33,7 +37,16 @@ interface AccountViewModelFactory {
 
 interface AccountViewModel {
     val accounts: StateFlow<List<AccountInfo>>
+
+    /**
+     * If `null`, no account is selected -> all accounts should be displayed.
+     */
     val activeAccount: StateFlow<UserId?>
+
+    /**
+     * When there is only one account, UIs can decide to display the information about the singular account differently (i.e., without a selection of other accounts).
+     */
+    val isSingleAccount: StateFlow<Boolean>
 
     fun selectActiveAccount(userId: UserId?)
     fun userSettings()
@@ -55,6 +68,9 @@ open class AccountViewModelImpl(
 
     override val activeAccount: StateFlow<UserId?> =
         messengerSettings.map { it.selectedAccount }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val isSingleAccount: StateFlow<Boolean> = accounts.map { it.size <= 1 }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override fun selectActiveAccount(userId: UserId?) {
         coroutineScope.launch {
@@ -102,7 +118,8 @@ class PreviewAccountViewModel : AccountViewModel {
             ),
         )
     )
-    override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+    override val activeAccount: MutableStateFlow<UserId?> = MutableStateFlow(null)
+    override val isSingleAccount: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun selectActiveAccount(userId: UserId?) {
     }

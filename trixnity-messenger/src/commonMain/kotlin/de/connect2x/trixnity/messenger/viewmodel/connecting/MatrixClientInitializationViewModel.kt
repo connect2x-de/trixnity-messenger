@@ -64,6 +64,7 @@ open class MatrixClientInitializationViewModelImpl(
         if (settings.value.accounts.isEmpty()) { // no account defined yet, show account creation
             onNoAccounts()
         } else {
+            checkWhetherSelectedAccountIsStillValid()
             val initFromStoreResult = matrixClients.initFromStore()
             val loadStoreException = initFromStoreResult.failures.entries.find { it.value is LoadStoreException }
             when {
@@ -80,6 +81,23 @@ open class MatrixClientInitializationViewModelImpl(
                 else -> {
                     currentState.value = i18n.matrixClientInitSuccess()
                     onInitializationSuccess()
+                }
+            }
+        }
+    }
+
+    private suspend fun checkWhetherSelectedAccountIsStillValid() {
+        if (settings.value.selectedAccount != null &&
+            settings.value.accounts.containsKey(settings.value.selectedAccount).not()
+        ) {
+            log.debug { "found a selected account that is not present anymore" }
+            if (settings.value.accounts.size == 1) {
+                log.debug { "only 1 account left -> set as the active account" }
+                settings.update { it.copy(selectedAccount = settings.value.accounts.keys.firstOrNull()) }
+            } else {
+                log.debug { "more than 1 account left -> select all of them" }
+                settings.update {
+                    it.copy(selectedAccount = null)
                 }
             }
         }
