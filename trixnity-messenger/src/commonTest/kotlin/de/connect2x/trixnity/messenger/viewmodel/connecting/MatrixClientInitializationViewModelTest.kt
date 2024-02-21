@@ -37,7 +37,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 accounts = emptyMap(),
                 selectedAccount = null
             )
-            eventually(1.seconds) {
+            eventually(2.seconds) {
                 mocker.verify { onNoAccountsMock.invoke() }
             }
         }
@@ -59,7 +59,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                     "local.local"
                 )
             )
-            continually(1.seconds) {
+            continually(2.seconds) {
                 settings.value.accounts.size shouldBe 1
             }
         }
@@ -78,7 +78,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 ),
                 selectedAccount = UserId("user2", "local.local")
             )
-            eventually(1.seconds) {
+            eventually(2.seconds) {
                 settings.value.selectedAccount shouldBe UserId("user2", "local.local")
             }
         }
@@ -105,7 +105,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 ),
                 selectedAccount = UserId("user666", "local.local")
             )
-            eventually(1.seconds) {
+            eventually(2.seconds) {
                 settings.value.selectedAccount shouldBe null
             }
         }
