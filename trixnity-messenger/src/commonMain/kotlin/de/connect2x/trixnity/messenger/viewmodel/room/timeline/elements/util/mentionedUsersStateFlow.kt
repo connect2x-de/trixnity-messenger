@@ -15,24 +15,6 @@ fun mentionedUsersStateFlow(
     matrixClient: MatrixClient,
     coroutineScope: CoroutineScope
 ): Map<String, StateFlow<UserInfoElement>> =
-    baseMentionedUsersStateFlow(content, roomId, matrixClient, coroutineScope)
-
-fun mentionedUsersStateFlow(
-    content: String?,
-    roomId: RoomId,
-    matrixClient: MatrixClient,
-    coroutineScope: CoroutineScope
-): Map<String, StateFlow<UserInfoElement>>? =
-    content?.let {
-        baseMentionedUsersStateFlow(content, roomId, matrixClient, coroutineScope)
-    }
-
-fun baseMentionedUsersStateFlow(
-    content: String,
-    roomId: RoomId,
-    matrixClient: MatrixClient,
-    coroutineScope: CoroutineScope
-): Map<String, StateFlow<UserInfoElement>> =
     MatrixRegex.findUserMentions(content)
         .mapValues { (_, userId) ->
             matrixClient.user.getById(roomId, userId)

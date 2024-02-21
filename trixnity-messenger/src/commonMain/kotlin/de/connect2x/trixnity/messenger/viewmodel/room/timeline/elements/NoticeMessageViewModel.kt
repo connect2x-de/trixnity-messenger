@@ -85,7 +85,9 @@ open class NoticeMessageViewModelImpl(
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>>? =
-        mentionedUsersStateFlow(formattedBody, roomId, matrixClient, coroutineScope)
+        formattedBody?.let {
+            mentionedUsersStateFlow(it, roomId, matrixClient, coroutineScope)
+        }
     override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> =
         mentionedUsersStateFlow(message, roomId, matrixClient, coroutineScope)
 
