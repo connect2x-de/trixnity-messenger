@@ -6,16 +6,17 @@ import platform.Foundation.create
 import platform.posix.memcpy
 
 @OptIn(ExperimentalForeignApi::class)
-fun ByteArray.toData(): NSData = memScoped {
+fun ByteArray.toNSData(): NSData = memScoped {
     NSData.create(
-        bytes = allocArrayOf(this@toData),
-        length = this@toData.size.toULong()
+        bytes = allocArrayOf(this@toNSData),
+        length = this@toNSData.size.convert()
     )
 }
 
 @OptIn(ExperimentalForeignApi::class)
 fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length.toInt()).apply {
-    usePinned {
-        memcpy(it.addressOf(0), this@toByteArray.bytes, this@toByteArray.length)
-    }
+    if (isNotEmpty())
+        usePinned {
+            memcpy(it.addressOf(0), this@toByteArray.bytes, this@toByteArray.length)
+        }
 }

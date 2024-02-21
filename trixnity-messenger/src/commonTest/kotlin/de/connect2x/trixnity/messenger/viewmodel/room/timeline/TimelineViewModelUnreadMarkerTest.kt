@@ -84,6 +84,8 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
 
     init {
+        val aliceRoomUser = roomUser(me, "Alice")
+
         beforeTest {
             Dispatchers.setMain(Dispatchers.Unconfined)
         }
@@ -134,6 +136,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                         )
                 every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
                 every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
+                every { userServiceMock.getById(isAny(), isAny()) } returns flowOf(aliceRoomUser)
 
                 every { userServiceMock.getAll(isEqual(roomId)) } returns MutableStateFlow(
                     mapOf(
@@ -744,5 +747,16 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 ReceiptEventContent.Receipt(0)
             )
         ),
+    )
+
+    private fun roomUser(userId: UserId, name: String) = RoomUser(
+        roomId, userId, name, StateEvent(
+            content = MemberEventContent(membership = Membership.JOIN),
+            id = EventId("123"),
+            sender = userId,
+            roomId = roomId,
+            originTimestamp = 0L,
+            stateKey = "",
+        )
     )
 }

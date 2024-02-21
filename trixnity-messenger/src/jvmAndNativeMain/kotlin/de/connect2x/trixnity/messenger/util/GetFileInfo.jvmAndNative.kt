@@ -28,8 +28,7 @@ actual class FileDescriptorSerializer : KSerializer<FileDescriptor> {
 
 actual fun platformGetFileInfoModule(): Module = module {
     single<GetFileInfo> {
-        val paths = get<Paths>()
-        val fileSystem: FileSystem = paths.fileSystem
+        val fileSystem = get<FileSystem>()
         GetFileInfo { fileDescriptor ->
             val fileName: String = fileDescriptor.name
             val fileSize: Long? = fileSystem.metadataOrNull(fileDescriptor)?.size

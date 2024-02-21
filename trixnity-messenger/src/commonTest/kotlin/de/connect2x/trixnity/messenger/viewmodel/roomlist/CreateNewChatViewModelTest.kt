@@ -33,6 +33,7 @@ import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
 import org.kodein.mock.mockFunction1
+import org.kodein.mock.mockFunction2
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -65,7 +66,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
     lateinit var userServiceMock: UserService
 
     private val onCancelMock = mockFunction0<Unit>(mocker)
-    private val goToRoomMock = mockFunction1<Unit, RoomId>(mocker)
+    private val goToRoomMock = mockFunction2<Unit, UserId, RoomId>(mocker)
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
@@ -87,7 +88,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 every { matrixClientServerApiClientMock.user } returns usersApiClientMock
                 every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-                every { goToRoomMock.invoke(isAny()) } returns Unit
+                every { goToRoomMock.invoke(isAny(), isAny()) } returns Unit
             }
         }
 
@@ -149,7 +150,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             }
 
             cut.onUserClick(user2)
-            mocker.verify(exhaustive = false) { goToRoomMock.invoke(roomId) }
+            mocker.verify(exhaustive = false) { goToRoomMock.invoke(userId1, roomId) }
             createRoomCalled shouldBe false
         }
 
@@ -184,7 +185,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             cut.onUserClick(user2)
-            mocker.verify(exhaustive = false) { goToRoomMock.invoke(roomId) }
+            mocker.verify(exhaustive = false) { goToRoomMock.invoke(userId1, roomId) }
         }
 
         should("create a new room if a direct room can be found, but not in the room list") {

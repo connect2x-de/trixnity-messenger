@@ -196,24 +196,24 @@ class MemberListViewModelTest : ShouldSpec() {
                 every {
                     userServiceMock.getPowerLevel(
                         alice,
+                        bob,
                         powerLevelsEventContent = powerLevelsEventContent,
-                        createEventContent = createEventContent
                     )
                 } returns 100
 
                 every {
                     userServiceMock.getPowerLevel(
                         bob,
+                        bob,
                         powerLevelsEventContent = powerLevelsEventContent,
-                        createEventContent = createEventContent
                     )
                 } returns 50
 
                 every {
                     userServiceMock.getPowerLevel(
                         me,
+                        bob,
                         powerLevelsEventContent = powerLevelsEventContent,
-                        createEventContent = createEventContent
                     )
                 } returns 1
             }

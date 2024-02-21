@@ -329,6 +329,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             shouldShowUnreadMarkerFlow = MutableStateFlow(false),
             onMessageEdited = mockFunction1(mocker),
             onMessageRepliedTo = mockFunction1(mocker),
+            onMessageReportTo = mockFunction1(mocker),
             onOpenModal = mockFunction4(mocker),
         )
     }

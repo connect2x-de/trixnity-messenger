@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import io.ktor.http.*
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -16,7 +16,7 @@ class UrlHandlerImpl private constructor(
     urlHandlerFlow: Flow<Url>
 ) : UrlHandler, Flow<Url> by urlHandlerFlow {
 
-    constructor(config: MatrixMessengerConfiguration) : this(
+    constructor(config: MatrixMessengerBaseConfiguration) : this(
         callbackFlow {
             val eventListener: (Event) -> Unit = {
                 trySend(Url(document.URL))

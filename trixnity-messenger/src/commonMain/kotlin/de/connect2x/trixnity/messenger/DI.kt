@@ -112,7 +112,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     roomViewModels(),
     roomSettingsViewModels(),
     // platform-specific implementations
-    generalPlatformModule(),
+    commonPlatformModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
     platformGetSecretByteArrayKey(),
@@ -216,6 +216,7 @@ private fun roomSettingsViewModels() = module {
 
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
+    single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
     single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
@@ -237,4 +238,4 @@ private fun verificationViewModels() = module {
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
 
-expect fun generalPlatformModule(): Module
+expect fun commonPlatformModule(): Module

@@ -381,7 +381,7 @@ class StateEventBuilder {
 }
 
 suspend infix fun StateFlow<List<BaseTimelineElementHolderViewModel>>.waitForSize(size: Int) =
-    withClue(lazy { "timelineElementViewModels size was ${value.size}, expected $size" }) {
+    withClue({ "timelineElementViewModels size was ${value.size}, expected $size" }) {
         withTimeout(4.seconds) {
             first { it.size == size }
         }

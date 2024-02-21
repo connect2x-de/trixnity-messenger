@@ -13,11 +13,11 @@ import java.nio.file.Files
 private val log = KotlinLogging.logger {}
 actual fun platformSendLogToDevsModule(): Module = module {
     single<SendLogToDevs> {
-        val paths = get<Paths>()
+        val rootPath = get<RootPath>().path
         SendLogToDevs { emailAddress, subject ->
             val content = try {
                 withContext(Dispatchers.IO) {
-                    Files.readString(paths.rootPath.resolve("timmy.log").toNioPath()) // TODO configurable and as file
+                    Files.readString(rootPath.resolve("timmy.log").toNioPath()) // TODO configurable and as file
                 }
             } catch (exc: Exception) {
                 log.error(exc) { "cannot read log content" }
