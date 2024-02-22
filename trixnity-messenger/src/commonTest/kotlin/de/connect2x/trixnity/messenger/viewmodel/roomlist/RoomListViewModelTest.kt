@@ -1336,6 +1336,7 @@ class RoomListViewModelTest : ShouldSpec() {
                             ): AccountViewModel {
                                 return object : AccountViewModel {
                                     override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+                                    override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
                                     override val accounts: StateFlow<List<AccountInfo>> =
                                         MutableStateFlow(listOf())
 
