@@ -55,6 +55,16 @@ interface TextBasedViewModel : RoomMessageViewModel {
      * The HTML version of the message, if present. [spec](https://spec.matrix.org/v1.7/client-server-api/#mroommessage-msgtypes)
      */
     val formattedBody: String?
+
+    /**
+     * Users mentioned in the event's message
+     */
+    val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>>
+
+    /**
+     * Users mentioned in the event's formatted body
+     */
+    val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>>?
 }
 
 sealed interface ReferencedMessage {

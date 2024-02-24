@@ -2,9 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionedUsersStateFlow
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 
@@ -26,6 +27,7 @@ interface TextMessageViewModelFactory {
         message: String,
         formattedBody: String?,
         invitation: Flow<String?>,
+        roomId: RoomId,
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
             viewModelContext,
@@ -43,7 +45,8 @@ interface TextMessageViewModelFactory {
             referencedMessage,
             message,
             formattedBody,
-            invitation
+            invitation,
+            roomId
         )
     }
 
@@ -69,6 +72,7 @@ open class TextMessageViewModelImpl(
     override val message: String,
     override val formattedBody: String?,
     invitation: Flow<String?>,
+    roomId: RoomId,
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
 
     override val invitation: StateFlow<String?> =
@@ -79,6 +83,12 @@ open class TextMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>>? =
+        formattedBody?.let {
+            mentionedUsersStateFlow(it, roomId, matrixClient, coroutineScope)
+        }
+    override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> =
+        mentionedUsersStateFlow(message, roomId, matrixClient, coroutineScope)
 
     override fun toString(): String {
         return fallbackMessage
@@ -99,5 +109,6 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = true
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
-
+    override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+    override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
 }

@@ -350,6 +350,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
+                            roomId = selectedRoomId,
                         )
                     }
 
@@ -468,6 +469,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
+                            roomId = selectedRoomId,
                         )
                     }
                 }
@@ -713,6 +715,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
+            override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+            override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
         }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -807,6 +811,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
+                override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+                override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
             }
         }
     }
