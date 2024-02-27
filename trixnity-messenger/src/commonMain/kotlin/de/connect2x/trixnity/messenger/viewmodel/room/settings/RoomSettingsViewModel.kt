@@ -13,6 +13,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -46,6 +47,8 @@ interface RoomSettingsViewModel {
     val error: StateFlow<String?>
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
+    val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
+    val historyVisibility: HistoryVisibilityEventContent.HistoryVisibility
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
     val leaveRoomWarningTitle: StateFlow<String>
@@ -76,6 +79,12 @@ open class RoomSettingsViewModelImpl(
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
             .create(viewModelContext, selectedRoomId, error)
+    }
+    override val historyVisibility: HistoryVisibilityEventContent.HistoryVisibility
+        get() = roomSettingsHistoryVisibilityViewModel.roomHistoryVisibility.value
+    override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel by lazy {
+        get<RoomSettingsHistoryVisibilityViewModelFactory>()
+            .create(viewModelContext, selectedRoomId, historyVisibility, error)
     }
 
     override val leaveRoomSettingEntryText = MutableStateFlow("")
@@ -160,6 +169,10 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
+    override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
+        = PreviewRoomSettingsHistoryVisibilityViewModel()
+    override val historyVisibility: HistoryVisibilityEventContent.HistoryVisibility
+        get() = PreviewRoomSettingsHistoryVisibilityViewModel().roomHistoryVisibility.value
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
