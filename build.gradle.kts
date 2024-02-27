@@ -31,4 +31,10 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven")
     }
+
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+
+    val dependenciesForAll by tasks.registering(DependencyReportTask::class) { }
 }

@@ -400,6 +400,10 @@ the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/tr
 You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
 maven repositories, which contains SNAPSHOT versions of Trixnity.
 
+## Upgrade lock
+
+Run `./gradlew dependenciesForAll --write-locks --no-parallel`.
+
 ## Contributions
 
 If you want to contribute to the project, you need to sign the [Contributor License Agreement](CLA.md).
