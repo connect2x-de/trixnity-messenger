@@ -257,9 +257,12 @@ class VerificationViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             println(3)
-            eventually(1.seconds) {
-                cut.stack.value.active.configuration should beOfType<Config.Request>()
-            }
+            val coroutineScope = CoroutineScope(Dispatchers.Default)
+            coroutineScope.launch {
+                eventually(1.seconds) {
+                    cut.stack.value.active.configuration should beOfType<Config.Request>()
+                }
+            }.join()
 
             println(4)
             cancelNeverEndingCoroutines()

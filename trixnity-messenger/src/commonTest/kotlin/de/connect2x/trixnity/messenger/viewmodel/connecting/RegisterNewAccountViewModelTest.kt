@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientFactory
+import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -30,6 +31,7 @@ import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RegisterNewAccountViewModelTest : ShouldSpec() {
@@ -241,8 +243,9 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             cut.tryRegistration()
             testCoroutineScheduler.advanceUntilIdle()
 
-            withContext(Dispatchers.Default) { // eventually does not work with TestDispatcher
-                eventually(500.milliseconds) {
+            withContext(Dispatchers.IOOrDefault) { // eventually does not work with TestDispatcher
+                // we need eventually here since the MockEngine can only be run with Dispatchers.IO (MockEngine.config {dispatcher cannot be used anymore})
+                eventually(2.seconds) {
                     mocker.verifyWithSuspend(exhaustive = false) {
                         matrixClientFactoryMock.loginWith(
                             isEqual(Url("http://myMatrixServer:55678")),

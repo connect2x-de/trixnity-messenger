@@ -96,9 +96,12 @@ class ImageMessageViewModelTest : ShouldSpec() {
 
             cut.thumbnail.value shouldBe null
 
-            eventually(1.seconds) {
-                cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
-            }
+            val coroutineScope = CoroutineScope(Dispatchers.Default)
+            coroutineScope.launch {
+                eventually(1.seconds) {
+                    cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
+                }
+            }.join()
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
