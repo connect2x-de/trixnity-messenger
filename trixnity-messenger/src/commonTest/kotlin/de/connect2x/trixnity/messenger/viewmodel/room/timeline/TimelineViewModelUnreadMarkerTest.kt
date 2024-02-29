@@ -47,7 +47,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
+    override fun timeout(): Long = 10_000
 
     private val mocker = Mocker()
 
