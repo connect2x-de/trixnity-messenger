@@ -390,7 +390,8 @@ struct AddMatrixAccountView: View {
 
 ## Root path
 
-On the JVM the root path can be overridden by adding a system property named `ROOT_PATH`.
+On the JVM (not Android) the root path can be overridden by setting an environment variable
+named `TRIXNITY_MESSENGER_ROOT_PATH`.
 
 ## Snapshot builds
 
