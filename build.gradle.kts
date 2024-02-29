@@ -33,6 +33,7 @@ allprojects {
     }
 
     dependencyLocking {
+        lockMode = LockMode.LENIENT
         lockAllConfigurations()
     }
 
