@@ -15,12 +15,8 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
 
-private val log = KotlinLogging.logger { }
 
-sealed interface RoomNameState {
-    object Undetermined : RoomNameState
-    data class Determined(val name: String?) : RoomNameState
-}
+private val log = KotlinLogging.logger { }
 
 interface RoomSettingsViewModelFactory {
     fun create(
@@ -45,6 +41,7 @@ interface RoomSettingsViewModelFactory {
 interface RoomSettingsViewModel {
     val error: StateFlow<String?>
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
+    val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
@@ -58,7 +55,6 @@ interface RoomSettingsViewModel {
     fun leaveRoom()
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
-
     fun close()
 }
 
@@ -71,7 +67,12 @@ open class RoomSettingsViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
     override val error = MutableStateFlow<String?>(null)
     override val roomSettingsNameViewModel by lazy {
-        get<RoomSettingsNameViewModelFactory>().create(viewModelContext, selectedRoomId, error)
+        get<RoomSettingsNameViewModelFactory>()
+            .create(viewModelContext, selectedRoomId)
+    }
+    override val roomSettingsTopicViewModel by lazy {
+        get<RoomSettingsTopicViewModelFactory>()
+            .create(viewModelContext, selectedRoomId)
     }
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
@@ -158,6 +159,7 @@ open class RoomSettingsViewModelImpl(
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
+    override val roomSettingsTopicViewModel: RoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
 
@@ -184,5 +186,4 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
 
     override fun close() {
     }
-
 }

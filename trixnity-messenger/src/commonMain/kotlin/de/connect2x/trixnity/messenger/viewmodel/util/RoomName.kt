@@ -2,7 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -15,17 +20,18 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
+
 interface RoomName {
     fun getRoomName(
         roomId: RoomId,
         matrixClient: MatrixClient,
-        formatted: Boolean = true
+        formatted: Boolean = true,
     ): Flow<String>
 
     fun getRoomName(
         room: Room,
         matrixClient: MatrixClient,
-        formatted: Boolean = true
+        formatted: Boolean = true,
     ): Flow<String>
 
     suspend fun getInviterName(
@@ -34,7 +40,10 @@ interface RoomName {
     ): String
 }
 
-open class RoomNameImpl(private val i18n: I18n, private val roomInviter: RoomInviter) : RoomName {
+open class RoomNameImpl(
+    private val i18n: I18n,
+    private val roomInviter: RoomInviter,
+) : RoomName {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getRoomName(

@@ -10,20 +10,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 
-interface RoomNameChangeStatusViewModelFactory {
+interface RoomTopicChangeStatusViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         timelineEvent: TimelineEvent?,
-        content: NameEventContent,
+        content: TopicEventContent,
         formattedDate: String,
         showDateAbove: Boolean,
         invitation: Flow<String?>,
         sender: Flow<UserInfoElement>,
         isDirectFlow: StateFlow<Boolean>,
-    ): RoomNameChangeStatusViewModel {
-        return RoomNameChangeStatusViewModelImpl(
+    ): RoomTopicChangeStatusViewModel {
+        return RoomTopicChangeStatusViewModelImpl(
             viewModelContext,
             timelineEvent,
             content,
@@ -35,39 +35,39 @@ interface RoomNameChangeStatusViewModelFactory {
         )
     }
 
-    companion object : RoomNameChangeStatusViewModelFactory
+    companion object : RoomTopicChangeStatusViewModelFactory
 }
 
-interface RoomNameChangeStatusViewModel : BaseTimelineElementViewModel {
-    val roomNameChangeMessage: StateFlow<String?>
+interface RoomTopicChangeStatusViewModel : BaseTimelineElementViewModel {
+    val roomTopicChangeMessage: StateFlow<String?>
 }
 
-open class RoomNameChangeStatusViewModelImpl(
+open class RoomTopicChangeStatusViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     timelineEvent: TimelineEvent?,
-    content: NameEventContent,
+    content: TopicEventContent,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     invitation: Flow<String?>,
     sender: Flow<UserInfoElement>,
     isDirectFlow: StateFlow<Boolean>,
-) : MatrixClientViewModelContext by viewModelContext, RoomNameChangeStatusViewModel {
+) : MatrixClientViewModelContext by viewModelContext, RoomTopicChangeStatusViewModel {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val roomNameChangeMessage =
+    override val roomTopicChangeMessage =
         combine(sender, isDirectFlow) { userInfo, isDirect ->
             val unsigned = timelineEvent?.event?.unsigned
             val previousContent =
                 if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
-            val from = if (previousContent is NameEventContent) {
-                i18n.eventRoomChangeFrom(previousContent.name)
+            val from = if (previousContent is TopicEventContent) {
+                i18n.eventRoomChangeFrom(previousContent.topic)
             } else ""
 
             val groupOrChat =
                 if (isDirect) i18n.eventChangeChatGenitive()
                 else i18n.eventChangeGroupGenitive()
 
-            i18n.eventRoomNameChange(userInfo.name, groupOrChat, from, content.name)
+            i18n.eventRoomTopicChange(userInfo.name, groupOrChat, from, content.topic)
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 }

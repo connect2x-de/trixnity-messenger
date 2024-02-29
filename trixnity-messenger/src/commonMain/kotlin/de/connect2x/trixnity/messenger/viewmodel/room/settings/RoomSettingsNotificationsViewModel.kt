@@ -5,7 +5,11 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
@@ -249,11 +253,14 @@ class PreviewRoomSettingsNotificationsViewModel : RoomSettingsNotificationsViewM
         NotificationLevels.ALL to NotificationLevelAll(),
         NotificationLevels.MENTIONS to NotificationLevelMentions(),
         NotificationLevels.SILENT to NotificationLevelSilent(),
+        NotificationLevels.DEFAULT to NotificationLevelMentions(),
     )
+
     override val selectedRoomNotificationsLevel: MutableStateFlow<NotificationLevel> =
         MutableStateFlow(NotificationLevelSilent())
-    override val isNotificationsLevelLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    override fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel) {
-    }
+    override val isNotificationsLevelLoading: MutableStateFlow<Boolean> =
+        MutableStateFlow(false)
+
+    override fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel) {}
 }

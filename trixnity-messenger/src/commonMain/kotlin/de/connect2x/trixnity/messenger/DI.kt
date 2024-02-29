@@ -4,23 +4,121 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.DownloadManager
+import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
+import de.connect2x.trixnity.messenger.util.DragAndDropHandler
+import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.Search
+import de.connect2x.trixnity.messenger.util.SearchImpl
+import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
+import de.connect2x.trixnity.messenger.util.platformCloseAppModule
+import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
+import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
+import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
+import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
+import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
+import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
+import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.*
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.*
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.*
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
-import de.connect2x.trixnity.messenger.viewmodel.settings.*
-import de.connect2x.trixnity.messenger.viewmodel.util.*
-import de.connect2x.trixnity.messenger.viewmodel.verification.*
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RelevantTimelineEvents
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomNameChangeStatusViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomTopicChangeStatusViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileName
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileNameImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputationsImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopicImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
+import de.connect2x.trixnity.messenger.viewmodel.util.UserBlockingImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
+import de.connect2x.trixnity.messenger.viewmodel.util.UserPresenceImpl
+import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
+import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerificationsImpl
+import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRejectedViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepSuccessViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
 import io.ktor.client.*
 import kotlinx.datetime.Clock
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
@@ -83,6 +181,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Languages> { DefaultLanguages }
         single<I18n> { object : I18n(get(), get(), get()) {} }
         single<RoomName> { RoomNameImpl(get(), get()) }
+        single<RoomTopic> { RoomTopicImpl() }
         single<RoomInviter> { RoomInviterImpl() }
         single<UserBlocking> { UserBlockingImpl() }
         single<ComputeFileName> { ComputeFileNameImpl(get()) }
@@ -191,6 +290,7 @@ private fun timelineElementsViewModels() = module {
     single<RedactedMessageViewModelFactory> { RedactedMessageViewModelFactory }
     single<RoomCreatedStatusViewModelFactory> { RoomCreatedStatusViewModelFactory }
     single<RoomNameChangeStatusViewModelFactory> { RoomNameChangeStatusViewModelFactory }
+    single<RoomTopicChangeStatusViewModelFactory> { RoomTopicChangeStatusViewModelFactory }
     single<TextMessageViewModelFactory> { TextMessageViewModelFactory }
     single<NoticeMessageViewModelFactory> { NoticeMessageViewModelFactory }
     single<FallbackMessageViewModelFactory> { FallbackMessageViewModelFactory }
@@ -210,8 +310,8 @@ private fun roomSettingsViewModels() = module {
     single<PotentialMembersViewModelFactory> { PotentialMembersViewModelFactory }
     single<RoomSettingsViewModelFactory> { RoomSettingsViewModelFactory }
     single<RoomSettingsNameViewModelFactory> { RoomSettingsNameViewModelFactory }
+    single<RoomSettingsTopicViewModelFactory> { RoomSettingsTopicViewModelFactory }
     single<RoomSettingsNotificationsViewModelFactory> { RoomSettingsNotificationsViewModelFactory }
-
 }
 
 private fun timelineViewModels() = module {
