@@ -17,7 +17,7 @@ actual fun platformPathsModule(): Module = module {
 }
 
 fun getAppPath(appName: String) =
-    System.getProperty("ROOT_PATH")?.toPath()
+    System.getenv("TRIXNITY_MESSENGER_ROOT_PATH")?.toPath()
         ?: when (getOs()) {
             OS.MAC_OS -> {
                 System.getenv("HOME").toPath()
