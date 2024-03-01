@@ -1,16 +1,25 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
-import de.connect2x.trixnity.messenger.integrationtests.util.*
+import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
+import de.connect2x.trixnity.messenger.integrationtests.util.register
+import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
+import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
+import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
@@ -29,6 +38,7 @@ private val log = KotlinLogging.logger { }
 class AccountsIT {
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
+    private lateinit var messenger: MatrixMessengerWithRoot
 
     private val password = "user$1passw0rd"
     private lateinit var baseUrl: Url
@@ -54,11 +64,12 @@ class AccountsIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
+        messenger.stop()
     }
 
     @Test
     fun shouldAddAnAccountAndRemoveAfterwards(): Unit = runBlockingWithTimeout {
-        val messenger = createTestMatrixMessenger()
+        messenger = createTestMatrixMessenger()
         log.info { "login as user1" }
         messenger.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
@@ -90,16 +101,16 @@ class AccountsIT {
 
     @Test
     fun `remove account when logged out and show login`(): Unit = runBlockingWithTimeout {
-        val messenger1 = createTestMatrixMessenger()
+        messenger = createTestMatrixMessenger()
         log.info { "login as user1" }
-        messenger1.login(
+        messenger.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = "user1",
             password = password,
         )
-        messenger1.verifyAccountsArePresent("user1")
+        messenger.verifyAccountsArePresent("user1")
 
-        val matrixClient = messenger1.di.get<MatrixClients>().value.values.first()
+        val matrixClient = messenger.di.get<MatrixClients>().value.values.first()
         matrixClient.api.device.deleteDevice(matrixClient.deviceId).getOrThrow()
             .shouldBeInstanceOf<UIA.Step<*>>()
             .authenticate(
@@ -110,6 +121,6 @@ class AccountsIT {
             ).getOrThrow()
             .shouldBeInstanceOf<UIA.Success<*>>()
 
-        messenger1.root.stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
+        messenger.root.stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
     }
 }

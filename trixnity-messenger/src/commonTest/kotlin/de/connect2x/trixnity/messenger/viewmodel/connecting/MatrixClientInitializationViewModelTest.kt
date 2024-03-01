@@ -22,6 +22,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
     private val mocker = Mocker()
 
     private val onNoAccountsMock = mockFunction0<Unit>(mocker)
+    private lateinit var cut: MatrixClientInitializationViewModel
 
     init {
         mocker.reset()
@@ -32,10 +33,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
             }
         }
 
-        // deactivated since the CI does not seem to like this really simple test and fails often
-        // locally, the timeout of eventually can be set to 50 millis and the test still works, so this seems to be
-        // a problem that cannot be solved logically (maybe a bug in the mock framework?)
-        xshould("call `onNoAccounts` when no accounts are present") {
+        should("call `onNoAccounts` when no accounts are present") {
             matrixClientInitializationViewModel(
                 accounts = emptyMap(),
                 selectedAccount = null
@@ -127,7 +125,8 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
             di,
             componentContext = DefaultComponentContext(LifecycleRegistry())
         )
-        MatrixClientInitializationViewModelImpl(
+        // prevent GC to clean up the viewmodel
+        cut = MatrixClientInitializationViewModelImpl(
             viewModelContext = viewModelContext,
             onNoAccounts = onNoAccountsMock,
             onInitializationSuccess = {},

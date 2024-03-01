@@ -1,12 +1,17 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
@@ -20,6 +25,9 @@ import kotlin.test.Test
 class VerificationIT {
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
+    private lateinit var messenger1: MatrixMessengerWithRoot
+    private lateinit var messenger2: MatrixMessengerWithRoot
+    private lateinit var messenger3: MatrixMessengerWithRoot
 
     private val password = "user$1passw0rd"
 
@@ -42,25 +50,28 @@ class VerificationIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
+        messenger1.stop()
+        messenger2.stop()
+        messenger3.stop()
     }
 
     @Test
     fun shouldDoSelfVerificationWithRecoveryKeyAndEmojiCompare(): Unit = runBlockingWithTimeout {
-        val messenger1 = createTestMatrixMessenger()
+        messenger1 = createTestMatrixMessenger()
         val recoveryKey =
             messenger1.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
                 username = "user1",
                 password = password,
             )
-        val messenger2 = createTestMatrixMessenger()
+        messenger2 = createTestMatrixMessenger()
         messenger2.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = "user1",
             password = password,
             recoveryKey = recoveryKey,
         )
-        val messenger3 = createTestMatrixMessenger()
+        messenger3 = createTestMatrixMessenger()
         messenger3.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = "user1",
