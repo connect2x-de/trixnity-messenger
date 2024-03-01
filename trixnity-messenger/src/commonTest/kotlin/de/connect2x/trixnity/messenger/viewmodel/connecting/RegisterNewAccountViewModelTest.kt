@@ -4,13 +4,11 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientFactory
-import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -30,10 +28,9 @@ import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class RegisterNewAccountViewModelTest : ShouldSpec() {
     val mocker = Mocker()
 
@@ -46,8 +43,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
     private val onLoginMock = mockFunction0<Unit>(mocker)
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
@@ -64,22 +59,22 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
         should("show an empty list of registration options when no server is selected") {
             val cut = registerNewAccountViewModel()
-            testCoroutineScheduler.advanceTimeBy(600.milliseconds)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            cut.registrationOptions.value shouldBe emptyList()
-            cut.selectedRegistration.value shouldBe null
+            eventually(2.seconds) {
+                cut.registrationOptions.value shouldBe emptyList()
+                cut.selectedRegistration.value shouldBe null
+            }
 
             cancelNeverEndingCoroutines()
         }
 
         should("show an empty list of registration options when the given server URL is no valid URL") {
             val cut = registerNewAccountViewModel(serverUrl = "87fydf##://ds")
-            testCoroutineScheduler.advanceTimeBy(600.milliseconds)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            cut.registrationOptions.value shouldBe emptyList()
-            cut.selectedRegistration.value shouldBe null
+            eventually(2.seconds) {
+                cut.registrationOptions.value shouldBe emptyList()
+                cut.selectedRegistration.value shouldBe null
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -125,15 +120,14 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-            testCoroutineScheduler.advanceUntilIdle()
 
-            cut.registrationOptions.first {
-                it == listOf(
+            eventually(2.seconds) {
+                cut.registrationOptions.value shouldBe listOf(
                     AuthenticationType.RegistrationToken,
                     AuthenticationType.Password,
                 )
+                cut.selectedRegistration.value shouldBe AuthenticationType.RegistrationToken
             }
-            cut.selectedRegistration.first { it == AuthenticationType.RegistrationToken }
 
             cancelNeverEndingCoroutines()
         }
@@ -233,7 +227,6 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-            testCoroutineScheduler.advanceUntilIdle()
             cut.selectedRegistration.first { it == AuthenticationType.RegistrationToken }
             cut.username.update { "user1" }
             cut.password.update { "user1-password" }
@@ -241,25 +234,21 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
             cut.canRegisterNewUser.first { it }
             cut.tryRegistration()
-            testCoroutineScheduler.advanceUntilIdle()
 
-            withContext(Dispatchers.IOOrDefault) { // eventually does not work with TestDispatcher
-                // we need eventually here since the MockEngine can only be run with Dispatchers.IO (MockEngine.config {dispatcher cannot be used anymore})
-                eventually(2.seconds) {
-                    mocker.verifyWithSuspend(exhaustive = false) {
-                        matrixClientFactoryMock.loginWith(
-                            isEqual(Url("http://myMatrixServer:55678")),
-                            isEqual(
-                                MatrixClient.LoginInfo(
-                                    UserId("@user1:myMatrixServer:55678"),
-                                    "GHTYAJCE",
-                                    "abc123"
-                                )
-                            ),
-                            isAny(),
-                        )
-                        onLoginMock.invoke()
-                    }
+            eventually(2.seconds) {
+                mocker.verifyWithSuspend(exhaustive = false) {
+                    matrixClientFactoryMock.loginWith(
+                        isEqual(Url("http://myMatrixServer:55678")),
+                        isEqual(
+                            MatrixClient.LoginInfo(
+                                UserId("@user1:myMatrixServer:55678"),
+                                "GHTYAJCE",
+                                "abc123"
+                            )
+                        ),
+                        isAny(),
+                    )
+                    onLoginMock.invoke()
                 }
             }
 
@@ -271,7 +260,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
         serverUrl: String = "https://local.host",
         mockEngineConfig: (MockEngineConfig.() -> Unit)? = null,
     ): RegisterNewAccountViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        Dispatchers.setMain(Dispatchers.Unconfined)
         val currentCoroutineContext = currentCoroutineContext()
         val mockEngine = MockEngine.config {
             if (mockEngineConfig != null) mockEngineConfig()
