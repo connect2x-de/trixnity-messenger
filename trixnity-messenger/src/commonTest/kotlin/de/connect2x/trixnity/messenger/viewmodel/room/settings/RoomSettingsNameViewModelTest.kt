@@ -5,15 +5,12 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -38,10 +35,13 @@ import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RoomSettingsNameViewModelTest : ShouldSpec() {
+    override fun timeout(): Long = 4_000
+
     val mocker = Mocker()
 
     private val roomId = RoomId("room", "localhost")
@@ -96,19 +96,19 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
 
         should("load permissions to change the room name based on the user's power level") {
             withTestingHarness {
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
                 val canSendEvent = MutableStateFlow(true)
                 canSendEventMocker returns canSendEvent
 
                 val viewModel = roomSettingsNameViewModel(coroutineContext)
-                coroutineScope.launch { viewModel.canChangeRoomName.collect() }
-                advanceUntilIdle()
-                viewModel.canChangeRoomName.value shouldBe true
+                launch { viewModel.canChangeRoomName.collect() }
+                eventually(2.seconds) {
+                    viewModel.canChangeRoomName.value shouldBe true
+                }
 
                 canSendEvent.value = false
-                coroutineScope.launch { viewModel.canChangeRoomName.collect() }
-                advanceUntilIdle()
-                viewModel.canChangeRoomName.value shouldBe false
+                eventually(2.seconds) {
+                    viewModel.canChangeRoomName.value shouldBe false
+                }
             }
         }
 
@@ -116,24 +116,23 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
             withTestingHarness {
                 roomGetById returns MutableStateFlow<Room?>(room("room name"))
                 val viewModel = roomSettingsNameViewModel(coroutineContext)
-                advanceUntilIdle()
-                viewModel.roomName.state.value.value shouldBe "room name"
+                eventually(2.seconds) {
+                    viewModel.roomName.state.value.value shouldBe "room name"
+                }
             }
         }
 
         should("edit and apply room name change") {
             withTestingHarness {
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
                 val homeServerHandle = mockSendToHomeServer(NameEventContent("edited name"))
+                launch { homeServerHandle.numCallsToHomeServer.collect() }
                 roomGetById returns MutableStateFlow<Room?>(room("current name"))
 
                 val viewModel = roomSettingsNameViewModel(coroutineContext)
-                advanceUntilIdle()
+                viewModel.roomName.isLoading.first { it.not() }
                 viewModel.roomName.startEdit()
                 viewModel.roomName.state.value.setEdit("edited name")
                 viewModel.roomName.applyEdit()
-                coroutineScope.launch { homeServerHandle.numCallsToHomeServer.collect() }
-                advanceUntilIdle()
                 homeServerHandle.numCallsToHomeServer.first { it == 1 }
             }
         }
@@ -154,14 +153,12 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
 
     private suspend fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
         val handle = MockHomeServerHandle()
-        val coroutineScope = CoroutineScope(Dispatchers.Default)
         mocker.everySuspending {
             roomsApiClientMock.sendStateEvent(isEqual(roomId), isEqual(expectedRequestContent), isAny(), isAny())
         } runs {
-            coroutineScope.async {
-                handle.numCallsToHomeServer.value += 1
-                Result.success(EventId("1"))
-            }.await()
+            println("----call")
+            handle.numCallsToHomeServer.value += 1
+            Result.success(EventId("1"))
         }
         return handle
     }
