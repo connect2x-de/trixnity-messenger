@@ -65,6 +65,9 @@ class RoomHeaderViewModelTest : ShouldSpec() {
     lateinit var roomNameMock: RoomName
 
     @Mock
+    lateinit var roomTopicMock: RoomTopic
+
+    @Mock
     lateinit var initialsMock: Initials
 
     @Mock
@@ -77,6 +80,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
     lateinit var userBlockingMock: UserBlocking
 
     private lateinit var roomNameElement: Mocker.Every<Flow<String>>
+    private lateinit var roomTopicElement: Mocker.Every<Flow<String>>
     private lateinit var ignoredUsers: Mocker.Every<Flow<IgnoredUserListEventContent?>>
 
     init {
@@ -100,9 +104,13 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 every { matrixClientMock.userId } returns me
 
                 roomNameElement = every {
-                    roomNameMock.getRoomName(isAny<RoomId>(), isAny(), isAny())
+                    roomNameMock.getRoomName(isAny<RoomId>(), isAny(), isAny<Boolean>())
                 }
                 roomNameElement returns MutableStateFlow("My Room")
+                roomTopicElement = every {
+                    roomTopicMock.getRoomTopic(isAny<RoomId>(), isAny(), isAny<Boolean>())
+                }
+                roomTopicElement returns MutableStateFlow("My Topic")
                 every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
 
                 ignoredUsers = every { userServiceMock.getAccountData<IgnoredUserListEventContent>() }
@@ -158,13 +166,20 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.roomHeaderInfo.value shouldBe RoomHeaderInfo(
-                "My Room", "MR", "image".encodeToByteArray(), Presence.ONLINE, isEncrypted = false, isPublic = true,
+                "My Room",
+                "My Topic",
+                "MR",
+                "image".encodeToByteArray(),
+                Presence.ONLINE,
+                isEncrypted = false,
+                isPublic = true,
             )
 
             roomName.value = "New Room Name"
             testCoroutineScheduler.advanceUntilIdle()
             cut.roomHeaderInfo.value shouldBe RoomHeaderInfo(
                 "New Room Name",
+                "My Topic",
                 "MR",
                 "image".encodeToByteArray(),
                 Presence.ONLINE,
@@ -296,6 +311,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                         createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) +
                                 module {
                                     single { roomNameMock }
+                                    single { roomTopicMock }
                                     single { userPresenceMock }
                                     single { initialsMock }
                                     single { directRoomMock }

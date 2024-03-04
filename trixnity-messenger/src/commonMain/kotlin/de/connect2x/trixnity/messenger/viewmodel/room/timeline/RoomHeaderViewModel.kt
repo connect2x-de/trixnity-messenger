@@ -2,10 +2,24 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
+import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
+import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.UserTrustLevel
@@ -49,6 +63,7 @@ interface RoomHeaderViewModelFactory {
 
 data class RoomHeaderInfo(
     val roomName: String,
+    var roomTopic: String,
     val roomImageInitials: String,
     val roomImage: ByteArray?,
     val presence: Presence?,
@@ -62,6 +77,7 @@ data class RoomHeaderInfo(
         other as RoomHeaderInfo
 
         if (roomName != other.roomName) return false
+        if (roomTopic != other.roomTopic) return false
         if (roomImageInitials != other.roomImageInitials) return false
         if (roomImage != null) {
             if (other.roomImage == null) return false
@@ -76,6 +92,7 @@ data class RoomHeaderInfo(
 
     override fun hashCode(): Int {
         var result = roomName.hashCode()
+        result = 31 * result + roomTopic.hashCode()
         result = 31 * result + roomImageInitials.hashCode()
         result = 31 * result + (roomImage?.contentHashCode() ?: 0)
         result = 31 * result + (presence?.hashCode() ?: 0)
@@ -129,6 +146,7 @@ open class RoomHeaderViewModelImpl(
     private val directRoom = get<DirectRoom>()
     private val userPresence = get<UserPresence>()
     private val roomName = get<RoomName>()
+    private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
 
@@ -161,9 +179,10 @@ open class RoomHeaderViewModelImpl(
             combine(
                 matrixClient.room.getById(selectedRoomId),
                 roomName.getRoomName(selectedRoomId, matrixClient),
+                roomTopic.getRoomTopic(selectedRoomId, matrixClient),
                 userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
                 matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId)
-            ) { room, roomNameElement, userPresence, joinRules ->
+            ) { room, roomNameElement, roomTopicElement, userPresence, joinRules ->
                 val roomImage = room?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(
                         avatarUrl,
@@ -178,18 +197,20 @@ open class RoomHeaderViewModelImpl(
                     )
                 }?.toByteArray()
                 RoomHeaderInfo(
-                    roomNameElement,
-                    initials.compute(roomNameElement),
-                    roomImage,
-                    userPresence?.presence,
-                    room?.encrypted == true,
-                    joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
+                    roomName = roomNameElement,
+                    roomTopic = roomTopicElement,
+                    roomImageInitials = initials.compute(roomNameElement),
+                    roomImage = roomImage,
+                    presence = userPresence?.presence,
+                    isEncrypted = room?.encrypted == true,
+                    isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
                 )
             }.stateIn(
                 coroutineScope,
                 SharingStarted.WhileSubscribed(),
                 RoomHeaderInfo(
                     roomName = "",
+                    roomTopic = "",
                     roomImageInitials = initials.compute(selectedRoomId.full),
                     roomImage = null,
                     presence = Presence.OFFLINE,
@@ -265,10 +286,10 @@ open class RoomHeaderViewModelImpl(
                 }
                 val isDirect =
                     matrixClient.room.getById(selectedRoomId).first()?.isDirect ?: false
-                if (isDirect)
-                    i18n.roomHeaderTypingSingleDirect()
-                else
-                    i18n.roomHeaderTypingSingle(username)
+                when {
+                    isDirect -> i18n.roomHeaderTypingSingleDirect()
+                    else -> i18n.roomHeaderTypingSingle(username)
+                }
             }
 
             usersTyping.size < 4 -> {
@@ -302,6 +323,7 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val roomHeaderInfo: MutableStateFlow<RoomHeaderInfo> = MutableStateFlow(
         RoomHeaderInfo(
             roomName = "Dev Channel",
+            roomTopic = "The channel that devs!",
             roomImageInitials = "DC",
             roomImage = null,
             presence = null,

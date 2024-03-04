@@ -10,68 +10,69 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 
 
-interface RoomSettingsNameViewModelFactory {
+interface RoomSettingsTopicViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-    ): RoomSettingsNameViewModel =
-        RoomSettingsNameViewModelImpl(
+    ): RoomSettingsTopicViewModel =
+        RoomSettingsTopicViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
         )
 
-    companion object : RoomSettingsNameViewModelFactory
+    companion object : RoomSettingsTopicViewModelFactory
 }
 
-interface RoomSettingsNameViewModel {
+interface RoomSettingsTopicViewModel {
     /** Indicates whether the current user is permitted to submit changes. */
-    val canChangeRoomName: StateFlow<Boolean>
+    val canChangeRoomTopic: StateFlow<Boolean>
 
     /** Indicates whether the corresponding UI element needs to be shown. */
-    val canViewRoomName: StateFlow<Boolean>
+    val canViewRoomTopic: StateFlow<Boolean>
 
-    /** Access the state and value of the room name. */
-    val roomName: EditableTextFieldViewModel
+    /** Access the state and value of the room topic. */
+    val roomTopic: EditableTextFieldViewModel
 }
 
-class RoomSettingsNameViewModelImpl(
+class RoomSettingsTopicViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-) : MatrixClientViewModelContext by viewModelContext, RoomSettingsNameViewModel {
-    override val canChangeRoomName: StateFlow<Boolean> =
+) : MatrixClientViewModelContext by viewModelContext, RoomSettingsTopicViewModel {
+    override val canChangeRoomTopic: StateFlow<Boolean> =
         matrixClient.user
-            .canSendEvent<NameEventContent>(selectedRoomId)
+            .canSendEvent<TopicEventContent>(selectedRoomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val canViewRoomName: StateFlow<Boolean> =
+    override val canViewRoomTopic: StateFlow<Boolean> =
         matrixClient.room
             .getById(selectedRoomId)
             .map { it?.isDirect?.not() ?: false }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val roomName: EditableTextFieldViewModel =
+    override val roomTopic: EditableTextFieldViewModel =
         EditableTextFieldViewModelImpl(
             serverValue = matrixClient.room
-                .getById(selectedRoomId)
-                .map { it?.name?.explicitName ?: "" },
+                .getState<TopicEventContent>(roomId = selectedRoomId)
+                .map { it?.content?.topic ?: "" },
             coroutineScope = coroutineScope,
-            onApplyChange = { newName ->
+            onApplyChange = { newTopic ->
                 matrixClient.api.room.sendStateEvent(
                     selectedRoomId,
-                    NameEventContent(newName),
+                    TopicEventContent(newTopic),
                 )
             },
         )
 }
 
-class PreviewRoomSettingsNameViewModel : RoomSettingsNameViewModel {
-    override val roomName: EditableTextFieldViewModel = PreviewEditableTextFieldViewModel()
-    override val canChangeRoomName: StateFlow<Boolean> = MutableStateFlow(true)
-    override val canViewRoomName: StateFlow<Boolean> = MutableStateFlow(true)
+class PreviewRoomSettingsTopicViewModel : RoomSettingsTopicViewModel {
+    override val roomTopic: EditableTextFieldViewModel = PreviewEditableTextFieldViewModel()
+    override val canChangeRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
+    override val canViewRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
 }

@@ -17,7 +17,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
@@ -48,7 +62,11 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
+import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.core.model.events.m.room.getFormattedBody
 import net.folivo.trixnity.utils.toByteArray
@@ -542,6 +560,20 @@ open class TimelineElementHolderViewModelImpl(
             is NameEventContent -> {
                 log.trace { "Create room name change status view model: ${event.id}" }
                 get<RoomNameChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
+                )
+            }
+
+            is TopicEventContent -> {
+                log.trace { "Create room topic change status view model: ${event.id}" }
+                get<RoomTopicChangeStatusViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
                     content = content,

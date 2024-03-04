@@ -54,7 +54,7 @@ kotlin {
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
-        iosX64()
+        iosX64(),
     ).forEach {
         it.binaries.framework {
             export("com.arkivanov.decompose:decompose:${Versions.decompose}")

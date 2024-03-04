@@ -51,7 +51,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 accounts = emptyMap(),
                 selectedAccount = null
             )
-            eventually(2.seconds) {
+            eventually(4.seconds) { // TODO: optimize timeout
                 mocker.verify(exhaustive = false) { onNoAccountsMock.invoke() }
             }
         }

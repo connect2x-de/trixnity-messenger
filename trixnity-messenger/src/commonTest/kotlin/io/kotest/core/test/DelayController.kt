@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestDispatcher
 import kotlin.coroutines.CoroutineContext
 
+
 @ExperimentalStdlibApi
 @ExperimentalCoroutinesApi
 val TestScope.testCoroutineScheduler: TestCoroutineScheduler
@@ -18,3 +19,6 @@ val CoroutineContext.testCoroutineScheduler: TestCoroutineScheduler
         is TestDispatcher -> dispatcher.scheduler
         else -> error("CoroutineDispatcher is not a TestDispatcher [$dispatcher]")
     }
+
+@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
+fun TestScope.advanceUntilIdle(): Unit = testCoroutineScheduler.advanceUntilIdle()
