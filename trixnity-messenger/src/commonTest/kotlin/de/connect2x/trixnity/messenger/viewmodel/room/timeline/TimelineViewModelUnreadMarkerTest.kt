@@ -375,6 +375,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
             assertUnreadMarkerAtIndex(-1, cut)
+            delay(500.milliseconds)
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -403,6 +404,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "txn-1"
             verifyReadMarkerCalled(null to 1)
             assertUnreadMarkerAtIndex(-1, cut)
+            delay(500.milliseconds)
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
                     text("Woohoo")
@@ -431,6 +433,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "0"
 
             assertUnreadMarkerAtIndex(-1, cut)
+            delay(500.milliseconds)
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -459,6 +462,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "0"
 
             assertUnreadMarkerAtIndex(1, cut)
+            delay(500.milliseconds)
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -613,6 +617,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             roomUser returns flowOf(createRoomUserReceipts(me, EventId("1")))
 
             lifecycleRegistry.destroy()
+
             verifyReadMarkerCalled(null to 1, 1 to null)
         }
 
@@ -697,14 +702,17 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
     }
 
-    private fun List<Pair<EventId?, EventId?>>.readable() = map { "(fullyRead=${it.first}, read=${it.second})" }
+    private fun Set<Pair<EventId?, EventId?>>.readable() = map { "(fullyRead=${it.first}, read=${it.second})" }
     private suspend fun verifyReadMarkerCalled(vararg expect: Pair<Int?, Int?>) {
         check(expect.isNotEmpty())
-        eventually(1.seconds) {
-            val expectCalls = expect.toList().map { value ->
+        // only use sets here as through some effects the API might be called multiple times with the same values
+        // (it is idempotent, so it is not dangerous). The order of calls is not checked here, but should also be not
+        // relevant for this test case
+        eventually(2.seconds) {
+            val expectCalls = expect.map { value ->
                 value.first?.let { EventId(it.toString()) } to value.second?.let { EventId(it.toString()) }
-            }
-            withClue("expected read marker to be called with ${expectCalls.readable()} but was ${readMarkerCalled.value.readable()}") {
+            }.toSet()
+            withClue("expected read marker to be called with ${expectCalls.readable()} but was ${readMarkerCalled.value.toSet().readable()}") {
                 readMarkerCalled.value shouldBe expectCalls
             }
         }

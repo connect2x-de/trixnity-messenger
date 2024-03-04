@@ -58,7 +58,7 @@ class RootRouter(
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         userId = config.userId,
-                        onRemoveCompleted = ::showInitialization,
+                        onRemoveCompleted = { }, // do nothing as the MainViewModel will show a sync
                     )
             )
 
