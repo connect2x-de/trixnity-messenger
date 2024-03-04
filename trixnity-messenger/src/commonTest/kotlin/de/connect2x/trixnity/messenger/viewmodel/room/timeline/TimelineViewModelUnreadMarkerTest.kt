@@ -87,14 +87,9 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         val aliceRoomUser = roomUser(me, "Alice")
 
         beforeTest {
-            Dispatchers.setMain(Dispatchers.Unconfined)
-        }
-        afterTest {
-            Dispatchers.resetMain()
-        }
-        beforeTest {
             mocker.reset()
             injectMocks(mocker)
+            Dispatchers.setMain(Dispatchers.Unconfined)
 
             lifecycleRegistry = LifecycleRegistry()
             lifecycleRegistry.start()
@@ -191,6 +186,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
         afterTest {
             lifecycleRegistry.destroy()
+            Dispatchers.resetMain()
         }
 
         should("show the unread marker at the element after the fully read event initially") {
