@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutine
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -23,7 +22,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
@@ -31,7 +29,6 @@ import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class RoomSettingsNameViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 4_000
 
@@ -39,8 +36,6 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room", "localhost")
     private val me = UserId("user1", "localhost")
-
-    private val createEventContent = CreateEventContent(creator = me)
 
     @Mock
     lateinit var matrixClientMock: MatrixClient
@@ -61,11 +56,10 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
     private lateinit var roomGetById: Mocker.Every<Flow<Room?>>
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+            Dispatchers.setMain(Dispatchers.Unconfined)
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -125,36 +119,34 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
 
             val cut = roomSettingsNameViewModel(coroutineContext, MutableStateFlow(null))
             // subscribe to all values in order to check for correct values later
-            CoroutineScope(Dispatchers.Default).launch {
-                cut.roomNameLoading.collect()
-            }
-            CoroutineScope(Dispatchers.Default).launch {
-                cut.roomName.collect()
-            }
+            launch { cut.roomNameLoading.collect() }
+            launch { cut.roomName.collect() }
 
-            cut.roomNameLoading.value shouldBe true
-            cut.roomName.value shouldBe ""
+            eventually(2.seconds) {
+                cut.roomNameLoading.value shouldBe true
+                cut.roomName.value shouldBe ""
+            }
 
             roomStateFlow.value = Room(
                 roomId,
                 name = RoomDisplayName(explicitName = "Old name", summary = null)
             )
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomNameLoading.value shouldBe false
-            cut.roomName.value shouldBe "Old name"
+            eventually(2.seconds) {
+                cut.roomNameLoading.value shouldBe false
+                cut.roomName.value shouldBe "Old name"
+            }
 
             cancelNeverEndingCoroutines()
         }
 
         should("set the room's name to `Undetermined` when the name is currently set") {
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
             mocker.every {
                 userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
             } returns MutableStateFlow(null)
             mocker.everySuspending {
                 roomsApiClientMock.sendStateEvent(isEqual(roomId), isAny(), isAny(), isAny())
             } runs {
-                coroutineScope.async {
+                async {
                     delay(1.seconds)
                     Result.success(EventId("1"))
                 }.await()
@@ -162,28 +154,29 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
 
             val cut = roomSettingsNameViewModel(coroutineContext, MutableStateFlow(null))
             // subscribe to all values in order to check for correct values later
-            coroutineScope.launch { cut.roomNameLoading.collect() }
-            coroutineScope.launch { cut.roomNameIsBeingEdited.collect() }
-            coroutineScope.launch { cut.canChangeRoomName.collect() }
+            launch { cut.roomNameLoading.collect() }
+            launch { cut.roomNameIsBeingEdited.collect() }
+            launch { cut.canChangeRoomName.collect() }
 
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomName.value shouldBe "Old name"
+            eventually(2.seconds) {
+                cut.roomName.value shouldBe "Old name"
+            }
 
             cut.roomName.value = "New name"
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomNameIsBeingEdited.value shouldBe true
-            cut.roomNameLoading.value shouldBe false
+            eventually(2.seconds) {
+                cut.roomNameIsBeingEdited.value shouldBe true
+                cut.roomNameLoading.value shouldBe false
+            }
 
             cut.changeRoomName()
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.roomNameLoading.value shouldBe true
+            eventually(2.seconds) {
+                cut.roomNameLoading.value shouldBe true
+            }
 
-            coroutineScope.launch {
-                eventually(2.seconds) {
-                    cut.roomName.value shouldBe "New name"
-                    cut.roomNameLoading.value shouldBe false
-                }
-            }.join()
+            eventually(2.seconds) {
+                cut.roomName.value shouldBe "New name"
+                cut.roomNameLoading.value shouldBe false
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -193,7 +186,6 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
         coroutineContext: CoroutineContext,
         error: MutableStateFlow<String?>,
     ): RoomSettingsNameViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return RoomSettingsNameViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
