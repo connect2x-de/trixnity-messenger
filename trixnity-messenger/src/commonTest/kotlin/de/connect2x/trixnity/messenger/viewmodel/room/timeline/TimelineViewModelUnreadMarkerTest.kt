@@ -82,6 +82,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var inputAreaViewModelMock: InputAreaViewModel
     private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
+    private lateinit var outerCoroutineScope: CoroutineScope
 
     init {
         val aliceRoomUser = roomUser(me, "Alice")
@@ -187,6 +188,8 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         afterTest {
             lifecycleRegistry.destroy()
             Dispatchers.resetMain()
+            // needed to cancel longer running read marker jobs that might still interact with Mocks that are already reset
+            outerCoroutineScope.cancel()
         }
 
         should("show the unread marker at the element after the fully read event initially") {
@@ -647,44 +650,47 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
     }
 
-    private fun timelineViewModel() =
-        TimelineViewModelImpl(
+    private fun timelineViewModel(): TimelineViewModelImpl {
+        val di = koinApplication {
+            modules(
+                createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                        module {
+                            single<RoomHeaderViewModelFactory> {
+                                object : RoomHeaderViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        isBackButtonVisible: MutableStateFlow<Boolean>,
+                                        onBack: () -> Unit,
+                                        onVerifyUser: () -> Unit,
+                                        onShowRoomSettings: () -> Unit
+                                    ): RoomHeaderViewModel {
+                                        return roomHeaderViewModelMock
+                                    }
+                                }
+                            }
+                            single<InputAreaViewModelFactory> {
+                                object : InputAreaViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        onMessageEditFinished: (EventId) -> Unit,
+                                        onMessageReplyToFinished: (EventId) -> Unit,
+                                        onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                                    ): InputAreaViewModel {
+                                        return inputAreaViewModelMock
+                                    }
+                                }
+                            }
+                            single<MatrixMessengerSettingsHolder> { messengerSettings }
+                        })
+        }.koin
+        outerCoroutineScope = di.get()
+
+        return TimelineViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
-                                module {
-                                    single<RoomHeaderViewModelFactory> {
-                                        object : RoomHeaderViewModelFactory {
-                                            override fun create(
-                                                viewModelContext: MatrixClientViewModelContext,
-                                                selectedRoomId: RoomId,
-                                                isBackButtonVisible: MutableStateFlow<Boolean>,
-                                                onBack: () -> Unit,
-                                                onVerifyUser: () -> Unit,
-                                                onShowRoomSettings: () -> Unit
-                                            ): RoomHeaderViewModel {
-                                                return roomHeaderViewModelMock
-                                            }
-                                        }
-                                    }
-                                    single<InputAreaViewModelFactory> {
-                                        object : InputAreaViewModelFactory {
-                                            override fun create(
-                                                viewModelContext: MatrixClientViewModelContext,
-                                                selectedRoomId: RoomId,
-                                                onMessageEditFinished: (EventId) -> Unit,
-                                                onMessageReplyToFinished: (EventId) -> Unit,
-                                                onShowAttachmentSendView: (file: FileDescriptor) -> Unit
-                                            ): InputAreaViewModel {
-                                                return inputAreaViewModelMock
-                                            }
-                                        }
-                                    }
-                                    single<MatrixMessengerSettingsHolder> { messengerSettings }
-                                })
-                }.koin,
+                di = di,
                 userId = UserId("test", "server"),
             ),
             selectedRoomId = roomId,
@@ -693,6 +699,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             onOpenModal = mockFunction4(mocker),
             onShowSettings = mockFunction0(mocker),
         )
+    }
 
     private suspend fun verifyReadMarkerNotCalled() {
         withClue("expected read marker not to be called") {
