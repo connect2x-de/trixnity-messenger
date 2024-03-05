@@ -1,13 +1,24 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
-import de.connect2x.trixnity.messenger.integrationtests.messenger.*
+import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
+import de.connect2x.trixnity.messenger.integrationtests.messenger.createChatWithUser
+import de.connect2x.trixnity.messenger.integrationtests.messenger.createGroupWithUsers
+import de.connect2x.trixnity.messenger.integrationtests.messenger.findRoomWithId
+import de.connect2x.trixnity.messenger.integrationtests.messenger.login
+import de.connect2x.trixnity.messenger.integrationtests.messenger.rejectTheInvitationToRoomAndBlock
+import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
@@ -22,6 +33,8 @@ import kotlin.time.Duration.Companion.seconds
 class BlockUserIT {
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
+    private lateinit var messenger1: MatrixMessengerWithRoot
+    private lateinit var messenger2: MatrixMessengerWithRoot
 
     private val user1 = "user1"
     private val passwordUser1 = "user$1passw0rd"
@@ -48,11 +61,13 @@ class BlockUserIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
+        messenger1.stop()
+        messenger2.stop()
     }
 
     @Test
     fun shouldBlockAUserOnInvitation(): Unit = runBlockingWithTimeout {
-        val messenger1 = createTestMatrixMessenger("client-1")
+        messenger1 = createTestMatrixMessenger("client-1")
         val recoveryKey =
             messenger1.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
@@ -60,7 +75,7 @@ class BlockUserIT {
                 password = passwordUser1,
             )
         messenger1.verifyAccountsArePresent(user1)
-        val messenger2 = createTestMatrixMessenger("client-2")
+        messenger2 = createTestMatrixMessenger("client-2")
         messenger2.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = user2,

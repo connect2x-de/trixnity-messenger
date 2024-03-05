@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -80,12 +79,12 @@ class VerificationViewModelTest : ShouldSpec() {
     private lateinit var activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification>
 
     init {
-        coroutineTestScope = true
         isolationMode = IsolationMode.InstancePerTest
 
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+            Dispatchers.setMain(Dispatchers.Unconfined)
 
             activeDeviceVerificationFlow = MutableStateFlow(activeVerification)
 
@@ -126,14 +125,10 @@ class VerificationViewModelTest : ShouldSpec() {
             }
 
             val cut = deviceVerificationViewModel(coroutineContext)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            coroutineScope.launch {
-                eventually(1.seconds) {
-                    cut.stack.value.active.configuration should beOfType<Config.Request>()
-                }
-            }.join()
+            eventually(1.seconds) {
+                cut.stack.value.active.configuration should beOfType<Config.Request>()
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -152,14 +147,10 @@ class VerificationViewModelTest : ShouldSpec() {
             }
 
             val cut = deviceVerificationViewModel(coroutineContext)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            coroutineScope.launch {
-                eventually(1.seconds) {
-                    cut.stack.value.active.configuration should beOfType<Config.SelectVerificationMethod>()
-                }
-            }.join()
+            eventually(1.seconds) {
+                cut.stack.value.active.configuration should beOfType<Config.SelectVerificationMethod>()
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -181,21 +172,16 @@ class VerificationViewModelTest : ShouldSpec() {
             }
 
             val cut = deviceVerificationViewModel(coroutineContext)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            coroutineScope.launch {
-                eventually(1.seconds) {
-                    val deviceVerificationStepWrapper = cut.stack.value.active.instance
-                    deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Cancelled>()
-                    deviceVerificationStepWrapper.viewModel.ok()
+            eventually(1.seconds) {
+                val deviceVerificationStepWrapper = cut.stack.value.active.instance
+                deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Cancelled>()
+                deviceVerificationStepWrapper.viewModel.ok()
+
+                mocker.verify(exhaustive = false) {
+                    onRedoSelfVerificationMock.invoke()
+                    onCloseDeviceVerificationMock.invoke()
                 }
-            }.join()
-            testCoroutineScheduler.advanceUntilIdle()
-
-            mocker.verify(exhaustive = false) {
-                onRedoSelfVerificationMock.invoke()
-                onCloseDeviceVerificationMock.invoke()
             }
 
             cancelNeverEndingCoroutines()
@@ -214,21 +200,16 @@ class VerificationViewModelTest : ShouldSpec() {
             }
 
             val cut = deviceVerificationViewModel(coroutineContext)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            coroutineScope.launch {
-                eventually(1.seconds) {
-                    val deviceVerificationStepWrapper = cut.stack.value.active.instance
-                    deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Success>()
-                    deviceVerificationStepWrapper.viewModel.ok()
+            eventually(1.seconds) {
+                val deviceVerificationStepWrapper = cut.stack.value.active.instance
+                deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Success>()
+                deviceVerificationStepWrapper.viewModel.ok()
+
+                onRedoWasCalled shouldBe false
+                mocker.verify(exhaustive = false) {
+                    onCloseDeviceVerificationMock.invoke()
                 }
-            }.join()
-            testCoroutineScheduler.advanceUntilIdle()
-
-            onRedoWasCalled shouldBe false
-            mocker.verify(exhaustive = false) {
-                onCloseDeviceVerificationMock.invoke()
             }
 
             cancelNeverEndingCoroutines()
@@ -243,32 +224,24 @@ class VerificationViewModelTest : ShouldSpec() {
                 every { activeVerification2.state } returns MutableStateFlow(theirRequest())
             }
 
-            println(0)
             val cut = deviceVerificationViewModel(coroutineContext)
-            testCoroutineScheduler.advanceUntilIdle()
 
-            println(1)
             eventually(1.seconds) {
                 cut.stack.value.active.configuration should beOfType<Config.Success>()
             }
 
-            println(2)
             activeDeviceVerificationFlow.value = activeVerification2
-            testCoroutineScheduler.advanceUntilIdle()
 
-            println(3)
             eventually(1.seconds) {
                 cut.stack.value.active.configuration should beOfType<Config.Request>()
             }
 
-            println(4)
             cancelNeverEndingCoroutines()
         }
 
     }
 
     private suspend fun deviceVerificationViewModel(coroutineContext: CoroutineContext): VerificationViewModel {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return VerificationViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
