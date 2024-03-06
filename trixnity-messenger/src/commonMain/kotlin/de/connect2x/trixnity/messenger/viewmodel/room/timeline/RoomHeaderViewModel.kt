@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -47,6 +48,7 @@ interface RoomHeaderViewModelFactory {
         onBack: () -> Unit,
         onVerifyUser: () -> Unit,
         onShowRoomSettings: () -> Unit,
+        onArchiveMessageClick: (roomName: String) -> Unit,
     ): RoomHeaderViewModel {
         return RoomHeaderViewModelImpl(
             viewModelContext,
@@ -55,6 +57,7 @@ interface RoomHeaderViewModelFactory {
             onBack,
             onVerifyUser,
             onShowRoomSettings,
+            onArchiveMessageClick,
         )
     }
 
@@ -126,6 +129,7 @@ interface RoomHeaderViewModel {
     fun verifyUser()
     fun showRoomSettings()
     fun goBack()
+    fun archiveMessages()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -136,6 +140,7 @@ open class RoomHeaderViewModelImpl(
     private val onBack: () -> Unit,
     private val onVerifyUser: () -> Unit,
     private val onShowRoomSettings: () -> Unit,
+    private val onArchiveMessageClick: (roomName: String) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
 
     override val roomHeaderInfo: StateFlow<RoomHeaderInfo>
@@ -275,6 +280,14 @@ open class RoomHeaderViewModelImpl(
         onBack()
     }
 
+    override fun archiveMessages() {
+        coroutineScope.launch {
+            val roomName = roomHeaderInfo.firstOrNull()?.roomName?: ""
+            onArchiveMessageClick(roomName)
+        }
+    }
+
+
     private suspend fun typingInfo(eventContent: TypingEventContent): String? {
         val usersTyping = eventContent.users.filterNot { it == matrixClient.userId }
         return when {
@@ -343,5 +356,6 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override fun unblockUser() {}
     override fun showRoomSettings() {}
     override fun goBack() {}
+    override fun archiveMessages() {}
 
 }

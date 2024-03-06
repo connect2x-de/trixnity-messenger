@@ -115,6 +115,7 @@ interface TimelineViewModel {
     val inputAreaViewModel: InputAreaViewModel
     val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
     val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
+    val archiveMessageStack: Value<ChildStack<ArchiveMessageRouter.Config, ArchiveMessageRouter.Wrapper>>
 
 
     /**
@@ -239,6 +240,11 @@ class TimelineViewModelImpl(
             .filterNotNull()
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
+    private val archiveMessageRouter = ArchiveMessageRouterImpl(
+        viewModelContext = viewModelContext,
+        roomId = selectedRoomId,
+        onArchiveMessageDialogDismiss = ::dismissArchiveMessageDialog
+    )
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
         get<RoomHeaderViewModelFactory>().create(
@@ -248,6 +254,7 @@ class TimelineViewModelImpl(
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
+            onArchiveMessageClick = ::showArchiveMessagesDialog
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
@@ -265,6 +272,18 @@ class TimelineViewModelImpl(
         onShowReportMessageDialog = ::showReportMessageDialog,
         onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
+
+    internal fun showArchiveMessagesDialog(roomName:String) = coroutineScope.launch {
+        log.trace { "Opening archive message dialog : $selectedRoomId and roomName: $roomName" }
+        archiveMessageRouter.showArchiveMessage(roomName)
+    }
+
+    internal fun dismissArchiveMessageDialog() {
+        coroutineScope.launch {
+            log.trace { "closing archive message dialog : $selectedRoomId" }
+            archiveMessageRouter.closeArchiveMessage()
+        }
+    }
 
     internal fun onReportMessageDialogDismiss(eventId: EventId) = coroutineScope.launch {
         log.trace { "Closing report popup dialog: $eventId" }
@@ -286,6 +305,7 @@ class TimelineViewModelImpl(
     )
 
     override val reportMessageStack = reportMessageRouter.stack
+    override val archiveMessageStack = archiveMessageRouter.stack
 
     private fun createChild(
         config: Config, componentContext: ComponentContext
@@ -958,6 +978,14 @@ class PreviewTimelineViewModel : TimelineViewModel {
                 )
             )
         )
+    override val archiveMessageStack =   MutableValue(
+        ChildStack(
+            active = Child.Created(
+                configuration = ArchiveMessageRouter.Config.None,
+                instance = ArchiveMessageRouter.Wrapper.None
+            )
+        )
+    )
 
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)

@@ -34,6 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveTextMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
@@ -317,6 +318,7 @@ private fun roomSettingsViewModels() = module {
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
+    single<ArchiveTextMessageViewModelFactory> { ArchiveTextMessageViewModelFactory }
     single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
