@@ -96,6 +96,11 @@ sealed interface ReferencedMessage {
         val fileName: String,
     ) : ReferencedMessage
 
+/*    data class ReferencedLocationMessage(
+        override val sender: UserInfoElement,
+        val name: String,
+    ) : ReferencedMessage */
+
     data class ReferencedUnknownMessage(
         override val sender: UserInfoElement,
     ) : ReferencedMessage
