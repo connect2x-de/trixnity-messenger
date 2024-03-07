@@ -120,6 +120,8 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveRoomHandlerBase
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveRoomResultHandler
 import io.ktor.client.*
 import kotlinx.datetime.Clock
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
@@ -127,6 +129,8 @@ import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun interface HttpUserAgent {
@@ -323,6 +327,8 @@ private fun timelineViewModels() = module {
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }
+    singleOf(::ArchiveRoomHandlerBase) bind ArchiveRoomResultHandler::class
+
 }
 
 private fun verificationViewModels() = module {

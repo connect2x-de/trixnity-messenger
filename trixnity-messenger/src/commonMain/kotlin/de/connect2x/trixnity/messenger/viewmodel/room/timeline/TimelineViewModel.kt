@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.*
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveRoomResultHandler
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
@@ -116,6 +117,8 @@ interface TimelineViewModel {
     val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
     val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
     val archiveMessageStack: Value<ChildStack<ArchiveMessageRouter.Config, ArchiveMessageRouter.Wrapper>>
+    val archiveResultSaveDialogState: MutableStateFlow<Boolean>
+    val archiveRoomResultContent: MutableStateFlow<Pair<String, String>>
 
 
     /**
@@ -133,6 +136,8 @@ interface TimelineViewModel {
 
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
+
+    fun dismissArchiveResultDialog()
 
     sealed class Wrapper {
         data object None : Wrapper()
@@ -163,6 +168,7 @@ class TimelineViewModelImpl(
 
     init {
         log.debug { "::: init timelineViewModel: $viewModelContext" }
+        archiveResultListener()
     }
 
     data class TimelineElementWrapper(
@@ -173,6 +179,7 @@ class TimelineViewModelImpl(
 
     private val config = get<MatrixMessengerConfiguration>()
     private val outerScope = get<CoroutineScope>()
+    val archiveRoomHandler = get<ArchiveRoomResultHandler>()
 
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
     private val timeline: SharedFlow<Timeline<TimelineElementWrapper>> =
@@ -273,7 +280,7 @@ class TimelineViewModelImpl(
         onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
 
-    internal fun showArchiveMessagesDialog(roomName:String) = coroutineScope.launch {
+    internal fun showArchiveMessagesDialog(roomName: String) = coroutineScope.launch {
         log.trace { "Opening archive message dialog : $selectedRoomId and roomName: $roomName" }
         archiveMessageRouter.showArchiveMessage(roomName)
     }
@@ -306,6 +313,8 @@ class TimelineViewModelImpl(
 
     override val reportMessageStack = reportMessageRouter.stack
     override val archiveMessageStack = archiveMessageRouter.stack
+    override val archiveResultSaveDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val archiveRoomResultContent: MutableStateFlow<Pair<String, String>> = MutableStateFlow(Pair("",""))
 
     private fun createChild(
         config: Config, componentContext: ComponentContext
@@ -452,6 +461,16 @@ class TimelineViewModelImpl(
         }
     }
 
+
+    private fun archiveResultListener() {
+        val archiveRoomHandler = get<ArchiveRoomResultHandler>()
+        coroutineScope.launch {
+            archiveRoomHandler.onProcessArchiveResult.collect { result ->
+                archiveResultSaveDialogState.value = true
+                archiveRoomResultContent.value = result
+            }
+        }
+    }
     private fun initTimeline() {
         coroutineScope.launch {
             val initTimelineFrom =
@@ -712,6 +731,10 @@ class TimelineViewModelImpl(
             timeline.first().loadBefore()
             loadingBefore.value = false
         }
+    }
+
+    override fun dismissArchiveResultDialog() {
+        archiveResultSaveDialogState.value = false
     }
 
     private fun loadMoreBefore() {
@@ -978,7 +1001,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
                 )
             )
         )
-    override val archiveMessageStack =   MutableValue(
+    override val archiveMessageStack = MutableValue(
         ChildStack(
             active = Child.Created(
                 configuration = ArchiveMessageRouter.Config.None,
@@ -986,6 +1009,8 @@ class PreviewTimelineViewModel : TimelineViewModel {
             )
         )
     )
+    override val archiveResultSaveDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val archiveRoomResultContent: MutableStateFlow<Pair<String, String>> = MutableStateFlow(Pair("",""))
 
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
@@ -1012,5 +1037,8 @@ class PreviewTimelineViewModel : TimelineViewModel {
     }
 
     override fun loadBefore() {
+    }
+
+    override fun dismissArchiveResultDialog() {
     }
 }
