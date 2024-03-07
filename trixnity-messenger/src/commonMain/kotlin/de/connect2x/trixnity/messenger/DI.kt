@@ -4,6 +4,8 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons
+import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletonsImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -167,6 +169,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
             }
         }
 
+        single<CopyMultiMessengerSingletons> { CopyMultiMessengerSingletonsImpl() }
         single<MatrixClientFactory> {
             MatrixClientFactoryImpl(get(), get(), get(), get())
         }
