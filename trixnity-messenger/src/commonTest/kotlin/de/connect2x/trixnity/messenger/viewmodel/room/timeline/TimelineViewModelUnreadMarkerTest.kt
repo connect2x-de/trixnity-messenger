@@ -662,8 +662,9 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                                 isBackButtonVisible: MutableStateFlow<Boolean>,
                                                 onBack: () -> Unit,
                                                 onVerifyUser: () -> Unit,
-                                                onShowRoomSettings: () -> Unit
-                                            ): RoomHeaderViewModel {
+                                                onShowRoomSettings: () -> Unit,
+                                                onArchiveMessageClick: (String) -> Unit,
+                                                ): RoomHeaderViewModel {
                                                 return roomHeaderViewModelMock
                                             }
                                         }

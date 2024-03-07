@@ -327,6 +327,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             onBack = mockFunction0(mocker),
             onVerifyUser = mockFunction0(mocker),
             onShowRoomSettings = mockFunction0(mocker),
+            onArchiveMessageClick =  { }
         )
         subscribe(roomHeaderViewModel)
         return roomHeaderViewModel
