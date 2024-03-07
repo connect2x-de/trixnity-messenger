@@ -17,7 +17,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
@@ -343,6 +357,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
+                            roomId = selectedRoomId,
                         )
                     }
 
@@ -479,6 +494,7 @@ open class TimelineElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
+                            roomId = selectedRoomId,
                         )
                     }
                 }
@@ -579,6 +595,20 @@ open class TimelineElementHolderViewModelImpl(
             is NameEventContent -> {
                 log.trace { "Create room name change status view model: ${event.id}" }
                 get<RoomNameChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
+                )
+            }
+
+            is TopicEventContent -> {
+                log.trace { "Create room topic change status view model: ${event.id}" }
+                get<RoomTopicChangeStatusViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
                     content = content,
@@ -752,6 +782,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
+            override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+            override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
         }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -846,6 +878,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
+                override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
+                override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
             }
         }
     }

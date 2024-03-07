@@ -390,7 +390,8 @@ struct AddMatrixAccountView: View {
 
 ## Root path
 
-On the JVM the root path can be overridden by adding a system property named `ROOT_PATH`.
+On the JVM (not Android) the root path can be overridden by setting an environment variable
+named `TRIXNITY_MESSENGER_ROOT_PATH`.
 
 ## Snapshot builds
 
@@ -399,6 +400,12 @@ Append `-SNAPSHOT-COMMIT_SHORT_SHA` to the current version. You can find
 the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/commits/main).
 You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
 maven repositories, which contains SNAPSHOT versions of Trixnity.
+
+## Upgrade lock
+
+If any dependency is upgraded, the locks also have to be upgraded. This is done with the following command:
+
+Run `./gradlew dependenciesForAll --write-locks --no-parallel`.
 
 ## Contributions
 

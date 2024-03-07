@@ -150,14 +150,14 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "von '$oldName' "
     }
 
-    fun eventRoomChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
+    fun eventRoomNameChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
         EN - "$username has changed the name of $groupOrChat ${from}to '$roomName'"
         DE - "$username hat den Namen $groupOrChat ${from}zu '$roomName' geändert"
     }
 
     fun eventRoomTopicChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
         EN - "$username has changed the topic of $groupOrChat ${from}to '$roomName'"
-        DE - "$username hat das Thema $groupOrChat ${from}zu '$roomName' geändert"
+        DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
     fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {
@@ -521,6 +521,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun settingsRoomChangeNameError() = translate {
         EN - "Failed to change the room name."
         DE - "Fehler beim Ändern des Raumnamens."
+    }
+
+    fun settingsRoomChangeTopicError() = translate {
+        EN - "Failed to change the room topic."
+        DE - "Fehler beim Ändern der Raumbeschreibung."
     }
 
     fun settingsRoomMemberListChangePowerLevelError(username: String) = translate {

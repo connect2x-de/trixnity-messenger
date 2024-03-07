@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
@@ -43,6 +44,7 @@ interface CreateNewGroupViewModel {
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
     var optionalRoomName: MutableStateFlow<String>
+    var optionalGroupTopic: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -67,6 +69,7 @@ open class CreateNewGroupViewModelImpl(
     override val isPrivate = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(true)
     override var optionalRoomName = MutableStateFlow("")
+    override var optionalGroupTopic = MutableStateFlow("")
 
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
@@ -94,21 +97,20 @@ open class CreateNewGroupViewModelImpl(
             return
         }
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
-        val preset = if (isPrivate.value) {
-            CreateRoom.Request.Preset.PRIVATE
-        } else {
-            CreateRoom.Request.Preset.PUBLIC
+        val preset = when (isPrivate.value) {
+            true -> PRIVATE
+            false -> PUBLIC
         }
-        val encryption = if (isEncrypted.value) {
-            listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
-        } else {
-            listOf()
+        val encryption = when (isEncrypted.value) {
+            true -> listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
+            false -> listOf()
         }
         val optionalName = optionalRoomName.value.ifBlank { null }
-
+        val optionalTopic = optionalGroupTopic.value.ifBlank { null }
         coroutineScope.launch {
             matrixClient.api.room.createRoom(
                 name = optionalName,
+                topic = optionalTopic,
                 preset = preset,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
@@ -132,7 +134,7 @@ open class CreateNewGroupViewModelImpl(
 
     override fun onUserClick(user: SearchUserElement) {
         if (groupUsers.value.contains(user).not()) {
-            groupUsers.value = groupUsers.value + user
+            groupUsers.value += user
             removeUserFromList(user)
         }
     }
@@ -141,19 +143,19 @@ open class CreateNewGroupViewModelImpl(
     override fun removeUserFromList(user: SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            createNewRoomViewModel.foundUsers.value = createNewRoomViewModel.foundUsers.value - user
+            createNewRoomViewModel.foundUsers.value -= user
         }
     }
 
     override fun removeUserFromGroup(user: SearchUserElement) {
-        groupUsers.value = groupUsers.value - user
+        groupUsers.value -= user
         addUserToList(user)
     }
 
     override fun addUserToList(user: SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            createNewRoomViewModel.foundUsers.value = createNewRoomViewModel.foundUsers.value + user
+            createNewRoomViewModel.foundUsers.value += user
         }
     }
 }
@@ -166,6 +168,7 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")
+    override var optionalGroupTopic = MutableStateFlow("")
 
     override fun onUserClick(user: SearchUserElement) {
     }

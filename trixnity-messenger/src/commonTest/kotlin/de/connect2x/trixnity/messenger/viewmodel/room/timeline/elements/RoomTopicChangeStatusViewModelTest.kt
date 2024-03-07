@@ -25,7 +25,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData.UnsignedStateEventData
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
@@ -33,7 +33,7 @@ import kotlin.coroutines.CoroutineContext
 
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class RoomNameChangeStatusViewModelTest : ShouldSpec() {
+class RoomTopicChangeStatusViewModelTest : ShouldSpec() {
 
     val mocker = Mocker()
 
@@ -48,30 +48,30 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
             injectMocks(mocker)
         }
 
-        should("display who changed the room's name (with reference to the old name)") {
-            val cut = roomNameChangeStatusViewModel(
+        should("display who changed the room's topic (with reference to the old topic)") {
+            val cut = roomTopicChangeStatusViewModel(
                 timelineEvent =
                 timelineEvent(
-                    previousNameEvent = UnsignedStateEventData(previousContent = NameEventContent("old name"))
+                    previousTopicEvent = UnsignedStateEventData(previousContent = TopicEventContent("old topic"))
                 ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.value shouldBe """Bob has changed the name of the group from 'old name' to 'new name'"""
+            cut.roomTopicChangeMessage.value shouldBe """Bob has changed the topic of the group from 'old topic' to 'new topic'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
-        should("display who changed the room's name without the old name if not set") {
+        should("display who changed the room's topic without the old topic if not set") {
             val cut =
-                roomNameChangeStatusViewModel(timelineEvent = timelineEvent(), coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+                roomTopicChangeStatusViewModel(timelineEvent = timelineEvent(), coroutineContext = coroutineContext)
+            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.value shouldBe """Bob has changed the name of the group to 'new name'"""
+            cut.roomTopicChangeMessage.value shouldBe """Bob has changed the topic of the group to 'new topic'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -79,51 +79,51 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
 
         should("react to username changes") {
             val usernameFlow = MutableStateFlow(UserInfoElement("Bob"))
-            val cut = roomNameChangeStatusViewModel(
+            val cut = roomTopicChangeStatusViewModel(
                 timelineEvent = timelineEvent(),
                 usernameFlow = usernameFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
             usernameFlow.value = UserInfoElement("Bobby")
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
+            cut.roomTopicChangeMessage.first() shouldBe """Bobby has changed the topic of the group to 'new topic'"""
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
         should("react to changes of room's direct value") {
             val isDirectFlow = MutableStateFlow(false)
-            val cut = roomNameChangeStatusViewModel(
+            val cut = roomTopicChangeStatusViewModel(
                 timelineEvent = timelineEvent(),
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
             isDirectFlow.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.first() shouldBe """Bob has changed the name of the chat to 'new name'"""
+            cut.roomTopicChangeMessage.first() shouldBe """Bob has changed the topic of the chat to 'new topic'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
     }
 
-    private suspend fun roomNameChangeStatusViewModel(
+    private suspend fun roomTopicChangeStatusViewModel(
         timelineEvent: TimelineEvent,
         usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob")),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ): RoomNameChangeStatusViewModelImpl {
+    ): RoomTopicChangeStatusViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return RoomNameChangeStatusViewModelImpl(
+        return RoomTopicChangeStatusViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
@@ -131,7 +131,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext
             ),
             timelineEvent = timelineEvent,
-            content = timelineEvent.event.content as NameEventContent,
+            content = timelineEvent.event.content as TopicEventContent,
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
@@ -140,15 +140,15 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         )
     }
 
-    private fun timelineEvent(previousNameEvent: UnsignedStateEventData? = null) =
+    private fun timelineEvent(previousTopicEvent: UnsignedStateEventData? = null) =
         TimelineEvent(
             event = StateEvent(
-                NameEventContent("new name"),
+                TopicEventContent("new topic"),
                 id = EventId(""),
                 sender = UserId(""),
                 roomId = RoomId(""),
                 originTimestamp = 0L,
-                unsigned = previousNameEvent,
+                unsigned = previousTopicEvent,
                 stateKey = ""
             ),
             content = null,

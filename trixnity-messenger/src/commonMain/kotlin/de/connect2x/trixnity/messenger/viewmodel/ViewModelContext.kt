@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.coroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin

@@ -185,9 +185,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
         }
 
         should("create group with all selected users") {
-            mocker.every { onGroupCreatedMock.invoke(isAny(), isAny()) } returns Unit
-
             val roomId = RoomId("room1", "localhost")
+            mocker.every {
+                onGroupCreatedMock.invoke(isAny(), isAny())
+            } returns Unit
             mocker.everySuspending {
                 roomsApiClientMock.createRoom(
                     isEqual(DirectoryVisibility.PRIVATE),
@@ -210,22 +211,20 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isEqual("u"),
                     isAny(),
                     isAny(),
-                    isNull()
+                    isNull(),
                 )
-            } returns
-                    Result.success(
-                        SearchUsers.Response(
-                            false,
-                            listOf(
-                                SearchUsers.Response.SearchUser(userId = userId1),
-                                SearchUsers.Response.SearchUser(userId = userId2),
-                                SearchUsers.Response.SearchUser(userId = userId3)
-                            )
-                        )
+            } returns Result.success(
+                SearchUsers.Response(
+                    false, listOf(
+                        SearchUsers.Response.SearchUser(userId = userId1),
+                        SearchUsers.Response.SearchUser(userId = userId2),
+                        SearchUsers.Response.SearchUser(userId = userId3),
                     )
+                )
+            )
+
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
-
             val cut = createNewGroupViewModel()
             cut.createNewRoomViewModel.userSearchTerm.value = "u"
             cut.foundUsers.first {
@@ -233,11 +232,47 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             }
             cut.onUserClick(user2)
             cut.onUserClick(user3)
-
             cut.createNewGroup()
 
             eventually(3.seconds) {
-                mocker.verify(exhaustive = false) { onGroupCreatedMock.invoke(UserId("test", "server"), roomId) }
+                mocker.verify(exhaustive = false) {
+                    onGroupCreatedMock.invoke(UserId("test", "server"), roomId)
+                }
+            }
+        }
+
+        should("create group with a custom topic") {
+            val roomId = RoomId("room1", "localhost")
+            val topicText = "This is a room for testing!"
+            mocker.every {
+                onGroupCreatedMock.invoke(isAny(), isAny())
+            } returns Unit
+            mocker.everySuspending {
+                roomsApiClientMock.createRoom(
+                    isEqual(DirectoryVisibility.PRIVATE),
+                    isAny(),
+                    isAny(),
+                    isEqual(topicText),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isAny(),
+                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    isAny(),
+                    isEqual(false),
+                    isAny(),
+                    isNull(),
+                )
+            } returns Result.success(roomId)
+
+            val cut = createNewGroupViewModel()
+            cut.optionalGroupTopic.value = topicText
+            cut.createNewGroup()
+
+            eventually(3.seconds) {
+                mocker.verify(exhaustive = false) {
+                    onGroupCreatedMock.invoke(UserId("test", "server"), roomId)
+                }
             }
         }
 

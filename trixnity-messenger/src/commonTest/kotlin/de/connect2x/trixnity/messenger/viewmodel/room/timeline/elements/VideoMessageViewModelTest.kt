@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class VideoMessageViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
@@ -40,11 +40,10 @@ class VideoMessageViewModelTest : ShouldSpec() {
     lateinit var thumbnailsMock: Thumbnails
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+            Dispatchers.setMain(Dispatchers.Unconfined)
 
             mocker.every { thumbnailsMock.mapProgressToProgressElement(isAny()) } returns flowOf(null)
         }
@@ -63,12 +62,12 @@ class VideoMessageViewModelTest : ShouldSpec() {
             } returns "thumbnail".encodeToByteArray()
 
             val cut = videoMessageViewModel(coroutineContext)
-            val subscriberJob = launch { cut.thumbnail.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            launch { cut.thumbnail.collect {} }
 
-            cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
+            eventually(1.seconds) {
+                cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
+            }
 
-            subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
@@ -84,23 +83,22 @@ class VideoMessageViewModelTest : ShouldSpec() {
                     isAny()
                 )
             } runs {
-                withContext(Dispatchers.Default) {
-                    delay(500.milliseconds)
-                    "thumbnail".encodeToByteArray()
-                }
+                delay(500.milliseconds)
+                "thumbnail".encodeToByteArray()
             }
 
             val cut = videoMessageViewModel(coroutineContext)
-            val subscriberJob = launch { cut.thumbnail.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            launch { cut.thumbnail.collect {} }
 
-            cut.thumbnail.value shouldBe null
+            continually(400.milliseconds) {
+                cut.thumbnail.value shouldBe null
+                Unit
+            }
 
             eventually(1.seconds) {
                 cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
             }
 
-            subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
@@ -118,18 +116,17 @@ class VideoMessageViewModelTest : ShouldSpec() {
             } returns null
 
             val cut = videoMessageViewModel(coroutineContext)
-            val subscriberJob = launch { cut.thumbnail.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            launch { cut.thumbnail.collect {} }
 
-            cut.thumbnail.value shouldBe null
+            eventually(2.seconds) {
+                cut.thumbnail.value shouldBe null
+            }
 
-            subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
     }
 
     private suspend fun videoMessageViewModel(coroutineContext: CoroutineContext): VideoMessageViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return VideoMessageViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
