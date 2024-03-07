@@ -127,21 +127,21 @@ class ArchiveTextMessageViewModelImpl(
             return
 
         archiveRoomState.value = ArchiveRoomState.Loading
+        val specifiedLimit = specifiedMessageLimit.value
 
         val selectedArchiveThreshold = archiveRoomThreshold.value
         if (selectedArchiveThreshold.threshold == ThresholdType.SpecifyNumberOfMessages) {
-            val specifiedLimit = specifiedMessageLimit.value
             if (specifiedLimit == null || !specifiedLimit.matches(regex)) {
                 archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomThresholdSelectionError())
                 return
             }
         }
-
         coroutineScope.launch {
+            // Note: 9999 is the maximum limit for messages for now.
+            val countLimit = if (selectedArchiveThreshold.threshold == ThresholdType.SpecifyNumberOfMessages) specifiedLimit?.toIntOrNull() ?: 1 else 9999
             val lastEventId = matrixClient.room.getById(selectedRoomId).first()?.lastEventId
             lastEventId?.let {
                 val formattedContentList = mutableListOf<String>()
-
                 matrixClient.room.getTimelineEvents(
                     selectedRoomId,
                     startFrom = lastEventId,
@@ -162,14 +162,14 @@ class ArchiveTextMessageViewModelImpl(
                         val event = timeLineFlow.first().event
                         val receivedDateTime = localDateTimeOf(event)
                         timeLineFlow.first().content?.fold(onSuccess = {
-                            if (it is RoomMessageEventContent.TextBased) {
+                            if (it is RoomMessageEventContent.TextBased && formattedContentList.size < countLimit) {
                                 val formattedContent = "$receivedDateTime $sender: ${it.body}"
                                 formattedContentList.add(formattedContent)
                             }
                         }, onFailure = {
                             log.error(it) { "failed to archive room" }
                         })
-                    }
+                    }.takeIf { formattedContentList.size < countLimit }
             } ?: run {
                 log.warn { "Room does not content any data." }
                 archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
