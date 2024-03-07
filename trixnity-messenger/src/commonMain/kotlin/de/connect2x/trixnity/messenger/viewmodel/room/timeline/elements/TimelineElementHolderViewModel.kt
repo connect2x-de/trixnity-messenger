@@ -422,7 +422,23 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
-                    // implementing Location
+                    is Location -> {
+                        log.trace { "Create location message view model: ${event.id}" }
+                        get<LocationMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
+                            formattedDate = formatDate(receivedDateTime),
+                            showDateAbove = showDateAbove,
+                            formattedTime = formatTime(receivedDateTime),
+                            isByMe = isByMe,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            showSender = showSender,
+                            sender = sender,
+                            invitation = invitation,
+                        )
+                    }
 
                     is VerificationRequest -> {
                         log.trace { "Create user verification view model: ${event.id}" }
