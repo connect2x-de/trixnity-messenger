@@ -55,20 +55,9 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.model.events.m.room.getFormattedBody
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -448,6 +437,24 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
+                    is Location -> {
+                        log.trace { "Create location message view model: ${event.id}" }
+                        get<LocationMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
+                            formattedDate = formatDate(receivedDateTime),
+                            showDateAbove = showDateAbove,
+                            formattedTime = formatTime(receivedDateTime),
+                            isByMe = isByMe,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            showSender = showSender,
+                            sender = sender,
+                            invitation = invitation,
+                        )
+                    }
+
                     is VerificationRequest -> {
                         log.trace { "Create user verification view model: ${event.id}" }
                         get<UserVerificationViewModelFactory>().create(
@@ -508,6 +515,34 @@ open class TimelineElementHolderViewModelImpl(
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
+                )
+            }
+
+            is AvatarEventContent -> {
+                log.trace { "Create avatar change status view model: ${event.id}" }
+                get<RoomAvatarChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
+                )
+            }
+
+            is TopicEventContent -> {
+                log.trace { "Create topic change status view model: ${event.id}" }
+                get<RoomTopicChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
                 )
             }
 
