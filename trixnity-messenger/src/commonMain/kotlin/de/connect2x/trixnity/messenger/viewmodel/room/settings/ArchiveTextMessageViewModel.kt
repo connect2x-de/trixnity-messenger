@@ -3,12 +3,15 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
@@ -55,9 +58,6 @@ interface ArchiveTextMessageViewModel {
     val archiveFormat: MutableStateFlow<ArchiveOptions.Format>
     val archiveRoomThreshold: MutableStateFlow<ArchiveOptions.RoomThreshold>
     val specifiedMessageLimit: MutableStateFlow<String?>
-    val saveFileDialogOpen: StateFlow<Boolean>
-    val downloadProgress: StateFlow<FileTransferProgressElement?>
-    val downloadSuccessful: StateFlow<Boolean?>
     val archiveRoomState: StateFlow<ArchiveRoomState>
     fun dismissArchiveDialog()
     fun archiveRoom()
@@ -100,10 +100,7 @@ class ArchiveTextMessageViewModelImpl(
     override val specifiedMessageLimit: MutableStateFlow<String?> = MutableStateFlow("100")
     val regex = Regex("^\\d+\$")
 
-    private val _saveFileDialogOpen = MutableStateFlow(false)
-    override val saveFileDialogOpen: StateFlow<Boolean> = _saveFileDialogOpen.asStateFlow()
-    override val downloadProgress = MutableStateFlow<FileTransferProgressElement?>(null)
-    override val downloadSuccessful = MutableStateFlow(false)
+    private val messageArchiveLimit : MutableStateFlow<Int> = MutableStateFlow(1)
     override val archiveRoomState: MutableStateFlow<ArchiveRoomState> = MutableStateFlow(ArchiveRoomState.None)
     override val archiveFormat: MutableStateFlow<ArchiveOptions.Format> =
         MutableStateFlow(ArchiveOptions.Format(FormatType.PlainText))
@@ -113,8 +110,7 @@ class ArchiveTextMessageViewModelImpl(
             FormatType.PlainText -> "txt"
             FormatType.CSV -> "csv"
         }
-        val roomIdAsUnPaddedBase64 =
-            selectedRoomId.full.encodeToByteArray().toByteString().base64Url().substringBefore("=")
+        val roomIdAsUnPaddedBase64 = selectedRoomId.full.encodeToByteArray().toByteString().base64Url().substringBefore("=")
         val currentTimeStamp = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
             .toLocalDateTime(TimeZone.of(timezone()))
         "${currentTimeStamp}_${roomIdAsUnPaddedBase64}.$formatExtension"
@@ -128,17 +124,17 @@ class ArchiveTextMessageViewModelImpl(
 
         archiveRoomState.value = ArchiveRoomState.Loading
         val specifiedLimit = specifiedMessageLimit.value
-
         val selectedArchiveThreshold = archiveRoomThreshold.value
         if (selectedArchiveThreshold.threshold == ThresholdType.SpecifyNumberOfMessages) {
             if (specifiedLimit == null || !specifiedLimit.matches(regex)) {
                 archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomThresholdSelectionError())
                 return
+            }else{
+                messageArchiveLimit.value = specifiedLimit.toIntOrNull() ?: 9999
             }
         }
         coroutineScope.launch {
             // Note: 9999 is the maximum limit for messages for now.
-            val countLimit = if (selectedArchiveThreshold.threshold == ThresholdType.SpecifyNumberOfMessages) specifiedLimit?.toIntOrNull() ?: 1 else 9999
             val lastEventId = matrixClient.room.getById(selectedRoomId).first()?.lastEventId
             lastEventId?.let {
                 val formattedContentList = mutableListOf<String>()
@@ -160,16 +156,17 @@ class ArchiveTextMessageViewModelImpl(
                     }.collect { timeLineFlow ->
                         val sender = timeLineFlow.first().sender.full
                         val event = timeLineFlow.first().event
-                        val receivedDateTime = localDateTimeOf(event)
+                        val receivedDateTime ="${formatTime(localDateTimeOf(event))},${formatDate(localDateTimeOf(event))}"
+
                         timeLineFlow.first().content?.fold(onSuccess = {
-                            if (it is RoomMessageEventContent.TextBased && formattedContentList.size < countLimit) {
+                            if (it is RoomMessageEventContent.TextBased && formattedContentList.size < messageArchiveLimit.value) {
                                 val formattedContent = "$receivedDateTime $sender: ${it.body}"
                                 formattedContentList.add(formattedContent)
                             }
                         }, onFailure = {
                             log.error(it) { "failed to archive room" }
                         })
-                    }.takeIf { formattedContentList.size < countLimit }
+                    }
             } ?: run {
                 log.warn { "Room does not content any data." }
                 archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
