@@ -12,12 +12,12 @@ private val log = KotlinLogging.logger {  }
  */
 interface ArchiveRoomResultHandler {
     /**
-     * Shared flow for emitting scanned QR code content along with the active account ID.
+     * Shared flow for emitting archive content along with the active fileName and fileContent.
      */
     val onProcessArchiveResult: SharedFlow<Pair<String, String>>
 
     /**
-     * Manipulates the content of a scanned QR code.
+     * Manipulates the content of a archive Result.
      * @param fileName The fileName is the fileName with extension.
      * @param fileContent The formatted file content.
      */

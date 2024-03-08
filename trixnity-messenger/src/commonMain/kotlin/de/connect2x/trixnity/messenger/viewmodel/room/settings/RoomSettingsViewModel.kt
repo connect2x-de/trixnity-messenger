@@ -43,7 +43,6 @@ interface RoomSettingsViewModel {
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
-//    val roomArchiveViewModel: ArchiveTextMessageViewModel
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
     val leaveRoomWarningTitle: StateFlow<String>
@@ -75,7 +74,6 @@ open class RoomSettingsViewModelImpl(
         get<RoomSettingsTopicViewModelFactory>()
             .create(viewModelContext, selectedRoomId)
     }
-//    override val roomArchiveViewModel by lazy { get<ArchiveTextMessageViewModelFactory>().create(viewModelContext, selectedRoomId) }
 
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
@@ -163,10 +161,7 @@ open class RoomSettingsViewModelImpl(
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
     override val roomSettingsTopicViewModel: RoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
-    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
-        PreviewRoomSettingsNotificationsViewModel()
-//    override val roomArchiveViewModel: ArchiveTextMessageViewModel = PreviewArchiveTextMessageViewModel()
-
+    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel = PreviewRoomSettingsNotificationsViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
