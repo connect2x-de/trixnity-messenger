@@ -13,10 +13,11 @@ interface CopyMultiMessengerSingletons {
     fun copy(from: Scope, to: Module)
 }
 
-class CopyMultiMessengerSingletonsImpl: CopyMultiMessengerSingletons {
+class CopyMultiMessengerSingletonsImpl : CopyMultiMessengerSingletons {
     override fun copy(from: Scope, to: Module) {
         to.single<MatrixMultiMessengerConfiguration> { from.get() }
         to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
+        to.single<ProfileManager> {from.get() }
         val urlHandler = from.getOrNull<UrlHandler>()
         if (urlHandler != null) to.single<UrlHandler> { urlHandler }
     }

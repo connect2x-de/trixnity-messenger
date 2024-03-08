@@ -719,6 +719,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "The attachment exceeds the maximum allowed attachment size of $attachmentMaxSizeInMegaByte MB."
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $attachmentMaxSizeInMegaByte MB."
     }
+
+    fun profileCreationDuplicate() = translate {
+        EN - "The profile name is already in use."
+        DE - "Dieser Profilname wird bereits benutzt."
+    }
 }
 
 internal fun getLang(

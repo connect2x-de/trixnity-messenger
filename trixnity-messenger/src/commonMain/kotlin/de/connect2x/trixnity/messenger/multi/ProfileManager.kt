@@ -16,7 +16,7 @@ interface ProfileManager {
     val activeMatrixMessenger: StateFlow<MatrixMessenger?>
 
     suspend fun closeProfile()
-    suspend fun selectProfile(profile: String)
+    suspend fun selectProfile(profile: String?)
     suspend fun createProfile(settings: MatrixMultiMessengerProfileSettings = MatrixMultiMessengerProfileSettings()): String
     suspend fun updateProfile(
         profile: String,
@@ -50,7 +50,7 @@ class ProfileManagerImpl(
         settingsHolder.update { it.copy(activeProfile = null) }
     }
 
-    override suspend fun selectProfile(profile: String) {
+    override suspend fun selectProfile(profile: String?) {
         log.debug { "select profile $profile" }
         closeProfile()
         settingsHolder.update {
