@@ -111,8 +111,7 @@ class ArchiveTextMessageViewModelImpl(
             FormatType.CSV -> "csv"
         }
         val roomIdAsUnPaddedBase64 = selectedRoomId.full.encodeToByteArray().toByteString().base64Url().substringBefore("=")
-        val currentTimeStamp = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
-            .toLocalDateTime(TimeZone.of(timezone()))
+        val currentTimeStamp =  Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds()).toLocalDateTime(TimeZone.of(timezone())).formatLocalDateTime()
         "${currentTimeStamp}_${roomIdAsUnPaddedBase64}.$formatExtension"
     }.stateIn(coroutineScope, SharingStarted.Eagerly, "")
 
@@ -156,7 +155,7 @@ class ArchiveTextMessageViewModelImpl(
                     }.collect { timeLineFlow ->
                         val sender = timeLineFlow.first().sender.full
                         val event = timeLineFlow.first().event
-                        val receivedDateTime ="${formatTime(localDateTimeOf(event))},${formatDate(localDateTimeOf(event))}"
+                        val receivedDateTime = localDateTimeOf(event).formatLocalDateTime()
 
                         timeLineFlow.first().content?.fold(onSuccess = {
                             if (it is RoomMessageEventContent.TextBased && formattedContentList.size < messageArchiveLimit.value) {
@@ -184,6 +183,9 @@ class ArchiveTextMessageViewModelImpl(
     }
 }
 
+
+private fun LocalDateTime.formatLocalDateTime():String =
+    "${formatDate(this)},${formatTime(this)}"
 
 private fun localDateTimeOf(event: ClientEvent.RoomEvent<*>): LocalDateTime {
     val timestamp = event.originTimestamp
