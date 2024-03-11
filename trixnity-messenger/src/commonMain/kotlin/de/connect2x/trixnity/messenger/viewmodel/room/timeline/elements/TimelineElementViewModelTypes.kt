@@ -58,18 +58,6 @@ interface TextBasedViewModel : RoomMessageViewModel {
     val formattedBody: String?
 
     /**
-     * Users mentioned in the event's message
-     */
-    @Deprecated("Use mentionsInMessage instead", ReplaceWith("mentionsInMessage"))
-    val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>>
-
-    /**
-     * Users mentioned in the event's formatted body
-     */
-    @Deprecated("Use mentionsInFormattedBody instead", ReplaceWith("mentionsInFormattedBody"))
-    val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>>?
-
-    /**
      * Users, Events and Room mentioned in the event's message
      */
     val mentionsInMessage: Map<String, StateFlow<Mention>>

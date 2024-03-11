@@ -86,14 +86,6 @@ open class NoticeMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    @Deprecated("Use mentionsInMessage instead", ReplaceWith("mentionsInMessage"))
-    override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>>? =
-        formattedBody?.let {
-            mentionedUsersStateFlow(it, roomId, matrixClient, coroutineScope)
-        }
-    @Deprecated("Use mentionsInMessage instead", ReplaceWith("mentionsInMessage"))
-    override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> =
-        mentionedUsersStateFlow(message, roomId, matrixClient, coroutineScope)
     override val mentionsInMessage: Map<String, StateFlow<Mention>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
     override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? =
