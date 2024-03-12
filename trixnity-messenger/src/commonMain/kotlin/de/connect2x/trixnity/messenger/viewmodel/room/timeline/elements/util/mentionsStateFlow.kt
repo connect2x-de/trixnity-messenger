@@ -14,28 +14,6 @@ import net.folivo.trixnity.core.model.Mention as CoreMention
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.client.store.Room as RoomStore
 
-@Deprecated(
-    "Not supported anymore",
-    ReplaceWith(
-        "mentionsStateFlow(content, roomId, matrixClient, coroutineScope)",
-        "de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionsStateFlow"
-    )
-)
-fun mentionedUsersStateFlow(
-    content: String,
-    roomId: RoomId,
-    matrixClient: MatrixClient,
-    coroutineScope: CoroutineScope
-): Map<String, StateFlow<UserInfoElement>> =
-    MatrixRegex.findUserMentions(content)
-        .mapValues { (_, userId) ->
-            matrixClient.user.getById(roomId, userId)
-                .filterNotNull()
-                .map {
-                    it.toUserInfoElement(matrixClient)
-                }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
-        }
-
 fun mentionsStateFlow(
     content: String,
     roomId: RoomId,
