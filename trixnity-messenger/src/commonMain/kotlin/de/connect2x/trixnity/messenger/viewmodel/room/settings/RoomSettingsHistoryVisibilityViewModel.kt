@@ -9,7 +9,6 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 
 interface RoomSettingsHistoryVisibilityViewModelFactory {
     fun create(
