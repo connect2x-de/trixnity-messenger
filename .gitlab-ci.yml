@@ -12,6 +12,7 @@ stages:
   - security
   - publish
   - kmmPublish
+  - website
 
 variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -239,7 +240,7 @@ kmmPublish:mac:
       --stacktrace
 
 pages:
-  stage: kmmPublish
+  stage: website
   script:
     - mv Package.swift public
   artifacts:
