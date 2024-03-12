@@ -11,6 +11,7 @@ stages:
   - test
   - security
   - publish
+  - kmmPublish
 
 variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -222,3 +223,28 @@ publish:linux:
     - ./gradlew
       publish{KotlinMultiplatform,Jvm,Js,AndroidRelease}PublicationToGitlabRepository
       --stacktrace
+
+kmmPublish:mac:
+  stage: kmmPublish
+  tags: [ "connect2x-mac" ]
+  cache:
+    - *pull-cache-mac
+  rules:
+    - *if-main
+    - *if-release
+  timeout: 1h
+  script:
+    - ./gradlew
+      kmmBridgePublish updatePackageSwift
+      --stacktrace
+
+pages:
+  stage: kmmPublish
+  script:
+    - mv Package.swift public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - *if-main
+    - *if-release
