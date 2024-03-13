@@ -3,54 +3,50 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
-interface PrivacySettingsViewModelFactory {
+
+interface PrivacySettingsAllUsersViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
+        onShowBlockedContactsSettings: (userId: UserId) -> Unit,
         onClosePrivacySettings: () -> Unit,
-    ): PrivacySettingsViewModel {
-        return PrivacySettingsViewModelImpl(viewModelContext, onClosePrivacySettings)
-    }
+    ): PrivacySettingsAllUsersViewModel = PrivacySettingsAllUsersViewModelImpl(
+        viewModelContext,
+        onShowBlockedContactsSettings,
+        onClosePrivacySettings,
+    )
 
-    companion object : PrivacySettingsViewModelFactory
+    companion object : PrivacySettingsAllUsersViewModelFactory
 }
 
-interface PrivacySettingsViewModel {
-    val error: StateFlow<String?>
-    val privacySettings: StateFlow<List<PrivacySettingViewModel>>
-    fun clearError()
+interface PrivacySettingsAllUsersViewModel {
+    val privacySettings: StateFlow<List<PrivacySettingsSingleUserViewModel>>
     fun back()
 }
 
-open class PrivacySettingsViewModelImpl(
+open class PrivacySettingsAllUsersViewModelImpl(
     viewModelContext: ViewModelContext,
+    onShowBlockedContactsSettings: (userId: UserId) -> Unit,
     private val onClosePrivacySettings: () -> Unit,
-) : ViewModelContext by viewModelContext, PrivacySettingsViewModel {
+) : ViewModelContext by viewModelContext, PrivacySettingsAllUsersViewModel {
 
-    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    override val privacySettings: StateFlow<List<PrivacySettingViewModel>> =
+    override val privacySettings: StateFlow<List<PrivacySettingsSingleUserViewModel>> =
         matrixClients.scopedMapLatest { namedMatrixClients ->
             namedMatrixClients.map { (userId, _) ->
-                get<PrivacySettingViewModelFactory>()
+                get<PrivacySettingsSingleUserViewModelFactory>()
                     .create(
                         viewModelContext = childContext("privacySetting-${userId}", userId = userId),
-                        onUnblockError = { error.value = it }
+                        onShowBlockedContactsSettings = onShowBlockedContactsSettings,
                     )
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    override fun clearError() {
-        error.value = null
-    }
-
     override fun back() {
         onClosePrivacySettings()
     }
-
 }
