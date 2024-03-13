@@ -722,11 +722,21 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun archiveRoomThresholdSelectionError() = translate {
         EN - "Please enter valid number for specified messages, and should be greater than 0."
-        EN - "Bitte geben Sie eine gültige Zahl für die angegebenen Nachrichten ein, die größer als 0 sein sollte."
+        DE - "Bitte geben Sie eine gültige Zahl für die angegebenen Nachrichten ein, die größer als 0 sein sollte."
     }
     fun archiveRoomError() = translate {
         EN - "Unable to archive room, please try again later!"
-        EN - "Der Raum kann nicht archiviert werden, bitte versuchen Sie es später noch einmal!"
+        DE - "Der Raum kann nicht archiviert werden, bitte versuchen Sie es später noch einmal!"
+    }
+
+    fun textPlainFormat() = translate {
+        EN - "Text/Plain"
+        DE - "Text/einfach"
+    }
+
+    fun csvFormat() = translate {
+        EN - "CSV"
+        DE - "CSV"
     }
 }
 
