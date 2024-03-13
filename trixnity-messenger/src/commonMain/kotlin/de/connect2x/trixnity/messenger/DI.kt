@@ -85,11 +85,12 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFa
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleUserViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllUsersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
@@ -131,6 +132,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+
 
 fun interface HttpUserAgent {
     operator fun invoke(): String
@@ -280,8 +282,9 @@ private fun settingsViewModels() = module {
     single<NotificationsSettingsViewModelFactory> { NotificationsSettingsViewModelFactory }
     single<ProfileViewModelFactory> { ProfileViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
-    single<PrivacySettingsViewModelFactory> { PrivacySettingsViewModelFactory }
-    single<PrivacySettingViewModelFactory> { PrivacySettingViewModelFactory }
+    single<PrivacySettingsAllUsersViewModelFactory> { PrivacySettingsAllUsersViewModelFactory }
+    single<PrivacySettingsSingleUserViewModelFactory> { PrivacySettingsSingleUserViewModelFactory }
+    single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
 }
 
 private fun timelineElementsViewModels() = module {

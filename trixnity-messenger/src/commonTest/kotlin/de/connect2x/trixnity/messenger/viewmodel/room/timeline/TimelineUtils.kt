@@ -3,24 +3,51 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.client.room.*
-import net.folivo.trixnity.client.store.*
+import net.folivo.trixnity.client.room.GetTimelineEventConfig
+import net.folivo.trixnity.client.room.GetTimelineEventsConfig
+import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.room.Timeline
+import net.folivo.trixnity.client.room.TimelineBase
+import net.folivo.trixnity.client.room.TimelineState
+import net.folivo.trixnity.client.room.TimelineStateChange
+import net.folivo.trixnity.client.store.Room
+import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.RoomUserReceipts
+import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.*
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
+import net.folivo.trixnity.core.model.events.RoomEventContent
+import net.folivo.trixnity.core.model.events.StateEventContent
+import net.folivo.trixnity.core.model.events.UnknownEventContent
+import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
-import net.folivo.trixnity.core.model.events.m.room.*
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.kodein.mock.Mocker
 import kotlin.time.Duration.Companion.seconds
 
@@ -235,9 +262,6 @@ class TimelineBuilder(
 
     operator fun RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> {
         val previousTimelineEvent = timelineEvents.lastOrNull()
-        previousTimelineEvent?.update {
-            it.copy(nextEventId = this.id)
-        }
         val newTimelineEvent = MutableStateFlow(
             TimelineEvent(
                 event = this,
@@ -246,11 +270,15 @@ class TimelineBuilder(
                 gap = null
             )
         )
-        timelineEvents += newTimelineEvent
         mocker.every {
             roomServiceMock.getTimelineEvent(isEqual(roomId), isEqual(id), isAny())
         } returns newTimelineEvent
+
+        previousTimelineEvent?.update {
+            it.copy(nextEventId = this.id)
+        }
         room.update { it.copy(lastEventId = this.id, lastRelevantEventId = this.id) }
+        timelineEvents += newTimelineEvent
         return newTimelineEvent
     }
 

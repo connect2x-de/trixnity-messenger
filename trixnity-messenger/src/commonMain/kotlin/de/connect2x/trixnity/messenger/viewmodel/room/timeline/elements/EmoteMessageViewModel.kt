@@ -12,11 +12,11 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
-interface FallbackMessageViewModelFactory {
+interface EmoteMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         timelineEvent: TimelineEvent?,
-        content: RoomMessageEventContent.Unknown,
+        content: RoomMessageEventContent.TextBased.Emote,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -30,9 +30,9 @@ interface FallbackMessageViewModelFactory {
         message: String,
         formattedBody: String?,
         invitation: Flow<String?>,
-        roomId: RoomId,
-    ): FallbackMessageViewModel {
-        return FallbackMessageViewModelImpl(
+        roomId: RoomId
+    ): EmoteMessageViewModel {
+        return EmoteMessageViewModelImpl(
             viewModelContext,
             timelineEvent,
             content,
@@ -49,19 +49,19 @@ interface FallbackMessageViewModelFactory {
             message,
             formattedBody,
             invitation,
-            roomId,
+            roomId
         )
     }
 
     companion object : FallbackMessageViewModelFactory
 }
 
-interface FallbackMessageViewModel : TextBasedViewModel
+interface EmoteMessageViewModel : TextBasedViewModel
 
-open class FallbackMessageViewModelImpl(
+open class EmoteMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     timelineEvent: TimelineEvent?,
-    content: RoomMessageEventContent.Unknown,
+    content: RoomMessageEventContent.TextBased.Emote,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -76,7 +76,7 @@ open class FallbackMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
-) : FallbackMessageViewModel, MatrixClientViewModelContext by viewModelContext {
+) : EmoteMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =

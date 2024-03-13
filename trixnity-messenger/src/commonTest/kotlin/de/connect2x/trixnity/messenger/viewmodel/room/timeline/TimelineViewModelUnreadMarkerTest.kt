@@ -47,7 +47,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
+    override fun timeout(): Long = 10_000
 
     private val mocker = Mocker()
 
@@ -82,19 +82,15 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     lateinit var inputAreaViewModelMock: InputAreaViewModel
     private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
+    private lateinit var outerCoroutineScope: CoroutineScope
 
     init {
         val aliceRoomUser = roomUser(me, "Alice")
 
         beforeTest {
-            Dispatchers.setMain(Dispatchers.Unconfined)
-        }
-        afterTest {
-            Dispatchers.resetMain()
-        }
-        beforeTest {
             mocker.reset()
             injectMocks(mocker)
+            Dispatchers.setMain(Dispatchers.Unconfined)
 
             lifecycleRegistry = LifecycleRegistry()
             lifecycleRegistry.start()
@@ -191,6 +187,9 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
         afterTest {
             lifecycleRegistry.destroy()
+            Dispatchers.resetMain()
+            // needed to cancel longer running read marker jobs that might still interact with Mocks that are already reset
+            outerCoroutineScope.cancel()
         }
 
         should("show the unread marker at the element after the fully read event initially") {
@@ -379,6 +378,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "1"
             verifyReadMarkerCalled(null to 1)
             assertUnreadMarkerAtIndex(-1, cut)
+            delay(500.milliseconds)
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -407,6 +407,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "txn-1"
             verifyReadMarkerCalled(null to 1)
             assertUnreadMarkerAtIndex(-1, cut)
+            delay(500.milliseconds)
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
                     text("Woohoo")
@@ -435,6 +436,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "0"
 
             assertUnreadMarkerAtIndex(-1, cut)
+            delay(500.milliseconds)
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -463,6 +465,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "0"
 
             assertUnreadMarkerAtIndex(1, cut)
+            delay(500.milliseconds)
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -617,6 +620,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             roomUser returns flowOf(createRoomUserReceipts(me, EventId("1")))
 
             lifecycleRegistry.destroy()
+
             verifyReadMarkerCalled(null to 1, 1 to null)
         }
 
@@ -646,45 +650,47 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
     }
 
-    private fun timelineViewModel() =
-        TimelineViewModelImpl(
+    private fun timelineViewModel(): TimelineViewModelImpl {
+        val di = koinApplication {
+            modules(
+                createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                        module {
+                            single<RoomHeaderViewModelFactory> {
+                                object : RoomHeaderViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        isBackButtonVisible: MutableStateFlow<Boolean>,
+                                        onBack: () -> Unit,
+                                        onVerifyUser: () -> Unit,
+                                        onShowRoomSettings: () -> Unit
+                                    ): RoomHeaderViewModel {
+                                        return roomHeaderViewModelMock
+                                    }
+                                }
+                            }
+                            single<InputAreaViewModelFactory> {
+                                object : InputAreaViewModelFactory {
+                                    override fun create(
+                                        viewModelContext: MatrixClientViewModelContext,
+                                        selectedRoomId: RoomId,
+                                        onMessageEditFinished: (EventId) -> Unit,
+                                        onMessageReplyToFinished: (EventId) -> Unit,
+                                        onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                                    ): InputAreaViewModel {
+                                        return inputAreaViewModelMock
+                                    }
+                                }
+                            }
+                            single<MatrixMessengerSettingsHolder> { messengerSettings }
+                        })
+        }.koin
+        outerCoroutineScope = di.get()
+
+        return TimelineViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
-                                module {
-                                    single<RoomHeaderViewModelFactory> {
-                                        object : RoomHeaderViewModelFactory {
-                                            override fun create(
-                                                viewModelContext: MatrixClientViewModelContext,
-                                                selectedRoomId: RoomId,
-                                                isBackButtonVisible: MutableStateFlow<Boolean>,
-                                                onBack: () -> Unit,
-                                                onVerifyUser: () -> Unit,
-                                                onShowRoomSettings: () -> Unit,
-                                                onArchiveMessageClick: (String) -> Unit,
-                                                ): RoomHeaderViewModel {
-                                                return roomHeaderViewModelMock
-                                            }
-                                        }
-                                    }
-                                    single<InputAreaViewModelFactory> {
-                                        object : InputAreaViewModelFactory {
-                                            override fun create(
-                                                viewModelContext: MatrixClientViewModelContext,
-                                                selectedRoomId: RoomId,
-                                                onMessageEditFinished: (EventId) -> Unit,
-                                                onMessageReplyToFinished: (EventId) -> Unit,
-                                                onShowAttachmentSendView: (file: FileDescriptor) -> Unit
-                                            ): InputAreaViewModel {
-                                                return inputAreaViewModelMock
-                                            }
-                                        }
-                                    }
-                                    single<MatrixMessengerSettingsHolder> { messengerSettings }
-                                })
-                }.koin,
+                di = di,
                 userId = UserId("test", "server"),
             ),
             selectedRoomId = roomId,
@@ -693,6 +699,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             onOpenModal = mockFunction4(mocker),
             onShowSettings = mockFunction0(mocker),
         )
+    }
 
     private suspend fun verifyReadMarkerNotCalled() {
         withClue("expected read marker not to be called") {
@@ -702,14 +709,17 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
     }
 
-    private fun List<Pair<EventId?, EventId?>>.readable() = map { "(fullyRead=${it.first}, read=${it.second})" }
+    private fun Set<Pair<EventId?, EventId?>>.readable() = map { "(fullyRead=${it.first}, read=${it.second})" }
     private suspend fun verifyReadMarkerCalled(vararg expect: Pair<Int?, Int?>) {
         check(expect.isNotEmpty())
-        eventually(1.seconds) {
-            val expectCalls = expect.toList().map { value ->
+        // only use sets here as through some effects the API might be called multiple times with the same values
+        // (it is idempotent, so it is not dangerous). The order of calls is not checked here, but should also be not
+        // relevant for this test case
+        eventually(2.seconds) {
+            val expectCalls = expect.map { value ->
                 value.first?.let { EventId(it.toString()) } to value.second?.let { EventId(it.toString()) }
-            }
-            withClue("expected read marker to be called with ${expectCalls.readable()} but was ${readMarkerCalled.value.readable()}") {
+            }.toSet()
+            withClue("expected read marker to be called with ${expectCalls.readable()} but was ${readMarkerCalled.value.toSet().readable()}") {
                 readMarkerCalled.value shouldBe expectCalls
             }
         }

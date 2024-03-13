@@ -6,7 +6,13 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.util.launchPop
+import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.util.launchReplaceAll
+import de.connect2x.trixnity.messenger.util.popSuspending
+import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,7 +58,7 @@ class RootRouter(
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         userId = config.userId,
-                        onRemoveCompleted = ::showInitialization,
+                        onRemoveCompleted = { }, // do nothing as the MainViewModel will show a sync
                     )
             )
 
@@ -191,7 +197,8 @@ class RootRouter(
     }
 
     private fun showRemoveAccount(userId: UserId) {
-        navigation.launchPush(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
+        // replace the Config.Main to remove the MainViewModel which can trigger some actions we do not want for logged out clients
+        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
     sealed class Wrapper {
