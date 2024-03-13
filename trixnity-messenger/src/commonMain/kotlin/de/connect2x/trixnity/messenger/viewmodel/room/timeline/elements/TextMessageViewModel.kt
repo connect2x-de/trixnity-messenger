@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionedUsersStateFlow
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionsStateFlow
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
