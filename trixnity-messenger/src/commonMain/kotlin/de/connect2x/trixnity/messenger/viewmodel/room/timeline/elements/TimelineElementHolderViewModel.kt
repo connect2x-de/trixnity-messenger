@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -782,8 +783,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
-            override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
+            override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
+            override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
         }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -878,8 +879,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
-                override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
+                override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
+                override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
             }
         }
     }

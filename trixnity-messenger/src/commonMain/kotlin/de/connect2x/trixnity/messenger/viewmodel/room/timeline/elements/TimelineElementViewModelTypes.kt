@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -57,14 +58,14 @@ interface TextBasedViewModel : RoomMessageViewModel {
     val formattedBody: String?
 
     /**
-     * Users mentioned in the event's message
+     * Users, Events and Room mentioned in the event's message
      */
-    val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>>
+    val mentionsInMessage: Map<String, StateFlow<Mention>>
 
     /**
-     * Users mentioned in the event's formatted body
+     * Users, Events and Room mentioned in the event's formatted body
      */
-    val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>>?
+    val mentionsInFormattedBody: Map<String, StateFlow<Mention>>?
 }
 
 sealed interface ReferencedMessage {
