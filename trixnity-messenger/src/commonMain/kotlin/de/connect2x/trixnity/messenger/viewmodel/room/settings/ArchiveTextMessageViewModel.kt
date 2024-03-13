@@ -4,7 +4,9 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveFormat
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveResultProcessor
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.CSVArchiveFormat
 import io.github.oshai.kotlinlogging.KotlinLogging
+import korlibs.io.serialization.csv.CSV
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,6 +95,10 @@ class ArchiveTextMessageViewModelImpl(
                             selectedRoomId,
                             selectedSinkFormat.value.formatExtension
                         )
+                        val selectedSinkFormat = selectedSinkFormat.value
+                        if (selectedSinkFormat is  CSVArchiveFormat){
+                            selectedSinkFormat.updateColumnNames()
+                        }
                     }
                     .onCompletion { cause ->
                         if (cause != null) {
@@ -109,9 +115,7 @@ class ArchiveTextMessageViewModelImpl(
                     }
                     .buffer(capacity = 30, onBufferOverflow = BufferOverflow.DROP_OLDEST)
                     .transform<Flow<TimelineEvent>, List<String>> { timeLineFlow ->
-
                         val timelineEvent = timeLineFlow.first { it.content != null }
-                        log.error { "Selected format is ${selectedSinkFormat.value}" }
                         val content = selectedSinkFormat.value.transformMessage(timelineEvent)
                         if (content != null) {
                             batchedArchiveResultContent.add(content)

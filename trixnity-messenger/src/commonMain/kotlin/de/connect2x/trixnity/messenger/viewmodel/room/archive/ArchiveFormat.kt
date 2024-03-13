@@ -19,11 +19,11 @@ private val log = KotlinLogging.logger { }
 interface ArchiveFormat {
     val formatExtension: String
     val formatName: String
-    suspend fun transformMessage(timelineEvent: TimelineEvent):String?
+    suspend fun transformMessage(timelineEvent: TimelineEvent): String?
 
 }
 
-class PlainTextFormat(private val i18n: I18n): ArchiveFormat{
+class PlainTextFormat(private val i18n: I18n) : ArchiveFormat {
     override val formatExtension: String
         get() = ".txt"
     override val formatName: String
@@ -33,10 +33,10 @@ class PlainTextFormat(private val i18n: I18n): ArchiveFormat{
         val sender = timelineEvent.sender.full
         val event = timelineEvent.event
         val receivedDateTime = localDateTimeOf(event).formatLocalDateTime()
-        val formattedResult = timelineEvent.content?.fold( onSuccess = {
+        val formattedResult = timelineEvent.content?.fold(onSuccess = {
             if (it is RoomMessageEventContent.TextBased) {
-               "$receivedDateTime $sender: ${it.body}"
-            }else
+                "$receivedDateTime $sender: ${it.body}"
+            } else
                 null
         }, onFailure = {
             log.error(it) { "failed to archive room" }
@@ -48,20 +48,47 @@ class PlainTextFormat(private val i18n: I18n): ArchiveFormat{
 
 }
 
-class CSVArchiveFormat(private val i18n: I18n): ArchiveFormat{
+class CSVArchiveFormat(private val i18n: I18n) : ArchiveFormat {
 
     override val formatExtension: String
         get() = ".csv"
     override val formatName: String
         get() = i18n.csvFormat()
 
+    private var appendColumnNames: Boolean = false
+
+    fun updateColumnNames() {
+        appendColumnNames = true
+    }
+
     override suspend fun transformMessage(timelineEvent: TimelineEvent): String? {
-        return ""
+        val sender = timelineEvent.sender.full
+        val event = timelineEvent.event
+        val receivedDateTime = localDateTimeOf(event).formatLocalDateTime()
+        val formattedResult = timelineEvent.content?.fold(onSuccess = {
+            if (it is RoomMessageEventContent.TextBased) {
+                if (appendColumnNames) {
+                    val columnHeadings = """${i18n.csvFormatDateHeading()}, ${i18n.csvFormatTimeHeading()}, ${i18n.csvFormatSenderHeading()},  ${i18n.csvFormatMessageHeading()}"""
+                    val headingContent = columnHeadings + "\n" + "$receivedDateTime, $sender, ${it.body}"
+                    appendColumnNames = false
+                    headingContent
+                } else {
+                    "$receivedDateTime, $sender, ${it.body}"
+                }
+            } else
+                null
+        }, onFailure = {
+            log.error(it) { "failed to archive room" }
+            null
+        })
+
+        return formattedResult
     }
 
 }
 
-internal fun LocalDateTime.formatLocalDateTime():String =
+
+internal fun LocalDateTime.formatLocalDateTime(): String =
     "${formatDate(this)},${formatTime(this)}"
 
 private fun localDateTimeOf(event: ClientEvent.RoomEvent<*>): LocalDateTime {

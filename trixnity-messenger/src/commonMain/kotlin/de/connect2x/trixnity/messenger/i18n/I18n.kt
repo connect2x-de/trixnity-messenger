@@ -738,6 +738,26 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "CSV"
         DE - "CSV"
     }
+
+    fun csvFormatDateHeading() = translate {
+        EN - "Date"
+        DE - "Datum"
+    }
+
+    fun csvFormatTimeHeading() = translate {
+        EN - "Time"
+        DE - "Zeit"
+    }
+
+    fun csvFormatSenderHeading() = translate {
+        EN - "Sender"
+        DE - "Absender"
+    }
+
+    fun csvFormatMessageHeading() = translate {
+        EN - "Message"
+        DE - "Nachricht"
+    }
 }
 
 internal fun getLang(
