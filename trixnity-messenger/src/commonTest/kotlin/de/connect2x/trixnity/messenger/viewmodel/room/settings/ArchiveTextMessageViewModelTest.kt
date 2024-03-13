@@ -2,14 +2,23 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.MatrixClientFactory
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.CSVArchiveFormat
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.PlainTextFormat
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.waitForSize
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldInclude
 import io.kotest.matchers.string.shouldNotInclude
 import korlibs.io.util.Indenter.Companion.single
@@ -60,6 +69,9 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
 
     val mocker = Mocker()
 
+    lateinit var i18n: I18n
+
+
     @Mock
     lateinit var matrixClientMock: MatrixClient
 
@@ -80,6 +92,9 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
             Dispatchers.setMain(Dispatchers.Unconfined)
             mocker.reset()
             injectMocks(mocker)
+
+            i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
+
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -117,44 +132,49 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
         }
 
 
-        should("specifiedMessageLimit validate the input and through error if it contains non digit value ") {
-            val cut = archiveTestMessageViewModel()
-            val thresholdType = ThresholdType.SpecifyNumberOfMessages
-            cut.archiveRoomThreshold.value = ArchiveOptions.RoomThreshold(thresholdType)
-            cut.specifiedMessageLimit.value = "Abc"
-            cut.archiveRoom()
-            cut.archiveRoomState.value shouldBe ArchiveRoomState.Error("Bitte geben Sie eine gültige Zahl für die angegebenen Nachrichten ein, die größer als 0 sein sollte.")
-        }
-
         should("PlainText formatType file should contain .txt extension") {
             val cut = archiveTestMessageViewModel()
-            val selectedFormat = FormatType.PlainText
-            cut.archiveFormat.value = ArchiveOptions.Format(selectedFormat)
-            cut.fileName.value shouldInclude (".txt")
-            cut.fileName.value shouldNotInclude (".csv")
+
+            val selectedFormat = PlainTextFormat(i18n)
+            cut.selectedSinkFormat.value = selectedFormat
+
+            cut.selectedSinkFormat.value shouldBe selectedFormat
+            cut.selectedSinkFormat.value.formatExtension shouldBe ".txt"
+            cut.selectedSinkFormat.value.formatExtension shouldNotBe ".csv"
         }
 
 
         should("CSV formatType file should contain .csv extension") {
             val cut = archiveTestMessageViewModel()
-            val selectedFormat = FormatType.CSV
-            cut.archiveFormat.value = ArchiveOptions.Format(selectedFormat)
-            cut.fileName.value shouldInclude (".csv")
-            cut.fileName.value shouldNotInclude (".txt")
+
+            val selectedFormat = CSVArchiveFormat(i18n)
+            cut.selectedSinkFormat.value = selectedFormat
+
+            cut.supportedFormats.value.size  shouldBe 2
+            cut.selectedSinkFormat.value shouldBe selectedFormat
+            cut.selectedSinkFormat.value.formatExtension shouldNotBe ".txt"
+            cut.selectedSinkFormat.value.formatExtension shouldBe ".csv"
         }
+
 
         should("Return success once archive is success") {
             val cut = archiveTestMessageViewModel()
-            val selectedFormat = FormatType.PlainText
-            cut.archiveFormat.value = ArchiveOptions.Format(selectedFormat)
+            val selectedFormat = PlainTextFormat(i18n)
+            cut.selectedSinkFormat.value = selectedFormat
             cut.archiveRoom()
-            cut.fileName.value shouldInclude (".txt")
+            cut.selectedSinkFormat.value.formatExtension shouldInclude (".txt")
             cut.archiveRoomState.value shouldBe ArchiveRoomState.Success
         }
     }
 
 
-    private fun archiveTestMessageViewModel(): ArchiveTextMessageViewModel {
+    private suspend fun archiveTestMessageViewModel(): ArchiveTextMessageViewModel {
+        val di = koinApplication {
+            modules(createTestDefaultTrixnityMessengerModules())
+        }.koin
+
+        di.get<I18n>().setCurrentLang(DefaultLanguages.EN)
+
         return ArchiveTextMessageViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -169,14 +189,6 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
                             )
                         ),
                     )
-                    module {
-                        single<ArchiveRoomResultHandler> {
-                            object : ArchiveRoomHandlerBase() {
-                                override val onProcessArchiveResult: MutableSharedFlow<Pair<String, String>> =
-                                    MutableStateFlow(Pair("test.txt", "fileCotent"))
-                            }
-                        }
-                    }
 
                 }.koin,
                 userId = UserId("test", "server"),

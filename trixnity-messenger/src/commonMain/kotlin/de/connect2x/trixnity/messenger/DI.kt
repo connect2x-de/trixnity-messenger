@@ -33,6 +33,7 @@ import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.archiveRoomModule
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveTextMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -120,8 +121,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveRoomHandlerBase
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveRoomResultHandler
 import io.ktor.client.*
 import kotlinx.datetime.Clock
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
@@ -214,6 +213,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     timelineViewModels(),
     verificationViewModels(),
     roomViewModels(),
+    archiveRoomModule(),
     roomSettingsViewModels(),
     // platform-specific implementations
     commonPlatformModule(),
@@ -327,8 +327,6 @@ private fun timelineViewModels() = module {
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }
-    singleOf(::ArchiveRoomHandlerBase) bind ArchiveRoomResultHandler::class
-
 }
 
 private fun verificationViewModels() = module {

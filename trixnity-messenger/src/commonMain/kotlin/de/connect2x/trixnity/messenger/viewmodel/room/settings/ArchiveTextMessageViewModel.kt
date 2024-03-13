@@ -6,10 +6,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveFormat
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveResultProcessor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
@@ -65,20 +67,22 @@ class ArchiveTextMessageViewModelImpl(
     override val roomName: MutableStateFlow<String> = MutableStateFlow(roomName)
     private val archiveResultProcessor = get<ArchiveResultProcessor>()
 
-    override val selectedSinkFormat: MutableStateFlow<ArchiveFormat> = MutableStateFlow(getKoin().getAll<ArchiveFormat>().first())
+    override val selectedSinkFormat: MutableStateFlow<ArchiveFormat> =
+        MutableStateFlow(getKoin().getAll<ArchiveFormat>().first())
     override val archiveRoomState: MutableStateFlow<ArchiveRoomState> = MutableStateFlow(ArchiveRoomState.None)
     override val supportedFormats: StateFlow<List<ArchiveFormat>> = MutableStateFlow(getKoin().getAll<ArchiveFormat>())
 
     override fun dismissArchiveDialog() = onArchiveMessageDialogDismiss()
 
     override fun archiveRoom() {
-        if (archiveRoomState.value == ArchiveRoomState.Loading)
+        if (archiveRoomState.value == ArchiveRoomState.Loading) {
             return
+        }
 
         archiveRoomState.value = ArchiveRoomState.Loading
-
+        val batchedArchiveResultContent = mutableListOf<String>()
         coroutineScope.launch {
-            val lastEventId = matrixClient.room.getById(selectedRoomId).first()?.lastEventId
+            val lastEventId = matrixClient.room.getById(selectedRoomId).firstOrNull()?.lastEventId
             lastEventId?.let {
                 matrixClient.room.getTimelineEvents(
                     selectedRoomId,
@@ -90,32 +94,41 @@ class ArchiveTextMessageViewModelImpl(
                             selectedSinkFormat.value.formatExtension
                         )
                     }
-                    .onCompletion {
-                        log.debug { "All content exported.." }
-                        if (it != null) {
+                    .onCompletion { cause ->
+                        if (cause != null) {
                             archiveRoomState.value = ArchiveRoomState.None
                             archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
-                            log.error(it) { "export is failed.." }
+                            log.error(cause) { "export failed.." }
                         } else {
+                            if (batchedArchiveResultContent.isNotEmpty()) {
+                                archiveResultProcessor.processResult(batchedArchiveResultContent.joinToString("\n"))
+                                batchedArchiveResultContent.clear()
+                            }
                             archiveRoomState.value = ArchiveRoomState.Success
                         }
                     }
                     .buffer(capacity = 30, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-                    .collect { timeLineFlow ->
+                    .transform<Flow<TimelineEvent>, List<String>> { timeLineFlow ->
+
                         val timelineEvent = timeLineFlow.first { it.content != null }
+                        log.error { "Selected format is ${selectedSinkFormat.value}" }
                         val content = selectedSinkFormat.value.transformMessage(timelineEvent)
                         if (content != null) {
-                            log.error{
-                                "Syncing data $content"
-                            }
-                            archiveResultProcessor.processResult(content)
+                            batchedArchiveResultContent.add(content)
                         }
+                        // Emit the batch if there are any buffered events
+                        if (batchedArchiveResultContent.isNotEmpty() && batchedArchiveResultContent.size == 30) {
+                            emit(batchedArchiveResultContent)
+                            batchedArchiveResultContent.clear()
+                        }
+
+                    }.collect { batchContent ->
+                        archiveResultProcessor.processResult(batchContent.joinToString("\n"))
                     }
             } ?: run {
-                log.warn { "Room does not content any data." }
+                log.warn { "Room does not contain any data." }
                 archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
             }
-
         }
     }
 }

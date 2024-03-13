@@ -9,5 +9,5 @@ import org.koin.dsl.bind
 fun archiveRoomModule()  = module {
     singleOf(::PlainTextFormat) bind ArchiveFormat::class
     singleOf(::CSVArchiveFormat) bind ArchiveFormat::class
-    single<ArchiveResultProcessor> { FileBasedResultProcessor() }
+    singleOf(::FileBasedResultProcessor) bind ArchiveResultProcessor::class
 }
