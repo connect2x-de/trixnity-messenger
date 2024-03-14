@@ -46,6 +46,7 @@ class RemoveMatrixAccountViewModelImpl(
 
     private val _error = MutableStateFlow<String?>(null)
     override val error: StateFlow<String?> = _error.asStateFlow()
+    private val logoutMutex = Mutex()
 
     init {
         coroutineScope.launch {
@@ -56,8 +57,6 @@ class RemoveMatrixAccountViewModelImpl(
     override fun close() {
         onRemoveCompleted()
     }
-
-    private val logoutMutex = Mutex()
     private suspend fun logout(force: Boolean = false) {
         if (logoutMutex.isLocked) return
         logoutMutex.withLock {

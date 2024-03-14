@@ -254,6 +254,7 @@ open class RoomListElementViewModelImpl(
                     is FileBased.Audio -> i18n.roomListContentAudio()
                     is FileBased.File -> i18n.roomListContentFile()
                     is TextBased,
+                    is Location,
                     is VerificationRequest,
                     is Unknown -> content.bodyWithoutFallback
                 }

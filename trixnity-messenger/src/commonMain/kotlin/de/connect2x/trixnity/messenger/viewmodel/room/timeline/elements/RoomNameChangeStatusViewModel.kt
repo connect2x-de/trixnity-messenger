@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -53,7 +53,7 @@ open class RoomNameChangeStatusViewModelImpl(
     isDirectFlow: StateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomNameChangeStatusViewModel {
     override val invitation: StateFlow<String?> =
-        invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        invitation.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomNameChangeMessage =
         combine(sender, isDirectFlow) { userInfo, isDirect ->
@@ -68,6 +68,6 @@ open class RoomNameChangeStatusViewModelImpl(
                 if (isDirect) i18n.eventChangeChatGenitive()
                 else i18n.eventChangeGroupGenitive()
 
-            i18n.eventRoomChange(userInfo.name, groupOrChat, from, content.name)
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            i18n.eventRoomNameChange(userInfo.name, groupOrChat, from, content.name)
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
 }

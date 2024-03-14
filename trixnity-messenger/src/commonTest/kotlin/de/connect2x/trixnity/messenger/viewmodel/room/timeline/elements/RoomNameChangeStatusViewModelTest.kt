@@ -9,10 +9,14 @@ import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityM
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -26,6 +30,7 @@ import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import kotlin.coroutines.CoroutineContext
+
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class RoomNameChangeStatusViewModelTest : ShouldSpec() {
@@ -43,7 +48,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
             injectMocks(mocker)
         }
 
-        should("display who changed the room's name (with reference to old name)") {
+        should("display who changed the room's name (with reference to the old name)") {
             val cut = roomNameChangeStatusViewModel(
                 timelineEvent =
                 timelineEvent(
@@ -60,7 +65,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("display who changed the room's name without old name if not set") {
+        should("display who changed the room's name without the old name if not set") {
             val cut =
                 roomNameChangeStatusViewModel(timelineEvent = timelineEvent(), coroutineContext = coroutineContext)
             val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }

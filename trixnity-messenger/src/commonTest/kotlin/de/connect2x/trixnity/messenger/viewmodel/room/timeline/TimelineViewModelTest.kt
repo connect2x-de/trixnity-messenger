@@ -277,7 +277,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
             cut.firstVisibleTimelineElement.value = "8" // [9..19], see above
             continually(1.seconds) {
-                cut.timelineElementHolderViewModels.value.size == 11
+                cut.timelineElementHolderViewModels.value.size shouldBe 11
             }
         }
 
@@ -323,7 +323,7 @@ class TimelineViewModelTest : ShouldSpec() {
             // see above, [0..10], 1 is at beginning -> do NOT load after
             cut.lastVisibleTimelineElement.value = "1"
             continually(1.seconds) {
-                cut.timelineElementHolderViewModels.value.size == 11
+                cut.timelineElementHolderViewModels.value.size shouldBe 11
             }
         }
 
