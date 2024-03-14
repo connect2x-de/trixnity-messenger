@@ -10,35 +10,35 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
-interface PrivacySettingsAllUsersViewModelFactory {
+interface PrivacySettingsAllAccountsViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        onShowBlockedContactsSettings: (userId: UserId) -> Unit,
+        onShowBlockedContactsSettings: (account: UserId) -> Unit,
         onClosePrivacySettings: () -> Unit,
-    ): PrivacySettingsAllUsersViewModel = PrivacySettingsAllUsersViewModelImpl(
+    ): PrivacySettingsAllAccountsViewModel = PrivacySettingsAllAccountsViewModelImpl(
         viewModelContext,
         onShowBlockedContactsSettings,
         onClosePrivacySettings,
     )
 
-    companion object : PrivacySettingsAllUsersViewModelFactory
+    companion object : PrivacySettingsAllAccountsViewModelFactory
 }
 
-interface PrivacySettingsAllUsersViewModel {
-    val privacySettings: StateFlow<List<PrivacySettingsSingleUserViewModel>>
+interface PrivacySettingsAllAccountsViewModel {
+    val privacySettings: StateFlow<List<PrivacySettingsSingleAccountViewModel>>
     fun back()
 }
 
-open class PrivacySettingsAllUsersViewModelImpl(
+open class PrivacySettingsAllAccountsViewModelImpl(
     viewModelContext: ViewModelContext,
-    onShowBlockedContactsSettings: (userId: UserId) -> Unit,
+    onShowBlockedContactsSettings: (account: UserId) -> Unit,
     private val onClosePrivacySettings: () -> Unit,
-) : ViewModelContext by viewModelContext, PrivacySettingsAllUsersViewModel {
+) : ViewModelContext by viewModelContext, PrivacySettingsAllAccountsViewModel {
 
-    override val privacySettings: StateFlow<List<PrivacySettingsSingleUserViewModel>> =
+    override val privacySettings: StateFlow<List<PrivacySettingsSingleAccountViewModel>> =
         matrixClients.scopedMapLatest { namedMatrixClients ->
             namedMatrixClients.map { (userId, _) ->
-                get<PrivacySettingsSingleUserViewModelFactory>()
+                get<PrivacySettingsSingleAccountViewModelFactory>()
                     .create(
                         viewModelContext = childContext("privacySetting-${userId}", userId = userId),
                         onShowBlockedContactsSettings = onShowBlockedContactsSettings,

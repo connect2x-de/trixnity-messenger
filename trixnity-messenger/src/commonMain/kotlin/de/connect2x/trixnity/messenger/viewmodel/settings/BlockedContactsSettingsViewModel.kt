@@ -30,6 +30,7 @@ interface BlockedContactsSettingsViewModelFactory {
 }
 
 interface BlockedContactsSettingsViewModel {
+    val account: UserId
     val blockedContactsCount: StateFlow<Int>
     val blockedContactsList: StateFlow<List<BlockedContact>>
     fun unblockContact(userId: UserId)
@@ -41,6 +42,8 @@ class BlockedContactsSettingsViewModelImpl(
     private val onCloseBlockedContactsSettings: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext,
     BlockedContactsSettingsViewModel {
+
+    override val account = viewModelContext.userId
 
     private val userBlocking = get<UserBlocking>()
 
@@ -62,7 +65,7 @@ class BlockedContactsSettingsViewModelImpl(
         userIdList.map { userId ->
             BlockedContact(
                 userId,
-                isUnignoring = isUnignoringList.contains(userId),
+                isUnblocking = isUnignoringList.contains(userId),
             )
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
@@ -97,5 +100,5 @@ class BlockedContactsSettingsViewModelImpl(
 
 data class BlockedContact(
     val userId: UserId,
-    val isUnignoring: Boolean,
+    val isUnblocking: Boolean,
 )
