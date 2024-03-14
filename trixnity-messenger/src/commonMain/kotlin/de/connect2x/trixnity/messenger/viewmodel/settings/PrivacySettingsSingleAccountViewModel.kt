@@ -13,21 +13,21 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
-interface PrivacySettingsSingleUserViewModelFactory {
+interface PrivacySettingsSingleAccountViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onShowBlockedContactsSettings: (userId: UserId) -> Unit,
-    ): PrivacySettingsSingleUserViewModel =
-        PrivacySettingsSingleUserViewModelImpl(
+        onShowBlockedContactsSettings: (account: UserId) -> Unit,
+    ): PrivacySettingsSingleAccountViewModel =
+        PrivacySettingsSingleAccountViewModelImpl(
             viewModelContext,
             onShowBlockedContactsSettings,
         )
 
-    companion object : PrivacySettingsSingleUserViewModelFactory
+    companion object : PrivacySettingsSingleAccountViewModelFactory
 }
 
-interface PrivacySettingsSingleUserViewModel {
-    val userId: UserId
+interface PrivacySettingsSingleAccountViewModel {
+    val account: UserId
 
     val presenceIsPublic: StateFlow<Boolean>
     val readMarkerIsPublic: StateFlow<Boolean>
@@ -37,33 +37,35 @@ interface PrivacySettingsSingleUserViewModel {
     fun toggleReadMarkerIsPublic()
     fun toggleTypingIsPublic()
 
-    fun showBlockedContactsSettings()
     val blockedContactsCount: StateFlow<Int>
+    fun showBlockedContactsSettings()
 }
 
-open class PrivacySettingsSingleUserViewModelImpl(
+open class PrivacySettingsSingleAccountViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val onShowBlockedContactsSettings: (userId: UserId) -> Unit,
-) : PrivacySettingsSingleUserViewModel, MatrixClientViewModelContext by viewModelContext {
+    private val onShowBlockedContactsSettings: (account: UserId) -> Unit,
+) : PrivacySettingsSingleAccountViewModel, MatrixClientViewModelContext by viewModelContext {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val userBlocking = get<UserBlocking>()
 
-    override val presenceIsPublic = messengerSettings[userId]
+    final override val account = userId
+
+    override val presenceIsPublic = messengerSettings[account]
         .filterNotNull().map { it.presenceIsPublic }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val readMarkerIsPublic = messengerSettings[userId]
+    override val readMarkerIsPublic = messengerSettings[account]
         .filterNotNull().map { it.readMarkerIsPublic }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val typingIsPublic = messengerSettings[userId]
+    override val typingIsPublic = messengerSettings[account]
         .filterNotNull().map { it.typingIsPublic }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override fun togglePresenceIsPublic() {
         coroutineScope.launch {
-            messengerSettings.update(userId) {
+            messengerSettings.update(account) {
                 it?.copy(presenceIsPublic = !it.presenceIsPublic)
             }
         }
@@ -71,7 +73,7 @@ open class PrivacySettingsSingleUserViewModelImpl(
 
     override fun toggleReadMarkerIsPublic() {
         coroutineScope.launch {
-            messengerSettings.update(userId) {
+            messengerSettings.update(account) {
                 it?.copy(readMarkerIsPublic = !it.readMarkerIsPublic)
             }
         }
@@ -79,17 +81,17 @@ open class PrivacySettingsSingleUserViewModelImpl(
 
     override fun toggleTypingIsPublic() {
         coroutineScope.launch {
-            messengerSettings.update(userId) {
+            messengerSettings.update(account) {
                 it?.copy(typingIsPublic = !it.typingIsPublic)
             }
         }
     }
 
-    override fun showBlockedContactsSettings() {
-        onShowBlockedContactsSettings(this.userId)
-    }
-
     override val blockedContactsCount: StateFlow<Int> =
         userBlocking.getBlockedUsers(viewModelContext.matrixClient).map { it.size }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
+
+    override fun showBlockedContactsSettings() {
+        onShowBlockedContactsSettings(this.account)
+    }
 }

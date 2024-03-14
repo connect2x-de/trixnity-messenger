@@ -23,8 +23,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewMod
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllUsersViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllUsersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
@@ -173,7 +173,7 @@ class RoomListRouter(
             )
 
             is Config.PrivacySettings -> Wrapper.PrivacySettings(
-                viewModelContext.get<PrivacySettingsAllUsersViewModelFactory>().create(
+                viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onClosePrivacySettings = ::onClosePrivacySettings,
                     onShowBlockedContactsSettings = ::onShowBlockedContactsSettings,
@@ -184,7 +184,7 @@ class RoomListRouter(
                 viewModelContext.get<BlockedContactsSettingsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext).childContext(
                         componentContext,
-                        roomListConfig.userId,
+                        roomListConfig.account,
                     ),
                     onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
                 )
@@ -329,9 +329,9 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowBlockedContactsSettings(userId: UserId) {
-        log.debug { "show blocked contacts settings for account $userId" }
-        navigation.launchPush(viewModelContext.coroutineScope, Config.BlockedContactsSettings(userId))
+    private fun onShowBlockedContactsSettings(account: UserId) {
+        log.debug { "show blocked contacts settings for account $account" }
+        navigation.launchPush(viewModelContext.coroutineScope, Config.BlockedContactsSettings(account))
     }
 
     private fun onCloseBlockedContactsSettings() {
@@ -412,7 +412,7 @@ class RoomListRouter(
         data object PrivacySettings : Config()
 
         @Serializable
-        data class BlockedContactsSettings(val userId: UserId) : Config()
+        data class BlockedContactsSettings(val account: UserId) : Config()
 
         @Serializable
         data class ConfigureNotifications(val userId: UserId) : Config()
@@ -436,7 +436,7 @@ class RoomListRouter(
         class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
         class Profile(val viewModel: ProfileViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationsSettingsViewModel) : Wrapper()
-        class PrivacySettings(val viewModel: PrivacySettingsAllUsersViewModel) : Wrapper()
+        class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
         class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
         class ConfigureNotifications(val viewModel: ConfigureNotificationsViewModel) : Wrapper()
         class AppInfo(val viewModel: AppInfoViewModel) : Wrapper()
