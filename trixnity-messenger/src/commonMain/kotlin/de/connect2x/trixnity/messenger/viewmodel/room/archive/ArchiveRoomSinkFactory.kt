@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.archive
 
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import net.folivo.trixnity.client.MatrixClient
@@ -15,61 +16,61 @@ class FileBaseArchiveSinkFactory : ArchiveRoomSinkFactory<ArchiveSink, ArchiveSi
         roomId: RoomId, matrixClient: MatrixClient, viewModelContext: ViewModelContext, sinkConfig: ArchiveSinkConfig
     ): ArchiveSink {
         return when (sinkConfig) {
-            is PlainTextArchiveSinkConfig -> PlainTextFormat(roomId, matrixClient, viewModelContext, sinkConfig)
-            is CSVArchiveSinkConfig -> CSVArchiveFormat(viewModelContext.i18n)
+            is PlainTextArchiveSinkConfig -> PlainTexArchiveSink(viewModelContext.i18n)
+            is CSVArchiveSinkConfig -> CSVArchiveSink(viewModelContext.i18n)
             else -> throw IllegalArgumentException("Unsupported sink configuration")
         }
 
     }
 }
 
-class MyFactory : ArchiveRoomSinkFactory<ArchiveSink, ArchiveSinkConfig> {
-    override fun create(
-        roomId: RoomId,
-        matrixClient: MatrixClient,
-        viewModelContext: ViewModelContext,
-        sinkConfig: ArchiveSinkConfig
-    ): ArchiveSink {
+//class MyFactory : ArchiveRoomSinkFactory<ArchiveSink, ArchiveSinkConfig> {
+//    override fun create(
+//        roomId: RoomId,
+//        matrixClient: MatrixClient,
+//        viewModelContext: ViewModelContext,
+//        sinkConfig: ArchiveSinkConfig
+//    ): ArchiveSink {
+//
+//        return when (sinkConfig) {
+//            is MyConfig -> {
+//                MyFormat(
+//                    roomId,
+//                    matrixClient,
+//                    viewModelContext,
+//                    sinkConfig
+//                )
+//            }
+//
+//            else -> FileBaseArchiveSinkFactory().create(
+//                roomId,
+//                matrixClient,
+//                viewModelContext,
+//                sinkConfig
+//            )
+//        }
+//
+//    }
+//}
+//
+//class MyFormat(
+//    roomId: RoomId,
+//    matrixClient: MatrixClient,
+//    viewModelContext: ViewModelContext,
+//    sinkConfig: ArchiveSinkConfig
+//) : ArchiveSink {
+//    override val sinkName: String
+//        get() = "RESt"
+//
+//
+//    fun processWithRestInterfacet() {
+//
+//
+//
+//    }
+//}
 
-        return when (sinkConfig) {
-            is MyConfig -> {
-                MyFormat(
-                    roomId,
-                    matrixClient,
-                    viewModelContext,
-                    sinkConfig
-                )
-            }
-
-            else -> FileBaseArchiveSinkFactory().create(
-                roomId,
-                matrixClient,
-                viewModelContext,
-                sinkConfig
-            )
-        }
-
-    }
-}
-
-class MyFormat(
-    roomId: RoomId,
-    matrixClient: MatrixClient,
-    viewModelContext: ViewModelContext,
-    sinkConfig: ArchiveSinkConfig
-) : ArchiveSink {
-    override val sinkName: String
-        get() = "RESt"
-
-
-    fun processWithRestInterfacet() {
-
-
-
-    }
-}
-
-data class MyConfig(val path: String) : ArchiveSinkConfig
+//data class MyConfig(val path: String) : ArchiveSinkConfig
 
 interface ArchiveSinkConfig
 
