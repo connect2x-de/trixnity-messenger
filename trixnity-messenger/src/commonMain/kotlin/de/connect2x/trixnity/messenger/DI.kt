@@ -87,8 +87,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSetting
 import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleUserViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllUsersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
@@ -277,8 +277,8 @@ private fun settingsViewModels() = module {
     single<NotificationsSettingsViewModelFactory> { NotificationsSettingsViewModelFactory }
     single<ProfileViewModelFactory> { ProfileViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
-    single<PrivacySettingsAllUsersViewModelFactory> { PrivacySettingsAllUsersViewModelFactory }
-    single<PrivacySettingsSingleUserViewModelFactory> { PrivacySettingsSingleUserViewModelFactory }
+    single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
+    single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
 }
 
