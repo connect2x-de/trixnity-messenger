@@ -71,8 +71,8 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
 }
 
 class PreviewRoomSettingsHistoryVisibilityViewModel : RoomSettingsHistoryVisibilityViewModel {
-    override val roomHistoryVisibility = MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.SHARED)
-    override val canChangeRoomHistoryVisibility = MutableStateFlow(false)
+    override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> = MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.SHARED)
+    override val canChangeRoomHistoryVisibility: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         roomHistoryVisibility.value = newVisibility

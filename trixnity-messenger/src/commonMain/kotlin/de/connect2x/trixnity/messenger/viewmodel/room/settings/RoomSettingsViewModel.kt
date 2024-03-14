@@ -165,11 +165,11 @@ open class RoomSettingsViewModelImpl(
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
-    override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
-    override val roomSettingsTopicViewModel: RoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
-    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
+    override val roomSettingsNameViewModel: PreviewRoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
+    override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
+    override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-    override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
+    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel
         = PreviewRoomSettingsHistoryVisibilityViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
@@ -177,7 +177,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val leaveRoomWarningTitle: MutableStateFlow<String> = MutableStateFlow("leave room warning title")
     override val leaveRoomWarningMessage: MutableStateFlow<String> = MutableStateFlow("leave room warning message")
     override val leaveRoomWarningConfirmButtonText: MutableStateFlow<String> = MutableStateFlow("confirm")
-    override val memberListViewModel: MemberListViewModel = PreviewMemberListViewModel()
+    override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun openAddMembersView() {
