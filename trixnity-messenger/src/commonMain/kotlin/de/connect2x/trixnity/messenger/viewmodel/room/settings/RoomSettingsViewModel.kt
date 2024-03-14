@@ -48,7 +48,6 @@ interface RoomSettingsViewModel {
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
     val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
-    val historyVisibility: HistoryVisibilityEventContent.HistoryVisibility
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
     val leaveRoomWarningTitle: StateFlow<String>
@@ -80,11 +79,10 @@ open class RoomSettingsViewModelImpl(
         get<RoomSettingsNotificationsViewModelFactory>()
             .create(viewModelContext, selectedRoomId, error)
     }
-    override val historyVisibility: HistoryVisibilityEventContent.HistoryVisibility
-        get() = roomSettingsHistoryVisibilityViewModel.roomHistoryVisibility.value
+
     override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel by lazy {
         get<RoomSettingsHistoryVisibilityViewModelFactory>()
-            .create(viewModelContext, selectedRoomId, historyVisibility, error)
+            .create(viewModelContext, selectedRoomId, error)
     }
 
     override val leaveRoomSettingEntryText = MutableStateFlow("")
@@ -171,9 +169,6 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
         PreviewRoomSettingsNotificationsViewModel()
     override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
         = PreviewRoomSettingsHistoryVisibilityViewModel()
-    override val historyVisibility: HistoryVisibilityEventContent.HistoryVisibility
-        get() = PreviewRoomSettingsHistoryVisibilityViewModel().roomHistoryVisibility.value
-
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)

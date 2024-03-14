@@ -14,7 +14,6 @@ interface RoomSettingsHistoryVisibilityViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        historyVisibility: HistoryVisibilityEventContent.HistoryVisibility,
         error: MutableStateFlow<String?>,
     ): RoomSettingsHistoryVisibilityViewModel {
         return RoomSettingsHistoryVisibilityViewModelImpl(viewModelContext, selectedRoomId, error)
