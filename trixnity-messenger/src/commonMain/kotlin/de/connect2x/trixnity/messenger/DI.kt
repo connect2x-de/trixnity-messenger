@@ -38,6 +38,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
@@ -315,6 +316,7 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsNameViewModelFactory> { RoomSettingsNameViewModelFactory }
     single<RoomSettingsTopicViewModelFactory> { RoomSettingsTopicViewModelFactory }
     single<RoomSettingsNotificationsViewModelFactory> { RoomSettingsNotificationsViewModelFactory }
+    single<RoomSettingsHistoryVisibilityViewModelFactory> { RoomSettingsHistoryVisibilityViewModelFactory }
 }
 
 private fun timelineViewModels() = module {
