@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.fileBaseArchiveSink
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveRoomState
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
@@ -36,19 +35,15 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
-interface ArchiveFormat {
-//    val formatExtension: String
-//    val formatName: String
-//    suspend fun transformMessage(timelineEvent: TimelineEvent): String?
-
+interface ArchiveSink {
+    val sinkName: String
 }
 
-
-sealed interface ArchiveSyncState {
-    data object None : ArchiveSyncState
-    data object Loading : ArchiveSyncState
-    data object Success : ArchiveSyncState
-    data class Error(val error: String) : ArchiveSyncState
+sealed interface ArchiveSinkState {
+    data object None : ArchiveSinkState
+    data object Loading : ArchiveSinkState
+    data object Success : ArchiveSinkState
+    data class Error(val error: String) : ArchiveSinkState
 }
 
 
@@ -57,28 +52,29 @@ class PlainTextFormat(
     private val matrixClient: MatrixClient,
     private val viewModelContext: ViewModelContext,
     private val sinkConfig: ArchiveSinkConfig
-) : ArchiveFormat {
+) : ArchiveSink {
 
     val i18n = viewModelContext.i18n
-    val archiveRoomState: MutableStateFlow<ArchiveSyncState> = MutableStateFlow(ArchiveSyncState.None)
+    internal val archiveSinkState: MutableStateFlow<ArchiveSinkState> = MutableStateFlow(ArchiveSinkState.None)
 
     private fun createFileName(): String {
         val roomIdAsUnPaddedBase64 = roomId.full.encodeToByteArray().toByteString().base64Url().substringBefore("=")
-        val currentTimeStamp = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds()).toLocalDateTime(TimeZone.of(timezone())).formatLocalDateTime()
+        val currentTimeStamp = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
+            .toLocalDateTime(TimeZone.of(timezone())).formatLocalDateTime()
         return "${currentTimeStamp}_${roomIdAsUnPaddedBase64}${".txt"}"
     }
 
     fun archivePlainText() {
         val sinkConfig = (sinkConfig as? PlainTextArchiveSinkConfig)
-        if (sinkConfig == null){
+        if (sinkConfig == null) {
             log.error { "sink config not provided" }
-            archiveRoomState.value = ArchiveSyncState.Error(i18n.archiveRoomError())
+            archiveSinkState.value = ArchiveSinkState.Error(i18n.archiveRoomError())
             return
         }
 
-        if (archiveRoomState.value == ArchiveSyncState.Loading) return
+        if (archiveSinkState.value == ArchiveSinkState.Loading) return
 
-        archiveRoomState.value = ArchiveSyncState.Loading
+        archiveSinkState.value = ArchiveSinkState.Loading
         viewModelContext.coroutineScope.launch {
             val batchedArchiveResultContent = mutableListOf<String>()
             val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
@@ -92,16 +88,14 @@ class PlainTextFormat(
                     }
                     .onCompletion { cause ->
                         if (cause != null) {
-                            archiveRoomState.value = ArchiveSyncState.None
-                            archiveRoomState.value = ArchiveSyncState.Error(i18n.archiveRoomError())
+                            archiveSinkState.value = ArchiveSinkState.Error(i18n.archiveRoomError())
                             log.error(cause) { "export failed.." }
                         } else {
                             if (batchedArchiveResultContent.isNotEmpty()) {
                                 fileBaseArchiveSink(createFileName(), batchedArchiveResultContent.joinToString("\n"))
-//                                archiveResultProcessor.processResult(batchedArchiveResultContent.joinToString("\n"))
                                 batchedArchiveResultContent.clear()
                             }
-                            archiveRoomState.value = ArchiveSyncState.Success
+                            archiveSinkState.value = ArchiveSinkState.Success
                         }
                     }
                     .buffer(capacity = 30, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -121,8 +115,11 @@ class PlainTextFormat(
                         fileBaseArchiveSink(createFileName(), batchedArchiveResultContent.joinToString("\n"))
                     }
 
-            } ?: log.warn { "Room does not contain any data." }
-            archiveRoomState.value = ArchiveSyncState.Error(i18n.archiveRoomError())
+            } ?: kotlin.run {
+                log.warn { "Room does not contain any data." }
+                archiveSinkState.value = ArchiveSinkState.Error(i18n.archiveRoomError())
+            }
+
         }
     }
 
@@ -180,7 +177,7 @@ class PlainTextFormat(
 //
 
 
-//    override val formatExtension: String
+    //    override val formatExtension: String
 //        get() = ".txt"
 //    override val formatName: String
 //        get() = i18n.textPlainFormat()
@@ -202,12 +199,15 @@ class PlainTextFormat(
         return formattedResult
     }
 
+    override val sinkName: String
+        get() = i18n.textPlainFormat()
+
 
 }
 
-class CSVArchiveFormat(private val i18n: I18n) : ArchiveFormat {
+class CSVArchiveFormat(private val i18n: I18n) : ArchiveSink {
 
-//    override val formatExtension: String
+    //    override val formatExtension: String
 //        get() = ".csv"
 //    override val formatName: String
 //        get() = i18n.csvFormat()
@@ -242,6 +242,8 @@ class CSVArchiveFormat(private val i18n: I18n) : ArchiveFormat {
 //
 //        return formattedResult
 //    }
+    override val sinkName: String
+        get() = i18n.csvFormat()
 
 }
 

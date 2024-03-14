@@ -1,32 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveFormat
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSink
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveResultProcessor
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveRoomSinkFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkConfig
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.CSVArchiveFormat
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.FileBaseArchiveSinkFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.PlainTextArchiveSinkConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.PlainTextFormat
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -49,9 +33,9 @@ interface ArchiveTextMessageViewModelFactory {
 
 interface ArchiveTextMessageViewModel {
     val roomName: MutableStateFlow<String>
-    val selectedSinkFormat: MutableStateFlow<ArchiveFormat>
+    val selectedSinkFormat: MutableStateFlow<ArchiveSink>
     val archiveRoomState: StateFlow<ArchiveRoomState>
-    val supportedFormats: StateFlow<List<ArchiveFormat>>
+    val supportedFormats: StateFlow<List<ArchiveSink>>
     fun dismissArchiveDialog()
     fun archiveRoom()
 }
@@ -73,10 +57,10 @@ class ArchiveTextMessageViewModelImpl(
     override val roomName: MutableStateFlow<String> = MutableStateFlow(roomName)
     private val archiveResultProcessor = get<ArchiveResultProcessor>()
 
-    override val selectedSinkFormat: MutableStateFlow<ArchiveFormat> =
-        MutableStateFlow(getKoin().getAll<ArchiveFormat>().first())
+    override val selectedSinkFormat: MutableStateFlow<ArchiveSink> =
+        MutableStateFlow(getKoin().getAll<ArchiveSink>().first())
     override val archiveRoomState: MutableStateFlow<ArchiveRoomState> = MutableStateFlow(ArchiveRoomState.None)
-    override val supportedFormats: StateFlow<List<ArchiveFormat>> = MutableStateFlow(getKoin().getAll<ArchiveFormat>())
+    override val supportedFormats: StateFlow<List<ArchiveSink>> = MutableStateFlow(getKoin().getAll<ArchiveSink>())
 
     override fun dismissArchiveDialog() = onArchiveMessageDialogDismiss()
 
@@ -88,6 +72,7 @@ class ArchiveTextMessageViewModelImpl(
         val fileBaseArchiveSinkFactory = FileBaseArchiveSinkFactory().create(matrixClient = matrixClient, roomId = selectedRoomId, viewModelContext = viewModelContext, sinkConfig = PlainTextArchiveSinkConfig(null,null))
         when(fileBaseArchiveSinkFactory){
             is PlainTextFormat->{
+                fileBaseArchiveSinkFactory.archiveSinkState.value
                 fileBaseArchiveSinkFactory.archivePlainText()
             }
         }
