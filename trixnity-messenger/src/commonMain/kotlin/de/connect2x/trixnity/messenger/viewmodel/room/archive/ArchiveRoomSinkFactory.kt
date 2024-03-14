@@ -6,12 +6,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.RoomId
 
 interface ArchiveRoomSinkFactory<T : ArchiveSink, C : ArchiveSinkConfig> {
-    fun create(
-        roomId: RoomId,
-        matrixClient: MatrixClient,
-        viewModelContext: ViewModelContext,
-        sinkConfig: C
-    ): T
+    fun create(roomId: RoomId, matrixClient: MatrixClient, viewModelContext: ViewModelContext, sinkConfig: C): T
 }
 
 

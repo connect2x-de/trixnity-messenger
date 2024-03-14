@@ -51,27 +51,24 @@ class PlainTextFormat(
     private val roomId: RoomId,
     private val matrixClient: MatrixClient,
     private val viewModelContext: ViewModelContext,
-    private val sinkConfig: ArchiveSinkConfig
+    private val sinkConfig: PlainTextArchiveSinkConfig
 ) : ArchiveSink {
 
     val i18n = viewModelContext.i18n
     internal val archiveSinkState: MutableStateFlow<ArchiveSinkState> = MutableStateFlow(ArchiveSinkState.None)
 
     private fun createFileName(): String {
-        val roomIdAsUnPaddedBase64 = roomId.full.encodeToByteArray().toByteString().base64Url().substringBefore("=")
-        val currentTimeStamp = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
-            .toLocalDateTime(TimeZone.of(timezone())).formatLocalDateTime()
-        return "${currentTimeStamp}_${roomIdAsUnPaddedBase64}${".txt"}"
+        return if (sinkConfig.fileName == null) {
+            val roomIdAsUnPaddedBase64 = roomId.full.encodeToByteArray().toByteString().base64Url().substringBefore("=")
+            val currentTimeStamp = Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
+                .toLocalDateTime(TimeZone.of(timezone())).formatLocalDateTime()
+             "${currentTimeStamp}_${roomIdAsUnPaddedBase64}${".txt"}"
+        }else{
+            "${sinkConfig.fileName}${".txt"}"
+        }
     }
 
     fun archivePlainText() {
-        val sinkConfig = (sinkConfig as? PlainTextArchiveSinkConfig)
-        if (sinkConfig == null) {
-            log.error { "sink config not provided" }
-            archiveSinkState.value = ArchiveSinkState.Error(i18n.archiveRoomError())
-            return
-        }
-
         if (archiveSinkState.value == ArchiveSinkState.Loading) return
 
         archiveSinkState.value = ArchiveSinkState.Loading
@@ -83,9 +80,7 @@ class PlainTextFormat(
                     roomId,
                     startFrom = eventId,
                     config = { decryptionTimeout = 5.seconds })
-                    .onStart {
-                        createFileName()
-                    }
+                    .onStart {createFileName()}
                     .onCompletion { cause ->
                         if (cause != null) {
                             archiveSinkState.value = ArchiveSinkState.Error(i18n.archiveRoomError())
