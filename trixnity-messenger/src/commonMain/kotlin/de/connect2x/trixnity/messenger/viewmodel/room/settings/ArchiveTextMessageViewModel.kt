@@ -4,9 +4,13 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveFormat
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveResultProcessor
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveRoomSinkFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.CSVArchiveFormat
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.FileBaseArchiveSinkFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.PlainTextArchiveSinkConfig
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.PlainTextFormat
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.serialization.csv.CSV
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +64,7 @@ sealed interface ArchiveRoomState {
 }
 
 class ArchiveTextMessageViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
+    private val viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     roomName: String,
     private val onArchiveMessageDialogDismiss: () -> Unit,
@@ -81,58 +85,69 @@ class ArchiveTextMessageViewModelImpl(
             return
         }
 
-        archiveRoomState.value = ArchiveRoomState.Loading
-        val batchedArchiveResultContent = mutableListOf<String>()
-        coroutineScope.launch {
-            val lastEventId = matrixClient.room.getById(selectedRoomId).firstOrNull()?.lastEventId
-            lastEventId?.let {
-                matrixClient.room.getTimelineEvents(
-                    selectedRoomId,
-                    startFrom = lastEventId,
-                    config = { decryptionTimeout = 5.seconds })
-                    .onStart {
-                        archiveResultProcessor.setupFileNameParameters(
-                            selectedRoomId,
-                            selectedSinkFormat.value.formatExtension
-                        )
-                        val selectedSinkFormat = selectedSinkFormat.value
-                        if (selectedSinkFormat is  CSVArchiveFormat){
-                            selectedSinkFormat.updateColumnNames()
-                        }
-                    }
-                    .onCompletion { cause ->
-                        if (cause != null) {
-                            archiveRoomState.value = ArchiveRoomState.None
-                            archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
-                            log.error(cause) { "export failed.." }
-                        } else {
-                            if (batchedArchiveResultContent.isNotEmpty()) {
-                                archiveResultProcessor.processResult(batchedArchiveResultContent.joinToString("\n"))
-                                batchedArchiveResultContent.clear()
-                            }
-                            archiveRoomState.value = ArchiveRoomState.Success
-                        }
-                    }
-                    .buffer(capacity = 30, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-                    .transform<Flow<TimelineEvent>, List<String>> { timeLineFlow ->
-                        val timelineEvent = timeLineFlow.first { it.content != null }
-                        val content = selectedSinkFormat.value.transformMessage(timelineEvent)
-                        if (content != null) {
-                            batchedArchiveResultContent.add(content)
-                        }
-                        // Emit the batch if there are any buffered events
-                        if (batchedArchiveResultContent.isNotEmpty() && batchedArchiveResultContent.size == 30) {
-                            emit(batchedArchiveResultContent)
-                            batchedArchiveResultContent.clear()
-                        }
-
-                    }.collect { batchContent ->
-                        archiveResultProcessor.processResult(batchContent.joinToString("\n"))
-                    }
-            } ?: run {
-                log.warn { "Room does not contain any data." }
-                archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
+        val fileBaseArchiveSinkFactory = FileBaseArchiveSinkFactory().create(matrixClient = matrixClient, roomId = selectedRoomId, viewModelContext = viewModelContext, sinkConfig = PlainTextArchiveSinkConfig(null,null))
+        when(fileBaseArchiveSinkFactory){
+            is PlainTextFormat->{
+                fileBaseArchiveSinkFactory.archivePlainText()
             }
         }
+
+
+//        archiveRoomState.value = ArchiveRoomState.Loading
+//        val batchedArchiveResultContent = mutableListOf<String>()
+//        coroutineScope.launch {
+//            val lastEventId = matrixClient.room.getById(selectedRoomId).firstOrNull()?.lastEventId
+//            lastEventId?.let {
+//                matrixClient.room.getTimelineEvents(
+//                    selectedRoomId,
+//                    startFrom = lastEventId,
+//                    config = { decryptionTimeout = 5.seconds })
+//                    .onStart {
+//                        archiveResultProcessor.setupFileNameParameters(
+//                            selectedRoomId,
+//                            selectedSinkFormat.value.formatExtension
+//                        )
+//                        val selectedSinkFormat = selectedSinkFormat.value
+//                        if (selectedSinkFormat is  CSVArchiveFormat){
+//                            selectedSinkFormat.updateColumnNames()
+//                        }
+//                    }
+//                    .onCompletion { cause ->
+//                        if (cause != null) {
+//                            archiveRoomState.value = ArchiveRoomState.None
+//                            archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
+//                            log.error(cause) { "export failed.." }
+//                        } else {
+//                            if (batchedArchiveResultContent.isNotEmpty()) {
+//                                archiveResultProcessor.processResult(batchedArchiveResultContent.joinToString("\n"))
+//                                batchedArchiveResultContent.clear()
+//                            }
+//                            archiveRoomState.value = ArchiveRoomState.Success
+//                        }
+//                    }
+//                    .buffer(capacity = 30, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+//                    .transform<Flow<TimelineEvent>, List<String>> { timeLineFlow ->
+//                        val timelineEvent = timeLineFlow.first { it.content != null }
+//                        val content = selectedSinkFormat.value.transformMessage(timelineEvent)
+//                        if (content != null) {
+//                            batchedArchiveResultContent.add(content)
+//                        }
+//                        // Emit the batch if there are any buffered events
+//                        if (batchedArchiveResultContent.isNotEmpty() && batchedArchiveResultContent.size == 30) {
+//                            emit(batchedArchiveResultContent)
+//                            batchedArchiveResultContent.clear()
+//                        }
+//
+//                    }.collect { batchContent ->
+//                        archiveResultProcessor.processResult(batchContent.joinToString("\n"))
+//                    }
+//            } ?: run {
+//                log.warn { "Room does not contain any data." }
+//                archiveRoomState.value = ArchiveRoomState.Error(i18n.archiveRoomError())
+//            }
+        }
     }
-}
+
+
+//    data class Config(val path: String): ArchiveSinkConfig
+//}
