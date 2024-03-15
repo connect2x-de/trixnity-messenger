@@ -1,10 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.archive
 
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 interface ArchiveSink {
-    val sinkName: String
-    val archiveSinkState: MutableStateFlow<ArchiveSinkState>
+    suspend fun processArchive(archiveStateCallback: (ArchiveSinkState) -> Unit)
+
+    val archiveSinkState: StateFlow<ArchiveSinkState>
 }
 
 sealed interface ArchiveSinkState {

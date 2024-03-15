@@ -8,8 +8,8 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveTextMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveTextMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
@@ -26,7 +26,7 @@ interface ArchiveMessageRouter {
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class ArchiveMessageView(val viewModel: ArchiveTextMessageViewModel) : Wrapper()
+        class ArchiveMessageView(val viewModel: ArchiveSinkViewModel) : Wrapper()
     }
 
     @Serializable
@@ -62,7 +62,7 @@ class ArchiveMessageRouterImpl(
         when (archiveConfig) {
             is Config.None -> Wrapper.None
             is Config.ArchiveMessageConfiguration -> Wrapper.ArchiveMessageView(
-                viewModelContext.get<ArchiveTextMessageViewModelFactory>().create(
+                viewModelContext.get<ArchiveSinkViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     selectedRoomId = roomId,
                     roomName = archiveConfig.roomName,

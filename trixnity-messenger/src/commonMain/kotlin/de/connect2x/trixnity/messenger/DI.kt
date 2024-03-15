@@ -35,7 +35,7 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.archive.archiveRoomModule
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ArchiveTextMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
@@ -129,8 +129,6 @@ import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.singleOf
-import org.koin.dsl.bind
 import org.koin.dsl.module
 
 
@@ -325,7 +323,7 @@ private fun roomSettingsViewModels() = module {
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
-    single<ArchiveTextMessageViewModelFactory> { ArchiveTextMessageViewModelFactory }
+    single<ArchiveSinkViewModelFactory> { ArchiveSinkViewModelFactory }
     single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }

@@ -2,38 +2,30 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.CSVArchiveFormat
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.PlainTextFormat
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.waitForSize
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSink
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkConfig
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkState
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.archive.GetPlainTextArchiveSinkConfig
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
-import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldInclude
-import io.kotest.matchers.string.shouldNotInclude
-import korlibs.io.util.Indenter.Companion.single
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -42,16 +34,15 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
+import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ArchiveTextMessageViewModelTest : ShouldSpec() {
+class ArchiveSinkViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -86,6 +77,13 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
 
     @Mock
     lateinit var userServiceMock: UserService
+
+    @Mock
+    lateinit var archiveSinkFactoryMock: ArchiveSink
+
+
+    private val processArchive = mockFunction1<Unit, ArchiveSinkState>(mocker)
+
 
     init {
         beforeTest {
@@ -128,54 +126,50 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
                         )
                     )
                 )
+                every { processArchive.invoke(isAny()) } returns Unit
+
             }
         }
 
-
-        should("PlainText formatType file should contain .txt extension") {
+        should("Return correct number of supported formats") {
             val cut = archiveTestMessageViewModel()
-
-            val selectedFormat = PlainTextFormat(i18n)
-            cut.selectedSinkFormat.value = selectedFormat
-
-            cut.selectedSinkFormat.value shouldBe selectedFormat
-            cut.selectedSinkFormat.value.formatExtension shouldBe ".txt"
-            cut.selectedSinkFormat.value.formatExtension shouldNotBe ".csv"
+            cut.supportedFormats.size shouldBe 2
         }
 
-
-        should("CSV formatType file should contain .csv extension") {
+        should("Correct format should return sinkState success") {
             val cut = archiveTestMessageViewModel()
 
-            val selectedFormat = CSVArchiveFormat(i18n)
-            cut.selectedSinkFormat.value = selectedFormat
+            cut.selectedSinkFormat.value = GetPlainTextArchiveSinkConfig()
+            cut.selectedSinkFormat.value shouldBe GetPlainTextArchiveSinkConfig()
 
-            cut.supportedFormats.value.size  shouldBe 2
-            cut.selectedSinkFormat.value shouldBe selectedFormat
-            cut.selectedSinkFormat.value.formatExtension shouldNotBe ".txt"
-            cut.selectedSinkFormat.value.formatExtension shouldBe ".csv"
+            cut.archiveRoom(cut.selectedSinkFormat.value)
+            cut.archiveSinkState.value shouldBe ArchiveSinkState.Success
+
         }
 
-
-        should("Return success once archive is success") {
+        should("Wrong format throw illegal argument exception ") {
             val cut = archiveTestMessageViewModel()
-            val selectedFormat = PlainTextFormat(i18n)
-            cut.selectedSinkFormat.value = selectedFormat
-            cut.archiveRoom()
-            cut.selectedSinkFormat.value.formatExtension shouldInclude (".txt")
-            cut.archiveRoomState.value shouldBe ArchiveRoomState.Success
+
+            cut.selectedSinkFormat.value = GetPlainTextArchiveSinkConfig()
+            cut.selectedSinkFormat.value shouldBe GetPlainTextArchiveSinkConfig()
+
+            shouldThrow<IllegalArgumentException> {
+                cut.archiveRoom(FakeConfig())
+            }
         }
     }
 
 
-    private suspend fun archiveTestMessageViewModel(): ArchiveTextMessageViewModel {
+    data class FakeConfig(val name: String = "Fake") : ArchiveSinkConfig
+
+    private suspend fun archiveTestMessageViewModel(): ArchiveSinkViewModel {
         val di = koinApplication {
             modules(createTestDefaultTrixnityMessengerModules())
         }.koin
 
         di.get<I18n>().setCurrentLang(DefaultLanguages.EN)
 
-        return ArchiveTextMessageViewModelImpl(
+        return ArchiveSinkViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
@@ -187,7 +181,36 @@ class ArchiveTextMessageViewModelTest : ShouldSpec() {
                                     "server"
                                 ) to matrixClientMock
                             )
-                        ),
+                        ) + module {
+//                            single<ArchiveSinkFactory> {
+//                                object : ArchiveSinkFactory {
+//                                    override val supportedFormats: List<Pair<String, ArchiveSinkConfig>>
+//                                        get() = listOf(
+//                                            Pair("CSV", GetCSVArchiveSinkConfig()),
+//                                            Pair("Plain/Text", GetPlainTextArchiveSinkConfig())
+//                                        )
+//
+//                                    override fun create(
+//                                        roomId: RoomId,
+//                                        matrixClient: MatrixClient,
+//                                        viewModelContext: ViewModelContext,
+//                                        sinkConfig: ArchiveSinkConfig
+//                                    ): ArchiveSink {
+//                                        return when (sinkConfig) {
+//                                            is GetCSVArchiveSinkConfig -> PlainTexArchiveSink(
+//                                                i18n, matrixClient, roomId, sinkConfig
+//                                            )
+//
+//                                            is GetPlainTextArchiveSinkConfig -> CSVArchiveSink(
+//                                                i18n, matrixClient, roomId, sinkConfig
+//                                            )
+//
+//                                            else -> throw IllegalArgumentException("Unsupported sinkConfig: $sinkConfig")
+//                                        }
+//                                    }
+//                                }
+//                            }
+                        }
                     )
 
                 }.koin,

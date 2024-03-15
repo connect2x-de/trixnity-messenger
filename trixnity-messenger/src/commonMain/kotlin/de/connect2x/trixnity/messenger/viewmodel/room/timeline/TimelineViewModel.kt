@@ -275,12 +275,12 @@ class TimelineViewModelImpl(
         onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
 
-    internal fun showArchiveMessagesDialog(roomName: String) = coroutineScope.launch {
+    private fun showArchiveMessagesDialog(roomName: String) = coroutineScope.launch {
         log.trace { "Opening archive message dialog : $selectedRoomId and roomName: $roomName" }
         archiveMessageRouter.showArchiveMessage(roomName)
     }
 
-    internal fun dismissArchiveMessageDialog() {
+    private fun dismissArchiveMessageDialog() {
         coroutineScope.launch {
             log.trace { "closing archive message dialog : $selectedRoomId" }
             archiveMessageRouter.closeArchiveMessage()
