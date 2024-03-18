@@ -275,7 +275,6 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-
         should("not allow to block user in non-direct rooms or direct rooms with more than 2 participants") {
             val directRoom = MutableStateFlow(listOf(otherUser, UserId("another_dude", "localhost")))
             mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns directRoom

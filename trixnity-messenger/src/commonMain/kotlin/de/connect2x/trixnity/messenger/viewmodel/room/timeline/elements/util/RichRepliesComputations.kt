@@ -120,6 +120,12 @@ class RichRepliesComputationsImpl(
                                 content.fileName ?: content.bodyWithoutFallback
                             )
 
+                            is RoomMessageEventContent.Location -> ReferencedLocationMessage(
+                                sender,
+                                content.geoUri,
+                                content.body
+                            )
+
                             is RoomMessageEventContent.Unknown,
                             is RoomMessageEventContent.VerificationRequest -> ReferencedUnknownMessage(sender)
                         } else ReferencedUnknownMessage(sender)

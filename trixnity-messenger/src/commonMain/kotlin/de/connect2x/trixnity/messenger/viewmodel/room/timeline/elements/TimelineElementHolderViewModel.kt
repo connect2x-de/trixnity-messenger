@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -55,20 +56,9 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.*
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.model.events.m.room.getFormattedBody
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -448,6 +438,24 @@ open class TimelineElementHolderViewModelImpl(
                         )
                     }
 
+                    is Location -> {
+                        log.trace { "Create location message view model: ${event.id}" }
+                        get<LocationMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            timelineEvent = timelineEvent,
+                            content = content,
+                            formattedDate = formatDate(receivedDateTime),
+                            showDateAbove = showDateAbove,
+                            formattedTime = formatTime(receivedDateTime),
+                            isByMe = isByMe,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            showSender = showSender,
+                            sender = sender,
+                            invitation = invitation,
+                        )
+                    }
+
                     is VerificationRequest -> {
                         log.trace { "Create user verification view model: ${event.id}" }
                         get<UserVerificationViewModelFactory>().create(
@@ -508,6 +516,34 @@ open class TimelineElementHolderViewModelImpl(
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
+                )
+            }
+
+            is AvatarEventContent -> {
+                log.trace { "Create avatar change status view model: ${event.id}" }
+                get<RoomAvatarChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
+                )
+            }
+
+            is TopicEventContent -> {
+                log.trace { "Create topic change status view model: ${event.id}" }
+                get<RoomTopicChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
                 )
             }
 
@@ -747,8 +783,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
-            override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
+            override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
+            override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
         }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -843,8 +879,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionedUsersInMessage: Map<String, StateFlow<UserInfoElement>> = mapOf()
-                override val mentionedUsersInFormattedBody: Map<String, StateFlow<UserInfoElement>> = mapOf()
+                override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
+                override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
             }
         }
     }

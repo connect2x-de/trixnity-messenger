@@ -179,6 +179,23 @@ open class OutboxElementHolderViewModelImpl(
                         )
                     }
 
+                    is Location -> {
+                        get<LocationMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
+                            formattedDate = "",
+                            showDateAbove = showDateAbove,
+                            formattedTime = null,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            showSender = MutableStateFlow(false),
+                            sender = MutableStateFlow(UserInfoElement("")),
+                            invitation = MutableStateFlow(null),
+                        )
+                    }
+
                     is Unknown,
                     is VerificationRequest -> createNullTimelineElementViewModel()
                 } else createNullTimelineElementViewModel()

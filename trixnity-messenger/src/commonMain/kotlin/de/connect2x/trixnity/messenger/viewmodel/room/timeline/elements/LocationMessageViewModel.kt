@@ -2,21 +2,24 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionsStateFlow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.component.get
 
-interface FallbackMessageViewModelFactory {
+interface LocationMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         timelineEvent: TimelineEvent?,
-        content: RoomMessageEventContent.Unknown,
+        content: RoomMessageEventContent.Location,
         formattedDate: String,
         showDateAbove: Boolean,
         formattedTime: String?,
@@ -25,14 +28,9 @@ interface FallbackMessageViewModelFactory {
         showBigGap: Boolean,
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
-        fallbackMessage: String,
-        referencedMessage: Flow<ReferencedMessage?>,
-        message: String,
-        formattedBody: String?,
         invitation: Flow<String?>,
-        roomId: RoomId,
-    ): FallbackMessageViewModel {
-        return FallbackMessageViewModelImpl(
+    ): LocationMessageViewModel {
+        return LocationMessageViewModelImpl(
             viewModelContext,
             timelineEvent,
             content,
@@ -44,24 +42,22 @@ interface FallbackMessageViewModelFactory {
             showBigGap,
             showSender,
             sender,
-            fallbackMessage,
-            referencedMessage,
-            message,
-            formattedBody,
             invitation,
-            roomId,
         )
     }
 
-    companion object : FallbackMessageViewModelFactory
+    companion object : LocationMessageViewModelFactory
 }
 
-interface FallbackMessageViewModel : TextBasedViewModel
+interface LocationMessageViewModel : RoomMessageViewModel {
+    val geoUri: String
+    val name: String
+}
 
-open class FallbackMessageViewModelImpl(
+class LocationMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     timelineEvent: TimelineEvent?,
-    content: RoomMessageEventContent.Unknown,
+    content: RoomMessageEventContent.Location,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -70,29 +66,15 @@ open class FallbackMessageViewModelImpl(
     override val showBigGap: Boolean,
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
-    override val fallbackMessage: String,
-    referencedMessage: Flow<ReferencedMessage?>,
-    override val message: String,
-    override val formattedBody: String?,
     invitation: Flow<String?>,
-    roomId: RoomId,
-) : FallbackMessageViewModel, MatrixClientViewModelContext by viewModelContext {
+) : LocationMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
         sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
-    override val referencedMessage: StateFlow<ReferencedMessage?> =
-        referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<Mention>> =
-        mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? =
-        formattedBody?.let {
-            mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
-        }
 
-    override fun toString(): String {
-        return fallbackMessage
-    }
+    override val geoUri = content.geoUri
+    override val name = content.body
 }
