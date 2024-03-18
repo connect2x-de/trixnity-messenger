@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
@@ -11,12 +12,35 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import net.folivo.trixnity.client.*
+import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.flattenValues
+import net.folivo.trixnity.client.media
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
+import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
@@ -78,6 +102,11 @@ interface RoomListViewModel {
 
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
+    /**
+     * Whether the UI should show means of closing the current profile.
+     */
+    val closeProfileNeeded: StateFlow<Boolean>
+
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
     fun selectRoom(roomId: RoomId)
@@ -85,6 +114,10 @@ interface RoomListViewModel {
     fun errorDismiss()
     fun sendLogs()
     fun openAccountsOverview()
+    /**
+     * Close the current profile to allow other users (tenants) to use the app without exposing personal data.
+     */
+    fun closeProfile()
 }
 
 data class RoomListElement(
@@ -107,6 +140,7 @@ class RoomListViewModelImpl(
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    private val profileManager = get<ProfileManager>()
 
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val error = _error.asStateFlow()
@@ -480,6 +514,16 @@ class RoomListViewModelImpl(
         }
     }
 
+    override val closeProfileNeeded: StateFlow<Boolean> = profileManager.profiles.map { it.size > 1 }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), profileManager.profiles.value.size > 1)
+
+    override fun closeProfile() {
+        log.debug { "close profile" }
+        coroutineScope.launch {
+            profileManager.closeProfile()
+        }
+    }
+
     override fun errorDismiss() {
         _error.value = null
         errorSelectedRoom.value = null
@@ -520,6 +564,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val closeProfileNeeded: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun createNewRoom() {
     }
@@ -540,5 +585,8 @@ class PreviewRoomListViewModel : RoomListViewModel {
     }
 
     override fun openAccountsOverview() {
+    }
+
+    override fun closeProfile() {
     }
 }
