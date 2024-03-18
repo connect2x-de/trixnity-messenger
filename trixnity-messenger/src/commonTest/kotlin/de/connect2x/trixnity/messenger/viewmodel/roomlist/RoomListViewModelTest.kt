@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.assertions.throwables.shouldThrow
@@ -94,6 +95,9 @@ class RoomListViewModelTest : ShouldSpec() {
 
     @Mock
     lateinit var roomNameMock: RoomName
+
+    @Mock
+    lateinit var profileManagerMock: ProfileManager
 
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
 
@@ -254,6 +258,9 @@ class RoomListViewModelTest : ShouldSpec() {
                                 )
                             )
                         )
+
+                every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
+                everySuspending { profileManagerMock.closeProfile() } returns Unit
             }
         }
 
@@ -1326,6 +1333,7 @@ class RoomListViewModelTest : ShouldSpec() {
             modules(
                 createTestDefaultTrixnityMessengerModules(matrixClients) + module {
                     single { roomNameMock }
+                    single { profileManagerMock }
                     single<AccountViewModelFactory> {
                         object : AccountViewModelFactory {
                             override fun create(

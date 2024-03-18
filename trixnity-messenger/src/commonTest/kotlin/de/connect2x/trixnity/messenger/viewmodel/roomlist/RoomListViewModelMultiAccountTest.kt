@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
@@ -105,6 +106,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
 
     @Mock
     lateinit var roomNameMock: RoomName
+
+    @Mock
+    lateinit var profileManagerMock: ProfileManager
 
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
 
@@ -408,6 +412,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                         stateKey = "",
                     )
                 )
+
+                every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
+                everySuspending { profileManagerMock.closeProfile() } returns Unit
             }
         }
 
@@ -971,6 +978,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 createTestDefaultTrixnityMessengerModules(matrixClients) +
                         module {
                             single { roomNameMock }
+                            single { profileManagerMock }
                             single<AccountViewModelFactory> {
                                 object : AccountViewModelFactory {
                                     override fun create(
