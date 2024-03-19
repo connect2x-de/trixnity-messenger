@@ -1,4 +1,5 @@
 @file:JsModule("@zip.js/zip.js")
+@file:JsNonModule
 
 package externals.jszip
 
