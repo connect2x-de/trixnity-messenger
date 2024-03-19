@@ -727,6 +727,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $attachmentMaxSizeInMegaByte MB."
     }
 
+    fun profileCreationDuplicate() = translate {
+        EN - "The profile name is already in use."
+        DE - "Dieser Profilname wird bereits benutzt."
+    }
+
     fun exportRoomStateInit(total: Long) = translate {
         EN - "The export is being prepared. $total room events have already been found."
         DE - "Der Export wird vorbereitet. Es wurden bereits $total Raum-Ereignisse gefunden."

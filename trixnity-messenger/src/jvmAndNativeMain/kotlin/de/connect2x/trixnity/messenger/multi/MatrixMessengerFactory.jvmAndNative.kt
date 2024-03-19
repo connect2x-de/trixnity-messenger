@@ -8,6 +8,7 @@ import org.koin.dsl.module
 actual fun platformMatrixMessengerFactory(): Module = module {
     single<MatrixMessengerFactory> {
         val configuration = get<MatrixMultiMessengerConfiguration>().messengerWithBase
+        val copyMultiMessengerSingletons = get<CopyMultiMessengerSingletons>()
         val rootPath = get<RootPath>().path
         MatrixMessengerFactory { profileId ->
             MatrixMessengerImpl {
@@ -16,7 +17,7 @@ actual fun platformMatrixMessengerFactory(): Module = module {
                     single<RootPath> {
                         RootPath(rootPath.resolve(profileId))
                     }
-                    copyMultiMessengerSingletons(this@single)
+                    copyMultiMessengerSingletons.copy(from = this@single, to = this)
                 }
             }
         }

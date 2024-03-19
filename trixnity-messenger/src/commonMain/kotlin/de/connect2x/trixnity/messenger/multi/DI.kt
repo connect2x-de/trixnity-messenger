@@ -10,6 +10,7 @@ fun createDefaultTrixnityMultiMessengerModules() = listOf(
         single<ProfileManager> {
             ProfileManagerImpl(get(), get(), get())
         }
+        single<CopyMultiMessengerSingletons> { CopyMultiMessengerSingletonsImpl() }
     },
     commonPlatformModule(),
     platformMatrixMultiMessengerSettingsHolderModule(),
