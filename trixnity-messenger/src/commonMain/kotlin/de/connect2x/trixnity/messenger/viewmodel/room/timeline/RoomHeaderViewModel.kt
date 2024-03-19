@@ -282,7 +282,7 @@ open class RoomHeaderViewModelImpl(
 
     override fun archiveMessages() {
         coroutineScope.launch {
-            val roomName = roomHeaderInfo.firstOrNull()?.roomName?: ""
+            val roomName = roomHeaderInfo.firstOrNull()?.roomName ?: selectedRoomId.full
             onArchiveMessageClick(roomName)
         }
     }
