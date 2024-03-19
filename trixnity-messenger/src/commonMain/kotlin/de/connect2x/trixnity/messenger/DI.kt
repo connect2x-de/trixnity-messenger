@@ -51,10 +51,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentVie
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
@@ -292,6 +295,8 @@ private fun timelineElementsViewModels() = module {
     single<RoomNameChangeStatusViewModelFactory> { RoomNameChangeStatusViewModelFactory }
     single<RoomTopicChangeStatusViewModelFactory> { RoomTopicChangeStatusViewModelFactory }
     single<TextMessageViewModelFactory> { TextMessageViewModelFactory }
+    single<EmoteMessageViewModelFactory> { EmoteMessageViewModelFactory }
+    single<LocationMessageViewModelFactory> { LocationMessageViewModelFactory }
     single<NoticeMessageViewModelFactory> { NoticeMessageViewModelFactory }
     single<FallbackMessageViewModelFactory> { FallbackMessageViewModelFactory }
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }

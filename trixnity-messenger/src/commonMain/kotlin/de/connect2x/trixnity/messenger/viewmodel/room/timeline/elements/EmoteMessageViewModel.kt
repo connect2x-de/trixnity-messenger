@@ -53,7 +53,7 @@ interface EmoteMessageViewModelFactory {
         )
     }
 
-    companion object : FallbackMessageViewModelFactory
+    companion object : EmoteMessageViewModelFactory
 }
 
 interface EmoteMessageViewModel : TextBasedViewModel

@@ -2,18 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
-import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.koin.core.component.get
 
 interface LocationMessageViewModelFactory {
     fun create(
