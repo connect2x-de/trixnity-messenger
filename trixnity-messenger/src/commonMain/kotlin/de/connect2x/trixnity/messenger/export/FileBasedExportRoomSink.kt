@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Clock
@@ -14,8 +13,10 @@ import okio.ByteString.Companion.toByteString
 
 private val log = KotlinLogging.logger { }
 
+expect class Destination
+
 interface FileBasedExportRoomProperties : ExportRoomSinkProperties {
-    val destination: FileDescriptor
+    val destination: Destination
 }
 
 class FileBasedExportRoomSinkFactory(
@@ -38,7 +39,7 @@ class FileBasedExportRoomSinkFactory(
             )
         val fileName = "${currentTimeStamp}_${roomIdAsUnPaddedBase64}.${converter.extension}"
 
-        val writer = writerFactory.create(roomId, properties.destination, fileName)
+        val writer = writerFactory.create(properties.destination, fileName)
         return FileBasedExportRoomSinkBase(
             converter = converter,
             writer = writer,
@@ -51,12 +52,13 @@ class FileBasedExportRoomSinkBase(
     private val writer: FileBasedExportRoomSinkWriter,
 ) : ExportRoomSink {
     override suspend fun start(): Result<Unit> = kotlin.runCatching {
-        writer.createFilesAndDirectories()
+        writer.start()
         converter.prefix()?.let { writer.addContent(it) }
     }
 
     override suspend fun finish(): Result<Unit> = kotlin.runCatching {
         converter.suffix()?.let { writer.addContent(it) }
+        writer.finish()
     }
 
     override suspend fun processTimelineEvent(

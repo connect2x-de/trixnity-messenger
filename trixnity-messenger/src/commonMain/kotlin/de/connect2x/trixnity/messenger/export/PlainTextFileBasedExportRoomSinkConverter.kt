@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -11,7 +10,7 @@ import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.RoomId
 
 data class PlainTextFileBasedExportRoomProperties(
-    override val destination: FileDescriptor
+    override val destination: Destination
 ) : FileBasedExportRoomProperties
 
 class PlainTextFileBasedExportRoomSinkConverterFactory(
@@ -38,6 +37,6 @@ class PlainTextFileBasedExportRoomSinkConverter(
         return """
             $instant $sender:
             $content
-        """.trimIndent()
+        """.trimIndent() + "\r\n"
     }
 }

@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.originTimestamp
@@ -8,7 +7,7 @@ import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.RoomId
 
 data class CSVFileBasedExportRoomProperties(
-    override val destination: FileDescriptor,
+    override val destination: Destination,
     val csvDateHeader: String = "date",
     val csvSenderHeader: String = "sender",
     val csvContentHeader: String = "content",
@@ -46,5 +45,6 @@ class CSVFileBasedExportRoomSinkConverter(
     }
 
     private fun List<String>.asCsvLine() =
-        joinToString(separator = properties.delimiter) { "\"" + it.replace("\"", "\"\"") + "\"" }
+        joinToString(separator = properties.delimiter) { "\"" + it.replace("\"", "\"\"") + "\"" } +
+                "\r\n"
 }

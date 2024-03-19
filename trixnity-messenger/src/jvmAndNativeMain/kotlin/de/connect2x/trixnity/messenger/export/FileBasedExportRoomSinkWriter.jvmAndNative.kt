@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.util.FileDescriptor
-import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.writeTo
 import okio.FileSystem
@@ -13,24 +11,22 @@ actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
     single {
         object : FileBasedExportRoomSinkWriterFactory {
             override fun create(
-                roomId: RoomId,
-                destination: FileDescriptor,
+                destination: Destination,
                 fileName: String
             ): FileBasedExportRoomSinkWriter =
-                OkioFileBasedExportRoomSinkWriter(roomId, destination, fileName, get())
+                OkioFileBasedExportRoomSinkWriter(destination, fileName, get())
         }
     }
 }
 
 class OkioFileBasedExportRoomSinkWriter(
-    roomId: RoomId,
-    private val destination: FileDescriptor,
+    private val destination: Destination,
     fileName: String,
     private val fileSystem: FileSystem,
 ) : FileBasedExportRoomSinkWriter {
     private val filePath = destination.resolve(fileName)
     private val mediaPath = destination.resolve("media")
-    override suspend fun createFilesAndDirectories() {
+    override suspend fun start() {
         fileSystem.createDirectory(destination)
         fileSystem.createDirectory(mediaPath)
     }

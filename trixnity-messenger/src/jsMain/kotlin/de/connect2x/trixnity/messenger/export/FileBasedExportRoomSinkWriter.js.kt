@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.util.FileDescriptor
-import net.folivo.trixnity.core.model.RoomId
+import externals.jszip.ZipWriterStream
+import js.promise.await
+import js.typedarrays.Uint8Array
 import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.utils.write
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -10,31 +12,37 @@ actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
     single {
         object : FileBasedExportRoomSinkWriterFactory {
             override fun create(
-                roomId: RoomId,
-                destination: FileDescriptor,
+                destination: Destination,
                 fileName: String
             ): FileBasedExportRoomSinkWriter =
-                WebZipFileBasedExportRoomSinkWriter(roomId, destination, fileName)
+                WebZipFileBasedExportRoomSinkWriter(destination, fileName)
         }
     }
 }
 
-// FIXME include https://github.com/gildas-lormeau/zip.js?
 class WebZipFileBasedExportRoomSinkWriter(
-    roomId: RoomId,
-    destination: FileDescriptor,
+    destination: Destination,
     fileName: String,
 ) : FileBasedExportRoomSinkWriter {
-    override suspend fun createFilesAndDirectories() {
-
-    }
+    private val zipper = ZipWriterStream()
+    private val fileStream = zipper.writable<String>(fileName)
+    private val fileStreamWriter = fileStream.getWriter()
+    private val pipeToDestination = zipper.readable.pipeTo(destination.stream)
 
     override suspend fun addContent(content: String) {
-
+        fileStreamWriter.write(content).await()
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
+        val mediaStream = zipper.writable<Uint8Array>("media/$filename")
+        mediaStream.write(content)
+        mediaStream.close().await()
+    }
 
+    override suspend fun finish() {
+        fileStream.close().await()
+        zipper.close().await()
+        pipeToDestination.await()
     }
 }
 
