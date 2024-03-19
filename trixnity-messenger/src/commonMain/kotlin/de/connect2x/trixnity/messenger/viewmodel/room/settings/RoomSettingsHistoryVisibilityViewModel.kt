@@ -6,15 +6,18 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -67,9 +70,9 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
         log.debug { "changeRoomHistoryVisibility for $selectedRoomId to $newVisibility" }
         if (canChangeRoomHistoryVisibility.value) {
             if (availableRoomHistoryVisibilityLevels.value.any { it == newVisibility }) {
-                viewModelContext.coroutineScope.launch {
+                coroutineScope.launch {
                     isHistoryVisibilityChanging.value = true
-                    viewModelContext.matrixClient.api.room.sendStateEvent(
+                    matrixClient.api.room.sendStateEvent(
                         selectedRoomId,
                         HistoryVisibilityEventContent(newVisibility),
                         stateKey = ""
@@ -78,20 +81,27 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
                         .onFailure {
                             log.error(it) { "Failed to change room history visibility: ${it.message}" }
                             error.value = i18n.settingsRoomHistoryVisibilityChangeError()
+                            isHistoryVisibilityChanging.value = false
                         }
                         .onSuccess {
                             error.value = null
+                            withTimeoutOrNull(5.seconds) {
+                                matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
+                                    .first { it?.content?.historyVisibility == newVisibility }
+                            }
+                            isHistoryVisibilityChanging.value = false
                         }
                 }
             } else {
                 log.error { "new visibility $newVisibility could not be set, since the available visibility levels are ${availableRoomHistoryVisibilityLevels.value}" }
                 error.value = i18n.settingsRoomHistoryVisibilityChangeError()
+                isHistoryVisibilityChanging.value = false
             }
         } else {
             log.error { "Insufficient power level to change room history visibility" }
             error.value = i18n.settingsRoomHistoryVisibilityInsufficientPowerLevel()
+            isHistoryVisibilityChanging.value = false
         }
-        isHistoryVisibilityChanging.value = false
     }
 }
 
