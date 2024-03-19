@@ -8,14 +8,14 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.export.ExportRoomViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.export.ExportRoomViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ArchiveMessageRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ArchiveMessageRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ArchiveMessageRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ArchiveMessageRouter.Config
 
 private val log = KotlinLogging.logger {}
 
@@ -26,7 +26,7 @@ interface ArchiveMessageRouter {
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class ArchiveMessageView(val viewModel: ArchiveSinkViewModel) : Wrapper()
+        class ArchiveMessageView(val viewModel: ExportRoomViewModel) : Wrapper()
     }
 
     @Serializable
@@ -48,12 +48,12 @@ class ArchiveMessageRouterImpl(
     private val archiveMessageNavigation = StackNavigation<Config>()
 
     override val stack = viewModelContext.childStack(
-            source = archiveMessageNavigation,
-            serializer = Config.serializer(),
-            initialConfiguration = Config.None,
-            key = "archiveMessageRouter",
-            childFactory = ::createSettingsChild,
-        )
+        source = archiveMessageNavigation,
+        serializer = Config.serializer(),
+        initialConfiguration = Config.None,
+        key = "archiveMessageRouter",
+        childFactory = ::createSettingsChild,
+    )
 
     private fun createSettingsChild(
         archiveConfig: Config,
@@ -62,9 +62,9 @@ class ArchiveMessageRouterImpl(
         when (archiveConfig) {
             is Config.None -> Wrapper.None
             is Config.ArchiveMessageConfiguration -> Wrapper.ArchiveMessageView(
-                viewModelContext.get<ArchiveSinkViewModelFactory>().create(
+                viewModelContext.get<ExportRoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    selectedRoomId = roomId,
+                    roomId = roomId,
                     roomName = archiveConfig.roomName,
                     onArchiveMessageDialogDismiss = onArchiveMessageDialogDismiss
                 ),

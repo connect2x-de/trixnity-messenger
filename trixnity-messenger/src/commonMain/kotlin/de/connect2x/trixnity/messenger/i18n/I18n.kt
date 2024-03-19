@@ -6,6 +6,8 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.core.model.RoomAliasId
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
@@ -725,43 +727,150 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $attachmentMaxSizeInMegaByte MB."
     }
 
-    fun archiveRoomThresholdSelectionError() = translate {
-        EN - "Please enter valid number for specified messages, and should be greater than 0."
-        DE - "Bitte geben Sie eine gültige Zahl für die angegebenen Nachrichten ein, die größer als 0 sein sollte."
-    }
-    fun archiveRoomError() = translate {
-        EN - "Unable to archive room, please try again later!"
-        DE - "Der Raum kann nicht archiviert werden, bitte versuchen Sie es später noch einmal!"
+    fun exportRoomStateInit(total: Long) = translate {
+        EN - "The export is being prepared. $total room events have already been found."
+        DE - "Der Export wird vorbereitet. Es wurden bereits $total Raum-Ereignisse gefunden."
     }
 
-    fun textPlainFormat() = translate {
-        EN - "Text/Plain"
-        DE - "Text/einfach"
+    fun exportRoomStateProcessed(processed: Long, total: Long) = translate {
+        EN - "The export is being executed. $processed out of $total room events have already been processed."
+        DE - "Der Export wird durchgeführt. Es wurden bereits $processed von $total Raum-Ereignisse verarbeitet."
     }
 
-    fun csvFormat() = translate {
-        EN - "CSV"
-        DE - "CSV"
+    fun exportRoomStateFinished(total: Long) = translate {
+        EN - "The export was successful. $total room events were processed."
+        DE - "Der Export war erfolgreich. Es wurden $total Raum-Ereignisse verarbeitet."
     }
 
-    fun csvFormatDateHeading() = translate {
-        EN - "Date"
-        DE - "Datum"
+    fun exportRoomErrorRoomNotFound() = translate {
+        EN - "The room does not exist."
+        DE - "Der Raum existiert nicht."
     }
 
-    fun csvFormatTimeHeading() = translate {
-        EN - "Time"
-        DE - "Zeit"
+    fun exportRoomErrorPropertiesNotSupported() = translate {
+        EN - "The export properties are not supported."
+        DE - "Die Export-Eigenschaften werden nicht unterstützt."
     }
 
-    fun csvFormatSenderHeading() = translate {
-        EN - "Sender"
-        DE - "Absender"
+    fun exportRoomErrorSink(message: String) = translate {
+        EN - "There was an error during export: $message"
+        DE - "Es gab einen Fehler beim Export: $message"
     }
 
-    fun csvFormatMessageHeading() = translate {
-        EN - "Message"
-        DE - "Nachricht"
+    fun exportRoomSuccessWithMissingMedia() = translate {
+        EN - "The export was successful, but not all media could be downloaded"
+        DE - "Der export war erfolgreich, dennoch konnten nicht alle Medien nicht heruntergeladen werden."
+    }
+
+    fun exportRoomEmote(message: String) = translate {
+        EN - "* $message"
+        DE - "* $message"
+    }
+
+    fun exportRoomNotice(message: String) = translate {
+        EN - "// $message"
+        DE - "// $message"
+    }
+
+    fun exportRoomImage(fileName: String) = translate {
+        EN - "image: $fileName"
+        DE - "Bild: $fileName"
+    }
+
+    fun exportRoomAudio(fileName: String) = translate {
+        EN - "audio: $fileName"
+        DE - "Audio: $fileName"
+    }
+
+    fun exportRoomVideo(fileName: String) = translate {
+        EN - "video: $fileName"
+        DE - "Video: $fileName"
+    }
+
+    fun exportRoomFile(fileName: String) = translate {
+        EN - "file: $fileName"
+        DE - "Datei: $fileName"
+    }
+
+    fun exportRoomLocation(name: String, uri: String) = translate {
+        EN - "location: $name $uri"
+        DE - "Ort: $name $uri"
+    }
+
+    fun exportRoomState(message: String) = translate {
+        EN - "state change: $message"
+        DE - "Zustandsänderung: $message"
+    }
+
+    fun exportRoomAvatar(url: String?) = translate {
+        EN - "room avatar has been changed to $url"
+        DE - "Raumbild wurde zu $url geändert"
+    }
+
+    fun exportRoomCanonicalAlias(aliases: List<RoomAliasId>) = translate {
+        EN - "room aliases has been changed to $aliases"
+        DE - "Raumaliase wurden zu $aliases geändert"
+    }
+
+    fun exportRoomCreate(federate: Boolean, roomType: String?) = translate {
+        EN - "room has been created (federation=$federate, type=$roomType)"
+        DE - "Raum wurde erstellt (Föderation=$federate, Typ=$roomType)"
+    }
+
+    fun exportRoomJoinRule(joinRule: String) = translate {
+        EN - "join rule has been changed to $joinRule"
+        DE - "Beitrittsregel wurde zu $joinRule geändert"
+    }
+
+    fun exportRoomMember(
+        userId: String?,
+        membership: String,
+        displayName: String?,
+        avatarUrl: String?,
+        reason: String?
+    ) = translate {
+        EN - "changes of the member properties of $userId (membership=$membership, displayname=$displayName, avatar=$avatarUrl, reason=$reason)"
+        DE - "Änderungen der Mitgliedseigenschaften von $userId (Mitgliedschaft=$membership, Anzeigename=$displayName, Anzeigebild=$avatarUrl, Grund=$reason)"
+    }
+
+    fun exportRoomName(name: String) = translate {
+        EN - "room name has been changed to \"$name\""
+        DE - "Raumname wurde zu \"$name\" geändert"
+    }
+
+    fun exportRoomTopic(name: String) = translate {
+        EN - "room name has been changed to \"$name\""
+        DE - "Raumname wurde zu \"$name\" geändert"
+    }
+
+    fun exportRoomEncryption() = translate {
+        EN - "room encryption has been enabled"
+        DE - "Raumverschlüsselung wurde aktiviert"
+    }
+
+    fun exportRoomHistoryVisibility(historyVisibility: String) = translate {
+        EN - "history visibility has been changed to $historyVisibility"
+        DE - "Sichtbarkeit wurde zu $historyVisibility geändert"
+    }
+
+    fun exportRoomGuestAccess(access: String) = translate {
+        EN - "guest access has been changed to $access"
+        DE - "Gastbeitritt wurde zu $access geändert"
+    }
+
+    fun exportRoomTombstone(body: String, roomId: RoomId) = translate {
+        EN - "room has been replaced by new room $roomId: $body"
+        DE - "Raum wurde durch den neuen Raum $roomId ersetzt: $body"
+    }
+
+    fun exportRoomRedacted() = translate {
+        EN - "* message has been deleted"
+        DE - "* Nachricht wurde gelöscht"
+    }
+
+    fun exportRoomDecryptionError() = translate {
+        EN - "* message cannot be decrypted"
+        DE - "* Nachricht wurde gelöscht"
     }
 }
 

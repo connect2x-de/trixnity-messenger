@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
+import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
+import de.connect2x.trixnity.messenger.export.exportModule
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
@@ -33,9 +36,8 @@ import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.archiveRoomModule
+import de.connect2x.trixnity.messenger.viewmodel.room.export.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.archive.ArchiveSinkViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
@@ -89,8 +91,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSetting
 import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
@@ -178,6 +180,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
             MatrixClientsImpl(get(), get(), get(), get(), get())
         }
 
+        single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
         single<Initials> { Initials }
         single<VerifyAccount> { VerifyAccountImpl() }
         single<RelevantTimelineEvents> { RelevantTimelineEvents }
@@ -213,8 +216,8 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     timelineViewModels(),
     verificationViewModels(),
     roomViewModels(),
-    archiveRoomModule(),
     roomSettingsViewModels(),
+    exportModule(),
     // platform-specific implementations
     commonPlatformModule(),
     platformCreateRepositoriesModuleModule(),
@@ -323,7 +326,7 @@ private fun roomSettingsViewModels() = module {
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
-    single<ArchiveSinkViewModelFactory> { ArchiveSinkViewModelFactory }
+    single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }

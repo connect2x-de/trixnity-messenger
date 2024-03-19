@@ -233,6 +233,31 @@ val urlHandler = matrixMessenger.defaultUrlHandler // helper extension
 // call functions on urlHandler depending on the platform (only on Android, iOS, JVM)
 ```
 
+## Export room
+
+When exporting a room (via view model or `ExportRoom`), a properties instance needs to be defined.
+Currently, the following types do exist by default:
+
+- `PlainTextFileBasedExportRoomProperties`
+- `CSVFileBasedExportRoomProperties`
+
+### Custom file format (converter)
+
+The `FileBasedRoomExportRoomSink` can be extended by other file formats. This need three steps:
+
+1. Define properties inheriting from `FileBasedExportRoomProperties`.
+2. Implement an instance of `FileBasedExportRoomConverter`
+3. Define a factory extending `FileBasedExportRoomSinkConverterFactory` and put this into the DI
+   (e.g. via `singleOf(::CustomFactory).bind<FileBasedExportRoomSinkConverterFactory>()`).
+
+For more details take a look at existing `FileBasedExportRoomSinkConverter` like `CSVFileBasedExportRoomSinkConverter`.
+
+### Custom export
+
+It is possible to define a completely custom `RoomExportSink` to export a room to other targets then files. For example
+a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put into the DI
+(e.g. via `singleOf(::CustomFactory).bind<ExportRoomSinkFactory>()`).
+
 ## Usage from Swift (iOS or Mac)
 
 Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac applications.

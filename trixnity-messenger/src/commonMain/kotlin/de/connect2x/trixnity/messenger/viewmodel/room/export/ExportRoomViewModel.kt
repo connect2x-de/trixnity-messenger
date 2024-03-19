@@ -1,0 +1,143 @@
+package de.connect2x.trixnity.messenger.viewmodel.room.export
+
+import de.connect2x.trixnity.messenger.export.ExportRoom
+import de.connect2x.trixnity.messenger.export.ExportRoomProgress
+import de.connect2x.trixnity.messenger.export.ExportRoomRangeEndCondition
+import de.connect2x.trixnity.messenger.export.ExportRoomRangeStartCondition
+import de.connect2x.trixnity.messenger.export.ExportRoomResult
+import de.connect2x.trixnity.messenger.export.ExportRoomSinkProperties
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.core.model.RoomId
+import org.koin.core.component.inject
+
+private val log = KotlinLogging.logger { }
+
+interface ExportRoomViewModelFactory {
+    fun create(
+        viewModelContext: MatrixClientViewModelContext,
+        roomId: RoomId,
+        roomName: String,
+        onArchiveMessageDialogDismiss: () -> Unit,
+    ): ExportRoomViewModel =
+        ExportRoomViewModelImpl(
+            viewModelContext = viewModelContext,
+            roomId = roomId,
+            roomName = roomName,
+            onArchiveMessageDialogDismiss = onArchiveMessageDialogDismiss,
+        )
+
+    companion object : ExportRoomViewModelFactory
+}
+
+interface ExportRoomViewModel {
+    val roomName: String
+    val properties: MutableStateFlow<ExportRoomSinkProperties?>
+    val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?>
+    val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?>
+
+    val progress: StateFlow<ExportRoomProgress>
+    val progressString: StateFlow<String?>
+    val error: StateFlow<String?>
+    val errorMissingMedia: StateFlow<List<ExportRoomResult.SuccessWithMissingMedia.MissingMedia>?>
+
+    val canExport: StateFlow<Boolean>
+    val isExporting: StateFlow<Boolean>
+
+    fun start()
+    fun abort()
+    fun dismissArchiveDialog()
+}
+
+class ExportRoomViewModelImpl(
+    private val viewModelContext: MatrixClientViewModelContext,
+    private val roomId: RoomId,
+    override val roomName: String,
+    private val onArchiveMessageDialogDismiss: () -> Unit,
+) : MatrixClientViewModelContext by viewModelContext, ExportRoomViewModel {
+
+    private val exportRoom by inject<ExportRoom>()
+    private val i18n by inject<I18n>()
+
+    private val job: MutableStateFlow<Job?> = MutableStateFlow(null)
+    override val properties: MutableStateFlow<ExportRoomSinkProperties?> = MutableStateFlow(null)
+    override val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?> = MutableStateFlow(null)
+    override val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?> = MutableStateFlow(null)
+
+    override val canExport: StateFlow<Boolean> =
+        combine(properties, job) { properties, job -> properties != null && job != null }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val isExporting: StateFlow<Boolean> =
+        job.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress())
+    override val progressString: StateFlow<String?> = progress
+        .map { (processed, total) ->
+            when {
+                total == null -> null
+                processed == null -> i18n.exportRoomStateInit(total)
+                processed == total -> i18n.exportRoomStateFinished(total)
+                else -> i18n.exportRoomStateProcessed(processed, total)
+            }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val errorMissingMedia: MutableStateFlow<List<ExportRoomResult.SuccessWithMissingMedia.MissingMedia>?> =
+        MutableStateFlow(null)
+
+    override fun start() {
+        val properties = properties.value
+        if (job.value != null && properties != null) {
+            error.value = null
+            errorMissingMedia.value = null
+            job.value = coroutineScope.launch {
+                val result = exportRoom(
+                    roomId = roomId,
+                    properties = properties,
+                    rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.first(),
+                    rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.last(),
+                    matrixClient = matrixClient,
+                    progress = progress
+                )
+                error.value = when (result) {
+                    ExportRoomResult.RoomNotFound -> {
+                        log.error { "room $roomId not found" }
+                        i18n.exportRoomErrorRoomNotFound()
+                    }
+
+                    is ExportRoomResult.PropertiesNotSupported -> {
+                        log.error { "there is no sink registered in the DI, that supports properties ${properties::class.simpleName}" }
+                        i18n.exportRoomErrorPropertiesNotSupported()
+                    }
+
+                    is ExportRoomResult.SinkError -> i18n.exportRoomErrorSink(result.throwable.message ?: "unknown")
+                    is ExportRoomResult.SuccessWithMissingMedia -> i18n.exportRoomSuccessWithMissingMedia()
+                    ExportRoomResult.Success -> null
+                }
+                errorMissingMedia.value =
+                    if (result is ExportRoomResult.SuccessWithMissingMedia) result.missingMedia
+                    else null
+                job.value = null
+            }
+        }
+    }
+
+    override fun abort() {
+        job.value?.cancel()
+        job.value = null
+    }
+
+    override fun dismissArchiveDialog() {
+        abort()
+        onArchiveMessageDialogDismiss()
+    }
+}
