@@ -52,7 +52,7 @@ class ProfileCreationViewModelImpl(
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val canCreateProfile: StateFlow<Boolean> = error.map { it == null }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, true) // used in createProfile()
 
     override fun createProfile() {
         if (canCreateProfile.value) {

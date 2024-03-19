@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
@@ -102,10 +103,11 @@ interface RoomListViewModel {
 
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
+
     /**
      * Whether the UI should show means of closing the current profile.
      */
-    val closeProfileNeeded: StateFlow<Boolean>
+    val closeProfileNeeded: Boolean
 
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
@@ -114,6 +116,7 @@ interface RoomListViewModel {
     fun errorDismiss()
     fun sendLogs()
     fun openAccountsOverview()
+
     /**
      * Close the current profile to allow other users (tenants) to use the app without exposing personal data.
      */
@@ -140,7 +143,7 @@ class RoomListViewModelImpl(
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
-    private val profileManager = get<ProfileManager>()
+    private val profileManager = getOrNull<ProfileManager>()
 
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val error = _error.asStateFlow()
@@ -500,7 +503,9 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val isInRoom = matrixClient.room.getById(roomId).map { it?.membership == Membership.JOIN && it.roomId == roomId }.first()
+            val isInRoom =
+                matrixClient.room.getById(roomId).map { it?.membership == Membership.JOIN && it.roomId == roomId }
+                    .first()
 
             log.debug { "switch to room $roomId" }
 
@@ -508,19 +513,18 @@ class RoomListViewModelImpl(
                 isInRoom -> onRoomSelected(matrixClient.userId, roomId)
                 else -> {
                     // TODO open preview, handle invites
-                    log.info {"cannot select room, because we are not member of it"}
+                    log.info { "cannot select room, because we are not member of it" }
                 }
             }
         }
     }
 
-    override val closeProfileNeeded: StateFlow<Boolean> = profileManager.profiles.map { it.size > 1 }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), profileManager.profiles.value.size > 1)
+    override val closeProfileNeeded: Boolean = profileManager != null
 
     override fun closeProfile() {
         log.debug { "close profile" }
         coroutineScope.launch {
-            profileManager.closeProfile()
+            profileManager?.closeProfile()
         }
     }
 
@@ -564,7 +568,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val closeProfileNeeded: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val closeProfileNeeded: Boolean = true
 
     override fun createNewRoom() {
     }
