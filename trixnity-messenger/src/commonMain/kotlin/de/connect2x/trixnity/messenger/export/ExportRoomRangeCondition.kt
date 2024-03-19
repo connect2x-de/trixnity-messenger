@@ -14,12 +14,12 @@ fun interface ExportRoomRangeStartCondition {
         /**
          * Use the first visible event of the room.
          */
-        fun first(): ExportRoomRangeStartCondition = ExportRoomRangeStartCondition { false }
+        fun firstEvent(): ExportRoomRangeStartCondition = ExportRoomRangeStartCondition { false }
 
         /**
          * Use a maximal number of events starting from the end of the timeline.
          */
-        fun max(count: Long): ExportRoomRangeStartCondition {
+        fun count(count: Long): ExportRoomRangeStartCondition {
             var counter = 0
             return ExportRoomRangeStartCondition {
                 counter++
@@ -46,12 +46,12 @@ fun interface ExportRoomRangeEndCondition {
         /**
          * Use the last known event of the room.
          */
-        fun last(): ExportRoomRangeEndCondition = ExportRoomRangeEndCondition { false }
+        fun lastEvent(): ExportRoomRangeEndCondition = ExportRoomRangeEndCondition { false }
 
         /**
          * Use a maximal number of events.
          */
-        fun max(count: Long): ExportRoomRangeEndCondition {
+        fun count(count: Long): ExportRoomRangeEndCondition {
             var counter = 0
             return ExportRoomRangeEndCondition {
                 counter++

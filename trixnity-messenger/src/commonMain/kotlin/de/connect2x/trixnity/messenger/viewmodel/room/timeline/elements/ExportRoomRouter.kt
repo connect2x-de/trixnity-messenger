@@ -10,8 +10,8 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.export.ExportRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.export.ExportRoomViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ArchiveMessageRouter.Config
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ArchiveMessageRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ExportRoomRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ExportRoomRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
@@ -19,14 +19,14 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
 
-interface ArchiveMessageRouter {
+interface ExportRoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    suspend fun showArchiveMessage(roomName: String)
-    suspend fun closeArchiveMessage()
+    suspend fun showExportRoom(roomName: String)
+    suspend fun closeExportRoom()
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class ArchiveMessageView(val viewModel: ExportRoomViewModel) : Wrapper()
+        class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
     }
 
     @Serializable
@@ -34,51 +34,51 @@ interface ArchiveMessageRouter {
         @Serializable
         data object None : Config()
 
-        data class ArchiveMessageConfiguration(val roomName: String) : Config()
+        data class ExportRoom(val roomName: String) : Config()
     }
 
 }
 
-class ArchiveMessageRouterImpl(
+class ExportRoomRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val onArchiveMessageDialogDismiss: () -> Unit,
-) : ArchiveMessageRouter {
+    private val onBack: () -> Unit,
+) : ExportRoomRouter {
 
-    private val archiveMessageNavigation = StackNavigation<Config>()
+    private val navigation = StackNavigation<Config>()
 
     override val stack = viewModelContext.childStack(
-        source = archiveMessageNavigation,
+        source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = Config.None,
-        key = "archiveMessageRouter",
+        key = "exportRoomRouter",
         childFactory = ::createSettingsChild,
     )
 
     private fun createSettingsChild(
-        archiveConfig: Config,
+        config: Config,
         componentContext: ComponentContext
     ): Wrapper =
-        when (archiveConfig) {
+        when (config) {
             is Config.None -> Wrapper.None
-            is Config.ArchiveMessageConfiguration -> Wrapper.ArchiveMessageView(
+            is Config.ExportRoom -> Wrapper.ExportRoom(
                 viewModelContext.get<ExportRoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     roomId = roomId,
-                    roomName = archiveConfig.roomName,
-                    onArchiveMessageDialogDismiss = onArchiveMessageDialogDismiss
+                    roomName = config.roomName,
+                    onBack = onBack
                 ),
             )
         }
 
-    override suspend fun showArchiveMessage(roomName: String) {
-        log.debug { "show ArchiveMessage Dialog $roomId" }
-        archiveMessageNavigation.bringToFrontSuspending(Config.ArchiveMessageConfiguration(roomName = roomName))
+    override suspend fun showExportRoom(roomName: String) {
+        log.debug { "show ExportRoom $roomId" }
+        navigation.bringToFrontSuspending(Config.ExportRoom(roomName = roomName))
     }
 
-    override suspend fun closeArchiveMessage() {
-        log.debug { "close ArchiveMessage Dialog" }
-        archiveMessageNavigation.popWhileSuspending { it != Config.None }
+    override suspend fun closeExportRoom() {
+        log.debug { "close ExportRoom" }
+        navigation.popWhileSuspending { it != Config.None }
     }
 
 }

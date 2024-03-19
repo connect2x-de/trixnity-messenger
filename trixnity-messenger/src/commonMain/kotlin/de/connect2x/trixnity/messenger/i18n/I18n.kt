@@ -863,14 +863,14 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Raum wurde durch den neuen Raum $roomId ersetzt: $body"
     }
 
-    fun exportRoomRedacted() = translate {
-        EN - "* message has been deleted"
-        DE - "* Nachricht wurde gelöscht"
+    fun exportRoomRedacted(by: UserId?, reason: String?) = translate {
+        EN - "* message has been deleted by $by, reason: $reason"
+        DE - "* Nachricht wurde von $by gelöscht, Grund: $reason"
     }
 
     fun exportRoomDecryptionError() = translate {
         EN - "* message cannot be decrypted"
-        DE - "* Nachricht wurde gelöscht"
+        DE - "* Nachricht konnte nicht entschlüsselt werden"
     }
 }
 

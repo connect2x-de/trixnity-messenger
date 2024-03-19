@@ -978,8 +978,8 @@ class TimelineViewModelTest : ShouldSpec() {
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
-                                        onArchiveMessageClick: (String) -> Unit,
-                                        ): RoomHeaderViewModel {
+                                        onExportRoom: (String) -> Unit,
+                                    ): RoomHeaderViewModel {
                                         return roomHeaderViewModelMock
                                     }
                                 }

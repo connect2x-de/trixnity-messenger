@@ -12,7 +12,7 @@ object Versions {
     const val kotlinxCoroutines = "1.7.3" // https://github.com/Kotlin/kotlinx.coroutines/releases
     const val kotlinxSerialization = "1.6.2" // https://github.com/Kotlin/kotlinx.serialization/releases
     const val decompose = "2.2.2" // https://github.com/arkivanov/Decompose/releases
-    const val kotlinxDatetime = "0.6.0-RC.2" // https://github.com/Kotlin/kotlinx-datetime/releases
+    const val kotlinxDatetime = "0.5.0" // https://github.com/Kotlin/kotlinx-datetime/releases
     const val koin = "3.5.3" // https://github.com/InsertKoinIO/koin/tags
     const val ktor = "2.3.8" // https://github.com/ktorio/ktor/releases
     const val mocKmp = "1.17.0" // https://github.com/Kodein-Framework/MocKMP/releases

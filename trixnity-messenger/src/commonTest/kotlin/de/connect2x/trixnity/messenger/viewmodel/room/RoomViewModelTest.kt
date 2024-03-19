@@ -376,7 +376,7 @@ class RoomViewModelTest : ShouldSpec() {
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
-                                        onArchiveMessageClick: (String) -> Unit,
+                                        onExportRoom: (String) -> Unit,
                                     ): RoomHeaderViewModel {
                                         return object : RoomHeaderViewModel {
                                             override val error: StateFlow<String?> = MutableStateFlow(null)
@@ -405,7 +405,7 @@ class RoomViewModelTest : ShouldSpec() {
                                                 onBack()
                                             }
 
-                                            override fun archiveMessages() {
+                                            override fun exportRoom() {
                                             }
                                         }
                                     }

@@ -11,28 +11,90 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnPause
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.DragAndDropHandler
+import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.FileDescriptorSerializer
+import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.util.launchPopWhile
+import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ExportRoomRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ExportRoomRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel2
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
+import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
+import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
+import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
+import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.client.*
+import net.folivo.trixnity.client.flattenNotNull
+import net.folivo.trixnity.client.flattenValues
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.Timeline
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.sender
+import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKWARDS
 import net.folivo.trixnity.core.model.EventId
@@ -41,6 +103,9 @@ import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -115,8 +180,7 @@ interface TimelineViewModel {
     val inputAreaViewModel: InputAreaViewModel
     val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
     val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
-    val archiveMessageStack: Value<ChildStack<ArchiveMessageRouter.Config, ArchiveMessageRouter.Wrapper>>
-    val archiveResultSaveDialogState: MutableStateFlow<Boolean>
+    val exportRoomStack: Value<ChildStack<ExportRoomRouter.Config, ExportRoomRouter.Wrapper>>
 
     /**
      * Only for DnD on desktop: the absolute path of a dragged file.
@@ -133,8 +197,6 @@ interface TimelineViewModel {
 
     val loadingBefore: StateFlow<Boolean>
     fun loadBefore()
-
-    fun dismissArchiveResultDialog()
 
     sealed class Wrapper {
         data object None : Wrapper()
@@ -242,10 +304,10 @@ class TimelineViewModelImpl(
             .filterNotNull()
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    private val archiveMessageRouter = ArchiveMessageRouterImpl(
+    private val exportRoomRouter = ExportRoomRouterImpl(
         viewModelContext = viewModelContext,
         roomId = selectedRoomId,
-        onArchiveMessageDialogDismiss = ::dismissArchiveMessageDialog
+        onBack = this::closeExportRoom
     )
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
@@ -256,7 +318,7 @@ class TimelineViewModelImpl(
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
-            onArchiveMessageClick = ::showArchiveMessagesDialog
+            onExportRoom = ::showExportRoom
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
@@ -275,15 +337,15 @@ class TimelineViewModelImpl(
         onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
 
-    private fun showArchiveMessagesDialog(roomName: String) = coroutineScope.launch {
-        log.trace { "Opening archive message dialog : $selectedRoomId and roomName: $roomName" }
-        archiveMessageRouter.showArchiveMessage(roomName)
+    private fun showExportRoom(roomName: String) = coroutineScope.launch {
+        log.trace { "Opening export room: $selectedRoomId and roomName: $roomName" }
+        exportRoomRouter.showExportRoom(roomName)
     }
 
-    private fun dismissArchiveMessageDialog() {
+    private fun closeExportRoom() {
         coroutineScope.launch {
-            log.trace { "closing archive message dialog : $selectedRoomId" }
-            archiveMessageRouter.closeArchiveMessage()
+            log.trace { "closing export room: $selectedRoomId" }
+            exportRoomRouter.closeExportRoom()
         }
     }
 
@@ -307,9 +369,7 @@ class TimelineViewModelImpl(
     )
 
     override val reportMessageStack = reportMessageRouter.stack
-    override val archiveMessageStack = archiveMessageRouter.stack
-    override val archiveResultSaveDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
+    override val exportRoomStack = exportRoomRouter.stack
     private fun createChild(
         config: Config, componentContext: ComponentContext
     ): Wrapper = when (config) {
@@ -717,10 +777,6 @@ class TimelineViewModelImpl(
         }
     }
 
-    override fun dismissArchiveResultDialog() {
-        archiveResultSaveDialogState.value = false
-    }
-
     private fun loadMoreBefore() {
         if (config.timelineAutoLoadBefore) {
             coroutineScope.launch {
@@ -985,16 +1041,14 @@ class PreviewTimelineViewModel : TimelineViewModel {
                 )
             )
         )
-    override val archiveMessageStack = MutableValue(
+    override val exportRoomStack = MutableValue(
         ChildStack(
             active = Child.Created(
-                configuration = ArchiveMessageRouter.Config.None,
-                instance = ArchiveMessageRouter.Wrapper.None
+                configuration = ExportRoomRouter.Config.None,
+                instance = ExportRoomRouter.Wrapper.None
             )
         )
     )
-    override val archiveResultSaveDialogState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
@@ -1020,8 +1074,5 @@ class PreviewTimelineViewModel : TimelineViewModel {
     }
 
     override fun loadBefore() {
-    }
-
-    override fun dismissArchiveResultDialog() {
     }
 }

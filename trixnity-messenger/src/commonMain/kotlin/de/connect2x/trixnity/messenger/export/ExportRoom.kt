@@ -44,15 +44,15 @@ sealed interface ExportRoomResult {
 
 interface ExportRoom {
     /**
-     * To find the archive start position, archiving is started from the last known event. When the start position is found,
+     * To find the export start position, archiving is started from the last known event. When the start position is found,
      * the actual archiving is started. This means, that at first the [rangeStartCondition] is checked and after that [rangeEndCondition].
      */
     suspend operator fun invoke(
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
-        rangeStartCondition: ExportRoomRangeStartCondition = ExportRoomRangeStartCondition.first(),
-        rangeEndCondition: ExportRoomRangeEndCondition = ExportRoomRangeEndCondition.last(),
+        rangeStartCondition: ExportRoomRangeStartCondition = ExportRoomRangeStartCondition.firstEvent(),
+        rangeEndCondition: ExportRoomRangeEndCondition = ExportRoomRangeEndCondition.lastEvent(),
         progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress()),
     ): ExportRoomResult
 }

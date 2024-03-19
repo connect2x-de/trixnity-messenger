@@ -161,13 +161,29 @@ class ExportRoomTest : ShouldSpec() {
             ) shouldBe ExportRoomResult.Success
 
             with(mocker) {
-                verifyWithSuspend(exhaustive = false) {
+                verifyWithSuspend {
+                    sinkFactoryMock.create(roomId, fakeProperties)
+
+                    matrixClientMock.di
+                    roomServiceMock.getById(isAny())
+
+                    matrixClientMock.di
+                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny())
+
+                    sinkMock.start()
+
+                    matrixClientMock.di
+                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny())
+
                     (6..9).forEach {
                         sinkMock.processTimelineEvent(isEqual(timelineEvent(it.toLong()).first()), isNull())
                     }
                     (10..14).forEach {
+                        matrixClientMock.di
+                        mediaServiceMock.getMedia(isAny(), isAny(), isEqual(false))
                         sinkMock.processTimelineEvent(isEqual(timelineEventWithMedia(it.toLong()).first()), isNotNull())
                     }
+                    sinkMock.finish()
                 }
             }
         }

@@ -48,7 +48,7 @@ interface RoomHeaderViewModelFactory {
         onBack: () -> Unit,
         onVerifyUser: () -> Unit,
         onShowRoomSettings: () -> Unit,
-        onArchiveMessageClick: (roomName: String) -> Unit,
+        onExportRoom: (roomName: String) -> Unit,
     ): RoomHeaderViewModel {
         return RoomHeaderViewModelImpl(
             viewModelContext,
@@ -57,7 +57,7 @@ interface RoomHeaderViewModelFactory {
             onBack,
             onVerifyUser,
             onShowRoomSettings,
-            onArchiveMessageClick,
+            onExportRoom,
         )
     }
 
@@ -128,8 +128,8 @@ interface RoomHeaderViewModel {
     fun unblockUser()
     fun verifyUser()
     fun showRoomSettings()
+    fun exportRoom()
     fun goBack()
-    fun archiveMessages()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -140,7 +140,7 @@ open class RoomHeaderViewModelImpl(
     private val onBack: () -> Unit,
     private val onVerifyUser: () -> Unit,
     private val onShowRoomSettings: () -> Unit,
-    private val onArchiveMessageClick: (roomName: String) -> Unit,
+    private val onExportRoom: (roomName: String) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
 
     override val roomHeaderInfo: StateFlow<RoomHeaderInfo>
@@ -280,10 +280,10 @@ open class RoomHeaderViewModelImpl(
         onBack()
     }
 
-    override fun archiveMessages() {
+    override fun exportRoom() {
         coroutineScope.launch {
             val roomName = roomHeaderInfo.firstOrNull()?.roomName ?: selectedRoomId.full
-            onArchiveMessageClick(roomName)
+            onExportRoom(roomName)
         }
     }
 
@@ -356,6 +356,6 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override fun unblockUser() {}
     override fun showRoomSettings() {}
     override fun goBack() {}
-    override fun archiveMessages() {}
+    override fun exportRoom() {}
 
 }

@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.inject
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 private val log = KotlinLogging.logger { }
 
@@ -27,13 +29,13 @@ interface ExportRoomViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         roomName: String,
-        onArchiveMessageDialogDismiss: () -> Unit,
+        onBack: () -> Unit,
     ): ExportRoomViewModel =
         ExportRoomViewModelImpl(
             viewModelContext = viewModelContext,
             roomId = roomId,
             roomName = roomName,
-            onArchiveMessageDialogDismiss = onArchiveMessageDialogDismiss,
+            onBack = onBack,
         )
 
     companion object : ExportRoomViewModelFactory
@@ -55,14 +57,14 @@ interface ExportRoomViewModel {
 
     fun start()
     fun abort()
-    fun dismissArchiveDialog()
+    fun back()
 }
 
 class ExportRoomViewModelImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     override val roomName: String,
-    private val onArchiveMessageDialogDismiss: () -> Unit,
+    private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ExportRoomViewModel {
 
     private val exportRoom by inject<ExportRoom>()
@@ -73,9 +75,18 @@ class ExportRoomViewModelImpl(
     override val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?> = MutableStateFlow(null)
     override val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?> = MutableStateFlow(null)
 
+    @OptIn(ExperimentalContracts::class)
+    private fun canExport(job: Job?, properties: ExportRoomSinkProperties?): Boolean {
+        contract {
+            returns(true) implies (properties != null)
+        }
+        return job == null && properties != null
+    }
+
+
     override val canExport: StateFlow<Boolean> =
-        combine(properties, job) { properties, job -> properties != null && job != null }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        combine(job, properties, ::canExport)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), canExport(job.value, properties.value))
 
     override val isExporting: StateFlow<Boolean> =
         job.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -96,15 +107,15 @@ class ExportRoomViewModelImpl(
 
     override fun start() {
         val properties = properties.value
-        if (job.value != null && properties != null) {
+        if (canExport(job.value, properties)) {
             error.value = null
             errorMissingMedia.value = null
             job.value = coroutineScope.launch {
                 val result = exportRoom(
                     roomId = roomId,
                     properties = properties,
-                    rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.first(),
-                    rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.last(),
+                    rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.firstEvent(),
+                    rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.lastEvent(),
                     matrixClient = matrixClient,
                     progress = progress
                 )
@@ -136,8 +147,8 @@ class ExportRoomViewModelImpl(
         job.value = null
     }
 
-    override fun dismissArchiveDialog() {
+    override fun back() {
         abort()
-        onArchiveMessageDialogDismiss()
+        onBack()
     }
 }

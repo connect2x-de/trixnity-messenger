@@ -34,6 +34,7 @@ class PlainTextFileBasedExportRoomSinkConverter(
         val sender = timelineEvent.sender.full
         val instant =
             Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(TimeZone.of(timezone()))
+                .toString()
         return """
             $instant $sender:
             $content

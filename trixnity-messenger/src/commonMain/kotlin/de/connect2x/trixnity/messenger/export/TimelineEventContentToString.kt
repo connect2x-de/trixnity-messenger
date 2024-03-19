@@ -22,6 +22,7 @@ import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.ThirdPartyInviteEventContent
 import net.folivo.trixnity.core.model.events.m.room.TombstoneEventContent
@@ -91,7 +92,12 @@ class TimelineEventContentToStringImpl(private val i18n: I18n) : TimelineEventCo
                             else -> null
                         }?.let { i18n.exportRoomState(it) }
 
-                        is RedactedEventContent -> i18n.exportRoomRedacted()
+                        is RedactedEventContent ->
+                            i18n.exportRoomRedacted(
+                                timelineEvent.event.unsigned?.redactedBecause?.sender,
+                                (timelineEvent.event.unsigned?.redactedBecause?.content as? RedactionEventContent)?.reason
+                            )
+
                         EmptyEventContent,
                         is UnknownEventContent -> null
                     }

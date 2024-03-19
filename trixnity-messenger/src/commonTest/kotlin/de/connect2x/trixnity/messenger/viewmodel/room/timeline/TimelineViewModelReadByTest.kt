@@ -403,7 +403,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
                                 onBack: () -> Unit,
                                 onVerifyUser: () -> Unit,
                                 onShowRoomSettings: () -> Unit,
-                                onArchiveMessageClick: (String) -> Unit,
+                                onExportRoom: (String) -> Unit,
                             ): RoomHeaderViewModel {
                                 return roomHeaderViewModelMock
                             }
