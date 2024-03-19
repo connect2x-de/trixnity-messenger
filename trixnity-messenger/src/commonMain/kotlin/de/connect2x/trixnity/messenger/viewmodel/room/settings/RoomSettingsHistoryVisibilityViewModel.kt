@@ -37,7 +37,6 @@ interface RoomSettingsHistoryVisibilityViewModel {
     val roomHistoryVisibility: StateFlow<HistoryVisibilityEventContent.HistoryVisibility>
     val canChangeRoomHistoryVisibility: StateFlow<Boolean>
     val isHistoryVisibilityChanging: StateFlow<Boolean>
-    val availableRoomHistoryVisibilityLevels: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>>
     fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility)
 }
 
@@ -57,45 +56,31 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
         matrixClient.user.canSendEvent<HistoryVisibilityEventContent>(selectedRoomId)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isHistoryVisibilityChanging = MutableStateFlow(false)
-    override val availableRoomHistoryVisibilityLevels = MutableStateFlow(
-        listOf(
-            HistoryVisibilityEventContent.HistoryVisibility.SHARED,
-            HistoryVisibilityEventContent.HistoryVisibility.JOINED,
-            HistoryVisibilityEventContent.HistoryVisibility.INVITED,
-            HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
-        )
-    )
 
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         log.debug { "changeRoomHistoryVisibility for $selectedRoomId to $newVisibility" }
         if (canChangeRoomHistoryVisibility.value) {
-            if (availableRoomHistoryVisibilityLevels.value.any { it == newVisibility }) {
-                coroutineScope.launch {
-                    isHistoryVisibilityChanging.value = true
-                    matrixClient.api.room.sendStateEvent(
-                        selectedRoomId,
-                        HistoryVisibilityEventContent(newVisibility),
-                        stateKey = ""
+            coroutineScope.launch {
+                isHistoryVisibilityChanging.value = true
+                matrixClient.api.room.sendStateEvent(
+                    selectedRoomId,
+                    HistoryVisibilityEventContent(newVisibility),
+                    stateKey = ""
 
-                    )
-                        .onFailure {
-                            log.error(it) { "Failed to change room history visibility: ${it.message}" }
-                            error.value = i18n.settingsRoomHistoryVisibilityChangeError()
-                            isHistoryVisibilityChanging.value = false
+                )
+                    .onFailure {
+                        log.error(it) { "Failed to change room history visibility: ${it.message}" }
+                        error.value = i18n.settingsRoomHistoryVisibilityChangeError()
+                        isHistoryVisibilityChanging.value = false
+                    }
+                    .onSuccess {
+                        error.value = null
+                        withTimeoutOrNull(5.seconds) {
+                            matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
+                                .first { it?.content?.historyVisibility == newVisibility }
                         }
-                        .onSuccess {
-                            error.value = null
-                            withTimeoutOrNull(5.seconds) {
-                                matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
-                                    .first { it?.content?.historyVisibility == newVisibility }
-                            }
-                            isHistoryVisibilityChanging.value = false
-                        }
-                }
-            } else {
-                log.error { "new visibility $newVisibility could not be set, since the available visibility levels are ${availableRoomHistoryVisibilityLevels.value}" }
-                error.value = i18n.settingsRoomHistoryVisibilityChangeError()
-                isHistoryVisibilityChanging.value = false
+                        isHistoryVisibilityChanging.value = false
+                    }
             }
         } else {
             log.error { "Insufficient power level to change room history visibility" }
@@ -110,15 +95,6 @@ class PreviewRoomSettingsHistoryVisibilityViewModel : RoomSettingsHistoryVisibil
         MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.SHARED)
     override val canChangeRoomHistoryVisibility: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isHistoryVisibilityChanging: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val availableRoomHistoryVisibilityLevels: MutableStateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>> =
-        MutableStateFlow(
-            listOf(
-                HistoryVisibilityEventContent.HistoryVisibility.SHARED,
-                HistoryVisibilityEventContent.HistoryVisibility.JOINED,
-                HistoryVisibilityEventContent.HistoryVisibility.INVITED,
-                HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
-            )
-        )
 
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         roomHistoryVisibility.value = newVisibility
