@@ -13,6 +13,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 
@@ -43,6 +44,7 @@ interface RoomSettingsViewModel {
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
+    val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
     val leaveRoomWarningTitle: StateFlow<String>
@@ -76,6 +78,11 @@ open class RoomSettingsViewModelImpl(
     }
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
+            .create(viewModelContext, selectedRoomId, error)
+    }
+
+    override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel by lazy {
+        get<RoomSettingsHistoryVisibilityViewModelFactory>()
             .create(viewModelContext, selectedRoomId, error)
     }
 
@@ -158,18 +165,19 @@ open class RoomSettingsViewModelImpl(
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
-    override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
-    override val roomSettingsTopicViewModel: RoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
-    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
+    override val roomSettingsNameViewModel: PreviewRoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
+    override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
+    override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-
+    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel
+        = PreviewRoomSettingsHistoryVisibilityViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val leaveRoomWarningTitle: MutableStateFlow<String> = MutableStateFlow("leave room warning title")
     override val leaveRoomWarningMessage: MutableStateFlow<String> = MutableStateFlow("leave room warning message")
     override val leaveRoomWarningConfirmButtonText: MutableStateFlow<String> = MutableStateFlow("confirm")
-    override val memberListViewModel: MemberListViewModel = PreviewMemberListViewModel()
+    override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun openAddMembersView() {
