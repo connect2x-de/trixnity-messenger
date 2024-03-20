@@ -120,6 +120,12 @@ open class ReplyToViewModelImpl(
                     sender,
                 )
 
+                is Location -> LocationReply(
+                    content.body,
+                    content.geoUri,
+                    sender,
+                )
+
                 else -> UnknownReply(sender)
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -157,6 +163,12 @@ sealed interface ReplyType {
 
     data class FileReply(
         val fileName: String,
+        override val senderName: String,
+    ) : ReplyType
+
+    data class LocationReply(
+        val body: String,
+        val geoUri: String,
         override val senderName: String,
     ) : ReplyType
 
