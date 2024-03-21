@@ -8,7 +8,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
-    single {
+    single<FileBasedExportRoomSinkWriterFactory> {
         object : FileBasedExportRoomSinkWriterFactory {
             override fun create(
                 destination: Destination,
@@ -25,6 +25,7 @@ class OkioFileBasedExportRoomSinkWriter(
     private val fileSystem: FileSystem,
 ) : FileBasedExportRoomSinkWriter {
     private val filePath = destination.resolve(fileName)
+    private val fileSink = fileSystem.appendingSink(filePath).buffer()
     private val mediaPath = destination.resolve("media")
     override suspend fun start() {
         fileSystem.createDirectory(destination)
@@ -32,10 +33,16 @@ class OkioFileBasedExportRoomSinkWriter(
     }
 
     override suspend fun addContent(content: String) {
-        fileSystem.appendingSink(filePath).buffer().writeUtf8(content)
+        fileSink.writeUtf8(content)
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
-        content.writeTo(fileSystem.sink(mediaPath.resolve(filename)).buffer())
+        val mediaSink = fileSystem.sink(mediaPath.resolve(filename)).buffer()
+        content.writeTo(mediaSink)
+        mediaSink.close()
+    }
+
+    override suspend fun finish() {
+        fileSink.close()
     }
 }

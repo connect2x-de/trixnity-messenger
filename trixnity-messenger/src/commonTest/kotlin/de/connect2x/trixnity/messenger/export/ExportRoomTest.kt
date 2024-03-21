@@ -92,7 +92,7 @@ class ExportRoomTest : ShouldSpec() {
                     )
                 }.koin
                 every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(
-                    Room(isDirect = true, roomId = roomId, lastEventId = EventId("3"))
+                    Room(isDirect = true, roomId = roomId, lastEventId = EventId("19"))
                 )
                 val timeline =
                     (0..9).map { timelineEvent(it.toLong()) } +

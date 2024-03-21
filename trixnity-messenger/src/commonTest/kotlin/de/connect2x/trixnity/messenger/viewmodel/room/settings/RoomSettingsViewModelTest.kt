@@ -284,7 +284,8 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             onBack = onBackMock,
             onCloseRoomSettings = mockFunction0(mocker),
 
-            onShowAddMembers = mockFunction0(mocker)
+            onShowAddMembers = mockFunction0(mocker),
+            onShowExportRoom = mockFunction0(mocker),
         )
     }
 }

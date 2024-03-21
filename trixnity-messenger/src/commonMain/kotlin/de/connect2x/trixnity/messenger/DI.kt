@@ -36,9 +36,9 @@ import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.export.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory

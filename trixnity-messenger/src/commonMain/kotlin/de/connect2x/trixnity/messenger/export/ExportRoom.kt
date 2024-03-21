@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.export
 
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.SuccessWithMissingMedia.MissingMedia
+import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +69,7 @@ class ExportRoomImpl(
         rangeEndCondition: ExportRoomRangeEndCondition,
         progress: MutableStateFlow<ExportRoomProgress>,
     ): ExportRoomResult {
+        log.info { "export of $roomId started" }
         progress.value = ExportRoomProgress()
         val withDecryptionTimeout = 5.seconds
         val buffer = 10
@@ -101,6 +103,7 @@ class ExportRoomImpl(
         )
             .map { flow -> flow.first { it.content != null } }
             .takeWhile { !rangeEndCondition(it) }
+            .takeWhileInclusive { it.eventId != lastEventId }
             .buffer(buffer)
             .collect { timelineEvent ->
                 val content = timelineEvent.content?.getOrNull()
@@ -147,6 +150,7 @@ class ExportRoomImpl(
 
         sink.finish().onFailure { return ExportRoomResult.SinkError(it) }
 
+        log.info { "export of $roomId finished" }
         return if (missingMedia.isNotEmpty()) ExportRoomResult.SuccessWithMissingMedia(missingMedia)
         else ExportRoomResult.Success
     }

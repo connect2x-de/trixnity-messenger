@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.export
+package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.export.ExportRoom
 import de.connect2x.trixnity.messenger.export.ExportRoomProgress
@@ -8,6 +8,10 @@ import de.connect2x.trixnity.messenger.export.ExportRoomResult
 import de.connect2x.trixnity.messenger.export.ExportRoomSinkProperties
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Error
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.None
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Running
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Success
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,13 +32,11 @@ interface ExportRoomViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
-        roomName: String,
         onBack: () -> Unit,
     ): ExportRoomViewModel =
         ExportRoomViewModelImpl(
             viewModelContext = viewModelContext,
             roomId = roomId,
-            roomName = roomName,
             onBack = onBack,
         )
 
@@ -42,15 +44,30 @@ interface ExportRoomViewModelFactory {
 }
 
 interface ExportRoomViewModel {
-    val roomName: String
     val properties: MutableStateFlow<ExportRoomSinkProperties?>
     val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?>
     val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?>
 
-    val progress: StateFlow<ExportRoomProgress>
-    val progressString: StateFlow<String?>
-    val error: StateFlow<String?>
-    val errorMissingMedia: StateFlow<List<ExportRoomResult.SuccessWithMissingMedia.MissingMedia>?>
+    sealed interface State {
+        data object None : State
+
+        data class Running(
+            val progress: StateFlow<ExportRoomProgress>,
+            val progressString: StateFlow<String>,
+        ) : State
+
+        data class Success(
+            val progress: ExportRoomProgress,
+            val progressString: String,
+        ) : State
+
+        data class Error(
+            val message: String,
+            val missingMedia: List<ExportRoomResult.SuccessWithMissingMedia.MissingMedia>? = null
+        ) : State
+    }
+
+    val state: StateFlow<State>
 
     val canExport: StateFlow<Boolean>
     val isExporting: StateFlow<Boolean>
@@ -63,7 +80,6 @@ interface ExportRoomViewModel {
 class ExportRoomViewModelImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    override val roomName: String,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ExportRoomViewModel {
 
@@ -83,7 +99,6 @@ class ExportRoomViewModelImpl(
         return job == null && properties != null
     }
 
-
     override val canExport: StateFlow<Boolean> =
         combine(job, properties, ::canExport)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), canExport(job.value, properties.value))
@@ -91,25 +106,23 @@ class ExportRoomViewModelImpl(
     override val isExporting: StateFlow<Boolean> =
         job.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress())
-    override val progressString: StateFlow<String?> = progress
+    private val progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress())
+    private val progressString: StateFlow<String> = progress
         .map { (processed, total) ->
             when {
-                total == null -> null
+                total == null -> i18n.exportRoomStateInit(0)
                 processed == null -> i18n.exportRoomStateInit(total)
                 processed == total -> i18n.exportRoomStateFinished(total)
                 else -> i18n.exportRoomStateProcessed(processed, total)
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val errorMissingMedia: MutableStateFlow<List<ExportRoomResult.SuccessWithMissingMedia.MissingMedia>?> =
-        MutableStateFlow(null)
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+
+    override val state: MutableStateFlow<ExportRoomViewModel.State> = MutableStateFlow(None)
 
     override fun start() {
         val properties = properties.value
         if (canExport(job.value, properties)) {
-            error.value = null
-            errorMissingMedia.value = null
+            state.value = Running(progress, progressString)
             job.value = coroutineScope.launch {
                 val result = exportRoom(
                     roomId = roomId,
@@ -119,24 +132,29 @@ class ExportRoomViewModelImpl(
                     matrixClient = matrixClient,
                     progress = progress
                 )
-                error.value = when (result) {
+                when (result) {
                     ExportRoomResult.RoomNotFound -> {
                         log.error { "room $roomId not found" }
-                        i18n.exportRoomErrorRoomNotFound()
+                        state.value = Error(i18n.exportRoomErrorRoomNotFound())
                     }
 
                     is ExportRoomResult.PropertiesNotSupported -> {
                         log.error { "there is no sink registered in the DI, that supports properties ${properties::class.simpleName}" }
-                        i18n.exportRoomErrorPropertiesNotSupported()
+                        state.value = Error(i18n.exportRoomErrorPropertiesNotSupported())
                     }
 
-                    is ExportRoomResult.SinkError -> i18n.exportRoomErrorSink(result.throwable.message ?: "unknown")
-                    is ExportRoomResult.SuccessWithMissingMedia -> i18n.exportRoomSuccessWithMissingMedia()
-                    ExportRoomResult.Success -> null
+                    is ExportRoomResult.SinkError -> {
+                        state.value = Error(i18n.exportRoomErrorSink(result.throwable.message ?: "unknown"))
+                    }
+
+                    is ExportRoomResult.SuccessWithMissingMedia -> {
+                        state.value = Error(i18n.exportRoomSuccessWithMissingMedia(), result.missingMedia)
+                    }
+
+                    ExportRoomResult.Success -> {
+                        state.value = Success(progress.value, progressString.value)
+                    }
                 }
-                errorMissingMedia.value =
-                    if (result is ExportRoomResult.SuccessWithMissingMedia) result.missingMedia
-                    else null
                 job.value = null
             }
         }

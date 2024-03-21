@@ -664,7 +664,6 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
-                                        onExportRoom: (String) -> Unit
                                     ): RoomHeaderViewModel {
                                         return roomHeaderViewModelMock
                                     }

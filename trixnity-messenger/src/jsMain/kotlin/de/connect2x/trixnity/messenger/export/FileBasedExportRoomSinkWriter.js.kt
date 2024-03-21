@@ -9,7 +9,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
-    single {
+    single<FileBasedExportRoomSinkWriterFactory> {
         object : FileBasedExportRoomSinkWriterFactory {
             override fun create(
                 destination: Destination,

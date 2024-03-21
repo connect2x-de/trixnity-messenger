@@ -24,12 +24,14 @@ interface RoomSettingsViewModelFactory {
         selectedRoomId: RoomId,
         onBack: () -> Unit,
         onShowAddMembers: () -> Unit,
+        onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
             onShowAddMembers = onShowAddMembers,
+            onShowExportRoom = onShowExportRoom,
             onCloseRoomSettings = onCloseRoomSettings,
             onBack = onBack,
         )
@@ -52,6 +54,7 @@ interface RoomSettingsViewModel {
     val hasPowerToInvite: StateFlow<Boolean>
 
     fun openAddMembersView()
+    fun openExportRoomView()
     fun leaveRoom()
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
@@ -62,6 +65,7 @@ open class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onShowAddMembers: () -> Unit,
+    private val onShowExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
@@ -156,12 +160,17 @@ open class RoomSettingsViewModelImpl(
     override fun openAddMembersView() {
         onShowAddMembers()
     }
+
+    override fun openExportRoomView() {
+        onShowExportRoom()
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
     override val roomSettingsTopicViewModel: RoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
-    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel = PreviewRoomSettingsNotificationsViewModel()
+    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
+        PreviewRoomSettingsNotificationsViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -172,6 +181,9 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun openAddMembersView() {
+    }
+
+    override fun openExportRoomView() {
     }
 
     override fun leaveRoom() {

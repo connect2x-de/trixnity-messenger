@@ -22,8 +22,6 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ExportRoomRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ExportRoomRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
@@ -180,7 +178,6 @@ interface TimelineViewModel {
     val inputAreaViewModel: InputAreaViewModel
     val sendAttachmentStack: Value<ChildStack<Config, Wrapper>>
     val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>>
-    val exportRoomStack: Value<ChildStack<ExportRoomRouter.Config, ExportRoomRouter.Wrapper>>
 
     /**
      * Only for DnD on desktop: the absolute path of a dragged file.
@@ -304,12 +301,6 @@ class TimelineViewModelImpl(
             .filterNotNull()
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    private val exportRoomRouter = ExportRoomRouterImpl(
-        viewModelContext = viewModelContext,
-        roomId = selectedRoomId,
-        onBack = this::closeExportRoom
-    )
-
     override val roomHeaderViewModel: RoomHeaderViewModel =
         get<RoomHeaderViewModelFactory>().create(
             viewModelContext = childContext("roomHeaderViewModel"),
@@ -318,7 +309,6 @@ class TimelineViewModelImpl(
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
-            onExportRoom = ::showExportRoom
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
@@ -336,18 +326,6 @@ class TimelineViewModelImpl(
         onShowReportMessageDialog = ::showReportMessageDialog,
         onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
-
-    private fun showExportRoom(roomName: String) = coroutineScope.launch {
-        log.trace { "Opening export room: $selectedRoomId and roomName: $roomName" }
-        exportRoomRouter.showExportRoom(roomName)
-    }
-
-    private fun closeExportRoom() {
-        coroutineScope.launch {
-            log.trace { "closing export room: $selectedRoomId" }
-            exportRoomRouter.closeExportRoom()
-        }
-    }
 
     internal fun onReportMessageDialogDismiss(eventId: EventId) = coroutineScope.launch {
         log.trace { "Closing report popup dialog: $eventId" }
@@ -369,7 +347,6 @@ class TimelineViewModelImpl(
     )
 
     override val reportMessageStack = reportMessageRouter.stack
-    override val exportRoomStack = exportRoomRouter.stack
     private fun createChild(
         config: Config, componentContext: ComponentContext
     ): Wrapper = when (config) {
@@ -1041,14 +1018,6 @@ class PreviewTimelineViewModel : TimelineViewModel {
                 )
             )
         )
-    override val exportRoomStack = MutableValue(
-        ChildStack(
-            active = Child.Created(
-                configuration = ExportRoomRouter.Config.None,
-                instance = ExportRoomRouter.Wrapper.None
-            )
-        )
-    )
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
