@@ -645,6 +645,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Sie werden so benachrichtigt, wie dies in den globalen Einstellungen festgelegt ist."
     }
 
+    fun settingsRoomHistoryVisibilityChangeError() = translate {
+        EN - "Failed to change room history visibility."
+        DE - "Fehler beim Ändern der Sichtbarkeit der Raumhistorie."
+    }
+
+    fun settingsRoomHistoryVisibilityInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to change room history visibility"
+        DE - "Unzureichendes Berechtigungslevel um die Sichtbarkeit der Raumhistorie zu ändern"
+    }
+
     fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
