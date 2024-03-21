@@ -145,7 +145,7 @@ open class RoomViewModelImpl(
 
 }
 
-class PreviewRoomViewModel() : RoomViewModel {
+class PreviewRoomViewModel : RoomViewModel {
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         MutableValue(
             ChildStack(

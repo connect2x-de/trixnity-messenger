@@ -23,6 +23,7 @@ object Versions {
     const val korge = "4.0.10" // https://github.com/korlibs/korge/releases
     const val dokka = "1.9.10" // https://github.com/Kotlin/dokka/releases"
     const val jsJoda = "2.18.2" // https://www.npmjs.com/package/@js-joda/timezone
+    const val zipjs = "2.7.40" // https://www.npmjs.com/package/@zip.js/zip.js
     const val skie = "0.6.1" // https://github.com/touchlab/SKIE/releases
     const val kmmBridge = "0.5.1" // https://github.com/touchlab/KMMBridge/releases
 

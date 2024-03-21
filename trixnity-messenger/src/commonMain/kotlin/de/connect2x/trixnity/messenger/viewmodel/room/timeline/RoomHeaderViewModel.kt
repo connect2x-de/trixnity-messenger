@@ -343,5 +343,4 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override fun unblockUser() {}
     override fun showRoomSettings() {}
     override fun goBack() {}
-
 }

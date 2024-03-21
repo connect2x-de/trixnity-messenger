@@ -134,6 +134,7 @@ kotlin {
                 implementation("net.folivo:trixnity-client-repository-indexeddb:${Versions.trixnity}")
                 implementation("net.folivo:trixnity-client-media-indexeddb:${Versions.trixnity}")
                 api(npm("@js-joda/timezone", Versions.jsJoda))
+                implementation(npm("@zip.js/zip.js", Versions.zipjs))
                 implementation(project.dependencies.platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:${Versions.kotlinWrappers}"))
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
             }

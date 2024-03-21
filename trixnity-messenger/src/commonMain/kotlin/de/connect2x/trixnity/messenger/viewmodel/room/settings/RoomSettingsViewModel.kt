@@ -25,12 +25,14 @@ interface RoomSettingsViewModelFactory {
         selectedRoomId: RoomId,
         onBack: () -> Unit,
         onShowAddMembers: () -> Unit,
+        onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
             onShowAddMembers = onShowAddMembers,
+            onShowExportRoom = onShowExportRoom,
             onCloseRoomSettings = onCloseRoomSettings,
             onBack = onBack,
         )
@@ -54,6 +56,7 @@ interface RoomSettingsViewModel {
     val hasPowerToInvite: StateFlow<Boolean>
 
     fun openAddMembersView()
+    fun openExportRoomView()
     fun leaveRoom()
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
@@ -64,6 +67,7 @@ open class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onShowAddMembers: () -> Unit,
+    private val onShowExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
@@ -76,6 +80,7 @@ open class RoomSettingsViewModelImpl(
         get<RoomSettingsTopicViewModelFactory>()
             .create(viewModelContext, selectedRoomId)
     }
+
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
             .create(viewModelContext, selectedRoomId, error)
@@ -162,6 +167,10 @@ open class RoomSettingsViewModelImpl(
     override fun openAddMembersView() {
         onShowAddMembers()
     }
+
+    override fun openExportRoomView() {
+        onShowExportRoom()
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
@@ -181,6 +190,9 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun openAddMembersView() {
+    }
+
+    override fun openExportRoomView() {
     }
 
     override fun leaveRoom() {
