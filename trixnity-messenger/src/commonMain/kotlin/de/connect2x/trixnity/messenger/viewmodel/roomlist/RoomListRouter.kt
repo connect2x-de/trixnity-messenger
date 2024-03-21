@@ -11,7 +11,24 @@ import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.settings.*
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -19,6 +36,7 @@ import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
+
 
 private val log = KotlinLogging.logger { }
 
@@ -155,9 +173,20 @@ class RoomListRouter(
             )
 
             is Config.PrivacySettings -> Wrapper.PrivacySettings(
-                viewModelContext.get<PrivacySettingsViewModelFactory>().create(
+                viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onClosePrivacySettings = ::onClosePrivacySettings,
+                    onShowBlockedContactsSettings = ::onShowBlockedContactsSettings,
+                )
+            )
+
+            is Config.BlockedContactsSettings -> Wrapper.BlockedContactsSettings(
+                viewModelContext.get<BlockedContactsSettingsViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext).childContext(
+                        componentContext,
+                        roomListConfig.account,
+                    ),
+                    onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
                 )
             )
 
@@ -300,6 +329,16 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
+    private fun onShowBlockedContactsSettings(account: UserId) {
+        log.debug { "show blocked contacts settings for account $account" }
+        navigation.launchPush(viewModelContext.coroutineScope, Config.BlockedContactsSettings(account))
+    }
+
+    private fun onCloseBlockedContactsSettings() {
+        log.debug { "close blocked contacts settings" }
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
     private fun onShowConfigureNotifications(userId: UserId) {
         log.debug { "configure notifications for account $userId" }
         navigation.launchPush(viewModelContext.coroutineScope, Config.ConfigureNotifications(userId))
@@ -373,6 +412,9 @@ class RoomListRouter(
         data object PrivacySettings : Config()
 
         @Serializable
+        data class BlockedContactsSettings(val account: UserId) : Config()
+
+        @Serializable
         data class ConfigureNotifications(val userId: UserId) : Config()
 
         @Serializable
@@ -394,7 +436,8 @@ class RoomListRouter(
         class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
         class Profile(val viewModel: ProfileViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationsSettingsViewModel) : Wrapper()
-        class PrivacySettings(val viewModel: PrivacySettingsViewModel) : Wrapper()
+        class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
+        class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
         class ConfigureNotifications(val viewModel: ConfigureNotificationsViewModel) : Wrapper()
         class AppInfo(val viewModel: AppInfoViewModel) : Wrapper()
         class AccountsOverview(val viewModel: AccountsOverviewViewModel) : Wrapper()

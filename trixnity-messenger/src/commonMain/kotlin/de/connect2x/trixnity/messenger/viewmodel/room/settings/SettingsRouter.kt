@@ -29,6 +29,7 @@ interface SettingsRouter {
         data object None : Wrapper()
         class View(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
+        class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
     }
 
     @Serializable
@@ -41,6 +42,9 @@ interface SettingsRouter {
 
         @Serializable
         data object AddMembers : Config()
+
+        @Serializable
+        data object ExportRoom : Config()
     }
 
 }
@@ -74,6 +78,7 @@ class SettingsRouterImpl(
                     onBack = onRoomBack,
                     selectedRoomId = roomId,
                     onShowAddMembers = ::showAddMembers,
+                    onShowExportRoom = ::showExportRoom,
                     onCloseRoomSettings = onSettingsBack,
                 )
             )
@@ -88,6 +93,14 @@ class SettingsRouterImpl(
                             viewModelContext = viewModelContext.childContext(componentContext),
                             roomId = roomId
                         ),
+                )
+            )
+
+            is Config.ExportRoom -> Wrapper.ExportRoom(
+                viewModelContext.get<ExportRoomViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    roomId = roomId,
+                    onBack = ::closeExportRoom,
                 )
             )
         }
@@ -109,10 +122,13 @@ class SettingsRouterImpl(
         settingsNavigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    override fun isShown(): Boolean =
-        when (stack.value.active.configuration) {
-            is Config.Settings -> true
-            is Config.AddMembers -> true
-            is Config.None -> false
-        }
+    private fun showExportRoom() {
+        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ExportRoom)
+    }
+
+    private fun closeExportRoom() {
+        settingsNavigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    override fun isShown(): Boolean = stack.value.active.configuration !is Config.None
 }

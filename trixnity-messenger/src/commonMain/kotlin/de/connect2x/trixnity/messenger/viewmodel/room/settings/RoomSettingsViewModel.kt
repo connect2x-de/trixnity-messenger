@@ -13,6 +13,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 
@@ -24,12 +25,14 @@ interface RoomSettingsViewModelFactory {
         selectedRoomId: RoomId,
         onBack: () -> Unit,
         onShowAddMembers: () -> Unit,
+        onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
             onShowAddMembers = onShowAddMembers,
+            onShowExportRoom = onShowExportRoom,
             onCloseRoomSettings = onCloseRoomSettings,
             onBack = onBack,
         )
@@ -43,6 +46,7 @@ interface RoomSettingsViewModel {
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
+    val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
     val leaveRoomWarningTitle: StateFlow<String>
@@ -52,6 +56,7 @@ interface RoomSettingsViewModel {
     val hasPowerToInvite: StateFlow<Boolean>
 
     fun openAddMembersView()
+    fun openExportRoomView()
     fun leaveRoom()
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
@@ -62,6 +67,7 @@ open class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onShowAddMembers: () -> Unit,
+    private val onShowExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
@@ -74,8 +80,14 @@ open class RoomSettingsViewModelImpl(
         get<RoomSettingsTopicViewModelFactory>()
             .create(viewModelContext, selectedRoomId)
     }
+
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
         get<RoomSettingsNotificationsViewModelFactory>()
+            .create(viewModelContext, selectedRoomId, error)
+    }
+
+    override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel by lazy {
+        get<RoomSettingsHistoryVisibilityViewModelFactory>()
             .create(viewModelContext, selectedRoomId, error)
     }
 
@@ -155,24 +167,32 @@ open class RoomSettingsViewModelImpl(
     override fun openAddMembersView() {
         onShowAddMembers()
     }
+
+    override fun openExportRoomView() {
+        onShowExportRoom()
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
-    override val roomSettingsNameViewModel: RoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
-    override val roomSettingsTopicViewModel: RoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
-    override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel =
+    override val roomSettingsNameViewModel: PreviewRoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
+    override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
+    override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-
+    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel
+        = PreviewRoomSettingsHistoryVisibilityViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val leaveRoomWarningTitle: MutableStateFlow<String> = MutableStateFlow("leave room warning title")
     override val leaveRoomWarningMessage: MutableStateFlow<String> = MutableStateFlow("leave room warning message")
     override val leaveRoomWarningConfirmButtonText: MutableStateFlow<String> = MutableStateFlow("confirm")
-    override val memberListViewModel: MemberListViewModel = PreviewMemberListViewModel()
+    override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun openAddMembersView() {
+    }
+
+    override fun openExportRoomView() {
     }
 
     override fun leaveRoom() {
