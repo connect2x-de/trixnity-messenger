@@ -69,6 +69,10 @@ open class MemberStatusViewModelImpl(
                     membershipChanged(event, content, userInfo.name, isDirect)
                 } else if (content.avatarUrl != previousContent.avatarUrl) {
                     i18n.eventChangeAvatar(userInfo.name)
+                } else if (content.displayName != previousContent.displayName) {
+                    i18n.eventChangeDisplayName(previousContent.displayName, content.displayName)
+                } else if (previousContent.isDirect != isDirect) {
+                    i18n.eventChangeDirectRoom(isDirect)
                 } else {
                     null
                 }
