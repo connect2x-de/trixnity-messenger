@@ -643,7 +643,7 @@ class MainViewModelTest : ShouldSpec() {
                                     isBackButtonVisible: MutableStateFlow<Boolean>,
                                     onBack: () -> Unit,
                                     onVerifyUser: () -> Unit,
-                                    onShowRoomSettings: () -> Unit
+                                    onShowRoomSettings: () -> Unit,
                                 ): RoomHeaderViewModel {
                                     return roomHeaderViewModelMock
                                 }

@@ -663,7 +663,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                         isBackButtonVisible: MutableStateFlow<Boolean>,
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
-                                        onShowRoomSettings: () -> Unit
+                                        onShowRoomSettings: () -> Unit,
                                     ): RoomHeaderViewModel {
                                         return roomHeaderViewModelMock
                                     }
@@ -719,7 +719,11 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             val expectCalls = expect.map { value ->
                 value.first?.let { EventId(it.toString()) } to value.second?.let { EventId(it.toString()) }
             }.toSet()
-            withClue("expected read marker to be called with ${expectCalls.readable()} but was ${readMarkerCalled.value.toSet().readable()}") {
+            withClue(
+                "expected read marker to be called with ${expectCalls.readable()} but was ${
+                    readMarkerCalled.value.toSet().readable()
+                }"
+            ) {
                 readMarkerCalled.value shouldBe expectCalls
             }
         }
