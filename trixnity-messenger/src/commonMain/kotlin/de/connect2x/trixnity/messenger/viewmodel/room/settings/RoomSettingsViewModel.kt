@@ -13,7 +13,6 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 
@@ -54,6 +53,7 @@ interface RoomSettingsViewModel {
     val leaveRoomWarningConfirmButtonText: StateFlow<String>
     val memberListViewModel: MemberListViewModel
     val hasPowerToInvite: StateFlow<Boolean>
+    val isDirect: StateFlow<Boolean>
 
     fun openAddMembersView()
     fun openExportRoomView()
@@ -98,7 +98,7 @@ open class RoomSettingsViewModelImpl(
 
     override val leaveRoomWarningOpen = MutableStateFlow(false)
 
-    protected val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
@@ -188,6 +188,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val leaveRoomWarningConfirmButtonText: MutableStateFlow<String> = MutableStateFlow("confirm")
     override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun openAddMembersView() {
     }
