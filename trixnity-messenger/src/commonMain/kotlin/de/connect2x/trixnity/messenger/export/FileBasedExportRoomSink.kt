@@ -34,7 +34,8 @@ class FileBasedExportRoomSinkFactory(
         val currentTimeStamp =
             Instant.fromEpochMilliseconds(clock.now().toEpochMilliseconds())
                 .toLocalDateTime(TimeZone.of(timezone()))
-                .toString()
+                .toString().replace(":","_")
+        //Note: On few OS ":" It's not allowed with fileName, so we are replacing with "_"
         val fileName = "${currentTimeStamp}_${roomIdAsUnPaddedBase64}.${converter.extension}"
 
         val writer = writerFactory.create(properties.destination, fileName)
