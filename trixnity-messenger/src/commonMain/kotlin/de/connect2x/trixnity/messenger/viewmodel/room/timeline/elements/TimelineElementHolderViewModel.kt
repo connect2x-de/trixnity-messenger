@@ -504,7 +504,29 @@ open class TimelineElementHolderViewModelImpl(
 
             is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
-                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
+                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender?.let { redactedByUserId ->
+                        matrixClient.user.getById(selectedRoomId, redactedByUserId)
+                            .map { user ->
+                                UserInfoElement(
+                                    name = user?.name ?: timelineEvent.event.sender.full,
+                                    initials = user?.name?.let(initials::compute),
+                                    image = user?.avatarUrl?.let { avatarUrl ->
+                                        matrixClient.media.getThumbnail(
+                                            avatarUrl,
+                                            avatarSize().toLong(),
+                                            avatarSize().toLong()
+                                        ).fold(
+                                            onSuccess = { it },
+                                            onFailure = {
+                                                log.error(it) { "Cannot load avatar image for user '${user.name}'." }
+                                                null
+                                            }
+                                        )?.toByteArray()
+                                    }
+                                )
+                            }
+                    } ?: flowOf(UserInfoElement(i18n.commonUnknown()))
+
                 get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
@@ -518,7 +540,6 @@ open class TimelineElementHolderViewModelImpl(
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
-                    selectedRoomId = selectedRoomId,
                     redactedBy = redactedBy
                 )
             }

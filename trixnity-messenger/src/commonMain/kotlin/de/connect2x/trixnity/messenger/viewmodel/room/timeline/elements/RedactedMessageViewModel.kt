@@ -44,8 +44,7 @@ interface RedactedMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        selectedRoomId: RoomId,
-        redactedBy: UserId?
+        redactedBy: Flow<UserInfoElement>,
     ): RedactedMessageViewModel {
         return RedactedMessageViewModelImpl(
             viewModelContext,
@@ -57,7 +56,6 @@ interface RedactedMessageViewModelFactory {
             isByMe,
             showChatBubbleEdge,
             showBigGap,
-            selectedRoomId,
             showSender,
             sender,
             invitation,
@@ -83,11 +81,10 @@ open class RedactedMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
-    selectedRoomId: RoomId,
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    redactedBy: UserId?
+    redactedBy: Flow<UserInfoElement>,
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -96,25 +93,21 @@ open class RedactedMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val formattedMessage = sender.map { userInfo ->
-        redactedBy?.let {
-            if (matrixClient.userId == redactedBy) {
-                // Message is deleted by me
-                i18n.eventMessageRedactedByMe()
-            } else {
-                // Message is deleted by other person.
-                i18n.eventMessageRedacted(redactedBy.full)
-            }
-
-        } ?: run {
-            // We don't know who deleted this message
-            i18n.eventMessageRedactedByUnknown()
+    override val formattedMessage = redactedBy.map { userInfo ->
+        if (matrixClient.userId == userInfo.userId) {
+            // Message is deleted by me
+            i18n.eventMessageRedactedByMe()
+        } else {
+            // Message is deleted by other person.
+            i18n.eventMessageRedacted(userInfo.name)
         }
+
     }.stateIn(
         coroutineScope,
         SharingStarted.WhileSubscribed(),
         i18n.eventMessageRedacted(i18n.commonUnknown())
     )
+
 
     override val redactedAtDateTime: String? = timelineEvent?.unsigned?.redactedBecause?.originTimestampOrNull?.let {
         val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.of(timezone()))
