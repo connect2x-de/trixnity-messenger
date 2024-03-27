@@ -152,6 +152,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Nachricht wurde von $username gelöscht"
     }
 
+    fun eventMessageRedactedByMe() = translate {
+        EN - "You deleted this message"
+        DE - "Sie haben diese Nachricht gelöscht"
+    }
+
+    fun eventMessageRedactedByUnknown() = translate {
+        EN - "This message has been deleted"
+        DE - "Diese Nachricht ist gelöscht worden"
+    }
+
     fun eventRoomCreated(username: String, groupOrChat: String) = translate {
         EN - "$username has created $groupOrChat"
         DE - "$username hat $groupOrChat erstellt"

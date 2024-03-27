@@ -47,6 +47,7 @@ import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.roomId
+import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
@@ -503,6 +504,8 @@ open class TimelineElementHolderViewModelImpl(
 
             is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
+                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
+
                 get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
@@ -513,9 +516,11 @@ open class TimelineElementHolderViewModelImpl(
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     isByMe = isByMe,
+                    selectedRoomId = selectedRoomId,
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
+                    redactedBy = redactedBy
                 )
             }
 
