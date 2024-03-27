@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -307,7 +308,6 @@ open class TimelineElementHolderViewModelImpl(
         val event = timelineEvent.event
         val receivedDateTime = localDateTimeOf(event)
         val isByMe = isByMe(timelineEvent)
-        val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
 
         val (isPreviousBySomeoneElse, isPreviousOfOtherDay) = isPreviousBySomeoneElseOrOtherDay(
             previousRoomEvent,
@@ -504,6 +504,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
+                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
                 get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
@@ -517,6 +518,7 @@ open class TimelineElementHolderViewModelImpl(
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
+                    selectedRoomId = selectedRoomId,
                     redactedBy = redactedBy
                 )
             }
@@ -714,7 +716,7 @@ open class TimelineElementHolderViewModelImpl(
                             matrixClient.api.room.redactEvent(
                                 selectedRoomId,
                                 timelineEvent.eventId,
-                                asUserId = userId
+                                txnId = uuid4().toString()
                             ).onSuccess {
                                 log.debug { "successfully redacted event ${timelineEvent.eventId}" }
                             }.onFailure {

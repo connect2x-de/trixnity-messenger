@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Instant
@@ -22,6 +23,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
@@ -42,6 +44,7 @@ interface RedactedMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
+        selectedRoomId: RoomId,
         redactedBy: UserId?
     ): RedactedMessageViewModel {
         return RedactedMessageViewModelImpl(
@@ -54,6 +57,7 @@ interface RedactedMessageViewModelFactory {
             isByMe,
             showChatBubbleEdge,
             showBigGap,
+            selectedRoomId,
             showSender,
             sender,
             invitation,
@@ -79,6 +83,7 @@ open class RedactedMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
+    selectedRoomId: RoomId,
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
@@ -92,16 +97,18 @@ open class RedactedMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val formattedMessage = sender.map { userInfo ->
-        if (redactedBy != null && matrixClient.userId == redactedBy) {
-            // Message is deleted by me
-            i18n.eventMessageRedactedByMe()
-        } else if (redactedBy != null && matrixClient.userId != redactedBy) {
-            // Message is deleted by other person.
-            val userName = matrixClient.api.user.getDisplayName(redactedBy).getOrNull() ?: userInfo.name
-            i18n.eventMessageRedacted(userName)
-        } else {
-            i18n.eventMessageRedacted(userInfo.name)
+        redactedBy?.let {
+            if (matrixClient.userId == redactedBy) {
+                // Message is deleted by me
+                i18n.eventMessageRedactedByMe()
+            } else {
+                // Message is deleted by other person.
+                i18n.eventMessageRedacted(redactedBy.full)
+            }
 
+        } ?: run {
+            // We don't know who deleted this message
+            i18n.eventMessageRedactedByUnknown()
         }
     }.stateIn(
         coroutineScope,
