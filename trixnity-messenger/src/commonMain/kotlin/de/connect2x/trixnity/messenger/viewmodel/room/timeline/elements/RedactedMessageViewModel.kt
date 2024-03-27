@@ -94,29 +94,17 @@ open class RedactedMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-
-    override val formattedMessage = sender.map { userInfo ->
-        redactedBy?.let {
-            if (matrixClient.userId == redactedBy) {
-                // Message is deleted by me
-                i18n.eventMessageRedactedByMe()
-            } else {
-                // Message is deleted by other person.
-                val userName = combine(sender, matrixClient.user.getById(selectedRoomId, redactedBy)) { sender, redactedUser ->
-                        redactedUser?.name ?: i18n.commonUnknown()
-                    }.first()
-
-                i18n.eventMessageRedacted(userName)
-            }
-        } ?: run {
-            // We don't know who deleted this message
-            i18n.eventMessageRedactedByUnknown()
+    override val formattedMessage = when (redactedBy) {
+            null -> MutableStateFlow(i18n.eventMessageRedactedByUnknown())
+            matrixClient.userId -> MutableStateFlow(i18n.eventMessageRedactedByMe())
+            else -> matrixClient.user.getById(selectedRoomId, redactedBy).map {
+                i18n.eventMessageRedacted(it?.name ?: redactedBy.full)
+            }.stateIn(
+                coroutineScope,
+                SharingStarted.WhileSubscribed(),
+                i18n.eventMessageRedacted(i18n.commonUnknown())
+            )
         }
-    }.stateIn(
-        coroutineScope,
-        SharingStarted.WhileSubscribed(),
-        i18n.eventMessageRedacted(i18n.commonUnknown())
-    )
 
 
     override val redactedAtDateTime: String? =
