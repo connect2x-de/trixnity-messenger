@@ -504,28 +504,7 @@ open class TimelineElementHolderViewModelImpl(
 
             is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
-                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender?.let { redactedByUserId ->
-                        matrixClient.user.getById(selectedRoomId, redactedByUserId)
-                            .map { user ->
-                                UserInfoElement(
-                                    name = user?.name ?: timelineEvent.event.sender.full,
-                                    initials = user?.name?.let(initials::compute),
-                                    image = user?.avatarUrl?.let { avatarUrl ->
-                                        matrixClient.media.getThumbnail(
-                                            avatarUrl,
-                                            avatarSize().toLong(),
-                                            avatarSize().toLong()
-                                        ).fold(
-                                            onSuccess = { it },
-                                            onFailure = {
-                                                log.error(it) { "Cannot load avatar image for user '${user.name}'." }
-                                                null
-                                            }
-                                        )?.toByteArray()
-                                    }
-                                )
-                            }
-                    } ?: flowOf(UserInfoElement(i18n.commonUnknown()))
+                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
 
                 get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
@@ -537,6 +516,7 @@ open class TimelineElementHolderViewModelImpl(
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     isByMe = isByMe,
+                    selectedRoomId = selectedRoomId,
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,

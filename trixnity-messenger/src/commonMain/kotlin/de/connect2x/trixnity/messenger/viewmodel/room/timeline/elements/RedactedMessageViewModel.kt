@@ -7,19 +7,17 @@ import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.math.log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
@@ -44,7 +42,8 @@ interface RedactedMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        redactedBy: Flow<UserInfoElement>,
+        selectedRoomId: RoomId,
+        redactedBy: UserId?
     ): RedactedMessageViewModel {
         return RedactedMessageViewModelImpl(
             viewModelContext,
@@ -56,6 +55,7 @@ interface RedactedMessageViewModelFactory {
             isByMe,
             showChatBubbleEdge,
             showBigGap,
+            selectedRoomId,
             showSender,
             sender,
             invitation,
@@ -81,10 +81,11 @@ open class RedactedMessageViewModelImpl(
     override val isByMe: Boolean,
     override val showChatBubbleEdge: Boolean,
     override val showBigGap: Boolean,
+    selectedRoomId: RoomId,
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    redactedBy: Flow<UserInfoElement>,
+    redactedBy: UserId?,
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -93,15 +94,24 @@ open class RedactedMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val formattedMessage = redactedBy.map { userInfo ->
-        if (matrixClient.userId == userInfo.userId) {
-            // Message is deleted by me
-            i18n.eventMessageRedactedByMe()
-        } else {
-            // Message is deleted by other person.
-            i18n.eventMessageRedacted(userInfo.name)
-        }
 
+    override val formattedMessage = sender.map { userInfo ->
+        redactedBy?.let {
+            if (matrixClient.userId == redactedBy) {
+                // Message is deleted by me
+                i18n.eventMessageRedactedByMe()
+            } else {
+                // Message is deleted by other person.
+                val userName = combine(sender, matrixClient.user.getById(selectedRoomId, redactedBy)) { sender, redactedUser ->
+                        redactedUser?.name ?: i18n.commonUnknown()
+                    }.first()
+
+                i18n.eventMessageRedacted(userName)
+            }
+        } ?: run {
+            // We don't know who deleted this message
+            i18n.eventMessageRedactedByUnknown()
+        }
     }.stateIn(
         coroutineScope,
         SharingStarted.WhileSubscribed(),
@@ -109,10 +119,11 @@ open class RedactedMessageViewModelImpl(
     )
 
 
-    override val redactedAtDateTime: String? = timelineEvent?.unsigned?.redactedBecause?.originTimestampOrNull?.let {
-        val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.of(timezone()))
-        "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
-    }
+    override val redactedAtDateTime: String? =
+        timelineEvent?.unsigned?.redactedBecause?.originTimestampOrNull?.let {
+            val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.of(timezone()))
+            "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
+        }
 }
 
 class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
