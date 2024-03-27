@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -47,6 +46,7 @@ import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.roomId
+import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
@@ -307,6 +307,7 @@ open class TimelineElementHolderViewModelImpl(
         val event = timelineEvent.event
         val receivedDateTime = localDateTimeOf(event)
         val isByMe = isByMe(timelineEvent)
+        val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
 
         val (isPreviousBySomeoneElse, isPreviousOfOtherDay) = isPreviousBySomeoneElseOrOtherDay(
             previousRoomEvent,
@@ -516,6 +517,7 @@ open class TimelineElementHolderViewModelImpl(
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
+                    redactedBy = redactedBy
                 )
             }
 
@@ -712,7 +714,7 @@ open class TimelineElementHolderViewModelImpl(
                             matrixClient.api.room.redactEvent(
                                 selectedRoomId,
                                 timelineEvent.eventId,
-                                txnId = uuid4().toString()
+                                asUserId = userId
                             ).onSuccess {
                                 log.debug { "successfully redacted event ${timelineEvent.eventId}" }
                             }.onFailure {

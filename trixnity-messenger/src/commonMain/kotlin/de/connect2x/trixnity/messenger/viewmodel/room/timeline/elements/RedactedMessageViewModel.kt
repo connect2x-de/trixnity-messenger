@@ -6,20 +6,27 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
+import io.github.oshai.kotlinlogging.KotlinLogging
+import korlibs.math.log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.unsigned
+import net.folivo.trixnity.client.user
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
 
+private val log = KotlinLogging.logger { }
 
 interface RedactedMessageViewModelFactory {
     fun create(
@@ -35,6 +42,7 @@ interface RedactedMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
+        redactedBy: UserId?
     ): RedactedMessageViewModel {
         return RedactedMessageViewModelImpl(
             viewModelContext,
@@ -49,6 +57,7 @@ interface RedactedMessageViewModelFactory {
             showSender,
             sender,
             invitation,
+            redactedBy
         )
     }
 
@@ -73,6 +82,7 @@ open class RedactedMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
+    redactedBy: UserId?
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -82,7 +92,17 @@ open class RedactedMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val formattedMessage = sender.map { userInfo ->
-        i18n.eventMessageRedacted(userInfo.name)
+        if (redactedBy != null && matrixClient.userId == redactedBy) {
+            // Message is deleted by me
+            i18n.eventMessageRedactedByMe()
+        } else if (redactedBy != null && matrixClient.userId != redactedBy) {
+            // Message is deleted by other person.
+            val userName = matrixClient.api.user.getDisplayName(redactedBy).getOrNull() ?: userInfo.name
+            i18n.eventMessageRedacted(userName)
+        } else {
+            i18n.eventMessageRedacted(userInfo.name)
+
+        }
     }.stateIn(
         coroutineScope,
         SharingStarted.WhileSubscribed(),
