@@ -61,7 +61,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Encrypte
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
@@ -75,8 +74,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileName
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileNameImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputationsImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
@@ -195,11 +192,10 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<RoomTopic> { RoomTopicImpl() }
         single<RoomInviter> { RoomInviterImpl() }
         single<UserBlocking> { UserBlockingImpl() }
-        single<ComputeFileName> { ComputeFileNameImpl(get()) }
 
         single<DownloadManager> { DownloadManagerImpl() }
         single<Thumbnails> { ThumbnailsImpl() }
-        single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get(), get()) }
+        single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get()) }
         single<DirectRoom> { DirectRoomImpl() }
         single<ActiveVerifications> { ActiveVerificationsImpl() }
         single<UserPresence> { UserPresenceImpl(get()) }

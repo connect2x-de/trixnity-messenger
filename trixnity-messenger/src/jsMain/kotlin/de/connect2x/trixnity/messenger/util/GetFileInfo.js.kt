@@ -25,16 +25,20 @@ actual class FileDescriptorSerializer : KSerializer<FileDescriptor> {
 
 actual fun platformGetFileInfoModule(): Module = module {
     single<GetFileInfo> {
-        GetFileInfo { fileDescriptor ->
-            val jsFile = fileDescriptor.handle
-            if (jsFile != null)
-                FileInfo(
-                    fileName = jsFile.name,
-                    fileSize = jsFile.size.toInt(),
-                    mimeType = ContentType.fromFilePath(jsFile.name).firstOrNull(),
-                    content = byteArrayFlowFromReadableStream { jsFile.stream() }
-                )
-            else null
-        }
+        GetFileInfoImpl
+    }
+}
+
+object GetFileInfoImpl : GetFileInfo {
+    override suspend fun invoke(fileDescriptor: FileDescriptor): FileInfo? {
+        val jsFile = fileDescriptor.handle
+        return if (jsFile != null)
+            FileInfo(
+                fileName = jsFile.name,
+                fileSize = jsFile.size.toInt(),
+                mimeType = ContentType.fromFilePath(jsFile.name).firstOrNull(),
+                content = byteArrayFlowFromReadableStream { jsFile.stream() }
+            )
+        else null
     }
 }

@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +44,6 @@ abstract class AbstractFileBasedMessageViewModel(
     private val content: RoomMessageEventContent.FileBased,
 ) : FileBasedMessageViewModel {
 
-    private val computeFileName = viewModelContext.get<ComputeFileName>()
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
     protected val url: String? by lazy { content.file?.url ?: content.url }
@@ -58,7 +56,7 @@ abstract class AbstractFileBasedMessageViewModel(
     override val downloadProgress = MutableStateFlow<FileTransferProgressElement?>(null)
     override val downloadSuccessful = MutableStateFlow(false)
 
-    override val fileName: String by lazy { computeFileName(content) }
+    override val fileName: String = content.fileName ?: content.body
     override val fileSize: Int? = content.info?.size
     override val fileMimeType: String? = content.info?.mimeType
 

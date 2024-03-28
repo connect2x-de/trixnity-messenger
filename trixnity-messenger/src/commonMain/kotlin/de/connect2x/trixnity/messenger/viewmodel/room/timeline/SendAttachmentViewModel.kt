@@ -11,7 +11,16 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.audio
@@ -121,6 +130,7 @@ class SendAttachmentViewModelImpl(
                             val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
                             image(
                                 body = fileInfo.fileName,
+                                fileName = fileInfo.fileName,
                                 image = byteArrayFlow,
                                 type = fileInfo.mimeType,
                                 size = fileInfo.fileSize,
@@ -133,6 +143,7 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send a video" }
                             video(
                                 body = fileInfo.fileName,
+                                fileName = fileInfo.fileName,
                                 video = byteArrayFlow,
                                 type = fileInfo.mimeType,
                                 size = fileInfo.fileSize,
@@ -143,6 +154,7 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send an audio" }
                             audio(
                                 body = fileInfo.fileName,
+                                fileName = fileInfo.fileName,
                                 audio = byteArrayFlow,
                                 type = fileInfo.mimeType,
                                 size = fileInfo.fileSize,
@@ -155,7 +167,7 @@ class SendAttachmentViewModelImpl(
                                 body = fileInfo.fileName,
                                 file = byteArrayFlow,
                                 type = fileInfo.mimeType,
-                                name = fileInfo.fileName,
+                                fileName = fileInfo.fileName,
                                 size = fileInfo.fileSize
                             )
                         }
