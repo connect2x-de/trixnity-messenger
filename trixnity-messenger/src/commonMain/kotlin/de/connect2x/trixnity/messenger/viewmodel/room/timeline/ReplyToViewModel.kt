@@ -2,19 +2,32 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.*
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ComputeFileName
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.AudioReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.FileReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.ImageReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.LocationReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.TextReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.UnknownReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.VideoReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 
@@ -54,7 +67,6 @@ open class ReplyToViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, ReplyToViewModel {
 
     private val thumbnails = get<Thumbnails>()
-    private val computeFileName = get<ComputeFileName>()
     override val replyTo: StateFlow<ReplyType?>
 
     private val thumbnailLoading = MutableStateFlow(false)
@@ -86,11 +98,7 @@ open class ReplyToViewModelImpl(
                         thumbnailLoading.value = false
                         t
                     } else thumbnailCache.value
-                    ImageReply(
-                        thumbnail,
-                        computeFileName(content),
-                        sender
-                    )
+                    ImageReply(thumbnail, content.fileName ?: content.body, sender)
                 }
 
                 is FileBased.Video -> {
@@ -105,26 +113,14 @@ open class ReplyToViewModelImpl(
                         thumbnailLoading.value = false
                         t
                     } else thumbnailCache.value
-                    VideoReply(
-                        thumbnail, computeFileName(content), sender
-                    )
+                    VideoReply(thumbnail, content.fileName ?: content.body, sender)
                 }
 
-                is FileBased.Audio -> AudioReply(
-                    computeFileName(content),
-                    sender,
-                )
+                is FileBased.Audio -> AudioReply(content.fileName ?: content.body, sender)
 
-                is FileBased.File -> FileReply(
-                    content.fileName ?: content.bodyWithoutFallback,
-                    sender,
-                )
+                is FileBased.File -> FileReply(content.fileName ?: content.body, sender)
 
-                is Location -> LocationReply(
-                    content.body,
-                    content.geoUri,
-                    sender,
-                )
+                is Location -> LocationReply(content.body, content.geoUri, sender)
 
                 else -> UnknownReply(sender)
             }

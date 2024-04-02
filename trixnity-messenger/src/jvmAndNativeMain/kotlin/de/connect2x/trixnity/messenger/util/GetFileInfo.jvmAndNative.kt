@@ -28,13 +28,21 @@ actual class FileDescriptorSerializer : KSerializer<FileDescriptor> {
 
 actual fun platformGetFileInfoModule(): Module = module {
     single<GetFileInfo> {
-        val fileSystem = get<FileSystem>()
-        GetFileInfo { fileDescriptor ->
-            val fileName: String = fileDescriptor.name
-            val fileSize: Long? = fileSystem.metadataOrNull(fileDescriptor)?.size
-            val byteArrayFlow = byteArrayFlowFromSource { fileSystem.source(fileDescriptor) }
+        GetFileInfoImpl(get())
+    }
+}
 
-            FileInfo(fileName, fileSize?.toInt(), ContentType.fromFilePath(fileName).firstOrNull(), byteArrayFlow)
-        }
+class GetFileInfoImpl(private val fileSystem: FileSystem) : GetFileInfo {
+    override suspend fun invoke(fileDescriptor: FileDescriptor): FileInfo {
+        val fileName: String = fileDescriptor.name
+        val fileSize: Long? = fileSystem.metadataOrNull(fileDescriptor)?.size
+        val byteArrayFlow = byteArrayFlowFromSource { fileSystem.source(fileDescriptor) }
+
+        return FileInfo(
+            fileName = fileName,
+            fileSize = fileSize?.toInt(),
+            mimeType = ContentType.fromFilePath(fileName).firstOrNull(),
+            content = byteArrayFlow
+        )
     }
 }

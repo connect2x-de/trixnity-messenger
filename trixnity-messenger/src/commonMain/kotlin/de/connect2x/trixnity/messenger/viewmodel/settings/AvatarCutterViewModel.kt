@@ -6,8 +6,14 @@ import de.connect2x.trixnity.messenger.util.GetFileInfo
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.utils.toByteArray
@@ -71,7 +77,7 @@ open class AvatarCutterViewModelImpl(
             if (fileInfo != null) {
                 matrixClient.media.prepareUploadThumbnail(
                     fileInfo.content,
-                    ContentType.Image.Any
+                    fileInfo.mimeType,
                 )?.let { (cache, _) ->
                     matrixClient.media.uploadMedia(cache).fold(
                         onSuccess = { url ->
