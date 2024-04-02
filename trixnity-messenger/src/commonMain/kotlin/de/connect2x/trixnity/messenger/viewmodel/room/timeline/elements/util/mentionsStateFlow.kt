@@ -12,6 +12,7 @@ import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.Mention as CoreMention
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.client.store.Room as RoomStore
 
 fun mentionsStateFlow(
@@ -28,7 +29,7 @@ fun mentionsStateFlow(
                     .map {
                         Mention.User(it.toUserInfoElement(matrixClient))
                     }
-                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Mention.User(UserInfoElement("")))
+                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Mention.User(UserInfoElement("", UserId(""))))
 
                 is CoreMention.Room -> matrixClient.room.getById(mention.roomId)
                     .filterNotNull()

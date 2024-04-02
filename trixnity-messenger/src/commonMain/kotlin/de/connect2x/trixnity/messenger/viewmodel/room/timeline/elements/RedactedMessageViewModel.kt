@@ -17,6 +17,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.unsigned
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
 
@@ -77,7 +78,7 @@ open class RedactedMessageViewModelImpl(
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
@@ -101,7 +102,7 @@ class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
     override val showChatBubbleEdge: Boolean = false
     override val showBigGap: Boolean = false
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
-    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin"))
+    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin", UserId("martin:matrix.org")))
     override val formattedTime: String? = null
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.12.21"

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 interface NoticeMessageViewModelFactory {
@@ -31,6 +32,7 @@ interface NoticeMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
+        onOpenMention: (userId: UserId, mention: Mention) -> Unit
     ): NoticeMessageViewModel {
         return NoticeMessageViewModelImpl(
             viewModelContext,
@@ -49,7 +51,8 @@ interface NoticeMessageViewModelFactory {
             message,
             formattedBody,
             invitation,
-            roomId
+            roomId,
+            onOpenMention
         )
     }
 
@@ -76,11 +79,12 @@ open class NoticeMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
+    override val onOpenMention: (userId: UserId, mention: Mention) -> Unit
 ) : NoticeMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
@@ -91,6 +95,9 @@ open class NoticeMessageViewModelImpl(
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
+    override fun openMention(mention: Mention) {
+        onOpenMention(matrixClient.userId, mention)
+    }
 
     override fun toString(): String {
         return fallbackMessage

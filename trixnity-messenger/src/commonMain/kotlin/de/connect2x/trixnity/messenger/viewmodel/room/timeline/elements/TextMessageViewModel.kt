@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.men
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 
@@ -29,6 +30,7 @@ interface TextMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
+        onOpenMention: (userId: UserId, mention: Mention) -> Unit
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
             viewModelContext,
@@ -47,7 +49,8 @@ interface TextMessageViewModelFactory {
             message,
             formattedBody,
             invitation,
-            roomId
+            roomId,
+            onOpenMention
         )
     }
 
@@ -74,12 +77,13 @@ open class TextMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
+    override val onOpenMention: (userId: UserId, mention: Mention) -> Unit
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
 
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
@@ -90,6 +94,10 @@ open class TextMessageViewModelImpl(
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
+
+    override fun openMention(mention: Mention) {
+        onOpenMention(matrixClient.userId, mention)
+    }
 
     override fun toString(): String {
         return fallbackMessage
@@ -104,7 +112,8 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val showChatBubbleEdge: Boolean = false
     override val showBigGap: Boolean = false
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
-    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin"))
+    override val sender: StateFlow<UserInfoElement> =
+        MutableStateFlow(UserInfoElement("Martin", UserId("martin:matrix.org")))
     override val formattedTime: String? = null
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.12.21"
@@ -112,4 +121,6 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
     override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
     override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? = mapOf()
+    override val onOpenMention: (userId: UserId, mention: Mention) -> Unit = { _, _ -> }
+    override fun openMention(mention: Mention) {}
 }

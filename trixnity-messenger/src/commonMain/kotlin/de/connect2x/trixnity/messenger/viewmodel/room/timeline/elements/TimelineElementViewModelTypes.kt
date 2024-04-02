@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.core.model.UserId
 
 interface BaseTimelineElementViewModel {
     val invitation: StateFlow<String?> // in case the element has the invitation element above
@@ -66,6 +67,13 @@ interface TextBasedViewModel : RoomMessageViewModel {
      * Users, Events and Room mentioned in the event's formatted body
      */
     val mentionsInFormattedBody: Map<String, StateFlow<Mention>>?
+
+    /**
+     * Open the mention in the UI
+     */
+    fun openMention(mention: Mention)
+
+    val onOpenMention: (userId: UserId, mention: Mention) -> Unit
 }
 
 sealed interface ReferencedMessage {
