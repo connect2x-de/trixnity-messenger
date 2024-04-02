@@ -21,8 +21,9 @@ open class UrlHandlerBase(
 ) : UrlHandler, Flow<Url> by urlHandlerFlow.filter(filter)
 
 fun urlFilter(config: MatrixMessengerBaseConfiguration): (Url) -> Boolean = {
-    it.protocol == URLProtocol.createOrDefault(config.urlProtocol)
-            && it.host == config.urlHost
+    val origin = Url(URLBuilder.origin)
+    (it.protocol == origin.protocol || it.protocol == URLProtocol.createOrDefault(config.urlProtocol))
+            && (it.host == origin.host || it.host == config.urlHost)
 }
 
 expect fun platformUrlHandlerModule(): Module
