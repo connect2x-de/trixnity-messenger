@@ -47,6 +47,7 @@ import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.roomId
+import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.EventId
@@ -56,9 +57,21 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.room.*
+import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
+import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
+import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -509,6 +522,8 @@ open class TimelineElementHolderViewModelImpl(
 
             is RedactedEventContent -> {
                 log.trace { "Create redacted text message view model: ${event.id}" }
+                val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
+
                 get<RedactedMessageViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
@@ -519,9 +534,11 @@ open class TimelineElementHolderViewModelImpl(
                     formattedDate = formatDate(receivedDateTime),
                     showDateAbove = showDateAbove,
                     isByMe = isByMe,
+                    selectedRoomId = selectedRoomId,
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
+                    redactedBy = redactedBy
                 )
             }
 

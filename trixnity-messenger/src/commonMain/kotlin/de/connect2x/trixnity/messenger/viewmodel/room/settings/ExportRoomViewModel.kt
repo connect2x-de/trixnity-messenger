@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Running
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Success
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +22,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.core.model.RoomId
-import org.koin.core.component.inject
+import net.folivo.trixnity.core.model.UserId
+import org.koin.core.component.get
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -44,6 +48,8 @@ interface ExportRoomViewModelFactory {
 }
 
 interface ExportRoomViewModel {
+    val roomName: StateFlow<String>
+    val isDirect: StateFlow<Boolean>
     val properties: MutableStateFlow<ExportRoomSinkProperties?>
     val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?>
     val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?>
@@ -83,10 +89,15 @@ class ExportRoomViewModelImpl(
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ExportRoomViewModel {
 
-    private val exportRoom by inject<ExportRoom>()
-    private val i18n by inject<I18n>()
+    private val exportRoom = get<ExportRoom>()
+    private val i18n = get<I18n>()
+    private val roomNameComputation = get<RoomName>()
 
     private val job: MutableStateFlow<Job?> = MutableStateFlow(null)
+    override val roomName: StateFlow<String> = roomNameComputation.getRoomName(roomId, matrixClient)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    override val isDirect: StateFlow<Boolean> = matrixClient.room.getById(roomId).map { it?.isDirect ?: false }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val properties: MutableStateFlow<ExportRoomSinkProperties?> = MutableStateFlow(null)
     override val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?> = MutableStateFlow(null)
     override val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?> = MutableStateFlow(null)
@@ -169,4 +180,37 @@ class ExportRoomViewModelImpl(
         abort()
         onBack()
     }
+}
+
+class PreviewExportRoomViewModel : ExportRoomViewModel {
+    override val roomName: MutableStateFlow<String> = MutableStateFlow("Room name")
+    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val canExport: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isExporting: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val properties: MutableStateFlow<ExportRoomSinkProperties?> = MutableStateFlow(null)
+    override val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?> = MutableStateFlow(null)
+    override val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?> = MutableStateFlow(null)
+    override val state: MutableStateFlow<ExportRoomViewModel.State> =
+        MutableStateFlow(
+            Error(
+                message = "An error has occurred", missingMedia = listOf(
+                    ExportRoomResult.SuccessWithMissingMedia.MissingMedia(
+                        "a.txt",
+                        sender = UserId("martin", "localhost"),
+                        timestamp = Instant.DISTANT_PAST,
+                        reason = "cannot export file"
+                    )
+                )
+            )
+        )
+
+    override fun abort() {
+    }
+
+    override fun back() {
+    }
+
+    override fun start() {
+    }
+
 }

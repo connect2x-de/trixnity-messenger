@@ -2,12 +2,24 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedAudioMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedFileMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedImageMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedLocationMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedTextMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedUnknownMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedVideoMessage
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
@@ -33,7 +45,6 @@ interface RichRepliesComputations {
 class RichRepliesComputationsImpl(
     private val initials: Initials,
     private val thumbnails: Thumbnails,
-    private val computeFileName: ComputeFileName,
 ) : RichRepliesComputations {
 
     @OptIn(FlowPreview::class)
@@ -94,7 +105,7 @@ class RichRepliesComputationsImpl(
                                 ReferencedImageMessage(
                                     sender,
                                     thumbnail,
-                                    computeFileName(content),
+                                    content.fileName ?: content.body,
                                 )
                             }
 
@@ -107,13 +118,13 @@ class RichRepliesComputationsImpl(
                                 ReferencedVideoMessage(
                                     sender,
                                     thumbnail,
-                                    computeFileName(content),
+                                    content.fileName ?: content.body,
                                 )
                             }
 
                             is RoomMessageEventContent.FileBased.Audio -> ReferencedAudioMessage(
                                 sender,
-                                computeFileName(content),
+                                content.fileName ?: content.body,
                             )
 
                             is RoomMessageEventContent.FileBased.File -> ReferencedFileMessage(

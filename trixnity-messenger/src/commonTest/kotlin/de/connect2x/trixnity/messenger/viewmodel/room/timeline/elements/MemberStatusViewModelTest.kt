@@ -93,7 +93,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
             }
         }
 
-        should("not show an indicator for name changes") {
+        should("show an indicator for name changes") {
             val cut = memberStatusViewModel(
                 timelineEventFlow = MutableStateFlow(
                     memberStateTimelineEvent(
@@ -107,7 +107,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe null
+            cut.formattedMemberStatus.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()

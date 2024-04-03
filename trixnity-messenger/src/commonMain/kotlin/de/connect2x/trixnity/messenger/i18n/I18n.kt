@@ -82,6 +82,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat das Profilbild geändert"
     }
 
+    fun eventChangeDisplayName(oldDisplayName: String?, newDisplayName: String?) = translate {
+        EN - "'$oldDisplayName' has changed their name to '$newDisplayName'"
+        DE - "'$oldDisplayName' hat den Namen zu '$newDisplayName' geändert"
+    }
+
+    fun eventChangeDirectRoom(isDirect: Boolean) = translate {
+        EN - if (isDirect) "Group has been converted to Chat" else "Chat has been converted to Group"
+        DE - if (isDirect) "Gruppe wurde in einen Chat umgewandelt" else "Chat wurde in eine Gruppe umgewandelt"
+    }
+
     fun eventChangeChatGenitive() = translate {
         EN - "the chat"
         DE - "des Chats"
@@ -140,6 +150,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun eventMessageRedacted(username: String) = translate {
         EN - "message has been deleted by $username"
         DE - "Nachricht wurde von $username gelöscht"
+    }
+
+    fun eventMessageRedactedByMe() = translate {
+        EN - "You deleted this message"
+        DE - "Sie haben diese Nachricht gelöscht"
+    }
+
+    fun eventMessageRedactedByUnknown() = translate {
+        EN - "This message has been deleted"
+        DE - "Diese Nachricht ist gelöscht worden"
     }
 
     fun eventRoomCreated(username: String, groupOrChat: String) = translate {

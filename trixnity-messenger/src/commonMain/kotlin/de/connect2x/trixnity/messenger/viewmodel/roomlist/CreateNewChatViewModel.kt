@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
@@ -99,6 +100,7 @@ open class CreateNewChatViewModelImpl(
                     isDirect = true,
                     invite = setOf(userId),
                     initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
+                    preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
                 ).fold(
                     onSuccess = { roomId ->
                         log.debug { "created room ${roomId.full}" }
