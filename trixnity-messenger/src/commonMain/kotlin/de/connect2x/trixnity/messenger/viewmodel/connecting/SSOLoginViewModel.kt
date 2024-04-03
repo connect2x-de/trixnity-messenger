@@ -58,7 +58,12 @@ interface SSOLoginViewModel {
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
     val waitForRedirect: StateFlow<Boolean>
 
-    fun tryLogin()
+    /**
+     * Opens SSO provider login page, waits to receive the token and logs in with this token.
+     *
+     * @param externalRedirectUrl can be used to skip opening the SSO provider login page
+     */
+    fun tryLogin(externalRedirectUrl: String? = null)
     fun abortLogin()
 
     fun back()
@@ -97,30 +102,41 @@ open class SSOLoginViewModelImpl(
     override val waitForRedirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private var loginJob: Job? = null
-    override fun tryLogin() {
+    override fun tryLogin(externalRedirectUrl: String?) {
         if (loginJob != null) {
             loginJob = coroutineScope.launch {
-                waitForRedirect.value = true
                 val loginToken = async {
-                    urlHandler.filter {
-                        it.encodedPath == redirectUrl.encodedPath
-                                && it.parameters["state"] == state
-                    }.map {
-                        it.parameters["loginToken"]
-                    }.filterNotNull().first()
+                    if (externalRedirectUrl != null) {
+                        val parsedExternalRedirectUrl = Url(externalRedirectUrl)
+                        if (parsedExternalRedirectUrl.parameters["state"] == state) {
+                            parsedExternalRedirectUrl.parameters["loginToken"]
+                        } else null
+                    } else {
+                        waitForRedirect.value = true
+                        urlHandler.filter {
+                            it.encodedPath == redirectUrl.encodedPath
+                                    && it.parameters["state"] == state
+                        }.map {
+                            it.parameters["loginToken"]
+                        }.filterNotNull().first()
+                            .also { waitForRedirect.value = false }
+                    }
                 }
                 uriCaller(loginUrl)
-                loginToken.await()
-                waitForRedirect.value = false
-                log.debug { "Try to login into $serverUrl with loginToken=***." }
-                matrixClients.loginCatching(
-                    serverUrl = serverUrl,
-                    token = loginToken.await(),
-                    initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                    addMatrixAccountState = addMatrixAccountState,
-                    i18n = i18n,
-                    onLogin = onLogin,
-                )
+                val finalLoginToken = loginToken.await()
+                if (finalLoginToken == null) {
+                    log.warn { "loginToken was null" }
+                } else {
+                    log.debug { "Try to login into $serverUrl with loginToken=***." }
+                    matrixClients.loginCatching(
+                        serverUrl = serverUrl,
+                        token = finalLoginToken,
+                        initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+                        addMatrixAccountState = addMatrixAccountState,
+                        i18n = i18n,
+                        onLogin = onLogin,
+                    )
+                }
             }
             loginJob?.invokeOnCompletion {
                 addMatrixAccountState.value = AddMatrixAccountState.None
@@ -148,7 +164,7 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
     override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
 
 
-    override fun tryLogin() {
+    override fun tryLogin(externalRedirectUrl: String?) {
     }
 
     override fun abortLogin() {
