@@ -31,7 +31,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
@@ -119,7 +119,7 @@ interface TimelineViewModelFactory {
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-        onOpenMention: (userId: UserId, mention: Mention) -> Unit
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): TimelineViewModel {
         return TimelineViewModelImpl(
             viewModelContext,
@@ -224,7 +224,7 @@ class TimelineViewModelImpl(
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    private val onOpenMention: (userId: UserId, mention: Mention) -> Unit
+    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
     init {

@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionsStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +32,7 @@ interface NoticeMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
-        onOpenMention: (userId: UserId, mention: Mention) -> Unit
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): NoticeMessageViewModel {
         return NoticeMessageViewModelImpl(
             viewModelContext,
@@ -79,7 +79,7 @@ open class NoticeMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
-    override val onOpenMention: (userId: UserId, mention: Mention) -> Unit
+    override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 ) : NoticeMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -89,14 +89,14 @@ open class NoticeMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<Mention>> =
+    override val mentionsInMessage: Map<String, StateFlow<MessageMention>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? =
+    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? =
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
-    override fun openMention(mention: Mention) {
-        onOpenMention(matrixClient.userId, mention)
+    override fun openMention(messageMention: MessageMention) {
+        onOpenMention(matrixClient.userId, messageMention)
     }
 
     override fun toString(): String {

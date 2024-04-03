@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -61,19 +61,19 @@ interface TextBasedViewModel : RoomMessageViewModel {
     /**
      * Users, Events and Room mentioned in the event's message
      */
-    val mentionsInMessage: Map<String, StateFlow<Mention>>
+    val mentionsInMessage: Map<String, StateFlow<MessageMention>>
 
     /**
      * Users, Events and Room mentioned in the event's formatted body
      */
-    val mentionsInFormattedBody: Map<String, StateFlow<Mention>>?
+    val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>?
 
     /**
      * Open the mention in the UI
      */
-    fun openMention(mention: Mention)
+    fun openMention(messageMention: MessageMention)
 
-    val onOpenMention: (userId: UserId, mention: Mention) -> Unit
+    val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 }
 
 sealed interface ReferencedMessage {

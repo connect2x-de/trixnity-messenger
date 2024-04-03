@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -82,7 +82,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageRepliedTo: (EventId) -> Unit,
         onMessageReportTo: (EventId) -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-        onOpenMention: (userId: UserId, mention: Mention) -> Unit
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): TimelineElementHolderViewModel {
         return TimelineElementHolderViewModelImpl(
             viewModelContext,
@@ -153,7 +153,7 @@ open class TimelineElementHolderViewModelImpl(
     private val onMessageRepliedTo: (EventId) -> Unit,
     private val onMessageReportTo: (EventId) -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    private val onOpenMention: (userId: UserId, mention: Mention) -> Unit
+    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
     private val richRepliesComputations = get<RichRepliesComputations>()
@@ -490,7 +490,7 @@ open class TimelineElementHolderViewModelImpl(
                                 selectedRoomId
                             ),
                             message = content.bodyWithoutFallback,
-                            formattedBody = content.getFormattedBody(),
+                            formattedBody = content.formattedBody,
                             sender = sender,
                             showSender = showSender,
                             formattedTime = formatTime(receivedDateTime),
@@ -789,10 +789,10 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
-            override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
-            override val onOpenMention: (userId: UserId, mention: Mention) -> Unit = { _, _ -> }
-            override fun openMention(mention: Mention) {
+            override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
+            override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
+            override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit = { _, _ -> }
+            override fun openMention(messageMention: MessageMention) {
             }
         }
         )
@@ -888,10 +888,10 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
-                override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
-                override val onOpenMention: (userId: UserId, mention: Mention) -> Unit = { _, _ ->}
-                override fun openMention(mention: Mention) {
+                override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
+                override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
+                override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit = { _, _ ->}
+                override fun openMention(messageMention: MessageMention) {
                 }
             }
         }

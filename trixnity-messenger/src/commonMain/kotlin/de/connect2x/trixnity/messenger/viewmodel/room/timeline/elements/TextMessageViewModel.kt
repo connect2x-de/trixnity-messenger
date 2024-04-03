@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionsStateFlow
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -30,7 +30,7 @@ interface TextMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
-        onOpenMention: (userId: UserId, mention: Mention) -> Unit
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
             viewModelContext,
@@ -77,7 +77,7 @@ open class TextMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
-    override val onOpenMention: (userId: UserId, mention: Mention) -> Unit
+    override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
 
     override val invitation: StateFlow<String?> =
@@ -88,15 +88,15 @@ open class TextMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<Mention>> =
+    override val mentionsInMessage: Map<String, StateFlow<MessageMention>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? =
+    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? =
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
 
-    override fun openMention(mention: Mention) {
-        onOpenMention(matrixClient.userId, mention)
+    override fun openMention(messageMention: MessageMention) {
+        onOpenMention(matrixClient.userId, messageMention)
     }
 
     override fun toString(): String {
@@ -119,8 +119,8 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = true
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
-    override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
-    override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? = mapOf()
-    override val onOpenMention: (userId: UserId, mention: Mention) -> Unit = { _, _ -> }
-    override fun openMention(mention: Mention) {}
+    override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
+    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? = mapOf()
+    override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit = { _, _ -> }
+    override fun openMention(messageMention: MessageMention) {}
 }

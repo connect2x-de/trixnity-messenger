@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
@@ -48,7 +48,7 @@ class RoomRouterImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
-    private val onOpenMention: (userId: UserId, mention: Mention) -> Unit,
+    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()

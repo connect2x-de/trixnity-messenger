@@ -155,7 +155,7 @@ class SendAttachmentViewModelImpl(
                                 body = fileInfo.fileName,
                                 file = byteArrayFlow,
                                 type = fileInfo.mimeType,
-                                name = fileInfo.fileName,
+                                fileName = fileInfo.fileName,
                                 size = fileInfo.fileSize
                             )
                         }
