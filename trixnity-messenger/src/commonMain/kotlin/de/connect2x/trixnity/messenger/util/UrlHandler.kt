@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import org.koin.core.module.Module
 
-interface UrlHandler : Flow<Url>
+interface UrlHandler : Flow<Url> // there is no multiplatform Uri that we are aware of, so we use Url
 
 open class UrlHandlerBase(
     config: MatrixMessengerBaseConfiguration,

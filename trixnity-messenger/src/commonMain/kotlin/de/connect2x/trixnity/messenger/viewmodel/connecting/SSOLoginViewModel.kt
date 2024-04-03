@@ -1,16 +1,27 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.flow.*
+import korlibs.io.async.async
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.crypto.core.SecureRandom
+import okio.ByteString.Companion.toByteString
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -44,13 +55,11 @@ interface SSOLoginViewModel {
     val serverUrl: String
     val providerName: String
 
-    val canLogin: StateFlow<Boolean>
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
+    val waitForRedirect: StateFlow<Boolean>
 
-    val loginToken: MutableStateFlow<String>
-
-    val loginUrl: String
     fun tryLogin()
+    fun abortLogin()
 
     fun back()
 }
@@ -67,7 +76,9 @@ open class SSOLoginViewModelImpl(
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val loginToken: MutableStateFlow<String> = MutableStateFlow("")
+    private val state = SecureRandom.nextBytes(16).toByteString().base64Url()// TODO need to be cached in the web!
+    private val urlHandler = get<UrlHandler>()
+    private val uriCaller = get<UriCaller>()
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.None)
@@ -77,49 +88,50 @@ open class SSOLoginViewModelImpl(
         URLBuilder(messengerConfiguration.ssoRedirectPath).apply {
             protocol = URLProtocol.createOrDefault(messengerConfiguration.urlProtocol)
             host = messengerConfiguration.urlHost
-            parameters.append("id", uuid4().toString()) // TODO need to be cached in the web!
+            parameters.append("state", state)
         }.build()
 
-    init {
-        val urlHandler = get<UrlHandler>()
-        coroutineScope.launch {
-            urlHandler.filter {
-                it.encodedPath == redirectUrl.encodedPath
-                        && it.parameters["id"] == redirectUrl.parameters["id"]
-            }.collect {
-                val loginToken = it.parameters["loginToken"]
-                if (loginToken != null)
-                    this@SSOLoginViewModelImpl.loginToken.value = loginToken
-            }
-        }
-    }
-
-    override val loginUrl =
+    private val loginUrl =
         Url("$serverUrl/_matrix/client/v3/login/sso/redirect/$providerId?redirectUrl=$redirectUrl").toString()
 
-    override val canLogin: StateFlow<Boolean> =
-        loginToken.map { loginToken ->
-            log.trace { "canLogin: loginToken=${if (loginToken.isNotBlank()) "***" else ""}, serverUrl=$serverUrl" }
-            loginToken.isNotBlank() && serverUrl.isNotBlank()
-        }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, false) // eagerly because value is used below
+    override val waitForRedirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
+    private var loginJob: Job? = null
     override fun tryLogin() {
-        coroutineScope.launch {
-            log.debug { "Try to login into $serverUrl with loginToken=${if (loginToken.value.isNotBlank()) "***" else ""}." }
-            if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
+        if (loginJob != null) {
+            loginJob = coroutineScope.launch {
+                waitForRedirect.value = true
+                val loginToken = async {
+                    urlHandler.filter {
+                        it.encodedPath == redirectUrl.encodedPath
+                                && it.parameters["state"] == state
+                    }.map {
+                        it.parameters["loginToken"]
+                    }.filterNotNull().first()
+                }
+                uriCaller(loginUrl)
+                loginToken.await()
+                waitForRedirect.value = false
+                log.debug { "Try to login into $serverUrl with loginToken=***." }
                 matrixClients.loginCatching(
                     serverUrl = serverUrl,
-                    token = loginToken.value,
+                    token = loginToken.await(),
                     initialDeviceDisplayName = getDefaultDeviceDisplayName(),
                     addMatrixAccountState = addMatrixAccountState,
                     i18n = i18n,
                     onLogin = onLogin,
                 )
-            } else {
-                log.warn { "cannot login: canLogin=${canLogin.value}, serverUrl=${serverUrl}" }
+            }
+            loginJob?.invokeOnCompletion {
+                addMatrixAccountState.value = AddMatrixAccountState.None
+                waitForRedirect.value = false
+                loginJob = null
             }
         }
+    }
+
+    override fun abortLogin() {
+        loginJob?.cancel()
     }
 
     override fun back() {
@@ -131,15 +143,15 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
     override val serverUrl: String = "https://timmy-messenger.de"
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val providerName: String = "Timmy"
-    override val canLogin: StateFlow<Boolean> = MutableStateFlow(false)
-    override val loginToken: MutableStateFlow<String> = MutableStateFlow("")
     override val addMatrixAccountState: StateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
+    override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
 
-    override val loginUrl: String =
-        Url("$serverUrl/_matrix/client/v3/login/sso/redirect?redirectUrl=trixnity://sso").toString()
 
     override fun tryLogin() {
+    }
+
+    override fun abortLogin() {
     }
 
     override fun back() {

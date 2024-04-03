@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
+import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
@@ -233,6 +234,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformIsNetworkAvailableModule(),
     platformCloseAppModule(),
     platformUrlHandlerModule(),
+    platformUriCallerModule(),
 )
 
 private fun timelineElementModule() = module {
