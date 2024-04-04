@@ -31,7 +31,7 @@ class ActiveVerificationsImpl : ActiveVerifications {
             roomId?.let {
                 matrixClient.room.getTimelineEvent(roomId, timelineEventId).firstOrNull()
                     ?.let { timelineEvent ->
-                        matrixClient.verification.getActiveUserVerification(timelineEvent)
+                        matrixClient.verification.getActiveUserVerification(roomId = roomId, timelineEventId)
                     }
             }
         }
