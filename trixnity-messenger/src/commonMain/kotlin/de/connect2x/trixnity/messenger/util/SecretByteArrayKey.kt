@@ -65,10 +65,11 @@ abstract class GetSecretByteArrayKeyBase(
     private val mutex = Mutex()
     override suspend fun invoke(sizeOnCreate: Int): ByteArray = mutex.withLock {
         val existing = getSecretByteArrayKeyFromSettings()
-        if (existing != null) convert(existing)
+        if (existing != null) convert(existing, getSecretByteArrayKeyKey(32))
         else {
+            log.debug { "there is SecretByteArrayKey yet, generate new one" }
             val newKey = SecureRandom.nextBytes(sizeOnCreate)
-            val secretByteArrayKey = convert(newKey)
+            val secretByteArrayKey = convert(newKey, getSecretByteArrayKeyKey(32))
             setSecretByteArrayKeyInSettings(secretByteArrayKey)
             newKey
         }
@@ -76,14 +77,11 @@ abstract class GetSecretByteArrayKeyBase(
 
     protected suspend fun convert(
         secretByteArrayKey: SecretByteArrayKey,
-        customSecretByteArrayKeyKey: ByteArray? = null,
+        secretByteArrayKeyKey: ByteArray?,
     ): ByteArray =
         when (secretByteArrayKey) {
             is SecretByteArrayKey.AesHmacSha2 -> {
-                val secretByteArrayKeyKey =
-                    checkNotNull(
-                        customSecretByteArrayKeyKey ?: getSecretByteArrayKeyKey(32)
-                    ) { "could not find key for SecretByteArrayKey" }
+                requireNotNull(secretByteArrayKeyKey) { "could not find key for SecretByteArrayKey" }
                 decryptAesHmacSha2(
                     content = AesHmacSha2EncryptedData(
                         iv = secretByteArrayKey.iv,
@@ -100,10 +98,9 @@ abstract class GetSecretByteArrayKeyBase(
 
     protected suspend fun convert(
         raw: ByteArray,
-        customSecretByteArrayKeyKey: ByteArray? = null,
-    ): SecretByteArrayKey {
-        log.info { "there is no SecretByteArrayKey yet, generate a new" }
-        return (customSecretByteArrayKeyKey ?: getSecretByteArrayKeyKey(32))?.let { secretByteArrayKeyKey ->
+        secretByteArrayKeyKey: ByteArray?,
+    ): SecretByteArrayKey =
+        if (secretByteArrayKeyKey != null) {
             val encryptedStringSecret =
                 encryptAesHmacSha2(
                     content = raw,
@@ -115,8 +112,7 @@ abstract class GetSecretByteArrayKeyBase(
                 ciphertext = encryptedStringSecret.ciphertext,
                 mac = encryptedStringSecret.mac,
             )
-        } ?: SecretByteArrayKey.Unencrypted(raw)
-    }
+        } else SecretByteArrayKey.Unencrypted(raw)
 }
 
 expect fun platformGetSecretByteArrayKey(): Module
