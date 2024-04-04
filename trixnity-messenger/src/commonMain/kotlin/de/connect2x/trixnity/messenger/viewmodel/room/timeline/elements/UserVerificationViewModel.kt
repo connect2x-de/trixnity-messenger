@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -67,7 +68,7 @@ interface UserVerificationViewModel : TimelineElementWithTimestampViewModel {
     fun cancel()
 }
 
-open class UserVerificationViewModelImpl(
+class UserVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     timelineEvent: TimelineEvent?,
     content: RoomMessageEventContent.VerificationRequest,
@@ -94,6 +95,7 @@ open class UserVerificationViewModelImpl(
     private val router =
         VerificationRouter(
             viewModelContext = viewModelContext,
+            routerKey = "userVerification-${uuid4()}",
             onRedoSelfVerification = {},
         )
     override val stack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =

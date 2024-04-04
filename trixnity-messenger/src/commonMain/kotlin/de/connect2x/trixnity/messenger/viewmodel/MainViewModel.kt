@@ -162,6 +162,7 @@ open class MainViewModelImpl(
     private val verificationRouter: VerificationRouter =
         VerificationRouter(
             viewModelContext = viewModelContext,
+            routerKey = "deviceVerification",
             onRedoSelfVerification = selfVerificationRouter::redoSelfVerification
         )
     override val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
