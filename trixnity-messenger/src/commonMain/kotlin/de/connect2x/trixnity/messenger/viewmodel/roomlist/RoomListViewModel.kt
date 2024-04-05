@@ -112,7 +112,6 @@ interface RoomListViewModel {
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
     fun selectRoom(roomId: RoomId)
-    fun redirectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
     fun openAccountsOverview()
@@ -499,26 +498,6 @@ class RoomListViewModelImpl(
         }
     }
 
-    override fun redirectRoom(roomId: RoomId) {
-        coroutineScope.launch {
-            val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
-                ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val isInRoom =
-                matrixClient.room.getById(roomId).map { it?.membership == Membership.JOIN && it.roomId == roomId }
-                    .first()
-
-            log.debug { "switch to room $roomId" }
-
-            when {
-                isInRoom -> onRoomSelected(matrixClient.userId, roomId)
-                else -> {
-                    // TODO open preview, handle invites
-                    log.info { "cannot select room, because we are not member of it" }
-                }
-            }
-        }
-    }
-
     override val closeProfileNeeded: Boolean = profileManager != null
 
     override fun closeProfile() {
@@ -577,9 +556,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     }
 
     override fun selectRoom(roomId: RoomId) {
-    }
-
-    override fun redirectRoom(roomId: RoomId) {
     }
 
     override fun errorDismiss() {
