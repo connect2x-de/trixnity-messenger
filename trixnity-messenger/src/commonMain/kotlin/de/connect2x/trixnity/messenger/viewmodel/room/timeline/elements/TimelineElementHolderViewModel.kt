@@ -230,6 +230,7 @@ open class TimelineElementHolderViewModelImpl(
                         UserInfoElement(
                             name = user?.name ?: timelineEvent.event.sender.full,
                             initials = user?.name?.let(initials::compute),
+                            userId = user?.userId,
                             image = user?.avatarUrl?.let { avatarUrl ->
                                 matrixClient.media.getThumbnail(
                                     avatarUrl,
