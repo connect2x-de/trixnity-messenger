@@ -494,10 +494,6 @@ open class MainViewModelImpl(
                 // todo: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
-
-            is MessageMention.Unknown -> {
-                log.warn { "Unknown mention type" }
-            }
         }
     }
 

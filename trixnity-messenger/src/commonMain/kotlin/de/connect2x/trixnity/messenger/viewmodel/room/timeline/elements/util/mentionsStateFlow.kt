@@ -111,5 +111,4 @@ sealed interface MessageMention {
     data class Room(val room: RoomInfoElement) : MessageMention
     data class User(val user: UserInfoElement) : MessageMention
     data class Event(val event: EventInfoElement, val room: StateFlow<RoomInfoElement?>) : MessageMention
-    data class Unknown(val nothing: Unit) : MessageMention
 }
