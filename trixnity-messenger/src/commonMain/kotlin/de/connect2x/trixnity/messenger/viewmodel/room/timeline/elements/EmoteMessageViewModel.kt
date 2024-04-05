@@ -32,7 +32,7 @@ interface EmoteMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
-        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
+        onOpenMention: OpenMentionCallback,
     ): EmoteMessageViewModel {
         return EmoteMessageViewModelImpl(
             viewModelContext,
@@ -79,7 +79,7 @@ open class EmoteMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
-    override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+    private val onOpenMention: OpenMentionCallback
 ) : EmoteMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -89,9 +89,9 @@ open class EmoteMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<MessageMention>> =
+    override val mentionsInMessage: Map<String, StateFlow<MessageMention?>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? =
+    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>? =
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }

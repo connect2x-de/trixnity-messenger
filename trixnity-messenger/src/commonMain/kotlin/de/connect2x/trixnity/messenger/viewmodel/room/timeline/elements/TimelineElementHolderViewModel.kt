@@ -808,7 +808,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val showDateAbove: Boolean = true
             override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
             override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
-            override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit = { _, _ -> }
             override fun openMention(messageMention: MessageMention) {
             }
         }
@@ -907,7 +906,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val showDateAbove: Boolean = false
                 override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
                 override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
-                override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit = { _, _ ->}
                 override fun openMention(messageMention: MessageMention) {
                 }
             }

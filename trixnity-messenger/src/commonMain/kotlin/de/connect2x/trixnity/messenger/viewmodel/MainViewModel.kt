@@ -480,10 +480,11 @@ open class MainViewModelImpl(
             is MessageMention.User -> {
                 val (localpart, domain) = messageMention.user
                 // todo: implement and open user view (profile)
-                log.debug { "UserView to display $localpart:$domain not implemented yet" }
+                log.warn { "UserView to display $localpart:$domain not implemented yet" }
             }
 
             is MessageMention.Room -> {
+                log.debug { "Opening Room ${messageMention.room.roomId}" }
                 val roomId = messageMention.room.roomId
                 onRoomSelected(userId, roomId)
             }

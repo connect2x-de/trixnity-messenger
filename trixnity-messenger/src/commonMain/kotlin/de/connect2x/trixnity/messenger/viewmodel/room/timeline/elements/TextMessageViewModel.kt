@@ -30,7 +30,7 @@ interface TextMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
-        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+        onOpenMention: OpenMentionCallback
     ): TextMessageViewModel {
         return TextMessageViewModelImpl(
             viewModelContext,
@@ -77,7 +77,7 @@ open class TextMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
-    override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+    private val onOpenMention: OpenMentionCallback
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
 
     override val invitation: StateFlow<String?> =
@@ -88,9 +88,9 @@ open class TextMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<MessageMention>> =
+    override val mentionsInMessage: Map<String, StateFlow<MessageMention?>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? =
+    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>? =
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
@@ -121,6 +121,5 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
     override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
     override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? = mapOf()
-    override val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit = { _, _ -> }
     override fun openMention(messageMention: MessageMention) {}
 }

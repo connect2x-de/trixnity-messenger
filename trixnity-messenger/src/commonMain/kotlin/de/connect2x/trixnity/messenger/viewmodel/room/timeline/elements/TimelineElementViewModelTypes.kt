@@ -61,20 +61,20 @@ interface TextBasedViewModel : RoomMessageViewModel {
     /**
      * Users, Events and Room mentioned in the event's message
      */
-    val mentionsInMessage: Map<String, StateFlow<MessageMention>>
+    val mentionsInMessage: Map<String, StateFlow<MessageMention?>>
 
     /**
      * Users, Events and Room mentioned in the event's formatted body
      */
-    val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>?
+    val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>?
 
     /**
      * Open the mention in the UI
      */
     fun openMention(messageMention: MessageMention)
-
-    val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 }
+
+typealias OpenMentionCallback = (userId: UserId, messageMention: MessageMention) -> Unit
 
 sealed interface ReferencedMessage {
     val sender: UserInfoElement
