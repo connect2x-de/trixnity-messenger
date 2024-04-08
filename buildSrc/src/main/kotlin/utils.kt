@@ -1,12 +1,25 @@
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 val isCI = System.getenv("CI") != null
 val isRelease = System.getenv("CI_COMMIT_TAG")?.matches("^v\\d+.\\d+.\\d+.*".toRegex()) ?: false
+fun withVersionSuffix(version: String) = when {
+    isRelease -> {
+        val commitTagVersion = System.getenv("CI_COMMIT_TAG").removePrefix("v")
+        check(version == commitTagVersion.substringBefore("-")) {
+            "version from code ($version) does not match commit tag version ($commitTagVersion)"
+        }
+        commitTagVersion
+    }
 
-fun checkSameReleaseVersion(version: String) {
-    if (isRelease) check(version == System.getenv("CI_COMMIT_TAG").removePrefix("v"))
+    isCI -> {
+        val formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss")
+            .withZone(ZoneId.systemDefault())
+        val instant = Instant.parse(System.getenv("CI_COMMIT_TIMESTAMP"))
+        val formattedInstant = formatter.format(instant)
+        "$version-DEV-$formattedInstant"
+    }
+
+    else -> "$version-LOCAL"
 }
-
-fun withVersionSuffix(version: String) = (version + when {
-    isRelease -> ""
-    isCI -> "-SNAPSHOT-" + System.getenv("CI_COMMIT_SHORT_SHA")
-    else -> "-LOCAL"
-}).also { checkSameReleaseVersion(it) }
