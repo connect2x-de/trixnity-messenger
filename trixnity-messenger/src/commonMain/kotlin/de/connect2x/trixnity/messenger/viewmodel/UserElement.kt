@@ -15,9 +15,9 @@ import net.folivo.trixnity.utils.toByteReadChannel
 
 data class UserInfoElement(
     val name: String,
+    val userId: UserId,
     val initials: String? = null,
     val image: ByteArray? = null,
-    val userId: UserId? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.mentionsStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.component.get
 
 interface NoticeMessageViewModelFactory {
     fun create(
@@ -31,6 +33,7 @@ interface NoticeMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
+        onOpenMention: OpenMentionCallback
     ): NoticeMessageViewModel {
         return NoticeMessageViewModelImpl(
             viewModelContext,
@@ -49,7 +52,8 @@ interface NoticeMessageViewModelFactory {
             message,
             formattedBody,
             invitation,
-            roomId
+            roomId,
+            onOpenMention
         )
     }
 
@@ -76,21 +80,26 @@ open class NoticeMessageViewModelImpl(
     override val formattedBody: String?,
     invitation: Flow<String?>,
     roomId: RoomId,
+    private val onOpenMention: OpenMentionCallback
 ) : NoticeMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<Mention>> =
-        mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<Mention>>? =
+    override val mentionsInMessage: Map<String, StateFlow<MessageMention?>> =
+        mentionsStateFlow(message, roomId, matrixClient, get(), coroutineScope)
+    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>? =
         formattedBody?.let {
-            mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
+            mentionsStateFlow(it, roomId, matrixClient, get(), coroutineScope)
         }
+
+    override fun openMention(messageMention: MessageMention) {
+        onOpenMention(matrixClient.userId, messageMention)
+    }
 
     override fun toString(): String {
         return fallbackMessage

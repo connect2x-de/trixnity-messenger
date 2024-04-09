@@ -83,7 +83,8 @@ class RichRepliesComputationsImpl(
                                                     null
                                                 }
                                             )?.toByteArray()
-                                        }
+                                        },
+                                        userId = it.event.sender
                                     )
                                 }
                         }

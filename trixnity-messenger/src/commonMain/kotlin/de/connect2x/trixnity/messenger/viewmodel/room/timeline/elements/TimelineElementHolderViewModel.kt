@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -95,6 +95,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageRepliedTo: (EventId) -> Unit,
         onMessageReportTo: (EventId) -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): TimelineElementHolderViewModel {
         return TimelineElementHolderViewModelImpl(
             viewModelContext,
@@ -111,7 +112,8 @@ interface TimelineElementHolderViewModelFactory {
             onMessageEdited,
             onMessageRepliedTo,
             onOpenModal = onOpenModal,
-            onMessageReportTo = onMessageReportTo
+            onMessageReportTo = onMessageReportTo,
+            onOpenMention = onOpenMention
         )
     }
 
@@ -164,6 +166,7 @@ open class TimelineElementHolderViewModelImpl(
     private val onMessageRepliedTo: (EventId) -> Unit,
     private val onMessageReportTo: (EventId) -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
     private val richRepliesComputations = get<RichRepliesComputations>()
@@ -230,7 +233,7 @@ open class TimelineElementHolderViewModelImpl(
                         UserInfoElement(
                             name = user?.name ?: timelineEvent.event.sender.full,
                             initials = user?.name?.let(initials::compute),
-                            userId = user?.userId?: timelineEvent.event.sender,
+                            userId = user?.userId ?: timelineEvent.event.sender,
                             image = user?.avatarUrl?.let { avatarUrl ->
                                 matrixClient.media.getThumbnail(
                                     avatarUrl,
@@ -243,10 +246,10 @@ open class TimelineElementHolderViewModelImpl(
                                         null
                                     }
                                 )?.toByteArray()
-                            }
+                            },
                         )
                     }
-            } ?: flowOf(UserInfoElement(i18n.commonUnknown()))
+            } ?: flowOf(UserInfoElement(i18n.commonUnknown(), timelineEvent.event.sender))
         }
 
         val invitation = timelineEventFlow
@@ -373,6 +376,7 @@ open class TimelineElementHolderViewModelImpl(
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
                             roomId = selectedRoomId,
+                            onOpenMention = onOpenMention,
                         )
                     }
 
@@ -510,6 +514,7 @@ open class TimelineElementHolderViewModelImpl(
                             showBigGap = showChatBubbleEdge,
                             invitation = invitation,
                             roomId = selectedRoomId,
+                            onOpenMention = onOpenMention,
                         )
                     }
                 }
@@ -796,13 +801,15 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val showBigGap: Boolean = true
             override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(true)
             override val sender: MutableStateFlow<UserInfoElement> =
-                MutableStateFlow(UserInfoElement("Benedict"))
+                MutableStateFlow(UserInfoElement("Benedict", UserId("benedict:matrix.org")))
             override val formattedTime: String = "11:04"
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
-            override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
+            override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
+            override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
+            override fun openMention(messageMention: MessageMention) {
+            }
         }
         )
     override val shouldShowUnreadMarkerFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -892,13 +899,15 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val showBigGap: Boolean = false
                 override val showSender: MutableStateFlow<Boolean> = MutableStateFlow(false)
                 override val sender: MutableStateFlow<UserInfoElement> =
-                    MutableStateFlow(UserInfoElement("Benedict"))
+                    MutableStateFlow(UserInfoElement("Benedict", UserId("benedict:matrix.org")))
                 override val formattedTime: String = "11:05"
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionsInMessage: Map<String, StateFlow<Mention>> = mapOf()
-                override val mentionsInFormattedBody: Map<String, StateFlow<Mention>> = mapOf()
+                override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
+                override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
+                override fun openMention(messageMention: MessageMention) {
+                }
             }
         }
     }

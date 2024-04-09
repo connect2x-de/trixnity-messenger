@@ -39,6 +39,8 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
+import org.kodein.mock.mockFunction1
+import org.kodein.mock.mockFunction2
 import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -698,6 +700,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             onBack = mockFunction0(mocker),
             onOpenModal = mockFunction4(mocker),
             onShowSettings = mockFunction0(mocker),
+            onOpenMention = mockFunction2(mocker),
         )
     }
 

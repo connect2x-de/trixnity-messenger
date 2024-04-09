@@ -150,7 +150,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showChatBubbleEdge = false,
             showBigGap = false,
             showSender = MutableStateFlow(false),
-            sender = MutableStateFlow(UserInfoElement("")),
+            sender = MutableStateFlow(UserInfoElement("", UserId(""))),
         )
         return fileBasedMessageViewModelInstance
     }

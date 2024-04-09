@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,13 +28,15 @@ interface RoomViewModelFactory {
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
             roomId = selectedRoomId,
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
-            onOpenModal = onOpenModal
+            onOpenModal = onOpenModal,
+            onOpenMention = onOpenMention
         )
     }
 
@@ -55,6 +58,7 @@ open class RoomViewModelImpl(
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
     onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
+    onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
     isBackButtonVisible: MutableStateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
@@ -78,6 +82,7 @@ open class RoomViewModelImpl(
         onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
             onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
         },
+        onOpenMention = onOpenMention
     )
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =

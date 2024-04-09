@@ -117,7 +117,7 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
             showChatBubbleEdge = false,
             showBigGap = false,
             showSender = MutableStateFlow(false),
-            sender = MutableStateFlow(UserInfoElement("")),
+            sender = MutableStateFlow(UserInfoElement("", UserId(""))),
             invitation = flowOf(""),
         )
 

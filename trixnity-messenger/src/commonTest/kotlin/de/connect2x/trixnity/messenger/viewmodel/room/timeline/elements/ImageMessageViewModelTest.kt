@@ -152,7 +152,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
             showChatBubbleEdge = true,
             showBigGap = true,
             showSender = MutableStateFlow(true),
-            sender = MutableStateFlow(UserInfoElement("User1")),
+            sender = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
             invitation = flowOf(null),
             onOpenModal = mockFunction4(mocker),
             mediaUploadProgress = MutableStateFlow(null),

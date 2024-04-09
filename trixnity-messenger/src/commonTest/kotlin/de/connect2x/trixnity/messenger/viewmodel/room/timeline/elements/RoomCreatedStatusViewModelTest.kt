@@ -39,7 +39,7 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
 
         should("show indicator for room creation") {
             val cut = roomCreatedStatusViewModel(
-                usernameFlow = MutableStateFlow(UserInfoElement("Bob")),
+                usernameFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
                 isDirectFlow = MutableStateFlow(false),
                 coroutineContext = coroutineContext,
             )
@@ -53,14 +53,14 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes`") {
-            val usernameFlow = MutableStateFlow(UserInfoElement("Bob"))
+            val usernameFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost")))
             val cut = roomCreatedStatusViewModel(
                 usernameFlow = usernameFlow,
                 isDirectFlow = MutableStateFlow(false),
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.roomCreatedMessage.collect {} }
-            usernameFlow.value = UserInfoElement("Bobby")
+            usernameFlow.value = UserInfoElement("Bobby", UserId("bobby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.roomCreatedMessage.value shouldBe "Bobby has created the group"
@@ -72,7 +72,7 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
         should("react to room's direct changes") {
             val isDirectFlow = MutableStateFlow(false)
             val cut = roomCreatedStatusViewModel(
-                usernameFlow = MutableStateFlow(UserInfoElement("Bob")),
+                usernameFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )

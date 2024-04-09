@@ -22,6 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
@@ -88,6 +89,8 @@ interface MainViewModel {
         userId: UserId
     )
 
+    fun openMention(userId: UserId, messageMention: MessageMention)
+
     fun closeAccountsOverview()
 }
 
@@ -141,6 +144,7 @@ open class MainViewModelImpl(
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenModal = ::openModal,
+            onOpenMention = ::openMention
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
@@ -472,6 +476,28 @@ open class MainViewModelImpl(
 
     }
 
+    override fun openMention(userId: UserId, messageMention: MessageMention) {
+        when (messageMention) {
+            is MessageMention.User -> {
+                val (localpart, domain) = messageMention.user
+                // todo: implement and open user view (profile)
+                log.warn { "UserView to display $localpart:$domain not implemented yet" }
+            }
+
+            is MessageMention.Room -> {
+                log.debug { "Opening Room ${messageMention.room.roomId}" }
+                val roomId = messageMention.room.roomId
+                onRoomSelected(userId, roomId)
+            }
+
+            is MessageMention.Event -> {
+                val eventId = messageMention.event
+                // todo: implement and open event view
+                log.warn { "EventView to display $eventId not implemented yet" }
+            }
+        }
+    }
+
     private fun RoomRouter.Config.getRoomId(): RoomId? =
         when (this) {
             is RoomRouter.Config.None -> null
@@ -603,6 +629,9 @@ class PreviewMainViewModel : MainViewModel {
         fileName: String,
         userId: UserId
     ) {
+    }
+
+    override fun openMention(userId: UserId, messageMention: MessageMention) {
     }
 
     override fun closeAccountsOverview() {
