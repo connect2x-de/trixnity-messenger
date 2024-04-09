@@ -22,7 +22,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger.get())
+    version = withVersionSuffix("2.0.0")
 
     repositories {
         mavenLocal()

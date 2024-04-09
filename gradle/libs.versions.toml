@@ -1,6 +1,5 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnityMessenger = "2.0.0"
 trixnity = "4.3.1" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "1.9.23" # https://kotlinlang.org/
 ksp = "1.9.23-1.0.19" # https://github.com/google/ksp/releases
@@ -62,7 +61,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 trixnity-client-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
 trixnity-client-repository-indexdb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
-trixnity-client-media-indexdb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
+trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
