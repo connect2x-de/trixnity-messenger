@@ -15,16 +15,17 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(Versions.kotlinJvmTarget.number)
+    val kotlinJvm = libs.versions.kotlinJvmTarget.get()
+    jvmToolchain(kotlinJvm.toInt())
     androidTarget {
         compilations.all {
-            kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
+            kotlinOptions.jvmTarget = kotlinJvm
         }
         publishLibraryVariants("release")
     }
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
+            kotlinOptions.jvmTarget = kotlinJvm
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -57,9 +58,8 @@ kotlin {
         iosX64(),
     ).forEach {
         it.binaries.framework {
-            export("com.arkivanov.decompose:decompose:${Versions.decompose}")
-//            export("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
-            export("net.folivo:trixnity-client:${Versions.trixnity}")
+            export(libs.decompose)
+            export(libs.trixnity.client)
         }
     }
     applyDefaultHierarchyTemplate()
@@ -70,55 +70,50 @@ kotlin {
         }
         commonMain {
             dependencies {
-                api("net.folivo:trixnity-client:${Versions.trixnity}")
-                implementation("net.folivo:trixnity-crypto-core:${Versions.trixnity}")
-                implementation("net.folivo:trixnity-client-media-okio:${Versions.trixnity}")
-                api("io.ktor:ktor-client-core:${Versions.ktor}")
-                api("io.ktor:ktor-client-logging:${Versions.ktor}")
-                api("com.arkivanov.decompose:decompose:${Versions.decompose}")
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
-                api("io.github.oshai:kotlin-logging:${Versions.kotlinLogging}")
-                api("io.insert-koin:koin-core:${Versions.koin}")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.kotlinxSerialization}")
-                implementation("com.squareup.okio:okio:${Versions.okio}")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
-                implementation("com.benasher44:uuid:${Versions.uuid}")
-                implementation("com.soywiz.korlibs.korim:korim:${Versions.korge}")
+                api(libs.trixnity.client)
+                implementation(libs.trixnity.crypto.core)
+                implementation(libs.trixnity.client.media)
+                api(libs.ktor.client.core)
+                api(libs.ktor.client.logging)
+                api(libs.decompose)
+                api(libs.kotlinx.coroutines)
+                api(libs.logging)
+                api(libs.koin.core)
+                api(libs.kotlinx.serialization)
+                implementation(libs.okio)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.uuid)
+                implementation(libs.korge)
             }
         }
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.kodein.mock:mockmp-runtime:${Versions.mocKmp}")
-
-                implementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
-                implementation("io.kotest:kotest-common:${Versions.kotest}")
-                implementation("io.kotest:kotest-framework-engine:${Versions.kotest}")
-                implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
-                implementation("io.kotest:kotest-framework-datatest:${Versions.kotest}")
-                implementation("ch.qos.logback:logback-classic:${Versions.logback}")
-                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
+                implementation(libs.mock.mockmp)
+                implementation(libs.okio.fakefilesystem)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.bundles.kotest)
+                implementation(libs.logback.classic)
+                implementation(libs.ktor.client.mock)
             }
         }
         val jvmAndNativeMain by creating {
             dependsOn(commonMain.get())
             dependencies {
-                implementation("net.folivo:trixnity-client-repository-realm:${Versions.trixnity}")
+                implementation(libs.trixnity.client.realm)
             }
         }
         jvmMain {
             dependsOn(jvmAndNativeMain)
             dependencies {
-                implementation("net.java.dev.jna:jna:${Versions.jna}")
-                implementation("net.java.dev.jna:jna-platform:${Versions.jna}")
+                implementation(libs.bundles.jna)
             }
         }
         androidMain {
             dependsOn(jvmAndNativeMain)
             dependencies {
-                implementation("androidx.activity:activity-ktx:${Versions.activity}")
-                implementation("androidx.security:security-crypto:${Versions.crypto}")
+                implementation(libs.androidx.activity)
+                implementation(libs.androidx.security.crypto)
             }
         }
         nativeMain {
@@ -126,17 +121,17 @@ kotlin {
         }
         appleMain {
             dependencies {
-                implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
+                implementation(libs.ktor.client.drawin)
             }
         }
         jsMain {
             dependencies {
-                implementation("net.folivo:trixnity-client-repository-indexeddb:${Versions.trixnity}")
-                implementation("net.folivo:trixnity-client-media-indexeddb:${Versions.trixnity}")
-                api(npm("@js-joda/timezone", Versions.jsJoda))
-                implementation(npm("@zip.js/zip.js", Versions.zipjs))
-                implementation(project.dependencies.platform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:${Versions.kotlinWrappers}"))
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-browser")
+                implementation(libs.trixnity.client.repository.indexdb)
+                implementation(libs.trixnity.client.media.indexdb)
+                api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
+                implementation(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
+                implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
+                implementation(libs.kotlin.browser)
             }
         }
         val jvmAndNativeTest by creating {
@@ -145,8 +140,8 @@ kotlin {
         jvmTest {
             dependsOn(jvmAndNativeTest)
             dependencies {
-                implementation("io.kotest:kotest-runner-junit5:${Versions.kotest}")
-                implementation("io.ktor:ktor-client-java:${Versions.ktor}")
+                implementation(libs.kotest.junit.runner)
+                implementation(libs.ktor.client.java)
             }
         }
         nativeTest {
@@ -155,7 +150,7 @@ kotlin {
         val androidUnitTest by getting {
             dependsOn(jvmAndNativeTest)
             dependencies {
-                implementation("io.ktor:ktor-client-android:${Versions.ktor}")
+                implementation(libs.ktor.client.android)
             }
         }
     }
@@ -170,8 +165,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = Versions.kotlinJvmTarget
-        targetCompatibility = Versions.kotlinJvmTarget
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.kotlinJvmTarget.get())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.kotlinJvmTarget.get())
     }
 
     sourceSets {
@@ -194,7 +189,7 @@ dependencies {
     configurations
         .filter { it.name.startsWith("ksp") && it.name.contains("Test") }
         .forEach {
-            add(it.name, "org.kodein.mock:mockmp-processor:${Versions.mocKmp}")
+            add(it.name, "org.kodein.mock:mockmp-processor:${libs.versions.mocKmp.get()}")
         }
 }
 

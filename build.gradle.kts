@@ -6,23 +6,23 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:${Versions.androidGradle}")
-        classpath(kotlin("gradle-plugin", version = Versions.kotlin))
+        classpath("com.android.tools.build:gradle:${libs.versions.androidGradle.get()}")
+        classpath(kotlin("gradle-plugin", version = libs.versions.kotlin.get()))
     }
 }
 
 plugins {
-    id("io.kotest.multiplatform") version Versions.kotest apply false
-    kotlin("plugin.serialization") version Versions.kotlin apply false
-    id("com.google.devtools.ksp") version Versions.ksp apply false
-    id("co.touchlab.skie") version Versions.skie apply false
-    id("co.touchlab.kmmbridge") version Versions.kmmBridge apply false
-    id("org.jetbrains.dokka") version Versions.dokka apply false
+    alias(libs.plugins.kotest).apply(false)
+    kotlin("plugin.serialization") version libs.versions.kotlin.get() apply false
+    alias(libs.plugins.ksp).apply(false)
+    alias(libs.plugins.skie).apply(false)
+    alias(libs.plugins.kmmbridge).apply(false)
+    alias(libs.plugins.dokka).apply(false)
 }
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix(Versions.trixnityMessenger)
+    version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger.get())
 
     repositories {
         mavenLocal()

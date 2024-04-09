@@ -1,13 +1,14 @@
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization").version(Versions.kotlin)
+    kotlin("plugin.serialization").version(libs.versions.kotlin.get())
 }
 
 kotlin {
-    jvmToolchain(Versions.kotlinJvmTarget.number)
+    val kotlinJvm = libs.versions.kotlinJvmTarget.get()
+    jvmToolchain(kotlinJvm.toInt())
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = Versions.kotlinJvmTarget.toString()
+            kotlinOptions.jvmTarget =  kotlinJvm
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -22,21 +23,19 @@ kotlin {
         val commonMain by getting {}
         val jvmTest by getting {
             dependencies {
-                implementation(project(":trixnity-messenger"))
-                implementation("net.folivo:trixnity-client-repository-exposed:${Versions.trixnity}")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
+                implementation(projects.trixnityMessenger)
+                implementation(libs.trixnity.client.exposed)
+                implementation(libs.kotlinx.coroutines.test)
                 implementation(kotlin("test"))
-                implementation("io.kotest:kotest-common:${Versions.kotest}")
-                implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:${Versions.kotlinxDatetime}")
-                implementation("com.benasher44:uuid:${Versions.uuid}")
-
-                implementation("io.ktor:ktor-client-java:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-logging:${Versions.ktor}")
-                implementation("org.testcontainers:testcontainers:${Versions.testContainers}")
-                implementation("org.testcontainers:junit-jupiter:${Versions.testContainers}")
-                implementation("ch.qos.logback:logback-classic:${Versions.logback}")
-                implementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
+                implementation(libs.kotest.common)
+                implementation(libs.kotest.assertion.core)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.uuid)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.ktor.client.java)
+                implementation(libs.bundles.testcontainers)
+                implementation(libs.logback.classic)
+                implementation(libs.okio.fakefilesystem)
             }
         }
     }
