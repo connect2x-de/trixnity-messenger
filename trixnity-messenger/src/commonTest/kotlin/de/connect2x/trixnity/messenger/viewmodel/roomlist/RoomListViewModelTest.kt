@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.MatcherResult
@@ -510,84 +509,6 @@ class RoomListViewModelTest : ShouldSpec() {
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
-
-        should("open a normal room on redirect") {
-            val room = Room(roomId1, membership = Membership.JOIN)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(Room(roomId1))
-                )
-            )
-            var joinedRoomWasCalled = false
-            mocker.everySuspending {
-                roomsApiClientMock.joinRoom(
-                    isEqual(roomId1),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
-                )
-            } runs {
-                joinedRoomWasCalled = true
-                Result.success(roomId1)
-            }
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.redirectRoom(roomId1)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            joinedRoomWasCalled shouldBe false
-            mocker.verify(exhaustive = false) { onRoomSelectedMock.invoke(isAny(), isEqual(roomId1)) }
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("does nothing when passing invalid roomId") {
-            val room = Room(roomId1)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(Room(roomId1))
-                )
-            )
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.redirectRoom(roomId3)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("does nothing when trying to redirect to a unjoined room") {
-            val room = Room(roomId1, membership = Membership.LEAVE)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(Room(roomId1))
-                )
-            )
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.redirectRoom(roomId1)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            shouldThrow<MockerVerificationAssertionError> {
-                mocker.verify(exhaustive = false) { onRoomSelectedMock.invoke(isAny(), isNotEqual(roomId1)) }
-            }
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
         should("not show search initially") {
             mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
             val cut = roomListViewModel(coroutineContext)

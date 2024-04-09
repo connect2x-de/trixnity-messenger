@@ -39,8 +39,7 @@ data class RoomInfoElement(
     }
 }
 
-suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient): RoomInfoElement {
-    val name = this.name?.explicitName ?: this.roomId.let { "${it.localpart}:${it.domain}" }
+suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String): RoomInfoElement {
     return RoomInfoElement(
         roomName = name,
         roomId = this.roomId,
