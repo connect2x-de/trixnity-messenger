@@ -374,7 +374,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             formattedTime = null,
-            sender = MutableStateFlow(UserInfoElement("username")),
+            sender = MutableStateFlow(UserInfoElement("username", UserId("username:matrix.org"))),
             selectedRoomId = thisRoom,
             timelineEventId = timelineEventId,
         )

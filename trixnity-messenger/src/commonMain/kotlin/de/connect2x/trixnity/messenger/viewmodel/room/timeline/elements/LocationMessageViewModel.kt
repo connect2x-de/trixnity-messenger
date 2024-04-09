@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 interface LocationMessageViewModelFactory {
@@ -62,7 +63,7 @@ class LocationMessageViewModelImpl(
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 

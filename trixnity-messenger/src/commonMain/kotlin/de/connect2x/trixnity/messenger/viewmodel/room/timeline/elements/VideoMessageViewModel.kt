@@ -14,6 +14,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
@@ -87,7 +88,7 @@ open class VideoMessageViewModelImpl(
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
-        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
+        sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
@@ -194,7 +195,7 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val showChatBubbleEdge: Boolean = false
     override val showBigGap: Boolean = false
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
-    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin"))
+    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin", UserId("martin:matrix.org")))
     override val formattedTime: String? = null
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.11.21"

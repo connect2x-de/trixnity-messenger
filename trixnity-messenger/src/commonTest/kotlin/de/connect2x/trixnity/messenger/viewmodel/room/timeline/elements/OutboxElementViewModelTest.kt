@@ -24,6 +24,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
+import org.kodein.mock.mockFunction1
+import org.kodein.mock.mockFunction2
 import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -153,6 +155,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             showChatBubbleEdgeFlow = flowOf(false),
             selectedRoomId = roomId,
             onOpenModal = mockFunction4(mocker),
+            onOpenMention = mockFunction2(mocker),
         )
     }
 }

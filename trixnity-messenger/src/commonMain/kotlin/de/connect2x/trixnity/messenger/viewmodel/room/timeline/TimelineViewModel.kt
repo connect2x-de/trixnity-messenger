@@ -31,6 +31,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
@@ -97,6 +98,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKWARDS
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
@@ -117,6 +119,7 @@ interface TimelineViewModelFactory {
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
         onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
     ): TimelineViewModel {
         return TimelineViewModelImpl(
             viewModelContext,
@@ -125,6 +128,7 @@ interface TimelineViewModelFactory {
             onShowSettings,
             onBack,
             onOpenModal,
+            onOpenMention
         )
     }
 
@@ -220,6 +224,7 @@ class TimelineViewModelImpl(
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
     init {
@@ -602,6 +607,7 @@ class TimelineViewModelImpl(
                 onMessageRepliedTo = ::onMessageRepliedTo,
                 onMessageReportTo = ::onShowReportMessageModal,
                 onOpenModal = onOpenModal,
+                onOpenMention = onOpenMention
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
                 // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
@@ -618,7 +624,7 @@ class TimelineViewModelImpl(
 
     private suspend fun computeOutbox(
         outbox: Map<String, Flow<RoomOutboxMessage<*>?>>,
-        timelineEventList: List<Flow<TimelineEvent>>
+        timelineEventList: List<Flow<TimelineEvent>>,
     ): List<OutboxElementHolderViewModel> = coroutineScope {
         log.debug { "compute outbox" }
         if (outbox.isEmpty()) emptyList()
@@ -673,6 +679,7 @@ class TimelineViewModelImpl(
                             showDateAboveFlow = showDateAboveFlow,
                             showChatBubbleEdgeFlow = showChatBubbleEdgeFlow,
                             onOpenModal = onOpenModal,
+                            onOpenMention = onOpenMention,
                         ).also {
                             outboxElementHolderViewModelCache[transactionId] = it
                             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline

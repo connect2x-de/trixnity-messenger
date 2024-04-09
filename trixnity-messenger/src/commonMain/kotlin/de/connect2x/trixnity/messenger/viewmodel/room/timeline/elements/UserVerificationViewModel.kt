@@ -19,6 +19,7 @@ import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code
@@ -84,8 +85,8 @@ class UserVerificationViewModelImpl(
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
         if (content.to == matrixClient.userId)
-            sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement(""))
-        else MutableStateFlow(UserInfoElement(i18n.commonUs()))
+            sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
+        else MutableStateFlow(UserInfoElement(i18n.commonUs(), UserId("")))
 
     private val activeVerifications = get<ActiveVerifications>()
 

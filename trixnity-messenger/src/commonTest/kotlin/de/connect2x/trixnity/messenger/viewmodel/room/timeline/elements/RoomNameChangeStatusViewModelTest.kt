@@ -78,14 +78,14 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes") {
-            val usernameFlow = MutableStateFlow(UserInfoElement("Bob"))
+            val usernameFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost")))
             val cut = roomNameChangeStatusViewModel(
                 timelineEvent = timelineEvent(),
                 usernameFlow = usernameFlow,
                 coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
-            usernameFlow.value = UserInfoElement("Bobby")
+            usernameFlow.value = UserInfoElement("Bobby", UserId("bobby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.roomNameChangeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
@@ -113,7 +113,7 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
 
     private suspend fun roomNameChangeStatusViewModel(
         timelineEvent: TimelineEvent,
-        usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob")),
+        usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
     ): RoomNameChangeStatusViewModelImpl {
