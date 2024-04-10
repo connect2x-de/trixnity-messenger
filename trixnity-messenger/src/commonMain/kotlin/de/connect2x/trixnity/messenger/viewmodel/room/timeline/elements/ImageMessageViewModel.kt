@@ -110,8 +110,8 @@ class ImageMessageViewModelImpl(
         send(thumbnailLoad.await())
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val width: Int = thumbnailWidth(content)
-    override val height: Int = thumbnailHeight(content)
+    override val width: Int = imageWidth(content)
+    override val height: Int = imageHeight(content)
     override val progress: StateFlow<FileTransferProgressElement?> =
         if (mediaUploadProgress.value != null) {
             thumbnails.mapProgressToProgressElement(mediaUploadProgress)
@@ -139,11 +139,11 @@ class ImageMessageViewModelImpl(
         }
 
 
-    private fun thumbnailWidth(content: RoomMessageEventContent.FileBased.Image) =
-        content.info?.thumbnailInfo?.width ?: 400
+    private fun imageWidth(content: RoomMessageEventContent.FileBased.Image) =
+        content.info?.width ?: 400
 
-    private fun thumbnailHeight(content: RoomMessageEventContent.FileBased.Image) =
-        content.info?.thumbnailInfo?.height ?: 300
+    private fun imageHeight(content: RoomMessageEventContent.FileBased.Image) =
+        content.info?.height ?: 300
 }
 
 class PreviewImageMessageViewModel : ImageMessageViewModel {
