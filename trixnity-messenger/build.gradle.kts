@@ -73,7 +73,6 @@ kotlin {
                 api(libs.trixnity.client)
                 implementation(libs.trixnity.crypto.core)
                 implementation(libs.trixnity.client.media)
-                api(libs.ktor.client.core)
                 api(libs.ktor.client.logging)
                 api(libs.decompose)
                 api(libs.kotlinx.coroutines)
@@ -121,7 +120,7 @@ kotlin {
         }
         appleMain {
             dependencies {
-                implementation(libs.ktor.client.drawin)
+//                implementation(libs.ktor.client.drawin)
             }
         }
         jsMain {
@@ -141,7 +140,7 @@ kotlin {
             dependsOn(jvmAndNativeTest)
             dependencies {
                 implementation(libs.kotest.junit.runner)
-                implementation(libs.ktor.client.java)
+//                implementation(libs.ktor.client.java)
             }
         }
         nativeTest {
@@ -150,7 +149,7 @@ kotlin {
         val androidUnitTest by getting {
             dependsOn(jvmAndNativeTest)
             dependencies {
-                implementation(libs.ktor.client.android)
+//                implementation(libs.ktor.client.android)
             }
         }
     }

@@ -36,11 +36,10 @@ trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixni
 trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref = "trixnity" }
 trixnity-client-media = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
 trixnity-client-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
-
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
@@ -58,7 +57,6 @@ kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", versio
 kotest-dataset-framework = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
 kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 trixnity-client-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
 trixnity-client-repository-indexdb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
@@ -66,12 +64,9 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "crypto" }
-ktor-client-drawin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "" }
 kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
-ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
-ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
 

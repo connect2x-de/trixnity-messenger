@@ -31,8 +31,6 @@ kotlin {
                 implementation(libs.kotest.assertion.core)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.uuid)
-                implementation(libs.ktor.client.logging)
-                implementation(libs.ktor.client.java)
                 implementation(libs.bundles.testcontainers)
                 implementation(libs.logback.classic)
                 implementation(libs.okio.fakefilesystem)
