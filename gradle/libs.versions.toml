@@ -40,6 +40,7 @@ decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decom
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
 
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
