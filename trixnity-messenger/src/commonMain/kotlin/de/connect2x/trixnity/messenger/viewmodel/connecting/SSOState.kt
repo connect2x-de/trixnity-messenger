@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SSOState(
-    val nonce: String,
+    val state: String,
     val serverUrl: String,
     val providerId: String,
     val providerName: String,

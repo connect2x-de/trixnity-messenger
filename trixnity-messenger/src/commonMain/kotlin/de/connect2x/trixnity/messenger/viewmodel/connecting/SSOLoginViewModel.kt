@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.crypto.core.SecureRandom
+import okio.ByteString.Companion.toByteString
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -30,21 +32,21 @@ private val log = KotlinLogging.logger {}
 interface SSOLoginViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        nonce: String,
         serverUrl: String,
         providerId: String,
         providerName: String,
         onLogin: () -> Unit,
         onBack: () -> Unit,
+        state: String? = null,
     ): SSOLoginViewModel {
         return SSOLoginViewModelImpl(
             viewModelContext,
-            nonce,
             serverUrl,
             providerId,
             providerName,
             onLogin,
             onBack,
+            state,
         )
     }
 
@@ -75,18 +77,20 @@ interface SSOLoginViewModel {
 
 open class SSOLoginViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val nonce: String,
     override val serverUrl: String,
     private val providerId: String,
     override val providerName: String,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
+    initialState: String? = null,
 ) : ViewModelContext by viewModelContext, SSOLoginViewModel {
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    private val state: String = initialState
+        ?: SecureRandom.nextBytes(16).toByteString().base64Url()
     private val urlHandler = get<UrlHandler>()
     private val uriCaller = get<UriCaller>()
 
@@ -98,7 +102,7 @@ open class SSOLoginViewModelImpl(
         URLBuilder(messengerConfiguration.ssoRedirectPath).apply {
             protocol = URLProtocol.createOrDefault(messengerConfiguration.urlProtocol)
             host = messengerConfiguration.urlHost
-            parameters.append("nonce", nonce)
+            parameters.append("state", state)
         }.build()
 
     private val loginUrl =
@@ -112,7 +116,7 @@ open class SSOLoginViewModelImpl(
         if (loginJob == null) {
             loginJob = coroutineScope.launch {
                 val parsedRedirectUrl = Url(redirectUrl)
-                val loginToken = if (parsedRedirectUrl.parameters["nonce"] == nonce) {
+                val loginToken = if (parsedRedirectUrl.parameters["state"] == state) {
                     parsedRedirectUrl.parameters["loginToken"]
                 } else null
 
@@ -136,7 +140,7 @@ open class SSOLoginViewModelImpl(
                         }
                     }
                 } else {
-                    log.warn { "Could not resume login: no token matching the correct nonce was found" }
+                    log.warn { "Could not resume login: no token matching the correct state was found" }
                 }
             }
             loginJob?.invokeOnCompletion {
@@ -152,7 +156,7 @@ open class SSOLoginViewModelImpl(
                     waitForRedirect.value = true
                     urlHandler.filter {
                         it.encodedPath == redirectUrl.encodedPath
-                                && it.parameters["state"] == nonce
+                                && it.parameters["state"] == state
                     }.map {
                         it.parameters["loginToken"]
                     }.filterNotNull().first()
@@ -160,7 +164,7 @@ open class SSOLoginViewModelImpl(
                 }
                 log.debug { "Persisting SSO state" }
                 messengerSettings.update {
-                    it.copy(ssoState = SSOState(nonce, serverUrl, providerId, providerName))
+                    it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
                 }
                 log.debug { "Redirecting to $loginUrl" }
                 uriCaller(loginUrl)

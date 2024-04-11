@@ -86,12 +86,12 @@ class RootRouter(
             is Config.SSOLogin -> Wrapper.SSOLogin(
                 viewModelContext.get<SSOLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    nonce = config.nonce,
                     serverUrl = config.serverUrl,
                     providerId = config.providerId,
                     providerName = config.providerName,
                     onLogin = ::showMainOnLogin,
                     onBack = ::backToAddMatrixAccount,
+                    state = config.state
                 )
             )
 
@@ -180,10 +180,9 @@ class RootRouter(
             is AddMatrixAccountMethod.SSO -> navigation.launchPush(
                 viewModelContext.coroutineScope,
                 Config.SSOLogin(
-                    nonce = SecureRandom.nextBytes(16).toByteString().base64Url(),
                     serverUrl = addMatrixAccountMethod.serverUrl,
                     providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name
+                    providerName = addMatrixAccountMethod.identityProvider.name,
                 )
             )
 
@@ -212,10 +211,10 @@ class RootRouter(
             method.serverUrl
         ))
         navigation.launchPush(viewModelContext.coroutineScope, Config.SSOLogin(
-            method.nonce,
             method.serverUrl,
             method.providerId,
-            method.providerName
+            method.providerName,
+            method.state,
         ))
     }
 
@@ -256,10 +255,10 @@ class RootRouter(
 
         @Serializable
         data class SSOLogin(
-            val nonce: String,
             val serverUrl: String,
             val providerId: String,
-            val providerName: String
+            val providerName: String,
+            val state: String? = null
         ) : Config()
 
         @Serializable
