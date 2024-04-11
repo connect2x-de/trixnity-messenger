@@ -166,7 +166,10 @@ class RootRouter(
     }
 
 
-    private fun showAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
+    private fun showAddMatrixAccountMethod(
+        addMatrixAccountMethod: AddMatrixAccountMethod,
+        state: String?
+    ) {
         when (addMatrixAccountMethod) {
             is AddMatrixAccountMethod.Password -> navigation.launchPush(
                 viewModelContext.coroutineScope,
@@ -178,7 +181,8 @@ class RootRouter(
                 Config.SSOLogin(
                     serverUrl = addMatrixAccountMethod.serverUrl,
                     providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name
+                    providerName = addMatrixAccountMethod.identityProvider.name,
+                    state = state
                 )
             )
 

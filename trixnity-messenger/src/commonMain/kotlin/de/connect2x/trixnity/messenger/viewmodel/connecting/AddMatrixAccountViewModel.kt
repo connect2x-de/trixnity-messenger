@@ -24,7 +24,7 @@ private val log = KotlinLogging.logger {}
 interface AddMatrixAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
+        onAddMatrixAccountMethod: (method: AddMatrixAccountMethod, state: String?) -> Unit,
         onCancel: () -> Unit,
     ): AddMatrixAccountViewModel {
         return AddMatrixAccountViewModelImpl(
@@ -57,7 +57,7 @@ interface AddMatrixAccountViewModel {
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 open class AddMatrixAccountViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
+    private val onAddMatrixAccountMethod: (method: AddMatrixAccountMethod, state: String?) -> Unit,
     private val onCancel: () -> Unit,
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel {
     override val isFirstMatrixClient: StateFlow<Boolean?> =
@@ -78,7 +78,7 @@ open class AddMatrixAccountViewModelImpl(
                     name = ssoState.providerName,
                 ),
                 icon = null,
-            ))
+            ), ssoState.state)
         }
     }
 
@@ -154,7 +154,7 @@ open class AddMatrixAccountViewModelImpl(
         )
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
-        onAddMatrixAccountMethod(addMatrixAccountMethod)
+        onAddMatrixAccountMethod(addMatrixAccountMethod, null)
     }
 
     override fun cancel() {
