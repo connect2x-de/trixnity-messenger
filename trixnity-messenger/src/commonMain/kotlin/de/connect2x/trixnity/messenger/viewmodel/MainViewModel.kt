@@ -120,6 +120,9 @@ open class MainViewModelImpl(
 
     init { // init before routers, so those can register other handlers that are executed before
         backHandler.register(backCallback)
+        if (messengerSettings.value.ssoState != null) {
+            onCreateNewAccount()
+        }
     }
 
     private val initialSyncRouter = InitialSyncRouter(viewModelContext = viewModelContext)
