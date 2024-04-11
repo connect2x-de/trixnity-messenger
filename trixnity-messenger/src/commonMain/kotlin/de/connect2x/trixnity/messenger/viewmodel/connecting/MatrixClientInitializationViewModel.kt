@@ -22,15 +22,13 @@ interface MatrixClientInitializationViewModelFactory {
         onInitializationSuccess: () -> Unit,
         onInitializationFailure: () -> Unit,
         onStoreFailure: (userId: UserId, exception: LoadStoreException) -> Unit,
-        onRestoreSSO: (method: SSOState) -> Unit,
     ): MatrixClientInitializationViewModel {
         return MatrixClientInitializationViewModelImpl(
             viewModelContext,
             onNoAccounts,
             onInitializationSuccess,
             onInitializationFailure,
-            onStoreFailure,
-            onRestoreSSO
+            onStoreFailure
         )
     }
 
@@ -47,7 +45,6 @@ open class MatrixClientInitializationViewModelImpl(
     private val onInitializationSuccess: () -> Unit,
     private val onInitializationFailure: () -> Unit,
     private val onStoreFailure: (userId: UserId, exception: LoadStoreException) -> Unit,
-    private val onRestoreSSO: (method: SSOState) -> Unit
 ) : ViewModelContext by viewModelContext, MatrixClientInitializationViewModel {
 
     override val currentState = MutableStateFlow("")
@@ -64,10 +61,7 @@ open class MatrixClientInitializationViewModelImpl(
         currentState.value = i18n.matrixClientInitLoading()
 
         log.info { "init MatrixClients ${matrixClients.value.keys} from settings and store" }
-        val ssoState = settings.value.ssoState
-        if (ssoState != null) {
-            onRestoreSSO(ssoState)
-        } else if (settings.value.accounts.isEmpty()) { // no account defined yet, show account creation
+        if (settings.value.accounts.isEmpty()) { // no account defined yet, show account creation
             onNoAccounts()
         } else {
             checkWhetherSelectedAccountIsStillValid()

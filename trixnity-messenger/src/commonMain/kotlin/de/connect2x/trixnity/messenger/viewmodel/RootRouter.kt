@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.crypto.core.SecureRandom
-import okio.ByteString.Companion.toByteString
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -52,7 +50,6 @@ class RootRouter(
                         onInitializationSuccess = ::showMain,
                         onInitializationFailure = ::showAddMatrixAccount,
                         onStoreFailure = ::showStoreFailure,
-                        onRestoreSSO = ::restoreSSO,
                     )
             )
 
@@ -68,7 +65,6 @@ class RootRouter(
             is Config.AddMatrixAccount -> Wrapper.AddMatrixAccount(
                 viewModelContext.get<AddMatrixAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    initialServerUrl = config.serverUrl,
                     onAddMatrixAccountMethod = ::showAddMatrixAccountMethod,
                     onCancel = ::cancelAddMatrixAccount,
                 )
@@ -157,7 +153,7 @@ class RootRouter(
     }
 
     private fun showAddMatrixAccount() {
-        navigation.launchPush(viewModelContext.coroutineScope, Config.AddMatrixAccount(null))
+        navigation.launchPush(viewModelContext.coroutineScope, Config.AddMatrixAccount)
     }
 
     private fun cancelAddMatrixAccount() = viewModelContext.coroutineScope.launch {
@@ -182,7 +178,7 @@ class RootRouter(
                 Config.SSOLogin(
                     serverUrl = addMatrixAccountMethod.serverUrl,
                     providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name,
+                    providerName = addMatrixAccountMethod.identityProvider.name
                 )
             )
 
@@ -204,18 +200,6 @@ class RootRouter(
     private fun showRemoveAccount(userId: UserId) {
         // replace the Config.Main to remove the MainViewModel which can trigger some actions we do not want for logged out clients
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
-    }
-
-    private fun restoreSSO(method: SSOState) {
-        navigation.launchPush(viewModelContext.coroutineScope, Config.AddMatrixAccount(
-            method.serverUrl
-        ))
-        navigation.launchPush(viewModelContext.coroutineScope, Config.SSOLogin(
-            method.serverUrl,
-            method.providerId,
-            method.providerName,
-            method.state,
-        ))
     }
 
     sealed class Wrapper {
@@ -248,7 +232,7 @@ class RootRouter(
         data class RemoveMatrixAccount(val userId: UserId) : Config()
 
         @Serializable
-        data class AddMatrixAccount(val serverUrl: String?) : Config()
+        data object AddMatrixAccount : Config()
 
         @Serializable
         data class PasswordLogin(val serverUrl: String) : Config()
