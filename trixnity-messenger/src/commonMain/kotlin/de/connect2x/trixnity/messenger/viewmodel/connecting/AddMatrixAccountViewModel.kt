@@ -22,11 +22,13 @@ private val log = KotlinLogging.logger {}
 interface AddMatrixAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
+        initialServerUrl: String?,
         onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
         onCancel: () -> Unit,
     ): AddMatrixAccountViewModel {
         return AddMatrixAccountViewModelImpl(
             viewModelContext,
+            initialServerUrl,
             onAddMatrixAccountMethod,
             onCancel,
         )
@@ -55,6 +57,7 @@ interface AddMatrixAccountViewModel {
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 open class AddMatrixAccountViewModelImpl(
     viewModelContext: ViewModelContext,
+    initialServerUrl: String?,
     private val onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
     private val onCancel: () -> Unit,
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel {
@@ -63,7 +66,7 @@ open class AddMatrixAccountViewModelImpl(
             .map { it.isEmpty() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    final override val serverUrl = MutableStateFlow("")
+    final override val serverUrl = MutableStateFlow(initialServerUrl ?: "")
 
     private val httpClientFactory = get<HttpClientFactory>()()
 

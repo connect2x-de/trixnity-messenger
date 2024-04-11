@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -20,8 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.crypto.core.SecureRandom
-import okio.ByteString.Companion.toByteString
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -31,6 +30,7 @@ private val log = KotlinLogging.logger {}
 interface SSOLoginViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
+        nonce: String,
         serverUrl: String,
         providerId: String,
         providerName: String,
@@ -39,6 +39,7 @@ interface SSOLoginViewModelFactory {
     ): SSOLoginViewModel {
         return SSOLoginViewModelImpl(
             viewModelContext,
+            nonce,
             serverUrl,
             providerId,
             providerName,
@@ -59,11 +60,14 @@ interface SSOLoginViewModel {
     val waitForRedirect: StateFlow<Boolean>
 
     /**
-     * Opens SSO provider login page, waits to receive the token and logs in with this token.
-     *
-     * @param externalRedirectUrl can be used to skip opening the SSO provider login page
+     * Resume a previously started SSO flow with a given redirect URL
      */
-    fun tryLogin(externalRedirectUrl: String? = null)
+    fun resumeLogin(redirectUrl: String)
+
+    /**
+     * Opens SSO provider login page, waits to receive the token and logs in with this token.
+     */
+    fun tryLogin()
     fun abortLogin()
 
     fun back()
@@ -71,8 +75,9 @@ interface SSOLoginViewModel {
 
 open class SSOLoginViewModelImpl(
     viewModelContext: ViewModelContext,
+    private val nonce: String,
     override val serverUrl: String,
-    providerId: String,
+    private val providerId: String,
     override val providerName: String,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
@@ -81,7 +86,7 @@ open class SSOLoginViewModelImpl(
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private val state = SecureRandom.nextBytes(16).toByteString().base64Url()// TODO need to be cached in the web!
+    private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val urlHandler = get<UrlHandler>()
     private val uriCaller = get<UriCaller>()
 
@@ -93,7 +98,7 @@ open class SSOLoginViewModelImpl(
         URLBuilder(messengerConfiguration.ssoRedirectPath).apply {
             protocol = URLProtocol.createOrDefault(messengerConfiguration.urlProtocol)
             host = messengerConfiguration.urlHost
-            parameters.append("state", state)
+            parameters.append("nonce", nonce)
         }.build()
 
     private val loginUrl =
@@ -102,32 +107,66 @@ open class SSOLoginViewModelImpl(
     override val waitForRedirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private var loginJob: Job? = null
-    override fun tryLogin(externalRedirectUrl: String?) {
-        if (loginJob != null) {
+
+    override fun resumeLogin(redirectUrl: String) {
+        if (loginJob == null) {
+            loginJob = coroutineScope.launch {
+                val parsedRedirectUrl = Url(redirectUrl)
+                val loginToken = if (parsedRedirectUrl.parameters["nonce"] == nonce) {
+                    parsedRedirectUrl.parameters["loginToken"]
+                } else null
+
+                if (loginToken != null) {
+                    log.debug { "Try to login into $serverUrl with loginToken=***." }
+                    try {
+                        matrixClients.loginCatching(
+                            serverUrl = serverUrl,
+                            token = loginToken,
+                            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+                            addMatrixAccountState = addMatrixAccountState,
+                            i18n = i18n,
+                            onLogin = onLogin,
+                        )
+                        addMatrixAccountState.value = AddMatrixAccountState.None
+                        waitForRedirect.value = false
+                    } finally {
+                        log.debug { "Clearing stored sso login info" }
+                        messengerSettings.update {
+                            it.copy(ssoState = null)
+                        }
+                    }
+                } else {
+                    log.warn { "Could not resume login: no token matching the correct nonce was found" }
+                }
+            }
+            loginJob?.invokeOnCompletion {
+                loginJob = null
+            }
+        }
+    }
+
+    override fun tryLogin() {
+        if (loginJob == null) {
             loginJob = coroutineScope.launch {
                 val loginToken = async {
-                    if (externalRedirectUrl != null) {
-                        val parsedExternalRedirectUrl = Url(externalRedirectUrl)
-                        if (parsedExternalRedirectUrl.parameters["state"] == state) {
-                            parsedExternalRedirectUrl.parameters["loginToken"]
-                        } else null
-                    } else {
-                        waitForRedirect.value = true
-                        urlHandler.filter {
-                            it.encodedPath == redirectUrl.encodedPath
-                                    && it.parameters["state"] == state
-                        }.map {
-                            it.parameters["loginToken"]
-                        }.filterNotNull().first()
-                            .also { waitForRedirect.value = false }
-                    }
+                    waitForRedirect.value = true
+                    urlHandler.filter {
+                        it.encodedPath == redirectUrl.encodedPath
+                                && it.parameters["state"] == nonce
+                    }.map {
+                        it.parameters["loginToken"]
+                    }.filterNotNull().first()
+                        .also { waitForRedirect.value = false }
                 }
+                log.debug { "Persisting SSO state" }
+                messengerSettings.update {
+                    it.copy(ssoState = SSOState(nonce, serverUrl, providerId, providerName))
+                }
+                log.debug { "Redirecting to $loginUrl" }
                 uriCaller(loginUrl)
                 val finalLoginToken = loginToken.await()
-                if (finalLoginToken == null) {
-                    log.warn { "loginToken was null" }
-                } else {
-                    log.debug { "Try to login into $serverUrl with loginToken=***." }
+                log.debug { "Try to login into $serverUrl with loginToken=***." }
+                try {
                     matrixClients.loginCatching(
                         serverUrl = serverUrl,
                         token = finalLoginToken,
@@ -136,6 +175,9 @@ open class SSOLoginViewModelImpl(
                         i18n = i18n,
                         onLogin = onLogin,
                     )
+                } finally {
+                    log.debug { "Clearing stored sso login info" }
+                    messengerSettings.update { it.copy(ssoState = null) }
                 }
             }
             loginJob?.invokeOnCompletion {
@@ -148,6 +190,10 @@ open class SSOLoginViewModelImpl(
 
     override fun abortLogin() {
         loginJob?.cancel()
+        coroutineScope.launch {
+            log.debug { "Clearing stored sso login info" }
+            messengerSettings.update { it.copy(ssoState = null) }
+        }
     }
 
     override fun back() {
@@ -163,8 +209,10 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
     override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
 
+    override fun resumeLogin(redirectUrl: String) {
+    }
 
-    override fun tryLogin(externalRedirectUrl: String?) {
+    override fun tryLogin() {
     }
 
     override fun abortLogin() {
