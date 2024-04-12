@@ -125,7 +125,7 @@ kotlin {
         }
         jsMain {
             dependencies {
-                implementation(libs.trixnity.client.repository.indexdb)
+                implementation(libs.trixnity.client.repository.indexeddb)
                 implementation(libs.trixnity.client.media.indexeddb)
                 api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
                 implementation(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
