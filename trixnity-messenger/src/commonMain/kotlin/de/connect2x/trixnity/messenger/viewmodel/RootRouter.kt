@@ -2,11 +2,16 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.UrlHandler
+import de.connect2x.trixnity.messenger.util.UrlRoutingHandler
+import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -14,6 +19,7 @@ import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.connecting.*
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.scan
@@ -29,6 +35,9 @@ class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
     private val matrixClients = viewModelContext.get<MatrixClients>()
+    private val settings = viewModelContext.get<MatrixMessengerSettingsHolder>()
+    private val routingHandlers = viewModelContext.getKoin().getAll<UrlRoutingHandler>()
+    private val urlHandler = viewModelContext.get<UrlHandler>()
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -130,6 +139,15 @@ class RootRouter(
                 if (new < old) showInitialization()
             }
         }
+        viewModelContext.coroutineScope.launch {
+            urlHandler.scopedCollectLatest {
+                for (routingHandler in routingHandlers) {
+                    if (routingHandler.onHandleUrl(this@RootRouter, it)) {
+                        break
+                    }
+                }
+            }
+        }
     }
 
     fun showNone() {
@@ -138,6 +156,21 @@ class RootRouter(
 
     fun showInitialization() {
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
+    }
+
+    fun showSSOLogin(onComplete: (Wrapper.SSOLogin) -> Unit = {}) {
+        val state = settings.value.ssoState
+        if (state != null) {
+            viewModelContext.coroutineScope.launch {
+                navigation.bringToFrontSuspending(Config.AddMatrixAccount)
+                navigation.bringToFrontSuspending(
+                    Config.SSOLogin(state.serverUrl, state.providerId, state.providerName, state.state)
+                )
+                viewModelContext.coroutineScope.launch {
+                    onComplete(stack.active.instance as Wrapper.SSOLogin)
+                }
+            }
+        }
     }
 
     private fun showMain() {
@@ -166,10 +199,7 @@ class RootRouter(
     }
 
 
-    private fun showAddMatrixAccountMethod(
-        addMatrixAccountMethod: AddMatrixAccountMethod,
-        state: String?
-    ) {
+    private fun showAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         when (addMatrixAccountMethod) {
             is AddMatrixAccountMethod.Password -> navigation.launchPush(
                 viewModelContext.coroutineScope,
@@ -181,8 +211,7 @@ class RootRouter(
                 Config.SSOLogin(
                     serverUrl = addMatrixAccountMethod.serverUrl,
                     providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name,
-                    state = state
+                    providerName = addMatrixAccountMethod.identityProvider.name
                 )
             )
 

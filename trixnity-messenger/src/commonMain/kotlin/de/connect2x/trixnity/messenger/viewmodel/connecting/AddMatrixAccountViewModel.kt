@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.serverDiscovery
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,7 +22,7 @@ private val log = KotlinLogging.logger {}
 interface AddMatrixAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        onAddMatrixAccountMethod: (method: AddMatrixAccountMethod, state: String?) -> Unit,
+        onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
         onCancel: () -> Unit,
     ): AddMatrixAccountViewModel {
         return AddMatrixAccountViewModelImpl(
@@ -57,7 +55,7 @@ interface AddMatrixAccountViewModel {
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 open class AddMatrixAccountViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val onAddMatrixAccountMethod: (method: AddMatrixAccountMethod, state: String?) -> Unit,
+    private val onAddMatrixAccountMethod: (AddMatrixAccountMethod) -> Unit,
     private val onCancel: () -> Unit,
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel {
     override val isFirstMatrixClient: StateFlow<Boolean?> =
@@ -65,22 +63,7 @@ open class AddMatrixAccountViewModelImpl(
             .map { it.isEmpty() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private val settings = get<MatrixMessengerSettingsHolder>()
-    private val ssoState = settings.value.ssoState
-    final override val serverUrl = MutableStateFlow(ssoState?.serverUrl ?: "")
-
-    init {
-        if (ssoState != null) {
-            onAddMatrixAccountMethod(AddMatrixAccountMethod.SSO(
-                serverUrl = ssoState.serverUrl,
-                identityProvider = LoginType.SSO.IdentityProvider(
-                    id = ssoState.providerId,
-                    name = ssoState.providerName,
-                ),
-                icon = null,
-            ), ssoState.state)
-        }
-    }
+    final override val serverUrl = MutableStateFlow("")
 
     private val httpClientFactory = get<HttpClientFactory>()()
 
@@ -154,7 +137,7 @@ open class AddMatrixAccountViewModelImpl(
         )
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
-        onAddMatrixAccountMethod(addMatrixAccountMethod, null)
+        onAddMatrixAccountMethod(addMatrixAccountMethod)
     }
 
     override fun cancel() {

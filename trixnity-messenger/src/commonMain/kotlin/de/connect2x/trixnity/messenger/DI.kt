@@ -25,6 +25,8 @@ import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.SSOUrlRoutingHandler
+import de.connect2x.trixnity.messenger.util.UrlRoutingHandler
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
@@ -206,6 +208,8 @@ fun createDefaultTrixnityMessengerModules() = listOf(
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
+
+        single<UrlRoutingHandler> { SSOUrlRoutingHandler(get()) }
     },
     timelineElementModule(),
     connectingViewModels(),
