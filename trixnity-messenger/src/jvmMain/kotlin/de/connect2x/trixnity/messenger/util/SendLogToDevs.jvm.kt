@@ -17,7 +17,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
         SendLogToDevs { emailAddress, subject ->
             val content = try {
                 withContext(Dispatchers.IO) {
-                    Files.readString(rootPath.resolve("timmy.log").toNioPath()) // TODO configurable and as file
+                    Files.readString(rootPath.resolve("..").resolve("timmy.log").toNioPath()) // TODO configurable and as file
                 }
             } catch (exc: Exception) {
                 log.error(exc) { "cannot read log content" }
