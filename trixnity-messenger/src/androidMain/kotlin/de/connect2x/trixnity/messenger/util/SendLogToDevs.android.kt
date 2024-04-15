@@ -6,10 +6,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import io.github.oshai.kotlinlogging.KotlinLogging
 import android.net.Uri
-
-private val log = KotlinLogging.logger {}
 
 actual fun platformSendLogToDevsModule(): Module = module {
     single<SendLogToDevs> {
@@ -18,7 +15,6 @@ actual fun platformSendLogToDevsModule(): Module = module {
         SendLogToDevs { emailAddress, subject ->
             val parentDirectory = rootPath.toFile()
             val uri = FileProvider.getUriForFile(context, "de.connect2x.timmy.provider", parentDirectory.resolve("..").resolve("timmy.log"))
-            log.error { "URI: $uri" }
             val intent = Intent(Intent.ACTION_SEND).apply {
                 data = Uri.parse("mailto:")
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
