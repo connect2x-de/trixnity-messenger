@@ -1,0 +1,85 @@
+[versions]
+kotlinJvmTarget = "11"
+trixnity = "4.3.1" # https://gitlab.com/trixnity/trixnity/-/releases
+kotlin = "1.9.23" # https://kotlinlang.org/
+ksp = "1.9.23-1.0.19" # https://github.com/google/ksp/releases
+kotlinWrappers = "1.0.0-pre.718" # https://github.com/JetBrains/kotlin-wrappers/releases
+kotlinxCoroutines = "1.8.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
+kotlinxSerialization = "1.6.3" # https://github.com/Kotlin/kotlinx.serialization/releases
+decompose = "2.2.2" # https://github.com/arkivanov/Decompose/releases
+kotlinxDatetime = "0.5.0" # https://github.com/Kotlin/kotlinx-datetime/releases
+koin = "3.5.3" # https://github.com/InsertKoinIO/koin/tags
+ktor = "2.3.9" # https://github.com/ktorio/ktor/releases
+mocKmp = "1.17.0" # https://github.com/Kodein-Framework/MocKMP/releases
+kotest = "5.8.1" # https://github.com/kotest/kotest/releases
+jna = "5.14.0" # https://github.com/java-native-access/jna/tags
+okio = "3.9.0" # https://square.github.io/okio/changelog
+uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
+korge = "4.0.10" # https://github.com/korlibs/korge/releases
+dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
+jsJoda = "2.18.3" # https://www.npmjs.com/package/@js-joda/timezone
+zipjs = "2.7.40" # https://www.npmjs.com/package/@zip.js/zip.js
+skie = "0.6.2" # https://github.com/touchlab/SKIE/releases
+kmmBridge = "0.5.2" # https://github.com/touchlab/KMMBridge/releases
+
+# integration tests
+testContainers = "1.19.7" # https://github.com/testcontainers/testcontainers-java/releases
+kotlinLogging = "6.0.3" # https://github.com/MicroUtils/kotlin-logging/releases
+logback = "1.5.3" # https://github.com/qos-ch/logback/tags
+crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
+activity = "1.8.2" # https://developer.android.com/jetpack/androidx/releases/activity
+androidGradle = "8.2.2" # https://developer.android.com/reference/tools/gradle-api
+
+
+[libraries]
+trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
+trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref = "trixnity" }
+trixnity-client-media = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
+trixnity-client-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
+
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+uuid = { module = "com.benasher44:uuid", version.ref = "uuid" }
+korge = { module = "com.soywiz.korlibs.korim:korim", version.ref = "korge" }
+mock-mockmp = { module = "org.kodein.mock:mockmp-runtime", version.ref = "mocKmp" }
+okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
+kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-dataset-framework = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+trixnity-client-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
+trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
+trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
+androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "crypto" }
+kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
+kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version = "" }
+kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
+
+
+[bundles]
+kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]
+jna = ["jna", "jna-platform"]
+testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
+
+[plugins]
+kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+skie = { id = "co.touchlab.skie", version.ref = "skie" }
+kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmBridge" }
