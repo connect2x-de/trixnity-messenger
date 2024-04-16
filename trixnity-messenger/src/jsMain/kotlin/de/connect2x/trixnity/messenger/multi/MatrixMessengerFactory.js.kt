@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessengerImpl
+import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.StoragePrefix
+import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
