@@ -13,7 +13,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
         val context = get<Context>()
         val rootPath = get<RootPath>().path
         SendLogToDevs { emailAddress, subject ->
-            val uri = FileProvider.getUriForFile(context, "de.connect2x.timmy.provider", rootPath.toFile().resolve("timmy.log"))
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", rootPath.toFile().resolve("timmy.log"))
             val intent = Intent(Intent.ACTION_SEND).apply {
                 data = Uri.parse("mailto:")
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
