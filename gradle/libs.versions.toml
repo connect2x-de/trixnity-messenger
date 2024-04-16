@@ -1,6 +1,6 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.3.1" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.3.2" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "1.9.23" # https://kotlinlang.org/
 ksp = "1.9.23-1.0.19" # https://github.com/google/ksp/releases
 kotlinWrappers = "1.0.0-pre.718" # https://github.com/JetBrains/kotlin-wrappers/releases
@@ -8,8 +8,8 @@ kotlinxCoroutines = "1.8.0" # https://github.com/Kotlin/kotlinx.coroutines/relea
 kotlinxSerialization = "1.6.3" # https://github.com/Kotlin/kotlinx.serialization/releases
 decompose = "2.2.2" # https://github.com/arkivanov/Decompose/releases
 kotlinxDatetime = "0.5.0" # https://github.com/Kotlin/kotlinx-datetime/releases
-koin = "3.5.3" # https://github.com/InsertKoinIO/koin/tags
-ktor = "2.3.9" # https://github.com/ktorio/ktor/releases
+koin = "3.5.6" # https://github.com/InsertKoinIO/koin/tags
+ktor = "2.3.10" # https://github.com/ktorio/ktor/releases
 mocKmp = "1.17.0" # https://github.com/Kodein-Framework/MocKMP/releases
 kotest = "5.8.1" # https://github.com/kotest/kotest/releases
 jna = "5.14.0" # https://github.com/java-native-access/jna/tags
@@ -24,8 +24,8 @@ kmmBridge = "0.5.2" # https://github.com/touchlab/KMMBridge/releases
 
 # integration tests
 testContainers = "1.19.7" # https://github.com/testcontainers/testcontainers-java/releases
-kotlinLogging = "6.0.3" # https://github.com/MicroUtils/kotlin-logging/releases
-logback = "1.5.3" # https://github.com/qos-ch/logback/tags
+kotlinLogging = "6.0.4" # https://github.com/MicroUtils/kotlin-logging/releases
+logback = "1.5.5" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
 activity = "1.8.2" # https://developer.android.com/jetpack/androidx/releases/activity
 androidGradle = "8.2.2" # https://developer.android.com/reference/tools/gradle-api
