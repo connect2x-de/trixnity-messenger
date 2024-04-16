@@ -19,9 +19,6 @@ actual fun platformMatrixMessengerFactory(): Module = module {
                         RootPath(rootPath.resolve(profileId))
                     }
                     copyMultiMessengerSingletons.copy(from = this@single, to = this)
-                } + module {
-                    platformSendLogToDevsModule()
-                    copyMultiMessengerSingletons.copy(from = this@single, to = this)
                 }
             }
         }

@@ -20,9 +20,6 @@ actual fun platformMatrixMessengerFactory(): Module = module {
                         StoragePrefix("$storagePrefix$profileId/")
                     }
                     copyMultiMessengerSingletons.copy(from = this@single, to = this)
-                } + module {
-                    platformSendLogToDevsModule()
-                    copyMultiMessengerSingletons.copy(from = this@single, to = this)
                 }
             }
         }
