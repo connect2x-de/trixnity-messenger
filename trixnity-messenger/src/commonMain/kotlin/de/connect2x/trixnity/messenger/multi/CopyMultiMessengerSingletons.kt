@@ -19,10 +19,9 @@ class CopyMultiMessengerSingletonsImpl : CopyMultiMessengerSingletons {
         to.single<MatrixMultiMessengerConfiguration> { from.get() }
         to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
         to.single<ProfileManager> {from.get() }
+        to.single<SendLogToDevs> { from.get() }
         val urlHandler = from.getOrNull<UrlHandler>()
         if (urlHandler != null) to.single<UrlHandler> { urlHandler }
-        val sendLogToDev = from.getOrNull<SendLogToDevs>()
-        if (sendLogToDev != null) to.single<SendLogToDevs> { sendLogToDev }
     }
 }
 
