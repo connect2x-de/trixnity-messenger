@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.SecretByteArrayKey
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -15,6 +16,7 @@ data class MatrixMessengerSettings(
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
+    val ssoState: SSOState? = null,
 )
 
 @Serializable

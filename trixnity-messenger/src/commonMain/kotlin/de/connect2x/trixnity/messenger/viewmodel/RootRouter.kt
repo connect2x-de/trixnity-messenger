@@ -2,20 +2,38 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.UrlHandler
+import de.connect2x.trixnity.messenger.util.UrlRoutingHandler
+import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
-import de.connect2x.trixnity.messenger.viewmodel.connecting.*
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -24,11 +42,12 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
     private val matrixClients = viewModelContext.get<MatrixClients>()
+    private val routingHandlers = viewModelContext.getKoin().getAll<UrlRoutingHandler>()
+    private val urlHandler = viewModelContext.get<UrlHandler>()
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -87,6 +106,7 @@ class RootRouter(
                     providerName = config.providerName,
                     onLogin = ::showMainOnLogin,
                     onBack = ::backToAddMatrixAccount,
+                    state = config.state
                 )
             )
 
@@ -127,6 +147,19 @@ class RootRouter(
                 old.second to new.size
             }.collect { (old, new) ->
                 if (new < old) showInitialization()
+            }
+        }
+        viewModelContext.coroutineScope.launch {
+            urlHandler.scopedCollectLatest {
+                for (routingHandler in routingHandlers) {
+                    val routingHandlerDidMatch = routingHandler.onHandleUrl(it) { entries ->
+                        for (entry in entries) {
+                            navigation.bringToFrontSuspending(entry)
+                        }
+                        stack.active.instance
+                    }
+                    if (routingHandlerDidMatch) break
+                }
             }
         }
     }
@@ -237,7 +270,12 @@ class RootRouter(
         data class PasswordLogin(val serverUrl: String) : Config()
 
         @Serializable
-        data class SSOLogin(val serverUrl: String, val providerId: String, val providerName: String) : Config()
+        data class SSOLogin(
+            val serverUrl: String,
+            val providerId: String,
+            val providerName: String,
+            val state: String? = null
+        ) : Config()
 
         @Serializable
         data class RegisterNewAccount(val serverUrl: String) : Config()

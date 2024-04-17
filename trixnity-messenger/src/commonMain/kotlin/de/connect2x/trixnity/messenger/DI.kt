@@ -25,6 +25,8 @@ import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.SSOUrlRoutingHandler
+import de.connect2x.trixnity.messenger.util.UrlRoutingHandler
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
@@ -133,6 +135,8 @@ import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 
@@ -206,6 +210,8 @@ fun createDefaultTrixnityMessengerModules() = listOf(
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
+
+        singleOf(::SSOUrlRoutingHandler).bind<UrlRoutingHandler>()
     },
     timelineElementModule(),
     connectingViewModels(),
