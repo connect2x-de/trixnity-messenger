@@ -15,6 +15,7 @@ open class UrlHandlerBase(
     filter: (Url) -> Boolean = urlFilter(config),
     protected val urlHandlerFlow: MutableSharedFlow<Url> =
         MutableSharedFlow(
+            replay = 1,
             extraBufferCapacity = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
