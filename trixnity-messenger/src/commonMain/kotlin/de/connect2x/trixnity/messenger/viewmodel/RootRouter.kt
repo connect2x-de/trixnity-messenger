@@ -142,7 +142,7 @@ class RootRouter(
         viewModelContext.coroutineScope.launch {
             urlHandler.scopedCollectLatest {
                 for (routingHandler in routingHandlers) {
-                    if (routingHandler.onHandleUrl(it, ::navigate)) {
+                    if (routingHandler.onHandleUrl(viewModelContext.coroutineScope, ::navigate, it)) {
                         break
                     }
                 }
@@ -170,10 +170,10 @@ class RootRouter(
     }
 
     private fun showMainOnLogin() = viewModelContext.coroutineScope.launch {
-        navigation.replaceAllSuspending(Config.Main)
-        val instance = stack.value.active.instance
-        if (instance is Wrapper.Main) {
-            instance.viewModel.closeAccountsOverview()
+            navigation.replaceAllSuspending(Config.Main)
+            val instance = stack.value.active.instance
+            if (instance is Wrapper.Main) {
+                instance.viewModel.closeAccountsOverview()
         }
     }
 
