@@ -142,12 +142,19 @@ class RootRouter(
         viewModelContext.coroutineScope.launch {
             urlHandler.scopedCollectLatest {
                 for (routingHandler in routingHandlers) {
-                    if (routingHandler.onHandleUrl(this@RootRouter, it)) {
+                    if (routingHandler.onHandleUrl(it, ::navigate)) {
                         break
                     }
                 }
             }
         }
+    }
+
+    private suspend fun navigate(entries: List<Config>): Wrapper {
+        for (entry in entries) {
+            navigation.bringToFrontSuspending(entry)
+        }
+        return stack.active.instance
     }
 
     fun showNone() {
@@ -156,21 +163,6 @@ class RootRouter(
 
     fun showInitialization() {
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
-    }
-
-    fun showSSOLogin(onComplete: (Wrapper.SSOLogin) -> Unit = {}) {
-        val state = settings.value.ssoState
-        if (state != null) {
-            viewModelContext.coroutineScope.launch {
-                navigation.bringToFrontSuspending(Config.AddMatrixAccount)
-                navigation.bringToFrontSuspending(
-                    Config.SSOLogin(state.serverUrl, state.providerId, state.providerName, state.state)
-                )
-                viewModelContext.coroutineScope.launch {
-                    onComplete(stack.active.instance as Wrapper.SSOLogin)
-                }
-            }
-        }
     }
 
     private fun showMain() {
