@@ -34,7 +34,6 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewMode
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -43,7 +42,6 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
