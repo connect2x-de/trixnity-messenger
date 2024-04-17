@@ -15,7 +15,7 @@ open class SSOUrlRoutingHandler(
         url: Url,
         navigate: suspend (List<Config>) -> Wrapper
     ): Boolean {
-        if (url.encodedPath == config.ssoRedirectPath) {
+        if (url.encodedPath == "/${config.ssoRedirectPath}") {
             val state = settings.value.ssoState
             if (state != null) {
                 val destination = navigate(listOf(
