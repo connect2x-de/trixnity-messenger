@@ -151,6 +151,7 @@ open class SSOLoginViewModelImpl(
                 }
                 log.debug { "Redirecting to $loginUrl" }
                 uriCaller(loginUrl)
+                waitForRedirect.value = true
             }
             loginJob?.invokeOnCompletion {
                 loginJob = null
