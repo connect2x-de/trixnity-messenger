@@ -168,6 +168,7 @@ open class SSOLoginViewModelImpl(
     }
 
     override fun back() {
+        abortLogin()
         onBack()
     }
 }
