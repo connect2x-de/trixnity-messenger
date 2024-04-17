@@ -7,7 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter.Wrapper
 import io.ktor.http.*
 
-class SSOUrlRoutingHandler(
+open class SSOUrlRoutingHandler(
     val config: MatrixMessengerConfiguration,
     val settings: MatrixMessengerSettingsHolder,
 ) : UrlRoutingHandler {
