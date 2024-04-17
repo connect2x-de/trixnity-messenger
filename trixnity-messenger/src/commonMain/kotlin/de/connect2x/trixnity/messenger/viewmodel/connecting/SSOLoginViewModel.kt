@@ -57,14 +57,14 @@ interface SSOLoginViewModel {
     val waitForRedirect: StateFlow<Boolean>
 
     /**
-     * Resume a previously started SSO flow with a given redirect URL
-     */
-    fun resumeLogin(redirectUrl: Url)
-
-    /**
      * Opens SSO provider login page, waits to receive the token and logs in with this token.
      */
     fun tryLogin()
+
+    /**
+     * Resume a previously started SSO flow with a given redirect URL
+     */
+    fun resumeLogin(redirectUrl: Url)
     fun abortLogin()
 
     fun back()
@@ -106,9 +106,27 @@ open class SSOLoginViewModelImpl(
 
     private var loginJob: Job? = null
 
+    override fun tryLogin() {
+        if (loginJob == null) {
+            loginJob = coroutineScope.launch {
+                waitForRedirect.value = true
+                log.debug { "Persisting SSO state" }
+                messengerSettings.update {
+                    it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
+                }
+                log.debug { "Redirecting to $loginUrl" }
+                uriCaller(loginUrl)
+            }
+            loginJob?.invokeOnCompletion {
+                loginJob = null
+            }
+        }
+    }
+
     override fun resumeLogin(redirectUrl: Url) {
         if (loginJob == null) {
             loginJob = coroutineScope.launch {
+                waitForRedirect.value = false
                 val loginToken = if (redirectUrl.parameters["state"] == state) {
                     redirectUrl.parameters["loginToken"]
                 } else null
@@ -125,7 +143,6 @@ open class SSOLoginViewModelImpl(
                             onLogin = onLogin,
                         )
                         addMatrixAccountState.value = AddMatrixAccountState.None
-                        waitForRedirect.value = false
                     } finally {
                         log.debug { "Clearing stored sso login info" }
                         messengerSettings.update {
@@ -142,27 +159,11 @@ open class SSOLoginViewModelImpl(
         }
     }
 
-    override fun tryLogin() {
-        if (loginJob == null) {
-            loginJob = coroutineScope.launch {
-                log.debug { "Persisting SSO state" }
-                messengerSettings.update {
-                    it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
-                }
-                log.debug { "Redirecting to $loginUrl" }
-                uriCaller(loginUrl)
-                waitForRedirect.value = true
-            }
-            loginJob?.invokeOnCompletion {
-                loginJob = null
-            }
-        }
-    }
-
     override fun abortLogin() {
         loginJob?.cancel()
         coroutineScope.launch {
             log.debug { "Clearing stored sso login info" }
+            waitForRedirect.value = false
             messengerSettings.update { it.copy(ssoState = null) }
         }
     }

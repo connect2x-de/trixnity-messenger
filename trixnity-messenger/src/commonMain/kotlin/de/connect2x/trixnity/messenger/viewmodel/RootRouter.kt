@@ -7,7 +7,6 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.UrlRoutingHandler
@@ -18,7 +17,21 @@ import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
-import de.connect2x.trixnity.messenger.viewmodel.connecting.*
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,7 +48,6 @@ class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
     private val matrixClients = viewModelContext.get<MatrixClients>()
-    private val settings = viewModelContext.get<MatrixMessengerSettingsHolder>()
     private val routingHandlers = viewModelContext.getKoin().getAll<UrlRoutingHandler>()
     private val urlHandler = viewModelContext.get<UrlHandler>()
 
@@ -142,19 +154,16 @@ class RootRouter(
         viewModelContext.coroutineScope.launch {
             urlHandler.scopedCollectLatest {
                 for (routingHandler in routingHandlers) {
-                    if (routingHandler.onHandleUrl(viewModelContext.coroutineScope, ::navigate, it)) {
-                        break
+                    val routingHandlerDidMatch = routingHandler.onHandleUrl(it) { entries ->
+                        for (entry in entries) {
+                            navigation.bringToFrontSuspending(entry)
+                        }
+                        stack.active.instance
                     }
+                    if (routingHandlerDidMatch) break
                 }
             }
         }
-    }
-
-    private suspend fun navigate(entries: List<Config>): Wrapper {
-        for (entry in entries) {
-            navigation.bringToFrontSuspending(entry)
-        }
-        return stack.active.instance
     }
 
     fun showNone() {
@@ -170,10 +179,10 @@ class RootRouter(
     }
 
     private fun showMainOnLogin() = viewModelContext.coroutineScope.launch {
-            navigation.replaceAllSuspending(Config.Main)
-            val instance = stack.value.active.instance
-            if (instance is Wrapper.Main) {
-                instance.viewModel.closeAccountsOverview()
+        navigation.replaceAllSuspending(Config.Main)
+        val instance = stack.value.active.instance
+        if (instance is Wrapper.Main) {
+            instance.viewModel.closeAccountsOverview()
         }
     }
 
