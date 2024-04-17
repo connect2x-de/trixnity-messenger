@@ -135,6 +135,8 @@ import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 
@@ -209,7 +211,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
 
-        single<UrlRoutingHandler> { SSOUrlRoutingHandler(get()) }
+        singleOf(::SSOUrlRoutingHandler).bind<UrlRoutingHandler>()
     },
     timelineElementModule(),
     connectingViewModels(),
