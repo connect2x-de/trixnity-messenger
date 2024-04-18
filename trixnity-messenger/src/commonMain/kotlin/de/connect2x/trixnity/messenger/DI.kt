@@ -99,6 +99,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelF
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomAlias
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomAliasImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -189,6 +191,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Languages> { DefaultLanguages }
         single<I18n> { object : I18n(get(), get(), get()) {} }
         single<RoomName> { RoomNameImpl(get(), get()) }
+        single<RoomAlias> { RoomAliasImpl() }
         single<RoomTopic> { RoomTopicImpl() }
         single<RoomInviter> { RoomInviterImpl() }
         single<UserBlocking> { UserBlockingImpl() }
