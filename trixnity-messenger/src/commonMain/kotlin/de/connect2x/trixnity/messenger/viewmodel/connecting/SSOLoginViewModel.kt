@@ -30,18 +30,18 @@ interface SSOLoginViewModelFactory {
         serverUrl: String,
         providerId: String,
         providerName: String,
+        initalState: String? = null,
         onLogin: () -> Unit,
         onBack: () -> Unit,
-        state: String? = null,
     ): SSOLoginViewModel {
         return SSOLoginViewModelImpl(
             viewModelContext,
             serverUrl,
             providerId,
             providerName,
+            initalState,
             onLogin,
             onBack,
-            state,
         )
     }
 
@@ -75,9 +75,9 @@ open class SSOLoginViewModelImpl(
     override val serverUrl: String,
     private val providerId: String,
     override val providerName: String,
+    initialState: String? = null,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
-    initialState: String? = null,
 ) : ViewModelContext by viewModelContext, SSOLoginViewModel {
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
@@ -107,19 +107,14 @@ open class SSOLoginViewModelImpl(
     private var loginJob: Job? = null
 
     override fun tryLogin() {
-        if (loginJob == null) {
-            loginJob = coroutineScope.launch {
-                waitForRedirect.value = true
-                log.debug { "Persisting SSO state" }
-                messengerSettings.update {
-                    it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
-                }
-                log.debug { "Redirecting to $loginUrl" }
-                uriCaller(loginUrl)
+        coroutineScope.launch {
+            waitForRedirect.value = true
+            log.debug { "Persisting SSO state" }
+            messengerSettings.update {
+                it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
             }
-            loginJob?.invokeOnCompletion {
-                loginJob = null
-            }
+            log.debug { "Redirecting to $loginUrl" }
+            uriCaller(loginUrl)
         }
     }
 

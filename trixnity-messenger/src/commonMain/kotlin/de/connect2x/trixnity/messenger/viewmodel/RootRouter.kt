@@ -2,14 +2,14 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.UrlHandler
-import de.connect2x.trixnity.messenger.util.UrlRoutingHandler
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
@@ -32,8 +32,9 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -46,7 +47,8 @@ class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
     private val matrixClients = viewModelContext.get<MatrixClients>()
-    private val routingHandlers = viewModelContext.getKoin().getAll<UrlRoutingHandler>()
+    private val settings = viewModelContext.get<MatrixMessengerSettingsHolder>()
+    private val messengerConfiguration = viewModelContext.get<MatrixMessengerConfiguration>()
     private val urlHandler = viewModelContext.get<UrlHandler>()
 
     private val navigation = StackNavigation<Config>()
@@ -104,9 +106,9 @@ class RootRouter(
                     serverUrl = config.serverUrl,
                     providerId = config.providerId,
                     providerName = config.providerName,
+                    initalState = config.initialState,
                     onLogin = ::showMainOnLogin,
-                    onBack = ::backToAddMatrixAccount,
-                    state = config.state
+                    onBack = ::backToAddMatrixAccount
                 )
             )
 
@@ -147,19 +149,6 @@ class RootRouter(
                 old.second to new.size
             }.collect { (old, new) ->
                 if (new < old) showInitialization()
-            }
-        }
-        viewModelContext.coroutineScope.launch {
-            urlHandler.scopedCollectLatest {
-                for (routingHandler in routingHandlers) {
-                    val routingHandlerDidMatch = routingHandler.onHandleUrl(it) { entries ->
-                        for (entry in entries) {
-                            navigation.bringToFrontSuspending(entry)
-                        }
-                        stack.active.instance
-                    }
-                    if (routingHandlerDidMatch) break
-                }
             }
         }
     }
@@ -234,6 +223,29 @@ class RootRouter(
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
+    private suspend fun resumeSsoLogin(redirectUrl: Url) {
+        val state = settings.value.ssoState
+        if (state != null) {
+            navigation.bringToFrontSuspending(Config.AddMatrixAccount)
+            navigation.bringToFrontSuspending(
+                Config.SSOLogin(state.serverUrl, state.providerId, state.providerName, state.state)
+            )
+            val instance = stack.value.active.instance
+            if (instance is Wrapper.SSOLogin) {
+                instance.viewModel.resumeLogin(redirectUrl)
+            }
+        }
+    }
+
+    init {
+        viewModelContext.coroutineScope.launch {
+            urlHandler.collectLatest { url ->
+                if (url.encodedPath == "/${messengerConfiguration.ssoRedirectPath}")
+                    resumeSsoLogin(url)
+            }
+        }
+    }
+
     sealed class Wrapper {
         data object None : Wrapper()
         class MatrixClientInitialization(val viewModel: MatrixClientInitializationViewModel) :
@@ -274,7 +286,7 @@ class RootRouter(
             val serverUrl: String,
             val providerId: String,
             val providerName: String,
-            val state: String? = null
+            val initialState: String? = null
         ) : Config()
 
         @Serializable
