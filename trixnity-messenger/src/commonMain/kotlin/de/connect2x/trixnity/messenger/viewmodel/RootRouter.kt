@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.UrlHandler
-import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -226,9 +225,10 @@ class RootRouter(
     private suspend fun resumeSsoLogin(redirectUrl: Url) {
         val state = settings.value.ssoState
         if (state != null) {
-            navigation.bringToFrontSuspending(Config.AddMatrixAccount)
-            navigation.bringToFrontSuspending(
-                Config.SSOLogin(state.serverUrl, state.providerId, state.providerName, state.state)
+            log.info { "resume sso login" }
+            navigation.replaceAllSuspending(
+                Config.AddMatrixAccount,
+                Config.SSOLogin(state.serverUrl, state.providerId, state.providerName, state.state),
             )
             val instance = stack.value.active.instance
             if (instance is Wrapper.SSOLogin) {
