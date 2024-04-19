@@ -1,6 +1,12 @@
 package de.connect2x.trixnity.messenger.util
 
-import com.arkivanov.decompose.router.stack.*
+import com.arkivanov.decompose.router.stack.StackNavigator
+import com.arkivanov.decompose.router.stack.bringToFront
+import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popWhile
+import com.arkivanov.decompose.router.stack.push
+import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,11 +44,11 @@ fun <C : Any> StackNavigator<C>.launchReplaceCurrent(
  * @see [com.arkivanov.decompose.router.stack.replaceAll]
  */
 suspend fun <C : Any> StackNavigator<C>.replaceAllSuspending(
-    configuration: C,
+    vararg configurations: C,
     onComplete: () -> Unit = {},
 ) = withContext(Dispatchers.Main.immediate) {
-    log.trace { "replace all with configuration $configuration" }
-    replaceAll(configuration, onComplete = onComplete)
+    log.trace { "replace all with configuration $configurations" }
+    replaceAll(configurations = configurations, onComplete = onComplete)
 }
 
 /**
