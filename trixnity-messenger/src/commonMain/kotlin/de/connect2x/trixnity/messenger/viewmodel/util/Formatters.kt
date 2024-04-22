@@ -4,6 +4,7 @@ import kotlinx.datetime.*
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 fun Float.format(numOfDec: Int): String {
     val integerDigits = this.toInt()
@@ -59,3 +60,11 @@ fun formatTime(localDateTime: LocalDateTime): String =
     }:${
         localDateTime.minute.toString().padStart(2, '0')
     }"
+
+fun formatDuration(duration: Duration): String =
+    duration.toComponents { hours, minutes, seconds, _ ->
+        "${if (hours > 0) { "${hours.toString().padStart(2, '0')}:"} else ""} " +
+                "${minutes.toString().padStart(2, '0')}:" +
+                seconds.toString().padStart(2, '0')
+    }
+
