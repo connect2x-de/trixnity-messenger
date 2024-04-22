@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
@@ -29,11 +30,19 @@ interface PrivacySettingsAllAccountsViewModel {
     fun back()
 }
 
-open class PrivacySettingsAllAccountsViewModelImpl(
+class PrivacySettingsAllAccountsViewModelImpl(
     viewModelContext: ViewModelContext,
     onShowBlockedContactsSettings: (account: UserId) -> Unit,
     private val onClosePrivacySettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, PrivacySettingsAllAccountsViewModel {
+
+    private val backCallback = BackCallback {
+        back()
+    }
+
+    init {
+        backHandler.register(backCallback)
+    }
 
     override val privacySettings: StateFlow<List<PrivacySettingsSingleAccountViewModel>> =
         matrixClients.scopedMapLatest { namedMatrixClients ->

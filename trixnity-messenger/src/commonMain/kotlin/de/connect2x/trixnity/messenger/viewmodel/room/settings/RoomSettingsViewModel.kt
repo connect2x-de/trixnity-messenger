@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -63,7 +64,7 @@ interface RoomSettingsViewModel {
     fun close()
 }
 
-open class RoomSettingsViewModelImpl(
+class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onShowAddMembers: () -> Unit,
@@ -71,6 +72,15 @@ open class RoomSettingsViewModelImpl(
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
+
+
+    private val backCallback = BackCallback {
+        close()
+    }
+    init {
+        backHandler.register(backCallback)
+    }
+
     override val error = MutableStateFlow<String?>(null)
     override val roomSettingsNameViewModel by lazy {
         get<RoomSettingsNameViewModelFactory>()

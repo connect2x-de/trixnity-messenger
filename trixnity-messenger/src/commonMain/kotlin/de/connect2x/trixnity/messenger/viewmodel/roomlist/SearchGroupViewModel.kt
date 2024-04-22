@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -49,11 +50,19 @@ interface SearchGroupViewModel {
 }
 
 @OptIn(FlowPreview::class)
-open class SearchGroupViewModelImpl(
+class SearchGroupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onBack: () -> Unit,
     private val onGroupJoined: (UserId, RoomId) -> Unit,
 ) : SearchGroupViewModel, MatrixClientViewModelContext by viewModelContext {
+
+    private val backCallback = BackCallback {
+        back()
+    }
+
+    init {
+        backHandler.register(backCallback)
+    }
 
     private val initials = get<Initials>()
 

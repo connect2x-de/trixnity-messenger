@@ -31,7 +31,13 @@ open class AppInfoViewModelImpl(
     override val showLicenses = MutableStateFlow(false)
 
     private val backCallback = BackCallback {
-        close()
+        if (showPrivacy.value || showImprint.value || showLicenses.value){
+            showPrivacy.value = false
+            showImprint.value = false
+            showLicenses.value = false
+        }else {
+            close()
+        }
     }
 
     init {
