@@ -167,7 +167,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat $groupOrChat erstellt"
     }
 
-    fun eventRoomChangeFrom(oldName: String) = translate {
+    fun eventChangeFrom(oldName: String) = translate {
         EN - "from '$oldName' "
         DE - "von '$oldName' "
     }
@@ -180,6 +180,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun eventRoomTopicChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
         EN - "$username has changed the topic of $groupOrChat ${from}to '$roomName'"
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
+    }
+
+    fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) = translate {
+        EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
+        DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
     }
 
     fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {

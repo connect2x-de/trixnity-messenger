@@ -61,6 +61,7 @@ import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
@@ -545,6 +546,20 @@ open class TimelineElementHolderViewModelImpl(
             is AvatarEventContent -> {
                 log.trace { "Create avatar change status view model: ${event.id}" }
                 get<RoomAvatarChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
+                )
+            }
+
+            is HistoryVisibilityEventContent -> {
+                log.trace { "Create history visibility change status view model: ${event.id}" }
+                get<HistoryVisibilityChangeStatusViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
                     content = content,
