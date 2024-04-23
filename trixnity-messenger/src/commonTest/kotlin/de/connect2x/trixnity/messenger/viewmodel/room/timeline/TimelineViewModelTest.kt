@@ -44,7 +44,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.kodein.mock.mockFunction2
 import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
@@ -134,7 +133,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     roomsApiClientMock.setReadMarkers(isAny(), isAny(), isAny(), isAny(), isNull())
                 } returns Result.success(Unit)
                 everySuspending {
-                    roomsApiClientMock.setReceipt(isAny(), isAny(), isAny(), isNull())
+                    roomsApiClientMock.setReceipt(isAny(), isAny(), isAny(), isAny(), isNull())
                 } returns Result.success(Unit)
 
                 every { roomServiceMock.getOutbox() } returns outboxMessagesFlow
