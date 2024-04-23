@@ -11,7 +11,7 @@ private val log = KotlinLogging.logger { }
 actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
         UriCaller { uri ->
-            log.info { "call uri: $it" }
+            log.info { "call uri: $uri" }
             UIApplication.sharedApplication.openURL(checkNotNull(URLWithString(uri)))
         }
     }

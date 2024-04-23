@@ -13,7 +13,7 @@ actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
         val context = get<Context>()
         UriCaller { uri ->
-            log.info { "call uri: $it" }
+            log.info { "call uri: $uri" }
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
         }
     }
