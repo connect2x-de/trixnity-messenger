@@ -184,7 +184,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) = translate {
         EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
-        DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$historyVisibility' geändert"
+        DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
     }
 
     fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {
