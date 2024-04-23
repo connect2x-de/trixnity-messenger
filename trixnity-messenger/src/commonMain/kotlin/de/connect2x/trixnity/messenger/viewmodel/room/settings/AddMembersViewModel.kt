@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -47,12 +48,20 @@ interface AddMembersViewModel {
     fun addUserToList(user: Search.SearchUserElement)
 }
 
-open class AddMembersViewModelImpl(
+class AddMembersViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     override val potentialMembersViewModel: PotentialMembersViewModel,
     private val onBack: () -> Unit,
 ) : AddMembersViewModel, MatrixClientViewModelContext by viewModelContext {
+
+    private val backCallback = BackCallback {
+        onBack()
+    }
+
+    init {
+        backHandler.register(backCallback)
+    }
 
     override fun back() {
         onBack()
