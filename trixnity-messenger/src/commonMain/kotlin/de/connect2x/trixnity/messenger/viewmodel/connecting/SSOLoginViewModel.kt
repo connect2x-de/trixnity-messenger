@@ -114,7 +114,11 @@ open class SSOLoginViewModelImpl(
                 it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
             }
             log.debug { "Redirecting to $loginUrl" }
-            uriCaller(loginUrl)
+            try {
+                uriCaller(loginUrl)
+            } catch (exception: Exception) {
+                log.warn(exception) { "could not open uri" }
+            }
         }
     }
 
