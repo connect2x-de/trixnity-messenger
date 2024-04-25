@@ -24,7 +24,7 @@ interface ProfileManager {
         updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
     )
 
-    suspend fun deleteProfile(profile: String, userId: UserId)
+    suspend fun deleteProfile(profile: String, userId: List<UserId>)
 }
 
 class ProfileManagerImpl(
@@ -86,7 +86,7 @@ class ProfileManagerImpl(
         }
     }
 
-    override suspend fun deleteProfile(profile: String,userId: UserId) {
+    override suspend fun deleteProfile(profile: String,userId: List<UserId>) {
         log.debug { "delete profile $profile for $userId" }
         if (activeProfile.value == profile) closeProfile()
         settingsHolder.update { oldSettings ->
