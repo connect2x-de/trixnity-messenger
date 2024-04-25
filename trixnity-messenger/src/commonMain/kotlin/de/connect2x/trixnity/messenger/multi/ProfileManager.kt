@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
-import de.connect2x.trixnity.messenger.util.DeleteProfileData
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger {}
 
@@ -24,7 +24,7 @@ interface ProfileManager {
         updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
     )
 
-    suspend fun deleteProfile(profile: String)
+    suspend fun deleteProfile(profile: String, userId: UserId)
 }
 
 class ProfileManagerImpl(
@@ -86,8 +86,8 @@ class ProfileManagerImpl(
         }
     }
 
-    override suspend fun deleteProfile(profile: String) {
-        log.debug { "delete profile $profile" }
+    override suspend fun deleteProfile(profile: String,userId: UserId) {
+        log.debug { "delete profile $profile for $userId" }
         if (activeProfile.value == profile) closeProfile()
         settingsHolder.update { oldSettings ->
             oldSettings.copy(
@@ -95,6 +95,6 @@ class ProfileManagerImpl(
                 activeProfile = if (oldSettings.activeProfile == profile) null else oldSettings.activeProfile
             )
         }
-        deleteProfileData(profile)
+        deleteProfileData(profile,userId)
     }
 }

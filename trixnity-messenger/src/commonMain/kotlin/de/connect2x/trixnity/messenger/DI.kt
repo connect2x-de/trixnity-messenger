@@ -16,7 +16,7 @@ import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
-import de.connect2x.trixnity.messenger.util.platformDeleteProfileDataModule
+import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey

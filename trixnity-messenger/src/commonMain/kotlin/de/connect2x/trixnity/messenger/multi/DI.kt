@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
-import de.connect2x.trixnity.messenger.util.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import org.koin.core.module.Module
