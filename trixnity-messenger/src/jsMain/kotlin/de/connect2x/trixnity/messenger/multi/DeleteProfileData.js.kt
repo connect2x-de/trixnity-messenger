@@ -10,8 +10,8 @@ internal actual fun platformDeleteProfileDataModule(): Module = module {
     single<DeleteProfileData> {
         val storagePrefix = get<StoragePrefix>().storagePrefix
         DeleteProfileData { profile ->
-            val allDatabases = indexedDB.databases().await()
-            allDatabases.forEach { database ->
+            val idbDatabaseInfo = indexedDB.databases().await()
+            idbDatabaseInfo.forEach { database ->
                 database.name?.let { databaseName ->
                     if (databaseName.startsWith("$storagePrefix$profile/")) {
                         indexedDB.deleteDatabase(databaseName)
