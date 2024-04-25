@@ -52,7 +52,7 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
             return@map if(it?.content?.joinRule == JoinRulesEventContent.JoinRule.Private) {
                 val types = HistoryVisibilityEventContent.HistoryVisibility.entries.toMutableList()
                 types.remove(HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE)
-                types
+                types // If the selected room is private, world readable shouldn't be an option
             }
             else {
                 HistoryVisibilityEventContent.HistoryVisibility.entries
