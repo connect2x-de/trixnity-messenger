@@ -8,11 +8,9 @@ import org.koin.dsl.module
 internal actual fun platformDeleteProfileDataModule(): Module = module {
     single<DeleteProfileData> {
         val storagePrefix = get<StoragePrefix>().storagePrefix
-        DeleteProfileData { profile, userIds ->
-            userIds.forEach { userId ->
-                deleteDatabase(getProfileDatabaseName(storagePrefix, profile, userId))
-                deleteDatabase(getProfileMediaDatabaseName(storagePrefix, profile, userId))
-            }
+        DeleteProfileData { profile ->
+            deleteDatabase("$storagePrefix$profile/")
+            deleteDatabase("$storagePrefix$profile/")
         }
     }
 }
