@@ -9,7 +9,7 @@ import org.koin.dsl.module
 fun createDefaultTrixnityMultiMessengerModules() = listOf(
     module {
         single<ProfileManager> {
-            ProfileManagerImpl(get(), get(), get())
+            ProfileManagerImpl(get(), get(), get(), get())
         }
         single<CopyMultiMessengerSingletons> { CopyMultiMessengerSingletonsImpl() }
     },
@@ -19,6 +19,7 @@ fun createDefaultTrixnityMultiMessengerModules() = listOf(
     platformUrlHandlerModule(),
     platformCloseAppModule(),
     platformSendLogToDevsModule(),
+    platformDeleteProfileDataModule()
 )
 
 expect fun commonPlatformModule(): Module

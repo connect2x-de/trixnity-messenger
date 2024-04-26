@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger {}
 
@@ -29,6 +30,7 @@ interface ProfileManager {
 class ProfileManagerImpl(
     private val settingsHolder: MatrixMultiMessengerSettingsHolder,
     private val matrixMessengerFactory: MatrixMessengerFactory,
+    private val deleteProfileData: DeleteProfileData,
     coroutineScope: CoroutineScope,
 ) : ProfileManager {
     override val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>> =
@@ -93,5 +95,6 @@ class ProfileManagerImpl(
                 activeProfile = if (oldSettings.activeProfile == profile) null else oldSettings.activeProfile
             )
         }
+        deleteProfileData(profile)
     }
 }
