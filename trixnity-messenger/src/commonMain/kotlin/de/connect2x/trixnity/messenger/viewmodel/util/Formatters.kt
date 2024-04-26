@@ -63,8 +63,7 @@ fun formatTime(localDateTime: LocalDateTime): String =
 
 fun formatDuration(duration: Duration): String =
     duration.toComponents { hours, minutes, seconds, _ ->
-        "${if (hours > 0) { "${hours.toString().padStart(2, '0')}:"} else ""} " +
-                "${minutes.toString().padStart(2, '0')}:" +
+        "${if (hours > 0) { "${hours}${minutes.toString().padStart(2, '0')}:"} else minutes}:" +
                 seconds.toString().padStart(2, '0')
     }
 
