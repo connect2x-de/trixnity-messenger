@@ -1,18 +1,32 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.CreateMediaStore
+import de.connect2x.trixnity.messenger.CreateRepositoriesModule
+import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.createDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.core.model.UserId
+import okio.FileSystem
+import okio.fakefilesystem.FakeFileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -92,6 +106,7 @@ fun createTestDefaultTrixnityMessengerModules(
             override suspend fun invoke(userId: UserId): MediaStore = store
         }
     }
+    single<FileSystem> { FakeFileSystem() }
 }
 
 fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {

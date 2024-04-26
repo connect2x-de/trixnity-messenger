@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
+import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
@@ -220,8 +221,9 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     roomViewModels(),
     roomSettingsViewModels(),
     exportModule(),
-    
+
     // platform-specific implementations
+    platformPathsModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
     platformGetSecretByteArrayKey(),
