@@ -27,7 +27,7 @@ fun <T> Flow<T>.throttleFirst(delay: Duration): Flow<T> =
     throttleFirst(delay.inWholeMilliseconds)
 
 fun <T : Any> Value<T>.toFlow(): Flow<T> = callbackFlow {
-    val cancelable = observe { trySend(it) }
+    val cancelable = subscribe { trySend(it) }
     awaitClose {
         cancelable.cancel()
     }
