@@ -16,7 +16,7 @@ actual fun platformCreateMediaStoreModule(): Module = module {
         CreateMediaStore { userId ->
             withContext(Dispatchers.IO) {
                 OkioMediaStore(
-                    basePath = rootPath.forAccount(userId).resolve("media"),
+                    basePath = rootPath.forAccountMedia(userId),
                     fileSystem = filesystem
                 )
             }

@@ -6,6 +6,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -209,9 +211,11 @@ class MatrixClientsImpl(
         matrixClients.value[userId]?.let { matrixClient ->
             matrixClient.stop()
             log.info { "delete account data on this machine" }
-            settings.update(matrixClient.userId) { null }
-            matrixClients.update { it - userId }
-            deleteAccountData(userId)
+            withContext(NonCancellable) {
+                settings.update(matrixClient.userId) { null }
+                matrixClients.update { it - userId }
+                deleteAccountData(userId)
+            }
         }
     }
 }

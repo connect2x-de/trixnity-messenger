@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
+import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
-import org.koin.core.module.Module
 import org.koin.dsl.module
 
 fun createDefaultTrixnityMultiMessengerModules() = listOf(
@@ -13,13 +13,11 @@ fun createDefaultTrixnityMultiMessengerModules() = listOf(
         }
         single<CopyMultiMessengerSingletons> { CopyMultiMessengerSingletonsImpl() }
     },
-    commonPlatformModule(),
+    platformPathsModule(),
     platformMatrixMultiMessengerSettingsHolderModule(),
-    platformMatrixMessengerFactory(),
+    matrixMessengerFactoryModule(),
     platformUrlHandlerModule(),
     platformCloseAppModule(),
     platformSendLogToDevsModule(),
     platformDeleteProfileDataModule()
 )
-
-expect fun commonPlatformModule(): Module

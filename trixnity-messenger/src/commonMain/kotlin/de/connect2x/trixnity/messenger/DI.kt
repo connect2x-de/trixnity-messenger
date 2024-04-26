@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -16,11 +17,11 @@ import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
-import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
+import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
@@ -134,7 +135,6 @@ import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.koin.core.module.Module
 import org.koin.dsl.module
 
 
@@ -221,8 +221,9 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     roomViewModels(),
     roomSettingsViewModels(),
     exportModule(),
+
     // platform-specific implementations
-    commonPlatformModule(),
+    platformPathsModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
     platformGetSecretByteArrayKey(),
@@ -238,7 +239,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformUrlHandlerModule(),
     platformUriCallerModule(),
     platformDeleteProfileDataModule(),
-    )
+)
 
 private fun timelineElementModule() = module {
     single<TimelineElementRules> { DefaultTimelineElementRules }
@@ -356,5 +357,3 @@ private fun verificationViewModels() = module {
     single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
-
-expect fun commonPlatformModule(): Module

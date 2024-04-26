@@ -56,7 +56,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 }
 
             private fun dbFolder(userId: UserId) =
-                rootPath.forAccount(userId).resolve("database").toString()
+                rootPath.forAccountDatabase(userId).toString()
 
         }
     }

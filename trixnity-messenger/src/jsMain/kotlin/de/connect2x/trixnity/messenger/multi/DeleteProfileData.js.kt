@@ -1,23 +1,16 @@
 package de.connect2x.trixnity.messenger.multi
 
-import de.connect2x.trixnity.messenger.util.StoragePrefix
-import js.promise.await
+import de.connect2x.trixnity.messenger.util.RootPath
+import de.connect2x.trixnity.messenger.util.deleteVirtualFileSystemData
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import web.idb.indexedDB
 
 internal actual fun platformDeleteProfileDataModule(): Module = module {
     single<DeleteProfileData> {
-        val storagePrefix = get<StoragePrefix>().storagePrefix
+        val rootPath = get<RootPath>().path
         DeleteProfileData { profile ->
-            val idbDatabaseInfo = indexedDB.databases().await()
-            idbDatabaseInfo.forEach { database ->
-                database.name?.let { databaseName ->
-                    if (databaseName.startsWith("$storagePrefix$profile/")) {
-                        indexedDB.deleteDatabase(databaseName)
-                    }
-                }
-            }
+            val profilePath = rootPath.resolve(profile)
+            profilePath.deleteVirtualFileSystemData()
         }
     }
 }
