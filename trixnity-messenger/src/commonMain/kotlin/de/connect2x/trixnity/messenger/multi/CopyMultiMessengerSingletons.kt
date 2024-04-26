@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
@@ -18,6 +19,7 @@ class CopyMultiMessengerSingletonsImpl : CopyMultiMessengerSingletons {
         to.single<MatrixMultiMessengerConfiguration> { from.get() }
         to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
         to.single<ProfileManager> {from.get() }
+        to.single<SendLogToDevs> { from.get() }
         val urlHandler = from.getOrNull<UrlHandler>()
         if (urlHandler != null) to.single<UrlHandler> { urlHandler }
     }

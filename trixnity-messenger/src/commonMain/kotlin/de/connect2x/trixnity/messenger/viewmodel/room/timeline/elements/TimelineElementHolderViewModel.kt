@@ -61,6 +61,7 @@ import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
@@ -233,6 +234,7 @@ open class TimelineElementHolderViewModelImpl(
                         UserInfoElement(
                             name = user?.name ?: timelineEvent.event.sender.full,
                             initials = user?.name?.let(initials::compute),
+                            userId = user?.userId ?: timelineEvent.event.sender,
                             image = user?.avatarUrl?.let { avatarUrl ->
                                 matrixClient.media.getThumbnail(
                                     avatarUrl,
@@ -246,7 +248,6 @@ open class TimelineElementHolderViewModelImpl(
                                     }
                                 )?.toByteArray()
                             },
-                            userId = timelineEvent.event.sender
                         )
                     }
             } ?: flowOf(UserInfoElement(i18n.commonUnknown(), timelineEvent.event.sender))
@@ -545,6 +546,20 @@ open class TimelineElementHolderViewModelImpl(
             is AvatarEventContent -> {
                 log.trace { "Create avatar change status view model: ${event.id}" }
                 get<RoomAvatarChangeStatusViewModelFactory>().create(
+                    viewModelContext = this,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect,
+                )
+            }
+
+            is HistoryVisibilityEventContent -> {
+                log.trace { "Create history visibility change status view model: ${event.id}" }
+                get<HistoryVisibilityChangeStatusViewModelFactory>().create(
                     viewModelContext = this,
                     timelineEvent = timelineEvent,
                     content = content,

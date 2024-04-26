@@ -155,7 +155,7 @@ class RedactedMessageViewModelTest : ShouldSpec() {
             formattedDate = "",
             showDateAbove = false,
             invitation = MutableStateFlow(""),
-            sender = MutableStateFlow(UserInfoElement("Bob", UserId("@bob:matrix.org"))),
+            sender = MutableStateFlow(UserInfoElement("Bob", UserId("bob"))),
             formattedTime = "",
             isByMe = false,
             redactedBy = redactedBy,

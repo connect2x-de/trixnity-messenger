@@ -43,6 +43,7 @@ class UrlHandlerImpl(
         val os = getOs()
         when {
             Desktop.isDesktopSupported() && os == OS.MAC_OS -> {
+                args.firstOrNull()?.also { emitUrl(it) }
                 Desktop.getDesktop().setOpenURIHandler { event ->
                     val url = Url(event.uri)
                     urlHandlerFlow.tryEmit(url)

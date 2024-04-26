@@ -1,12 +1,21 @@
+import java.time.Instant
+
 val isCI = System.getenv("CI") != null
 val isRelease = System.getenv("CI_COMMIT_TAG")?.matches("^v\\d+.\\d+.\\d+.*".toRegex()) ?: false
+fun withVersionSuffix(version: String) = when {
+    isRelease -> {
+        val commitTagVersion = System.getenv("CI_COMMIT_TAG").removePrefix("v")
+        check(version == commitTagVersion.substringBefore("-")) {
+            "version from code ($version) does not match commit tag version ($commitTagVersion)"
+        }
+        commitTagVersion
+    }
 
-fun checkSameReleaseVersion(version: String) {
-    if (isRelease) check(version == System.getenv("CI_COMMIT_TAG").removePrefix("v"))
+    isCI -> {
+        val commitEpoch = Instant.parse(System.getenv("CI_COMMIT_TIMESTAMP")).epochSecond
+        val commitCustomEpoch = commitEpoch - 1704067200 // 01.01.2024
+        "$version-DEV-$commitCustomEpoch"
+    }
+
+    else -> "$version-LOCAL"
 }
-
-fun withVersionSuffix(version: String) = (version + when {
-    isRelease -> ""
-    isCI -> "-SNAPSHOT-" + System.getenv("CI_COMMIT_SHORT_SHA")
-    else -> "-LOCAL"
-}).also { checkSameReleaseVersion(it) }

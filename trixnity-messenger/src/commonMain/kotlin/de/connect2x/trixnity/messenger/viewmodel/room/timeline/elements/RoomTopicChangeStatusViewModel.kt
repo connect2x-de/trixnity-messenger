@@ -61,7 +61,7 @@ open class RoomTopicChangeStatusViewModelImpl(
             val previousContent =
                 if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
             val from = if (previousContent is TopicEventContent) {
-                i18n.eventRoomChangeFrom(previousContent.topic)
+                i18n.eventChangeFrom(previousContent.topic)
             } else ""
 
             val groupOrChat =

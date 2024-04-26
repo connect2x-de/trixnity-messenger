@@ -6,16 +6,34 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
-import de.connect2x.trixnity.messenger.viewmodel.connecting.*
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import io.ktor.http.*
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -24,11 +42,13 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class RootRouter(
     private val viewModelContext: ViewModelContext,
 ) {
     private val matrixClients = viewModelContext.get<MatrixClients>()
+    private val settings = viewModelContext.get<MatrixMessengerSettingsHolder>()
+    private val messengerConfiguration = viewModelContext.get<MatrixMessengerConfiguration>()
+    private val urlHandler = viewModelContext.get<UrlHandler>()
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -85,8 +105,9 @@ class RootRouter(
                     serverUrl = config.serverUrl,
                     providerId = config.providerId,
                     providerName = config.providerName,
+                    initalState = config.initialState,
                     onLogin = ::showMainOnLogin,
-                    onBack = ::backToAddMatrixAccount,
+                    onBack = ::backToAddMatrixAccount
                 )
             )
 
@@ -201,6 +222,30 @@ class RootRouter(
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
+    private suspend fun resumeSsoLogin(redirectUrl: Url) {
+        val state = settings.value.ssoState
+        if (state != null) {
+            log.info { "resume sso login" }
+            navigation.replaceAllSuspending(
+                Config.AddMatrixAccount,
+                Config.SSOLogin(state.serverUrl, state.providerId, state.providerName, state.state),
+            )
+            val instance = stack.value.active.instance
+            if (instance is Wrapper.SSOLogin) {
+                instance.viewModel.resumeLogin(redirectUrl)
+            }
+        }
+    }
+
+    init {
+        viewModelContext.coroutineScope.launch {
+            urlHandler.collectLatest { url ->
+                if (url.encodedPath == "/${messengerConfiguration.ssoRedirectPath}")
+                    resumeSsoLogin(url)
+            }
+        }
+    }
+
     sealed class Wrapper {
         data object None : Wrapper()
         class MatrixClientInitialization(val viewModel: MatrixClientInitializationViewModel) :
@@ -237,7 +282,12 @@ class RootRouter(
         data class PasswordLogin(val serverUrl: String) : Config()
 
         @Serializable
-        data class SSOLogin(val serverUrl: String, val providerId: String, val providerName: String) : Config()
+        data class SSOLogin(
+            val serverUrl: String,
+            val providerId: String,
+            val providerName: String,
+            val initialState: String? = null
+        ) : Config()
 
         @Serializable
         data class RegisterNewAccount(val serverUrl: String) : Config()

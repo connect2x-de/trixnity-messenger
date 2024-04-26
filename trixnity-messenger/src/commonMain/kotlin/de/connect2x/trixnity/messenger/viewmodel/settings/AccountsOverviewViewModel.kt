@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -35,12 +36,20 @@ interface AccountsOverviewViewModel {
     fun close()
 }
 
-open class AccountsOverviewViewModelImpl(
+class AccountsOverviewViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (UserId) -> Unit,
     private val onClose: () -> Unit,
 ) : AccountsOverviewViewModel, ViewModelContext by viewModelContext {
+
+
+    private val backCallback = BackCallback {
+        close()
+    }
+    init {
+        backHandler.register(backCallback)
+    }
 
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()

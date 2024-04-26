@@ -6,25 +6,37 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toEventInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.Mention
-import net.folivo.trixnity.core.model.Mention as CoreMention
+import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
-
-private val log = KotlinLogging.logger {}
+import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import net.folivo.trixnity.core.model.Mention as CoreMention
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun mentionsStateFlow(
     content: String,
     roomId: RoomId,
     matrixClient: MatrixClient,
+    roomName: RoomName,
     coroutineScope: CoroutineScope
 ): Map<String, StateFlow<MessageMention?>> =
     MatrixRegex.findMentions(content)
@@ -37,78 +49,81 @@ fun mentionsStateFlow(
                     }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-                is CoreMention.Room -> parseRoom(mention, matrixClient)
-                    .map {
-                        MessageMention.Room(it)
+                is CoreMention.Room -> parseRoom(mention.roomId, matrixClient, roomName)
+                    .map { info ->
+                        info?.let { MessageMention.Room(info) }
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-                is CoreMention.RoomAlias -> parseRoom(mention, matrixClient)
-                    .map {
-                        MessageMention.Room(it)
+                is CoreMention.RoomAlias ->
+                    flow {
+                        emitAll(
+                            parseRoom(mention.roomAliasId, matrixClient, roomName)
+                                .map { info ->
+                                    info?.let { MessageMention.Room(info) }
+                                }
+                        )
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
                 is Mention.RoomAliasEvent ->
-                    parseRoom(Mention.RoomAlias(mention.roomAliasId), matrixClient).filterNotNull().let { roomflow ->
-                        roomflow.map { room ->
-                            matrixClient.room.getTimelineEvent(
-                                room.roomId, mention.eventId
-                            ).map { event ->
-                                event?.let {
-                                    MessageMention.Event(
-                                        it.toEventInfoElement(),
-                                        roomflow
-                                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-                                    )
-                                }
+                    flow {
+                        emitAll(
+                            parseRoom(mention.roomAliasId, matrixClient, roomName).flatMapLatest { roomInfo ->
+                                if (roomInfo == null) flowOf(null)
+                                else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
+                                    .map { event ->
+                                        event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
+                                    }
                             }
-                        }.flattenMerge(3)
-                    }
-                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                        )
+                    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-                is Mention.RoomEvent -> matrixClient.room.getTimelineEvent(mention.roomId, mention.eventId)
-                    .map { event ->
-                        event?.let {
-                            MessageMention.Event(
-                                it.toEventInfoElement(),
-                                parseRoom(Mention.Room(mention.roomId), matrixClient)
-                                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-                            )
+                is Mention.RoomEvent ->
+                    parseRoom(mention.roomId, matrixClient, roomName).flatMapLatest { roomInfo ->
+                        if (roomInfo == null) flowOf(null)
+                        else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
+                            .map { event ->
+                                event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
+                            }
+                    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+                is Mention.Event -> parseRoom(roomId, matrixClient, roomName).flatMapLatest { roomInfo ->
+                    if (roomInfo == null) flowOf(null)
+                    else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
+                        .map { event ->
+                            event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
                         }
-                    }
-                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
             }
         }
 
-private fun parseRoom(roomMention: CoreMention, matrixClient: MatrixClient): Flow<RoomInfoElement> {
-    return when (roomMention) {
-        is CoreMention.Room -> matrixClient.room.getById(roomMention.roomId)
-            .filterNotNull()
-            .map {
-                it.toRoomInfoElement(matrixClient)
+@OptIn(ExperimentalCoroutinesApi::class)
+private fun parseRoom(roomId: RoomId, matrixClient: MatrixClient, roomName: RoomName): Flow<RoomInfoElement?> =
+    matrixClient.room.getById(roomId)
+        .flatMapLatest { room ->
+            if (room == null) flowOf(null)
+            else roomName.getRoomName(room, matrixClient).map {
+                room.toRoomInfoElement(matrixClient, it)
             }
-
-        is CoreMention.RoomAlias -> matrixClient.room.getAll()
-            .map { rooms ->
-                rooms.map { room ->
-                    room.value
-                        .filter {
-                            it?.name?.explicitName == roomMention.roomAliasId.full
-                        }
-                        .filterNotNull()
-                        .first()
-                }.first().toRoomInfoElement(matrixClient)
-            }
-            .filterNotNull()
-
-        is CoreMention.RoomEvent, is CoreMention.User, is CoreMention.RoomAliasEvent -> {
-            log.warn { "Expected Room or RoomAlias, got User or Event" }
-            flowOf(RoomInfoElement("", RoomId(""), "", null))
         }
-    }
+
+private suspend fun parseRoom(
+    roomAliasId: RoomAliasId,
+    matrixClient: MatrixClient,
+    roomName: RoomName
+): Flow<RoomInfoElement?> {
+    val foundRoomId = matrixClient.room.getAll().first()
+        .firstNotNullOfOrNull { (roomId, _) ->
+            val aliasEvent = matrixClient.room.getState<CanonicalAliasEventContent>(roomId).first()?.content
+                ?: return@firstNotNullOfOrNull null
+
+            if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId
+            else null
+        } ?: return flowOf(null)
+    return parseRoom(foundRoomId, matrixClient, roomName)
 }
 
 sealed interface MessageMention {
     data class Room(val room: RoomInfoElement) : MessageMention
     data class User(val user: UserInfoElement) : MessageMention
-    data class Event(val event: EventInfoElement, val room: StateFlow<RoomInfoElement?>) : MessageMention
+    data class Event(val event: EventInfoElement, val room: RoomInfoElement) : MessageMention
 }

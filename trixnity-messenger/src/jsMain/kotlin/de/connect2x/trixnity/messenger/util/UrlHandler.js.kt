@@ -18,12 +18,15 @@ class UrlHandlerImpl private constructor(
 
     constructor(config: MatrixMessengerBaseConfiguration) : this(
         callbackFlow {
-            val eventListener: (Event) -> Unit = {
+            val eventListener: (Event?) -> Unit = {
                 trySend(Url(document.URL))
             }
+            window.addEventListener("locationchange", eventListener)
             window.addEventListener("load", eventListener)
+            eventListener(null)
             awaitClose {
                 window.removeEventListener("locationchange", eventListener)
+                window.removeEventListener("load", eventListener)
             }
         }.filter(urlFilter(config))
     )

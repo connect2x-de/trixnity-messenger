@@ -14,6 +14,7 @@ import org.koin.core.component.get
 
 class VerificationRouter(
     private val viewModelContext: ViewModelContext,
+    private val routerKey: String,
     private val onRedoSelfVerification: (userId: UserId) -> Unit,
 ) {
     private val navigation = StackNavigation<Config>()
@@ -21,7 +22,7 @@ class VerificationRouter(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = Config.None,
-        key = "DeviceVerificationRouter",
+        key = "VerificationRouter-${routerKey}",
         childFactory = ::createChild,
     )
 

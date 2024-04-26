@@ -100,8 +100,8 @@ open class VideoMessageViewModelImpl(
     override val thumbnail: StateFlow<ByteArray?> = channelFlow {
         send(thumbnailLoad.await())
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val width: Int = thumbnailWidth(content)
-    override val height: Int = thumbnailHeight(content)
+    override val width: Int = videoWidth(content)
+    override val height: Int = videoHeight(content)
     override val duration: Int? = content.info?.duration
     override val progress: StateFlow<FileTransferProgressElement?> =
         thumbnails.mapProgressToProgressElement(thumbnailProgressFlow)
@@ -127,11 +127,11 @@ open class VideoMessageViewModelImpl(
             thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow)
         }
 
-    private fun thumbnailWidth(content: RoomMessageEventContent.FileBased.Video) =
-        content.info?.thumbnailInfo?.width ?: 400
+    private fun videoWidth(content: RoomMessageEventContent.FileBased.Video) =
+        content.info?.width ?: 400
 
-    private fun thumbnailHeight(content: RoomMessageEventContent.FileBased.Video) =
-        content.info?.thumbnailInfo?.height ?: 300
+    private fun videoHeight(content: RoomMessageEventContent.FileBased.Video) =
+        content.info?.height ?: 300
 }
 
 class PreviewVideoMessageViewModel : VideoMessageViewModel {

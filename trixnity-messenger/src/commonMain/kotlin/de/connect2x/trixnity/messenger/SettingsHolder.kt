@@ -50,4 +50,5 @@ fun <S : Any> createSettingsHolder(storage: SettingsStorage<S>): SettingsHolder<
 internal val settingsJson = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
+    prettyPrint = true
 }

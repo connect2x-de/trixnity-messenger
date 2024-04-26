@@ -1,7 +1,7 @@
 plugins {
     id("application")
     kotlin("jvm")
-    kotlin("plugin.serialization").version(Versions.kotlin) // for creation of Emojis.kt
+    kotlin("plugin.serialization").version(libs.versions.kotlin.get()) // for creation of Emojis.kt
 }
 
 application {
@@ -13,5 +13,5 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(Versions.kotlinJvmTarget.number)
+    jvmToolchain(libs.versions.kotlinJvmTarget.get().toInt())
 }

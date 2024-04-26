@@ -509,7 +509,6 @@ class RoomListViewModelTest : ShouldSpec() {
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
-
         should("not show search initially") {
             mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
             val cut = roomListViewModel(coroutineContext)
