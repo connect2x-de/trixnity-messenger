@@ -6,7 +6,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -14,13 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
@@ -53,7 +49,7 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
     override val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
         matrixClient.room.getById(selectedRoomId)
             .map { room ->
-                if(room?.isDirect == true) {
+                if (room?.isDirect == true) {
                     HistoryVisibilityEventContent.HistoryVisibility.entries
                         .filterNot { it == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE }
                 }
