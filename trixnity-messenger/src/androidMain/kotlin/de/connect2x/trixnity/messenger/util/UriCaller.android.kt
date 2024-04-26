@@ -12,8 +12,9 @@ private val log = KotlinLogging.logger { }
 actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
         val context = get<Context>()
-        UriCaller { uri ->
+        UriCaller { uri, external ->
             log.info { "call uri: $uri" }
+            if (!external) log.debug { "does not support internal uri calling yet" }
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
         }
     }
