@@ -115,7 +115,7 @@ open class SSOLoginViewModelImpl(
             }
             log.debug { "Redirecting to $loginUrl" }
             try {
-                uriCaller(loginUrl)
+                uriCaller(loginUrl, false)
             } catch (exception: Exception) {
                 log.warn(exception) { "could not open uri" }
             }

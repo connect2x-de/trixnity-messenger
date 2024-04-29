@@ -4,7 +4,6 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.decompose.value.observe
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
@@ -208,7 +207,7 @@ open class MainViewModelImpl(
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     override fun start() {
-        roomRouter.stack.observe(lifecycle) { routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
+        roomRouter.stack.subscribe {  routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
             log.debug { "roomRouter has changed: ${routerStack.active.configuration::class.simpleName} (roomId: ${routerStack.active.configuration.getRoomId()})" }
             selectedRoomId.value = routerStack.active.configuration.getRoomId()
         }
