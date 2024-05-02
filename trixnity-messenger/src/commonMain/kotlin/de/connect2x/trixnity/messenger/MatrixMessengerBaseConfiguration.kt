@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+@TrixnityMessengerDsl
 interface MatrixMessengerBaseConfiguration {
     var appName: String
     var packageName: String

@@ -34,6 +34,7 @@ interface RoomSettingsHistoryVisibilityViewModelFactory {
 }
 
 interface RoomSettingsHistoryVisibilityViewModel {
+    val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?>
     val roomHistoryVisibility: StateFlow<HistoryVisibilityEventContent.HistoryVisibility>
     val canChangeRoomHistoryVisibility: StateFlow<Boolean>
     val isHistoryVisibilityChanging: StateFlow<Boolean>
@@ -45,6 +46,16 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
     private val selectedRoomId: RoomId,
     private val error: MutableStateFlow<String?>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsHistoryVisibilityViewModel {
+    override val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
+        matrixClient.room.getById(selectedRoomId)
+            .map { room ->
+                if (room?.isDirect == true) {
+                    HistoryVisibilityEventContent.HistoryVisibility.entries
+                        .filterNot { it == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE }
+                }
+                else HistoryVisibilityEventContent.HistoryVisibility.entries
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val roomHistoryVisibility = matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
         .map { it?.content?.historyVisibility ?: HistoryVisibilityEventContent.HistoryVisibility.SHARED }
         .stateIn(
@@ -91,6 +102,8 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
 }
 
 class PreviewRoomSettingsHistoryVisibilityViewModel : RoomSettingsHistoryVisibilityViewModel {
+    override val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
     override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
         MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.SHARED)
     override val canChangeRoomHistoryVisibility: MutableStateFlow<Boolean> = MutableStateFlow(true)
