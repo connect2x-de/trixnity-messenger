@@ -11,8 +11,7 @@ data class MatrixMultiMessengerConfiguration(
     override var urlHost: String = "localhost",
     override var sendLogsEmailAddress: String? = null,
     /**
-     * By default, all [MatrixMessengerBaseConfiguration] fields, defined in [MatrixMultiMessengerConfiguration] are copied
-     * to [messenger]. Therefore, you don't need to define e.g. [appName] twice.
+     * Consider using [messengerConfiguration], as it can be called multiple times.
      */
     var messenger: MatrixMessengerConfiguration.() -> Unit = { },
     /**
@@ -23,6 +22,20 @@ data class MatrixMultiMessengerConfiguration(
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {
             this@MatrixMultiMessengerConfiguration.copyTo(this)
-            messenger()
+            this@MatrixMultiMessengerConfiguration.messenger(this)
         }
+
+    /**
+     * By default, all [MatrixMessengerBaseConfiguration] fields, defined in [MatrixMultiMessengerConfiguration] are copied
+     * to [messenger]. Therefore, you don't need to define e.g. [appName] twice.
+     */
+    fun messengerConfiguration(config: MatrixMessengerConfiguration.() -> Unit) {
+        val original = messenger
+        messenger = {
+            original()
+            config()
+        }
+    }
 }
+
+
