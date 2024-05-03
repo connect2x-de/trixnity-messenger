@@ -680,6 +680,21 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Unzureichendes Berechtigungslevel um die Sichtbarkeit der Raumhistorie zu ändern"
     }
 
+    fun settingsRoomAliasRemoveInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to remove room alias"
+        DE - "Unzureichendes Berechtigungslevel um diesen Alias zu entfernen"
+    }
+
+    fun settingsRoomAliasRemoveGeneric() = translate {
+        EN - "Something went wrong"
+        DE - "Etwas ist schiefgelaufen"
+    }
+
+    fun settingsRoomAliasRemoveNotFound() = translate {
+        EN - "Alias was already removed"
+        DE - "Alias wurde bereits entfernt"
+    }
+
     fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
