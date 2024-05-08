@@ -10,10 +10,10 @@ import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
@@ -40,7 +40,8 @@ interface RoomSettingsAliasViewModelFactory {
 }
 
 interface RoomSettingsAliasViewModel {
-    val roomAliases: StateFlow<CanonicalAliasEventContent?>
+    val otherAliasesIds: StateFlow<Set<RoomAliasId>?>
+    val mainAliasId: StateFlow<RoomAliasId?>
     val canChangeRoomAlias: StateFlow<Boolean>
     val mainAlias: EditableTextFieldViewModel
     val newAlias: EditableTextFieldViewModel
@@ -54,13 +55,19 @@ class RoomSettingsAliasViewModelImpl(
     private val selectedRoomId: RoomId,
     private val removeAliasError: MutableStateFlow<String?>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsAliasViewModel {
-    override val roomAliases: StateFlow<CanonicalAliasEventContent?> =
+    private val roomAliases: StateFlow<CanonicalAliasEventContent?> =
         matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId)
             .map { it?.content }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val otherAliasesIds: StateFlow<Set<RoomAliasId>?> = roomAliases
+        .map { it?.aliases }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val mainAliasId: StateFlow<RoomAliasId?> = roomAliases
+        .map { it?.alias }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val canChangeRoomAlias: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<CanonicalAliasEventContent>(selectedRoomId)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val mainAlias = EditableTextFieldViewModelImpl(
         flowOf(roomAliases.value?.alias?.full),
@@ -70,7 +77,7 @@ class RoomSettingsAliasViewModelImpl(
                 selectedRoomId,
                 CanonicalAliasEventContent(
                     RoomAliasId(alias),
-                    roomAliases.value?.aliases?.plus(RoomAliasId(alias))
+                    roomAliases.value?.aliases?.minus(RoomAliasId(alias))
                 )
             )
         }
@@ -91,23 +98,19 @@ class RoomSettingsAliasViewModelImpl(
     )
 
     private val _removingAliases = MutableStateFlow(emptySet<RoomAliasId>())
-    override val removingAliases: StateFlow<Set<RoomAliasId>> =
-        _removingAliases.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptySet())
+    override val removingAliases = _removingAliases.asStateFlow()
 
 
     override fun removeAlias(alias: RoomAliasId) {
         val i18n = get<I18n>()
 
-        _removingAliases.update {
-            it + alias
-        }
+        _removingAliases.value += alias
 
         if (!canChangeRoomAlias.value) {
             log.error { "Cancelled removal of Alias $alias due to missing permissions" }
-            removeAliasError.value = i18n.settingsRoomLeaveRoomError(i18n.settingsRoomAliasRemoveInsufficientPowerLevel())
-            _removingAliases.update {
-                it - alias
-            }
+            removeAliasError.value =
+                i18n.settingsRoomLeaveRoomError(i18n.settingsRoomAliasRemoveInsufficientPowerLevel())
+            _removingAliases.value -= alias
             return
         }
 
@@ -130,21 +133,18 @@ class RoomSettingsAliasViewModelImpl(
                     }
                 }
 
-                _removingAliases.update {
-                    it - alias
-                }
+                _removingAliases.value -= alias
             }.onSuccess {
                 removeAliasError.value = null
-                _removingAliases.update {
-                    it - alias
-                }
+                _removingAliases.value -= alias
             }
         }
     }
 }
 
 class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
-    override val roomAliases: StateFlow<CanonicalAliasEventContent?> = MutableStateFlow(null)
+    override val otherAliasesIds: StateFlow<Set<RoomAliasId>?> = MutableStateFlow(null)
+    override val mainAliasId: StateFlow<RoomAliasId?> = MutableStateFlow(null)
     override val canChangeRoomAlias: StateFlow<Boolean> = MutableStateFlow(false)
     override val mainAlias: EditableTextFieldViewModel = PreviewEditableTextFieldViewModel()
     override val newAlias: EditableTextFieldViewModel = PreviewEditableTextFieldViewModel()
