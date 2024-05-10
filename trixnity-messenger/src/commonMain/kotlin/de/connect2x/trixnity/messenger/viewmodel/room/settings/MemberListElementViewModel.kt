@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
@@ -32,6 +33,7 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
@@ -72,6 +74,7 @@ interface MemberListElementViewModel {
     val changePowerLevelViewModel: ChangePowerLevelViewModel
     val isUserBlocked: StateFlow<Boolean>
     val blockingInProgress: StateFlow<Boolean>
+    val presence: StateFlow<Presence>
 
     fun openMemberOptions()
     fun closeMemberOptions()
@@ -174,6 +177,9 @@ class MemberListElementViewModelImpl(
                 selectedRoomId = selectedRoomId,
                 closeMemberOptions = ::closeMemberOptions
             )
+    override val presence = matrixClient.user.userPresence.map { it[userId]?.presence ?: Presence.OFFLINE }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
+
 
     init {
         coroutineScope.launch {
