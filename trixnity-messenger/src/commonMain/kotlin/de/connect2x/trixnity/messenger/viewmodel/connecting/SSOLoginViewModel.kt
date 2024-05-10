@@ -54,7 +54,16 @@ interface SSOLoginViewModel {
     val providerName: String
 
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
+
+    /**
+     * Is true, when the viewmodel is waiting for the SSO provider login page to redirect back to the viewmodel.
+     */
     val waitForRedirect: StateFlow<Boolean>
+
+    /**
+     * Is true, when the redirect from the SSO provider login page happened.
+     */
+    val isResumingLogin: StateFlow<Boolean>
 
     /**
      * Opens SSO provider login page, waits to receive the token and logs in with this token.
@@ -103,6 +112,7 @@ open class SSOLoginViewModelImpl(
         Url("$serverUrl/_matrix/client/v3/login/sso/redirect/$providerId?redirectUrl=$redirectUrl").toString()
 
     override val waitForRedirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isResumingLogin: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private var loginJob: Job? = null
 
@@ -126,6 +136,7 @@ open class SSOLoginViewModelImpl(
         if (loginJob == null) {
             loginJob = coroutineScope.launch {
                 waitForRedirect.value = false
+                isResumingLogin.value = true
                 val loginToken = if (redirectUrl.parameters["state"] == state) {
                     redirectUrl.parameters["loginToken"]
                 } else null
@@ -154,6 +165,7 @@ open class SSOLoginViewModelImpl(
             }
             loginJob?.invokeOnCompletion {
                 loginJob = null
+                isResumingLogin.value = false
             }
         }
     }
@@ -163,6 +175,7 @@ open class SSOLoginViewModelImpl(
         coroutineScope.launch {
             log.debug { "Clearing stored sso login info" }
             waitForRedirect.value = false
+            isResumingLogin.value = false
             messengerSettings.update { it.copy(ssoState = null) }
         }
     }
@@ -180,6 +193,7 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
     override val addMatrixAccountState: StateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
     override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
+    override val isResumingLogin: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun resumeLogin(redirectUrl: Url) {
     }
