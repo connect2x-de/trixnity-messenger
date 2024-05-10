@@ -203,7 +203,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     }
 
     fun historyVisibiltyInvite() = translate {
-        EN - "invite"
+        EN - "invited"
         DE - "ab Einladung"
     }
 

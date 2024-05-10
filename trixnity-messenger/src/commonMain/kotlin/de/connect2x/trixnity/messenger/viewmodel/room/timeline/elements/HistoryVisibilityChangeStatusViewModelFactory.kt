@@ -71,7 +71,7 @@ class HistoryVisibilityChangeStatusViewModelImpl(
             i18n.historyVisibilityChange(userInfo.name, groupOrChat, from, translateVisibility(content.historyVisibility))
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private fun translateVisibility(historyVisibility: HistoryVisibilityEventContent.HistoryVisibility):String {
+    fun translateVisibility(historyVisibility: HistoryVisibilityEventContent.HistoryVisibility):String {
        return when (historyVisibility) {
             HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilityShared()
            HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoined()

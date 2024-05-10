@@ -15,7 +15,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -26,7 +25,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData.UnsignedStateEventData
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
@@ -67,7 +65,7 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.historyVisibilityMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group from '${previousHistoryVisibilityEvent}' to '${newHistoryVisibilityEvent}'"""
+            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group from '${cut.translateVisibility(previousHistoryVisibilityEvent)}' to '${cut.translateVisibility(newHistoryVisibilityEvent)}'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -80,7 +78,7 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.historyVisibilityMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group to '${newHistoryVisibilityEvent}'"""
+            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group to '${cut.translateVisibility(newHistoryVisibilityEvent)}'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
