@@ -98,6 +98,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewMod
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
@@ -288,6 +289,7 @@ private fun settingsViewModels() = module {
     single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
     single<NotificationsSettingsViewModelFactory> { NotificationsSettingsViewModelFactory }
     single<ProfileViewModelFactory> { ProfileViewModelFactory }
+    single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }

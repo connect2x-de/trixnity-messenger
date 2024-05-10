@@ -6,31 +6,24 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
 private val log = KotlinLogging.logger {}
-
-data class ProfileOfAccount(
-    val userId: UserId,
-    val displayName: StateFlow<String>,
-    val avatar: StateFlow<ByteArray?>,
-    val initials: StateFlow<String>,
-    val editDisplayName: MutableStateFlow<String>,
-    val openAvatarCutter: MutableStateFlow<Boolean>,
-)
 
 interface ProfileViewModelFactory {
     fun create(
@@ -45,7 +38,7 @@ interface ProfileViewModelFactory {
 }
 
 interface ProfileViewModel {
-    val profilesOfAccounts: StateFlow<List<ProfileOfAccount>>
+    val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
     val error: MutableStateFlow<String?>
     val openAvatarCutter: StateFlow<UserId?>
 
@@ -58,15 +51,13 @@ interface ProfileViewModel {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-open class ProfileViewModelImpl(
+class ProfileViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseProfile: () -> Unit,
     private val onOpenAvatarCutter: (UserId, FileDescriptor) -> Unit,
 ) : ViewModelContext by viewModelContext, ProfileViewModel {
 
-    private val initialsComputation = get<Initials>()
-
-    override val profilesOfAccounts: StateFlow<List<ProfileOfAccount>>
+    override val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
     override val error = MutableStateFlow<String?>(null)
     override val openAvatarCutter: StateFlow<UserId?>
 
@@ -76,38 +67,17 @@ open class ProfileViewModelImpl(
 
     init {
         backHandler.register(backCallback)
-        profilesOfAccounts = matrixClients.scopedMapLatest { matrixClients ->
-            matrixClients.map { (userId, matrixClient) ->
-                log.trace { "profiles for account $userId will be loaded" }
-                ProfileOfAccount(
-                    userId = userId,
-                    displayName = matrixClient.displayName.map { it ?: userId.localpart }
-                        .stateIn(this, SharingStarted.Eagerly, userId.localpart),
-                    avatar = matrixClient.avatarUrl.map { avatarUrl ->
-                        avatarUrl?.let {
-                            matrixClient.media.getThumbnail(
-                                avatarUrl.toString(),
-                                avatarSize().toLong(),
-                                avatarSize().toLong()
-                            ).fold(
-                                onSuccess = { it.toByteArray() },
-                                onFailure = {
-                                    log.error(it) { "Cannot load user avatar." }
-                                    error.value = i18n.profileLoadError()
-                                    null
-                                }
-                            )
-                        }
-                    }.stateIn(this, SharingStarted.Eagerly, null),
-                    initials = matrixClient.displayName.map { it?.let { initialsComputation.compute(it) } ?: "" }
-                        .stateIn(this, SharingStarted.Eagerly, ""),
-                    editDisplayName = MutableStateFlow(matrixClient.displayName.value ?: ""),
-                    openAvatarCutter = MutableStateFlow(false),
+        profileSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
+            matrixClients.map { (userId, _) ->
+                get<ProfileSingleViewModelFactory>().create(
+                    viewModelContext.childContext(this@ProfileViewModelImpl),
+                    userId,
+                    error,
                 )
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-        openAvatarCutter = profilesOfAccounts.flatMapLatest { profilesOfAccounts ->
+        openAvatarCutter = profileSingleViewModels.flatMapLatest { profilesOfAccounts ->
             combine(profilesOfAccounts.map { profileOfAccount -> profileOfAccount.openAvatarCutter.map { profileOfAccount.userId to it } }) { list ->
                 list.find { (_, openAvatarChooser) -> openAvatarChooser }?.first
             }
@@ -152,14 +122,14 @@ open class ProfileViewModelImpl(
     }
 
     override fun closeAvatarCutter() {
-        profilesOfAccounts.value.forEach { profileOfAccount ->
+        profileSingleViewModels.value.forEach { profileOfAccount ->
             profileOfAccount.openAvatarCutter.value = false
         }
     }
 
     private fun getDisplayNameFlow(userId: UserId) =
-        profilesOfAccounts.value.find { it.userId == userId }?.displayName
+        profileSingleViewModels.value.find { it.userId == userId }?.displayName
 
     private fun getEditDisplayNameFlow(userId: UserId) =
-        profilesOfAccounts.value.find { it.userId == userId }?.editDisplayName
+        profileSingleViewModels.value.find { it.userId == userId }?.editDisplayName
 }
