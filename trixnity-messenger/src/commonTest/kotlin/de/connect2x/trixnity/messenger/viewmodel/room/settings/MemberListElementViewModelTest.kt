@@ -26,11 +26,14 @@ import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
+import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
@@ -91,6 +94,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
     lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
 
     @Mock
+    lateinit var usersApiClientMock: UserApiClient
+
+    @Mock
     lateinit var roomsApiClientMock: RoomApiClient
 
     lateinit var i18n: I18n
@@ -140,6 +146,11 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 )
 
                 every { keyServiceMock.getTrustLevel(isAny()) } returns flowOf(UserTrustLevel.Blocked)
+
+                every { userServiceMock.userPresence} returns MutableStateFlow(
+                    mapOf(me to PresenceEventContent(Presence.OFFLINE))
+                )
+
             }
         }
 
@@ -270,7 +281,6 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
                 }
             }
-
             context("Member is moderator") {
                 should("return the role: moderator") {
                     mocker.every {
