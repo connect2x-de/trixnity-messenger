@@ -188,23 +188,23 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     }
 
     fun historyVisibilityShared() = translate {
-        EN - "SHARED"
-        DE - "GETEILT"
+        EN - "shared"
+        DE - "geteilt"
     }
 
     fun historyVisibilityJoined() = translate {
-        EN - "JOINED"
-        DE - "AB BEITRITT"
+        EN - "joined"
+        DE - "ab Beitritt"
     }
 
     fun historyVisibilityWorldReadable() = translate {
-        EN - "WORLD_READABLE"
-        DE - "ALLGEMEIN LESBAR"
+        EN - "world_readable"
+        DE - "allgemein lesbar"
     }
 
     fun historyVisibiltyInvite() = translate {
-        EN - "INVITE"
-        DE - "AB EINLADUNG"
+        EN - "invite"
+        DE - "ab Einladung"
     }
 
     fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {
