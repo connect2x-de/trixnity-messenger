@@ -115,7 +115,7 @@ class ProfileViewModelTest : ShouldSpec() {
             } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
 
             val cut = profileViewModel()
-            val profilesOfAccounts = cut.profilesOfAccounts
+            val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first {
                 it.size == 2 &&
                         it[0].userId == ownUserId && it[1].userId == ownUserId2
@@ -157,7 +157,7 @@ class ProfileViewModelTest : ShouldSpec() {
             } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
 
             val cut = profileViewModel()
-            val profilesOfAccounts = cut.profilesOfAccounts
+            val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
 
             eventually(1.seconds) {
@@ -192,7 +192,7 @@ class ProfileViewModelTest : ShouldSpec() {
             setDisplayNameMocker runs { Result.failure(RuntimeException("Oh no!")) }
 
             val cut = profileViewModel()
-            val profilesOfAccounts = cut.profilesOfAccounts
+            val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
 
             profilesOfAccounts.value[0].editDisplayName.value = "Nobby"
@@ -226,7 +226,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden()))
 
             val cut = profileViewModel()
-            val profilesOfAccounts = cut.profilesOfAccounts
+            val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
 
             profilesOfAccounts.value[0].editDisplayName.value = "Nobby"
@@ -253,7 +253,7 @@ class ProfileViewModelTest : ShouldSpec() {
             } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
 
             val cut = profileViewModel()
-            val profilesOfAccounts = cut.profilesOfAccounts
+            val profilesOfAccounts = cut.profileSingleViewModels
             val openAvatarCutter = cut.openAvatarCutter
             profilesOfAccounts.first { it.size == 2 }
 
@@ -283,9 +283,9 @@ class ProfileViewModelTest : ShouldSpec() {
                 )
             } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
             val cut = profileViewModel()
-            val profilesOfAccounts = cut.profilesOfAccounts
+            val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
-            cut.profilesOfAccounts.value[0].displayName.value shouldBe "bob"
+            cut.profileSingleViewModels.value[0].displayName.value shouldBe "bob"
         }
     }
 
