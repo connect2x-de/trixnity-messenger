@@ -61,14 +61,23 @@ class HistoryVisibilityChangeStatusViewModelImpl(
             val previousContent =
                 if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
             val from = if (previousContent is HistoryVisibilityEventContent) {
-                i18n.eventChangeFrom(previousContent.historyVisibility.name)
+                i18n.eventChangeFrom(translateVisibility(previousContent.historyVisibility))
             } else ""
 
             val groupOrChat =
                 if (isDirect) i18n.eventChangeChatGenitive()
                 else i18n.eventChangeGroupGenitive()
 
-            i18n.historyVisibilityChange(userInfo.name, groupOrChat, from, content.historyVisibility.name)
+            i18n.historyVisibilityChange(userInfo.name, groupOrChat, from, translateVisibility(content.historyVisibility))
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    fun translateVisibility(historyVisibility: HistoryVisibilityEventContent.HistoryVisibility):String {
+       return when (historyVisibility) {
+            HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilityShared()
+           HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoined()
+           HistoryVisibilityEventContent.HistoryVisibility.INVITED -> i18n.historyVisibiltyInvite()
+           HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> i18n.historyVisibilityWorldReadable()
+        }
+    }
 
 }

@@ -187,6 +187,26 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
     }
 
+    fun historyVisibilityShared() = translate {
+        EN - "shared"
+        DE - "geteilt"
+    }
+
+    fun historyVisibilityJoined() = translate {
+        EN - "joined"
+        DE - "ab Beitritt"
+    }
+
+    fun historyVisibilityWorldReadable() = translate {
+        EN - "world_readable"
+        DE - "allgemein lesbar"
+    }
+
+    fun historyVisibiltyInvite() = translate {
+        EN - "invited"
+        DE - "ab Einladung"
+    }
+
     fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {
         EN - "$username has changed the avatar of $groupOrChat"
         DE - "$username hat den Avatar $groupOrChat geändert"
