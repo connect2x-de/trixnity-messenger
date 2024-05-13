@@ -104,7 +104,7 @@ class RoomSettingsViewModelImpl(
 
     override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel by lazy {
         get<RoomSettingsAliasViewModelFactory>()
-            .create(viewModelContext, selectedRoomId, error)
+            .create(viewModelContext, selectedRoomId, error, error, error)
     }
 
     override val leaveRoomSettingEntryText = MutableStateFlow("")

@@ -685,7 +685,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Unzureichendes Berechtigungslevel um diesen Alias zu entfernen"
     }
 
-    fun settingsRoomAliasRemoveGeneric() = translate {
+    fun settingsRoomAliasGeneric() = translate {
         EN - "Something went wrong"
         DE - "Etwas ist schiefgelaufen"
     }
@@ -693,6 +693,26 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun settingsRoomAliasRemoveNotFound() = translate {
         EN - "Alias was already removed"
         DE - "Alias wurde bereits entfernt"
+    }
+
+    fun settingsRoomAliasChangeMainInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to change main room alias"
+        DE - "Unzureichendes Berechtigungslevel um den Hauptalias zu ändern"
+    }
+
+    fun settingsRoomAliasChangeMainNotFound() = translate {
+        EN - "Couldn't find that main room alias"
+        DE - "Konnte diesen Hauptalias nicht finden"
+    }
+
+    fun settingsRoomAliasAddAliasInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to add a room alias"
+        DE - "Unzureichendes Berechtigungslevel um einen Alias hinzuzufügen"
+    }
+
+    fun settingsRoomAliasAddAliasInvalid() = translate {
+        EN - "Invalid Alias"
+        DE - "Invalider Alias"
     }
 
     fun settingsUnblockUserError(userId: String) = translate {
