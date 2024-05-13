@@ -2,14 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldViewModelImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.room
