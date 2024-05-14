@@ -55,17 +55,17 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
                 }
                 else HistoryVisibilityEventContent.HistoryVisibility.entries
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val roomHistoryVisibility = matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
         .map { it?.content?.historyVisibility ?: HistoryVisibilityEventContent.HistoryVisibility.SHARED }
         .stateIn(
             coroutineScope,
-            SharingStarted.WhileSubscribed(),
+            SharingStarted.Eagerly,
             HistoryVisibilityEventContent.HistoryVisibility.SHARED
         )
     override val canChangeRoomHistoryVisibility =
         matrixClient.user.canSendEvent<HistoryVisibilityEventContent>(selectedRoomId)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isHistoryVisibilityChanging = MutableStateFlow(false)
 
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
