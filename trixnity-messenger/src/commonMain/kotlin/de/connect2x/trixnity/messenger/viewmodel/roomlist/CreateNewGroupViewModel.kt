@@ -19,6 +19,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
 
 private val log = KotlinLogging.logger {}
@@ -43,8 +44,10 @@ interface CreateNewGroupViewModel {
     val groupUsers: StateFlow<List<SearchUserElement>>
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
-    var optionalRoomName: MutableStateFlow<String>
-    var optionalGroupTopic: MutableStateFlow<String>
+    val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?>
+    val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility>
+    val optionalRoomName: MutableStateFlow<String>
+    val optionalGroupTopic: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -75,6 +78,11 @@ open class CreateNewGroupViewModelImpl(
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
         !(private && !encrypted)
     }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
+    override val availableRoomHistoryVisibilities: MutableStateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
+    override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.JOINED)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
@@ -165,6 +173,10 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
+    override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.JOINED)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")
