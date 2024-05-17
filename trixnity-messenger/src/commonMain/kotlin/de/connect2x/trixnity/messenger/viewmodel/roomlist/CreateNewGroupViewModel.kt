@@ -84,7 +84,7 @@ open class CreateNewGroupViewModelImpl(
     override val availableRoomHistoryVisibilities: MutableStateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
         MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
     override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
-        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.INVITED)
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.JOINED)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
