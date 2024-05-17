@@ -30,6 +30,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -120,7 +121,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(
+                        InitialStateEvent(EncryptionEventContent(), ""),
+                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
+                    )),
                     isEqual(CreateRoom.Request.Preset.PUBLIC),
                     isAny(),
                     isAny(),
@@ -199,7 +203,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(
+                        InitialStateEvent(EncryptionEventContent(), ""),
+                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
+                    )),
                     isAny(),
                     isEqual(false),
                     isAny(),
@@ -257,7 +264,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(
+                        InitialStateEvent(EncryptionEventContent(), ""),
+                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
+                    )),
                     isAny(),
                     isEqual(false),
                     isAny(),
@@ -292,7 +302,10 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    isEqual(listOf(
+                        InitialStateEvent(EncryptionEventContent(), ""),
+                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
+                    )),
                     isAny(),
                     isEqual(false),
                     isAny(),
