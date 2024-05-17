@@ -68,7 +68,6 @@ where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel`
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
 
-
 ### Multi profiles/tenancy
 
 `MatrixMessenger` has support for multiple Matrix accounts, but by default it is not possible to have
