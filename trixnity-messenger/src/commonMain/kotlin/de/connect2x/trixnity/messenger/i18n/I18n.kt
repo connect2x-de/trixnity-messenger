@@ -705,6 +705,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Unzureichendes Berechtigungslevel um diesen Alias zu entfernen"
     }
 
+    fun settingsRoomAliasChangeInvalidSyntax() = translate {
+        EN - "Invalid room alias"
+        DE - "Ungültiger Raumalias"
+    }
+
+    fun settingsRoomAliasBadAlias() = translate {
+        EN - "This room alias is associated with another room"
+        DE - "Dieser Raumalias ist mit einem anderen Raum assoziiert"
+    }
+
     fun settingsRoomAliasGeneric() = translate {
         EN - "Something went wrong"
         DE - "Etwas ist schiefgelaufen"
@@ -718,6 +728,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun settingsRoomAliasChangeMainInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change main room alias"
         DE - "Unzureichendes Berechtigungslevel um den Hauptalias zu ändern"
+    }
+
+    fun settingsRoomAliasChangeMainUnrelatedAlias() = translate {
+        EN - "Room alias not related to this room"
+        DE - "Alias nicht mit diesem Raum assoziiert"
     }
 
     fun settingsRoomAliasChangeMainNotFound() = translate {

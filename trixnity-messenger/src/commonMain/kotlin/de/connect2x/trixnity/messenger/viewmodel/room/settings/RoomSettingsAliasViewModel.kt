@@ -73,7 +73,7 @@ class RoomSettingsAliasViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val mainAlias: StateFlow<String?> = roomAliases
         .map { it?.alias?.full }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val moreAliases: StateFlow<List<String>> = roomAliases
         .map { it?.aliases?.map { it.toString() } ?: emptyList() }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
@@ -87,29 +87,31 @@ class RoomSettingsAliasViewModelImpl(
 
     override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
 
+    private val i18n = get<I18n>()
+
     override fun addNewAlias() {
-        val i18n = get<I18n>()
-
-        if (!MatrixRegex.roomAlias.matches(newAlias.value)) {
-            newAliasError.value = i18n.settingsRoomAliasAddAliasInvalid()
-            return
-        }
-
-        val alias = RoomAliasId(newAlias.value)
+        val currentNewAlias = newAlias.value
 
         if (isUpdating.value) {
-            log.debug { "Cancelled add Alias $alias due to event still updating" }
+            log.debug { "Cancelled add Alias $currentNewAlias due to event still updating" }
             return
         }
 
         _isUpdating.value = true
 
         if (!canChangeRoomAlias.value) {
-            log.error { "Cancelled add Alias $alias due to missing permissions" }
+            log.error { "Cancelled add Alias $currentNewAlias due to missing permissions" }
             newAliasError.value = i18n.settingsRoomAliasAddAliasInsufficientPowerLevel()
             _isUpdating.value = false
             return
         }
+
+        if (!MatrixRegex.roomAlias.matches(currentNewAlias)) {
+            newAliasError.value = i18n.settingsRoomAliasAddAliasInvalid()
+            return
+        }
+
+        val alias = RoomAliasId(currentNewAlias)
 
         coroutineScope.launch {
             matrixClient.api.room.sendStateEvent(
@@ -124,11 +126,12 @@ class RoomSettingsAliasViewModelImpl(
                     _isUpdating.value = false
                 },
                 onFailure = { error ->
-                    if (error.cause !is MatrixServerException) {
+                    if (error !is MatrixServerException) {
                         newAliasError.value = i18n.settingsRoomAliasGeneric()
                     } else {
                         newAliasError.value =
-                            when (val response = (error.cause as MatrixServerException).errorResponse) {
+                            when (val response = error.errorResponse) {
+                                is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
                                 else -> {
                                     log.warn { "Unexpected Error: ${response.error}" }
                                     i18n.settingsRoomAliasGeneric()
@@ -148,9 +151,7 @@ class RoomSettingsAliasViewModelImpl(
             return
         }
 
-        val i18n = get<I18n>()
         _isUpdating.value = true
-
         if (!canChangeRoomAlias.value) {
             log.error { "Cancelled change of Alias $alias to mainalias due to missing permissions" }
             updateError.value = i18n.settingsRoomAliasChangeMainInsufficientPowerLevel()
@@ -158,14 +159,28 @@ class RoomSettingsAliasViewModelImpl(
             return
         }
 
+        if ((moreAliases.value as List<*>).contains(alias)) { // casting of moreAliases.value failed? Might be fixed in K2
+            log.error { "Cancelled change of Alias $alias to alias not being related to that room" }
+            updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
+            _isUpdating.value = false
+            return
+        }
+
+        val currentMainAlias = RoomAliasId(mainAlias.value ?: "")
+        val currentMoreAliases = moreAliases.value.map {
+            RoomAliasId(it)
+        }.toSet()
+
         coroutineScope.launch {
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
                 CanonicalAliasEventContent(
-                    alias,
-                    roomAliases.value?.aliases
-                        ?.minus(alias)
-                        ?.filterNotNull()?.toSet()
+                    if (alias == currentMainAlias) null else alias,
+                    if (alias == currentMainAlias || alias == null) {
+                        currentMoreAliases + currentMainAlias
+                    } else {
+                        currentMoreAliases - alias
+                    }
                 )
             ).fold(
                 onSuccess = {
@@ -177,6 +192,8 @@ class RoomSettingsAliasViewModelImpl(
                         updateError.value = i18n.settingsRoomAliasGeneric()
                     } else {
                         updateError.value = when (val response = (error.cause as MatrixServerException).errorResponse) {
+                            is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
+                            is ErrorResponse.BadState -> i18n.settingsRoomAliasBadAlias()
                             is ErrorResponse.NotFound -> i18n.settingsRoomAliasChangeMainNotFound()
                             else -> {
                                 log.warn { "Unexpected Error: ${response.error}" }
@@ -197,7 +214,6 @@ class RoomSettingsAliasViewModelImpl(
             return
         }
 
-        val i18n = get<I18n>()
         _isUpdating.value = true
 
         if (!canChangeRoomAlias.value) {
@@ -227,6 +243,8 @@ class RoomSettingsAliasViewModelImpl(
                     } else {
                         removeAliasError.value =
                             when (val response = (error.cause as MatrixServerException).errorResponse) {
+                                is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
+                                is ErrorResponse.BadState -> i18n.settingsRoomAliasBadAlias()
                                 is ErrorResponse.NotFound -> i18n.settingsRoomAliasRemoveNotFound()
                                 else -> {
                                     log.warn { "Unexpected Error: ${response.error}" }
