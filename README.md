@@ -68,18 +68,6 @@ where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel`
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
 
-### Using local builds
-
-If you want to use a locally built version of Trixnity Messenger,
-build the project using
-
-```shell
-./gradlew publishKotlinMultiplatformPublicationToMavenLocal
-```
- 
-When the build is successful, you can reference it by specifying version `2.0.0-LOCAL`
-in your depending project. **Avoid running the regular `publishToMavenLocal` task!**
-
 
 ### Multi profiles/tenancy
 
@@ -438,6 +426,22 @@ Append `-SNAPSHOT-COMMIT_SHORT_SHA` to the current version. You can find
 the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/commits/main).
 You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
 maven repositories, which contains SNAPSHOT versions of Trixnity.
+
+## Local builds
+
+If you want to use a locally built version of Trixnity Messenger,
+build the project using
+
+```shell
+./gradlew publishKotlinMultiplatformPublicationToMavenLocal
+```
+
+and optionally invoke tasks like `publishAndroidReleasePublicationToMavenLocal`,
+`publishJvmPublicationToMavenLocal` and `publishJsPublicationToMavenLocal` if needed.
+Same goes for macOS/iOS targets.
+
+When the build is successful, you can reference it by specifying version `2.0.0-LOCAL`
+in your depending project. **Avoid running the regular `publishToMavenLocal` task!**
 
 ## Upgrade lock
 
