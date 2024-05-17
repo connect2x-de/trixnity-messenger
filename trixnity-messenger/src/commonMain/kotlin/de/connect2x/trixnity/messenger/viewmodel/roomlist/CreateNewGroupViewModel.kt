@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
 import net.folivo.trixnity.core.model.RoomId
@@ -82,7 +84,7 @@ open class CreateNewGroupViewModelImpl(
     override val availableRoomHistoryVisibilities: MutableStateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
         MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
     override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
-        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.JOINED)
+        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.INVITED)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
@@ -122,7 +124,8 @@ open class CreateNewGroupViewModelImpl(
                 preset = preset,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
-                initialState = encryption,
+                initialState = encryption + listOf(
+                    InitialStateEvent(content = HistoryVisibilityEventContent(roomHistoryVisibility.value), "")),
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }

@@ -68,6 +68,19 @@ where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel`
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
 
+### Using local builds
+
+If you want to use a locally built version of Trixnity Messenger,
+build the project using
+
+```shell
+./gradlew publishKotlinMultiplatformPublicationToMavenLocal
+```
+ 
+When the build is successful, you can reference it by specifying version `2.0.0-LOCAL`
+in your depending project. **Avoid running the regular `publishToMavenLocal` task!**
+
+
 ### Multi profiles/tenancy
 
 `MatrixMessenger` has support for multiple Matrix accounts, but by default it is not possible to have
