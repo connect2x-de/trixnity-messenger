@@ -11,10 +11,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.room
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
 import net.folivo.trixnity.core.model.RoomId
@@ -46,8 +44,6 @@ interface CreateNewGroupViewModel {
     val groupUsers: StateFlow<List<SearchUserElement>>
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
-    val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?>
-    val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility>
     val optionalRoomName: MutableStateFlow<String>
     val optionalGroupTopic: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
@@ -81,11 +77,6 @@ open class CreateNewGroupViewModelImpl(
         !(private && !encrypted)
     }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val availableRoomHistoryVisibilities: MutableStateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
-        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
-    override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
-        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.INVITED)
-
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
     internal val foundUsers = createNewRoomViewModel.foundUsers.asStateFlow()
 
@@ -113,8 +104,11 @@ open class CreateNewGroupViewModelImpl(
         }
         val encryption = when (isEncrypted.value) {
             true -> listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
-            false -> listOf()
+            false -> emptyList()
         }
+        val historyVisibility = createNewRoomViewModel.optionalRoomHistoryVisibility.value?.let {
+            return@let listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+        } ?: emptyList()
         val optionalName = optionalRoomName.value.ifBlank { null }
         val optionalTopic = optionalGroupTopic.value.ifBlank { null }
         coroutineScope.launch {
@@ -124,8 +118,7 @@ open class CreateNewGroupViewModelImpl(
                 preset = preset,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
-                initialState = encryption + listOf(
-                    InitialStateEvent(content = HistoryVisibilityEventContent(roomHistoryVisibility.value), "")),
+                initialState = encryption + historyVisibility,
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
@@ -176,10 +169,6 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val availableRoomHistoryVisibilities: StateFlow<List<HistoryVisibilityEventContent.HistoryVisibility>?> =
-        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.entries)
-    override val roomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility> =
-        MutableStateFlow(HistoryVisibilityEventContent.HistoryVisibility.INVITED)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")

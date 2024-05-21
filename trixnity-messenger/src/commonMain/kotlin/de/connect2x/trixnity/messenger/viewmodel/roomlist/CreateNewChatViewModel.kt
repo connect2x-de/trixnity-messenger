@@ -19,6 +19,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
 
 private val log = KotlinLogging.logger {}
@@ -96,10 +97,14 @@ open class CreateNewChatViewModelImpl(
                 existingRoomIds.find { matrixClient.room.getById(it).first() != null }?.let { goToRoom(matrixClient.userId, it) }
             } else {
                 log.info { "create new room with $userId" }
+                val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
+                val historyVisibility = createNewRoomViewModel.optionalRoomHistoryVisibility.value?.let {
+                    return@let listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+                } ?: emptyList()
                 matrixClient.api.room.createRoom(
                     isDirect = true,
                     invite = setOf(userId),
-                    initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
+                    initialState = encryption + historyVisibility,
                     preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
                 ).fold(
                     onSuccess = { roomId ->

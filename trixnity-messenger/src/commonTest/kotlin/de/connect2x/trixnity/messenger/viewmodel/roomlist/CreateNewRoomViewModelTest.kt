@@ -18,6 +18,7 @@ import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
@@ -156,6 +157,7 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
             ),
+            HistoryVisibilityEventContent.HistoryVisibility.entries
         )
     }
 }

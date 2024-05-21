@@ -121,10 +121,11 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(
-                        InitialStateEvent(EncryptionEventContent(), ""),
-                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
-                    )),
+                    isEqual(
+                        listOf(
+                            InitialStateEvent(EncryptionEventContent(), "")
+                        )
+                    ),
                     isEqual(CreateRoom.Request.Preset.PUBLIC),
                     isAny(),
                     isAny(),
@@ -203,10 +204,11 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(
-                        InitialStateEvent(EncryptionEventContent(), ""),
-                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
-                    )),
+                    isEqual(
+                        listOf(
+                            InitialStateEvent(EncryptionEventContent(), "")
+                        )
+                    ),
                     isAny(),
                     isEqual(false),
                     isAny(),
@@ -264,10 +266,11 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(
-                        InitialStateEvent(EncryptionEventContent(), ""),
-                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
-                    )),
+                    isEqual(
+                        listOf(
+                            InitialStateEvent(EncryptionEventContent(), "")
+                        )
+                    ),
                     isAny(),
                     isEqual(false),
                     isAny(),
@@ -302,10 +305,11 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                     isAny(),
-                    isEqual(listOf(
-                        InitialStateEvent(EncryptionEventContent(), ""),
-                        InitialStateEvent(HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED), "")
-                    )),
+                    isEqual(
+                        listOf(
+                            InitialStateEvent(EncryptionEventContent(), "")
+                        )
+                    ),
                     isAny(),
                     isEqual(false),
                     isAny(),
@@ -385,6 +389,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
             ),
+            HistoryVisibilityEventContent.HistoryVisibility.entries
         )
     }
 }
