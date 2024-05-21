@@ -429,18 +429,15 @@ maven repositories, which contains SNAPSHOT versions of Trixnity.
 ## Local builds
 
 If you want to use a locally built version of Trixnity Messenger,
-build the project using
+and you're having issues with running `publishMavenToLocal`, build the project using
 
 ```shell
 ./gradlew publishKotlinMultiplatformPublicationToMavenLocal
 ```
 
-and optionally invoke tasks like `publishAndroidReleasePublicationToMavenLocal`,
+instead and optionally invoke tasks like `publishAndroidReleasePublicationToMavenLocal`,
 `publishJvmPublicationToMavenLocal` and `publishJsPublicationToMavenLocal` if needed.
 Same goes for macOS/iOS targets.
-
-When the build is successful, you can reference it by specifying version `2.0.0-LOCAL`
-in your depending project. **Avoid running the regular `publishToMavenLocal` task!**
 
 ## Upgrade lock
 
