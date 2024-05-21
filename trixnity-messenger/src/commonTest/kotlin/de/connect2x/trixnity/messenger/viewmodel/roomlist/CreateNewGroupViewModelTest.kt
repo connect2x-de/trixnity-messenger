@@ -388,8 +388,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
-            ),
-            HistoryVisibilityEventContent.HistoryVisibility.entries
+            )
         )
     }
 }

@@ -43,6 +43,8 @@ interface CreateNewChatViewModelFactory {
 
 interface CreateNewChatViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
+    val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+    val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val error: StateFlow<String?>
     fun onUserClick(user: SearchUserElement)
     fun createGroup()
@@ -60,6 +62,11 @@ open class CreateNewChatViewModelImpl(
     private val goToRoom: (UserId, RoomId) -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
+
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
 
     private val backCallback = BackCallback {
         cancel()
@@ -98,8 +105,8 @@ open class CreateNewChatViewModelImpl(
             } else {
                 log.info { "create new room with $userId" }
                 val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
-                val historyVisibility = createNewRoomViewModel.optionalRoomHistoryVisibility.value?.let {
-                    return@let listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+                val historyVisibility = optionalRoomHistoryVisibility.value?.let {
+                    listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
                 } ?: emptyList()
                 matrixClient.api.room.createRoom(
                     isDirect = true,
@@ -134,6 +141,11 @@ open class CreateNewChatViewModelImpl(
 
 class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
+
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun onUserClick(user: SearchUserElement) {}

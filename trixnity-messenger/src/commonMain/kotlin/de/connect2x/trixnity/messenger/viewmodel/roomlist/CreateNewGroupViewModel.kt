@@ -44,6 +44,8 @@ interface CreateNewGroupViewModel {
     val groupUsers: StateFlow<List<SearchUserElement>>
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
+    val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+    val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val optionalRoomName: MutableStateFlow<String>
     val optionalGroupTopic: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
@@ -69,6 +71,10 @@ open class CreateNewGroupViewModelImpl(
     MatrixClientViewModelContext by viewModelContext {
     override val isPrivate = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(true)
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
     override var optionalRoomName = MutableStateFlow("")
     override var optionalGroupTopic = MutableStateFlow("")
 
@@ -106,8 +112,8 @@ open class CreateNewGroupViewModelImpl(
             true -> listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
             false -> emptyList()
         }
-        val historyVisibility = createNewRoomViewModel.optionalRoomHistoryVisibility.value?.let {
-            return@let listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+        val historyVisibility = optionalRoomHistoryVisibility.value?.let {
+            listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
         } ?: emptyList()
         val optionalName = optionalRoomName.value.ifBlank { null }
         val optionalTopic = optionalGroupTopic.value.ifBlank { null }
@@ -169,6 +175,10 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")

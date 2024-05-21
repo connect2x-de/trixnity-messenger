@@ -11,23 +11,19 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 interface CreateNewRoomViewModelFactory {
     fun create(
-        viewModelContext: MatrixClientViewModelContext,
-        availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+        viewModelContext: MatrixClientViewModelContext
     ): CreateNewRoomViewModel {
-        return CreateNewRoomViewModelImpl(viewModelContext, availableRoomHistoryVisibilities)
+        return CreateNewRoomViewModelImpl(viewModelContext)
     }
 
     companion object : CreateNewRoomViewModelFactory
 }
 
 interface CreateNewRoomViewModel {
-    val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
-    val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val userSearchTerm: MutableStateFlow<String>
     val foundUsers: MutableStateFlow<List<SearchUserElement>>
     val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>>
@@ -36,13 +32,9 @@ interface CreateNewRoomViewModel {
 }
 
 open class CreateNewRoomViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
-    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+    viewModelContext: MatrixClientViewModelContext
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     protected val search = get<Search>()
-
-    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
-        MutableStateFlow(null)
 
     override val userSearchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val foundUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(listOf())
@@ -83,10 +75,6 @@ open class CreateNewRoomViewModelImpl(
 }
 
 class PreviewCreateNewRoomViewModel : CreateNewRoomViewModel {
-    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
-        HistoryVisibilityEventContent.HistoryVisibility.entries
-    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
-        MutableStateFlow(null)
     override val userSearchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val foundUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())

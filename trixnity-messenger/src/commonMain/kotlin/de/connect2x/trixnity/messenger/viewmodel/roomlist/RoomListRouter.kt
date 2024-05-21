@@ -98,8 +98,7 @@ class RoomListRouter(
                                 viewModelContext.childContext(
                                     componentContext,
                                     roomListConfig.userId,
-                                ),
-                                HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+                                )
                             ),
                         onCreateGroup = ::onCreateGroup,
                         onSearchGroup = ::onSearchGroup,
@@ -120,8 +119,7 @@ class RoomListRouter(
                                 viewModelContext.childContext(
                                     componentContext,
                                     roomListConfig.userId,
-                                ),
-                                HistoryVisibilityEventContent.HistoryVisibility.entries
+                                )
                             ),
                         onBack = ::onCancelCreateNewGroup,
                         onGroupCreated = ::onGroupCreated,
