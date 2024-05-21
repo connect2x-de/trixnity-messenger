@@ -159,7 +159,7 @@ class RoomSettingsAliasViewModelImpl(
             return
         }
 
-        if ((moreAliases.value as List<*>).contains(alias)) { // casting of moreAliases.value failed? Might be fixed in K2
+        if (moreAliases.value.contains(alias?.full)) {
             log.error { "Cancelled change of Alias $alias to alias not being related to that room" }
             updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
             _isUpdating.value = false
@@ -188,10 +188,10 @@ class RoomSettingsAliasViewModelImpl(
                     _isUpdating.value = false
                 },
                 onFailure = { error ->
-                    if (error.cause !is MatrixServerException) {
+                    if (error !is MatrixServerException) {
                         updateError.value = i18n.settingsRoomAliasGeneric()
                     } else {
-                        updateError.value = when (val response = (error.cause as MatrixServerException).errorResponse) {
+                        updateError.value = when (val response = error.errorResponse) {
                             is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
                             is ErrorResponse.BadState -> i18n.settingsRoomAliasBadAlias()
                             is ErrorResponse.NotFound -> i18n.settingsRoomAliasChangeMainNotFound()
@@ -238,11 +238,11 @@ class RoomSettingsAliasViewModelImpl(
                     _isUpdating.value = false
                 },
                 onFailure = { error ->
-                    if (error.cause !is MatrixServerException) {
+                    if (error !is MatrixServerException) {
                         removeAliasError.value = i18n.settingsRoomAliasGeneric()
                     } else {
                         removeAliasError.value =
-                            when (val response = (error.cause as MatrixServerException).errorResponse) {
+                            when (val response = error.errorResponse) {
                                 is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
                                 is ErrorResponse.BadState -> i18n.settingsRoomAliasBadAlias()
                                 is ErrorResponse.NotFound -> i18n.settingsRoomAliasRemoveNotFound()
