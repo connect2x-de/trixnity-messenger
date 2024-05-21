@@ -4,12 +4,9 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
@@ -29,7 +26,7 @@ interface CreateNewRoomViewModelFactory {
 }
 
 interface CreateNewRoomViewModel {
-    val availableRoomHistoryVisibilities: Flow<List<HistoryVisibilityEventContent.HistoryVisibility>>
+    val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
     val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val userSearchTerm: MutableStateFlow<String>
     val foundUsers: MutableStateFlow<List<SearchUserElement>>
@@ -40,12 +37,10 @@ interface CreateNewRoomViewModel {
 
 open class CreateNewRoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     protected val search = get<Search>()
 
-    override val availableRoomHistoryVisibilities: Flow<List<HistoryVisibilityEventContent.HistoryVisibility>> =
-        flowOf(availableRoomHistoryVisibilities)
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
 
@@ -88,8 +83,8 @@ open class CreateNewRoomViewModelImpl(
 }
 
 class PreviewCreateNewRoomViewModel : CreateNewRoomViewModel {
-    override val availableRoomHistoryVisibilities: Flow<List<HistoryVisibilityEventContent.HistoryVisibility>> =
-        emptyFlow()
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
     override val userSearchTerm: MutableStateFlow<String> = MutableStateFlow("")

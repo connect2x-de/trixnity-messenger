@@ -326,8 +326,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
             ),
-            HistoryVisibilityEventContent.HistoryVisibility.entries
-                .filterNot { it == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE }
+            HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
         )
     }
 }

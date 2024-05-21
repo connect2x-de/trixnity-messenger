@@ -99,8 +99,7 @@ class RoomListRouter(
                                     componentContext,
                                     roomListConfig.userId,
                                 ),
-                                HistoryVisibilityEventContent.HistoryVisibility.entries
-                                    .filterNot { it == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE }
+                                HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
                             ),
                         onCreateGroup = ::onCreateGroup,
                         onSearchGroup = ::onSearchGroup,
