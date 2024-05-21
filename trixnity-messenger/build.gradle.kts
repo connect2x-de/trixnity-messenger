@@ -118,7 +118,7 @@ kotlin {
         nativeMain {
             dependsOn(jvmAndNativeMain)
         }
-        appleMain {
+        iosMain {
             dependencies {
 //                implementation(libs.ktor.client.drawin)
             }
