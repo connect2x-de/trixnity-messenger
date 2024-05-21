@@ -15,7 +15,7 @@ import org.koin.core.component.get
 
 interface CreateNewRoomViewModelFactory {
     fun create(
-        viewModelContext: MatrixClientViewModelContext,
+        viewModelContext: MatrixClientViewModelContext
     ): CreateNewRoomViewModel {
         return CreateNewRoomViewModelImpl(viewModelContext)
     }
@@ -32,7 +32,7 @@ interface CreateNewRoomViewModel {
 }
 
 open class CreateNewRoomViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
+    viewModelContext: MatrixClientViewModelContext
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     protected val search = get<Search>()
 

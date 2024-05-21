@@ -19,6 +19,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
 
 private val log = KotlinLogging.logger {}
@@ -43,8 +44,10 @@ interface CreateNewGroupViewModel {
     val groupUsers: StateFlow<List<SearchUserElement>>
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
-    var optionalRoomName: MutableStateFlow<String>
-    var optionalGroupTopic: MutableStateFlow<String>
+    val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+    val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
+    val optionalRoomName: MutableStateFlow<String>
+    val optionalGroupTopic: MutableStateFlow<String>
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -68,6 +71,10 @@ open class CreateNewGroupViewModelImpl(
     MatrixClientViewModelContext by viewModelContext {
     override val isPrivate = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(true)
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
     override var optionalRoomName = MutableStateFlow("")
     override var optionalGroupTopic = MutableStateFlow("")
 
@@ -103,8 +110,11 @@ open class CreateNewGroupViewModelImpl(
         }
         val encryption = when (isEncrypted.value) {
             true -> listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
-            false -> listOf()
+            false -> emptyList()
         }
+        val historyVisibility = optionalRoomHistoryVisibility.value?.let {
+            listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+        } ?: emptyList()
         val optionalName = optionalRoomName.value.ifBlank { null }
         val optionalTopic = optionalGroupTopic.value.ifBlank { null }
         coroutineScope.launch {
@@ -114,7 +124,7 @@ open class CreateNewGroupViewModelImpl(
                 preset = preset,
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
-                initialState = encryption,
+                initialState = encryption + historyVisibility,
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
@@ -165,6 +175,10 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")
