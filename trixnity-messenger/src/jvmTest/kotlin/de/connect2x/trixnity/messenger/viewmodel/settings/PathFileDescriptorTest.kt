@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.FileDescriptorDesktop
+import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -11,7 +11,7 @@ import net.folivo.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 
-class FileDescriptorTest : ShouldSpec({
+class PathFileDescriptorTest : ShouldSpec({
     lateinit var cut: FileDescriptor
     lateinit var fakeFileSystem: FakeFileSystem
 
@@ -26,7 +26,7 @@ class FileDescriptorTest : ShouldSpec({
         fakeFileSystem.write(filePath) {
             writeUtf8("test")
         }
-        cut = FileDescriptorDesktop(filePath, fakeFileSystem)
+        cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "text.txt"
             cut.fileSize shouldBe 4
@@ -41,7 +41,7 @@ class FileDescriptorTest : ShouldSpec({
         fakeFileSystem.write(filePath) {
             writeUtf8("image")
         }
-        cut = FileDescriptorDesktop(filePath, fakeFileSystem)
+        cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "image.jpg"
             cut.fileSize shouldBe 5
@@ -56,7 +56,7 @@ class FileDescriptorTest : ShouldSpec({
         fakeFileSystem.write(filePath) {
             writeUtf8("video")
         }
-        cut = FileDescriptorDesktop(filePath, fakeFileSystem)
+        cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "video.mp4"
             cut.fileSize shouldBe 5

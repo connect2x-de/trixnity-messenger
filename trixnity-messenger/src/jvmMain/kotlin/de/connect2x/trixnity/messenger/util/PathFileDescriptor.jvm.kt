@@ -6,7 +6,7 @@ import net.folivo.trixnity.utils.byteArrayFlowFromSource
 import okio.FileSystem
 import okio.Path
 
-class FileDescriptorDesktop(
+class PathFileDescriptor(
     val path: Path,
     private val fileSystem: FileSystem
 ) : FileDescriptor {

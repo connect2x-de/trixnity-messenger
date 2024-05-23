@@ -8,7 +8,7 @@ import io.ktor.http.fromFilePath
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArrayFlow
 
-class FileDescriptorAndroid(
+class ManualFileDescriptor(
     val context: Context,
     private val fileUri: Uri,
 ) : FileDescriptor {
