@@ -51,7 +51,7 @@ class AvatarCutterRouter(
         @Serializable
         data class AvatarCutter(
             val userId: UserId,
-            @Serializable(with = FileDescriptorSerializer::class) val file: FileDescriptor
+            val file: FileDescriptor
         ) : Config()
 
         @Serializable

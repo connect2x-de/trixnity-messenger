@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
-import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
@@ -230,7 +229,6 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformGetSecretByteArrayKey(),
     convertSecretByteArrayModule(),
     platformGetSystemLangModule(),
-    platformGetFileInfoModule(),
     platformDeleteAccountDataModule(),
     platformMatrixMessengerSettingsHolderModule(),
     platformSendLogToDevsModule(),

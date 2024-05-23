@@ -3,8 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.FileInfo
-import de.connect2x.trixnity.messenger.util.GetFileInfo
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -72,8 +70,7 @@ class SendAttachmentViewModelImpl(
 
     private val messengerConfiguration = get<MatrixMessengerConfiguration>()
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
-    private val getFileInfo = get<GetFileInfo>()
-    private val fileInfo: SharedFlow<FileInfo?> = flow { emit(getFileInfo(file)) }
+    private val fileInfo: SharedFlow<FileDescriptor?> = flow { emit((file)) }
         .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
     private val _sendEnabled = MutableStateFlow(_error.value == null)
 
