@@ -698,7 +698,6 @@ class TimelineViewModelImpl(
     }
 
     private fun onShowAttachmentSendView(file: FileDescriptor) {
-        log.error { "onShowAttachmentSendView:: ${file.fileName} --- ${file}" }
         sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
     }
 
