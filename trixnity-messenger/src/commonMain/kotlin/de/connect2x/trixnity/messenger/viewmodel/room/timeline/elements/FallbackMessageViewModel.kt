@@ -33,7 +33,7 @@ interface FallbackMessageViewModelFactory {
         formattedBody: String?,
         invitation: Flow<String?>,
         roomId: RoomId,
-        onOpenMention: OpenMentionCallback
+        onOpenMention: OpenMentionCallback,
     ): FallbackMessageViewModel {
         return FallbackMessageViewModelImpl(
             viewModelContext,
@@ -53,7 +53,7 @@ interface FallbackMessageViewModelFactory {
             formattedBody,
             invitation,
             roomId,
-            onOpenMention
+            onOpenMention,
         )
     }
 
