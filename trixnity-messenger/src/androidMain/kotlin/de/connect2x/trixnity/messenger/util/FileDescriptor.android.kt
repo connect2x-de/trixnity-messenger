@@ -39,6 +39,7 @@ class FileDescriptorAndroid(
 
     private fun toByteArrayFlow(uri: Uri): ByteArrayFlow =
         context.contentResolver.openInputStream(uri).use {
-            it?.buffered()?.readBytes()?.toByteArrayFlow() ?: ByteArray(0).toByteArrayFlow()
+            val byteArray = it?.buffered()?.readBytes() ?: ByteArray(0)
+            byteArray.toByteArrayFlow()
         }
 }
