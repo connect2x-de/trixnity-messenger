@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import kotlinx.coroutines.flow.Flow
@@ -18,11 +18,15 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
+
 
 interface OutboxElementHolderViewModelFactory {
     fun create(
@@ -33,8 +37,8 @@ interface OutboxElementHolderViewModelFactory {
         transactionId: String,
         showDateAboveFlow: Flow<Boolean>,
         showChatBubbleEdgeFlow: Flow<Boolean>,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+        onOpenModal: OpenModalCallback,
+        onOpenMention: OpenMentionCallback,
     ): OutboxElementHolderViewModel {
         return OutboxElementHolderViewModelImpl(
             viewModelContext,
@@ -70,8 +74,8 @@ open class OutboxElementHolderViewModelImpl(
     override val transactionId: String,
     showDateAboveFlow: Flow<Boolean>,
     showChatBubbleEdgeFlow: Flow<Boolean>,
-    onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
+    onOpenModal: OpenModalCallback,
+    onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
     private val richRepliesComputations = get<RichRepliesComputations>()

@@ -2,15 +2,15 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+
 
 interface AudioMessageViewModelFactory {
     fun create(
@@ -26,7 +26,7 @@ interface AudioMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+        onOpenModal: OpenModalCallback,
     ): AudioMessageViewModel {
         return AudioMessageViewModelImpl(
             viewModelContext,
@@ -66,7 +66,7 @@ open class AudioMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+    private val onOpenModal: OpenModalCallback,
 ) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val duration: Int? = content.info?.duration

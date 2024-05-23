@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
@@ -11,14 +11,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
+
 
 interface VideoMessageViewModelFactory {
     fun create(
@@ -34,7 +40,7 @@ interface VideoMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+        onOpenModal: OpenModalCallback,
     ): VideoMessageViewModel {
         return VideoMessageViewModelImpl(
             viewModelContext,
@@ -82,7 +88,7 @@ open class VideoMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
+    private val onOpenModal: OpenModalCallback,
 ) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
@@ -195,10 +201,10 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val showChatBubbleEdge: Boolean = false
     override val showBigGap: Boolean = false
     override val showSender: StateFlow<Boolean> = MutableStateFlow(true)
-    override val sender: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Martin", UserId("martin:matrix.org")))
+    override val sender: StateFlow<UserInfoElement> =
+        MutableStateFlow(UserInfoElement("Martin", UserId("martin:matrix.org")))
     override val formattedTime: String? = null
     override val invitation: StateFlow<String?> = MutableStateFlow(null)
     override val formattedDate: String = "23.11.21"
     override val showDateAbove: Boolean = false
-
 }

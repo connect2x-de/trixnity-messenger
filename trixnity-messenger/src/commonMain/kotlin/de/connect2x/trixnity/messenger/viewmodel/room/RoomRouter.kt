@@ -10,14 +10,13 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalUserCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -47,8 +46,8 @@ class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
-    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
+    private val onOpenModal: OpenModalUserCallback,
+    private val onOpenMention: OpenMentionCallback,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()
