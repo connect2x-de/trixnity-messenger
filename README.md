@@ -426,6 +426,19 @@ the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/tr
 You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
 maven repositories, which contains SNAPSHOT versions of Trixnity.
 
+## Local builds
+
+If you want to use a locally built version of Trixnity Messenger,
+and you're having issues with running `publishMavenToLocal`, build the project using
+
+```shell
+./gradlew publishKotlinMultiplatformPublicationToMavenLocal
+```
+
+instead and optionally invoke tasks like `publishAndroidReleasePublicationToMavenLocal`,
+`publishJvmPublicationToMavenLocal` and `publishJsPublicationToMavenLocal` if needed.
+Same goes for macOS/iOS targets.
+
 ## Upgrade lock
 
 If any dependency is upgraded, the locks also have to be upgraded. This is done with the following command:

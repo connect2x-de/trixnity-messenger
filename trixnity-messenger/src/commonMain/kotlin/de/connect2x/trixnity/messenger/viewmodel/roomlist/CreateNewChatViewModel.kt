@@ -19,6 +19,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
 
 private val log = KotlinLogging.logger {}
@@ -42,6 +43,8 @@ interface CreateNewChatViewModelFactory {
 
 interface CreateNewChatViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
+    val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
+    val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val error: StateFlow<String?>
     fun onUserClick(user: SearchUserElement)
     fun createGroup()
@@ -59,6 +62,11 @@ open class CreateNewChatViewModelImpl(
     private val goToRoom: (UserId, RoomId) -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
+
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
 
     private val backCallback = BackCallback {
         cancel()
@@ -96,10 +104,14 @@ open class CreateNewChatViewModelImpl(
                 existingRoomIds.find { matrixClient.room.getById(it).first() != null }?.let { goToRoom(matrixClient.userId, it) }
             } else {
                 log.info { "create new room with $userId" }
+                val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
+                val historyVisibility = optionalRoomHistoryVisibility.value?.let {
+                    listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+                } ?: emptyList()
                 matrixClient.api.room.createRoom(
                     isDirect = true,
                     invite = setOf(userId),
-                    initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
+                    initialState = encryption + historyVisibility,
                     preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
                 ).fold(
                     onSuccess = { roomId ->
@@ -129,6 +141,11 @@ open class CreateNewChatViewModelImpl(
 
 class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
+
+    override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
+        HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+    override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
+        MutableStateFlow(null)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun onUserClick(user: SearchUserElement) {}
