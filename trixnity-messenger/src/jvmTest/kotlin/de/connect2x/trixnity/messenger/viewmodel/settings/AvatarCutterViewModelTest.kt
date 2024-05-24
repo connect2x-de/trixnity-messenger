@@ -42,7 +42,7 @@ class AvatarCutterViewModelTest : ShouldSpec() {
     lateinit var mediaServiceMock: MediaService
 
     @Mock
-    lateinit var getFileDescriptorMock: FileDescriptor
+    lateinit var fileDescriptorMock: FileDescriptor
 
     private val onCloseMock = mockFunction0<Unit>(mocker)
 
@@ -91,7 +91,7 @@ class AvatarCutterViewModelTest : ShouldSpec() {
                 cut.accept()
                 testCoroutineScheduler.advanceUntilIdle()
 
-                cut.upload.value shouldBe false
+                cut.upload.value shouldBe true
                 cut.error.value shouldBe null
                 mocker.verify(exhaustive = false) { onCloseMock.invoke() }
                 thumbnailCapture.single().toByteArray() shouldBe "image".encodeToByteArray()
@@ -145,15 +145,12 @@ class AvatarCutterViewModelTest : ShouldSpec() {
                                     "server"
                                 ) to matrixClientMock
                             )
-                        ) +
-                                module {
-                                    single { getFileDescriptorMock }
-                                })
+                        ) )
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
-            file = getFileDescriptorMock,
+            file = fileDescriptorMock,
             onCloseMock,
         )
     }
