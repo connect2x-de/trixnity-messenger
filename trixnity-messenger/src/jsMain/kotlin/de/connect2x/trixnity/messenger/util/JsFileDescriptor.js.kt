@@ -6,7 +6,7 @@ import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromReadableStream
 import web.file.File
 
-class JsFileDescriptor(private val file: File) : FileDescriptor {
+class JsFileDescriptor(val file: File) : FileDescriptor {
 
     override val fileName: String = file.name
     override val fileSize: Int = file.size.toInt()

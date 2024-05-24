@@ -10,7 +10,7 @@ import net.folivo.trixnity.utils.byteArrayFlowFromSource
 import okio.Buffer
 import okio.source
 
-class UriFileDescriptor(private val context: Context, private val fileUri: Uri) : FileDescriptor {
+class UriFileDescriptor(private val context: Context, val fileUri: Uri) : FileDescriptor {
 
     private val fileDataInfo = getFileNameAndSize(fileUri)
     override val fileName: String = fileDataInfo?.first ?: "Unknown"

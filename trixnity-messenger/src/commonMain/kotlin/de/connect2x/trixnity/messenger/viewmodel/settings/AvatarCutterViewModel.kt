@@ -34,9 +34,9 @@ interface AvatarCutterViewModelFactory {
 }
 
 interface AvatarCutterViewModel {
-    val image: StateFlow<ByteArray?>
     val upload: StateFlow<Boolean>
     val error: StateFlow<String?>
+    val fileDescriptor: FileDescriptor
     fun cancel()
     fun accept()
 }
@@ -47,18 +47,9 @@ open class AvatarCutterViewModelImpl(
     private val onClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {
 
-    private val messengerConfiguration = get<MatrixMessengerConfiguration>()
-
-    override val image: StateFlow<ByteArray?> = flow {
-        if (checkFileSizeExceedsLimit(fileSize = file.fileSize, maxSizeMB = messengerConfiguration.attachmentMaxSize)) {
-            error.value = i18n.avatarSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
-        } else {
-            emit(file.content.toByteArray())
-        }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
     override val upload = MutableStateFlow(false)
     override val error = MutableStateFlow<String?>(null)
+    override val fileDescriptor: FileDescriptor = file
 
     private val backCallback = BackCallback {
         cancel()

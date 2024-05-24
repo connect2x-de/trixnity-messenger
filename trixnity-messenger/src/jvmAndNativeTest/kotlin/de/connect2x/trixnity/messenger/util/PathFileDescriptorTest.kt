@@ -1,12 +1,11 @@
-package de.connect2x.trixnity.messenger.viewmodel.settings
+package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
+import io.ktor.utils.io.core.toByteArray
 import net.folivo.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem

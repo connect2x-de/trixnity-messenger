@@ -7,7 +7,7 @@ import okio.FileSystem
 import okio.Path
 
 class PathFileDescriptor(
-    private val path: Path,
+    val path: Path,
     private val fileSystem: FileSystem
 ) : FileDescriptor {
 
