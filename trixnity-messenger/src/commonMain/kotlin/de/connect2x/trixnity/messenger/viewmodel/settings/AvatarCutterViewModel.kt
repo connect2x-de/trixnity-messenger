@@ -43,14 +43,13 @@ interface AvatarCutterViewModel {
 
 open class AvatarCutterViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    file: FileDescriptor,
+    private val file: FileDescriptor,
     private val onClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {
 
-    private val fileInfo = flow { emit(file) }
-        .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
-    override val image = fileInfo.map { it.content.toByteArray() }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val image: StateFlow<ByteArray?> = flow {
+        emit(file.content.toByteArray())
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val upload = MutableStateFlow(false)
     override val error = MutableStateFlow<String?>(null)
@@ -70,10 +69,9 @@ open class AvatarCutterViewModelImpl(
     override fun accept() {
         coroutineScope.launch {
             upload.value = true
-            val fileInfo = fileInfo.first()
             matrixClient.media.prepareUploadThumbnail(
-                fileInfo.content,
-                fileInfo.mimeType,
+                file.content,
+                file.mimeType,
             )?.let { (cache, _) ->
                 matrixClient.media.uploadMedia(cache).fold(
                     onSuccess = { url ->
