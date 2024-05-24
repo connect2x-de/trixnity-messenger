@@ -720,11 +720,6 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Das Nutzerbild konnte nicht geändert werden."
     }
 
-    fun avatarSizeMaxSizeError(avatarMaxSizeInMegaByte: Int) = translate {
-        EN - "The avatar image exceeds the maximum allowed size of $avatarMaxSizeInMegaByte MB."
-        DE - "Das Avatarbild überschreitet die maximal zulässige Größe von $avatarMaxSizeInMegaByte MB."
-    }
-
     fun profileNameError() = translate {
         EN - "The username could not be changed."
         DE - "Der Nutzername konnte nicht geändert werden."
