@@ -15,6 +15,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewMo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModel
@@ -145,6 +147,7 @@ class RoomListRouter(
                     onShowProfile = ::onShowProfile,
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
+                    onShowAppearanceSettings = ::onShowAppearanceSettings,
                 )
             )
 
@@ -178,6 +181,13 @@ class RoomListRouter(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onClosePrivacySettings = ::onClosePrivacySettings,
                     onShowBlockedContactsSettings = ::onShowBlockedContactsSettings,
+                )
+            )
+
+            is Config.AppearanceSettings -> Wrapper.AppearanceSettings(
+                viewModelContext.get<AppearanceSettingsViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    onCloseAppearanceSettings = ::onCloseAppearanceSettings,
                 )
             )
 
@@ -325,8 +335,18 @@ class RoomListRouter(
         navigation.launchPush(viewModelContext.coroutineScope, Config.PrivacySettings)
     }
 
+    private fun onShowAppearanceSettings() {
+        log.debug { "show appearance settings" }
+        navigation.launchPush(viewModelContext.coroutineScope, Config.AppearanceSettings)
+    }
+
     private fun onClosePrivacySettings() {
         log.debug { "close privacy settings" }
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private fun onCloseAppearanceSettings() {
+        log.debug { "close appearance settings" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
@@ -413,6 +433,9 @@ class RoomListRouter(
         data object PrivacySettings : Config()
 
         @Serializable
+        data object AppearanceSettings : Config()
+
+        @Serializable
         data class BlockedContactsSettings(val account: UserId) : Config()
 
         @Serializable
@@ -438,6 +461,7 @@ class RoomListRouter(
         class Profile(val viewModel: ProfileViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationsSettingsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
+        class AppearanceSettings(val viewModel: AppearanceSettingsViewModel) : Wrapper()
         class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
         class ConfigureNotifications(val viewModel: ConfigureNotificationsViewModel) : Wrapper()
         class AppInfo(val viewModel: AppInfoViewModel) : Wrapper()

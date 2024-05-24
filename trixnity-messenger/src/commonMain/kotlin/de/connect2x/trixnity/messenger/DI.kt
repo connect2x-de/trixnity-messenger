@@ -93,6 +93,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFacto
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
@@ -295,6 +296,7 @@ private fun settingsViewModels() = module {
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
+    single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
 }
 
