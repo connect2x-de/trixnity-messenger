@@ -15,7 +15,7 @@ class AvatarCutterRouter(
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
-        serializer = Config.serializer(),
+        serializer = null,
         initialConfiguration = Config.None,
         key = "avatarCutter",
         childFactory = ::createChild,
@@ -45,16 +45,12 @@ class AvatarCutterRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-
-    @Serializable
     sealed class Config {
-        @Serializable
         data class AvatarCutter(
             val userId: UserId,
             val file: FileDescriptor
         ) : Config()
 
-        @Serializable
         data object None : Config()
     }
 
