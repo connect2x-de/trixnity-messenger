@@ -203,12 +203,9 @@ interface TimelineViewModel {
         class View(val viewModel: SendAttachmentViewModel) : Wrapper()
     }
 
-    @Serializable
     sealed class Config {
-        @Serializable
         data object None : Config()
 
-        @Serializable
         data class SendAttachmentView(val file: FileDescriptor) : Config()
     }
 }
@@ -344,7 +341,7 @@ class TimelineViewModelImpl(
     private val sendAttachmentNavigation = StackNavigation<Config>()
     override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = childStack(
         source = sendAttachmentNavigation,
-        serializer = Config.serializer(),
+        serializer = null,
         initialConfiguration = Config.None,
         handleBackButton = true,
         childFactory = ::createChild,
