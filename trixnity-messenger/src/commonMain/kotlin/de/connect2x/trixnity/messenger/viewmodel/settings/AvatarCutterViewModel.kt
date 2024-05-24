@@ -1,21 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.utils.toByteArray
+import org.koin.core.component.get
 
 
 private val log = KotlinLogging.logger { }
@@ -47,8 +47,14 @@ open class AvatarCutterViewModelImpl(
     private val onClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {
 
+    private val messengerConfiguration = get<MatrixMessengerConfiguration>()
+
     override val image: StateFlow<ByteArray?> = flow {
-        emit(file.content.toByteArray())
+        if (checkFileSizeExceedsLimit(fileSize = file.fileSize, maxSizeMB = messengerConfiguration.attachmentMaxSize)) {
+            error.value = i18n.avatarSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
+        } else {
+            emit(file.content.toByteArray())
+        }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val upload = MutableStateFlow(false)
@@ -96,5 +102,4 @@ open class AvatarCutterViewModelImpl(
             }
         }
     }
-
 }

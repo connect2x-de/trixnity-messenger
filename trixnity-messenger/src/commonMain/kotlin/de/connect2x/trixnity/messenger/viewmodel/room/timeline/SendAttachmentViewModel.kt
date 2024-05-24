@@ -6,18 +6,15 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
@@ -49,13 +46,13 @@ interface SendAttachmentViewModelFactory {
 interface SendAttachmentViewModel {
     val error: StateFlow<String?>
     val sendEnabled: StateFlow<Boolean>
-    val fileName: StateFlow<String?>
-    val fileSize: StateFlow<String?>
+    val fileName: String?
+    val fileSize: String?
     val byteArray: StateFlow<ByteArray?>
 
-    val isImage: StateFlow<Boolean?>
-    val isVideo: StateFlow<Boolean?>
-    val isAudio: StateFlow<Boolean?>
+    val isImage: Boolean?
+    val isVideo: Boolean?
+    val isAudio: Boolean?
 
     fun send()
     fun cancel()
@@ -75,15 +72,20 @@ class SendAttachmentViewModelImpl(
 
     override val error: StateFlow<String?> = _error.asStateFlow()
     override val sendEnabled: StateFlow<Boolean> = _sendEnabled.asStateFlow()
-    override val fileName = MutableStateFlow(file.fileName)
-    override val fileSize = MutableStateFlow("(" + (file.fileSize?.let { size -> formatSize(size.toLong()) } ?: i18n.commonUnknown()) + ")")
-    override val byteArray = file.content.map {
-        it
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val fileName = file.fileName
+    override val fileSize =
+        "(" + (file.fileSize?.let { size -> formatSize(size.toLong()) } ?: i18n.commonUnknown()) + ")"
 
-    override val isImage = MutableStateFlow(file.mimeType?.match("image/*"))
-    override val isVideo = MutableStateFlow(file.mimeType?.match("video/*"))
-    override val isAudio = MutableStateFlow(file.mimeType?.match("audio/*"))
+    override val byteArray: StateFlow<ByteArray?> = flow {
+        if (checkFileSizeExceedsLimit(fileSize = file.fileSize, maxSizeMB = messengerConfiguration.attachmentMaxSize)) {
+            _error.value = i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
+        } else {
+            emit(file.content.toByteArray())
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val isImage = file.mimeType?.match("image/*")
+    override val isVideo = file.mimeType?.match("video/*")
+    override val isAudio = file.mimeType?.match("audio/*")
 
     private val backCallback = BackCallback {
         cancel()
@@ -92,13 +94,12 @@ class SendAttachmentViewModelImpl(
     init {
         backHandler.register(backCallback)
         coroutineScope.launch {
-            val computedFileSize = file.fileSize
-            if ((computedFileSize?.compareTo(messengerConfiguration.attachmentMaxSize * 1_000_000)
-                    ?: 0) > 0
-            ) {
-                _error.value =
-                    i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
-            }
+            if (checkFileSizeExceedsLimit(
+                    fileSize = file.fileSize,
+                    maxSizeMB = messengerConfiguration.attachmentMaxSize
+                )
+            )
+                _error.value = i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
         }
     }
 
@@ -108,7 +109,7 @@ class SendAttachmentViewModelImpl(
             matrixClient.room.sendMessage(selectedRoomId) {
                 val byteArrayFlow = file.content
                 when {
-                    isImage.value ?: false -> {
+                    isImage ?: false -> {
                         log.debug { "send an image" }
                         val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
                         image(
@@ -122,7 +123,7 @@ class SendAttachmentViewModelImpl(
                         )
                     }
 
-                    isVideo.value ?: false -> {
+                    isVideo ?: false -> {
                         log.debug { "send a video" }
                         video(
                             body = file.fileName,
@@ -133,7 +134,7 @@ class SendAttachmentViewModelImpl(
                         )
                     } // TODO width, height, duration
 
-                    isAudio.value ?: false -> {
+                    isAudio ?: false -> {
                         log.debug { "send an audio" }
                         audio(
                             body = file.fileName,
@@ -170,12 +171,12 @@ class SendAttachmentViewModelImpl(
 class PreviewSendAttachmentViewModel() : SendAttachmentViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val sendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val fileName: MutableStateFlow<String?> = MutableStateFlow("anImage.png")
-    override val fileSize: MutableStateFlow<String> = MutableStateFlow("1337 KB")
+    override val fileName: String = "anImage.png"
+    override val fileSize: String = "1337 KB"
     override val byteArray: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
-    override val isImage: MutableStateFlow<Boolean?> = MutableStateFlow(true)
-    override val isVideo: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isAudio: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isImage: Boolean = true
+    override val isVideo: Boolean = false
+    override val isAudio: Boolean = false
 
     override fun send() {
     }
