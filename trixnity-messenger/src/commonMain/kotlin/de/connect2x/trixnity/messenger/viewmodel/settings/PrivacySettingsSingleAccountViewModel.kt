@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import kotlinx.coroutines.flow.SharingStarted
@@ -52,37 +54,37 @@ open class PrivacySettingsSingleAccountViewModelImpl(
     final override val account = userId
 
     override val presenceIsPublic = messengerSettings[account]
-        .filterNotNull().map { it.presenceIsPublic }
+        .filterNotNull().map { it.base.presenceIsPublic }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val readMarkerIsPublic = messengerSettings[account]
-        .filterNotNull().map { it.readMarkerIsPublic }
+        .filterNotNull().map { it.base.readMarkerIsPublic }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val typingIsPublic = messengerSettings[account]
-        .filterNotNull().map { it.typingIsPublic }
+        .filterNotNull().map { it.base.typingIsPublic }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override fun togglePresenceIsPublic() {
         coroutineScope.launch {
-            messengerSettings.update(account) {
-                it?.copy(presenceIsPublic = !it.presenceIsPublic)
+            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(account) {
+                it.copy(presenceIsPublic = !it.presenceIsPublic)
             }
         }
     }
 
     override fun toggleReadMarkerIsPublic() {
         coroutineScope.launch {
-            messengerSettings.update(account) {
-                it?.copy(readMarkerIsPublic = !it.readMarkerIsPublic)
+            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(account) {
+                it.copy(readMarkerIsPublic = !it.readMarkerIsPublic)
             }
         }
     }
 
     override fun toggleTypingIsPublic() {
         coroutineScope.launch {
-            messengerSettings.update(account) {
-                it?.copy(typingIsPublic = !it.typingIsPublic)
+            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(account) {
+                it.copy(typingIsPublic = !it.typingIsPublic)
             }
         }
     }

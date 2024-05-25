@@ -167,7 +167,7 @@ class RoomListViewModelImpl(
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
     private val activeAccount: StateFlow<UserId?> =
-        messengerSettings.map { it.selectedAccount }
+        messengerSettings.map { it.base.selectedAccount }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()

@@ -17,12 +17,10 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
@@ -164,11 +162,10 @@ class RoomListRouter(
             )
 
             is Config.NotificationsSettings -> Wrapper.NotificationsSettings(
-                viewModelContext.get<NotificationsSettingsViewModelFactory>()
+                viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        onCloseNotificationsSettings = ::onCloseNotificationsSettings,
-                        onShowConfigureNotifications = ::onShowConfigureNotifications,
+                        onBack = ::onCloseNotificationsSettings,
                     )
             )
 
@@ -188,17 +185,6 @@ class RoomListRouter(
                     ),
                     onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
                 )
-            )
-
-            is Config.ConfigureNotifications -> Wrapper.ConfigureNotifications(
-                viewModelContext.get<ConfigureNotificationsViewModelFactory>()
-                    .create(
-                        viewModelContext = viewModelContext.childContext(
-                            componentContext,
-                            roomListConfig.userId,
-                        ),
-                        onCloseConfigureNotifications = ::onCloseConfigureNotifications,
-                    )
             )
 
             is Config.AppInfo -> Wrapper.AppInfo(
@@ -339,16 +325,6 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowConfigureNotifications(userId: UserId) {
-        log.debug { "configure notifications for account $userId" }
-        navigation.launchPush(viewModelContext.coroutineScope, Config.ConfigureNotifications(userId))
-    }
-
-    private fun onCloseConfigureNotifications() = viewModelContext.coroutineScope.launch {
-        log.debug { "close configure notification settings" }
-        navigation.popSuspending()
-    }
-
     private fun onOpenAccountsOverview() {
         log.debug { "open accounts overview" }
         navigation.launchPush(viewModelContext.coroutineScope, Config.AccountsOverview)
@@ -415,9 +391,6 @@ class RoomListRouter(
         data class BlockedContactsSettings(val account: UserId) : Config()
 
         @Serializable
-        data class ConfigureNotifications(val userId: UserId) : Config()
-
-        @Serializable
         data object AppInfo : Config()
 
         @Serializable
@@ -435,10 +408,9 @@ class RoomListRouter(
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
         class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
         class Profile(val viewModel: ProfileViewModel) : Wrapper()
-        class NotificationsSettings(val viewModel: NotificationsSettingsViewModel) : Wrapper()
+        class NotificationsSettings(val viewModel: NotificationSettingsAllAccountsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
         class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
-        class ConfigureNotifications(val viewModel: ConfigureNotificationsViewModel) : Wrapper()
         class AppInfo(val viewModel: AppInfoViewModel) : Wrapper()
         class AccountsOverview(val viewModel: AccountsOverviewViewModel) : Wrapper()
         data object None : Wrapper()

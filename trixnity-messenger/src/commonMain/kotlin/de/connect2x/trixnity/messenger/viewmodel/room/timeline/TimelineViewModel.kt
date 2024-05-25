@@ -885,7 +885,7 @@ class TimelineViewModelImpl(
             } else requestedNextReadUntil
 
         readEvent.value = eventId
-        val readMarkerIsPublic = messengerSettings[userId].first()?.readMarkerIsPublic == true
+        val readMarkerIsPublic = messengerSettings[userId].first()?.base?.readMarkerIsPublic == true
         matrixClient.api.room.setReadMarkers(
             roomId = selectedRoomId,
             read = if (readMarkerIsPublic) eventId else null,

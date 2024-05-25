@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.SecretByteArrayKey
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -83,7 +84,8 @@ interface MatrixMessengerSettingsHolder : SettingsHolder<MatrixMessengerSettings
 
 class MatrixMessengerSettingsHolderImpl(
     storage: SettingsStorage,
-) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings),
+    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null)
+) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
     MatrixMessengerSettingsHolder {
     override operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> =
         map { it.base.accounts[userId] }

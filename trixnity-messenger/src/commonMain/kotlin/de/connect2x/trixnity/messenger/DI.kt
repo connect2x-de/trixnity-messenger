@@ -93,14 +93,14 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewMo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -223,6 +223,9 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     roomSettingsViewModels(),
     exportModule(),
 
+    // platform-specific view models
+    platformNotificationSettingsSingleAccountViewModelFactoryModule(),
+
     // platform-specific implementations
     platformPathsModule(),
     platformCreateRepositoriesModuleModule(),
@@ -285,9 +288,8 @@ private fun settingsViewModels() = module {
     single<AccountsOverviewViewModelFactory> { AccountsOverviewViewModelFactory }
     single<AppInfoViewModelFactory> { AppInfoViewModelFactory }
     single<AvatarCutterViewModelFactory> { AvatarCutterViewModelFactory }
-    single<ConfigureNotificationsViewModelFactory> { ConfigureNotificationsViewModelFactory }
     single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
-    single<NotificationsSettingsViewModelFactory> { NotificationsSettingsViewModelFactory }
+    single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory } // FIXME platform?
     single<ProfileViewModelFactory> { ProfileViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }

@@ -3,22 +3,21 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.CreateMediaStore
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.createDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
+import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
@@ -110,40 +109,11 @@ fun createTestDefaultTrixnityMessengerModules(
 }
 
 fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
-    val settingsHolder: MutableStateFlow<MatrixMessengerSettings> =
-        MutableStateFlow(MatrixMessengerSettings(preferredLang = "en"))
-    return object : MatrixMessengerSettingsHolder, StateFlow<MatrixMessengerSettings> by settingsHolder {
-        override fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> {
-            settingsHolder.update {
-                if (it.accounts.containsKey(userId)) it
-                else it.copy(
-                    accounts = it.accounts + (userId to MatrixMessengerAccountSettings(
-                        databasePassword = null
-                    ))
-                )
-            }
-            return settingsHolder.map { it.accounts[userId] }
-        }
-
-        override suspend fun update(
-            userId: UserId,
-            updater: (MatrixMessengerAccountSettings?) -> MatrixMessengerAccountSettings?
-        ) = update {
-            val oldAccounts = it.accounts
-            val newAccount = updater(
-                oldAccounts[userId] ?: MatrixMessengerAccountSettings(
-                    databasePassword = null
-                )
-            )
-            val newAccounts =
-                if (newAccount == null) oldAccounts - userId
-                else oldAccounts + (userId to newAccount)
-            it.copy(accounts = newAccounts)
-        }
-
-        override suspend fun update(updater: (MatrixMessengerSettings) -> MatrixMessengerSettings) =
-            settingsHolder.update(updater)
-
-        override suspend fun init() {}
+    val settingsHolder: MutableStateFlow<MatrixMessengerSettings?> =
+        MutableStateFlow(MatrixMessengerSettings(mapOf("preferredLang" to JsonPrimitive("en"))))
+    val dummyStorage = object : SettingsStorage {
+        override suspend fun read(): String? = null
+        override suspend fun write(settings: String) {}
     }
+    return MatrixMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
 }

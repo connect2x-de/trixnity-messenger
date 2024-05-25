@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.*
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -39,7 +41,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.kodein.mock.mockFunction2
 import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
@@ -185,7 +186,11 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
             }
-            messengerSettings.update(UserId("test", "server")) { it?.copy(readMarkerIsPublic = true) }
+            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+                it.copy(
+                    readMarkerIsPublic = true
+                )
+            }
         }
         afterTest {
             lifecycleRegistry.destroy()
@@ -577,7 +582,9 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark messages as read privately if the setting is set to privacy-first") {
-            messengerSettings.update(UserId("test", "server")) { it?.copy(readMarkerIsPublic = false) }
+            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+                it.copy(readMarkerIsPublic = false)
+            }
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")

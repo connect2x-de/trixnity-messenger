@@ -6,12 +6,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MatrixMessengerAccountPlatformSettingsAndroid(
+data class MatrixMessengerAccountPlatformNotificationSettings(
     val pushMode: PushMode = PushMode.PUSH
 ) : SettingsView<MatrixMessengerAccountPlatformSettings>
 
 val MatrixMessengerAccountPlatformSettings.notifications
-        by settingsView<MatrixMessengerAccountPlatformSettings, MatrixMessengerAccountPlatformSettingsAndroid>()
+        by settingsView<MatrixMessengerAccountPlatformSettings, MatrixMessengerAccountPlatformNotificationSettings>()
 
 @Serializable
 enum class PushMode {

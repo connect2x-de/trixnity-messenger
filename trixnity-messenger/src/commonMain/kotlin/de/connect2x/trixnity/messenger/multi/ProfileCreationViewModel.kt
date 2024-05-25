@@ -47,7 +47,7 @@ class ProfileCreationViewModelImpl(
     override val error: StateFlow<String?> =
         combine(profileManager.profiles, profileName) { existingProfiles, currentProfileName ->
             when {
-                existingProfiles.any { (_, settings) -> settings.displayName == currentProfileName } -> i18n.profileCreationDuplicate()
+                existingProfiles.any { (_, settings) -> settings.base.displayName == currentProfileName } -> i18n.profileCreationDuplicate()
                 else -> null
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -58,7 +58,7 @@ class ProfileCreationViewModelImpl(
         if (canCreateProfile.value) {
             coroutineScope.launch {
                 val id = profileManager.createProfile(
-                    settings = MatrixMultiMessengerProfileSettings(displayName = profileName.value)
+                    settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileName.value)
                 )
                 profileManager.selectProfile(id)
             }

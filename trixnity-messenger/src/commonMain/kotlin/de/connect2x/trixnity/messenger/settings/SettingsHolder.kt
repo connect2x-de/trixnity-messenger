@@ -5,19 +5,32 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.serializer
 
 interface SettingsHolder<S : Settings<S>> : StateFlow<S> {
     suspend fun init()
     suspend fun update(updater: MutableSettings<S>.(S) -> Unit)
 }
 
+suspend fun <S : Settings<S>, T : SettingsView<S>> SettingsHolder<S>.updateView(
+    serializer: KSerializer<T>,
+    updater: (T) -> T
+) = update {
+    set(updater(it.get(serializer)), serializer)
+}
+
+suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder<S>.updateView(
+    noinline updater: (T) -> T,
+) = updateView(serializer(), updater)
+
 abstract class SettingsHolderImpl<S : Settings<S>>(
     private val storage: SettingsStorage,
     private val settingsFactory: (Map<String, JsonElement>) -> S,
+    private val settings: MutableStateFlow<S?> = MutableStateFlow(null)
 ) : SettingsHolder<S>, StateFlow<S> {
-    val settings: MutableStateFlow<S?> = MutableStateFlow(null)
     private val updateMutex = Mutex()
     override suspend fun update(updater: MutableSettings<S>.(S) -> Unit) =
         updateMutex.withLock {

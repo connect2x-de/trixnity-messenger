@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
+import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -261,7 +262,7 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test2", "server") to matrixClientMock2,
                 )
                 logoutCalled shouldBe true
-                settings.value.accounts.keys shouldBe setOf(UserId("test2", "server"))
+                settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
                     matrixClientMock1.stop()
                     deleteAccountData.invoke(UserId("test1", "server"))
@@ -283,7 +284,7 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cut.value shouldBe mapOf()
                 logoutCalled shouldBe false
-                settings.value.accounts.keys shouldBe setOf()
+                settings.value.base.accounts.keys shouldBe setOf()
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
                     matrixClientMock1.stop()
                     deleteAccountData.invoke(UserId("test1", "server"))
@@ -295,8 +296,8 @@ class MatrixClientsTest : ShouldSpec() {
         context("remove") {
             should("remove matrix client") {
                 val cut = createCut()
-                settings.update(UserId("test1", "server")) { it }
-                settings.update(UserId("test2", "server")) { it }
+                settings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
+                settings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }
                 mutableMatrixClients.value = mapOf(
                     UserId("test1", "server") to matrixClientMock1,
                     UserId("test2", "server") to matrixClientMock2,
@@ -308,7 +309,7 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test2", "server") to matrixClientMock2,
                 )
                 logoutCalled shouldBe false
-                settings.value.accounts.keys shouldBe setOf(UserId("test2", "server"))
+                settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
                     matrixClientMock1.stop()
                     deleteAccountData.invoke(UserId("test1", "server"))
