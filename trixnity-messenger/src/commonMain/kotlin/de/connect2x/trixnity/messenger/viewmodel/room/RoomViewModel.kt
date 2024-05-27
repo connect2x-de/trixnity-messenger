@@ -8,16 +8,17 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalUserCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+
 
 private val log = KotlinLogging.logger {}
 
@@ -27,8 +28,8 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
-        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+        onOpenModal: OpenModalUserCallback,
+        onOpenMention: OpenMentionCallback,
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
@@ -57,8 +58,8 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) -> Unit,
-    onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
+    onOpenModal: OpenModalUserCallback,
+    onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 

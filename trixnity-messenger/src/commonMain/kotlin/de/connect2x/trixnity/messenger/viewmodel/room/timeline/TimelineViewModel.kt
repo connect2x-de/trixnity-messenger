@@ -22,6 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
@@ -31,7 +32,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
@@ -98,10 +98,8 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKWARDS
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -118,8 +116,8 @@ interface TimelineViewModelFactory {
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
-        onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-        onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+        onOpenModal: OpenModalCallback,
+        onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
         return TimelineViewModelImpl(
             viewModelContext,
@@ -223,8 +221,8 @@ class TimelineViewModelImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit
+    private val onOpenModal: OpenModalCallback,
+    private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
     init {
@@ -607,7 +605,7 @@ class TimelineViewModelImpl(
                 onMessageRepliedTo = ::onMessageRepliedTo,
                 onMessageReportTo = ::onShowReportMessageModal,
                 onOpenModal = onOpenModal,
-                onOpenMention = onOpenMention
+                onOpenMention = onOpenMention,
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
                 // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline

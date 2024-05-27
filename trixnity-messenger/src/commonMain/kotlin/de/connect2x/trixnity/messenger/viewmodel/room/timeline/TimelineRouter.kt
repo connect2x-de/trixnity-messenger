@@ -10,14 +10,13 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
+
 
 private val log = KotlinLogging.logger {}
 
@@ -47,8 +46,8 @@ class TimelineRouterImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onRoomBack: () -> Unit,
-    private val onOpenModal: (type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String) -> Unit,
-    private val onOpenMention: (userId: UserId, messageMention: MessageMention) -> Unit,
+    private val onOpenModal: OpenModalCallback,
+    private val onOpenMention: OpenMentionCallback,
 ) : TimelineRouter {
 
     private val timelineNavigation = StackNavigation<Config>()
@@ -95,5 +94,4 @@ class TimelineRouterImpl(
             is Config.View -> true
             is Config.None -> false
         }
-
 }

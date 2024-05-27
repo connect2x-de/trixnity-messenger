@@ -29,6 +29,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
@@ -324,7 +325,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
-            ),
+            )
         )
     }
 }

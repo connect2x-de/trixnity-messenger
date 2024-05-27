@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 

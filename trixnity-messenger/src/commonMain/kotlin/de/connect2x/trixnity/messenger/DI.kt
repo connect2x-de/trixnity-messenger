@@ -76,6 +76,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomTopi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineEventSubViewmodelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineEventSubViewmodelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
@@ -317,6 +319,7 @@ private fun timelineElementsViewModels() = module {
     single<NoticeMessageViewModelFactory> { NoticeMessageViewModelFactory }
     single<FallbackMessageViewModelFactory> { FallbackMessageViewModelFactory }
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
+    single<TimelineEventSubViewmodelFactory> { DefaultTimelineEventSubViewmodelFactory() }
     single<UserVerificationViewModelFactory> { UserVerificationViewModelFactory }
 }
 
