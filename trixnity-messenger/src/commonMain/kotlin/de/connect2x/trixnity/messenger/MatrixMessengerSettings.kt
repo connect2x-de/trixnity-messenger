@@ -28,7 +28,6 @@ data class MatrixMessengerSettingsBase(
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
     val ssoState: SSOState? = null,
-    val platform: MatrixMessengerPlatformSettings = MatrixMessengerPlatformSettings(emptyMap()),
 ) : SettingsView<MatrixMessengerSettings>
 
 @Serializable
@@ -39,7 +38,6 @@ data class MatrixMessengerAccountSettingsBase(
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
-    val platform: MatrixMessengerAccountPlatformSettings = MatrixMessengerAccountPlatformSettings(emptyMap()),
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(

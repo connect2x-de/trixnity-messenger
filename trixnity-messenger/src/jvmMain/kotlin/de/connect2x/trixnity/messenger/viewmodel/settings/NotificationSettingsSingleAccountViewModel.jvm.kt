@@ -2,23 +2,20 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountPlatformNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.notifications
+import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-actual interface NotificationSettingsSingleAccountViewModel {
-    actual val account: UserId
+actual interface NotificationSettingsSingleAccountViewModel : NotificationSettingsSingleAccountViewModelBase {
     val playSound: StateFlow<Boolean>
     val showPopup: StateFlow<Boolean>
     val showText: StateFlow<Boolean>
@@ -29,14 +26,13 @@ actual interface NotificationSettingsSingleAccountViewModel {
 }
 
 class NotificationSettingsSingleAccountViewModelImpl(
-    override val account: UserId,
     viewModelContext: MatrixClientViewModelContext,
-) : ViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel {
+) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
-    private val platformNotificationSettings = messengerSettings[account]
+    private val platformNotificationSettings = messengerSettings[userId]
         .filterNotNull()
-        .map { it.base.platform.notifications }
+        .map { it.platformNotifications }
 
     override val playSound = platformNotificationSettings.map { it.notificationsPlaySound }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -47,7 +43,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun togglePlaySound() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(account) {
+            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(notificationsPlaySound = !it.notificationsPlaySound)
             }
         }
@@ -55,7 +51,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun toggleShowPopup() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(account) {
+            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(notificationsShowPopup = !it.notificationsShowPopup)
             }
         }
@@ -63,7 +59,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun toggleShowText() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(account) {
+            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(notificationsShowText = !it.notificationsShowText)
             }
         }
