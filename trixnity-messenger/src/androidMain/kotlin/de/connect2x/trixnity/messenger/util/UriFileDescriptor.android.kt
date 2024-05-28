@@ -17,30 +17,26 @@ class UriFileDescriptor(
     private val i18n: I18n
 ) : FileDescriptor {
 
-    private val computedFileName: String
-    private val computedFileSize: Int?
+    private val computedFileInfo = getComputeFileInfo(fileUri)
 
-    init {
-        val (fileName, fileSize) = getFileNameAndSize(fileUri) ?: Pair(i18n.commonUnknown(), null)
-        computedFileName = fileName
-        computedFileSize = fileSize
-    }
-
-    override val fileName: String = computedFileName
-    override val fileSize: Int? = computedFileSize
-    override val mimeType: ContentType? = ContentType.fromFilePath(computedFileName).firstOrNull()
+    override val fileName: String = computedFileInfo?.fileName ?: i18n.commonUnknown()
+    override val fileSize: Int? = computedFileInfo?.fileSize
+    override val mimeType: ContentType? =
+        ContentType.fromFilePath(computedFileInfo?.fileName ?: i18n.commonUnknown()).firstOrNull()
     override val content: ByteArrayFlow =
         byteArrayFlowFromSource { context.contentResolver.openInputStream(fileUri)?.source() ?: Buffer() }
 
-    private fun getFileNameAndSize(uri: Uri): Pair<String, Int?>? = runCatching {
+    private fun getComputeFileInfo(uri: Uri): ComputedFileInfo? = runCatching {
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
             if (cursor.moveToFirst()) {
-                return@use Pair(cursor.getString(nameIndex), cursor.getLong(sizeIndex).toInt())
+                return@use ComputedFileInfo(cursor.getString(nameIndex), cursor.getLong(sizeIndex).toInt())
             } else {
                 return@use null
             }
         }
     }.getOrNull()
 }
+
+data class ComputedFileInfo(val fileName: String, val fileSize: Int?)
