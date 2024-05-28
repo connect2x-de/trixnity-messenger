@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import korlibs.io.async.launch
@@ -92,16 +91,7 @@ class AppearanceSettingsViewModelImpl(
     override fun setIsDarkTheme(isDarkTheme: Boolean?) {
         coroutineScope.launch {
             settings.update {
-                MatrixMessengerSettings(
-                    secretByteArrayKey = it.secretByteArrayKey,
-                    accounts = it.accounts,
-                    preferredLang = it.preferredLang,
-                    selectedAccount = it.selectedAccount,
-                    ssoState = it.ssoState,
-                    isDarkTheme = isDarkTheme,
-                    isHighContrast = it.isHighContrast,
-                    accentColor = it.accentColor
-                )
+                it.copy(isDarkTheme = isDarkTheme)
             }
         }
     }
@@ -109,16 +99,7 @@ class AppearanceSettingsViewModelImpl(
     override fun toggleHighContrast() {
         coroutineScope.launch {
             settings.update {
-                MatrixMessengerSettings(
-                    secretByteArrayKey = it.secretByteArrayKey,
-                    accounts = it.accounts,
-                    preferredLang = it.preferredLang,
-                    selectedAccount = it.selectedAccount,
-                    ssoState = it.ssoState,
-                    isDarkTheme = it.isDarkTheme,
-                    isHighContrast = !it.isHighContrast,
-                    accentColor = it.accentColor
-                )
+                it.copy(isHighContrast = !it.isHighContrast)
             }
         }
     }
@@ -126,16 +107,7 @@ class AppearanceSettingsViewModelImpl(
     override fun setAccentColor(color: Long?) {
         coroutineScope.launch {
             settings.update {
-                MatrixMessengerSettings(
-                    secretByteArrayKey = it.secretByteArrayKey,
-                    accounts = it.accounts,
-                    preferredLang = it.preferredLang,
-                    selectedAccount = it.selectedAccount,
-                    ssoState = it.ssoState,
-                    isDarkTheme = it.isDarkTheme,
-                    isHighContrast = it.isHighContrast,
-                    accentColor = color
-                )
+                it.copy(accentColor = color)
             }
         }
     }
