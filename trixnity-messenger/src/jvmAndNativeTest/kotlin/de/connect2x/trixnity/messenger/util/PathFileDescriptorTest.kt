@@ -4,19 +4,19 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import io.ktor.utils.io.core.*
+import io.ktor.http.ContentType
+import io.ktor.utils.io.core.toByteArray
 import net.folivo.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 
-class GetFileInfoTest : ShouldSpec({
+class PathFileDescriptorTest : ShouldSpec({
+    lateinit var cut: FileDescriptor
     lateinit var fakeFileSystem: FakeFileSystem
-    lateinit var cut: GetFileInfo
+
 
     beforeTest {
         fakeFileSystem = FakeFileSystem()
-        cut = GetFileInfoImpl(fakeFileSystem)
     }
 
     should("create from text") {
@@ -25,37 +25,42 @@ class GetFileInfoTest : ShouldSpec({
         fakeFileSystem.write(filePath) {
             writeUtf8("test")
         }
-        assertSoftly(cut(filePath).shouldNotBeNull()) {
-            fileName shouldBe "text.txt"
-            fileSize shouldBe 4
-            mimeType shouldBe ContentType.Text.Plain
-            content.toByteArray() shouldBe "test".toByteArray()
+        cut = PathFileDescriptor(filePath, fakeFileSystem)
+        assertSoftly(cut.fileSize.shouldNotBeNull()) {
+            cut.fileName shouldBe "text.txt"
+            cut.fileSize shouldBe 4
+            cut.mimeType shouldBe ContentType.Text.Plain
+            cut.content.toByteArray() shouldBe "test".toByteArray()
         }
     }
+
     should("create from image") {
         val filePath = "/directory/image.jpg".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
         fakeFileSystem.write(filePath) {
             writeUtf8("image")
         }
-        assertSoftly(cut(filePath).shouldNotBeNull()) {
-            fileName shouldBe "image.jpg"
-            fileSize shouldBe 5
-            mimeType shouldBe ContentType.Image.JPEG
-            content.toByteArray() shouldBe "image".toByteArray()
+        cut = PathFileDescriptor(filePath, fakeFileSystem)
+        assertSoftly(cut.fileSize.shouldNotBeNull()) {
+            cut.fileName shouldBe "image.jpg"
+            cut.fileSize shouldBe 5
+            cut.mimeType shouldBe ContentType.Image.JPEG
+            cut.content.toByteArray() shouldBe "image".toByteArray()
         }
     }
+
     should("create from video") {
         val filePath = "/directory/video.mp4".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
         fakeFileSystem.write(filePath) {
             writeUtf8("video")
         }
-        assertSoftly(cut(filePath).shouldNotBeNull()) {
-            fileName shouldBe "video.mp4"
-            fileSize shouldBe 5
-            mimeType shouldBe ContentType.Video.MP4
-            content.toByteArray() shouldBe "video".toByteArray()
+        cut = PathFileDescriptor(filePath, fakeFileSystem)
+        assertSoftly(cut.fileSize.shouldNotBeNull()) {
+            cut.fileName shouldBe "video.mp4"
+            cut.fileSize shouldBe 5
+            cut.mimeType shouldBe ContentType.Video.MP4
+            cut.content.toByteArray() shouldBe "video".toByteArray()
         }
     }
 })
