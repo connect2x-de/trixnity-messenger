@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.util
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import de.connect2x.trixnity.messenger.i18n.I18n
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
 import net.folivo.trixnity.utils.ByteArrayFlow
@@ -10,12 +11,24 @@ import net.folivo.trixnity.utils.byteArrayFlowFromSource
 import okio.Buffer
 import okio.source
 
-class UriFileDescriptor(private val context: Context, val fileUri: Uri) : FileDescriptor {
+class UriFileDescriptor(
+    private val context: Context,
+    val fileUri: Uri,
+    private val i18n: I18n
+) : FileDescriptor {
 
-    private val fileDataInfo = getFileNameAndSize(fileUri)
-    override val fileName: String = fileDataInfo?.first ?: "Unknown"
-    override val fileSize: Int? = fileDataInfo?.second
-    override val mimeType: ContentType? = ContentType.fromFilePath(fileDataInfo?.first ?: "").firstOrNull()
+    private val computedFileName: String
+    private val computedFileSize: Int?
+
+    init {
+        val (fileName, fileSize) = getFileNameAndSize(fileUri) ?: Pair(i18n.commonUnknown(), null)
+        computedFileName = fileName
+        computedFileSize = fileSize
+    }
+
+    override val fileName: String = computedFileName
+    override val fileSize: Int? = computedFileSize
+    override val mimeType: ContentType? = ContentType.fromFilePath(computedFileName).firstOrNull()
     override val content: ByteArrayFlow =
         byteArrayFlowFromSource { context.contentResolver.openInputStream(fileUri)?.source() ?: Buffer() }
 
