@@ -24,7 +24,7 @@ interface AppearanceSettingsViewModelFactory {
 }
 
 interface AppearanceSettingsViewModel {
-    val isDarkTheme: StateFlow<ThemeMode?>
+    val themeMode: StateFlow<ThemeMode?>
     val isHighContrast: StateFlow<Boolean?>
     val accentColor: StateFlow<Long?>
 
@@ -41,7 +41,7 @@ class AppearanceSettingsViewModelImpl(
 ) : ViewModelContext by viewModelContext, AppearanceSettingsViewModel {
     private val settings = get<MatrixMessengerSettingsHolder>()
 
-    override val isDarkTheme: StateFlow<ThemeMode?> =
+    override val themeMode: StateFlow<ThemeMode?> =
         settings.mapLatest { it.themeMode }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val isHighContrast: StateFlow<Boolean?> =
         settings.mapLatest { it.isHighContrast }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
