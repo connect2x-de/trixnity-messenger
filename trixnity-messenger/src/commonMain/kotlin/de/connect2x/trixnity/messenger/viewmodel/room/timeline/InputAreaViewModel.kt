@@ -215,7 +215,7 @@ open class InputAreaViewModelImpl(
                 val replacedLine =
                     listOf(
                         beforeReplacement +
-                                shouldBeReplaced.replace(mentionRegex, "@${username.name} ") +
+                                shouldBeReplaced.replace(mentionRegex, "${username.userId.full} ") +
                                 restOfTheLine
                     )
                 message.value =
@@ -231,7 +231,7 @@ open class InputAreaViewModelImpl(
                     message.value =
                         lines.drop(1).map { "$it\n" }.joinToString { "" } + lastLine.replaceAfterLast(
                             "@",
-                            "${username.name} "
+                            "${username.userId.full} "
                         )
                     _shouldFocus.value = uuid4().toString()
                 }
