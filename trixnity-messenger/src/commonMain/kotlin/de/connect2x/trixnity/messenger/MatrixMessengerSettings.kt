@@ -17,7 +17,7 @@ data class MatrixMessengerSettings(
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
     val ssoState: SSOState? = null,
-    val isDarkTheme: Boolean? = null,
+    val themeMode: ThemeMode = ThemeMode.DEFAULT,
     val isHighContrast: Boolean = false,
     val accentColor: Long? = null
 )

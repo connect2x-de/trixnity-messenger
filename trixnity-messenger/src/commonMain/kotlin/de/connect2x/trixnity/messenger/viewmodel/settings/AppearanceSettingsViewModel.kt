@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.ThemeMode
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import korlibs.io.async.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,46 +24,13 @@ interface AppearanceSettingsViewModelFactory {
 }
 
 interface AppearanceSettingsViewModel {
-    /**
-     * A flag which indicates the dark theme state in one of three ways:
-     *  - `null`: Use the system default
-     *  - `false`: Force using the light theme
-     *  - `true`: Force using the dark theme
-     */
-    val isDarkTheme: StateFlow<Boolean?>
-
-    /**
-     * A flag which indicates whether to use a high contrast theme.
-     */
+    val isDarkTheme: StateFlow<ThemeMode?>
     val isHighContrast: StateFlow<Boolean?>
-
-    /**
-     * A packed RGBA color used as an accent throughout the messenger.
-     * `null` if the default color should be used.
-     */
     val accentColor: StateFlow<Long?>
 
-    /**
-     * Sets the dark mode.
-     * @see [isDarkTheme].
-     */
-    fun setIsDarkTheme(isDarkTheme: Boolean?)
-
-    /**
-     * Toggles the high contrast mode for the current theme.
-     * @see [isHighContrast]
-     */
+    fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
-
-    /**
-     * Sets the accent color.
-     * @see [accentColor].
-     */
-    fun setAccentColor(color: Long?)
-
-    /**
-     * Returns to the previous view.
-     */
+    fun setAccentColor(accentColor: Long?)
     fun back()
 }
 
@@ -73,8 +41,8 @@ class AppearanceSettingsViewModelImpl(
 ) : ViewModelContext by viewModelContext, AppearanceSettingsViewModel {
     private val settings = get<MatrixMessengerSettingsHolder>()
 
-    override val isDarkTheme: StateFlow<Boolean?> =
-        settings.mapLatest { it.isDarkTheme }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val isDarkTheme: StateFlow<ThemeMode?> =
+        settings.mapLatest { it.themeMode }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val isHighContrast: StateFlow<Boolean?> =
         settings.mapLatest { it.isHighContrast }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val accentColor: StateFlow<Long?> =
@@ -88,10 +56,10 @@ class AppearanceSettingsViewModelImpl(
         backHandler.register(backCallback)
     }
 
-    override fun setIsDarkTheme(isDarkTheme: Boolean?) {
+    override fun setThemeMode(themeMode: ThemeMode) {
         coroutineScope.launch {
             settings.update {
-                it.copy(isDarkTheme = isDarkTheme)
+                it.copy(themeMode = themeMode)
             }
         }
     }
@@ -104,10 +72,10 @@ class AppearanceSettingsViewModelImpl(
         }
     }
 
-    override fun setAccentColor(color: Long?) {
+    override fun setAccentColor(accentColor: Long?) {
         coroutineScope.launch {
             settings.update {
-                it.copy(accentColor = color)
+                it.copy(accentColor = accentColor)
             }
         }
     }
