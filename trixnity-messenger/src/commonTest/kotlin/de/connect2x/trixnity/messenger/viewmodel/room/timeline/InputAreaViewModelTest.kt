@@ -612,28 +612,22 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("set the currently selected user's displayname") {
+        should("set the currently selected user's userId when cursor is null"){
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
-
-            cut.message.value = "Hello! @Ali"
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value shouldBe "Hello! @Alice "
 
             cut.message.value = "Hello!\n\nHola.\n@Ali"
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value = "Hello!\n\nHola.\n@Alice "
+            cut.message.value = "Hello!\n\nHola.\n${aliceUserId.full} "
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
-        should("set the currently selected user's displayname when the cursor is not at the end") {
+        should("set the currently selected user's id when the cursor is not at the end") {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
@@ -643,28 +637,28 @@ class InputAreaViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value shouldBe "@Alice "
+            cut.message.value shouldBe "${aliceUserId.full} "
 
             cut.message.value = "Hello! @Ali"
             cut.currentCursorPosition.value = 11
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value shouldBe "Hello! @Alice "
+            cut.message.value shouldBe "Hello! ${aliceUserId.full} "
 
             cut.message.value = "Hello! @Ali something more"
             cut.currentCursorPosition.value = 11
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value shouldBe "Hello! @Alice something more"
+            cut.message.value shouldBe "Hello! ${aliceUserId.full} something more"
 
             cut.message.value = "Hello!\n\nHola.\n@Ali something more"
             testCoroutineScheduler.advanceUntilIdle()
             cut.currentCursorPosition.value = 18
             cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value = "Hello!\n\nHola.\n@Alice something more"
+            cut.message.value = "Hello!\n\nHola.\n${aliceUserId.full} something more"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -680,14 +674,14 @@ class InputAreaViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value shouldBe "@Ali @Zoop @Alv"
+            cut.message.value shouldBe "@Ali ${zoopUserId.full} @Alv"
 
             cut.message.value = "@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv"
             cut.currentCursorPosition.value = 18 // after @Zo
             testCoroutineScheduler.advanceUntilIdle()
             cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.message.value shouldBe "@Ali\n @Ali\n @Ali @Zoop @Alv\n @Alv"
+            cut.message.value shouldBe "@Ali\n @Ali\n @Ali ${zoopUserId.full} @Alv\n @Alv"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
