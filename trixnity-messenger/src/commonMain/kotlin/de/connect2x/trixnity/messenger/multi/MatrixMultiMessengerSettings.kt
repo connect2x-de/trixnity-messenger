@@ -7,8 +7,10 @@ import de.connect2x.trixnity.messenger.settings.SettingsImpl
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
+import de.connect2x.trixnity.messenger.settings.updateView
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.serializer
 import org.koin.core.module.Module
 
 @Serializable
@@ -47,5 +49,9 @@ class MatrixMultiMessengerSettingsHolderImpl(
     storage: SettingsStorage,
 ) : SettingsHolderImpl<MatrixMultiMessengerSettings>(storage, ::MatrixMultiMessengerSettings),
     MatrixMultiMessengerSettingsHolder
+
+suspend inline fun <reified T : SettingsView<MatrixMultiMessengerSettings>> MatrixMultiMessengerSettingsHolder.updateView(
+    noinline updater: (T) -> T,
+) = updateView(serializer(), updater)
 
 expect fun platformMatrixMultiMessengerSettingsHolderModule(): Module

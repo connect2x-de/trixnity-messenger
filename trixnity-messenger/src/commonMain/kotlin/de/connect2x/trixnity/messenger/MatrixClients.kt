@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
-import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*

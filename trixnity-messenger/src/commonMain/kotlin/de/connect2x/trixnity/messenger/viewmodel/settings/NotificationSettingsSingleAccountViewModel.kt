@@ -1,21 +1,30 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.util.getContentRules
+import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
+import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
+import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
+import io.github.oshai.kotlinlogging.KotlinLogging
+import korlibs.io.async.launch
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
+import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.core.model.push.PushRule
-import net.folivo.trixnity.core.model.push.PushRuleSet
-import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
+import org.koin.core.component.get
 import org.koin.core.module.Module
 
+private val log = KotlinLogging.logger { }
 
 fun interface NotificationSettingsSingleAccountViewModelFactory {
     fun create(
@@ -24,20 +33,21 @@ fun interface NotificationSettingsSingleAccountViewModelFactory {
 }
 
 data class NotificationSettings(
-    val defaultLevel: DefaultLevel = DefaultLevel.ALL,
+    val defaultLevel: DefaultLevel = DefaultLevel.ROOM,
     val sound: Sound = Sound(),
     val activity: Activity = Activity(),
     val mention: Mention = Mention(),
     val keywords: Set<String> = setOf()
 ) {
     enum class DefaultLevel {
-        NONE, MENTION, DM, ALL;
+        NONE, MENTION, DM, ROOM;
     }
 
     data class Sound(
-        val dm: String? = "default",
-        val mention: String? = "default",
-        val call: String? = "ring",
+        val room: Boolean = true,
+        val dm: Boolean = true,
+        val mention: Boolean = true,
+        val call: Boolean = true,
     )
 
     data class Activity(
@@ -58,6 +68,7 @@ interface NotificationSettingsSingleAccountViewModelBase {
     val updateError: StateFlow<String?>
 
     val settings: StateFlow<NotificationSettings>
+    fun updateSettings(settings: NotificationSettings)
 }
 
 /**
@@ -68,7 +79,8 @@ expect interface NotificationSettingsSingleAccountViewModel : NotificationSettin
 class NotificationSettingsSingleAccountViewModelBaseImpl(
     viewModelContext: MatrixClientViewModelContext,
 ) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModelBase {
-    override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    private val i18n = get<I18n>()
+    override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val updateError: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val settings: StateFlow<NotificationSettings> =
@@ -78,84 +90,85 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
             .map { it.toNotificationSettings() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), NotificationSettings())
 
-    private fun PushRuleSet.toNotificationSettings(): NotificationSettings {
-        val pushRules = (override.orEmpty() +
-                content.orEmpty() +
-                room.orEmpty() +
-                sender.orEmpty() +
-                underride.orEmpty())
-            .filter { it.enabled }
-            .associateBy { it.ruleId }
-        val dmRules = setOfNotNull(
-            pushRules[ServerDefaultPushRules.RoomOneToOne.id],
-            pushRules[ServerDefaultPushRules.EncryptedRoomOneToOne.id]
-        )
-        val roomRules = setOfNotNull(
-            pushRules[ServerDefaultPushRules.Message.id],
-            pushRules[ServerDefaultPushRules.Encrypted.id]
-        )
-        val contentRules = content.orEmpty().filterNot { it.ruleId.startsWith(".") }
+    override fun updateSettings(settings: NotificationSettings) {
+        if (isUpdating.getAndUpdate { true }.not()) {
+            coroutineScope.launch {
+                updateError.value = null
 
-        return NotificationSettings(
-            defaultLevel = when {
-                pushRules[ServerDefaultPushRules.Master.id]?.enabled == false -> NotificationSettings.DefaultLevel.NONE
-                roomRules.shouldNotify() -> NotificationSettings.DefaultLevel.ALL
-                dmRules.shouldNotify() -> NotificationSettings.DefaultLevel.DM
-                else -> NotificationSettings.DefaultLevel.MENTION
-            },
-            sound = NotificationSettings.Sound(
-                dm = dmRules.shouldSetSoundTweak(),
-                mention = (setOfNotNull(
-                    pushRules[ServerDefaultPushRules.IsUserMention.id],
-                    pushRules[ServerDefaultPushRules.IsRoomMention.id]
-                ) + contentRules).shouldSetSoundTweak(),
-                call = setOfNotNull(pushRules[ServerDefaultPushRules.Call.id]).shouldSetSoundTweak(),
-            ),
-            activity = NotificationSettings.Activity(
-                invite = setOfNotNull(pushRules[ServerDefaultPushRules.InviteForMe.id]).shouldNotify(),
-                status = setOfNotNull(
-                    pushRules[ServerDefaultPushRules.MemberEvent.id],
-                    pushRules[ServerDefaultPushRules.Tombstone.id]
-                ).shouldNotify(),
-                notice = setOfNotNull(pushRules[ServerDefaultPushRules.SuppressNotice.id]).shouldMute().not(),
-            ),
-            mention = NotificationSettings.Mention(
-                user = setOfNotNull(pushRules[ServerDefaultPushRules.IsUserMention.id]).shouldNotify(),
-                room = setOfNotNull(pushRules[ServerDefaultPushRules.IsRoomMention.id]).shouldNotify(),
-                keyword = contentRules.shouldNotify(),
-            ),
-            keywords = contentRules.map { it.pattern }.toSet()
-        )
-    }
+                val currentPushRuleSet =
+                    matrixClient.user.getAccountData<PushRulesEventContent>()
+                        .map { it?.global }
+                        .first()
+                val newPushRuleSet = settings.toPushRuleSet(userId)
 
-    private fun Collection<PushRule>.shouldNotify(): Boolean = any { it.actions.contains(PushAction.Notify) }
+                val currentServerDefaultRules = currentPushRuleSet?.getServerDefaultRules().orEmpty()
+                val currentContentRules = currentPushRuleSet?.getContentRules().orEmpty()
 
-    private fun Collection<PushRule>.shouldSetSoundTweak(): String? =
-        filter { it.actions.contains(PushAction.Notify) }
-            .firstNotNullOfOrNull { pushRule ->
-                pushRule.actions.filterIsInstance<PushAction.SetSoundTweak>().firstOrNull()
-            }
-            ?.value
+                val newServerDefaultRules = newPushRuleSet.getServerDefaultRules()
+                val newContentRules = newPushRuleSet.getContentRules()
 
-    private fun Collection<PushRule>.shouldMute(): Boolean =
-        any {
-            !it.actions.contains(PushAction.Notify) &&
-                    it.actions.filterIsInstance<PushAction.SetSoundTweak>().firstOrNull()?.value.isNullOrEmpty() &&
-                    it.actions.filterIsInstance<PushAction.SetHighlightTweak>().firstOrNull()?.value != true
+                val updatedServerDefaultRules =
+                    newServerDefaultRules.values.toSet() - currentServerDefaultRules.values.toSet()
+                val updatedContentRules = newContentRules.values.toSet() - currentContentRules.values.toSet()
+                val deletedContentRules = currentContentRules - newContentRules.keys
+
+                log.debug { "update push rules" }
+                try {
+                    coroutineScope {
+                        updatedServerDefaultRules.forEach {
+                            if (it.enabled != currentServerDefaultRules[it.ruleId]?.enabled) {
+                                log.trace { "set enabled of push rule ${it.ruleId} to ${it.enabled}" }
+                                launch {
+                                    matrixClient.api.push.setPushRuleEnabled(
+                                        scope = "global",
+                                        kind = it.kind,
+                                        ruleId = it.ruleId,
+                                        enabled = it.enabled,
+                                    ).getOrThrow()
+                                }
+                            }
+                            if (it.actions != currentServerDefaultRules[it.ruleId]?.actions)
+                                launch {
+                                    log.trace { "set actions of push rule ${it.ruleId} to ${it.actions}" }
+                                    matrixClient.api.push.setPushRuleActions(
+                                        scope = "global",
+                                        kind = it.kind,
+                                        ruleId = it.ruleId,
+                                        actions = it.actions,
+                                    ).getOrThrow()
+                                }
+                        }
+                        updatedContentRules.forEach {
+                            launch {
+                                log.trace { "add content push rule ${it.ruleId}" }
+                                matrixClient.api.push.setPushRule(
+                                    scope = "global",
+                                    kind = it.kind,
+                                    ruleId = it.ruleId,
+                                    pushRule = SetPushRule.Request(
+                                        actions = it.actions,
+                                        pattern = it.pattern,
+                                    )
+                                ).getOrThrow()
+                            }
+                        }
+                        deletedContentRules.values.forEach {
+                            launch {
+                                log.trace { "delete content push rule ${it.ruleId}" }
+                                matrixClient.api.push.deletePushRule(
+                                    scope = "global",
+                                    kind = it.kind,
+                                    ruleId = it.ruleId,
+                                ).getOrThrow()
+                            }
+                        }
+                    }
+                } catch (exception: Exception) {
+                    log.warn(exception) { "there was an error updating the notification settings" }
+                    updateError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
+                }
+            }.invokeOnCompletion { isUpdating.value = false }
         }
-
-    private fun NotificationSettings.toPushRuleSet(): PushRuleSet {
-        PushRuleSet(
-            override = listOf(
-                ServerDefaultPushRules.Master.rule.copy(enabled = defaultLevel != NotificationSettings.DefaultLevel.NONE),
-                ServerDefaultPushRules.SuppressNotice.rule.copy(enabled = !activity.notice),
-                ServerDefaultPushRules.InviteForMe(userId).rule.copy(enabled = activity.invite),
-                ServerDefaultPushRules.MemberEvent.rule.copy(enabled = activity.status),
-                ServerDefaultPushRules.Tombstone.rule.copy(enabled = activity.status),
-                ServerDefaultPushRules.IsUserMention(userId).rule.copy(enabled = mention.user),
-                ServerDefaultPushRules.IsRoomMention.rule.copy(enabled = mention.room),
-            )
-        )
     }
 }
 

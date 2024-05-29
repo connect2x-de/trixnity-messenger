@@ -8,7 +8,11 @@ actual interface NotificationSettingsSingleAccountViewModel : NotificationSettin
 
 class NotificationSettingsSingleAccountViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel
+) : MatrixClientViewModelContext by viewModelContext,
+    NotificationSettingsSingleAccountViewModelBase by NotificationSettingsSingleAccountViewModelBaseImpl(
+        viewModelContext
+    ),
+    NotificationSettingsSingleAccountViewModel
 
 actual fun platformNotificationSettingsSingleAccountViewModelFactoryModule(): Module = module {
     single<NotificationSettingsSingleAccountViewModelFactory> {

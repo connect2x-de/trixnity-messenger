@@ -10,7 +10,6 @@ import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonTransformingSerializer
 
 open class JsonDelegateSerializer<T : Map<String, JsonElement>>(
     name: String,
@@ -28,18 +27,5 @@ open class JsonDelegateSerializer<T : Map<String, JsonElement>>(
     override fun serialize(encoder: Encoder, value: T) {
         require(encoder is JsonEncoder)
         encoder.encodeJsonElement(JsonObject(value))
-    }
-}
-
-open class JsonNestedSerializer<T : Any>(
-    val key: String,
-    baseSerializer: KSerializer<T>
-) : JsonTransformingSerializer<T>(baseSerializer) {
-    override fun transformDeserialize(element: JsonElement): JsonElement {
-        return (element as? JsonObject)?.get(key) ?: element
-    }
-
-    override fun transformSerialize(element: JsonElement): JsonElement {
-        return JsonObject(mapOf(key to element))
     }
 }

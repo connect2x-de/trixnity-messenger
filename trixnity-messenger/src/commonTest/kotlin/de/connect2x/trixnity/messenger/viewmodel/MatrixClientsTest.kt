@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.*
 import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
-import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder

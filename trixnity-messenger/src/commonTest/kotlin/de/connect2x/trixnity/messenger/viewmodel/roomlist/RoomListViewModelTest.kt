@@ -3,8 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.updateView
 import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
@@ -1271,7 +1273,7 @@ class RoomListViewModelTest : ShouldSpec() {
 
                                     override fun selectActiveAccount(userId: UserId?) {
                                         GlobalScope.launch {
-                                            get<MatrixMessengerSettingsHolder>().update {
+                                            get<MatrixMessengerSettingsHolder>().updateView<MatrixMessengerSettingsBase>() {
                                                 it.copy(selectedAccount = userId)
                                             }
                                         }

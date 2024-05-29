@@ -10,14 +10,17 @@ import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
+import de.connect2x.trixnity.messenger.settings.updateView
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.SecretByteArrayKey
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.serializer
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
@@ -32,7 +35,7 @@ data class MatrixMessengerSettingsBase(
 
 @Serializable
 data class MatrixMessengerAccountSettingsBase(
-    val databasePassword: SecretByteArray?,
+    val databasePassword: SecretByteArray? = null,
     val displayName: String? = null,
     val displayColor: Long? = null,
     val presenceIsPublic: Boolean = true,
@@ -91,19 +94,36 @@ class MatrixMessengerSettingsHolderImpl(
     override suspend fun update(
         userId: UserId,
         updater: MutableSettings<MatrixMessengerAccountSettings>.(MatrixMessengerAccountSettings) -> Unit,
-    ) = update {
-        val oldAccounts = it.base.accounts
+    ) = updateView<MatrixMessengerSettingsBase> {
+        val oldAccounts = it.accounts
         val oldAccountSettings = oldAccounts[userId] ?: MatrixMessengerAccountSettings(emptyMap())
         val newAccountSettings = MutableSettingsImpl(oldAccountSettings)
         with(newAccountSettings) {
             updater(oldAccountSettings)
         }
-        set(it.base.copy(accounts = oldAccounts + (userId to MatrixMessengerAccountSettings(newAccountSettings))))
+        it.copy(accounts = oldAccounts + (userId to MatrixMessengerAccountSettings(newAccountSettings)))
     }
 
-    override suspend fun delete(userId: UserId) = update {
-        set(it.base.copy(accounts = it.base.accounts - userId))
+    override suspend fun delete(userId: UserId) = updateView<MatrixMessengerSettingsBase> {
+        it.copy(accounts = it.accounts - userId)
     }
 }
+
+suspend fun <T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.updateView(
+    userId: UserId,
+    serializer: KSerializer<T>,
+    updater: (T) -> T,
+) = update(userId) {
+    set(updater(it.get(serializer)), serializer)
+}
+
+suspend inline fun <reified T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.updateView(
+    userId: UserId,
+    noinline updater: (T) -> T,
+) = updateView(userId, serializer(), updater)
+
+suspend inline fun <reified T : SettingsView<MatrixMessengerSettings>> MatrixMessengerSettingsHolder.updateView(
+    noinline updater: (T) -> T,
+) = updateView(serializer(), updater)
 
 expect fun platformMatrixMessengerSettingsHolderModule(): Module

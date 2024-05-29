@@ -45,7 +45,6 @@ class NotificationSettingsAllAccountsViewModelImpl(
             namedMatrixClients.map { (userId, _) ->
                 get<NotificationSettingsSingleAccountViewModelFactory>()
                     .create(
-                        account = userId,
                         viewModelContext = childContext("notificationSettings-${userId}", userId = userId),
                     )
             }

@@ -8,7 +8,7 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.settings.updateView
+import de.connect2x.trixnity.messenger.updateView
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
@@ -603,27 +603,19 @@ class MainViewModelTest : ShouldSpec() {
             val cut = mainViewModel()
             delay(300.milliseconds) // give viewmodel time to start first sync
             messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
-                it.copy(
-                    presenceIsPublic = false
-                )
+                it.copy(presenceIsPublic = false)
             }
             delay(10.milliseconds)
             messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
-                it.copy(
-                    presenceIsPublic = true
-                )
+                it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
             messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
-                it.copy(
-                    presenceIsPublic = false
-                )
+                it.copy(presenceIsPublic = false)
             }
             delay(10.milliseconds)
             messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
-                it.copy(
-                    presenceIsPublic = true
-                )
+                it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
 

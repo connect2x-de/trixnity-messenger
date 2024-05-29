@@ -1,6 +1,6 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.3.4-LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.3.7" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "1.9.23" # https://kotlinlang.org/
 ksp = "1.9.23-1.0.19" # https://github.com/google/ksp/releases
 kotlinWrappers = "1.0.0-pre.718" # https://github.com/JetBrains/kotlin-wrappers/releases

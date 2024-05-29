@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountPlatformNotificatio
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.platformNotifications
-import de.connect2x.trixnity.messenger.settings.updateView
+import de.connect2x.trixnity.messenger.updateView
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +24,11 @@ actual interface NotificationSettingsSingleAccountViewModel : NotificationSettin
 
 class NotificationSettingsSingleAccountViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel {
+) : MatrixClientViewModelContext by viewModelContext,
+    NotificationSettingsSingleAccountViewModelBase by NotificationSettingsSingleAccountViewModelBaseImpl(
+        viewModelContext
+    ),
+    NotificationSettingsSingleAccountViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val platformNotificationSettings = messengerSettings[userId]
