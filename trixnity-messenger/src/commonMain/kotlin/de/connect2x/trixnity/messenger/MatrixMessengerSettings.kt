@@ -57,13 +57,15 @@ data class MatrixMessengerAccountSettingsBase(
     }
 }
 
-class MatrixMessengerSettings(delegate: Map<String, JsonElement>) : SettingsImpl<MatrixMessengerSettings>(delegate) {
+data class MatrixMessengerSettings(
+    private val delegate: Map<String, JsonElement>
+) : SettingsImpl<MatrixMessengerSettings>(delegate) {
     val base by lazy { get<MatrixMessengerSettings, MatrixMessengerSettingsBase>() }
 }
 
 @Serializable(MatrixMessengerAccountSettingsSerializer::class)
-class MatrixMessengerAccountSettings(
-    delegate: Map<String, JsonElement>
+data class MatrixMessengerAccountSettings(
+    private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMessengerAccountSettings>(delegate) {
     val base by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountSettingsBase>() }
 }

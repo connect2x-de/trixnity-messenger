@@ -25,15 +25,15 @@ data class MatrixMultiMessengerProfileSettingsBase(
     val displayName: String? = null,
 ) : SettingsView<MatrixMultiMessengerProfileSettings>
 
-class MatrixMultiMessengerSettings(
-    delegate: Map<String, JsonElement>
+data class MatrixMultiMessengerSettings(
+    private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMultiMessengerSettings>(delegate) {
     val base by lazy { get<MatrixMultiMessengerSettings, MatrixMultiMessengerSettingsBase>() }
 }
 
 @Serializable(MatrixMultiMessengerProfileSettingsSerializer::class)
-class MatrixMultiMessengerProfileSettings(
-    delegate: Map<String, JsonElement>
+data class MatrixMultiMessengerProfileSettings(
+    private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMultiMessengerProfileSettings>(delegate) {
     val base by lazy { get<MatrixMultiMessengerProfileSettings, MatrixMultiMessengerProfileSettingsBase>() }
 }

@@ -9,6 +9,6 @@ abstract class SettingsImpl<S : Settings<S>>(
     delegate: Map<String, JsonElement>
 ) : Settings<S>, Map<String, JsonElement> by delegate
 
-class MutableSettingsImpl<S : Settings<S>>(
-    delegate: S,
+data class MutableSettingsImpl<S : Settings<S>>(
+    private val delegate: S,
 ) : MutableSettings<S>, MutableMap<String, JsonElement> by delegate.toMutableMap()
