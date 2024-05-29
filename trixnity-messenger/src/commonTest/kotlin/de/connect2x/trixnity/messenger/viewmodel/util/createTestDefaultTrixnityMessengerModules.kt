@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.CreateMediaStore
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettings
@@ -10,13 +12,18 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.createDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
+import de.connect2x.trixnity.messenger.updateView
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.InMemoryMediaStore
@@ -115,5 +122,12 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
         override suspend fun read(): String? = null
         override suspend fun write(settings: String) {}
     }
-    return MatrixMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
+    val delegate = MatrixMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
+    return object : MatrixMessengerSettingsHolder by delegate {
+        override fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> = flow {
+            val hasNoEntry = delegate[userId].first() == null
+            if (hasNoEntry) delegate.updateView<MatrixMessengerAccountSettingsBase>(userId) { it }
+            emitAll(delegate[userId])
+        }
+    }
 }
