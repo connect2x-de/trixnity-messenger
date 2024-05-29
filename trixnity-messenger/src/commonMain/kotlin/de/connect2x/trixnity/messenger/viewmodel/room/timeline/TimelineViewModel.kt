@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.FileDescriptorSerializer
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPopWhile
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -202,15 +201,10 @@ interface TimelineViewModel {
         class View(val viewModel: SendAttachmentViewModel) : Wrapper()
     }
 
-    @Serializable
     sealed class Config {
-        @Serializable
         data object None : Config()
 
-        @Serializable
-        data class SendAttachmentView(
-            @Serializable(with = FileDescriptorSerializer::class) val file: FileDescriptor
-        ) : Config()
+        data class SendAttachmentView(val file: FileDescriptor) : Config()
     }
 }
 
@@ -339,19 +333,22 @@ class TimelineViewModelImpl(
         reportMessageRouter.showReportMessage(eventId)
     }
 
+    override val reportMessageStack = reportMessageRouter.stack
+
+
     private val sendAttachmentNavigation = StackNavigation<Config>()
     override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = childStack(
         source = sendAttachmentNavigation,
-        serializer = Config.serializer(),
+        serializer = null,
         initialConfiguration = Config.None,
         handleBackButton = true,
         childFactory = ::createChild,
         key = "sendAttachmentRouter",
     )
 
-    override val reportMessageStack = reportMessageRouter.stack
     private fun createChild(
-        config: Config, componentContext: ComponentContext
+        config: Config,
+        componentContext: ComponentContext
     ): Wrapper = when (config) {
         is Config.None -> Wrapper.None
         is Config.SendAttachmentView -> Wrapper.View(

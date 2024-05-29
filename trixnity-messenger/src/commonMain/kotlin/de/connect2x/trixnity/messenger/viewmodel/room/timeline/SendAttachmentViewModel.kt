@@ -3,24 +3,16 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.FileInfo
-import de.connect2x.trixnity.messenger.util.GetFileInfo
+import de.connect2x.trixnity.messenger.util.ManualFileDescriptor
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.audio
@@ -28,7 +20,9 @@ import net.folivo.trixnity.client.room.message.file
 import net.folivo.trixnity.client.room.message.image
 import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.utils.byteArrayFlowFromSource
 import net.folivo.trixnity.utils.toByteArray
+import okio.Buffer
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -51,13 +45,10 @@ interface SendAttachmentViewModelFactory {
 interface SendAttachmentViewModel {
     val error: StateFlow<String?>
     val sendEnabled: StateFlow<Boolean>
-    val fileName: StateFlow<String?>
-    val fileSize: StateFlow<String?>
-    val byteArray: StateFlow<ByteArray?>
-
-    val isImage: StateFlow<Boolean?>
-    val isVideo: StateFlow<Boolean?>
-    val isAudio: StateFlow<Boolean?>
+    val file: FileDescriptor
+    val isImage: Boolean?
+    val isVideo: Boolean?
+    val isAudio: Boolean?
 
     fun send()
     fun cancel()
@@ -65,40 +56,22 @@ interface SendAttachmentViewModel {
 
 class SendAttachmentViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    file: FileDescriptor,
+    override val file: FileDescriptor,
     private val selectedRoomId: RoomId,
     private val onCloseAttachmentSendView: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SendAttachmentViewModel {
 
     private val messengerConfiguration = get<MatrixMessengerConfiguration>()
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
-    private val getFileInfo = get<GetFileInfo>()
-    private val fileInfo: SharedFlow<FileInfo?> = flow { emit(getFileInfo(file)) }
-        .shareIn(coroutineScope, started = SharingStarted.Eagerly, replay = 1)
+
     private val _sendEnabled = MutableStateFlow(_error.value == null)
 
     override val error: StateFlow<String?> = _error.asStateFlow()
     override val sendEnabled: StateFlow<Boolean> = _sendEnabled.asStateFlow()
-    override val fileName = fileInfo.map { it?.fileName }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
-    override val fileSize =
-        fileInfo.map { info ->
-            info.let {
-                "(" + (it?.fileSize?.let { size -> formatSize(size.toLong()) } ?: i18n.commonUnknown()) + ")"
-            }
-        }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
-    override val byteArray = fileInfo.map { it?.content?.toByteArray() }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val isImage = fileInfo.map { it?.mimeType?.match("image/*") }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
-
-    override val isVideo = fileInfo.map { it?.mimeType?.match("video/*") }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
-
-    override val isAudio = fileInfo.map { it?.mimeType?.match("audio/*") }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val isImage = file.mimeType?.match("image/*")
+    override val isVideo = file.mimeType?.match("video/*")
+    override val isAudio = file.mimeType?.match("audio/*")
 
     private val backCallback = BackCallback {
         cancel()
@@ -107,13 +80,12 @@ class SendAttachmentViewModelImpl(
     init {
         backHandler.register(backCallback)
         coroutineScope.launch {
-            val computedFileSize = fileInfo.first()?.fileSize
-            if ((computedFileSize?.compareTo(messengerConfiguration.attachmentMaxSize * 1_000_000)
-                    ?: 0) > 0
-            ) {
-                _error.value =
-                    i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
-            }
+            if (checkFileSizeExceedsLimit(
+                    fileSize = file.fileSize,
+                    maxSizeMB = messengerConfiguration.attachmentMaxSize
+                )
+            )
+                _error.value = i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
         }
     }
 
@@ -121,59 +93,54 @@ class SendAttachmentViewModelImpl(
         _sendEnabled.value = false
         coroutineScope.launch {
             matrixClient.room.sendMessage(selectedRoomId) {
-                val fileInfo = fileInfo.first()
-                if (fileInfo != null) {
-                    val byteArrayFlow = fileInfo.content
-                    when {
-                        isImage.value ?: false -> {
-                            log.debug { "send an image" }
-                            val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
-                            image(
-                                body = fileInfo.fileName,
-                                fileName = fileInfo.fileName,
-                                image = byteArrayFlow,
-                                type = fileInfo.mimeType,
-                                size = fileInfo.fileSize,
-                                width = width,
-                                height = height,
-                            )
-                        }
-
-                        isVideo.value ?: false -> {
-                            log.debug { "send a video" }
-                            video(
-                                body = fileInfo.fileName,
-                                fileName = fileInfo.fileName,
-                                video = byteArrayFlow,
-                                type = fileInfo.mimeType,
-                                size = fileInfo.fileSize,
-                            )
-                        } // TODO width, height, duration
-
-                        isAudio.value ?: false -> {
-                            log.debug { "send an audio" }
-                            audio(
-                                body = fileInfo.fileName,
-                                fileName = fileInfo.fileName,
-                                audio = byteArrayFlow,
-                                type = fileInfo.mimeType,
-                                size = fileInfo.fileSize,
-                            ) // TODO duration
-                        }
-
-                        else -> {
-                            log.debug { "send a file" }
-                            file(
-                                body = fileInfo.fileName,
-                                file = byteArrayFlow,
-                                type = fileInfo.mimeType,
-                                fileName = fileInfo.fileName,
-                                size = fileInfo.fileSize
-                            )
-                        }
+                val byteArrayFlow = file.content
+                when {
+                    isImage ?: false -> {
+                        log.debug { "send an image" }
+                        val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
+                        image(
+                            body = file.fileName,
+                            fileName = file.fileName,
+                            image = byteArrayFlow,
+                            type = file.mimeType,
+                            size = file.fileSize,
+                            width = width,
+                            height = height,
+                        )
                     }
-                } else {
-                    log.warn { "fileInfo is null" }
+
+                    isVideo ?: false -> {
+                        log.debug { "send a video" }
+                        video(
+                            body = file.fileName,
+                            fileName = file.fileName,
+                            video = byteArrayFlow,
+                            type = file.mimeType,
+                            size = file.fileSize,
+                        )
+                    } // TODO width, height, duration
+
+                    isAudio ?: false -> {
+                        log.debug { "send an audio" }
+                        audio(
+                            body = file.fileName,
+                            fileName = file.fileName,
+                            audio = byteArrayFlow,
+                            type = file.mimeType,
+                            size = file.fileSize,
+                        ) // TODO duration
+                    }
+
+                    else -> {
+                        log.debug { "send a file" }
+                        file(
+                            body = file.fileName,
+                            file = byteArrayFlow,
+                            type = file.mimeType,
+                            fileName = file.fileName,
+                            size = file.fileSize
+                        )
+                    }
                 }
             }
             onCloseAttachmentSendView()
@@ -190,12 +157,14 @@ class SendAttachmentViewModelImpl(
 class PreviewSendAttachmentViewModel() : SendAttachmentViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val sendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val fileName: MutableStateFlow<String?> = MutableStateFlow("anImage.png")
-    override val fileSize: MutableStateFlow<String> = MutableStateFlow("1337 KB")
-    override val byteArray: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
-    override val isImage: MutableStateFlow<Boolean?> = MutableStateFlow(true)
-    override val isVideo: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isAudio: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val file: FileDescriptor = ManualFileDescriptor(
+        fileName = "",
+        fileSize = null,
+        mimeType = null,
+        content = byteArrayFlowFromSource { Buffer() })
+    override val isImage: Boolean = true
+    override val isVideo: Boolean = false
+    override val isAudio: Boolean = false
 
     override fun send() {
     }
