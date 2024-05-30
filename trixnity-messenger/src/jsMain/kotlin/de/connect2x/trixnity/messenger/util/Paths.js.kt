@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
 import js.objects.Object
-import js.promise.await
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
@@ -19,7 +18,7 @@ actual fun platformPathsModule(): Module = module {
 suspend fun Path.deleteVirtualFileSystemData() {
     val path = toString()
 
-    val databaseNames = indexedDB.databases().await().mapNotNull { it.name }
+    val databaseNames = indexedDB.databases().mapNotNull { it.name }
     databaseNames.forEach { databaseName ->
         if (databaseName.startsWith(path)) {
             indexedDB.deleteDatabase(databaseName)
