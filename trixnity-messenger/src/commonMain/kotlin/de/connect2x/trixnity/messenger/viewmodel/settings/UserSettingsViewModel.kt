@@ -12,6 +12,7 @@ interface UserSettingsViewModelFactory {
         onShowProfile: () -> Unit,
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
+        onShowAppearanceSettings: () -> Unit,
     ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
@@ -20,6 +21,7 @@ interface UserSettingsViewModelFactory {
             onShowProfile,
             onShowNotificationsSettings,
             onShowPrivacySettings,
+            onShowAppearanceSettings
         )
     }
 
@@ -32,6 +34,7 @@ interface UserSettingsViewModel {
     fun showProfile()
     fun showNotificationsSettings()
     fun showPrivacySettings()
+    fun showAppearanceSettings()
 }
 
 open class UserSettingsViewModelImpl(
@@ -41,6 +44,7 @@ open class UserSettingsViewModelImpl(
     private val onShowProfile: () -> Unit,
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
+    private val onShowAppearanceSettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -69,5 +73,9 @@ open class UserSettingsViewModelImpl(
 
     override fun showPrivacySettings() {
         onShowPrivacySettings()
+    }
+
+    override fun showAppearanceSettings() {
+        onShowAppearanceSettings()
     }
 }
