@@ -30,7 +30,7 @@ interface SSOLoginViewModelFactory {
         serverUrl: String,
         providerId: String,
         providerName: String,
-        initalState: String? = null,
+        initialState: String? = null,
         onLogin: () -> Unit,
         onBack: () -> Unit,
     ): SSOLoginViewModel {
@@ -39,7 +39,7 @@ interface SSOLoginViewModelFactory {
             serverUrl,
             providerId,
             providerName,
-            initalState,
+            initialState,
             onLogin,
             onBack,
         )
@@ -77,6 +77,11 @@ interface SSOLoginViewModel {
     fun abortLogin()
 
     fun back()
+
+    /**
+     * Part of [resumeLogin] and thus should not be used directly. Should only be used to override the login process.
+     */
+    suspend fun loginWithLoginToken(loginToken: String)
 }
 
 open class SSOLoginViewModelImpl(
@@ -144,14 +149,7 @@ open class SSOLoginViewModelImpl(
                 if (loginToken != null) {
                     log.debug { "Try to login into $serverUrl with loginToken=***." }
                     try {
-                        matrixClients.loginCatching(
-                            serverUrl = serverUrl,
-                            token = loginToken,
-                            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                            addMatrixAccountState = addMatrixAccountState,
-                            i18n = i18n,
-                            onLogin = onLogin,
-                        )
+                        loginWithLoginToken(loginToken)
                         addMatrixAccountState.value = AddMatrixAccountState.None
                     } finally {
                         log.debug { "Clearing stored sso login info" }
@@ -168,6 +166,17 @@ open class SSOLoginViewModelImpl(
                 isResumingLogin.value = false
             }
         }
+    }
+
+    override suspend fun loginWithLoginToken(loginToken: String) {
+        matrixClients.loginCatching(
+            serverUrl = serverUrl,
+            token = loginToken,
+            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+            addMatrixAccountState = addMatrixAccountState,
+            i18n = i18n,
+            onLogin = onLogin,
+        )
     }
 
     override fun abortLogin() {
@@ -195,16 +204,9 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
     override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
     override val isResumingLogin: StateFlow<Boolean> = MutableStateFlow(false)
 
-    override fun resumeLogin(redirectUrl: Url) {
-    }
-
-    override fun tryLogin() {
-    }
-
-    override fun abortLogin() {
-    }
-
-    override fun back() {
-    }
-
+    override fun resumeLogin(redirectUrl: Url) {}
+    override fun tryLogin() {}
+    override fun abortLogin() {}
+    override fun back() {}
+    override suspend fun loginWithLoginToken(loginToken: String) {}
 }

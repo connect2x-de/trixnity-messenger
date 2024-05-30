@@ -8,7 +8,13 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
@@ -19,6 +25,7 @@ import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -58,6 +65,11 @@ interface RegisterNewAccountViewModel {
     fun tryRegistration()
     fun back()
 
+    /**
+     * Part of [tryRegistration] and thus should not be used directly. Should only be used to override the login process.
+     */
+    suspend fun loginWithAccessToken(userId: UserId, deviceId: String, accessToken: String)
+
     sealed interface RegistrationState {
         object Initial : RegistrationState
         object Registering : RegistrationState
@@ -66,7 +78,7 @@ interface RegisterNewAccountViewModel {
 }
 
 // TODO this should re-use an common UIA implementation, that we also need in other components
-open class RegisterNewAccountViewModelImpl(
+class RegisterNewAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
     private val onLogin: () -> Unit,
@@ -178,17 +190,7 @@ open class RegisterNewAccountViewModelImpl(
                                     val deviceId = registerResponse?.deviceId
                                     val accessToken = registerResponse?.accessToken
                                     if (deviceId != null && accessToken != null) {
-                                        matrixClients.loginWithCatching(
-                                            baseUrl = serverUrl,
-                                            loginInfo = MatrixClient.LoginInfo(
-                                                userId = registerResponse.userId,
-                                                deviceId = deviceId,
-                                                accessToken = accessToken,
-                                            ),
-                                            addMatrixAccountState = addMatrixAccountState,
-                                            i18n = i18n,
-                                            onLogin = onLogin,
-                                        )
+                                        loginWithAccessToken(registerResponse.userId, deviceId, accessToken)
                                     } else {
                                         log.error { "accessToken or deviceId missing in registration response" }
                                         registrationState.update { RegistrationState.Error(i18n.registrationErrorNotSuccessful()) }
@@ -202,6 +204,24 @@ open class RegisterNewAccountViewModelImpl(
                 }
             }
         }
+    }
+
+    override suspend fun loginWithAccessToken(
+        userId: UserId,
+        deviceId: String,
+        accessToken: String,
+    ) {
+        matrixClients.loginWithCatching(
+            baseUrl = serverUrl,
+            loginInfo = MatrixClient.LoginInfo(
+                userId = userId,
+                deviceId = deviceId,
+                accessToken = accessToken,
+            ),
+            addMatrixAccountState = addMatrixAccountState,
+            i18n = i18n,
+            onLogin = onLogin,
+        )
     }
 
     override fun back() {
@@ -314,5 +334,5 @@ class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
 
     override fun tryRegistration() {}
     override fun back() {}
-
+    override suspend fun loginWithAccessToken(userId: UserId, deviceId: String, accessToken: String) {}
 }
