@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
@@ -938,7 +938,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun updateNotificationSettingsError(error: String) = translate {
         EN - "There was an error updating the notification settings: $error"
-        DE - "Es gab einen Fehler beim aktualisieren der Benachrichtigungseinstellungen: $error"
+        DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: $error"
     }
 }
 
@@ -955,5 +955,5 @@ internal fun getLang(
 }
 
 internal suspend fun setLang(language: Language, settings: MatrixMessengerSettingsHolder) {
-    settings.updateView<MatrixMessengerSettingsBase> { it.copy(preferredLang = language.code) }
+    settings.update<MatrixMessengerSettingsBase> { it.copy(preferredLang = language.code) }
 }

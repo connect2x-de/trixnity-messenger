@@ -115,50 +115,50 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
                 log.debug { "update push rules" }
                 try {
                     coroutineScope {
-                        updatedServerDefaultRules.forEach {
-                            if (it.enabled != currentServerDefaultRules[it.ruleId]?.enabled) {
-                                log.trace { "set enabled of push rule ${it.ruleId} to ${it.enabled}" }
+                        updatedServerDefaultRules.forEach { rule ->
+                            if (rule.enabled != currentServerDefaultRules[rule.ruleId]?.enabled) {
+                                log.trace { "set enabled of push rule ${rule.ruleId} to ${rule.enabled}" }
                                 launch {
                                     matrixClient.api.push.setPushRuleEnabled(
                                         scope = "global",
-                                        kind = it.kind,
-                                        ruleId = it.ruleId,
-                                        enabled = it.enabled,
+                                        kind = rule.kind,
+                                        ruleId = rule.ruleId,
+                                        enabled = rule.enabled,
                                     ).getOrThrow()
                                 }
                             }
-                            if (it.actions != currentServerDefaultRules[it.ruleId]?.actions)
+                            if (rule.actions != currentServerDefaultRules[rule.ruleId]?.actions)
                                 launch {
-                                    log.trace { "set actions of push rule ${it.ruleId} to ${it.actions}" }
+                                    log.trace { "set actions of push rule ${rule.ruleId} to ${rule.actions}" }
                                     matrixClient.api.push.setPushRuleActions(
                                         scope = "global",
-                                        kind = it.kind,
-                                        ruleId = it.ruleId,
-                                        actions = it.actions,
+                                        kind = rule.kind,
+                                        ruleId = rule.ruleId,
+                                        actions = rule.actions,
                                     ).getOrThrow()
                                 }
                         }
-                        updatedContentRules.forEach {
+                        updatedContentRules.forEach { rule ->
                             launch {
-                                log.trace { "add content push rule ${it.ruleId}" }
+                                log.trace { "add content push rule ${rule.ruleId}" }
                                 matrixClient.api.push.setPushRule(
                                     scope = "global",
-                                    kind = it.kind,
-                                    ruleId = it.ruleId,
+                                    kind = rule.kind,
+                                    ruleId = rule.ruleId,
                                     pushRule = SetPushRule.Request(
-                                        actions = it.actions,
-                                        pattern = it.pattern,
+                                        actions = rule.actions,
+                                        pattern = rule.pattern,
                                     )
                                 ).getOrThrow()
                             }
                         }
-                        deletedContentRules.values.forEach {
+                        deletedContentRules.values.forEach { rule ->
                             launch {
-                                log.trace { "delete content push rule ${it.ruleId}" }
+                                log.trace { "delete content push rule ${rule.ruleId}" }
                                 matrixClient.api.push.deletePushRule(
                                     scope = "global",
-                                    kind = it.kind,
-                                    ruleId = it.ruleId,
+                                    kind = rule.kind,
+                                    ruleId = rule.ruleId,
                                 ).getOrThrow()
                             }
                         }

@@ -25,13 +25,13 @@ class MatrixMessengerSettingsTest : ShouldSpec() {
 
 
         should("updateView") {
-            cut.updateView<MatrixMessengerSettingsBase> {
+            cut.update<MatrixMessengerSettingsBase> {
                 it.copy(preferredLang = "dino")
             }
             settings.value?.base?.preferredLang shouldBe "dino"
         }
         should("updateView of account") {
-            cut.updateView<MatrixMessengerAccountSettingsBase>(userId) {
+            cut.update<MatrixMessengerAccountSettingsBase>(userId) {
                 it.copy(displayName = "DINO")
             }
             settings.value?.base?.accounts?.values?.first()?.get("displayName") shouldBe JsonPrimitive("DINO")

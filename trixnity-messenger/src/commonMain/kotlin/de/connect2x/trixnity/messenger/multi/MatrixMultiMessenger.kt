@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.multi
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
-import de.connect2x.trixnity.messenger.settings.updateView
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -66,7 +65,7 @@ class MatrixMultiMessengerImpl private constructor(
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
             }
-            di.get<MatrixMultiMessengerSettingsHolder>().updateView<MatrixMultiMessengerSettingsBase> { oldSettings ->
+            di.get<MatrixMultiMessengerSettingsHolder>().update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                 if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null)
                 else oldSettings
             }

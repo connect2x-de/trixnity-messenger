@@ -295,8 +295,8 @@ class MatrixClientsTest : ShouldSpec() {
         context("remove") {
             should("remove matrix client") {
                 val cut = createCut()
-                settings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
-                settings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }
+                settings.update<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
+                settings.update<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }
                 mutableMatrixClients.value = mapOf(
                     UserId("test1", "server") to matrixClientMock1,
                     UserId("test2", "server") to matrixClientMock2,

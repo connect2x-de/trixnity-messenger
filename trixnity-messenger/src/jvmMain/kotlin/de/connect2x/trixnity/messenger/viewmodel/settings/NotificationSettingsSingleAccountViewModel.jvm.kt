@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountPlatformNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +47,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun togglePlaySound() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
+            messengerSettings.update<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(notificationsPlaySound = !it.notificationsPlaySound)
             }
         }
@@ -55,7 +55,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun toggleShowPopup() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
+            messengerSettings.update<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(notificationsShowPopup = !it.notificationsShowPopup)
             }
         }
@@ -63,7 +63,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun toggleShowText() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
+            messengerSettings.update<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(notificationsShowText = !it.notificationsShowText)
             }
         }

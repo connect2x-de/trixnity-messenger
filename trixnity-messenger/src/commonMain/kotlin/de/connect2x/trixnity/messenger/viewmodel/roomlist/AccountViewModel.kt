@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -77,7 +77,7 @@ open class AccountViewModelImpl(
 
     override fun selectActiveAccount(userId: UserId?) {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerSettingsBase> { it.copy(selectedAccount = userId) }
+            messengerSettings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = userId) }
             onAccountSelected(userId)
         }
     }

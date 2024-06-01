@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import kotlinx.coroutines.flow.SharingStarted
@@ -67,7 +67,7 @@ open class PrivacySettingsSingleAccountViewModelImpl(
 
     override fun togglePresenceIsPublic() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(account) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
                 it.copy(presenceIsPublic = !it.presenceIsPublic)
             }
         }
@@ -75,7 +75,7 @@ open class PrivacySettingsSingleAccountViewModelImpl(
 
     override fun toggleReadMarkerIsPublic() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(account) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
                 it.copy(readMarkerIsPublic = !it.readMarkerIsPublic)
             }
         }
@@ -83,7 +83,7 @@ open class PrivacySettingsSingleAccountViewModelImpl(
 
     override fun toggleTypingIsPublic() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(account) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
                 it.copy(typingIsPublic = !it.typingIsPublic)
             }
         }

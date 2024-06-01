@@ -4,7 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.*
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -186,7 +186,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                 roomUser returns flowOf(null)
                 everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
             }
-            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
                 it.copy(
                     readMarkerIsPublic = true
                 )
@@ -582,7 +582,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark messages as read privately if the setting is set to privacy-first") {
-            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
                 it.copy(readMarkerIsPublic = false)
             }
             val timelineMock = timeline(mocker, roomServiceMock, roomId) {

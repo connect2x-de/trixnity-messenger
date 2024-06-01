@@ -8,7 +8,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.assertions.nondeterministic.continually
@@ -141,9 +141,9 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
         }.koin
         val settings = di.get<MatrixMessengerSettingsHolder>()
         accounts.forEach { (account, accountSettings) ->
-            settings.updateView<MatrixMessengerAccountSettingsBase>(account) { accountSettings }
+            settings.update<MatrixMessengerAccountSettingsBase>(account) { accountSettings }
         }
-        settings.updateView<MatrixMessengerSettingsBase>() { it.copy(selectedAccount = selectedAccount) }
+        settings.update<MatrixMessengerSettingsBase>() { it.copy(selectedAccount = selectedAccount) }
         val viewModelContext = ViewModelContextImpl(
             di,
             componentContext = DefaultComponentContext(LifecycleRegistry())

@@ -143,7 +143,7 @@ class MatrixClientsImpl(
                     settings.value.base.accounts.map { it.value.base.displayColor }.filterNotNull().toSet()
                 )
             }
-        settings.updateView<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
+        settings.update<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
             MatrixMessengerAccountSettingsBase.withConfigDefaults(
                 databasePassword = databasePassword,
                 displayColor = displayColor,
@@ -151,7 +151,7 @@ class MatrixClientsImpl(
             )
         }
         if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
-            settings.updateView<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
+            settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
         }
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }

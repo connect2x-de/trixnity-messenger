@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountPlatformNotificatio
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.platformNotifications
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +40,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     override fun togglePushMode() {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
+            messengerSettings.update<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
                 it.copy(
                     pushMode = when (it.pushMode) {
                         PushMode.PUSH -> PushMode.POLLING

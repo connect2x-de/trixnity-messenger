@@ -15,16 +15,16 @@ interface SettingsHolder<S : Settings<S>> : StateFlow<S> {
     suspend fun update(updater: MutableSettings<S>.(S) -> Unit)
 }
 
-suspend fun <S : Settings<S>, T : SettingsView<S>> SettingsHolder<S>.updateView(
+suspend fun <S : Settings<S>, T : SettingsView<S>> SettingsHolder<S>.update(
     serializer: KSerializer<T>,
     updater: (T) -> T
 ) = update {
     set(updater(it.get(serializer)), serializer)
 }
 
-suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder<S>.updateView(
+suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder<S>.update(
     noinline updater: (T) -> T,
-) = updateView(serializer(), updater)
+) = update(serializer(), updater)
 
 abstract class SettingsHolderImpl<S : Settings<S>>(
     private val storage: SettingsStorage,

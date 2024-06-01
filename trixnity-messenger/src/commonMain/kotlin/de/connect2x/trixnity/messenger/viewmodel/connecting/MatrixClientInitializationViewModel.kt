@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -96,10 +96,10 @@ open class MatrixClientInitializationViewModelImpl(
             log.debug { "found a selected account that is not present anymore" }
             if (baseSettings.accounts.size == 1) {
                 log.debug { "only 1 account left -> set as the active account" }
-                settings.updateView<MatrixMessengerSettingsBase> { it.copy(selectedAccount = it.accounts.keys.firstOrNull()) }
+                settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = it.accounts.keys.firstOrNull()) }
             } else {
                 log.debug { "more than 1 account left -> select all of them" }
-                settings.updateView<MatrixMessengerSettingsBase> {
+                settings.update<MatrixMessengerSettingsBase> {
                     it.copy(selectedAccount = null)
                 }
             }

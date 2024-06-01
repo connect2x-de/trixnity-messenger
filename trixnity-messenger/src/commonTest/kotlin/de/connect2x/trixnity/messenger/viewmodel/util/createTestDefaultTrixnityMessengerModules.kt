@@ -12,7 +12,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.createDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -126,7 +126,7 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
     return object : MatrixMessengerSettingsHolder by delegate {
         override fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> = flow {
             val hasNoEntry = delegate[userId].first() == null
-            if (hasNoEntry) delegate.updateView<MatrixMessengerAccountSettingsBase>(userId) { it }
+            if (hasNoEntry) delegate.update<MatrixMessengerAccountSettingsBase>(userId) { it }
             emitAll(delegate[userId])
         }
     }

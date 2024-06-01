@@ -4,7 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.ThemeMode
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import korlibs.io.async.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,7 +63,7 @@ class AppearanceSettingsViewModelImpl(
 
     override fun setThemeMode(themeMode: ThemeMode) {
         coroutineScope.launch {
-            settings.updateView<MatrixMessengerSettingsBase> {
+            settings.update<MatrixMessengerSettingsBase> {
                 it.copy(themeMode = themeMode)
             }
         }
@@ -71,7 +71,7 @@ class AppearanceSettingsViewModelImpl(
 
     override fun toggleHighContrast() {
         coroutineScope.launch {
-            settings.updateView<MatrixMessengerSettingsBase> {
+            settings.update<MatrixMessengerSettingsBase> {
                 it.copy(isHighContrast = !it.isHighContrast)
             }
         }
@@ -79,7 +79,7 @@ class AppearanceSettingsViewModelImpl(
 
     override fun setAccentColor(accentColor: Long?) {
         coroutineScope.launch {
-            settings.updateView<MatrixMessengerSettingsBase> {
+            settings.update<MatrixMessengerSettingsBase> {
                 it.copy(accentColor = accentColor)
             }
         }

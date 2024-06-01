@@ -10,7 +10,7 @@ import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
-import de.connect2x.trixnity.messenger.settings.updateView
+import de.connect2x.trixnity.messenger.settings.update
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.SecretByteArrayKey
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
@@ -100,7 +100,7 @@ class MatrixMessengerSettingsHolderImpl(
     override suspend fun update(
         userId: UserId,
         updater: MutableSettings<MatrixMessengerAccountSettings>.(MatrixMessengerAccountSettings) -> Unit,
-    ) = updateView<MatrixMessengerSettingsBase> {
+    ) = update<MatrixMessengerSettingsBase> {
         val oldAccounts = it.accounts
         val oldAccountSettings = oldAccounts[userId] ?: MatrixMessengerAccountSettings(emptyMap())
         val newAccountSettings = MutableSettingsImpl(oldAccountSettings)
@@ -110,12 +110,12 @@ class MatrixMessengerSettingsHolderImpl(
         it.copy(accounts = oldAccounts + (userId to MatrixMessengerAccountSettings(newAccountSettings)))
     }
 
-    override suspend fun delete(userId: UserId) = updateView<MatrixMessengerSettingsBase> {
+    override suspend fun delete(userId: UserId) = update<MatrixMessengerSettingsBase> {
         it.copy(accounts = it.accounts - userId)
     }
 }
 
-suspend fun <T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.updateView(
+suspend fun <T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.update(
     userId: UserId,
     serializer: KSerializer<T>,
     updater: (T) -> T,
@@ -123,13 +123,13 @@ suspend fun <T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSe
     set(updater(it.get(serializer)), serializer)
 }
 
-suspend inline fun <reified T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.updateView(
+suspend inline fun <reified T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.update(
     userId: UserId,
     noinline updater: (T) -> T,
-) = updateView(userId, serializer(), updater)
+) = update(userId, serializer(), updater)
 
-suspend inline fun <reified T : SettingsView<MatrixMessengerSettings>> MatrixMessengerSettingsHolder.updateView(
+suspend inline fun <reified T : SettingsView<MatrixMessengerSettings>> MatrixMessengerSettingsHolder.update(
     noinline updater: (T) -> T,
-) = updateView(serializer(), updater)
+) = update(serializer(), updater)
 
 expect fun platformMatrixMessengerSettingsHolderModule(): Module

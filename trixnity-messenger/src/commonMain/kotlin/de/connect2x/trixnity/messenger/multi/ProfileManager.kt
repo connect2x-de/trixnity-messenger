@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.settings.settingsJson
-import de.connect2x.trixnity.messenger.settings.updateView
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -54,13 +53,13 @@ class ProfileManagerImpl(
     override suspend fun closeProfile() {
         log.debug { "close current profile ${activeProfile.value}" }
         activeMatrixMessenger.value?.stop()
-        settingsHolder.updateView<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
     }
 
     override suspend fun selectProfile(profile: String) {
         log.debug { "select profile $profile" }
         closeProfile()
-        settingsHolder.updateView<MatrixMultiMessengerSettingsBase> {
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> {
             if (it.profiles.containsKey(profile)) it.copy(activeProfile = profile)
             else it
         }
@@ -72,7 +71,7 @@ class ProfileManagerImpl(
             checkNotNull(settingsJson.encodeToJsonElement(settings) as? JsonObject)
         )
         var nextId: String? = null
-        settingsHolder.updateView<MatrixMultiMessengerSettingsBase> { oldSettings ->
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
             val updateNextId = generateSequence(0) { it + 1 }.map { it.toString() }
                 .filterNot { oldSettings.profiles.containsKey(it) }
                 .first()
@@ -86,7 +85,7 @@ class ProfileManagerImpl(
         profile: String,
         updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
     ) {
-        settingsHolder.updateView<MatrixMultiMessengerSettingsBase> { oldSettings ->
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
             val newProfileSettings = oldSettings.profiles[profile]?.also { updateSettings(it) }
             if (newProfileSettings != null)
                 oldSettings.copy(profiles = oldSettings.profiles + (profile to newProfileSettings))
@@ -98,7 +97,7 @@ class ProfileManagerImpl(
         log.debug { "delete profile $profile" }
         if (activeProfile.value == profile) closeProfile()
         withContext(NonCancellable) {
-            settingsHolder.updateView<MatrixMultiMessengerSettingsBase> { oldSettings ->
+            settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                 oldSettings.copy(
                     profiles = oldSettings.profiles - profile,
                     activeProfile = if (oldSettings.activeProfile == profile) null else oldSettings.activeProfile

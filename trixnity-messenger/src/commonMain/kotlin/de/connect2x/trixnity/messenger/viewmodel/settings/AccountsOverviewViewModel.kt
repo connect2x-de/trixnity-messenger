@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.updateView
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -67,7 +67,7 @@ class AccountsOverviewViewModelImpl(
 
     override fun changeLocalDisplayName(userId: UserId, newLocalDisplayName: String?) {
         coroutineScope.launch {
-            messengerSettings.updateView<MatrixMessengerAccountSettingsBase>(userId) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {
                 it.copy(displayName = newLocalDisplayName)
             }
         }
