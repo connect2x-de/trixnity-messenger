@@ -19,14 +19,13 @@ import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import kotlin.time.Duration.Companion.seconds
-import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
 interface RoomSettingsJoinRulesViewModelFactory {
     fun create(
-        selectedRoomId: RoomId,
         viewModelContext: MatrixClientViewModelContext,
+        selectedRoomId: RoomId,
         error: MutableStateFlow<String?>
     ) : RoomSettingsJoinRulesViewModel {
         return RoomSettingsJoinRulesViewModelImpl(selectedRoomId, viewModelContext, error)
@@ -91,6 +90,20 @@ class RoomSettingsJoinRulesViewModelImpl(
             isJoinRuleChanging.value = false
 
         }
+    }
+
+}
+
+class PreviewRoomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel {
+    override val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?> =
+        MutableStateFlow( listOf(JoinRulesEventContent.JoinRule.Public, JoinRulesEventContent.JoinRule.Private,
+            JoinRulesEventContent.JoinRule.Invite, JoinRulesEventContent.JoinRule.Knock, JoinRulesEventContent.JoinRule.KnockRestricted,
+            JoinRulesEventContent.JoinRule.Restricted))
+    override val canChangeJoinRule: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isJoinRuleChanging: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val joinRule: MutableStateFlow<JoinRulesEventContent.JoinRule> = MutableStateFlow(JoinRulesEventContent.JoinRule.Public)
+    override fun changeJoinRule(newJoinRule: JoinRulesEventContent.JoinRule) {
+        joinRule.value = newJoinRule
     }
 
 }
