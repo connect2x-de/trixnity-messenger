@@ -58,6 +58,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentVie
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineEventSubViewmodelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModelFactory
@@ -69,6 +70,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberSt
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomNameChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomTopicChangeStatusViewModelFactory
@@ -76,7 +78,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMess
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineEventSubViewmodelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineEventSubViewmodelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
@@ -319,6 +320,7 @@ private fun timelineElementsViewModels() = module {
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
     single<TimelineEventSubViewmodelFactory> { DefaultTimelineEventSubViewmodelFactory() }
     single<UserVerificationViewModelFactory> { UserVerificationViewModelFactory }
+    single<RoomAvatarChangeStatusViewModelFactory> { RoomAvatarChangeStatusViewModelFactory }
 }
 
 private fun roomViewModels() = module {
