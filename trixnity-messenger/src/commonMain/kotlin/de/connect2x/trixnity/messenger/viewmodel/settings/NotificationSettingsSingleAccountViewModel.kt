@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.getContentRules
 import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
@@ -67,11 +70,14 @@ data class NotificationSettings(
 interface NotificationSettingsSingleAccountViewModelBase {
     val account: UserId
 
+    val enabledForThisDevice: StateFlow<Boolean>
+    fun toggleEnabledForThisDevice()
+
     val isUpdating: StateFlow<Boolean>
     val updateError: StateFlow<String?>
 
-    val settings: StateFlow<NotificationSettings>
-    fun updateSettings(settings: NotificationSettings)
+    val accountSettings: StateFlow<NotificationSettings>
+    fun updateAccountSettings(settings: NotificationSettings)
 }
 
 /**
@@ -84,17 +90,31 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
 ) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModelBase {
     override val account: UserId = userId
     private val i18n = get<I18n>()
+    private val settings = get<MatrixMessengerSettingsHolder>()
+
+    override val enabledForThisDevice: StateFlow<Boolean> = settings[userId]
+        .map { it?.base?.notificationsEnabled == true }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+
+    override fun toggleEnabledForThisDevice() {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerAccountSettingsBase>(userId) {
+                it.copy(notificationsEnabled = !it.notificationsEnabled)
+            }
+        }
+    }
+
     override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val updateError: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    override val settings: StateFlow<NotificationSettings> =
+    override val accountSettings: StateFlow<NotificationSettings> =
         matrixClient.user.getAccountData<PushRulesEventContent>()
             .map { it?.global }
             .filterNotNull()
             .map { it.toNotificationSettings() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), NotificationSettings())
 
-    override fun updateSettings(settings: NotificationSettings) {
+    override fun updateAccountSettings(settings: NotificationSettings) {
         if (isUpdating.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 updateError.value = null

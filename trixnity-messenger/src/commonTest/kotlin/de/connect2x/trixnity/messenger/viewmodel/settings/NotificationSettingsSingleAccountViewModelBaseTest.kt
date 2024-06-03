@@ -96,11 +96,11 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
 
         should("get settings") {
             val cut = createCut(coroutineContext)
-            cut.settings.firstWithClue(sampleSettings)
+            cut.accountSettings.firstWithClue(sampleSettings)
         }
         should("update settings") {
             val cut = createCut(coroutineContext)
-            cut.settings.firstWithClue(sampleSettings)
+            cut.accountSettings.firstWithClue(sampleSettings)
             val newSettings = sampleSettings.copy(
                 sound = sampleSettings.sound.copy(
                     call = true,
@@ -111,7 +111,7 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
                 keywords = setOf("alice2")
             )
 
-            cut.updateSettings(newSettings)
+            cut.updateAccountSettings(newSettings)
 
             cut.isUpdating.value shouldBe true
             continueHandlePushRuleRequest.value = true
