@@ -4,7 +4,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.launchPop
+import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.util.popSuspending
+import de.connect2x.trixnity.messenger.util.popWhileSuspending
+import de.connect2x.trixnity.messenger.util.pushSuspending
+import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,7 +50,8 @@ class SelfVerificationRouter(
                                 componentContext,
                                 selfVerificationConfig.userId
                             ),
-                            onClose = { closeSelfVerification(selfVerificationConfig.userId) },
+                            onCloseSelfVerificationView = ::closeSelfVerificationView,
+                            onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
                         )
                 )
             }
@@ -86,10 +92,15 @@ class SelfVerificationRouter(
         selfVerifications.value += userId
     }
 
+    private fun closeSelfVerificationView() {
+        viewModelContext.coroutineScope.launch {
+            navigation.replaceCurrentSuspending(Config.None)
+        }
+    }
+
     fun closeSelfVerification(userId: UserId) {
-        log.debug { "remove account from self verification queue: $userId and close self verification" }
+        log.debug { "remove account from self verification queue: $userId}" }
         selfVerifications.value -= userId
-        navigation.launchPop(viewModelContext.coroutineScope)
     }
 
     suspend fun showBootstrap(userId: UserId) {
@@ -133,6 +144,7 @@ class SelfVerificationRouter(
                 )
             } else {
                 // Queue is empty, close all verifications
+                log.error { "Queue is empty: $currentSelfVerifications -- ${stack.backStack}" }
                 if (stack.backStack.any { it.configuration is Config.None }) {
                     navigation.popWhileSuspending { it !is Config.None }
                 } else {
