@@ -1,9 +1,9 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.3.7" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.3.3" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "1.9.23" # https://kotlinlang.org/
 ksp = "1.9.23-1.0.20" # https://github.com/google/ksp/releases
-kotlinWrappers = "1.0.0-pre.753" # https://github.com/JetBrains/kotlin-wrappers/releases
+kotlinWrappers = "1.0.0-pre.718" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.8.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.6.3" # https://github.com/Kotlin/kotlinx.serialization/releases
 decompose = "3.0.0" # https://github.com/arkivanov/Decompose/releases
@@ -28,7 +28,7 @@ kotlinLogging = "6.0.9" # https://github.com/MicroUtils/kotlin-logging/releases
 logback = "1.5.6" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
 activity = "1.9.0" # https://developer.android.com/jetpack/androidx/releases/activity
-androidGradle = "8.2.2" # https://developer.android.com/reference/tools/gradle-api
+androidGradle = "8.4.1" # https://developer.android.com/reference/tools/gradle-api
 
 [libraries]
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
