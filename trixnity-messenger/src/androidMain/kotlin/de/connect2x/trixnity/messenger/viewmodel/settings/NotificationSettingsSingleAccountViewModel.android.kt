@@ -19,7 +19,7 @@ import org.koin.dsl.module
 actual interface NotificationSettingsSingleAccountViewModel : NotificationSettingsSingleAccountViewModelBase {
     val pushMode: StateFlow<PushMode>
 
-    fun togglePushMode()
+    fun setPushMode(pushMode: PushMode)
 }
 
 class NotificationSettingsSingleAccountViewModelImpl(
@@ -38,15 +38,10 @@ class NotificationSettingsSingleAccountViewModelImpl(
     override val pushMode = platformNotificationSettings.map { it.pushMode }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), PushMode.POLLING)
 
-    override fun togglePushMode() {
+    override fun setPushMode(pushMode: PushMode) {
         coroutineScope.launch {
             messengerSettings.update<MatrixMessengerAccountPlatformNotificationSettings>(userId) {
-                it.copy(
-                    pushMode = when (it.pushMode) {
-                        PushMode.PUSH -> PushMode.POLLING
-                        PushMode.POLLING -> PushMode.PUSH
-                    }
-                )
+                it.copy(pushMode = pushMode)
             }
         }
     }
