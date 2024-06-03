@@ -24,6 +24,7 @@ import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
+import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
@@ -210,6 +211,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<DragAndDropHandler> { DragAndDropHandlerBase() }
 
         single<RootViewModelFactory> { RootViewModelFactory }
+        single<MainViewModelFactory> { MainViewModelFactory }
     },
     timelineElementModule(),
     connectingViewModels(),
