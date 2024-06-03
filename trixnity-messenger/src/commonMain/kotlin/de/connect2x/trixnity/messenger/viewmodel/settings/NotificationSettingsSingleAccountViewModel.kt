@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import org.koin.core.component.get
 import org.koin.core.module.Module
@@ -64,6 +65,8 @@ data class NotificationSettings(
 }
 
 interface NotificationSettingsSingleAccountViewModelBase {
+    val account: UserId
+
     val isUpdating: StateFlow<Boolean>
     val updateError: StateFlow<String?>
 
@@ -79,6 +82,7 @@ expect interface NotificationSettingsSingleAccountViewModel : NotificationSettin
 class NotificationSettingsSingleAccountViewModelBaseImpl(
     viewModelContext: MatrixClientViewModelContext,
 ) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModelBase {
+    override val account: UserId = userId
     private val i18n = get<I18n>()
     override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val updateError: MutableStateFlow<String?> = MutableStateFlow(null)
