@@ -87,8 +87,9 @@ class SelfVerificationRouter(
     }
 
     fun closeSelfVerification(userId: UserId) {
-        log.debug { "remove account from self verification queue: $userId" }
+        log.debug { "remove account from self verification queue: $userId and close self verification" }
         selfVerifications.value -= userId
+        navigation.launchPop(viewModelContext.coroutineScope)
     }
 
     suspend fun showBootstrap(userId: UserId) {
