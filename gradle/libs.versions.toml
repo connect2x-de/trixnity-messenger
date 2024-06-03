@@ -2,34 +2,33 @@
 kotlinJvmTarget = "11"
 trixnity = "4.3.7" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "1.9.23" # https://kotlinlang.org/
-ksp = "1.9.23-1.0.19" # https://github.com/google/ksp/releases
+ksp = "1.9.23-1.0.20" # https://github.com/google/ksp/releases
 kotlinWrappers = "1.0.0-pre.754" # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinxCoroutines = "1.8.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
+kotlinxCoroutines = "1.8.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.6.3" # https://github.com/Kotlin/kotlinx.serialization/releases
-decompose = "3.0.0-beta01" # https://github.com/arkivanov/Decompose/releases
+decompose = "3.0.0" # https://github.com/arkivanov/Decompose/releases
 kotlinxDatetime = "0.5.0" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "3.5.6" # https://github.com/InsertKoinIO/koin/tags
-ktor = "2.3.10" # https://github.com/ktorio/ktor/releases
+ktor = "2.3.11" # https://github.com/ktorio/ktor/releases
 mocKmp = "1.17.0" # https://github.com/Kodein-Framework/MocKMP/releases
-kotest = "5.8.1" # https://github.com/kotest/kotest/releases
+kotest = "5.9.0" # https://github.com/kotest/kotest/releases
 jna = "5.14.0" # https://github.com/java-native-access/jna/tags
 okio = "3.9.0" # https://square.github.io/okio/changelog
 uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
 korge = "4.0.10" # https://github.com/korlibs/korge/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
-jsJoda = "2.18.3" # https://www.npmjs.com/package/@js-joda/timezone
-zipjs = "2.7.40" # https://www.npmjs.com/package/@zip.js/zip.js
-skie = "0.6.2" # https://github.com/touchlab/SKIE/releases
-kmmBridge = "0.5.2" # https://github.com/touchlab/KMMBridge/releases
+jsJoda = "2.21.0" # https://www.npmjs.com/package/@js-joda/timezone
+zipjs = "2.7.45" # https://www.npmjs.com/package/@zip.js/zip.js
+skie = "0.8.1" # https://github.com/touchlab/SKIE/releases
+kmmBridge = "0.5.5" # https://github.com/touchlab/KMMBridge/releases
 
 # integration tests
-testContainers = "1.19.7" # https://github.com/testcontainers/testcontainers-java/releases
-kotlinLogging = "6.0.4" # https://github.com/MicroUtils/kotlin-logging/releases
-logback = "1.5.5" # https://github.com/qos-ch/logback/tags
+testContainers = "1.19.8" # https://github.com/testcontainers/testcontainers-java/releases
+kotlinLogging = "6.0.9" # https://github.com/MicroUtils/kotlin-logging/releases
+logback = "1.5.6" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
-activity = "1.8.2" # https://developer.android.com/jetpack/androidx/releases/activity
-androidGradle = "8.2.2" # https://developer.android.com/reference/tools/gradle-api
-
+activity = "1.9.0" # https://developer.android.com/jetpack/androidx/releases/activity
+androidGradle = "8.4.1" # https://developer.android.com/reference/tools/gradle-api
 
 [libraries]
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
