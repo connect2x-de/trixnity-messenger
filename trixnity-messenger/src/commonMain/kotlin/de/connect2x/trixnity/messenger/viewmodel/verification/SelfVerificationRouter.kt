@@ -98,7 +98,7 @@ class SelfVerificationRouter(
     }
 
     fun closeSelfVerification(userId: UserId) {
-        log.debug { "remove account from self verification queue: $userId}" }
+        log.debug { "remove account from self verification queue: $userId" }
         selfVerifications.value -= userId
     }
 
@@ -143,7 +143,6 @@ class SelfVerificationRouter(
                 )
             } else {
                 // Queue is empty, close all verifications
-                log.error { "Queue is empty: $currentSelfVerifications -- ${stack.backStack}" }
                 if (stack.backStack.any { it.configuration is Config.None }) {
                     navigation.popWhileSuspending { it !is Config.None }
                 } else {
