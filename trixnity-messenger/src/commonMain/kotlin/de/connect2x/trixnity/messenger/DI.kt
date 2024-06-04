@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
-import de.connect2x.trixnity.messenger.util.platformGetFileInfoModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
@@ -60,6 +59,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentVie
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineElementRules
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineEventSubViewmodelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModelFactory
@@ -71,6 +71,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberSt
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomNameChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomTopicChangeStatusViewModelFactory
@@ -78,7 +79,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMess
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineEventSubViewmodelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineEventSubViewmodelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
@@ -94,6 +94,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFacto
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
@@ -233,7 +234,6 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformGetSecretByteArrayKey(),
     convertSecretByteArrayModule(),
     platformGetSystemLangModule(),
-    platformGetFileInfoModule(),
     platformDeleteAccountDataModule(),
     platformMatrixMessengerSettingsHolderModule(),
     platformSendLogToDevsModule(),
@@ -296,6 +296,7 @@ private fun settingsViewModels() = module {
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
+    single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
 }
 
@@ -320,6 +321,7 @@ private fun timelineElementsViewModels() = module {
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
     single<TimelineEventSubViewmodelFactory> { DefaultTimelineEventSubViewmodelFactory() }
     single<UserVerificationViewModelFactory> { UserVerificationViewModelFactory }
+    single<RoomAvatarChangeStatusViewModelFactory> { RoomAvatarChangeStatusViewModelFactory }
 }
 
 private fun roomViewModels() = module {
