@@ -28,7 +28,7 @@ kotlinLogging = "6.0.9" # https://github.com/MicroUtils/kotlin-logging/releases
 logback = "1.5.6" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
 activity = "1.9.0" # https://developer.android.com/jetpack/androidx/releases/activity
-androidGradle = "8.4.1" # https://developer.android.com/reference/tools/gradle-api
+androidGradle = "8.2.2" # https://developer.android.com/reference/tools/gradle-api
 
 [libraries]
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
