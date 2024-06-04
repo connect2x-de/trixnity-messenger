@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
@@ -49,7 +50,6 @@ class SelfVerificationRouter(
                                 componentContext,
                                 selfVerificationConfig.userId
                             ),
-                            onCloseSelfVerificationView = ::closeSelfVerificationView,
                             onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
                         )
                 )
@@ -63,7 +63,7 @@ class SelfVerificationRouter(
                             selfVerificationConfig.userId
                         ),
                         onStartSelfVerification = { showSelfVerification(selfVerificationConfig.userId) },
-                        onClose = { closeSelfVerification(selfVerificationConfig.userId) },
+                        onClose = ::continueWithoutVerification,
                     )
             )
 
@@ -91,10 +91,8 @@ class SelfVerificationRouter(
         selfVerifications.value += userId
     }
 
-    private fun closeSelfVerificationView() {
-        viewModelContext.coroutineScope.launch {
-            navigation.replaceCurrentSuspending(Config.None)
-        }
+    private fun continueWithoutVerification() {
+        navigation.launchPop(viewModelContext.coroutineScope)
     }
 
     fun closeSelfVerification(userId: UserId) {

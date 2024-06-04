@@ -27,10 +27,9 @@ private val log = KotlinLogging.logger { }
 interface SelfVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onCloseSelfVerificationView: () -> Unit,
         onCloseSelfVerification: () -> Unit,
     ): SelfVerificationViewModel {
-        return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerificationView, onCloseSelfVerification)
+        return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerification)
     }
 
     companion object : SelfVerificationViewModelFactory
@@ -56,7 +55,6 @@ interface SelfVerificationViewModel {
 
 open class SelfVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val onCloseSelfVerificationView: () -> Unit,
     private val onCloseSelfVerification: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SelfVerificationViewModel {
 
@@ -120,7 +118,7 @@ open class SelfVerificationViewModelImpl(
                             log.error(it) { "device verification failed" }
                         }
                     log.debug { "close self verification view" }
-                    onCloseSelfVerificationView()
+                    onCloseSelfVerification()
                 }
             }
 

@@ -60,8 +60,6 @@ class SelfVerificationViewModelTest : ShouldSpec() {
 
     private val onCloseSelfVerificationMock = mockFunction0<Unit>(mocker)
 
-    private val onCloseSelfVerificationViewMock = mockFunction0<Unit>(mocker)
-
     init {
         coroutineTestScope = true
 
@@ -143,7 +141,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { onCloseSelfVerificationViewMock.invoke() } returns Unit
+            mocker.every { onCloseSelfVerificationMock.invoke() } returns Unit
             mocker.every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
@@ -152,7 +150,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             deviceVerificationCalled shouldBe true
-            mocker.verify(exhaustive = false) { onCloseSelfVerificationViewMock.invoke() }
+            mocker.verify(exhaustive = false) { onCloseSelfVerificationMock.invoke() }
 
             cancelNeverEndingCoroutines()
         }
@@ -373,7 +371,6 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
-            onCloseSelfVerificationView = onCloseSelfVerificationViewMock,
             onCloseSelfVerification = onCloseSelfVerificationMock,
         )
     }
