@@ -11,6 +11,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
 import io.github.oshai.kotlinlogging.KotlinLogging
 import korlibs.io.async.launch
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.timeout
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
@@ -27,6 +30,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import org.koin.core.component.get
 import org.koin.core.module.Module
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -114,6 +118,7 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
             .map { it.toNotificationSettings() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), NotificationSettings())
 
+    @OptIn(FlowPreview::class)
     override fun updateAccountSettings(settings: NotificationSettings) {
         if (isUpdating.getAndUpdate { true }.not()) {
             coroutineScope.launch {
@@ -123,6 +128,10 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
                     matrixClient.user.getAccountData<PushRulesEventContent>()
                         .map { it?.global }
                         .first()
+                if (currentPushRuleSet?.toNotificationSettings() == settings) {
+                    log.debug { "no change in settings" }
+                    return@launch
+                }
                 val newPushRuleSet = settings.toPushRuleSet(userId)
 
                 val currentServerDefaultRules = currentPushRuleSet?.getServerDefaultRules().orEmpty()
@@ -187,9 +196,19 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
                             }
                         }
                     }
+                    matrixClient.user.getAccountData<PushRulesEventContent>()
+                        .map { it?.global }
+                        .timeout(10.seconds)
+                        .first {
+                            it?.toNotificationSettings() == settings
+                        }
                 } catch (exception: Exception) {
                     log.warn(exception) { "there was an error updating the notification settings" }
-                    updateError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
+                    if (exception is TimeoutCancellationException) {
+                        updateError.value = i18n.updateNotificationSettingsTimeoutError()
+                    } else {
+                        updateError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
+                    }
                 }
             }.invokeOnCompletion { isUpdating.value = false }
         }

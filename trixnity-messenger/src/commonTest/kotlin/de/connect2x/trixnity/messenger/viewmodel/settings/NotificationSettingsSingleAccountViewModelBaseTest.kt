@@ -7,10 +7,14 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -20,17 +24,44 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.push.PushAction
 import net.folivo.trixnity.core.model.push.PushRuleKind
+import net.folivo.trixnity.core.model.push.PushRuleSet
 import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
     val mocker = Mocker()
 
     private val userId = UserId("alice", "dino.unicorn")
+
+    private val sampleSettings =
+        NotificationSettings(
+            defaultLevel = NotificationSettings.DefaultLevel.MENTION,
+            sound = NotificationSettings.Sound(
+                room = false,
+                dm = false,
+                mention = false,
+                call = false,
+            ),
+            activity = NotificationSettings.Activity(
+                invite = false,
+                status = false,
+                notice = false,
+            ),
+            mention = NotificationSettings.Mention(
+                user = false,
+                room = false,
+                keyword = false
+            ),
+            keywords = setOf("alice1")
+        )
+
+    private val samplePushRuleSet = sampleSettings.toPushRuleSet(userId)
 
     @Mock
     lateinit var matrixClientMock: MatrixClient
@@ -45,15 +76,19 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
     lateinit var pushApiClientMock: PushApiClient
 
     private val continueHandlePushRuleRequest = MutableStateFlow(false)
+    private val pushRulesEventContentState = MutableStateFlow<PushRuleSet?>(samplePushRuleSet)
 
     init {
-        timeout = 2_000
+        coroutineTestScope = true
+        timeout = 20_000 // virtual time!
 
         beforeTest {
+
             mocker.reset()
             injectMocks(mocker)
 
             continueHandlePushRuleRequest.value = false
+            pushRulesEventContentState.value = samplePushRuleSet
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
                     modules(
@@ -66,7 +101,7 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
                 every { matrixClientServerApiClientMock.push } returns pushApiClientMock
                 every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
-                        flowOf(PushRulesEventContent(samplePushRuleSet))
+                        pushRulesEventContentState.map { PushRulesEventContent((it)) }
                 everySuspending {
                     pushApiClientMock.setPushRule(isAny(), isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
                 } runs {
@@ -115,6 +150,9 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
 
             cut.isUpdating.value shouldBe true
             continueHandlePushRuleRequest.value = true
+            cut.isUpdating.value shouldBe true
+
+            pushRulesEventContentState.value = newSettings.toPushRuleSet(userId)
             cut.isUpdating.firstWithClue(false)
 
             mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
@@ -151,6 +189,31 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
                     asUserId = null
                 )
             }
+            cut.updateError.value shouldBe null
+        }
+        should("update settings with timeout") {
+            val cut = createCut(coroutineContext)
+            cut.accountSettings.firstWithClue(sampleSettings)
+            val newSettings = sampleSettings.copy(
+                sound = sampleSettings.sound.copy(
+                    call = true,
+                ),
+                activity = sampleSettings.activity.copy(
+                    notice = true,
+                ),
+                keywords = setOf("alice2")
+            )
+
+            cut.updateAccountSettings(newSettings)
+
+            cut.isUpdating.value shouldBe true
+            continueHandlePushRuleRequest.value = true
+            cut.isUpdating.value shouldBe true
+
+            pushRulesEventContentState.value = PushRuleSet()
+            cut.isUpdating.firstWithClue(false, 11.seconds)
+            testCoroutineScheduler.currentTime shouldBeGreaterThanOrEqual 10_000
+            cut.updateError.value shouldContain "timeout"
         }
     }
 
@@ -167,30 +230,6 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
             )
         )
     }
-
-    private val sampleSettings =
-        NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.MENTION,
-            sound = NotificationSettings.Sound(
-                room = false,
-                dm = false,
-                mention = false,
-                call = false,
-            ),
-            activity = NotificationSettings.Activity(
-                invite = false,
-                status = false,
-                notice = false,
-            ),
-            mention = NotificationSettings.Mention(
-                user = false,
-                room = false,
-                keyword = false
-            ),
-            keywords = setOf("alice1")
-        )
-
-    private val samplePushRuleSet = sampleSettings.toPushRuleSet(userId)
 
     private fun actions(
         notify: Boolean = false,

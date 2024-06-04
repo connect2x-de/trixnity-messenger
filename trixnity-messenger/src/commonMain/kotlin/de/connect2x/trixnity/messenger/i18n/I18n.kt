@@ -940,6 +940,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "There was an error updating the notification settings: $error"
         DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: $error"
     }
+
+    fun updateNotificationSettingsTimeoutError() = translate {
+        EN - "There was an error updating the notification settings: timeout"
+        DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: Zeitüberschreitung"
+    }
 }
 
 internal fun getLang(
