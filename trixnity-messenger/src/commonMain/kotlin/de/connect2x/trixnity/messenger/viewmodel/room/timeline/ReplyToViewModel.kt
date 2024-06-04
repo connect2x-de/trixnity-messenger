@@ -3,9 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.AudioReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.EmoteReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.FileReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.ImageReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.LocationReply
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.NoticeReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.TextReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.UnknownReply
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.VideoReply
@@ -85,7 +87,9 @@ open class ReplyToViewModelImpl(
         ) { timelineEvent, roomUser ->
             val sender = roomUser?.name ?: i18n.commonUnknown()
             when (val content = timelineEvent?.content?.getOrNull()) { // in case the event has to be decrypted
-                is TextBased -> TextReply(content.bodyWithoutFallback, sender)
+                is TextBased.Notice -> NoticeReply(content.bodyWithoutFallback, sender)
+                is TextBased.Emote -> EmoteReply(content.bodyWithoutFallback, sender)
+                is TextBased.Text -> TextReply(content.bodyWithoutFallback, sender)
                 is FileBased.Image -> {
                     val thumbnail = if (thumbnailCache.value == null && thumbnailLoading.value.not()) {
                         thumbnailLoading.value = true
@@ -134,6 +138,16 @@ open class ReplyToViewModelImpl(
 
 sealed interface ReplyType {
     val senderName: String
+
+    data class NoticeReply(
+        val text: String,
+        override val senderName: String,
+    ) : ReplyType
+
+    data class EmoteReply(
+        val text: String,
+        override val senderName: String,
+    ) : ReplyType
 
     data class TextReply(
         val text: String,
