@@ -249,7 +249,64 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
     ): TimelineElementWithTimestampViewModel {
         val richRepliesComputations = viewModelContext.get<RichRepliesComputations>()
         return when (content) {
-            is TextBased -> {
+            is TextBased.Notice -> {
+                log.trace { "Create notice message view model: ${event.id}" }
+                viewModelContext.get<NoticeMessageViewModelFactory>().create(
+                    viewModelContext = viewModelContext,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    fallbackMessage = content.body,
+                    referencedMessage = richRepliesComputations.getReferencedMessage(
+                        viewModelContext.matrixClient,
+                        content.relatesTo,
+                        selectedRoomId
+                    ),
+                    message = content.bodyWithoutFallback,
+                    formattedBody = content.formattedBody,
+                    sender = sender,
+                    showSender = showSender,
+                    formattedTime = formatTime(receivedDateTime),
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    isByMe = isByMe,
+                    showChatBubbleEdge = showChatBubbleEdge,
+                    showBigGap = showChatBubbleEdge,
+                    invitation = invitation,
+                    roomId = selectedRoomId,
+                    onOpenMention = onOpenMention,
+                )
+            }
+
+            is TextBased.Emote -> {
+                log.trace { "Create emote message view model: ${event.id}" }
+                viewModelContext.get<EmoteMessageViewModelFactory>().create(
+                    viewModelContext = viewModelContext,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    fallbackMessage = content.body,
+                    referencedMessage = richRepliesComputations.getReferencedMessage(
+                        viewModelContext.matrixClient,
+                        content.relatesTo,
+                        selectedRoomId
+                    ),
+                    message = content.bodyWithoutFallback,
+                    formattedBody = content.formattedBody,
+                    sender = sender,
+                    showSender = showSender,
+                    formattedTime = formatTime(receivedDateTime),
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    isByMe = isByMe,
+                    showChatBubbleEdge = showChatBubbleEdge,
+                    showBigGap = showChatBubbleEdge,
+                    invitation = invitation,
+                    roomId = selectedRoomId,
+                    onOpenMention = onOpenMention,
+                )
+            }
+
+
+            is TextBased.Text -> {
                 log.trace { "Create text message view model: ${event.id}" }
                 viewModelContext.get<TextMessageViewModelFactory>().create(
                     viewModelContext = viewModelContext,
