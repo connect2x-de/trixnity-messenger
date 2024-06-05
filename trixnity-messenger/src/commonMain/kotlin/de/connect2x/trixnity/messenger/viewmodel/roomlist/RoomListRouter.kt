@@ -48,8 +48,9 @@ class RoomListRouter(
     private val onOpenAvatarCutter: (userId: UserId, file: FileDescriptor) -> Unit,
     private val onSendLogs: () -> Unit,
     private val onCreateNewAccount: () -> Unit,
-    private val onRemoveAccount: (userId: UserId) -> Unit
-) {
+    private val onRemoveAccount: (userId: UserId) -> Unit,
+    private val onAccountSelected: () -> Unit,
+    ) {
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -83,6 +84,7 @@ class RoomListRouter(
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
                     onOpenAccountsOverview = ::onOpenAccountsOverview,
+                    onAccountSelected = onAccountSelected
                 )
             )
 
