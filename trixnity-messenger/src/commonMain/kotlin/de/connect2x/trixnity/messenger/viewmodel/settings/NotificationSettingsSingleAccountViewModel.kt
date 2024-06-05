@@ -69,6 +69,27 @@ data class NotificationSettings(
         val room: Boolean = true,
         val keyword: Boolean = true,
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as NotificationSettings
+
+        if (defaultLevel != other.defaultLevel) return false
+        if (sound != other.sound) return false
+        if (activity != other.activity) return false
+        val unifiedMention =
+            if (keywords.isEmpty() && mention.keyword) mention.copy(keyword = false)
+            else mention
+        val unifiedOtherMention =
+            if (other.keywords.isEmpty() && other.mention.keyword) other.mention.copy(keyword = false)
+            else other.mention
+        if (unifiedMention != unifiedOtherMention) return false
+        if (keywords != other.keywords) return false
+
+        return true
+    }
 }
 
 interface NotificationSettingsSingleAccountViewModelBase {
