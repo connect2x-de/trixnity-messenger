@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,7 +89,61 @@ open class OutboxElementHolderViewModelImpl(
             val content = outboxMessage?.content
             if (content is RoomMessageEventContent)
                 when (content) {
-                    is TextBased -> {
+                    is TextBased.Notice -> {
+                        get<NoticeMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
+                            fallbackMessage = content.body,
+                            referencedMessage = richRepliesComputations.getReferencedMessage(
+                                matrixClient,
+                                content.relatesTo,
+                                selectedRoomId
+                            ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
+                            message = content.bodyWithoutFallback,
+                            formattedBody = content.formattedBody,
+                            sender = MutableStateFlow(UserInfoElement("", UserId(""))),
+                            showSender = MutableStateFlow(false),
+                            formattedDate = "",
+                            formattedTime = null,
+                            showDateAbove = showDateAbove,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            invitation = MutableStateFlow(null),
+                            roomId = selectedRoomId,
+                            onOpenMention = onOpenMention,
+                        )
+                    }
+
+                    is TextBased.Emote -> {
+                        get<EmoteMessageViewModelFactory>().create(
+                            viewModelContext = this,
+                            timelineEvent = null,
+                            content = content,
+                            fallbackMessage = content.body,
+                            referencedMessage = richRepliesComputations.getReferencedMessage(
+                                matrixClient,
+                                content.relatesTo,
+                                selectedRoomId
+                            ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
+                            message = content.bodyWithoutFallback,
+                            formattedBody = content.formattedBody,
+                            sender = MutableStateFlow(UserInfoElement("", UserId(""))),
+                            showSender = MutableStateFlow(false),
+                            formattedDate = "",
+                            formattedTime = null,
+                            showDateAbove = showDateAbove,
+                            isByMe = true,
+                            showChatBubbleEdge = showChatBubbleEdge,
+                            showBigGap = showChatBubbleEdge,
+                            invitation = MutableStateFlow(null),
+                            roomId = selectedRoomId,
+                            onOpenMention = onOpenMention,
+                        )
+                    }
+
+                    is TextBased.Text -> {
                         get<TextMessageViewModelFactory>().create(
                             viewModelContext = this,
                             timelineEvent = null,
