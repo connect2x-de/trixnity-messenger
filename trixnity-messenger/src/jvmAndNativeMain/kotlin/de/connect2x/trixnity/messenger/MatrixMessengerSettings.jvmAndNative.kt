@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.settings.FileSystemSettingsStorage
+import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.util.RootPath
 import org.koin.core.module.Module
 import org.koin.dsl.bind
@@ -9,10 +11,10 @@ actual fun platformMatrixMessengerSettingsHolderModule(): Module = module {
     single<MatrixMessengerSettingsHolder> {
         val rootPath = get<RootPath>().path
         MatrixMessengerSettingsHolderImpl(
-            createFilesystemSettingsHolder(
+            FileSystemSettingsStorage(
                 path = rootPath.resolve("settings.json"),
                 fileSystem = get(),
-            ) { MatrixMessengerSettings() }
+            )
         )
     }.bind<SettingsHolder<*>>()
 }

@@ -1,8 +1,9 @@
 package de.connect2x.trixnity.messenger.export
 
 import externals.jszip.ZipWriterStream
-import js.promise.await
 import js.typedarrays.Uint8Array
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.write
 import org.koin.core.module.Module
@@ -27,20 +28,26 @@ class WebZipFileBasedExportRoomSinkWriter(
     private val zipper = ZipWriterStream()
     private val fileStream = zipper.writable<String>(fileName)
     private val fileStreamWriter = fileStream.getWriter()
-    private val pipeToDestination = zipper.readable.pipeTo(destination.stream)
+    private val pipeToDestination = GlobalScope.async {
+        zipper.readable.pipeTo(destination.stream)
+    }
+
+    override suspend fun start() {
+        super.start()
+    }
 
     override suspend fun addContent(content: String) {
-        fileStreamWriter.write(content).await()
+        fileStreamWriter.write(content)
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
         val mediaStream = zipper.writable<Uint8Array>("media/$filename")
         mediaStream.write(content)
-        mediaStream.close().await()
+        mediaStream.close()
     }
 
     override suspend fun finish() {
-        fileStream.close().await()
+        fileStream.close()
         zipper.close().await()
         pipeToDestination.await()
     }

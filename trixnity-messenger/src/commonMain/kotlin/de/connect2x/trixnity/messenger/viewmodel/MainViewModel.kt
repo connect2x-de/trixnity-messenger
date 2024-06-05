@@ -31,7 +31,13 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.verification
@@ -191,7 +197,7 @@ open class MainViewModelImpl(
         roomListRouter.closeAccountsOverview()
         this.onRemoveAccount(userId)
         coroutineScope.launch {
-            if (messengerSettings.value.accounts.isEmpty()) {
+            if (messengerSettings.value.base.accounts.isEmpty()) {
                 log.debug { "since all account have been removed, close all navigation" }
                 roomRouter.closeRoom()
                 roomListRouter.close()
@@ -207,7 +213,7 @@ open class MainViewModelImpl(
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     override fun start() {
-        roomRouter.stack.subscribe {  routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
+        roomRouter.stack.subscribe { routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
             log.debug { "roomRouter has changed: ${routerStack.active.configuration::class.simpleName} (roomId: ${routerStack.active.configuration.getRoomId()})" }
             selectedRoomId.value = routerStack.active.configuration.getRoomId()
         }
@@ -225,7 +231,7 @@ open class MainViewModelImpl(
                 if (childStack.active.configuration == InitialSyncRouter.Config.None) {
                     log.info { "initial sync / small sync is done -> now sync regularly" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
-                        val presenceIsPublic = messengerSettings[userId].first()?.presenceIsPublic
+                        val presenceIsPublic = messengerSettings[userId].first()?.base?.presenceIsPublic
                         log.debug { "start sync for $userId, presence is public: $presenceIsPublic" }
                         launch {
                             matrixClient.startSync(
@@ -266,7 +272,7 @@ open class MainViewModelImpl(
                 coroutineScope.launch {
                     log.debug { "resume app: restart sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
-                        val presenceIsPublic = messengerSettings[userId].first()?.presenceIsPublic
+                        val presenceIsPublic = messengerSettings[userId].first()?.base?.presenceIsPublic
                         log.debug { "start sync for $userId, presence is public: $presenceIsPublic" }
                         matrixClient.startSync(
                             presence = if (presenceIsPublic == true) Presence.ONLINE else Presence.OFFLINE
@@ -367,7 +373,7 @@ open class MainViewModelImpl(
             this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (userId, matrixClient) ->
                     launch {
-                        messengerSettings[userId].filterNotNull().map { it.presenceIsPublic }
+                        messengerSettings[userId].filterNotNull().map { it.base.presenceIsPublic }
                             .collect { presenceIsPublic ->
                                 if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
                                     log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }

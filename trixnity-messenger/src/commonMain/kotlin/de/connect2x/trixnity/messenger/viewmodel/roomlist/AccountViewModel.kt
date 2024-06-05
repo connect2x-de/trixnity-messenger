@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -67,14 +69,15 @@ open class AccountViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
     override val activeAccount: StateFlow<UserId?> =
-        messengerSettings.map { it.selectedAccount }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        messengerSettings.map { it.base.selectedAccount }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val isSingleAccount: StateFlow<Boolean> = accounts.map { it.size <= 1 }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override fun selectActiveAccount(userId: UserId?) {
         coroutineScope.launch {
-            messengerSettings.update { it.copy(selectedAccount = userId) }
+            messengerSettings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = userId) }
             onAccountSelected(userId)
         }
     }

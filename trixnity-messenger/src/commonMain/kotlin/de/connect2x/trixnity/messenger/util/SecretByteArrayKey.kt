@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -58,9 +60,9 @@ abstract class GetSecretByteArrayKeyBase(
 ) : GetSecretByteArrayKey {
     protected abstract suspend fun getSecretByteArrayKeyKey(sizeOnCreate: Int): ByteArray?
 
-    protected fun getSecretByteArrayKeyFromSettings() = settings.value.secretByteArrayKey
+    protected fun getSecretByteArrayKeyFromSettings() = settings.value.base.secretByteArrayKey
     protected suspend fun setSecretByteArrayKeyInSettings(secretByteArrayKey: SecretByteArrayKey?) =
-        settings.update { it.copy(secretByteArrayKey = secretByteArrayKey) }
+        settings.update<MatrixMessengerSettingsBase> { it.copy(secretByteArrayKey = secretByteArrayKey) }
 
     private val mutex = Mutex()
     override suspend fun invoke(sizeOnCreate: Int): ByteArray = mutex.withLock {

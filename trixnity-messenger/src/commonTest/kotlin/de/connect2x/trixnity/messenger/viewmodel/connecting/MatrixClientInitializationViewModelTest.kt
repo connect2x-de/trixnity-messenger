@@ -4,9 +4,11 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.assertions.nondeterministic.continually
@@ -62,7 +64,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                     UserId(
                         "user1",
                         "local.local"
-                    ) to MatrixMessengerAccountSettings.withConfigDefaults(
+                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
                         databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
@@ -74,7 +76,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 )
             )
             continually(2.seconds) {
-                settings.value.accounts.size shouldBe 1
+                settings.value.base.accounts.size shouldBe 1
             }
         }
 
@@ -84,7 +86,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                     UserId(
                         "user1",
                         "local.local"
-                    ) to MatrixMessengerAccountSettings.withConfigDefaults(
+                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
                         databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
@@ -93,7 +95,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 selectedAccount = UserId("user2", "local.local")
             )
             eventually(2.seconds) {
-                settings.value.selectedAccount shouldBe UserId("user1", "local.local")
+                settings.value.base.selectedAccount shouldBe UserId("user1", "local.local")
             }
         }
 
@@ -103,7 +105,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                     UserId(
                         "user1",
                         "local.local"
-                    ) to MatrixMessengerAccountSettings.withConfigDefaults(
+                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
                         databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
@@ -111,7 +113,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                     UserId(
                         "user2",
                         "local.local"
-                    ) to MatrixMessengerAccountSettings.withConfigDefaults(
+                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
                         databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
@@ -120,13 +122,13 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 selectedAccount = UserId("user666", "local.local")
             )
             eventually(2.seconds) {
-                settings.value.selectedAccount shouldBe null
+                settings.value.base.selectedAccount shouldBe null
             }
         }
     }
 
     private suspend fun matrixClientInitializationViewModel(
-        accounts: Map<UserId, MatrixMessengerAccountSettings>,
+        accounts: Map<UserId, MatrixMessengerAccountSettingsBase>,
         selectedAccount: UserId?
     ): MatrixMessengerSettingsHolder {
         val di = koinApplication {
@@ -138,7 +140,10 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
             )
         }.koin
         val settings = di.get<MatrixMessengerSettingsHolder>()
-        settings.update { it.copy(accounts = accounts, selectedAccount = selectedAccount) }
+        accounts.forEach { (account, accountSettings) ->
+            settings.update<MatrixMessengerAccountSettingsBase>(account) { accountSettings }
+        }
+        settings.update<MatrixMessengerSettingsBase>() { it.copy(selectedAccount = selectedAccount) }
         val viewModelContext = ViewModelContextImpl(
             di,
             componentContext = DefaultComponentContext(LifecycleRegistry())

@@ -2,9 +2,14 @@ package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.SettingsHolder
+import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
@@ -60,7 +65,7 @@ class MatrixMultiMessengerImpl private constructor(
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
             }
-            di.get<MatrixMultiMessengerSettingsHolder>().update { oldSettings ->
+            di.get<MatrixMultiMessengerSettingsHolder>().update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                 if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null)
                 else oldSettings
             }

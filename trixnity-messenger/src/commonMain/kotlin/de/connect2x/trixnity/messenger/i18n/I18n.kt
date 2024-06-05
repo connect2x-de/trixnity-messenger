@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.messenger.i18n
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
+import de.connect2x.trixnity.messenger.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
@@ -182,10 +184,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
-    fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) = translate {
-        EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
-        DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
-    }
+    fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) =
+        translate {
+            EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
+            DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
+        }
 
     fun historyVisibilityShared() = translate {
         EN - "shared"
@@ -932,6 +935,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "* message cannot be decrypted"
         DE - "* Nachricht konnte nicht entschlüsselt werden"
     }
+
+    fun updateNotificationSettingsError(error: String) = translate {
+        EN - "There was an error updating the notification settings: $error"
+        DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: $error"
+    }
+
+    fun updateNotificationSettingsTimeoutError() = translate {
+        EN - "There was an error updating the notification settings: timeout"
+        DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: Zeitüberschreitung"
+    }
 }
 
 internal fun getLang(
@@ -939,7 +952,7 @@ internal fun getLang(
     settings: MatrixMessengerSettingsHolder,
     getSystemLang: GetSystemLang
 ): Language {
-    val preferredLang = settings.value.preferredLang
+    val preferredLang = settings.value.base.preferredLang
     log.trace { "preferred language: $preferredLang" }
     return preferredLang?.let { languages.langOf(it) }
         ?: languages.langOf(getSystemLang())
@@ -947,5 +960,5 @@ internal fun getLang(
 }
 
 internal suspend fun setLang(language: Language, settings: MatrixMessengerSettingsHolder) {
-    settings.update { it.copy(preferredLang = language.code) }
+    settings.update<MatrixMessengerSettingsBase> { it.copy(preferredLang = language.code) }
 }

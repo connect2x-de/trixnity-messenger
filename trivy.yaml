@@ -1,4 +1,5 @@
 scan:
   skip-dirs:
+    - .gradle
     - integrationtests
     - emojis
