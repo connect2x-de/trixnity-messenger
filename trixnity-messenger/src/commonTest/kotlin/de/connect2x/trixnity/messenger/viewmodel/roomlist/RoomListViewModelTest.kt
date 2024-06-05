@@ -99,6 +99,7 @@ class RoomListViewModelTest : ShouldSpec() {
     lateinit var profileManagerMock: ProfileManager
 
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
+    private val onAccountSelected = mockFunction0<Unit>(mocker)
 
     lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
     lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
@@ -205,6 +206,8 @@ class RoomListViewModelTest : ShouldSpec() {
                 )
 
                 every { onRoomSelectedMock.invoke(isAny(), isAny()) } returns Unit
+
+                every { onAccountSelected.invoke() } returns Unit
 
                 every {
                     roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock), isAny())
@@ -1303,6 +1306,7 @@ class RoomListViewModelTest : ShouldSpec() {
             onOpenAppInfo = mockFunction0(mocker),
             onOpenAccountsOverview = mockFunction0(mocker),
             onSendLogs = mockFunction0(mocker),
+            onAccountSelected = onAccountSelected
         )
     }
 
