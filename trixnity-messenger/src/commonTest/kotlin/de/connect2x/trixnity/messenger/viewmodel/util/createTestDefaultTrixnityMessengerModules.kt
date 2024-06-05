@@ -61,7 +61,7 @@ fun createTestDefaultTrixnityMessengerModules(
                     identifier: IdentifierType,
                     password: String,
                     initialDeviceDisplayName: String?
-                ): Result<Unit> {
+                ): Result<MatrixClient> {
                     TODO("Not yet implemented")
                 }
 
@@ -69,11 +69,11 @@ fun createTestDefaultTrixnityMessengerModules(
                     baseUrl: Url,
                     token: String,
                     initialDeviceDisplayName: String?
-                ): Result<Unit> {
+                ): Result<MatrixClient> {
                     TODO("Not yet implemented")
                 }
 
-                override suspend fun loginWith(baseUrl: Url, loginInfo: MatrixClient.LoginInfo): Result<Unit> {
+                override suspend fun loginWith(baseUrl: Url, loginInfo: MatrixClient.LoginInfo): Result<MatrixClient> {
                     TODO("Not yet implemented")
                 }
 
