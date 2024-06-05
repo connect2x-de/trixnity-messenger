@@ -133,7 +133,8 @@ open class MainViewModelImpl(
             onSendLogs = ::onSendLogs,
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
-        )
+            onAccountSelected =  ::closeRoom,
+            )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
 
@@ -388,6 +389,13 @@ open class MainViewModelImpl(
     override fun closeDetailsAndShowList() {
         coroutineScope.launch {
             roomListRouter.show()
+            roomRouter.closeRoom()
+        }
+    }
+
+    private fun closeRoom(){
+        log.debug { "Closing the room as account has been switched.." }
+        coroutineScope.launch {
             roomRouter.closeRoom()
         }
     }
