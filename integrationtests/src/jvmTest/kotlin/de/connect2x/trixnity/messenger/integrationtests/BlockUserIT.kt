@@ -19,6 +19,7 @@ import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
@@ -61,8 +62,10 @@ class BlockUserIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        messenger1.stop()
-        messenger2.stop()
+        runBlocking {
+            messenger1.stop()
+            messenger2.stop()
+        }
     }
 
     @Test

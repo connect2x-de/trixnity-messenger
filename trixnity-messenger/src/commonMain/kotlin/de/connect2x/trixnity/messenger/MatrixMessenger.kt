@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.job
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import org.koin.core.Koin
@@ -43,7 +44,7 @@ interface MatrixMessenger {
      *
      * After calling this, this instance should not be used anymore!
      */
-    fun stop()
+    suspend fun stop()
 }
 
 class MatrixMessengerImpl private constructor(
@@ -88,8 +89,11 @@ class MatrixMessengerImpl private constructor(
         }
     }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0L)
 
-    override fun stop() {
-        di.get<CoroutineScope>().cancel()
+    override suspend fun stop() {
+        di.get<CoroutineScope>().apply {
+            cancel("stopped MatrixMessenger")
+            coroutineContext.job.join()
+        }
         di.get<MatrixClients>().value.values.forEach { it.stop() }
     }
 }
