@@ -707,7 +707,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun settingsRoomJoinRulesInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change room join rules"
-        DE - "Unzureichendes Berechtigungslevel um die Sichtbarkeit der Raum-Beitrittsregeln zu ändern"
+        DE - "Unzureichendes Berechtigungslevel um die Raum-Beitrittsregeln zu ändern"
     }
 
     fun settingsUnblockUserError(userId: String) = translate {
