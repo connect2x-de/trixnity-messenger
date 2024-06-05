@@ -49,10 +49,13 @@ class RoomSettingsJoinRulesViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsJoinRulesViewModel {
 
     override val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?> =
-        flowOf(listOf(JoinRulesEventContent.JoinRule.Public, JoinRulesEventContent.JoinRule.Private,
-            JoinRulesEventContent.JoinRule.Invite, JoinRulesEventContent.JoinRule.Knock, JoinRulesEventContent.JoinRule.KnockRestricted,
-            JoinRulesEventContent.JoinRule.Restricted))
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null) //TODO make it account for all data objects in JoinRule automatically
+        flowOf(listOf(
+            JoinRulesEventContent.JoinRule.Public,
+            JoinRulesEventContent.JoinRule.Invite,
+            JoinRulesEventContent.JoinRule.Knock,
+            JoinRulesEventContent.JoinRule.Restricted,
+            JoinRulesEventContent.JoinRule.KnockRestricted
+        )).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val joinRule: StateFlow<JoinRulesEventContent.JoinRule> = matrixClient.room.getState<JoinRulesEventContent>(selectedRoom)
         .map { it?.content?.joinRule ?: JoinRulesEventContent.JoinRule.Public}.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), JoinRulesEventContent.JoinRule.Public)
