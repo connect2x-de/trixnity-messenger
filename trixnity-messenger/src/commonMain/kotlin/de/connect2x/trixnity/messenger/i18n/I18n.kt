@@ -364,6 +364,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es muss eine sichere Verbindung (https) genutzt werden."
     }
 
+    fun connectingErrorNoMatrixClient() = translate {
+        EN - "No Matrix client could be initialized"
+        DE - "Ein Matrix Client kann nicht erstellt werden."
+    }
+
     fun connectingAccountAlreadyExists(userId: UserId) = translate {
         EN - "There already is a local account for the user $userId."
         DE - "Es gibt bereits ein lokales Konto für den Nutzer $userId."

@@ -34,18 +34,18 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
         identifier: IdentifierType,
         password: String,
         initialDeviceDisplayName: String?,
-    ): Result<Unit>
+    ): Result<MatrixClient>
 
     suspend fun login(
         baseUrl: Url,
         token: String,
         initialDeviceDisplayName: String?,
-    ): Result<Unit>
+    ): Result<MatrixClient>
 
     suspend fun loginWith(
         baseUrl: Url,
         loginInfo: LoginInfo,
-    ): Result<Unit>
+    ): Result<MatrixClient>
 
     data class InitFromStoreResult(
         val success: Set<UserId>,
@@ -104,36 +104,45 @@ class MatrixClientsImpl(
         identifier: IdentifierType,
         password: String,
         initialDeviceDisplayName: String?,
-    ): Result<Unit> =
+    ): Result<MatrixClient> =
         factory.login(
             baseUrl = baseUrl,
             identifier = identifier,
             password = password,
             initialDeviceDisplayName = initialDeviceDisplayName,
             checkExisting = { checkExisting(it, baseUrl) },
-        ).map { applyLogin(it) }
+        ).map {
+            applyLogin(it)
+            it.matrixClient
+        }
 
     override suspend fun login(
         baseUrl: Url,
         token: String,
         initialDeviceDisplayName: String?,
-    ): Result<Unit> =
+    ): Result<MatrixClient> =
         factory.login(
             baseUrl = baseUrl,
             token = token,
             initialDeviceDisplayName = initialDeviceDisplayName,
             checkExisting = { checkExisting(it, baseUrl) },
-        ).map { applyLogin(it) }
+        ).map {
+            applyLogin(it)
+            it.matrixClient
+        }
 
     override suspend fun loginWith(
         baseUrl: Url,
         loginInfo: LoginInfo,
-    ): Result<Unit> =
+    ): Result<MatrixClient> =
         factory.loginWith(
             baseUrl = baseUrl,
             loginInfo = loginInfo,
             checkExisting = { checkExisting(it, baseUrl) },
-        ).map { applyLogin(it) }
+        ).map {
+            applyLogin(it)
+            it.matrixClient
+        }
 
     private suspend fun applyLogin(loginResult: MatrixClientFactory.LoginResult) {
         val (matrixClient, databasePassword) = loginResult

@@ -93,7 +93,7 @@ class RootRouter(
                 viewModelContext.get<PasswordLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    onLogin = ::showMainOnLogin,
+                    onLogin = { showMainOnLogin() },
                     onBack = ::backToAddMatrixAccount,
                 )
             )
@@ -105,7 +105,7 @@ class RootRouter(
                     providerId = config.providerId,
                     providerName = config.providerName,
                     initialState = config.initialState,
-                    onLogin = ::showMainOnLogin,
+                    onLogin = { showMainOnLogin() },
                     onBack = ::backToAddMatrixAccount
                 )
             )
@@ -114,7 +114,7 @@ class RootRouter(
                 viewModelContext.get<RegisterNewAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    onLogin = ::showMainOnLogin,
+                    onLogin = { showMainOnLogin() },
                     onBack = ::backToAddMatrixAccount,
                 )
             )

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.crypto.core.SecureRandom
 import okio.ByteString.Companion.toByteString
 import org.koin.core.component.get
@@ -31,7 +32,7 @@ interface SSOLoginViewModelFactory {
         providerId: String,
         providerName: String,
         initialState: String? = null,
-        onLogin: () -> Unit,
+        onLogin: (MatrixClient) -> Unit,
         onBack: () -> Unit,
     ): SSOLoginViewModel {
         return SSOLoginViewModelImpl(
@@ -90,7 +91,7 @@ open class SSOLoginViewModelImpl(
     private val providerId: String,
     override val providerName: String,
     initialState: String? = null,
-    private val onLogin: () -> Unit,
+    private val onLogin: (MatrixClient) -> Unit,
     private val onBack: () -> Unit,
 ) : ViewModelContext by viewModelContext, SSOLoginViewModel {
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()

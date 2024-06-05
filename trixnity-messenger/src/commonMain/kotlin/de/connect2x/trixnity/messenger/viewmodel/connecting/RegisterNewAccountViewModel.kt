@@ -34,7 +34,7 @@ interface RegisterNewAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
-        onLogin: () -> Unit,
+        onLogin: (MatrixClient) -> Unit,
         onBack: () -> Unit,
     ): RegisterNewAccountViewModel =
         RegisterNewAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
@@ -81,7 +81,7 @@ interface RegisterNewAccountViewModel {
 class RegisterNewAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
-    private val onLogin: () -> Unit,
+    private val onLogin: (MatrixClient) -> Unit,
     private val onBack: () -> Unit,
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 

@@ -11,6 +11,7 @@ import io.ktor.util.network.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.core.MatrixServerException
@@ -24,10 +25,10 @@ suspend fun MatrixClients.loginCatching(
     initialDeviceDisplayName: String,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: () -> Unit,
-) {
+    onLogin: (MatrixClient) -> Unit,
+): MatrixClient? {
     log.info { "try to login" }
-    catchLogin(addMatrixAccountState, i18n, onLogin) {
+    return catchLogin(addMatrixAccountState, i18n, onLogin) {
         login(
             baseUrl = Url(serverUrl),
             identifier = IdentifierType.User(username),
@@ -43,10 +44,10 @@ suspend fun MatrixClients.loginCatching(
     initialDeviceDisplayName: String,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: () -> Unit,
-) {
+    onLogin: (MatrixClient) -> Unit,
+): MatrixClient? {
     log.info { "try to login" }
-    catchLogin(addMatrixAccountState, i18n, onLogin) {
+    return catchLogin(addMatrixAccountState, i18n, onLogin) {
         login(
             baseUrl = Url(serverUrl),
             token = token,
@@ -60,10 +61,10 @@ suspend fun MatrixClients.loginWithCatching(
     loginInfo: LoginInfo,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: () -> Unit,
-) {
+    onLogin: (MatrixClient) -> Unit,
+): MatrixClient? {
     log.info { "try to loginWith" }
-    catchLogin(addMatrixAccountState, i18n, onLogin) {
+    return catchLogin(addMatrixAccountState, i18n, onLogin) {
         loginWith(
             baseUrl = Url(baseUrl),
             loginInfo = loginInfo,
@@ -74,37 +75,37 @@ suspend fun MatrixClients.loginWithCatching(
 private suspend fun catchLogin(
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: () -> Unit,
-    block: suspend () -> Result<Unit>
-) {
+    onLogin: (MatrixClient) -> Unit,
+    block: suspend () -> Result<MatrixClient>
+): MatrixClient? {
     addMatrixAccountState.value = AddMatrixAccountState.Connecting
-    val errorMessage = try {
-        block().getOrThrow()
+    val (matrixClient, errorMessage) = try {
+        val matrixClient = block().getOrThrow()
         log.info { "login success" }
-        null
+        matrixClient to null
     } catch (exc: MatrixServerException) {
         log.error(exc) { "Cannot contact Matrix Server." }
-        when (exc.statusCode) {
+        null to when (exc.statusCode) {
             HttpStatusCode.Forbidden -> i18n.connectingErrorForbidden()
             HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
             else -> i18n.connectingErrorStandard()
         }
     } catch (exc: AccountAlreadyExistsException) {
         log.warn { "account already exists locally" }
-        i18n.connectingAccountAlreadyExists(exc.userId)
+        null to i18n.connectingAccountAlreadyExists(exc.userId)
     } catch (exc: StoreLockedException) {
         log.error(exc) { "database is locked" }
-        i18n.connectingErrorDbLocked()
+        null to i18n.connectingErrorDbLocked()
     } catch (exc: StoreAccessException) {
         log.error(exc) { "cannot access database; this is a serious problem and might only be solved by deleting the database if the problem persists" }
         // we cannot load data from the DB, so either close the App or remove the DB and try again
-        i18n.connectingErrorDbAccess()
+        null to i18n.connectingErrorDbAccess()
     } catch (exc: CancellationException) {
         // do nothing as this is the case when the view model is removed
-        null
+        null to null
     } catch (exc: Exception) {
         log.error(exc) { "Cannot contact Matrix Server." }
-        when (exc) {
+        null to when (exc) {
             is UnresolvedAddressException, is IllegalArgumentException ->
                 i18n.connectingErrorWrongAddress()
 
@@ -116,12 +117,16 @@ private suspend fun catchLogin(
         }
     }
 
-    if (errorMessage == null) {
-        addMatrixAccountState.value = AddMatrixAccountState.Success
-        onLogin()
-    } else {
-        addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
+    when {
+        errorMessage == null && matrixClient != null -> {
+            addMatrixAccountState.value = AddMatrixAccountState.Success
+            onLogin(matrixClient)
+        }
+        errorMessage != null -> addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
+        matrixClient == null -> addMatrixAccountState.value = AddMatrixAccountState.Failure(i18n.connectingErrorNoMatrixClient())
     }
+
+    return matrixClient
 }
 
 // HACK to circumvent https://youtrack.jetbrains.com/issue/KTOR-1372
