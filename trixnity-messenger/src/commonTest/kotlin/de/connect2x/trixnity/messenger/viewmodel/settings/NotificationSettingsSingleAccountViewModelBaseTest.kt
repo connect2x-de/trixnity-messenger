@@ -148,12 +148,12 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
 
             cut.updateAccountSettings(newSettings)
 
-            cut.isUpdating.value shouldBe true
+            cut.accountSettingsIsUpdating.value shouldBe true
             continueHandlePushRuleRequest.value = true
-            cut.isUpdating.value shouldBe true
+            cut.accountSettingsIsUpdating.value shouldBe true
 
             pushRulesEventContentState.value = newSettings.toPushRuleSet(userId)
-            cut.isUpdating.firstWithClue(false)
+            cut.accountSettingsIsUpdating.firstWithClue(false)
 
             mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
                 pushApiClientMock.setPushRule(
@@ -189,7 +189,7 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
                     asUserId = null
                 )
             }
-            cut.updateError.value shouldBe null
+            cut.accountSettingsUpdateError.value shouldBe null
         }
         should("update settings with timeout") {
             val cut = createCut(coroutineContext)
@@ -206,14 +206,14 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
 
             cut.updateAccountSettings(newSettings)
 
-            cut.isUpdating.value shouldBe true
+            cut.accountSettingsIsUpdating.value shouldBe true
             continueHandlePushRuleRequest.value = true
-            cut.isUpdating.value shouldBe true
+            cut.accountSettingsIsUpdating.value shouldBe true
 
             pushRulesEventContentState.value = PushRuleSet()
-            cut.isUpdating.firstWithClue(false, 11.seconds)
+            cut.accountSettingsIsUpdating.firstWithClue(false, 11.seconds)
             testCoroutineScheduler.currentTime shouldBeGreaterThanOrEqual 10_000
-            cut.updateError.value shouldContain "timeout"
+            cut.accountSettingsUpdateError.value shouldContain "timeout"
         }
     }
 

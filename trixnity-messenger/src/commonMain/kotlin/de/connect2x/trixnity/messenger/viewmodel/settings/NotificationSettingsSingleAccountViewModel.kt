@@ -77,11 +77,10 @@ interface NotificationSettingsSingleAccountViewModelBase {
     val enabledForThisDevice: StateFlow<Boolean>
     fun toggleEnabledForThisDevice()
 
-    val isUpdating: StateFlow<Boolean>
-    val updateError: StateFlow<String?>
-
     val accountSettings: StateFlow<NotificationSettings>
     fun updateAccountSettings(settings: NotificationSettings)
+    val accountSettingsIsUpdating: StateFlow<Boolean>
+    val accountSettingsUpdateError: StateFlow<String?>
 }
 
 /**
@@ -108,8 +107,8 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
         }
     }
 
-    override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val updateError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val accountSettingsIsUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val accountSettingsUpdateError: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val accountSettings: StateFlow<NotificationSettings> =
         matrixClient.user.getAccountData<PushRulesEventContent>()
@@ -120,9 +119,9 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
 
     @OptIn(FlowPreview::class)
     override fun updateAccountSettings(settings: NotificationSettings) {
-        if (isUpdating.getAndUpdate { true }.not()) {
+        if (accountSettingsIsUpdating.getAndUpdate { true }.not()) {
             coroutineScope.launch {
-                updateError.value = null
+                accountSettingsUpdateError.value = null
 
                 val currentPushRuleSet =
                     matrixClient.user.getAccountData<PushRulesEventContent>()
@@ -205,12 +204,12 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
                 } catch (exception: Exception) {
                     log.warn(exception) { "there was an error updating the notification settings" }
                     if (exception is TimeoutCancellationException) {
-                        updateError.value = i18n.updateNotificationSettingsTimeoutError()
+                        accountSettingsUpdateError.value = i18n.updateNotificationSettingsTimeoutError()
                     } else {
-                        updateError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
+                        accountSettingsUpdateError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
                     }
                 }
-            }.invokeOnCompletion { isUpdating.value = false }
+            }.invokeOnCompletion { accountSettingsIsUpdating.value = false }
         }
     }
 }
