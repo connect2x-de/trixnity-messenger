@@ -142,7 +142,6 @@ class RoomListViewModelImpl(
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit,
-
     ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
