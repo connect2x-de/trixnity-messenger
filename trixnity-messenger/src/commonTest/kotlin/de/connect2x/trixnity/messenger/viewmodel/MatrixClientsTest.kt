@@ -122,8 +122,8 @@ class MatrixClientsTest : ShouldSpec() {
                 every { matrixClientServerApiClient.authentication } returns authenticationApiClient
                 every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
                 everySuspending { authenticationApiClient.logout(isAny()) } returns Result.success(Unit)
-                every { matrixClientMock1.stop() } returns Unit
-                every { matrixClientMock2.stop() } returns Unit
+                everySuspending { matrixClientMock1.stop(isAny()) } returns Unit
+                everySuspending { matrixClientMock2.stop(isAny()) } returns Unit
 
                 everySuspending { deleteAccountData.invoke(isAny()) } returns Unit
             }
@@ -263,7 +263,7 @@ class MatrixClientsTest : ShouldSpec() {
                 logoutCalled shouldBe true
                 settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop()
+                    matrixClientMock1.stop(isAny())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -285,7 +285,7 @@ class MatrixClientsTest : ShouldSpec() {
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf()
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop()
+                    matrixClientMock1.stop(isAny())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -310,7 +310,7 @@ class MatrixClientsTest : ShouldSpec() {
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop()
+                    matrixClientMock1.stop(isAny())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 

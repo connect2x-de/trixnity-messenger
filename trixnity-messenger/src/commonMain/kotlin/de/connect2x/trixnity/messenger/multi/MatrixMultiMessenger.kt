@@ -13,6 +13,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.job
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
@@ -32,7 +33,7 @@ interface MatrixMultiMessenger : ProfileManager {
      *
      * After calling this, this instance should not be used anymore!
      */
-    fun stop()
+    suspend fun stop()
 }
 
 class MatrixMultiMessengerImpl private constructor(
@@ -76,9 +77,12 @@ class MatrixMultiMessengerImpl private constructor(
         }
     }
 
-    override fun stop() {
+    override suspend fun stop() {
+        di.get<CoroutineScope>().apply {
+            cancel("stopped MatrixMultiMessenger")
+            coroutineContext.job.join()
+        }
         activeMatrixMessenger.value?.stop()
-        di.get<CoroutineScope>().cancel()
     }
 }
 

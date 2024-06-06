@@ -209,9 +209,9 @@ class MatrixClientsImpl(
 
     override suspend fun remove(userId: UserId): Result<Unit> = kotlin.runCatching {
         matrixClients.value[userId]?.let { matrixClient ->
-            matrixClient.stop()
             log.info { "delete account data on this machine" }
             withContext(NonCancellable) {
+                matrixClient.stop(wait = true)
                 settings.delete(matrixClient.userId)
                 matrixClients.update { it - userId }
                 deleteAccountData(userId)
