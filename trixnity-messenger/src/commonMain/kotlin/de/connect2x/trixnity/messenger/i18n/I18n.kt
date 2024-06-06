@@ -708,6 +708,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Unzureichendes Berechtigungslevel um die Sichtbarkeit der Raumhistorie zu ändern"
     }
 
+    fun settingsRoomJoinRulesChangeError() = translate {
+        EN - "Failed to change room join rules"
+        DE - "Fehler beim Ändern der Raum-Beitrittsregeln"
+    }
+
+    fun settingsRoomJoinRulesInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to change room join rules"
+        DE - "Unzureichendes Berechtigungslevel um die Raum-Beitrittsregeln zu ändern"
+    }
+
     fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
