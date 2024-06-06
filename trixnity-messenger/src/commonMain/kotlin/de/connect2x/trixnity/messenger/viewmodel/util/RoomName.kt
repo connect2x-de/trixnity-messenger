@@ -28,7 +28,7 @@ interface RoomName {
         formatted: Boolean = true,
     ): Flow<String>
 
-    suspend fun getRoomName(
+    fun getRoomName(
         room: Room,
         matrixClient: MatrixClient,
         formatted: Boolean = true,
@@ -60,13 +60,13 @@ open class RoomNameImpl(
         }
     }
 
-    override suspend fun getRoomName(
+    override fun getRoomName(
         room: Room,
         matrixClient: MatrixClient,
         formatted: Boolean
     ): Flow<String> {
         return if (room.membership == Membership.INVITE && formatted) {
-            room.name?.let {
+            if (room.name != null) {
                 calculateRoomName(
                     room.roomId,
                     room.name,
@@ -77,7 +77,9 @@ open class RoomNameImpl(
                         it
                     )
                 }
-            } ?: flowOf(getInviterName(room.roomId, matrixClient))
+            } else {
+                flowOf(i18n.roomNameInvitation())
+            }
         } else {
             calculateRoomName(
                 room.roomId,

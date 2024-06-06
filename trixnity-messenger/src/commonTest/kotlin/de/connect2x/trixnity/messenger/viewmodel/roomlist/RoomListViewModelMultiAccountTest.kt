@@ -115,7 +115,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     private lateinit var syncStateMocker1: Mocker.Every<StateFlow<SyncState>>
     private lateinit var syncStateMocker2: Mocker.Every<StateFlow<SyncState>>
     private lateinit var syncStateMocker3: Mocker.Every<StateFlow<SyncState>>
-    private lateinit var roomName3Mocker: Mocker.EverySuspend<Flow<String>>
+    private lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
 
     private lateinit var di: Koin
     private lateinit var matrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
@@ -275,41 +275,41 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
 
                 every { onRoomSelectedMock.invoke(isAny(), isAny()) } returns Unit
 
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room1")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId1), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room1")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId2), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room2")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId2), isEqual(matrixClientMock1), isAny())
                 } returns flowOf("room2")
                 roomName3Mocker =
-                    everySuspending { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock2), isAny()) }
+                    every { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock2), isAny()) }
                 roomName3Mocker returns flowOf("room3-but-also-room2")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId3), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("room3-but-also-room2")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId4), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("room4")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId4), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("room4")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId5), isEqual(matrixClientMock3), isAny())
                 } returns flowOf("room5")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId5), isEqual(matrixClientMock3), isAny())
                 } returns flowOf("room5")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(spaceId1), isEqual(matrixClientMock1), isAny())
                 } returns
                         flowOf("space and beyond")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(spaceId2), isEqual(matrixClientMock2), isAny())
                 } returns flowOf("space and beyond and beyonder")
                 every { roomServiceMock1.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
@@ -669,7 +669,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                 every { roomServiceMock1.getById(roomId1) } returns MutableStateFlow(room1)
                 every { roomServiceMock1.getById(roomId2) } returns MutableStateFlow(room2)
                 every { roomServiceMock2.getById(roomId3) } returns MutableStateFlow(room3)
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isEqual(room3), isEqual(matrixClientMock2), isAny())
                 } returns room3NameFlow
                 roomName3Mocker returns room3NameFlow

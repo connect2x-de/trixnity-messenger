@@ -103,8 +103,9 @@ class RoomListViewModelTest : ShouldSpec() {
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
     private val onAccountSelected = mockFunction0<Unit>(mocker)
 
+
     lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
-    lateinit var roomName3Mocker: Mocker.EverySuspend<Flow<String>>
+    lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
 
     private val roomCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Room)
     private val spaceCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Space)
@@ -211,41 +212,41 @@ class RoomListViewModelTest : ShouldSpec() {
 
                 every { onAccountSelected.invoke() } returns Unit
 
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room1")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId1), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room1")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId2), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room2")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId2), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room2")
                 roomName3Mocker =
-                    everySuspending { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock), isAny()) }
+                    every { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock), isAny()) }
                 roomName3Mocker returns flowOf("room3-but-also-room2")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId3), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room3-but-also-room2")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId4), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room4")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId4), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room4")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(roomId5), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room5")
                 every {
                     roomNameMock.getRoomName(isEqual(roomId5), isEqual(matrixClientMock), isAny())
                 } returns flowOf("room5")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(spaceId1), isEqual(matrixClientMock), isAny())
                 } returns
                         flowOf("space and beyond")
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isRoomOf(spaceId2), isEqual(matrixClientMock), isAny())
                 } returns flowOf("space and beyond and beyonder")
                 every { roomServiceMock.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
@@ -747,7 +748,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
                 every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
                 every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isEqual(room3), isEqual(matrixClientMock), isAny())
                 } returns room3NameFlow
                 roomName3Mocker returns room3NameFlow
@@ -1078,7 +1079,7 @@ class RoomListViewModelTest : ShouldSpec() {
                     )
                 )
 
-                everySuspending {
+                every {
                     roomNameMock.getRoomName(isAny<Room>(), isAny(), isAny())
                 } returns flowOf("room")
                 every {
