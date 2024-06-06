@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -51,7 +52,7 @@ interface RoomSettingsAliasViewModel {
     val canChangeRoomAlias: StateFlow<Boolean>
 
     val mainAlias: StateFlow<String?>
-    val moreAliases: StateFlow<List<String>>
+    val moreAliases: StateFlow<Set<String>>
 
     val isUpdating: StateFlow<Boolean>
 
@@ -74,12 +75,16 @@ class RoomSettingsAliasViewModelImpl(
         matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId)
             .map { it?.content }
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    private val allAliases: StateFlow<Set<RoomAliasId>> =
+        roomAliases.map {
+            it?.aliases.orEmpty().plus(it?.alias).filterNotNull().toSet()
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, emptySet())
     override val mainAlias: StateFlow<String?> = roomAliases
         .map { it?.alias?.full }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val moreAliases: StateFlow<List<String>> = roomAliases
-        .map { it?.aliases?.map(RoomAliasId::toString) ?: emptyList() }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val moreAliases: StateFlow<Set<String>> = roomAliases
+        .map { it?.aliases?.map(RoomAliasId::toString)?.toSet().orEmpty() }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, emptySet())
 
     override val canChangeRoomAlias: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<CanonicalAliasEventContent>(selectedRoomId)
@@ -114,20 +119,26 @@ class RoomSettingsAliasViewModelImpl(
 
         val alias = RoomAliasId(currentNewAlias)
 
+        if (allAliases.value.contains(alias)) {
+            newAliasError.value = i18n.settingsRoomAliasAddAliasExisting()
+            return
+        }
+
         _isUpdating.value = true
 
         coroutineScope.launch {
-            val e = setOf(*(roomAliases.value?.aliases?.toTypedArray() ?: emptyArray()), alias)
+            val newAliases = roomAliases.value?.aliases.orEmpty() + alias
 
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
                 CanonicalAliasEventContent(
                     roomAliases.value?.alias,
-                    e
+                    newAliases
                 )
             ).fold(
                 onSuccess = {
                     newAliasError.value = null
+                    newAlias.value = ""
                     withTimeoutOrNull(18.seconds) {
                         matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId)
                             .first { it?.content?.aliases?.contains(alias) == true }
@@ -152,6 +163,7 @@ class RoomSettingsAliasViewModelImpl(
                                         i18n.settingsRoomAliasGeneric()
                                     }
                                 }
+
                                 else -> {
                                     log.warn { "Unexpected Error: ${response.error}" }
                                     i18n.settingsRoomAliasGeneric()
@@ -177,7 +189,7 @@ class RoomSettingsAliasViewModelImpl(
             return
         }
 
-        if (moreAliases.value.contains(alias?.full)) {
+        if (!moreAliases.value.contains(alias?.full) && mainAlias.value != alias?.full) {
             log.error { "Cancelled change of Alias $alias to alias not being related to that room" }
             updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
             return
@@ -186,7 +198,6 @@ class RoomSettingsAliasViewModelImpl(
         _isUpdating.value = true
 
         val currentMainAlias = RoomAliasId(mainAlias.value ?: "")
-        // to the reviewer: Did this after _isUpdating in case there are many aliases to prevent a race condition
         val currentMoreAliases = moreAliases.value.map {
             RoomAliasId(it)
         }.toSet()
@@ -195,7 +206,7 @@ class RoomSettingsAliasViewModelImpl(
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
                 CanonicalAliasEventContent(
-                    if (alias == currentMainAlias) null else alias,
+                    if (alias == currentMainAlias || alias == null) null else alias,
                     if (alias == currentMainAlias || alias == null) {
                         currentMoreAliases + currentMainAlias
                     } else {
@@ -222,6 +233,7 @@ class RoomSettingsAliasViewModelImpl(
                                     i18n.settingsRoomAliasGeneric()
                                 }
                             }
+
                             else -> {
                                 log.warn { "Unexpected Error: ${response.error}" }
                                 i18n.settingsRoomAliasGeneric()
@@ -278,6 +290,7 @@ class RoomSettingsAliasViewModelImpl(
                                         i18n.settingsRoomAliasGeneric()
                                     }
                                 }
+
                                 is ErrorResponse.NotFound -> i18n.settingsRoomAliasRemoveNotFound()
                                 else -> {
                                     log.warn { "Unexpected Error: ${response.error}" }
@@ -296,7 +309,7 @@ class RoomSettingsAliasViewModelImpl(
 class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     override val canChangeRoomAlias: StateFlow<Boolean> = MutableStateFlow(false)
     override val mainAlias: MutableStateFlow<Nothing?> = MutableStateFlow(null)
-    override val moreAliases: StateFlow<List<String>> = MutableStateFlow(emptyList())
+    override val moreAliases: StateFlow<Set<String>> = MutableStateFlow(emptySet())
     override val isUpdating: StateFlow<Boolean> = MutableStateFlow(false)
     override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
 

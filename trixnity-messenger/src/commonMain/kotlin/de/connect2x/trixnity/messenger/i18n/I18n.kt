@@ -750,6 +750,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Invalider Alias"
     }
 
+    fun settingsRoomAliasAddAliasExisting() = translate {
+        EN - "Invalid Alias"
+        DE - "Invalider Alias"
+    }
+
     fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
