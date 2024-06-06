@@ -30,6 +30,7 @@ import net.folivo.trixnity.core.model.UserId
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
+import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -44,7 +45,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
     lateinit var matrixClientMock: MatrixClient
 
     private val onBackMock = mockFunction0<Unit>(mocker)
-    private val onLoginMock = mockFunction0<Unit>(mocker)
+    private val onLoginMock = mockFunction1<Unit, MatrixClient>(mocker)
 
     init {
         beforeTest {
@@ -54,7 +55,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
             with(mocker) {
                 every { onBackMock() } returns Unit
-                every { onLoginMock() } returns Unit
+                every { onLoginMock(isAny()) } returns Unit
                 every { matrixClientMock.userId } returns UserId("test", "server")
             }
         }
@@ -81,7 +82,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
                     isAny(),
                     isAny(),
                 )
-                onLoginMock.invoke()
+                onLoginMock.invoke(isAny())
             }
             cut.addMatrixAccountState.value shouldBe AddMatrixAccountState.Success
         }

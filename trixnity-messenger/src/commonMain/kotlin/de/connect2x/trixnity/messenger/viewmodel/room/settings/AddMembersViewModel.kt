@@ -6,7 +6,12 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 
@@ -77,7 +82,7 @@ class AddMembersViewModelImpl(
     internal val foundUsers = potentialMembersViewModel.foundUsers.asStateFlow()
 
     override fun addMembers() {
-        log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
+        log.info { "add ${groupUsers.value.joinToString { it.displayName }} to group" }
         coroutineScope.launch {
             val failedInvitations = mutableListOf<Pair<Search.SearchUserElement, Throwable>>()
             for (user in groupUsers.value) {

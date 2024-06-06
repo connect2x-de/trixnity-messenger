@@ -26,6 +26,7 @@ import net.folivo.trixnity.core.model.UserId
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
+import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
@@ -40,7 +41,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
     @Mock
     lateinit var matrixClientMock: MatrixClient
 
-    private val onLoginMock = mockFunction0<Unit>(mocker)
+    private val onLoginMock = mockFunction1<Unit, MatrixClient>(mocker)
 
     init {
         beforeTest {
@@ -52,7 +53,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                     matrixClientFactoryMock.loginWith(isAny(), isAny(), isAny())
                 } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
 
-                every { onLoginMock.invoke() } returns Unit
+                every { onLoginMock.invoke(isAny()) } returns Unit
                 every { matrixClientMock.userId } returns UserId("test", "server")
             }
         }
@@ -248,7 +249,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                         ),
                         isAny(),
                     )
-                    onLoginMock.invoke()
+                    onLoginMock.invoke(isAny())
                 }
             }
 

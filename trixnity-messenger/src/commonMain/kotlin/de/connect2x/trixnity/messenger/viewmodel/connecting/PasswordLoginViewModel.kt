@@ -5,8 +5,14 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.MatrixClient
 import org.koin.core.component.inject
 
 
@@ -16,7 +22,7 @@ interface PasswordLoginViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
-        onLogin: () -> Unit,
+        onLogin: (MatrixClient) -> Unit,
         onBack: () -> Unit,
     ): PasswordLoginViewModel {
         return PasswordLoginViewModelImpl(
@@ -47,7 +53,7 @@ interface PasswordLoginViewModel {
 open class PasswordLoginViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
-    private val onLogin: () -> Unit,
+    private val onLogin: (MatrixClient) -> Unit,
     private val onBack: () -> Unit,
 ) : ViewModelContext by viewModelContext, PasswordLoginViewModel {
 
