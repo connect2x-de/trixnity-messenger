@@ -1,9 +1,9 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.3.3" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.3.9" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "1.9.23" # https://kotlinlang.org/
 ksp = "1.9.23-1.0.20" # https://github.com/google/ksp/releases
-kotlinWrappers = "1.0.0-pre.718" # https://github.com/JetBrains/kotlin-wrappers/releases
+kotlinWrappers = "1.0.0-pre.754" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.8.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.6.3" # https://github.com/Kotlin/kotlinx.serialization/releases
 decompose = "3.0.0" # https://github.com/arkivanov/Decompose/releases

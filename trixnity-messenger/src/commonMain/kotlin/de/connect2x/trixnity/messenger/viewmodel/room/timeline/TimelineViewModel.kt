@@ -81,7 +81,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
@@ -509,6 +508,15 @@ class TimelineViewModelImpl(
                     } ?: matrixClient.room.getById(selectedRoomId).map { it?.lastEventId }
                     .filterNotNull().first()
                     .also { log.debug { "use last known event as start for timeline" } }
+
+            val foundTimelineEvent =
+                withTimeoutOrNull(10.seconds) {
+                    matrixClient.room.getTimelineEvent(selectedRoomId, initTimelineFrom)
+                        .first() != null // just check, that event is stored locally
+                }
+            if (foundTimelineEvent == null) {
+                log.error { "could not load start point of timeline" }
+            }
             timelineStartFrom.emit(initTimelineFrom)
             scheduleScrollTo(initTimelineFrom.full)
         }
@@ -880,7 +888,7 @@ class TimelineViewModelImpl(
             } else requestedNextReadUntil
 
         readEvent.value = eventId
-        val readMarkerIsPublic = messengerSettings[userId].first()?.readMarkerIsPublic == true
+        val readMarkerIsPublic = messengerSettings[userId].first()?.base?.readMarkerIsPublic == true
         matrixClient.api.room.setReadMarkers(
             roomId = selectedRoomId,
             read = if (readMarkerIsPublic) eventId else null,

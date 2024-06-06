@@ -201,7 +201,37 @@ When you start your application with this configuration, the implementation of `
 customized version `MyAddMatrixAccountViewModel` and your UI can use all the properties and methods of it (maybe a
 downcast from the `AddMatrixViewModel` interface is needed).
 
-### i18n
+## Settings
+
+Trixnity Messenger reads and stores settings into a JSON representation. As default there are `MatrixMessengerSettings`
+and `MatrixMultiMessengerSettings`, which inherit from `Settings`. To get a type safe representation of `Settings`,
+there is `interface SettingsView<S : Settings<S>>`. This allows to define custom views of the Settings, which usually
+can be accessed via Kotlin extensions (for example `settings.base`).
+
+### Use settings
+
+Settings are managed by `MatrixMessengerSettingsHolder` and `MatrixMultiMessengerSettingsHolder`. You can inject them
+via DI to read or update fields.
+
+### Extend settings
+
+Settings can be extended with own fields.
+
+```kotlin
+@Serializable
+@NestedSettingsView("custom") // optionally: allows to nest settings in the json under a given key
+data class MatrixMessengerCustomSettings(
+    val customField: String? = null
+) : SettingsView<MatrixMessengerSettings>
+
+val MatrixMessengerAccountSettings.custom
+        by settingsView<MatrixMessengerSettings, MatrixMessengerCustomSettings>()
+```
+
+This can be read via `settingsHolder.value.custom` and updated
+via `settingsHolder.update<MatrixMessengerCustomSettings>{ it.copy(customField="dino") }`.
+
+## i18n
 
 Trixnity Messenger comes with a set of standard translations for some states that can occur. It currently supports
 English (en) and German (de). It uses a simple

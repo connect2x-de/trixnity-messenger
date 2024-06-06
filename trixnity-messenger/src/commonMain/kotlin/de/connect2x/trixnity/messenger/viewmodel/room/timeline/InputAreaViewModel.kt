@@ -9,7 +9,26 @@ import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
@@ -392,7 +411,7 @@ open class InputAreaViewModelImpl(
         if (isTyping.value.not()) {
             isTyping.value = true
             try {
-                if (messengerSettings[userId].first()?.typingIsPublic == true) {
+                if (messengerSettings[userId].first()?.base?.typingIsPublic == true) {
                     matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
                 }
             } catch (exc: Exception) {

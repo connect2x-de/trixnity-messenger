@@ -612,7 +612,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("set the currently selected user's userId when cursor is null"){
+        should("set the currently selected user's userId when cursor is null") {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
@@ -733,8 +733,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             onMessageEditFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,
             onShowAttachmentSendView = mockFunction1(mocker),
-
-            )
+        )
     }
 
     private fun CoroutineScope.subscribe(cut: InputAreaViewModelImpl) = launch {

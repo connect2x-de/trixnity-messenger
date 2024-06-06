@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -126,7 +128,7 @@ open class SSOLoginViewModelImpl(
         coroutineScope.launch {
             waitForRedirect.value = true
             log.debug { "Persisting SSO state" }
-            messengerSettings.update {
+            messengerSettings.update<MatrixMessengerSettingsBase> {
                 it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
             }
             log.debug { "Redirecting to $loginUrl" }
@@ -154,7 +156,7 @@ open class SSOLoginViewModelImpl(
                         addMatrixAccountState.value = AddMatrixAccountState.None
                     } finally {
                         log.debug { "Clearing stored sso login info" }
-                        messengerSettings.update {
+                        messengerSettings.update<MatrixMessengerSettingsBase> {
                             it.copy(ssoState = null)
                         }
                     }
@@ -186,7 +188,7 @@ open class SSOLoginViewModelImpl(
             log.debug { "Clearing stored sso login info" }
             waitForRedirect.value = false
             isResumingLogin.value = false
-            messengerSettings.update { it.copy(ssoState = null) }
+            messengerSettings.update<MatrixMessengerSettingsBase> { it.copy(ssoState = null) }
         }
     }
 

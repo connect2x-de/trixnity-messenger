@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.ThemeMode
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import korlibs.io.async.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,8 +26,8 @@ interface AppearanceSettingsViewModelFactory {
 }
 
 interface AppearanceSettingsViewModel {
-    val themeMode: StateFlow<ThemeMode?>
-    val isHighContrast: StateFlow<Boolean?>
+    val themeMode: StateFlow<ThemeMode>
+    val isHighContrast: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
 
     fun setThemeMode(themeMode: ThemeMode)
@@ -41,12 +43,15 @@ class AppearanceSettingsViewModelImpl(
 ) : ViewModelContext by viewModelContext, AppearanceSettingsViewModel {
     private val settings = get<MatrixMessengerSettingsHolder>()
 
-    override val themeMode: StateFlow<ThemeMode?> =
-        settings.mapLatest { it.themeMode }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val isHighContrast: StateFlow<Boolean?> =
-        settings.mapLatest { it.isHighContrast }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val themeMode: StateFlow<ThemeMode> =
+        settings.mapLatest { it.base.themeMode }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.themeMode)
+    override val isHighContrast: StateFlow<Boolean> =
+        settings.mapLatest { it.base.isHighContrast }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isHighContrast)
     override val accentColor: StateFlow<Long?> =
-        settings.mapLatest { it.accentColor }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        settings.mapLatest { it.base.accentColor }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
 
     private val backCallback = BackCallback {
         back()
@@ -58,7 +63,7 @@ class AppearanceSettingsViewModelImpl(
 
     override fun setThemeMode(themeMode: ThemeMode) {
         coroutineScope.launch {
-            settings.update {
+            settings.update<MatrixMessengerSettingsBase> {
                 it.copy(themeMode = themeMode)
             }
         }
@@ -66,7 +71,7 @@ class AppearanceSettingsViewModelImpl(
 
     override fun toggleHighContrast() {
         coroutineScope.launch {
-            settings.update {
+            settings.update<MatrixMessengerSettingsBase> {
                 it.copy(isHighContrast = !it.isHighContrast)
             }
         }
@@ -74,7 +79,7 @@ class AppearanceSettingsViewModelImpl(
 
     override fun setAccentColor(accentColor: Long?) {
         coroutineScope.launch {
-            settings.update {
+            settings.update<MatrixMessengerSettingsBase> {
                 it.copy(accentColor = accentColor)
             }
         }

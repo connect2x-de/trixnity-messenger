@@ -68,7 +68,8 @@ interface RoomListViewModelFactory {
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
         onOpenAccountsOverview: () -> Unit,
-    ): RoomListViewModel {
+        onAccountSelected: () -> Unit,
+        ): RoomListViewModel {
         return RoomListViewModelImpl(
             viewModelContext,
             selectedRoomId,
@@ -78,6 +79,7 @@ interface RoomListViewModelFactory {
             onOpenAppInfo,
             onSendLogs,
             onOpenAccountsOverview,
+            onAccountSelected
         )
     }
 
@@ -139,7 +141,8 @@ class RoomListViewModelImpl(
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
-) : ViewModelContext by viewModelContext, RoomListViewModel {
+    private val onAccountSelected: () -> Unit,
+    ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val profileManager = getOrNull<ProfileManager>()
@@ -167,7 +170,7 @@ class RoomListViewModelImpl(
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
     private val activeAccount: StateFlow<UserId?> =
-        messengerSettings.map { it.selectedAccount }
+        messengerSettings.map { it.base.selectedAccount }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()
@@ -179,6 +182,7 @@ class RoomListViewModelImpl(
             onAccountSelected = {
                 // reset the active space as it might filter rooms in another account where it is not even present
                 activeSpace.value = null
+                onAccountSelected()
             },
             onUserSettingsSelected = onUserSettingsSelected,
             onShowAppInfo = onOpenAppInfo,

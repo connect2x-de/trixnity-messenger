@@ -137,7 +137,8 @@ class RootViewModelTest : ShouldSpec() {
                                         onUserSettingsSelected: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
-                                        onOpenAccounts: () -> Unit
+                                        onOpenAccounts: () -> Unit,
+                                        onAccountSelected: () -> Unit,
                                     ): RoomListViewModel = roomListViewModelMock
                                 }
                             }

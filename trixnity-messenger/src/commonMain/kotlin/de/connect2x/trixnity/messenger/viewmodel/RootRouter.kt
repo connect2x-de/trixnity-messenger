@@ -232,7 +232,7 @@ class RootRouter(
 
     private suspend fun resumeSsoLogin(redirectUrl: Url) {
         log.debug { "resumeSsoLogin" }
-        val state = settings.value.ssoState
+        val state = settings.value.base.ssoState
         if (state != null) {
             log.info { "resume sso login" }
             navigation.replaceAllSuspending(

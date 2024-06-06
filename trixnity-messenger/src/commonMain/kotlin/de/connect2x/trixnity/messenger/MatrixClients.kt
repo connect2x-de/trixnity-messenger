@@ -149,18 +149,18 @@ class MatrixClientsImpl(
         val displayColor =
             config.generateInitialAccountColor?.let { generateInitialAccountColor ->
                 generateInitialAccountColor(
-                    settings.value.accounts.map { it.value.displayColor }.filterNotNull().toSet()
+                    settings.value.base.accounts.map { it.value.base.displayColor }.filterNotNull().toSet()
                 )
             }
-        settings.update(matrixClient.userId) {
-            MatrixMessengerAccountSettings.withConfigDefaults(
+        settings.update<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
+            MatrixMessengerAccountSettingsBase.withConfigDefaults(
                 databasePassword = databasePassword,
                 displayColor = displayColor,
                 config = config
             )
         }
-        if (settings.value.accounts.size == 1) { // if first account, set as the active account
-            settings.update { it.copy(selectedAccount = matrixClient.userId) }
+        if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
+            settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
         }
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }
@@ -178,10 +178,10 @@ class MatrixClientsImpl(
     override suspend fun initFromStore(): InitFromStoreResult = coroutineScope {
         val success = MutableStateFlow(setOf<UserId>())
         val failures = MutableStateFlow(mapOf<UserId, Throwable?>())
-        val newMatrixClients = settings.value.accounts.map { (userId, accountSettings) ->
+        val newMatrixClients = settings.value.base.accounts.map { (userId, accountSettings) ->
             async {
                 if (matrixClients.value[userId] == null) {
-                    val newMatrixClient = factory.initFromStore(userId, accountSettings.databasePassword)
+                    val newMatrixClient = factory.initFromStore(userId, accountSettings.base.databasePassword)
                         .fold(
                             onSuccess = { newMatrixClient ->
                                 if (newMatrixClient != null) success.update { it + userId }
@@ -221,7 +221,7 @@ class MatrixClientsImpl(
             matrixClient.stop()
             log.info { "delete account data on this machine" }
             withContext(NonCancellable) {
-                settings.update(matrixClient.userId) { null }
+                settings.delete(matrixClient.userId)
                 matrixClients.update { it - userId }
                 deleteAccountData(userId)
             }

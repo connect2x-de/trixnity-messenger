@@ -1022,6 +1022,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             onOpenAppInfo = mockFunction0(mocker),
             onOpenAccountsOverview = mockFunction0(mocker),
             onSendLogs = mockFunction0(mocker),
+            onAccountSelected =  mockFunction0(mocker),
         )
     }
 
