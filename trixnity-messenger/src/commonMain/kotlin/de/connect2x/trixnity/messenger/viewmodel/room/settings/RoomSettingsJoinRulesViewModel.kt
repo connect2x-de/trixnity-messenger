@@ -27,17 +27,18 @@ interface RoomSettingsJoinRulesViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         error: MutableStateFlow<String?>
-    ) : RoomSettingsJoinRulesViewModel {
+    ): RoomSettingsJoinRulesViewModel {
         return RoomSettingsJoinRulesViewModelImpl(selectedRoomId, viewModelContext, error)
     }
-    companion object :  RoomSettingsJoinRulesViewModelFactory
+
+    companion object : RoomSettingsJoinRulesViewModelFactory
 }
 
 interface RoomSettingsJoinRulesViewModel {
-    val availableRoomJoinStates : StateFlow<List<JoinRulesEventContent.JoinRule>?>
-    val joinRule : StateFlow<JoinRulesEventContent.JoinRule>
-    val canChangeJoinRule : StateFlow<Boolean>
-    val isJoinRuleChanging : StateFlow<Boolean>
+    val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?>
+    val joinRule: StateFlow<JoinRulesEventContent.JoinRule>
+    val canChangeJoinRule: StateFlow<Boolean>
+    val isJoinRuleChanging: StateFlow<Boolean>
 
     fun changeJoinRule(newJoinRule: JoinRulesEventContent.JoinRule)
 }
@@ -49,26 +50,31 @@ class RoomSettingsJoinRulesViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsJoinRulesViewModel {
 
     override val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?> =
-        flowOf(listOf(
-            JoinRulesEventContent.JoinRule.Public,
-            JoinRulesEventContent.JoinRule.Invite,
-            JoinRulesEventContent.JoinRule.Knock,
-            JoinRulesEventContent.JoinRule.Restricted,
-            JoinRulesEventContent.JoinRule.KnockRestricted
-        )).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        flowOf(
+            listOf(
+                JoinRulesEventContent.JoinRule.Public,
+                JoinRulesEventContent.JoinRule.Invite,
+                JoinRulesEventContent.JoinRule.Knock,
+                JoinRulesEventContent.JoinRule.Restricted,
+                JoinRulesEventContent.JoinRule.KnockRestricted
+            )
+        ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val joinRule: StateFlow<JoinRulesEventContent.JoinRule> = matrixClient.room.getState<JoinRulesEventContent>(selectedRoom)
-        .map { it?.content?.joinRule ?: JoinRulesEventContent.JoinRule.Public}.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), JoinRulesEventContent.JoinRule.Public)
+    override val joinRule: StateFlow<JoinRulesEventContent.JoinRule> =
+        matrixClient.room.getState<JoinRulesEventContent>(selectedRoom)
+            .map { it?.content?.joinRule ?: JoinRulesEventContent.JoinRule.Public }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), JoinRulesEventContent.JoinRule.Public)
 
-    override val canChangeJoinRule: StateFlow<Boolean> = matrixClient.user.canSendEvent<JoinRulesEventContent>(selectedRoom)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canChangeJoinRule: StateFlow<Boolean> =
+        matrixClient.user.canSendEvent<JoinRulesEventContent>(selectedRoom)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val isJoinRuleChanging = MutableStateFlow(false)
 
     override fun changeJoinRule(newJoinRule: JoinRulesEventContent.JoinRule) {
         log.debug { "change RoomJoin for $selectedRoom to $newJoinRule" }
 
-        if (canChangeJoinRule.value) {
+        if (canChangeJoinRule.value && !isJoinRuleChanging.value) {
             isJoinRuleChanging.value = true
             coroutineScope.launch {
                 matrixClient.api.room.sendStateEvent(selectedRoom, JoinRulesEventContent(newJoinRule))
@@ -81,13 +87,12 @@ class RoomSettingsJoinRulesViewModelImpl(
                         error.value = null
                         withTimeoutOrNull(5.seconds) {
                             matrixClient.room.getState<JoinRulesEventContent>(selectedRoom)
-                                .first { it?.content?.joinRule  ==  newJoinRule}
+                                .first { it?.content?.joinRule == newJoinRule }
                         }
                         isJoinRuleChanging.value = false
                     }
             }
-        }
-        else {
+        } else {
             log.error { "Insufficient power level to change room join rules" }
             error.value = i18n.settingsRoomJoinRulesInsufficientPowerLevel()
             isJoinRuleChanging.value = false
@@ -99,12 +104,21 @@ class RoomSettingsJoinRulesViewModelImpl(
 
 class PreviewRoomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel {
     override val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?> =
-        MutableStateFlow( listOf(JoinRulesEventContent.JoinRule.Public, JoinRulesEventContent.JoinRule.Private,
-            JoinRulesEventContent.JoinRule.Invite, JoinRulesEventContent.JoinRule.Knock, JoinRulesEventContent.JoinRule.KnockRestricted,
-            JoinRulesEventContent.JoinRule.Restricted))
+        MutableStateFlow(
+            listOf(
+                JoinRulesEventContent.JoinRule.Public,
+                JoinRulesEventContent.JoinRule.Private,
+                JoinRulesEventContent.JoinRule.Invite,
+                JoinRulesEventContent.JoinRule.Knock,
+                JoinRulesEventContent.JoinRule.KnockRestricted,
+                JoinRulesEventContent.JoinRule.Restricted
+            )
+        )
     override val canChangeJoinRule: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isJoinRuleChanging: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val joinRule: MutableStateFlow<JoinRulesEventContent.JoinRule> = MutableStateFlow(JoinRulesEventContent.JoinRule.Public)
+    override val joinRule: MutableStateFlow<JoinRulesEventContent.JoinRule> =
+        MutableStateFlow(JoinRulesEventContent.JoinRule.Public)
+
     override fun changeJoinRule(newJoinRule: JoinRulesEventContent.JoinRule) {
         joinRule.value = newJoinRule
     }
