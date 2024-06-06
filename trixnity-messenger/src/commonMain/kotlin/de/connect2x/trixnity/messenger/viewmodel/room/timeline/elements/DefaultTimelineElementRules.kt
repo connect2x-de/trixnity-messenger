@@ -3,11 +3,14 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStep
+import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import kotlin.reflect.KClass
 
 object DefaultTimelineElementRules : TimelineElementRules {
@@ -23,6 +26,9 @@ object DefaultTimelineElementRules : TimelineElementRules {
         CreateEventContent::class,
         MemberEventContent::class,
         NameEventContent::class,
+        TopicEventContent::class,
+        HistoryVisibilityEventContent::class,
+        AvatarEventContent::class,
     )
     override val canHaveUnreadMarker: Set<KClass<out RoomEventContent>> = setOf(
         // encrypted
