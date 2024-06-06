@@ -75,6 +75,7 @@ interface RoomListElementViewModel {
     val error: StateFlow<String?>
     val isDirect: StateFlow<Boolean?>
     val isInvite: StateFlow<Boolean?>
+    val inviteAccountId: StateFlow<UserId?>
     val isEncrypted: StateFlow<Boolean?>
     val isPublic: StateFlow<Boolean?>
     val roomName: StateFlow<String?>
@@ -122,6 +123,16 @@ open class RoomListElementViewModelImpl(
     override val isInvite: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.INVITE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val inviteAccountId: StateFlow<UserId?> =
+        combine(isInvite, roomFlow) { isInvite, room ->
+            if (isInvite == true) {
+                roomInviter.getInviter(matrixClient, room.roomId)
+            } else {
+                null
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val isEncrypted: StateFlow<Boolean?> =
         roomFlow.map { it.encrypted }
             .stateIn(coroutineScope, WhileSubscribed(), null)
@@ -314,6 +325,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(false)
+    override val inviteAccountId: StateFlow<UserId?> = MutableStateFlow(null)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Benedict")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("B")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
@@ -336,6 +348,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(false)
+    override val inviteAccountId: StateFlow<UserId?> = MutableStateFlow(null)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Allgemein")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("A")
@@ -361,6 +374,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val inviteAccountId: StateFlow<UserId?> = MutableStateFlow(null)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Martin")
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("M")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
@@ -383,6 +397,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
+    override val inviteAccountId: StateFlow<UserId?> = MutableStateFlow(null)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val roomName: MutableStateFlow<String?> = MutableStateFlow("Martin")
