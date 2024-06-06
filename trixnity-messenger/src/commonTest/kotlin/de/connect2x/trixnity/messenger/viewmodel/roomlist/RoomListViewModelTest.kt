@@ -103,7 +103,6 @@ class RoomListViewModelTest : ShouldSpec() {
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
     private val onAccountSelected = mockFunction0<Unit>(mocker)
 
-
     lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
     lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
 
