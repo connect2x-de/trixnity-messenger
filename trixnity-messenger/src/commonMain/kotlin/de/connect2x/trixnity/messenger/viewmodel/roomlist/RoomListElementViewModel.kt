@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -128,16 +127,21 @@ open class RoomListElementViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
-        combine(isInvite, roomFlow) { isInvite, room ->
-            if (isInvite == true) {
-                val inviter = roomInviter.getInviter(matrixClient, room.roomId)
-                if (inviter != null) {
-                    matrixClient.user.getById(roomId, inviter).firstOrNull()?.toUserInfoElement(matrixClient)
-                } else {
-                    null
-                }
+        combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
+            if (isInvite) {
+                room.roomId
             } else {
                 null
+            }
+        }.flatMapLatest { roomId ->
+            if (roomId != null) {
+                roomInviter.getInviter(matrixClient, roomId)?.let { inviterUserId ->
+                    matrixClient.user.getById(roomId, inviterUserId)
+                        .filterNotNull()
+                        .map { it.toUserInfoElement(matrixClient) }
+                } ?: flowOf(null)
+            } else {
+                flowOf(null)
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
