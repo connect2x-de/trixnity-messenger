@@ -85,6 +85,7 @@ interface MainViewModel {
     fun closeDetailsAndShowList()
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
+    fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
     fun setSinglePane(isSinglePane: Boolean)
     fun openModal(
         type: OpenModalType,
@@ -150,7 +151,8 @@ open class MainViewModelImpl(
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenModal = ::openModal,
-            onOpenMention = ::openMention
+            onOpenMention = ::openMention,
+            onOpenAvatarCutter = ::onOpenAvatarCutter
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
@@ -428,6 +430,13 @@ open class MainViewModelImpl(
         }
     }
 
+    override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
+        coroutineScope.launch {
+            log.debug { "open avatar cutter" }
+            avatarCutterRouter.show(userId, selectedRoomId, file)
+        }
+    }
+
     override fun setSinglePane(isSinglePane: Boolean) {
         log.debug { "set single pane: $isSinglePane" }
         isBackButtonVisible.value = isSinglePane
@@ -629,6 +638,9 @@ class PreviewMainViewModel : MainViewModel {
     }
 
     override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
+    }
+
+    override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
     }
 
     override fun setSinglePane(isSinglePane: Boolean) {

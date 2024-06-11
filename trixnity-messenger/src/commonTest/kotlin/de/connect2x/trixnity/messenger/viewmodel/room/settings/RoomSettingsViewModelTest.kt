@@ -286,6 +286,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
             onShowAddMembers = mockFunction0(mocker),
             onShowExportRoom = mockFunction0(mocker),
+            onOpenAvatarCutter = { _,_,_ ->},
         )
     }
 }
