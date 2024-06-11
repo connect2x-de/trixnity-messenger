@@ -48,7 +48,7 @@ class SelfVerificationRouter(
                         .create(
                             viewModelContext = viewModelContext.childContext(
                                 componentContext,
-                                selfVerificationConfig.userId
+                                selfVerificationConfig.userId,
                             ),
                             onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
                         )
@@ -60,7 +60,7 @@ class SelfVerificationRouter(
                     .create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
-                            selfVerificationConfig.userId
+                            selfVerificationConfig.userId,
                         ),
                         onStartSelfVerification = { showSelfVerification(selfVerificationConfig.userId) },
                         onClose = ::continueWithoutVerification,
@@ -72,7 +72,7 @@ class SelfVerificationRouter(
                     viewModelContext.get<BootstrapViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
-                            selfVerificationConfig.userId
+                            selfVerificationConfig.userId,
                         ),
                         onClose = ::closeBootstrap,
                     )
@@ -103,7 +103,7 @@ class SelfVerificationRouter(
     suspend fun showBootstrap(userId: UserId) {
         // it can happen that the bootstrap is triggered twice (initial sync, then regular sync; to avoid any
         // complications, only allow one bootstrap to be shown at the time
-        if (bootstrapStarted.value.not()) {
+        if (bootstrapStarted.value.not()) { // Todo: use mutex
             log.debug { "show bootstrap view" }
             bootstrapStarted.value = true
             navigation.pushSuspending(Config.Bootstrap(userId))

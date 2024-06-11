@@ -106,6 +106,13 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -214,6 +221,13 @@ fun createDefaultTrixnityMessengerModules() = listOf(
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
+
+        single<AuthorizeUia> { AuthorizeUiaImpl() }
+        single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
+        single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
+        single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
+        single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
+        single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
     },
     timelineElementModule(),
     connectingViewModels(),
@@ -293,7 +307,7 @@ private fun settingsViewModels() = module {
     single<AppInfoViewModelFactory> { AppInfoViewModelFactory }
     single<AvatarCutterViewModelFactory> { AvatarCutterViewModelFactory }
     single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
-    single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory } // FIXME platform?
+    single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory }
     single<ProfileViewModelFactory> { ProfileViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }

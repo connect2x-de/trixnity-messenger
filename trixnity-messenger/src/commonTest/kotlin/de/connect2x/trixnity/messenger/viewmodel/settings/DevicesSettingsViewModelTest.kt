@@ -2,7 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.firstNotNullWithClue
+import de.connect2x.trixnity.messenger.util.AuthorizeUiaMock
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import io.kotest.assertions.assertSoftly
@@ -34,10 +38,6 @@ import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.devices.Device
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
-import net.folivo.trixnity.clientserverapi.model.uia.UIAState
-import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import net.folivo.trixnity.core.model.keys.DeviceKeys
@@ -47,7 +47,6 @@ import net.folivo.trixnity.crypto.olm.OlmEncryptionService
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
 import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -135,6 +134,9 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
     @Mock
     lateinit var keyTrustServiceMock: KeyTrustService
 
+    private lateinit var coroutineScope: CoroutineScope
+    private lateinit var authorizeUia: AuthorizeUiaMock
+
     private lateinit var updateDeviceMocker: Mocker.EverySuspend<Result<Unit>>
     private lateinit var deviceKeysMocker: Mocker.Every<Flow<List<DeviceKeys>?>>
 
@@ -144,6 +146,9 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
+
+            coroutineScope = CoroutineScope(Dispatchers.Default)
+            authorizeUia = AuthorizeUiaMock(coroutineScope)
 
             with(mocker) {
                 every { matrixClientMock.di } returns koinApplication {
@@ -157,7 +162,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                 every { matrixClientMock.deviceId } returns ourDeviceId
                 every { matrixClientMock.userId } returns ourUserId
                 every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.devices } returns devicesApiClientMock
+                every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
                 every { matrixClientServerApiClientMock.json } returns Json
 
                 every { matrixClientMock2.di } returns koinApplication {
@@ -171,7 +176,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                 every { matrixClientMock2.deviceId } returns ourDeviceId2
                 every { matrixClientMock2.userId } returns ourUserId2
                 every { matrixClientMock2.api } returns matrixClientServerApiClientMock2
-                every { matrixClientServerApiClientMock2.devices } returns devicesApiClientMock2
+                every { matrixClientServerApiClientMock2.device } returns devicesApiClientMock2
                 every { matrixClientServerApiClientMock2.json } returns Json
 
                 updateDeviceMocker = everySuspending {
@@ -189,7 +194,13 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                 everySuspending { devicesApiClientMock2.getDevices() } returns Result.success(
                     listOf(device21, device22)
                 )
+                everySuspending {
+                    devicesApiClientMock.getDevice(isAny(), isAny())
+                } returns Result.success(device1)
             }
+        }
+        afterTest {
+            coroutineScope.cancel()
         }
 
         should("load devices initially") {
@@ -309,7 +320,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                 )
             )
 
-            deviceKeysList.value = deviceKeysList.value + DeviceKeys(ourUserId, ourDeviceId, setOf(), Keys(setOf()))
+            deviceKeysList.value += DeviceKeys(ourUserId, ourDeviceId, setOf(), Keys(setOf()))
             testCoroutineScheduler.advanceUntilIdle()
             accountsWithDevices.first {
                 it.isNotEmpty() &&
@@ -440,22 +451,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("show password prompt when trying to remove a device") {
+        should("show uia when trying to remove a device") {
             with(mocker) {
-                everySuspending { devicesApiClientMock.deleteDevice("deviceId2") } returns Result.success(
-                    UIA.Step(
-                        state = UIAState(
-                            flows = setOf(
-                                UIAState.FlowInformation(
-                                    stages = listOf(AuthenticationType.Password)
-                                )
-                            )
-                        ),
-                        getFallbackUrlCallback = mockFunction1(mocker),
-                        authenticateCallback = mockFunction1(mocker),
-                        onSuccessCallback = mockFunction0(mocker) {},
-                    )
-                )
                 everySuspending { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
                 every {
                     keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual(ourDeviceId))
@@ -469,26 +466,15 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             val accountsWithDevices = cut.accountsWithDevices
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
-            cut.showLogin.value shouldBe null
             cut.remove(UserId("test", "server"), "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.showLogin.value shouldNotBe null
+            val authorizeUiaParams = authorizeUia.onRequestFlowState.firstNotNullWithClue()
+            authorizeUiaParams.onResult(AuthorizeUiaResult.Success(UIA.Success(Unit)))
 
             cancelNeverEndingCoroutines()
         }
 
         should("show an error message when the device could not be removed") {
             with(mocker) {
-                everySuspending { devicesApiClientMock.deleteDevice("deviceId2") } returns Result.success(
-                    UIA.Error(
-                        state = UIAState(),
-                        getFallbackUrlCallback = mockFunction1(mocker),
-                        errorResponse = ErrorResponse.CustomErrorResponse(""),
-                        authenticateCallback = mockFunction1(mocker),
-                        onSuccessCallback = mockFunction0(mocker) { },
-                    )
-                )
                 everySuspending { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
                 every {
                     keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual(ourDeviceId))
@@ -502,157 +488,12 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             val accountsWithDevices = cut.accountsWithDevices
             accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
 
-            cut.removeError.value shouldBe null
+            cut.error.value shouldBe null
             cut.remove(UserId("test", "server"), "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
+            val authorizeUiaParams = authorizeUia.onRequestFlowState.firstNotNullWithClue()
+            authorizeUiaParams.onResult(AuthorizeUiaResult.CancelledByUser<Unit>("cancelled"))
 
-            cut.removeError.value shouldNotBe null
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("authenticate with password when trying to remove a device") {
-            var authenticateWasCalled = false
-            with(mocker) {
-                everySuspending { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1))
-                everySuspending { devicesApiClientMock.deleteDevice("deviceId2") } returns Result.success(
-                    UIA.Step(
-                        state = UIAState(
-                            flows = setOf(
-                                UIAState.FlowInformation(
-                                    stages = listOf(AuthenticationType.Password)
-                                )
-                            )
-                        ),
-                        getFallbackUrlCallback = mockFunction1(mocker),
-                        authenticateCallback = mockFunction1(mocker) {
-                            authenticateWasCalled = true
-                            Result.success(UIA.Success(Unit))
-                        },
-                        onSuccessCallback = mockFunction0(mocker) {},
-                    )
-                )
-                everySuspending { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual(ourDeviceId))
-                } returns flowOf(DeviceTrustLevel.Valid(true))
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual("deviceId2"))
-                } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-            }
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
-
-            cut.showRemoveDevice.value = "deviceId2" // triggered by UI
-            cut.remove(UserId("test", "server"), "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.authenticate(UserId("test", "server"), "p4ssw0rd!", "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-
-            authenticateWasCalled shouldBe true
-            cut.showLogin.value shouldBe null
-            cut.showRemoveDevice.value shouldBe null
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("show 'password wrong' when login attempt with password fails and reset when dialog closes") {
-            val authenticateCallback: suspend (p: AuthenticationRequest) -> Result<UIA<Unit>> = {
-                Result.success(
-                    UIA.Error(
-                        state = UIAState(),
-                        getFallbackUrlCallback = mockFunction1(mocker),
-                        errorResponse = ErrorResponse.Forbidden(),
-                        authenticateCallback = mockFunction1(mocker),
-                        onSuccessCallback = mockFunction0(mocker),
-                    )
-                )
-            }
-            with(mocker) {
-                everySuspending { devicesApiClientMock.deleteDevice("deviceId2") } returns Result.success(
-                    UIA.Step(
-                        state = UIAState(
-                            flows = setOf(
-                                UIAState.FlowInformation(
-                                    stages = listOf(AuthenticationType.Password)
-                                )
-                            )
-                        ),
-                        getFallbackUrlCallback = mockFunction1(mocker),
-                        authenticateCallback = authenticateCallback,
-                        onSuccessCallback = mockFunction0(mocker),
-                    )
-                )
-                everySuspending { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual(ourDeviceId))
-                } returns flowOf(DeviceTrustLevel.Valid(true))
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual("deviceId2"))
-                } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-            }
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
-
-            cut.passwordWrong.value shouldBe false
-            cut.showRemoveDevice.value = "deviceId2" // triggered by UI
-            cut.remove(UserId("test", "server"), "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.authenticate(UserId("test", "server"), "p4ssw0rd!", "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.passwordWrong.value shouldBe true
-
-            cut.closeRemoveDialog()
-            cut.passwordWrong.value shouldBe false
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("show an error message when the authentication with password cannot be performed") {
-            with(mocker) {
-                everySuspending { devicesApiClientMock.deleteDevice("deviceId2") } returns Result.success(
-                    UIA.Step(
-                        state = UIAState(
-                            flows = setOf(
-                                UIAState.FlowInformation(
-                                    stages = listOf(AuthenticationType.Password)
-                                )
-                            )
-                        ),
-                        getFallbackUrlCallback = mockFunction1(mocker),
-                        authenticateCallback = mockFunction1(mocker) {
-                            Result.failure(RuntimeException("Oh no!"))
-                        },
-                        onSuccessCallback = mockFunction0(mocker),
-                    )
-                )
-                everySuspending { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual(ourDeviceId))
-                } returns flowOf(DeviceTrustLevel.Valid(true))
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ourUserId), isEqual("deviceId2"))
-                } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-            }
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
-
-            cut.removeError.value shouldBe null
-            cut.remove(UserId("test", "server"), "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.authenticate(UserId("test", "server"), "p4ssw0rd!", "deviceId2")
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.removeError.value shouldNotBe null
-            cut.closeRemoveDialog()
-            cut.removeError.value shouldBe null
+            cut.error.firstNotNullWithClue()
 
             cancelNeverEndingCoroutines()
         }
@@ -695,7 +536,9 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                         UserId("test", "server") to matrixClientMock,
                         UserId("test2", "server") to matrixClientMock2
                     )
-                )
+                ) + module {
+                    single<AuthorizeUia> { authorizeUia }
+                }
             )
         }.koin
         return DevicesSettingsViewModelImpl(

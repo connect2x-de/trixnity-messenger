@@ -525,7 +525,6 @@ class RoomListViewModelImpl(
     }
 }
 
-
 class PreviewRoomListViewModel : RoomListViewModel {
     override val selectedRoomId: MutableStateFlow<RoomId?> = MutableStateFlow(null)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)

@@ -502,7 +502,7 @@ open class MainViewModelImpl(
         when (messageMention) {
             is MessageMention.User -> {
                 val (localpart, domain) = messageMention.user
-                // todo: implement and open user view (profile)
+                // TODO: implement and open user view (profile)
                 log.warn { "UserView to display $localpart:$domain not implemented yet" }
             }
 
@@ -514,7 +514,7 @@ open class MainViewModelImpl(
 
             is MessageMention.Event -> {
                 val eventId = messageMention.event
-                // todo: implement and open event view
+                // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
         }

@@ -51,7 +51,7 @@ data class MatrixMessengerAccountSettingsBase(
         fun withConfigDefaults(
             databasePassword: SecretByteArray?,
             displayColor: Long?,
-            config: MatrixMessengerConfiguration
+            config: MatrixMessengerConfiguration,
         ) = MatrixMessengerAccountSettingsBase(
             databasePassword = databasePassword,
             displayColor = displayColor,

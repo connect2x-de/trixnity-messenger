@@ -297,7 +297,7 @@ class RootRouter(
             val serverUrl: String,
             val providerId: String,
             val providerName: String,
-            val initialState: String? = null
+            val initialState: String? = null,
         ) : Config()
 
         @Serializable

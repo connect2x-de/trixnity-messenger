@@ -5,14 +5,20 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.uia.UIA.reactToResponse
-import de.connect2x.trixnity.messenger.viewmodel.uia.UIAReaction
-import de.connect2x.trixnity.messenger.viewmodel.uia.UIAResponse
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.key
@@ -20,6 +26,7 @@ import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.model.devices.Device
 import net.folivo.trixnity.core.model.UserId
+import org.koin.core.component.get
 
 
 private val log = KotlinLogging.logger {}
@@ -50,17 +57,12 @@ interface DevicesSettingsViewModelFactory {
 interface DevicesSettingsViewModel {
     val accountsWithDevices: StateFlow<List<AccountWithDevices>>
     val error: StateFlow<String?>
-    val removeError: StateFlow<String?>
-    val showRemoveDevice: MutableStateFlow<String?>
-    val showLogin: StateFlow<UIAResponse?>
-    val passwordWrong: MutableStateFlow<Boolean>
+    val removalForDeviceId: MutableStateFlow<String?>
 
     fun back()
     fun setDisplayName(userId: UserId, deviceId: String, oldDisplayName: String, newDisplayName: String)
     fun verify(userId: UserId, deviceId: String)
     fun remove(userId: UserId, deviceId: String)
-    fun closeRemoveDialog()
-    fun authenticate(userId: UserId, password: String, deviceId: String)
 }
 
 open class DevicesSettingsViewModelImpl(
@@ -70,12 +72,10 @@ open class DevicesSettingsViewModelImpl(
 
     override val accountsWithDevices: StateFlow<List<AccountWithDevices>>
     override val error = MutableStateFlow<String?>(null)
-    override val removeError = MutableStateFlow<String?>(null)
-    override val showRemoveDevice = MutableStateFlow<String?>(null)
-    override val showLogin = MutableStateFlow<UIAResponse?>(null)
-    override val passwordWrong = MutableStateFlow(false)
 
     private val initialLoad = MutableStateFlow(true)
+    override val removalForDeviceId = MutableStateFlow<String?>(null)
+    private val authorizeUia = get<AuthorizeUia>()
 
     private val backCallback = BackCallback {
         back()
@@ -165,7 +165,7 @@ open class DevicesSettingsViewModelImpl(
                     )
                 )
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+        }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
     }
 
     private fun CoroutineScope.isVerified(
@@ -183,7 +183,7 @@ open class DevicesSettingsViewModelImpl(
         userId: UserId,
         deviceId: String,
         oldDisplayName: String,
-        newDisplayName: String
+        newDisplayName: String,
     ) {
         val matrixClient = getMatrixClient(userId)
         if (oldDisplayName != newDisplayName) {
@@ -236,62 +236,39 @@ open class DevicesSettingsViewModelImpl(
         val matrixClient = getMatrixClient(userId)
         coroutineScope.launch {
             initialLoad.first { it.not() }
-            val uiaReaction = reactToResponse(matrixClient.api.device.deleteDevice(deviceId))
-            if (uiaReaction is UIAReaction.ShowLogin) {
-                showLogin.value = uiaReaction.response
+            removalForDeviceId.value = deviceId
+            error.value = null
+            val displayName = matrixClient.api.device.getDevice(deviceId, userId).fold(
+                onSuccess = { it.displayName },
+                onFailure = { null },
+            )
+            val result = authorizeUia(
+                i18n.settingsDevicesRemoveConfirmationMessage(displayName, deviceId)
+            ) {
+                getMatrixClient(userId).api.device.deleteDevice(deviceId)
             }
-            if (uiaReaction is UIAReaction.UnexpectedError) {
-                log.error { "Cannot delete device $deviceId." }
-                removeError.value = i18n.settingsDevicesRemoveError()
+            when (result) {
+                is AuthorizeUiaResult.CancelledByUser -> error.value = result.message
+
+                is AuthorizeUiaResult.Error ->
+                    error.value = i18n.settingsDevicesRemoveError(result.exception.errorResponse.error)
+
+                is AuthorizeUiaResult.UnexpectedError -> error.value = result.message
+
+                is AuthorizeUiaResult.Success ->
+                    log.debug { "successfully removed device $deviceId for user $userId" }
             }
+            removalForDeviceId.value = null
         }
     }
 
-    override fun closeRemoveDialog() {
-        showRemoveDevice.value = null
-        passwordWrong.value = false
-        removeError.value = null
-        showLogin.value = null
-    }
+    private fun displayName(device: Device?): String =
+        device?.displayName ?: i18n.commonUnknown()
 
-    override fun authenticate(userId: UserId, password: String, deviceId: String) {
-        val matrixClient = getMatrixClient(userId)
-        coroutineScope.launch {
-            initialLoad.first { it.not() }
-            showLogin.value?.let {
-                when (val uiaReaction =
-                    it.authenticateWithPassword(matrixClient.userId, password)) {
-                    is UIAReaction.ShowLogin -> {
-                        passwordWrong.value = true
-                        showLogin.value = uiaReaction.response
-                        showRemoveDevice.value = deviceId
-                    }
-
-                    is UIAReaction.UnexpectedError -> {
-                        log.error { "Cannot login: ${uiaReaction.error}." }
-                        removeError.value = i18n.settingsDevicesRemoveLoginError(
-                            uiaReaction.error ?: ""
-                        )
-                    }
-
-                    else -> closeRemoveDialog()
-                }
-            }
-        }
-    }
-
-    private fun displayName(device: Device?): String {
-        return device?.displayName ?: i18n.commonUnknown()
-    }
-
-    private fun lastSeenAt(device: Device?): String {
-        return device?.lastSeenTs
-            ?.let {
-                i18n.settingsDevicesDisplayNameLastSeen(Instant.fromEpochMilliseconds(it))
-            }
-            ?: ""
-    }
-
+    private fun lastSeenAt(device: Device?): String = device?.lastSeenTs
+        ?.let {
+            i18n.settingsDevicesDisplayNameLastSeen(Instant.fromEpochMilliseconds(it))
+        } ?: ""
 }
 
 data class DeviceInfo(
