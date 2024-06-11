@@ -419,7 +419,6 @@ class RoomViewModelTest : ShouldSpec() {
             onOpenModal = mockFunction5(mocker),
             isBackButtonVisible = MutableStateFlow(false),
             onOpenMention = mockFunction2(mocker),
-            onOpenAvatarCutter = { _,_,_ ->}
         )
         return roomViewModel
     }

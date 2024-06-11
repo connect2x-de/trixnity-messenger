@@ -152,7 +152,6 @@ class AvatarCutterViewModelTest : ShouldSpec() {
             ),
             file = fileDescriptorMock,
             onCloseMock,
-            roomId = null
         )
     }
 }
