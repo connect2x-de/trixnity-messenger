@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState.None
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -105,8 +106,7 @@ open class SSOLoginViewModelImpl(
         ?: SecureRandom.nextBytes(16).toByteString().base64Url()
     private val uriCaller = get<UriCaller>()
 
-    override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
-        MutableStateFlow(AddMatrixAccountState.None)
+    override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
     private val messengerConfiguration = get<MatrixMessengerConfiguration>()
 
     private val redirectUrl =
@@ -143,6 +143,7 @@ open class SSOLoginViewModelImpl(
     override fun resumeLogin(redirectUrl: Url) {
         if (loginJob == null) {
             loginJob = coroutineScope.launch {
+                log.debug { "begin resume login job" }
                 waitForRedirect.value = false
                 isResumingLogin.value = true
                 val loginToken = if (redirectUrl.parameters["state"] == state) {
@@ -153,7 +154,7 @@ open class SSOLoginViewModelImpl(
                     log.debug { "Try to login into $serverUrl with loginToken=***." }
                     try {
                         loginWithLoginToken(loginToken)
-                        addMatrixAccountState.value = AddMatrixAccountState.None
+                        addMatrixAccountState.value = None
                     } finally {
                         log.debug { "Clearing stored sso login info" }
                         messengerSettings.update<MatrixMessengerSettingsBase> {
@@ -165,6 +166,7 @@ open class SSOLoginViewModelImpl(
                 }
             }
             loginJob?.invokeOnCompletion {
+                it?.let { log.error { it } }
                 loginJob = null
                 isResumingLogin.value = false
             }

@@ -51,8 +51,8 @@ interface AddMatrixAccountViewModel {
     val serverDiscoveryState: StateFlow<ServerDiscoveryState>
 
     sealed interface ServerDiscoveryState {
-        object None : ServerDiscoveryState
-        object Loading : ServerDiscoveryState
+        data object None : ServerDiscoveryState
+        data object Loading : ServerDiscoveryState
         data class Success(val addMatrixAccountMethods: Set<AddMatrixAccountMethod>) : ServerDiscoveryState
         data class Failure(val message: String) : ServerDiscoveryState
     }
