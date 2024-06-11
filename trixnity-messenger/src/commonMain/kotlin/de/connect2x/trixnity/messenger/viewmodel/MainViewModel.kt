@@ -85,6 +85,7 @@ interface MainViewModel {
     fun closeDetailsAndShowList()
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
+    fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
     fun setSinglePane(isSinglePane: Boolean)
     fun openModal(
         type: OpenModalType,
@@ -139,8 +140,8 @@ open class MainViewModelImpl(
             onSendLogs = ::onSendLogs,
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
-            onAccountSelected =  ::closeRoom,
-            )
+            onAccountSelected = ::closeRoom,
+        )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
 
@@ -150,7 +151,8 @@ open class MainViewModelImpl(
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenModal = ::openModal,
-            onOpenMention = ::openMention
+            onOpenMention = ::openMention,
+            onOpenAvatarCutter = ::onOpenAvatarCutter
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
@@ -399,7 +401,7 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun closeRoom(){
+    private fun closeRoom() {
         log.debug { "Closing the room as account has been switched.." }
         coroutineScope.launch {
             roomRouter.closeRoom()
@@ -425,6 +427,13 @@ open class MainViewModelImpl(
         coroutineScope.launch {
             log.debug { "open avatar cutter" }
             avatarCutterRouter.show(userId, file)
+        }
+    }
+
+    override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
+        coroutineScope.launch {
+            log.debug { "open avatar cutter" }
+            avatarCutterRouter.show(userId, selectedRoomId, file)
         }
     }
 
@@ -629,6 +638,10 @@ class PreviewMainViewModel : MainViewModel {
     }
 
     override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
+    }
+
+    override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
+
     }
 
     override fun setSinglePane(isSinglePane: Boolean) {

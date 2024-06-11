@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -48,6 +49,7 @@ class RoomRouterImpl(
     private val onCloseRoom: () -> Unit,
     private val onOpenModal: OpenModalUserCallback,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()
@@ -73,7 +75,8 @@ class RoomRouterImpl(
                     isBackButtonVisible = isBackButtonVisible,
                     onRoomBack = onCloseRoom,
                     onOpenModal = onOpenModal,
-                    onOpenMention = onOpenMention
+                    onOpenMention = onOpenMention,
+                    onOpenAvatarCutter = onOpenAvatarCutter
                 ).also {
                     log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }
