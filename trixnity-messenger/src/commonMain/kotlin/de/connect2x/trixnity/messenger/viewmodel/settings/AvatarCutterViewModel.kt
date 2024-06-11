@@ -79,10 +79,8 @@ open class AvatarCutterViewModelImpl(
             matrixClient.media.uploadMedia(cache).fold(
                 onSuccess = { url ->
                     if (roomId == null) {
-                        // Set user avatar
                         setUserAvatar(url)
                     } else {
-                        // Set room avatar
                         setRoomAvatar(url, roomId)
                     }
                 },
@@ -93,33 +91,6 @@ open class AvatarCutterViewModelImpl(
                 }
             )
         }
-
-//            matrixClient.media.prepareUploadThumbnail(
-//                file.content,
-//                file.mimeType,
-//            )?.let { (cache, _) ->
-//                matrixClient.media.uploadMedia(cache).fold(
-//                    onSuccess = { url ->
-//                        matrixClient.setAvatarUrl(url).fold(
-//                            onSuccess = {
-//                                upload.value = false
-//                                onClose()
-//                            },
-//                            onFailure = {
-//                                log.error(it) { "Cannot set user avatar." }
-//                                upload.value = false
-//                                error.value = i18n.profileAvatarError()
-//                            }
-//                        )
-//                    },
-//                    onFailure = {
-//                        log.error(it) { "Cannot upload avatar image." }
-//                        upload.value = false
-//                        error.value = i18n.profileAvatarError()
-//                    }
-//                )
-//            }
-//        }
     }
 
     private suspend fun setUserAvatar(url: String) {
