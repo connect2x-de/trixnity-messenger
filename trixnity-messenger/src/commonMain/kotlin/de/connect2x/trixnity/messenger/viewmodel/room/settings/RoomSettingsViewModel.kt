@@ -84,6 +84,7 @@ class RoomSettingsViewModelImpl(
     private val backCallback = BackCallback {
         close()
     }
+
     init {
         backHandler.register(backCallback)
     }
