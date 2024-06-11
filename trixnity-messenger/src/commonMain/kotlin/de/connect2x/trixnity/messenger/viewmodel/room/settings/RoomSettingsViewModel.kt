@@ -47,7 +47,7 @@ interface RoomSettingsViewModelFactory {
 
 interface RoomSettingsViewModel {
     val error: StateFlow<String?>
-    val avatarChangeViewModel: ChangeAvatarViewModel
+    val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
@@ -91,7 +91,7 @@ class RoomSettingsViewModelImpl(
 
     override val error = MutableStateFlow<String?>(null)
 
-    override val avatarChangeViewModel: ChangeAvatarViewModel by lazy {
+    override val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel by lazy {
         get<ChangeRoomAvatarViewModelFactory>()
             .create(viewModelContext, selectedRoomId, onOpenAvatarCutter)
     }
@@ -211,7 +211,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel =
         PreviewRoomSettingsJoinRulesViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val avatarChangeViewModel: ChangeAvatarViewModel = ChangeAvatarViewModelPreview()
+    override val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel = ChangeAvatarViewModelPreview()
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val leaveRoomWarningTitle: MutableStateFlow<String> = MutableStateFlow("leave room warning title")

@@ -29,7 +29,7 @@ interface ChangeRoomAvatarViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    ): ChangeAvatarViewModel {
+    ): ChangeRoomAvatarViewModel {
         return ChangeAvatarViewModelImpl(
             viewModelContext,
             selectedRoomId,
@@ -40,7 +40,7 @@ interface ChangeRoomAvatarViewModelFactory {
     companion object : ChangeRoomAvatarViewModelFactory
 }
 
-interface ChangeAvatarViewModel {
+interface ChangeRoomAvatarViewModel {
     val canChangeRoomAvatar: StateFlow<Boolean>
     val avatar: StateFlow<ByteArray?>
     val initials: StateFlow<String>
@@ -52,7 +52,7 @@ class ChangeAvatarViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-) : MatrixClientViewModelContext by viewModelContext, ChangeAvatarViewModel {
+) : MatrixClientViewModelContext by viewModelContext, ChangeRoomAvatarViewModel {
 
     private val initialsComputation = get<Initials>()
     private val roomNameComputation = get<RoomName>()
@@ -93,7 +93,7 @@ class ChangeAvatarViewModelImpl(
     }
 }
 
-class ChangeAvatarViewModelPreview : ChangeAvatarViewModel {
+class ChangeAvatarViewModelPreview : ChangeRoomAvatarViewModel {
     override val canChangeRoomAvatar: StateFlow<Boolean> = MutableStateFlow(false)
     override val avatar: StateFlow<ByteArray?> = MutableStateFlow(null)
     override val initials: StateFlow<String> = MutableStateFlow("T")
