@@ -641,7 +641,6 @@ class PreviewMainViewModel : MainViewModel {
     }
 
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
-
     }
 
     override fun setSinglePane(isSinglePane: Boolean) {
