@@ -39,6 +39,26 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "abgebrochen"
     }
 
+    fun uiaCancelledByUser() = translate {
+        EN - "The authorization has been cancelled by you."
+        DE - "Die Autorisierung wurde durch von Ihnen abgebrochen."
+    }
+
+    fun uiaGenericError(message: String? = commonUnknown()) = translate {
+        EN - "The authorization has failed: ${message ?: commonUnknown()}"
+        DE - "Die Autorisierung ist fehlgeschlagen: ${message ?: commonUnknown()}"
+    }
+
+    fun uiaInvalidRegistrationToken() = translate {
+        EN - "Invalid registration token."
+        DE - "Ungültiger Registrierungstoken."
+    }
+
+    fun uiaInvalidUsernameOrPassword() = translate {
+        EN - "Invalid username or password."
+        DE - "Ungültiger Benutzername oder Passwort."
+    }
+
     fun roomNameInvitation() = translate {
         EN - "Invitation"
         DE - "Einladung"
@@ -220,14 +240,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "(Einladung von $inviter)"
     }
 
-    fun bootstrapErrorAccount() = translate {
-        EN - "Account creation failed"
-        DE - "Einrichtung des Kontos fehlgeschlagen"
-    }
-
-    fun bootstrapErrorLogin() = translate {
-        EN - "There has been an error trying to log into your account."
-        DE - "Es gab einen Fehler beim Einloggen mit Ihren Kontodaten."
+    fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
+        EN - "Account creation failed: ${message ?: commonUnknown()}"
+        DE - "Einrichtung des Kontos fehlgeschlagen: ${message ?: commonUnknown()}"
     }
 
     fun verificationMethodSasDevice() = translate {
@@ -493,14 +508,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Das Gerät kann Ihnen nicht zugeordnet werden."
     }
 
-    fun settingsDevicesRemoveError() = translate {
-        EN - "The device cannot be removed"
-        DE - "Das Gerät kann nicht gelöscht werden."
+    fun settingsDevicesRemoveConfirmationMessage(deviceName: String?, deviceId: String) = translate {
+        EN - if (deviceName != null) "Are you sure you wish to remove the device \"$deviceName\" ($deviceId)?"
+        else "Are you sure you wish to remove the device $deviceId?"
+        DE - if (deviceName != null) "Sind sie sicher Sie wollen Gerät \"$deviceName\" ($deviceId) entfernen?"
+        else "Sind sie sicher Sie wollen Gerät $deviceId entfernen?"
     }
 
-    fun settingsDevicesRemoveLoginError(error: String) = translate {
-        EN - "Cannot login: $error"
-        DE - "Login kann nicht durchgeführt werden: $error"
+    fun settingsDevicesRemoveError(message: String? = commonUnknown()) = translate {
+        EN - "The device cannot be removed: ${message ?: commonUnknown()}"
+        DE - "Das Gerät kann nicht gelöscht werden: ${message ?: commonUnknown()}"
     }
 
     fun settingsRoomAddMembersAnd() = translate {

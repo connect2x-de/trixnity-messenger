@@ -139,8 +139,8 @@ open class MainViewModelImpl(
             onSendLogs = ::onSendLogs,
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
-            onAccountSelected =  ::closeRoom,
-            )
+            onAccountSelected = ::closeRoom,
+        )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
 
@@ -399,7 +399,7 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun closeRoom(){
+    private fun closeRoom() {
         log.debug { "Closing the room as account has been switched.." }
         coroutineScope.launch {
             roomRouter.closeRoom()
@@ -493,7 +493,7 @@ open class MainViewModelImpl(
         when (messageMention) {
             is MessageMention.User -> {
                 val (localpart, domain) = messageMention.user
-                // todo: implement and open user view (profile)
+                // TODO: implement and open user view (profile)
                 log.warn { "UserView to display $localpart:$domain not implemented yet" }
             }
 
@@ -505,7 +505,7 @@ open class MainViewModelImpl(
 
             is MessageMention.Event -> {
                 val eventId = messageMention.event
-                // todo: implement and open event view
+                // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
         }

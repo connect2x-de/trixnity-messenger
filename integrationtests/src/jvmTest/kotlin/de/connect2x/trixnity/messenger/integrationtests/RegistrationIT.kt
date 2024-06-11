@@ -9,7 +9,11 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -56,7 +60,7 @@ class RegistrationIT {
             val messenger = createTestMatrixMessenger()
             messenger.registerAccountWithToken(
                 serverUrl = baseUrl,
-                token = token
+                registrationToken = token
             )
         } ?: throw IllegalStateException(body)
     }

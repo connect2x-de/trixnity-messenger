@@ -268,7 +268,7 @@ open class InputAreaViewModelImpl(
                 if (editedEvent != null) {
                     log.debug { "send message (edit)" }
                     matrixClient.room.sendMessage(selectedRoomId) {
-                        replace(editedEvent) // FIXME replace a reply event will destroy the replied part
+                        replace(editedEvent) // TODO replace a reply event will destroy the replied part
                         text(text)
                     }
                     editMode.value = null

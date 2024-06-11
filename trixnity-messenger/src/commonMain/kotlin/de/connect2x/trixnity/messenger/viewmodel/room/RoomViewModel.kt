@@ -72,7 +72,7 @@ open class RoomViewModelImpl(
         viewModelContext = viewModelContext,
         roomId = roomId,
         onRoomBack = onRoomBack,
-        onSettingsBack = ::onSettingsBack
+        onSettingsBack = ::onSettingsBack,
     )
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(
