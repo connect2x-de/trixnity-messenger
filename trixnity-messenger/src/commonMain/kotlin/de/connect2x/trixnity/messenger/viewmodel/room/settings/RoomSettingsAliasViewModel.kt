@@ -94,7 +94,7 @@ class RoomSettingsAliasViewModelImpl(
 
     override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val i18n = get<I18n>()
+    internal val i18n = get<I18n>()
 
     override fun addNewAlias() {
         val currentNewAlias = newAlias.value
@@ -189,7 +189,8 @@ class RoomSettingsAliasViewModelImpl(
         }
 
         if (!moreAliases.value.contains(alias?.full) && mainAlias.value != alias?.full) {
-            log.error { "Cancelled change of Alias $alias to alias not being related to that room" }
+            log.debug { moreAliases.value }
+            log.error { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
             updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
             return
         }
@@ -207,14 +208,23 @@ class RoomSettingsAliasViewModelImpl(
                 CanonicalAliasEventContent(
                     if (alias == currentMainAlias || alias == null) null else alias,
                     if (alias == currentMainAlias || alias == null) {
+                        log.debug { "Moved mainAlias ($currentMainAlias) into others" }
                         currentMoreAliases + currentMainAlias
                     } else {
+                        log.debug { "Moved alias ($alias) into mainAlias" }
                         currentMoreAliases - alias
                     }
                 )
             ).fold(
                 onSuccess = {
                     updateError.value = null
+                    withTimeoutOrNull(18.seconds) {
+                        matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId)
+                            .first { it?.content?.alias == alias }
+                    }.let {
+                        log.debug { it?.content?.alias }
+                    }
+
                     _isUpdating.value = false
                 },
                 onFailure = { error ->
