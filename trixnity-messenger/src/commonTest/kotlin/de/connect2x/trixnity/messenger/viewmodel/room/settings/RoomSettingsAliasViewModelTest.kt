@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -11,15 +10,15 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
-import korlibs.io.async.launchUnscoped
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -38,12 +37,9 @@ import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 val log = KotlinLogging.logger("RoomSettingsAliasViewModel Test")
@@ -73,7 +69,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
 
     private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
     private lateinit var roomGetById: Mocker.Every<Flow<Room?>>
-    private val serverAliases = MutableStateFlow<CanonicalAliasEventContent?>()
+    private val serverAliases = MutableStateFlow<CanonicalAliasEventContent?>(null)
 
     init {
         beforeTest {
@@ -92,18 +88,18 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                         content = it,
                         roomId = roomId,
                         stateKey = "",
-                        id = EventId("eventId"),
+                        id = EventId("\$eventId"),
                         sender = me,
                         unsigned = null,
                         originTimestamp = 1234
                     )
-                }
+                }.stateIn(CoroutineScope(Dispatchers.Default), SharingStarted.Eagerly, null)
 
                 everySuspending {
                     roomsApiClientMock.sendStateEvent(isAny(), isAny(), isAny(), isAny())
                 } runs {
                     serverAliases.value = it[1] as CanonicalAliasEventContent
-                    Result.success(EventId(""))
+                    Result.success(EventId("\$eventId"))
                 }
 
                 every { matrixClientMock.di } returns koinApplication {
@@ -185,7 +181,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 val error = MutableStateFlow<String?>(null)
                 val viewModel = roomSettingsAliasViewModel(coroutineContext, addError = error)
                 canSendEventMocker returns MutableStateFlow(true)
-
                 launch { viewModel.canChangeRoomAlias.collect() }
 
                 eventually(2.seconds) {
@@ -222,7 +217,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     error.value shouldBe null
                 }
 
-                log.debug { serverAliases.value?.aliases }
                 viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
 
                 eventually(2.seconds) {
@@ -242,8 +236,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 }
             }
         }
-
-        should("")
     }
 
     private fun room(name: String) =
