@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -12,17 +11,8 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.user.UserService
@@ -92,12 +82,12 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                         unsigned = null,
                         originTimestamp = 1234
                     )
-                }.stateIn(CoroutineScope(Dispatchers.Default), SharingStarted.Eagerly, null)
+                }
 
                 everySuspending {
                     roomsApiClientMock.sendStateEvent(isAny(), isAny(), isAny(), isAny())
                 } runs {
-                    serverAliases.value = it[1] as CanonicalAliasEventContent
+                    serverAliases.value = it[1] as CanonicalAliasEventContent?
                     Result.success(EventId("\$eventId"))
                 }
 
