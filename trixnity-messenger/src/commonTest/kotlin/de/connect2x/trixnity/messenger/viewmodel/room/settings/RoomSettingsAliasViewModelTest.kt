@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -9,6 +10,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -67,17 +67,16 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
     @Mock
     lateinit var roomsApiClientMock: RoomApiClient
 
-    private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
-    private lateinit var roomGetById: Mocker.Every<Flow<Room?>>
+    private val canSendEvent = MutableStateFlow(true)
     private val serverAliases = MutableStateFlow<CanonicalAliasEventContent?>(null)
 
     init {
         beforeTest {
             mocker.reset()
             injectMocks(mocker)
-            Dispatchers.setMain(Dispatchers.Unconfined)
 
             serverAliases.value = null
+            canSendEvent.value = true
 
             with(mocker) {
                 every {
@@ -114,23 +113,15 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 every { matrixClientMock.api } returns matrixClientServerApiMock
                 every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
-                roomGetById = every { roomServiceMock.getById(roomId) }
-                roomGetById returns MutableStateFlow(room(""))
-
-                canSendEventMocker = mocker.every {
+                mocker.every {
                     userServiceMock.canSendEvent(isAny(), isEqual(CanonicalAliasEventContent::class))
-                }
-                canSendEventMocker returns flowOf(true)
+                } returns canSendEvent
             }
         }
 
         should("load permissions to change the room alias based on the user's power level") {
             withTestingHarness {
-                val canSendEvent = MutableStateFlow(true)
-                canSendEventMocker returns canSendEvent
-
                 val viewModel = roomSettingsAliasViewModel(coroutineContext)
-                launch { viewModel.canChangeRoomAlias.collect() }
 
                 eventually(2.seconds) {
                     viewModel.canChangeRoomAlias.value shouldBe true
@@ -147,9 +138,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
             withTestingHarness {
                 val error = MutableStateFlow<String?>(null)
                 val viewModel = roomSettingsAliasViewModel(coroutineContext, addError = error)
-                canSendEventMocker returns MutableStateFlow(true)
-
-                launch { viewModel.canChangeRoomAlias.collect() }
 
                 eventually(2.seconds) {
                     viewModel.canChangeRoomAlias.value shouldBe true
@@ -180,8 +168,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
             withTestingHarness {
                 val error = MutableStateFlow<String?>(null)
                 val viewModel = roomSettingsAliasViewModel(coroutineContext, addError = error)
-                canSendEventMocker returns MutableStateFlow(true)
-                launch { viewModel.canChangeRoomAlias.collect() }
 
                 eventually(2.seconds) {
                     viewModel.canChangeRoomAlias.value shouldBe true
@@ -201,9 +187,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
             withTestingHarness {
                 val error = MutableStateFlow<String?>(null)
                 val viewModel = roomSettingsAliasViewModel(coroutineContext, addError = error)
-                canSendEventMocker returns MutableStateFlow(true)
-
-                launch { viewModel.canChangeRoomAlias.collect() }
 
                 eventually(2.seconds) {
                     viewModel.canChangeRoomAlias.value shouldBe true
@@ -215,6 +198,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
                     error.value shouldBe null
+                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
                 }
 
                 viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
@@ -237,9 +221,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
             }
         }
     }
-
-    private fun room(name: String) =
-        Room(roomId, name = RoomDisplayName(explicitName = name, summary = null), isDirect = false)
 
     private suspend fun TestScope.withTestingHarness(testFn: suspend TestScope.() -> Unit) {
         mocker.every {
