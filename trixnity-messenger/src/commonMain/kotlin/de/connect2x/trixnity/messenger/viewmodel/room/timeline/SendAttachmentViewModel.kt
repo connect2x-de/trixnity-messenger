@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -90,61 +89,63 @@ class SendAttachmentViewModelImpl(
     }
 
     override fun send() {
-        _sendEnabled.value = false
-        coroutineScope.launch {
-            matrixClient.room.sendMessage(selectedRoomId) {
-                val byteArrayFlow = file.content
-                when {
-                    isImage ?: false -> {
-                        log.debug { "send an image" }
-                        val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
-                        image(
-                            body = file.fileName,
-                            fileName = file.fileName,
-                            image = byteArrayFlow,
-                            type = file.mimeType,
-                            size = file.fileSize,
-                            width = width,
-                            height = height,
-                        )
-                    }
+        if(_sendEnabled.value) {
+            _sendEnabled.value = false
+            coroutineScope.launch {
+                matrixClient.room.sendMessage(selectedRoomId) {
+                    val byteArrayFlow = file.content
+                    when {
+                        isImage ?: false -> {
+                            log.debug { "send an image" }
+                            val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
+                            image(
+                                body = file.fileName,
+                                fileName = file.fileName,
+                                image = byteArrayFlow,
+                                type = file.mimeType,
+                                size = file.fileSize,
+                                width = width,
+                                height = height,
+                            )
+                        }
 
-                    isVideo ?: false -> {
-                        log.debug { "send a video" }
-                        video(
-                            body = file.fileName,
-                            fileName = file.fileName,
-                            video = byteArrayFlow,
-                            type = file.mimeType,
-                            size = file.fileSize,
-                        )
-                    } // TODO width, height, duration
+                        isVideo ?: false -> {
+                            log.debug { "send a video" }
+                            video(
+                                body = file.fileName,
+                                fileName = file.fileName,
+                                video = byteArrayFlow,
+                                type = file.mimeType,
+                                size = file.fileSize,
+                            )
+                        } // TODO width, height, duration
 
-                    isAudio ?: false -> {
-                        log.debug { "send an audio" }
-                        audio(
-                            body = file.fileName,
-                            fileName = file.fileName,
-                            audio = byteArrayFlow,
-                            type = file.mimeType,
-                            size = file.fileSize,
-                        ) // TODO duration
-                    }
+                        isAudio ?: false -> {
+                            log.debug { "send an audio" }
+                            audio(
+                                body = file.fileName,
+                                fileName = file.fileName,
+                                audio = byteArrayFlow,
+                                type = file.mimeType,
+                                size = file.fileSize,
+                            ) // TODO duration
+                        }
 
-                    else -> {
-                        log.debug { "send a file" }
-                        file(
-                            body = file.fileName,
-                            file = byteArrayFlow,
-                            type = file.mimeType,
-                            fileName = file.fileName,
-                            size = file.fileSize
-                        )
+                        else -> {
+                            log.debug { "send a file" }
+                            file(
+                                body = file.fileName,
+                                file = byteArrayFlow,
+                                type = file.mimeType,
+                                fileName = file.fileName,
+                                size = file.fileSize
+                            )
+                        }
                     }
                 }
+                onCloseAttachmentSendView()
+                _sendEnabled.value = error.value == null
             }
-            onCloseAttachmentSendView()
-            _sendEnabled.value = error.value == null
         }
     }
 
