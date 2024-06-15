@@ -83,13 +83,15 @@ class SendAttachmentViewModelImpl(
                     fileSize = file.fileSize,
                     maxSizeMB = messengerConfiguration.attachmentMaxSize
                 )
-            )
+            ) {
                 _error.value = i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
+            }
+            _sendEnabled.value = _error.value == null
         }
     }
 
     override fun send() {
-        if(_sendEnabled.value) {
+        if (_sendEnabled.value) {
             _sendEnabled.value = false
             coroutineScope.launch {
                 matrixClient.room.sendMessage(selectedRoomId) {
