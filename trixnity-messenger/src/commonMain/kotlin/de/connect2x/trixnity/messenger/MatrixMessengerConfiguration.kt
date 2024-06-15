@@ -24,7 +24,7 @@ data class MatrixMessengerConfiguration(
     /**
      * The maximum size of attachments that can be sent in *MegaByte*.
      */
-    var attachmentMaxSize: Int = 500,
+    var attachmentMaxSize: Int = 1_000,
 
     var defaultHomeServer: String? = null,
 

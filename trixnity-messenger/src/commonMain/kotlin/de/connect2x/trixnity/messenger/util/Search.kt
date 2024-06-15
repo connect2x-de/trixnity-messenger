@@ -68,7 +68,7 @@ class SearchImpl(
         val userId = UserId(searchTerm)
         val userByUserIdAsync = async {
             if (userId.isValid()) {
-                matrixClient.api.users.getProfile(userId).fold(
+                matrixClient.api.user.getProfile(userId).fold(
                     onFailure = { exc ->
                         log.error(exc) { "Cannot access user profile for $userId." }
                         null
