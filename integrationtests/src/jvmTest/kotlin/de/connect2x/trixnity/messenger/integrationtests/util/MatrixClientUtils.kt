@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.integrationtests.util
 
-import com.benasher44.uuid.uuid4
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CoroutineScope
 import net.folivo.trixnity.client.MatrixClient
@@ -9,8 +8,6 @@ import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
 import net.folivo.trixnity.clientserverapi.model.authentication.Register
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import net.folivo.trixnity.core.model.UserId
-import org.jetbrains.exposed.sql.Database
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -61,9 +58,6 @@ suspend fun MatrixClientServerApiClient.register(
     requireNotNull(accessToken)
     return Result.success(MatrixClient.LoginInfo(userId, createdDeviceId, accessToken))
 }
-
-fun newDatabase(userId: UserId?) =
-    Database.connect("jdbc:h2:mem:${userId?.let { "${it}_${uuid4()}" } ?: uuid4()};DB_CLOSE_DELAY=-1;")
 
 data class StartedClient(
     val scope: CoroutineScope,

@@ -2,9 +2,16 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -75,7 +82,7 @@ class DownloadManagerImpl(
                 success.value = true
             }
             result.onFailure {
-                log.warn { "download for $fileName was not successful: ${it.message}" }
+                log.warn(it) { "download for $fileName was not successful" }
             }
             progressJob.cancelAndJoin()
             _downloads.value -= download // we remove Download history for now

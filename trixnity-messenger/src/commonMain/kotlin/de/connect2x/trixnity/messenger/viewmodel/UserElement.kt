@@ -1,17 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import korlibs.io.net.http.createHttpClient
-import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.originalName
-import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.toByteArray
-import net.folivo.trixnity.utils.toByteReadChannel
 
 data class UserInfoElement(
     val name: String,
@@ -39,7 +35,7 @@ data class UserInfoElement(
         var result = name.hashCode()
         result = 31 * result + (initials?.hashCode() ?: 0)
         result = 31 * result + (image?.contentHashCode() ?: 0)
-        result = 31 * result + (userId?.hashCode() ?: 0)
+        result = 31 * result + (userId.hashCode())
         return result
     }
 }
