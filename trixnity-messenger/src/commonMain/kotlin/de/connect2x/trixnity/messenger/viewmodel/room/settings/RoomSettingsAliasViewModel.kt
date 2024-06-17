@@ -291,6 +291,25 @@ class RoomSettingsAliasViewModelImpl(
         _isUpdating.value = true
 
         coroutineScope.launch {
+            matrixClient.api.room.deleteRoomAlias(alias, userId).onFailure { error ->
+                if (error !is MatrixServerException) {
+                    removeAliasError.value = i18n.settingsRoomAliasGeneric()
+                } else {
+                    removeAliasError.value =
+                        when (val response = error.errorResponse) {
+                            is ErrorResponse.NotFound -> i18n.settingsRoomAliasRemoveNotFound()
+
+                            else -> {
+                                log.warn { "Unexpected Error: ${response.error}" }
+                                i18n.settingsRoomAliasGeneric()
+                            }
+                        }
+                }
+
+                _isUpdating.value = false
+                return@launch
+            }
+
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
                 CanonicalAliasEventContent(
