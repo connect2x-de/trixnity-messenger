@@ -128,6 +128,26 @@ class RoomSettingsAliasViewModelImpl(
         coroutineScope.launch {
             val newAliases = roomAliases.value?.aliases.orEmpty() + alias
 
+            matrixClient.api.room.setRoomAlias(selectedRoomId, alias, userId).onFailure { error ->
+                if (error !is MatrixServerException) {
+                    newAliasError.value = i18n.settingsRoomAliasGeneric()
+                } else {
+                    newAliasError.value =
+                        when (val response = error.errorResponse) {
+                            is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
+                            is ErrorResponse.Unknown -> i18n.settingsRoomAliasAddExists()
+
+                            else -> {
+                                log.warn { "Unexpected Error: ${response.error}" }
+                                i18n.settingsRoomAliasGeneric()
+                            }
+                        }
+                }
+
+                _isUpdating.value = false
+                return@launch
+            }
+
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
                 CanonicalAliasEventContent(

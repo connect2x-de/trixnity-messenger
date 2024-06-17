@@ -710,6 +710,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Ungültiger Raumalias"
     }
 
+    fun settingsRoomAliasAddExists() = translate {
+        EN - "Alias already exists"
+        DE - "Raumalias existiert bereits"
+    }
+
     fun settingsRoomAliasBadAlias() = translate {
         EN - "This room alias is associated with another room"
         DE - "Dieser Raumalias ist mit einem anderen Raum assoziiert"
