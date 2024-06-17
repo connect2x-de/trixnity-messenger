@@ -33,7 +33,6 @@ import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
-val log = KotlinLogging.logger("RoomSettingsAliasViewModel Test")
 
 class RoomSettingsAliasViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 10_000
@@ -317,7 +316,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
                     removeAliasError.value shouldBe
-                            
+
                     viewModel.mainAlias.value shouldNotBe "#epicroom:127.0.0.1"
                 }
 
