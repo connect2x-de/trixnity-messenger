@@ -10,7 +10,9 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
@@ -23,7 +25,6 @@ import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import org.kodein.mock.Mock
 import org.kodein.mock.Mocker
@@ -139,6 +140,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
                     error.value shouldBe null
+                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
                 }
 
                 mocker.verifyWithSuspend(exhaustive = false) {
@@ -169,14 +171,20 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
                     error.value shouldBe viewModel.i18n.settingsRoomAliasAddAliasInvalid()
+                    viewModel.moreAliases.value shouldNotContain "epicroom:127.0.0.1"
                 }
             }
         }
 
         should("set main alias") {
             withTestingHarness {
-                val error = MutableStateFlow<String?>(null)
-                val viewModel = roomSettingsAliasViewModel(coroutineContext, addError = error)
+                val addError = MutableStateFlow<String?>(null)
+                val changeMainAliasError = MutableStateFlow<String?>(null)
+                val viewModel = roomSettingsAliasViewModel(
+                    coroutineContext,
+                    addError = addError,
+                    updateError = changeMainAliasError
+                )
 
                 eventually(2.seconds) {
                     viewModel.canChangeRoomAlias.value shouldBe true
@@ -187,7 +195,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
 
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
-                    error.value shouldBe null
+                    addError.value shouldBe null
                     viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
                 }
 
@@ -195,7 +203,9 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
 
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
-                    error.value shouldBe null
+                    changeMainAliasError.value shouldBe null
+                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
                 }
 
                 mocker.verifyWithSuspend(exhaustive = false) {
@@ -203,7 +213,120 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                         isAny(), isEqual(
                             CanonicalAliasEventContent(
                                 RoomAliasId("#epicroom:127.0.0.1"),
-                                setOf<RoomAliasId>()
+                                setOf()
+                            )
+                        ), isAny(), isAny()
+                    )
+                }
+            }
+        }
+
+        should("not set unrelated alias") {
+            withTestingHarness {
+                val error = MutableStateFlow<String?>(null)
+                val viewModel = roomSettingsAliasViewModel(coroutineContext, updateError = error)
+
+                eventually(2.seconds) {
+                    viewModel.canChangeRoomAlias.value shouldBe true
+                }
+
+                viewModel.changeMainAlias(RoomAliasId("epicroom:127.0.0.1"))
+
+                eventually(2.seconds) {
+                    viewModel.isUpdating.value shouldBe false
+                    error.value shouldBe viewModel.i18n.settingsRoomAliasChangeMainUnrelatedAlias()
+                }
+            }
+        }
+
+        should("remove common alias") {
+            val addError = MutableStateFlow<String?>(null)
+            val removeAliasError = MutableStateFlow<String?>(null)
+            val viewModel =
+                roomSettingsAliasViewModel(coroutineContext, addError = addError, removeError = removeAliasError)
+
+            eventually(2.seconds) {
+                viewModel.canChangeRoomAlias.value shouldBe true
+            }
+
+            viewModel.newAlias.value = "#epicroom:127.0.0.1"
+            viewModel.addNewAlias()
+
+            eventually(2.seconds) {
+                viewModel.isUpdating.value shouldBe false
+                addError.value shouldBe null
+                viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+            }
+
+            viewModel.removeAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+            eventually(2.seconds) {
+                viewModel.isUpdating.value shouldBe false
+                removeAliasError.value shouldBe null
+                viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+            }
+
+            mocker.verifyWithSuspend(exhaustive = false) {
+                roomsApiClientMock.sendStateEvent(
+                    isAny(), isEqual(
+                        CanonicalAliasEventContent(
+                            null,
+                            setOf()
+                        )
+                    ), isAny(), isAny()
+                )
+            }
+        }
+
+        should("remove main alias") {
+            withTestingHarness {
+                val addError = MutableStateFlow<String?>(null)
+                val changeMainAliasError = MutableStateFlow<String?>(null)
+                val removeAliasError = MutableStateFlow<String?>(null)
+                val viewModel = roomSettingsAliasViewModel(
+                    coroutineContext,
+                    addError = addError,
+                    updateError = changeMainAliasError,
+                    removeError = removeAliasError
+                )
+
+                eventually(2.seconds) {
+                    viewModel.canChangeRoomAlias.value shouldBe true
+                }
+
+                viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                viewModel.addNewAlias()
+
+                eventually(2.seconds) {
+                    viewModel.isUpdating.value shouldBe false
+                    addError.value shouldBe null
+                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                }
+
+                viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                eventually(2.seconds) {
+                    viewModel.isUpdating.value shouldBe false
+                    changeMainAliasError.value shouldBe null
+                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                }
+
+                viewModel.removeAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                eventually(2.seconds) {
+                    viewModel.isUpdating.value shouldBe false
+                    removeAliasError.value shouldBe
+                            
+                    viewModel.mainAlias.value shouldNotBe "#epicroom:127.0.0.1"
+                }
+
+                mocker.verifyWithSuspend(exhaustive = false) {
+                    roomsApiClientMock.sendStateEvent(
+                        isAny(), isEqual(
+                            CanonicalAliasEventContent(
+                                null,
+                                setOf()
                             )
                         ), isAny(), isAny()
                     )
@@ -213,11 +336,6 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
     }
 
     private suspend fun TestScope.withTestingHarness(testFn: suspend TestScope.() -> Unit) {
-        mocker.every {
-            // mockmp requires us to mock the user service within each test.
-            userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
-        } returns MutableStateFlow(null)
-
         testFn(this)
         cancelNeverEndingCoroutines()
     }
