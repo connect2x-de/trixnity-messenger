@@ -2,12 +2,18 @@ package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.SettingsHolder
+import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.job
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
@@ -27,7 +33,7 @@ interface MatrixMultiMessenger : ProfileManager {
      *
      * After calling this, this instance should not be used anymore!
      */
-    fun stop()
+    suspend fun stop()
 }
 
 class MatrixMultiMessengerImpl private constructor(
@@ -60,7 +66,7 @@ class MatrixMultiMessengerImpl private constructor(
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
             }
-            di.get<MatrixMultiMessengerSettingsHolder>().update { oldSettings ->
+            di.get<MatrixMultiMessengerSettingsHolder>().update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                 if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null)
                 else oldSettings
             }
@@ -71,9 +77,12 @@ class MatrixMultiMessengerImpl private constructor(
         }
     }
 
-    override fun stop() {
+    override suspend fun stop() {
+        di.get<CoroutineScope>().apply {
+            cancel("stopped MatrixMultiMessenger")
+            coroutineContext.job.join()
+        }
         activeMatrixMessenger.value?.stop()
-        di.get<CoroutineScope>().cancel()
     }
 }
 

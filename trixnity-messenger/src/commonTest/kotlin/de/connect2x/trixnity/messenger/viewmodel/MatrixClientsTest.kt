@@ -122,8 +122,8 @@ class MatrixClientsTest : ShouldSpec() {
                 every { matrixClientServerApiClient.authentication } returns authenticationApiClient
                 every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
                 everySuspending { authenticationApiClient.logout(isAny()) } returns Result.success(Unit)
-                every { matrixClientMock1.stop() } returns Unit
-                every { matrixClientMock2.stop() } returns Unit
+                everySuspending { matrixClientMock1.stop(isAny()) } returns Unit
+                everySuspending { matrixClientMock2.stop(isAny()) } returns Unit
 
                 everySuspending { deleteAccountData.invoke(isAny()) } returns Unit
             }
@@ -134,7 +134,7 @@ class MatrixClientsTest : ShouldSpec() {
             should("login and register new account locally") {
                 val cut = createCut()
                 val result = cut.login(Url("https://example.org"), User("test1"), "password", "")
-                result shouldBe Result.success(Unit)
+                result.isSuccess shouldBe true
                 cut.value shouldBe mapOf(UserId("test1", "server") to matrixClientMock1)
                 loginCalled shouldBe true
 
@@ -154,8 +154,7 @@ class MatrixClientsTest : ShouldSpec() {
             }
             should("not login again, if MatrixClient already present for account") {
                 val cut = createCut()
-                cut.login(Url("https://example.org"), User("test1"), "password", "") shouldBe
-                        Result.success(Unit)
+                cut.login(Url("https://example.org"), User("test1"), "password", "").isSuccess shouldBe true
                 loginCalled = false
                 cut.login(Url("https://example.org"), User("test1"), "password", "") shouldBe
                         Result.failure(AccountAlreadyExistsException(UserId("test1", "server")))
@@ -261,9 +260,9 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test2", "server") to matrixClientMock2,
                 )
                 logoutCalled shouldBe true
-                settings.value.accounts.keys shouldBe setOf(UserId("test2", "server"))
+                settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop()
+                    matrixClientMock1.stop(isAny())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -283,9 +282,9 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cut.value shouldBe mapOf()
                 logoutCalled shouldBe false
-                settings.value.accounts.keys shouldBe setOf()
+                settings.value.base.accounts.keys shouldBe setOf()
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop()
+                    matrixClientMock1.stop(isAny())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -295,8 +294,8 @@ class MatrixClientsTest : ShouldSpec() {
         context("remove") {
             should("remove matrix client") {
                 val cut = createCut()
-                settings.update(UserId("test1", "server")) { it }
-                settings.update(UserId("test2", "server")) { it }
+                settings.update<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
+                settings.update<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }
                 mutableMatrixClients.value = mapOf(
                     UserId("test1", "server") to matrixClientMock1,
                     UserId("test2", "server") to matrixClientMock2,
@@ -308,9 +307,9 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test2", "server") to matrixClientMock2,
                 )
                 logoutCalled shouldBe false
-                settings.value.accounts.keys shouldBe setOf(UserId("test2", "server"))
+                settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
                 mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop()
+                    matrixClientMock1.stop(isAny())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 

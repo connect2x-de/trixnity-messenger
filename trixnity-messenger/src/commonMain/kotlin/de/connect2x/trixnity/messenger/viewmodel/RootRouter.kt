@@ -14,7 +14,6 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
-import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
@@ -94,7 +93,7 @@ class RootRouter(
                 viewModelContext.get<PasswordLoginViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    onLogin = ::showMainOnLogin,
+                    onLogin = { showMainOnLogin() },
                     onBack = ::backToAddMatrixAccount,
                 )
             )
@@ -105,8 +104,8 @@ class RootRouter(
                     serverUrl = config.serverUrl,
                     providerId = config.providerId,
                     providerName = config.providerName,
-                    initalState = config.initialState,
-                    onLogin = ::showMainOnLogin,
+                    initialState = config.initialState,
+                    onLogin = { showMainOnLogin() },
                     onBack = ::backToAddMatrixAccount
                 )
             )
@@ -115,7 +114,7 @@ class RootRouter(
                 viewModelContext.get<RegisterNewAccountViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     serverUrl = config.serverUrl,
-                    onLogin = ::showMainOnLogin,
+                    onLogin = { showMainOnLogin() },
                     onBack = ::backToAddMatrixAccount,
                 )
             )
@@ -147,6 +146,7 @@ class RootRouter(
             matrixClients.scan(0 to 0) { old, new ->
                 old.second to new.size
             }.collect { (old, new) ->
+                log.debug { "show initialization? MatrixClients old: $old, new: $new" }
                 if (new < old) showInitialization()
             }
         }
@@ -157,14 +157,17 @@ class RootRouter(
     }
 
     fun showInitialization() {
+        log.debug { "showInitialization" }
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
     }
 
     private fun showMain() {
+        log.debug { "show main" }
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.Main)
     }
 
     private fun showMainOnLogin() = viewModelContext.coroutineScope.launch {
+        log.debug { "showMainOnLogin" }
         navigation.replaceAllSuspending(Config.Main)
         val instance = stack.value.active.instance
         if (instance is Wrapper.Main) {
@@ -173,7 +176,8 @@ class RootRouter(
     }
 
     private fun showAddMatrixAccount() {
-        navigation.launchPush(viewModelContext.coroutineScope, Config.AddMatrixAccount)
+        log.debug { "showAddMatrixAccount" }
+        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.AddMatrixAccount)
     }
 
     private fun cancelAddMatrixAccount() = viewModelContext.coroutineScope.launch {
@@ -181,12 +185,13 @@ class RootRouter(
             log.info { "There are no MatrixClients configured yet, so close the app" }
             viewModelContext.getOrNull<CloseApp>()?.invoke()
         } else {
-            navigation.popSuspending()
+            navigation.replaceAllSuspending(Config.MatrixClientInitialization)
         }
     }
 
 
     private fun showAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
+        log.debug { "showAddMatrixAccountMethod: $addMatrixAccountMethod" }
         when (addMatrixAccountMethod) {
             is AddMatrixAccountMethod.Password -> navigation.launchPush(
                 viewModelContext.coroutineScope,
@@ -210,20 +215,24 @@ class RootRouter(
     }
 
     private fun backToAddMatrixAccount() {
+        log.debug { "backToAddMatrixAccount" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
     private fun showStoreFailure(userId: UserId, exception: LoadStoreException) {
+        log.debug { "showStoreFailure" }
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.StoreFailure(userId, exception))
     }
 
     private fun showRemoveAccount(userId: UserId) {
+        log.debug { "showRemoveAccount" }
         // replace the Config.Main to remove the MainViewModel which can trigger some actions we do not want for logged out clients
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
     private suspend fun resumeSsoLogin(redirectUrl: Url) {
-        val state = settings.value.ssoState
+        log.debug { "resumeSsoLogin" }
+        val state = settings.value.base.ssoState
         if (state != null) {
             log.info { "resume sso login" }
             navigation.replaceAllSuspending(
@@ -234,6 +243,8 @@ class RootRouter(
             if (instance is Wrapper.SSOLogin) {
                 instance.viewModel.resumeLogin(redirectUrl)
             }
+        } else {
+            log.warn { "cannot resume sso login" }
         }
     }
 
@@ -286,7 +297,7 @@ class RootRouter(
             val serverUrl: String,
             val providerId: String,
             val providerName: String,
-            val initialState: String? = null
+            val initialState: String? = null,
         ) : Config()
 
         @Serializable

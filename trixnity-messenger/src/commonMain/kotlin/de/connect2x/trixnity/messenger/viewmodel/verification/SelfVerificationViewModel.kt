@@ -14,7 +14,10 @@ import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
 import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.*
+import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.AlreadyCrossSigned
+import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
+import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.NoCrossSigningEnabled
+import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.key.RecoveryKeyInvalidException
 import org.koin.core.component.get
@@ -24,9 +27,9 @@ private val log = KotlinLogging.logger { }
 interface SelfVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onClose: () -> Unit,
+        onCloseSelfVerification: () -> Unit,
     ): SelfVerificationViewModel {
-        return SelfVerificationViewModelImpl(viewModelContext, onClose)
+        return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerification)
     }
 
     companion object : SelfVerificationViewModelFactory
@@ -52,7 +55,7 @@ interface SelfVerificationViewModel {
 
 open class SelfVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val onClose: () -> Unit,
+    private val onCloseSelfVerification: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SelfVerificationViewModel {
 
     private val verifyAccount = get<VerifyAccount>()
@@ -115,7 +118,7 @@ open class SelfVerificationViewModelImpl(
                             log.error(it) { "device verification failed" }
                         }
                     log.debug { "close self verification view" }
-                    onClose()
+                    onCloseSelfVerification()
                 }
             }
 
@@ -139,7 +142,7 @@ open class SelfVerificationViewModelImpl(
                 verifyAccount.verify(recoveryKeyMethod, recoveryKey).fold(
                     onSuccess = {
                         log.debug { "successfully verified with recovery key" }
-                        onClose()
+                        onCloseSelfVerification()
                     },
                     onFailure = {
                         if (it is RecoveryKeyInvalidException) {
@@ -164,7 +167,7 @@ open class SelfVerificationViewModelImpl(
                 verifyAccount.verify(passphraseMethod, passphrase).fold(
                     onSuccess = {
                         log.debug { "successfully verified with passphrase" }
-                        onClose()
+                        onCloseSelfVerification()
                     },
                     onFailure = {
                         // internally, the passphrase is used to re-create the recovery key

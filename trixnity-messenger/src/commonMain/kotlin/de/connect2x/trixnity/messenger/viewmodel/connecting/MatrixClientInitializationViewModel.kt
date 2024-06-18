@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -61,7 +63,7 @@ open class MatrixClientInitializationViewModelImpl(
         currentState.value = i18n.matrixClientInitLoading()
 
         log.info { "init MatrixClients ${matrixClients.value.keys} from settings and store" }
-        if (settings.value.accounts.isEmpty()) { // no account defined yet, show account creation
+        if (settings.value.base.accounts.isEmpty()) { // no account defined yet, show account creation
             onNoAccounts()
         } else {
             checkWhetherSelectedAccountIsStillValid()
@@ -87,16 +89,17 @@ open class MatrixClientInitializationViewModelImpl(
     }
 
     private suspend fun checkWhetherSelectedAccountIsStillValid() {
-        if (settings.value.selectedAccount != null &&
-            settings.value.accounts.containsKey(settings.value.selectedAccount).not()
+        val baseSettings = settings.value.base
+        if (baseSettings.selectedAccount != null &&
+            baseSettings.accounts.containsKey(baseSettings.selectedAccount).not()
         ) {
             log.debug { "found a selected account that is not present anymore" }
-            if (settings.value.accounts.size == 1) {
+            if (baseSettings.accounts.size == 1) {
                 log.debug { "only 1 account left -> set as the active account" }
-                settings.update { it.copy(selectedAccount = settings.value.accounts.keys.firstOrNull()) }
+                settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = it.accounts.keys.firstOrNull()) }
             } else {
                 log.debug { "more than 1 account left -> select all of them" }
-                settings.update {
+                settings.update<MatrixMessengerSettingsBase> {
                     it.copy(selectedAccount = null)
                 }
             }

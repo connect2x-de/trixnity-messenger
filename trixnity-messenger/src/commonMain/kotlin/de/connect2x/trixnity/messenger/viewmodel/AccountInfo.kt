@@ -78,10 +78,10 @@ fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initial
                 ) { serverDisplayName, settings, avatar ->
                     AccountInfo(
                         userId = userId,
-                        displayName = settings?.displayName ?: serverDisplayName,
+                        displayName = settings?.base?.displayName ?: serverDisplayName,
                         initials = initials.compute(serverDisplayName),
                         avatar = avatar,
-                        displayColor = settings?.displayColor,
+                        displayColor = settings?.base?.displayColor,
                     )
                 }
             }

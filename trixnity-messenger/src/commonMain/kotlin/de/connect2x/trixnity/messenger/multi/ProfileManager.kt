@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.settings.settingsJson
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -9,7 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.core.model.UserId
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
 
 private val log = KotlinLogging.logger {}
 
@@ -20,7 +22,7 @@ interface ProfileManager {
 
     suspend fun closeProfile()
     suspend fun selectProfile(profile: String)
-    suspend fun createProfile(settings: MatrixMultiMessengerProfileSettings = MatrixMultiMessengerProfileSettings()): String
+    suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase = MatrixMultiMessengerProfileSettingsBase()): String
     suspend fun updateProfile(
         profile: String,
         updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
@@ -36,11 +38,11 @@ class ProfileManagerImpl(
     coroutineScope: CoroutineScope,
 ) : ProfileManager {
     override val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>> =
-        settingsHolder.map { it.profiles }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.profiles)
+        settingsHolder.map { it.base.profiles }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.base.profiles)
     override val activeProfile: StateFlow<String?> =
-        settingsHolder.map { it.activeProfile }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.activeProfile)
+        settingsHolder.map { it.base.activeProfile }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.base.activeProfile)
 
     override val activeMatrixMessenger: StateFlow<MatrixMessenger?> =
         activeProfile.map { profile ->
@@ -51,27 +53,30 @@ class ProfileManagerImpl(
     override suspend fun closeProfile() {
         log.debug { "close current profile ${activeProfile.value}" }
         activeMatrixMessenger.value?.stop()
-        settingsHolder.update { it.copy(activeProfile = null) }
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
     }
 
     override suspend fun selectProfile(profile: String) {
         log.debug { "select profile $profile" }
         closeProfile()
-        settingsHolder.update {
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> {
             if (it.profiles.containsKey(profile)) it.copy(activeProfile = profile)
             else it
         }
     }
 
-    override suspend fun createProfile(settings: MatrixMultiMessengerProfileSettings): String {
+    override suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase): String {
         log.debug { "create profile" }
+        val profileSettings = MatrixMultiMessengerProfileSettings(
+            checkNotNull(settingsJson.encodeToJsonElement(settings) as? JsonObject)
+        )
         var nextId: String? = null
-        settingsHolder.update { oldSettings ->
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
             val updateNextId = generateSequence(0) { it + 1 }.map { it.toString() }
                 .filterNot { oldSettings.profiles.containsKey(it) }
                 .first()
             nextId = updateNextId
-            oldSettings.copy(profiles = oldSettings.profiles + (updateNextId to settings))
+            oldSettings.copy(profiles = oldSettings.profiles + (updateNextId to profileSettings))
         }
         return checkNotNull(nextId)
     }
@@ -80,7 +85,7 @@ class ProfileManagerImpl(
         profile: String,
         updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
     ) {
-        settingsHolder.update { oldSettings ->
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
             val newProfileSettings = oldSettings.profiles[profile]?.also { updateSettings(it) }
             if (newProfileSettings != null)
                 oldSettings.copy(profiles = oldSettings.profiles + (profile to newProfileSettings))
@@ -92,7 +97,7 @@ class ProfileManagerImpl(
         log.debug { "delete profile $profile" }
         if (activeProfile.value == profile) closeProfile()
         withContext(NonCancellable) {
-            settingsHolder.update { oldSettings ->
+            settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                 oldSettings.copy(
                     profiles = oldSettings.profiles - profile,
                     activeProfile = if (oldSettings.activeProfile == profile) null else oldSettings.activeProfile

@@ -68,7 +68,7 @@ class SearchImpl(
         val userId = UserId(searchTerm)
         val userByUserIdAsync = async {
             if (userId.isValid()) {
-                matrixClient.api.users.getProfile(userId).fold(
+                matrixClient.api.user.getProfile(userId).fold(
                     onFailure = { exc ->
                         log.error(exc) { "Cannot access user profile for $userId." }
                         null
@@ -92,7 +92,7 @@ class SearchImpl(
         }
         // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
         val searchUsersAsync = async {
-            matrixClient.api.users.searchUsers(searchTerm, i18n.currentLang.code, limit)
+            matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language
                     onSuccess = { response ->
                         response.results

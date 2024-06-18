@@ -15,8 +15,8 @@ import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
-private val log = KotlinLogging.logger { }
 
+private val log = KotlinLogging.logger { }
 
 interface MatrixClientFactory {
     data class LoginResult(

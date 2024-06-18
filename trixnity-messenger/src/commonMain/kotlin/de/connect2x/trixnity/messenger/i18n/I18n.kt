@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.messenger.i18n
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
+import de.connect2x.trixnity.messenger.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
@@ -35,6 +37,26 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun commonCancelled() = translate {
         EN - "cancelled"
         DE - "abgebrochen"
+    }
+
+    fun uiaCancelledByUser() = translate {
+        EN - "The authorization has been cancelled by you."
+        DE - "Die Autorisierung wurde durch von Ihnen abgebrochen."
+    }
+
+    fun uiaGenericError(message: String? = commonUnknown()) = translate {
+        EN - "The authorization has failed: ${message ?: commonUnknown()}"
+        DE - "Die Autorisierung ist fehlgeschlagen: ${message ?: commonUnknown()}"
+    }
+
+    fun uiaInvalidRegistrationToken() = translate {
+        EN - "Invalid registration token."
+        DE - "Ungültiger Registrierungstoken."
+    }
+
+    fun uiaInvalidUsernameOrPassword() = translate {
+        EN - "Invalid username or password."
+        DE - "Ungültiger Benutzername oder Passwort."
     }
 
     fun roomNameInvitation() = translate {
@@ -182,10 +204,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
-    fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) = translate {
-        EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
-        DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
-    }
+    fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) =
+        translate {
+            EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
+            DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
+        }
 
     fun historyVisibilityShared() = translate {
         EN - "shared"
@@ -217,14 +240,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "(Einladung von $inviter)"
     }
 
-    fun bootstrapErrorAccount() = translate {
-        EN - "Account creation failed"
-        DE - "Einrichtung des Kontos fehlgeschlagen"
-    }
-
-    fun bootstrapErrorLogin() = translate {
-        EN - "There has been an error trying to log into your account."
-        DE - "Es gab einen Fehler beim Einloggen mit Ihren Kontodaten."
+    fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
+        EN - "Account creation failed: ${message ?: commonUnknown()}"
+        DE - "Einrichtung des Kontos fehlgeschlagen: ${message ?: commonUnknown()}"
     }
 
     fun verificationMethodSasDevice() = translate {
@@ -364,6 +382,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es muss eine sichere Verbindung (https) genutzt werden."
     }
 
+    fun connectingErrorNoMatrixClient() = translate {
+        EN - "No Matrix client could be initialized"
+        DE - "Ein Matrix Client kann nicht erstellt werden."
+    }
+
     fun connectingAccountAlreadyExists(userId: UserId) = translate {
         EN - "There already is a local account for the user $userId."
         DE - "Es gibt bereits ein lokales Konto für den Nutzer $userId."
@@ -485,14 +508,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Das Gerät kann Ihnen nicht zugeordnet werden."
     }
 
-    fun settingsDevicesRemoveError() = translate {
-        EN - "The device cannot be removed"
-        DE - "Das Gerät kann nicht gelöscht werden."
+    fun settingsDevicesRemoveConfirmationMessage(deviceName: String?, deviceId: String) = translate {
+        EN - if (deviceName != null) "Are you sure you wish to remove the device \"$deviceName\" ($deviceId)?"
+        else "Are you sure you wish to remove the device $deviceId?"
+        DE - if (deviceName != null) "Sind sie sicher Sie wollen Gerät \"$deviceName\" ($deviceId) entfernen?"
+        else "Sind sie sicher Sie wollen Gerät $deviceId entfernen?"
     }
 
-    fun settingsDevicesRemoveLoginError(error: String) = translate {
-        EN - "Cannot login: $error"
-        DE - "Login kann nicht durchgeführt werden: $error"
+    fun settingsDevicesRemoveError(message: String? = commonUnknown()) = translate {
+        EN - "The device cannot be removed: ${message ?: commonUnknown()}"
+        DE - "Das Gerät kann nicht gelöscht werden: ${message ?: commonUnknown()}"
     }
 
     fun settingsRoomAddMembersAnd() = translate {
@@ -698,6 +723,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun settingsRoomHistoryVisibilityInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change room history visibility"
         DE - "Unzureichendes Berechtigungslevel um die Sichtbarkeit der Raumhistorie zu ändern"
+    }
+
+    fun settingsRoomJoinRulesChangeError() = translate {
+        EN - "Failed to change room join rules"
+        DE - "Fehler beim Ändern der Raum-Beitrittsregeln"
+    }
+
+    fun settingsRoomJoinRulesInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to change room join rules"
+        DE - "Unzureichendes Berechtigungslevel um die Raum-Beitrittsregeln zu ändern"
     }
 
     fun settingsRoomAliasRemoveInsufficientPowerLevel() = translate {
@@ -992,6 +1027,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "* message cannot be decrypted"
         DE - "* Nachricht konnte nicht entschlüsselt werden"
     }
+
+    fun updateNotificationSettingsError(error: String) = translate {
+        EN - "There was an error updating the notification settings: $error"
+        DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: $error"
+    }
+
+    fun updateNotificationSettingsTimeoutError() = translate {
+        EN - "There was an error updating the notification settings: timeout"
+        DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: Zeitüberschreitung"
+    }
 }
 
 internal fun getLang(
@@ -999,7 +1044,7 @@ internal fun getLang(
     settings: MatrixMessengerSettingsHolder,
     getSystemLang: GetSystemLang
 ): Language {
-    val preferredLang = settings.value.preferredLang
+    val preferredLang = settings.value.base.preferredLang
     log.trace { "preferred language: $preferredLang" }
     return preferredLang?.let { languages.langOf(it) }
         ?: languages.langOf(getSystemLang())
@@ -1007,5 +1052,5 @@ internal fun getLang(
 }
 
 internal suspend fun setLang(language: Language, settings: MatrixMessengerSettingsHolder) {
-    settings.update { it.copy(preferredLang = language.code) }
+    settings.update<MatrixMessengerSettingsBase> { it.copy(preferredLang = language.code) }
 }

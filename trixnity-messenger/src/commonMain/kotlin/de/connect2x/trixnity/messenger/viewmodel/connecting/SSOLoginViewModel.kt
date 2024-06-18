@@ -1,10 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState.None
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -16,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.crypto.core.SecureRandom
 import okio.ByteString.Companion.toByteString
 import org.koin.core.component.get
@@ -30,8 +34,8 @@ interface SSOLoginViewModelFactory {
         serverUrl: String,
         providerId: String,
         providerName: String,
-        initalState: String? = null,
-        onLogin: () -> Unit,
+        initialState: String? = null,
+        onLogin: (MatrixClient) -> Unit,
         onBack: () -> Unit,
     ): SSOLoginViewModel {
         return SSOLoginViewModelImpl(
@@ -39,7 +43,7 @@ interface SSOLoginViewModelFactory {
             serverUrl,
             providerId,
             providerName,
-            initalState,
+            initialState,
             onLogin,
             onBack,
         )
@@ -77,6 +81,11 @@ interface SSOLoginViewModel {
     fun abortLogin()
 
     fun back()
+
+    /**
+     * Part of [resumeLogin] and thus should not be used directly. Should only be used to override the login process.
+     */
+    suspend fun loginWithLoginToken(loginToken: String)
 }
 
 open class SSOLoginViewModelImpl(
@@ -85,7 +94,7 @@ open class SSOLoginViewModelImpl(
     private val providerId: String,
     override val providerName: String,
     initialState: String? = null,
-    private val onLogin: () -> Unit,
+    private val onLogin: (MatrixClient) -> Unit,
     private val onBack: () -> Unit,
 ) : ViewModelContext by viewModelContext, SSOLoginViewModel {
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
@@ -97,8 +106,7 @@ open class SSOLoginViewModelImpl(
         ?: SecureRandom.nextBytes(16).toByteString().base64Url()
     private val uriCaller = get<UriCaller>()
 
-    override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
-        MutableStateFlow(AddMatrixAccountState.None)
+    override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
     private val messengerConfiguration = get<MatrixMessengerConfiguration>()
 
     private val redirectUrl =
@@ -120,7 +128,7 @@ open class SSOLoginViewModelImpl(
         coroutineScope.launch {
             waitForRedirect.value = true
             log.debug { "Persisting SSO state" }
-            messengerSettings.update {
+            messengerSettings.update<MatrixMessengerSettingsBase> {
                 it.copy(ssoState = SSOState(state, serverUrl, providerId, providerName))
             }
             log.debug { "Redirecting to $loginUrl" }
@@ -135,6 +143,7 @@ open class SSOLoginViewModelImpl(
     override fun resumeLogin(redirectUrl: Url) {
         if (loginJob == null) {
             loginJob = coroutineScope.launch {
+                log.debug { "begin resume login job" }
                 waitForRedirect.value = false
                 isResumingLogin.value = true
                 val loginToken = if (redirectUrl.parameters["state"] == state) {
@@ -144,18 +153,11 @@ open class SSOLoginViewModelImpl(
                 if (loginToken != null) {
                     log.debug { "Try to login into $serverUrl with loginToken=***." }
                     try {
-                        matrixClients.loginCatching(
-                            serverUrl = serverUrl,
-                            token = loginToken,
-                            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                            addMatrixAccountState = addMatrixAccountState,
-                            i18n = i18n,
-                            onLogin = onLogin,
-                        )
-                        addMatrixAccountState.value = AddMatrixAccountState.None
+                        loginWithLoginToken(loginToken)
+                        addMatrixAccountState.value = None
                     } finally {
                         log.debug { "Clearing stored sso login info" }
-                        messengerSettings.update {
+                        messengerSettings.update<MatrixMessengerSettingsBase> {
                             it.copy(ssoState = null)
                         }
                     }
@@ -164,10 +166,22 @@ open class SSOLoginViewModelImpl(
                 }
             }
             loginJob?.invokeOnCompletion {
+                it?.let { log.error { it } }
                 loginJob = null
                 isResumingLogin.value = false
             }
         }
+    }
+
+    override suspend fun loginWithLoginToken(loginToken: String) {
+        matrixClients.loginCatching(
+            serverUrl = serverUrl,
+            token = loginToken,
+            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+            addMatrixAccountState = addMatrixAccountState,
+            i18n = i18n,
+            onLogin = onLogin,
+        )
     }
 
     override fun abortLogin() {
@@ -176,7 +190,7 @@ open class SSOLoginViewModelImpl(
             log.debug { "Clearing stored sso login info" }
             waitForRedirect.value = false
             isResumingLogin.value = false
-            messengerSettings.update { it.copy(ssoState = null) }
+            messengerSettings.update<MatrixMessengerSettingsBase> { it.copy(ssoState = null) }
         }
     }
 
@@ -195,16 +209,9 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
     override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
     override val isResumingLogin: StateFlow<Boolean> = MutableStateFlow(false)
 
-    override fun resumeLogin(redirectUrl: Url) {
-    }
-
-    override fun tryLogin() {
-    }
-
-    override fun abortLogin() {
-    }
-
-    override fun back() {
-    }
-
+    override fun resumeLogin(redirectUrl: Url) {}
+    override fun tryLogin() {}
+    override fun abortLogin() {}
+    override fun back() {}
+    override suspend fun loginWithLoginToken(loginToken: String) {}
 }

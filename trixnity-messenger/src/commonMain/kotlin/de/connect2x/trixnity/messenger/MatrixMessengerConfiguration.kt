@@ -15,22 +15,16 @@ data class MatrixMessengerConfiguration(
     var generateInitialAccountColor: (suspend (alreadyUsedColors: Set<Long>) -> Long)? = null,
 
     // for privacy-first, override these values
-    var defaultPushMode: PushMode = PushMode.PUSH,
     var defaultPresenceIsPublic: Boolean = true,
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
-
-    // notifications defaults
-    var defaultNotificationPlaySound: Boolean = true,
-    var defaultNotificationShowPopup: Boolean = true,
-    var defaultNotificationShowText: Boolean = true,
 
     val timelineAutoLoadBefore: Boolean = true,
 
     /**
      * The maximum size of attachments that can be sent in *MegaByte*.
      */
-    var attachmentMaxSize: Int = 500,
+    var attachmentMaxSize: Int = 1_000,
 
     var defaultHomeServer: String? = null,
 

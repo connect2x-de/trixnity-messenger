@@ -3,11 +3,24 @@ package de.connect2x.trixnity.messenger
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.job
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import org.koin.core.Koin
@@ -31,7 +44,7 @@ interface MatrixMessenger {
      *
      * After calling this, this instance should not be used anymore!
      */
-    fun stop()
+    suspend fun stop()
 }
 
 class MatrixMessengerImpl private constructor(
@@ -76,8 +89,11 @@ class MatrixMessengerImpl private constructor(
         }
     }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0L)
 
-    override fun stop() {
-        di.get<CoroutineScope>().cancel()
+    override suspend fun stop() {
+        di.get<CoroutineScope>().apply {
+            cancel("stopped MatrixMessenger")
+            coroutineContext.job.join()
+        }
         di.get<MatrixClients>().value.values.forEach { it.stop() }
     }
 }

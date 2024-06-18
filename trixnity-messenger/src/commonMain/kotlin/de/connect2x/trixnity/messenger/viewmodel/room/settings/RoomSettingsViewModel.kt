@@ -47,6 +47,7 @@ interface RoomSettingsViewModel {
     val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
     val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
+    val roomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel
     val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
@@ -99,6 +100,11 @@ class RoomSettingsViewModelImpl(
 
     override val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel by lazy {
         get<RoomSettingsHistoryVisibilityViewModelFactory>()
+            .create(viewModelContext, selectedRoomId, error)
+    }
+
+    override val roomSettingsJoinRulesViewModel: RoomSettingsJoinRulesViewModel by lazy {
+        get<RoomSettingsJoinRulesViewModelFactory>()
             .create(viewModelContext, selectedRoomId, error)
     }
 
@@ -196,6 +202,8 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
         PreviewRoomSettingsNotificationsViewModel()
     override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel
         = PreviewRoomSettingsHistoryVisibilityViewModel()
+    override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel
+        = PreviewRoomSettingsJoinRulesViewModel()
     override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
         = PreviewRoomSettingsAliasViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)

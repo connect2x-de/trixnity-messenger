@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
@@ -11,8 +12,11 @@ import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
+import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -20,11 +24,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import okio.FileSystem
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -64,7 +70,9 @@ class AccountsIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        messenger.stop()
+        runBlocking {
+            messenger.stop()
+        }
     }
 
     @Test
@@ -111,6 +119,17 @@ class AccountsIT {
         messenger.verifyAccountsArePresent("user1")
 
         val matrixClient = messenger.di.get<MatrixClients>().value.values.first()
+        val userId = matrixClient.userId
+
+        val settings = messenger.di.get<MatrixMessengerSettingsHolder>()
+        val filesSystem = messenger.di.get<FileSystem>()
+        val rootPath = messenger.di.get<RootPath>()
+        val accountPath = rootPath.forAccount(userId)
+
+        settings.value.base.accounts[userId] shouldNotBe null
+        filesSystem.exists(accountPath) shouldBe true
+
+        log.info { "delete device" }
         matrixClient.api.device.deleteDevice(matrixClient.deviceId).getOrThrow()
             .shouldBeInstanceOf<UIA.Step<*>>()
             .authenticate(
@@ -122,5 +141,9 @@ class AccountsIT {
             .shouldBeInstanceOf<UIA.Success<*>>()
 
         messenger.root.stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
+
+        settings.value.base.accounts[userId] shouldBe null
+        filesSystem.exists(accountPath) shouldBe false
+        messenger.di.get<MatrixClients>().value[userId] shouldBe null
     }
 }

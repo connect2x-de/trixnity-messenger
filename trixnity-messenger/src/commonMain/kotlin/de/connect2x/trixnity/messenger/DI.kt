@@ -46,6 +46,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsJoinRulesViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
@@ -97,14 +98,21 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ConfigureNotificationsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationsSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -213,6 +221,13 @@ fun createDefaultTrixnityMessengerModules() = listOf(
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
+
+        single<AuthorizeUia> { AuthorizeUiaImpl() }
+        single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
+        single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
+        single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
+        single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
+        single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
     },
     timelineElementModule(),
     connectingViewModels(),
@@ -226,6 +241,9 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     roomViewModels(),
     roomSettingsViewModels(),
     exportModule(),
+
+    // platform-specific view models
+    platformNotificationSettingsSingleAccountViewModelFactoryModule(),
 
     // platform-specific implementations
     platformPathsModule(),
@@ -288,9 +306,8 @@ private fun settingsViewModels() = module {
     single<AccountsOverviewViewModelFactory> { AccountsOverviewViewModelFactory }
     single<AppInfoViewModelFactory> { AppInfoViewModelFactory }
     single<AvatarCutterViewModelFactory> { AvatarCutterViewModelFactory }
-    single<ConfigureNotificationsViewModelFactory> { ConfigureNotificationsViewModelFactory }
     single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
-    single<NotificationsSettingsViewModelFactory> { NotificationsSettingsViewModelFactory }
+    single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory }
     single<ProfileViewModelFactory> { ProfileViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
@@ -340,6 +357,7 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsNotificationsViewModelFactory> { RoomSettingsNotificationsViewModelFactory }
     single<RoomSettingsHistoryVisibilityViewModelFactory> { RoomSettingsHistoryVisibilityViewModelFactory }
     single<RoomSettingsAliasViewModelFactory> { RoomSettingsAliasViewModelFactory }
+    single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
 }
 
 private fun timelineViewModels() = module {

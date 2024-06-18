@@ -12,12 +12,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Referenc
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
@@ -47,7 +48,7 @@ class RichRepliesComputationsImpl(
     private val thumbnails: Thumbnails,
 ) : RichRepliesComputations {
 
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     override fun getReferencedMessage(
         matrixClient: MatrixClient,
         relatesTo: RelatesTo?,
@@ -65,7 +66,7 @@ class RichRepliesComputationsImpl(
                 combine(
                     timelineEventFlow.filterNotNull(),
                     timelineEventFlow.filterNotNull()
-                        .flatMapConcat {
+                        .flatMapLatest {
                             matrixClient.user.getById(inRoom, it.event.sender)
                                 .map { user ->
                                     UserInfoElement(

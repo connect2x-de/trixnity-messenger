@@ -4,7 +4,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.launchPop
+import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.util.popSuspending
+import de.connect2x.trixnity.messenger.util.popWhileSuspending
+import de.connect2x.trixnity.messenger.util.pushSuspending
+import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,9 +48,9 @@ class SelfVerificationRouter(
                         .create(
                             viewModelContext = viewModelContext.childContext(
                                 componentContext,
-                                selfVerificationConfig.userId
+                                selfVerificationConfig.userId,
                             ),
-                            onClose = { closeSelfVerification(selfVerificationConfig.userId) },
+                            onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
                         )
                 )
             }
@@ -55,10 +60,10 @@ class SelfVerificationRouter(
                     .create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
-                            selfVerificationConfig.userId
+                            selfVerificationConfig.userId,
                         ),
                         onStartSelfVerification = { showSelfVerification(selfVerificationConfig.userId) },
-                        onClose = { closeSelfVerification(selfVerificationConfig.userId) },
+                        onClose = ::continueWithoutVerification,
                     )
             )
 
@@ -67,7 +72,7 @@ class SelfVerificationRouter(
                     viewModelContext.get<BootstrapViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
-                            selfVerificationConfig.userId
+                            selfVerificationConfig.userId,
                         ),
                         onClose = ::closeBootstrap,
                     )
@@ -86,6 +91,10 @@ class SelfVerificationRouter(
         selfVerifications.value += userId
     }
 
+    private fun continueWithoutVerification() {
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
     fun closeSelfVerification(userId: UserId) {
         log.debug { "remove account from self verification queue: $userId" }
         selfVerifications.value -= userId
@@ -94,7 +103,7 @@ class SelfVerificationRouter(
     suspend fun showBootstrap(userId: UserId) {
         // it can happen that the bootstrap is triggered twice (initial sync, then regular sync; to avoid any
         // complications, only allow one bootstrap to be shown at the time
-        if (bootstrapStarted.value.not()) {
+        if (bootstrapStarted.value.not()) { // Todo: use mutex
             log.debug { "show bootstrap view" }
             bootstrapStarted.value = true
             navigation.pushSuspending(Config.Bootstrap(userId))

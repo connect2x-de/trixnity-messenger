@@ -6,13 +6,22 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import net.folivo.trixnity.client.serverDiscovery
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
+import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
@@ -42,8 +51,8 @@ interface AddMatrixAccountViewModel {
     val serverDiscoveryState: StateFlow<ServerDiscoveryState>
 
     sealed interface ServerDiscoveryState {
-        object None : ServerDiscoveryState
-        object Loading : ServerDiscoveryState
+        data object None : ServerDiscoveryState
+        data object Loading : ServerDiscoveryState
         data class Success(val addMatrixAccountMethods: Set<AddMatrixAccountMethod>) : ServerDiscoveryState
         data class Failure(val message: String) : ServerDiscoveryState
     }
@@ -75,58 +84,11 @@ open class AddMatrixAccountViewModelImpl(
                     emit(ServerDiscoveryState.Loading)
                     serverUrl.serverDiscovery(httpClientFactory = httpClientFactory)
                         .onFailure {
-                            log.debug(it) { "server discovery failed" }
-                            emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
+                            log.debug(it) { "server discovery failed -> try login with given server URL" }
+                            getLoginTypes(Url(serverUrl))
                         }
                         .onSuccess { serverDiscoveryUrl ->
-                            val api = MatrixClientServerApiClientImpl(
-                                serverDiscoveryUrl,
-                                httpClientFactory = httpClientFactory
-                            )
-                            api.authentication.getLoginTypes()
-                                .onFailure {
-                                    log.debug(it) { "get login types failed" }
-                                    emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
-                                }
-                                .onSuccess { loginTypes ->
-                                    val addMatrixAccountMethods = loginTypes.flatMap { loginType ->
-                                        when (loginType) {
-                                            is net.folivo.trixnity.clientserverapi.model.authentication.LoginType.Password ->
-                                                setOf(AddMatrixAccountMethod.Password(serverDiscoveryUrl.toString()))
-
-                                            is net.folivo.trixnity.clientserverapi.model.authentication.LoginType.SSO ->
-                                                loginType.identityProviders.map { identityProvider ->
-                                                    val icon = identityProvider.icon?.let {
-                                                        api.media.download(it).onFailure {
-                                                            log.warn { "could not download idp icon $it" }
-                                                        }.getOrNull()?.content?.toByteArray()
-                                                    }
-                                                    AddMatrixAccountMethod.SSO(
-                                                        serverUrl = serverDiscoveryUrl.toString(),
-                                                        identityProvider = identityProvider,
-                                                        icon = icon,
-                                                    )
-                                                }
-
-                                            else -> setOf()
-                                        }
-                                    }.toSet()
-                                    val canRegisterNewUser = api.authentication.register()
-                                        .fold(
-                                            onSuccess = { it is UIA.Step<*> },
-                                            onFailure = { false }
-                                        )
-                                    emit(
-                                        ServerDiscoveryState.Success(
-                                            addMatrixAccountMethods =
-                                            if (canRegisterNewUser)
-                                                addMatrixAccountMethods + AddMatrixAccountMethod.Register(
-                                                    serverDiscoveryUrl.toString()
-                                                )
-                                            else addMatrixAccountMethods
-                                        )
-                                    )
-                                }
+                            getLoginTypes(serverDiscoveryUrl)
                         }
                 }
             }
@@ -142,6 +104,60 @@ open class AddMatrixAccountViewModelImpl(
 
     override fun cancel() {
         onCancel()
+    }
+
+    private suspend fun FlowCollector<ServerDiscoveryState>.getLoginTypes(
+        serverDiscoveryUrl: Url
+    ) {
+        val api = MatrixClientServerApiClientImpl(
+            serverDiscoveryUrl,
+            httpClientFactory = httpClientFactory
+        )
+        api.authentication.getLoginTypes()
+            .onFailure {
+                log.debug(it) { "get login types failed" }
+                emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
+            }
+            .onSuccess { loginTypes ->
+                log.debug { "get login types succeeded" }
+                val addMatrixAccountMethods = loginTypes.flatMap { loginType ->
+                    when (loginType) {
+                        is LoginType.Password ->
+                            setOf(AddMatrixAccountMethod.Password(serverDiscoveryUrl.toString()))
+
+                        is LoginType.SSO ->
+                            loginType.identityProviders.map { identityProvider ->
+                                val icon = identityProvider.icon?.let {
+                                    api.media.download(it).onFailure {
+                                        log.warn { "could not download idp icon $it" }
+                                    }.getOrNull()?.content?.toByteArray()
+                                }
+                                AddMatrixAccountMethod.SSO(
+                                    serverUrl = serverDiscoveryUrl.toString(),
+                                    identityProvider = identityProvider,
+                                    icon = icon,
+                                )
+                            }
+
+                        else -> setOf()
+                    }
+                }.toSet()
+                val canRegisterNewUser = api.authentication.register()
+                    .fold(
+                        onSuccess = { it is UIA.Step<*> },
+                        onFailure = { false }
+                    )
+                emit(
+                    ServerDiscoveryState.Success(
+                        addMatrixAccountMethods =
+                        if (canRegisterNewUser)
+                            addMatrixAccountMethods + AddMatrixAccountMethod.Register(
+                                serverDiscoveryUrl.toString()
+                            )
+                        else addMatrixAccountMethods
+                    )
+                )
+            }
     }
 }
 

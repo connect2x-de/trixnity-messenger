@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import net.folivo.trixnity.utils.toByteArray
+import net.folivo.trixnity.utils.ByteArrayFlow
 
 
 private val log = KotlinLogging.logger {}
@@ -35,7 +35,7 @@ interface VideoViewModelFactory {
 
 interface VideoViewModel {
     val onCloseVideo: () -> Unit
-    val video: StateFlow<ByteArray?>
+    val video: StateFlow<ByteArrayFlow?>
     val progress: StateFlow<FileTransferProgressElement?>
     val fileName: String
     fun cancelVideoDownload()
@@ -50,7 +50,7 @@ open class VideoViewModelImpl(
     override val onCloseVideo: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, VideoViewModel {
 
-    override val video = MutableStateFlow<ByteArray?>(null)
+    override val video = MutableStateFlow<ByteArrayFlow?>(null)
     override val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
     private val loadVideoJob: Job
@@ -74,7 +74,7 @@ open class VideoViewModelImpl(
                 if (encryptedFile != null) {
                     matrixClient.media.getEncryptedMedia(encryptedFile, videoProgressFlow).fold(
                         onSuccess = {
-                            video.value = it.toByteArray() // TODO ByteArrayFlow
+                            video.value = it
                         },
                         onFailure = {
                             log.error(it) { "Cannot load encrypted video from '${encryptedFile.url}'." }
@@ -84,7 +84,7 @@ open class VideoViewModelImpl(
                 } else {
                     matrixClient.media.getMedia(mxcUrl, videoProgressFlow).fold(
                         onSuccess = {
-                            video.value = it.toByteArray() // TODO ByteArrayFlow
+                            video.value = it
                         },
                         onFailure = {
                             log.error(it) { "Cannot load video from '$mxcUrl'." }

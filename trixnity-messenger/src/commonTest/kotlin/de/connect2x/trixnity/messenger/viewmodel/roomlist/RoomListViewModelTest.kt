@@ -3,8 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
 import io.kotest.core.spec.style.ShouldSpec
@@ -99,6 +101,7 @@ class RoomListViewModelTest : ShouldSpec() {
     lateinit var profileManagerMock: ProfileManager
 
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
+    private val onAccountSelected = mockFunction0<Unit>(mocker)
 
     lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
     lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
@@ -205,6 +208,8 @@ class RoomListViewModelTest : ShouldSpec() {
                 )
 
                 every { onRoomSelectedMock.invoke(isAny(), isAny()) } returns Unit
+
+                every { onAccountSelected.invoke() } returns Unit
 
                 every {
                     roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock), isAny())
@@ -1271,7 +1276,7 @@ class RoomListViewModelTest : ShouldSpec() {
 
                                     override fun selectActiveAccount(userId: UserId?) {
                                         GlobalScope.launch {
-                                            get<MatrixMessengerSettingsHolder>().update {
+                                            get<MatrixMessengerSettingsHolder>().update<MatrixMessengerSettingsBase>() {
                                                 it.copy(selectedAccount = userId)
                                             }
                                         }
@@ -1303,6 +1308,7 @@ class RoomListViewModelTest : ShouldSpec() {
             onOpenAppInfo = mockFunction0(mocker),
             onOpenAccountsOverview = mockFunction0(mocker),
             onSendLogs = mockFunction0(mocker),
+            onAccountSelected = onAccountSelected
         )
     }
 
