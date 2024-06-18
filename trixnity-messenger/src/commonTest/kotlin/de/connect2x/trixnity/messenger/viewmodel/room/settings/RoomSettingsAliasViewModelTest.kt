@@ -19,6 +19,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
+import net.folivo.trixnity.clientserverapi.model.rooms.GetRoomAlias
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
@@ -34,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 class RoomSettingsAliasViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 10_000
+    override fun timeout(): Long = 20_000
 
     val mocker = Mocker()
 
@@ -58,6 +59,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
 
     private val canSendEvent = MutableStateFlow(true)
     private val serverAliases = MutableStateFlow<CanonicalAliasEventContent?>(null)
+    private val directoryAliases = MutableStateFlow(emptyMap<RoomAliasId, RoomId>())
 
     init {
         beforeTest {
@@ -88,6 +90,30 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 } runs {
                     serverAliases.value = it[1] as CanonicalAliasEventContent?
                     Result.success(EventId("\$eventId"))
+                }
+
+                everySuspending {
+                    roomsApiClientMock.getRoomAlias(isAny())
+                } runs { (alias) ->
+                    directoryAliases.value[alias]?.let {
+                        Result.success(
+                            GetRoomAlias.Response(it, listOf("127.0.0.1"))
+                        )
+                    } ?: Result.failure(Throwable(""))
+                }
+
+                everySuspending {
+                    roomsApiClientMock.setRoomAlias(isAny(), isAny(), isAny())
+                } runs {
+                    directoryAliases.value += it[1] as RoomAliasId to it[0] as RoomId
+                    Result.success(Unit)
+                }
+
+                everySuspending {
+                    roomsApiClientMock.deleteRoomAlias(isAny(), isAny())
+                } runs {
+                    directoryAliases.value -= it[0] as RoomAliasId
+                    Result.success(Unit)
                 }
 
                 every { matrixClientMock.di } returns koinApplication {
@@ -314,8 +340,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
 
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
-                    removeAliasError.value shouldBe
-
+                    removeAliasError.value shouldBe null
                     viewModel.mainAlias.value shouldNotBe "#epicroom:127.0.0.1"
                 }
 
