@@ -36,5 +36,4 @@ open class RedoSelfVerificationViewModelImpl(
     override fun close() {
         onClose()
     }
-
 }

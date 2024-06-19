@@ -9,6 +9,9 @@ import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.MatcherResult
@@ -23,6 +26,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.key.DeviceTrustLevel
+import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.getState
@@ -46,6 +51,7 @@ import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 import io.kotest.matchers.Matcher as KoMatcher
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -100,6 +106,12 @@ class RoomListViewModelTest : ShouldSpec() {
     @Mock
     lateinit var profileManagerMock: ProfileManager
 
+    @Mock
+    lateinit var keyServiceMock: KeyService
+
+    @Mock
+    lateinit var keyServiceMock2: KeyService
+
     private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
     private val onAccountSelected = mockFunction0<Unit>(mocker)
 
@@ -125,6 +137,7 @@ class RoomListViewModelTest : ShouldSpec() {
                         module {
                             single { roomServiceMock }
                             single { userServiceMock }
+                            single { keyServiceMock }
                         }
                     )
                 }.koin
@@ -1195,7 +1208,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 coroutineContext,
                 mapOf(
                     user1 to matrixClientMock,
-                    user2 to matrixClientMock2
+                    user2 to matrixClientMock2,
                 )
             )
             val subscriberJob = subscribe(cut)
@@ -1234,6 +1247,82 @@ class RoomListViewModelTest : ShouldSpec() {
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
+
+
+        should("trigger account verification") {
+            val verificationTriggers = MutableStateFlow<List<UserId>>(listOf())
+            val trigger = SelfVerificationTriggerImpl()
+            val cut = roomListViewModel(
+                coroutineContext,
+                selfVerificationTrigger = trigger,
+            )
+            val subscriberJob = subscribe(cut)
+            launch {
+                trigger.onInvoke.collect {
+                    verificationTriggers.value += it
+                }
+            }
+            testCoroutineScheduler.advanceUntilIdle()
+            verificationTriggers.first().size shouldBe 0
+
+            cut.verifyAccount(UserId("Timmy"))
+            testCoroutineScheduler.advanceUntilIdle()
+            eventually(1.seconds) {
+                verificationTriggers.first().size shouldBe 1
+                verificationTriggers.first()[0].localpart shouldBe "Timmy"
+            }
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("get unverified accounts") {
+            val cut = roomListViewModel(
+                coroutineContext,
+                mapOf(
+                    user1 to matrixClientMock,
+                    user2 to matrixClientMock2,
+                )
+            )
+            val subscriberJob = subscribe(cut)
+            val syncState = MutableStateFlow(SyncState.STOPPED)
+
+            with(mocker) {
+                every { matrixClientMock2.di } returns koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock2 }
+                            single { userServiceMock2 }
+                            single { keyServiceMock2 }
+                        }
+                    )
+                }.koin
+
+                every { keyServiceMock.getTrustLevel(isAny<UserId>(), isAny()) } returns
+                        flowOf(DeviceTrustLevel.CrossSigned(true))
+                every { keyServiceMock2.getTrustLevel(isAny<UserId>(), isAny()) } returns
+                        flowOf(DeviceTrustLevel.CrossSigned(false))
+                every { matrixClientMock.userId } returns user1
+                every { matrixClientMock2.userId } returns user2
+                every { matrixClientMock.deviceId } returns "device1"
+                every { matrixClientMock2.deviceId } returns "device2"
+                every { matrixClientMock.syncState } returns syncState
+                every { matrixClientMock2.syncState } returns syncState
+                every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
+                every { roomServiceMock2.getAll() } returns MutableStateFlow(mapOf())
+                every { userServiceMock2.getAccountData<DirectEventContent>() } returns
+                        MutableStateFlow(DirectEventContent(mappings = mapOf()))
+            }
+
+            launch { cut.unverifiedAccounts.collect() }
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.unverifiedAccounts.first() shouldBe listOf(
+                user2,
+            )
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun CoroutineScope.subscribe(cut: RoomListViewModel) = launch {
@@ -1253,6 +1342,7 @@ class RoomListViewModelTest : ShouldSpec() {
     private suspend fun roomListViewModel(
         coroutineContext: CoroutineContext,
         matrixClients: Map<UserId, MatrixClient> = mapOf(user1 to matrixClientMock),
+        selfVerificationTrigger: SelfVerificationTrigger? = null,
     ): RoomListViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val koin = koinApplication {
@@ -1260,6 +1350,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 createTestDefaultTrixnityMessengerModules(matrixClients) + module {
                     single { roomNameMock }
                     single { profileManagerMock }
+                    if (selfVerificationTrigger != null) single { selfVerificationTrigger }
                     single<AccountViewModelFactory> {
                         object : AccountViewModelFactory {
                             override fun create(

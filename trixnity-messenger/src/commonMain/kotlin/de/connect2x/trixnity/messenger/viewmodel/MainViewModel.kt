@@ -28,6 +28,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
@@ -101,7 +102,7 @@ interface MainViewModel {
 
 open class MainViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val onCreateNewAccount: () -> Unit,
+    onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, MainViewModel {
 
@@ -154,10 +155,16 @@ open class MainViewModelImpl(
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
+    private val selfVerificationTrigger = get<SelfVerificationTrigger>()
+
     init {
         coroutineScope.launch {
             roomRouterStack.subscribe {
                 showRoom.value = it.active.instance !is RoomRouter.Wrapper.None
+            }
+            selfVerificationTrigger.onInvoke.collect {
+                log.debug { "triggered self verification for user: $it" }
+                onOpenSelfVerification(it)
             }
         }
     }
@@ -324,6 +331,10 @@ open class MainViewModelImpl(
                 }
             }
         }
+    }
+
+    private fun onOpenSelfVerification(userId: UserId) {
+        selfVerificationRouter.showSelfVerification(userId)
     }
 
     private fun startActiveVerificationsQueue() {

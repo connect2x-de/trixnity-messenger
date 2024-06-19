@@ -51,6 +51,7 @@ interface SelfVerificationViewModel {
     fun verifyWithPassphrase(passphrase: String)
     fun backToChoose()
     fun closeMessenger()
+    fun close()
 }
 
 open class SelfVerificationViewModelImpl(
@@ -193,4 +194,7 @@ open class SelfVerificationViewModelImpl(
         getOrNull<CloseApp>()?.invoke()
     }
 
+    override fun close() {
+        onCloseSelfVerification()
+    }
 }
