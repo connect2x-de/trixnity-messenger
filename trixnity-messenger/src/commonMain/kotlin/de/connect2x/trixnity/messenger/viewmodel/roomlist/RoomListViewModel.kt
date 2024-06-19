@@ -10,12 +10,15 @@ import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.flattenValues
+import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -69,7 +73,7 @@ interface RoomListViewModelFactory {
         onSendLogs: () -> Unit,
         onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
-        ): RoomListViewModel {
+    ): RoomListViewModel {
         return RoomListViewModelImpl(
             viewModelContext,
             selectedRoomId,
@@ -111,12 +115,15 @@ interface RoomListViewModel {
      */
     val closeProfileNeeded: Boolean
 
+    val unverifiedAccounts: StateFlow<List<UserId>>
+
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
     fun selectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
     fun openAccountsOverview()
+    fun verifyAccount(userId: UserId)
 
     /**
      * Close the current profile to allow other users (tenants) to use the app without exposing personal data.
@@ -142,7 +149,7 @@ class RoomListViewModelImpl(
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit,
-    ) : ViewModelContext by viewModelContext, RoomListViewModel {
+) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val profileManager = getOrNull<ProfileManager>()
@@ -171,10 +178,24 @@ class RoomListViewModelImpl(
 
     private val activeAccount: StateFlow<UserId?> =
         messengerSettings.map { it.base.selectedAccount }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()
     private val initials = get<Initials>()
+
+    override val unverifiedAccounts = viewModelContext.matrixClients
+        .flatMapLatest { clients ->
+            combine(
+                clients.entries.map {
+                    it.value.key.getTrustLevel(it.value.userId, it.value.deviceId)
+                        .map { trustLevel -> it.value.userId to trustLevel }
+                }
+            ) { pairs ->
+                pairs.filter { it.second.isVerified.not() }
+                    .map { it.first }
+            }
+        }
+        .stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override val accountViewModel =
         viewModelContext.get<AccountViewModelFactory>().create(
@@ -190,6 +211,8 @@ class RoomListViewModelImpl(
 
     private val roomListElementViewModels = mutableMapOf<RoomId, RoomListElementViewModel>()
 
+    private val selfVerificationTrigger = get<SelfVerificationTrigger>()
+
     private data class RoomWithMatrixClient(
         val room: Room,
         val matrixClient: MatrixClient,
@@ -201,7 +224,7 @@ class RoomListViewModelImpl(
         } else {
             matrixClients.values.toList()
         }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+    }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     private val allRoomsFlow: SharedFlow<Map<RoomId, RoomWithMatrixClient>> =
         selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
@@ -217,7 +240,7 @@ class RoomListViewModelImpl(
             combine(allRoomsFlows) { combinedRooms ->
                 combinedRooms.toList().flatten().associateBy { it.room.roomId }
             }
-        }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
+        }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
     init {
         data class ActiveSpaceInfo(
@@ -269,7 +292,7 @@ class RoomListViewModelImpl(
                 }) { allRoomNames ->
                     allRoomNames.toMap()
                 }
-            }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
+            }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
         val searchedRoomsFlow =
             combine(
@@ -358,7 +381,7 @@ class RoomListViewModelImpl(
                             viewModel = viewModel
                         )
                     }.toList()
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+            }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
         spaces = allRoomsFlow.flatMapLatest { allRooms ->
             combine( // TODO This is a heavy operation: SpaceViewModel should calculate room name.
@@ -396,7 +419,7 @@ class RoomListViewModelImpl(
             ) { spaces ->
                 spaces.toList()
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+        }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
         syncState = matrixClients.flatMapLatest { matrixClients ->
             combine(matrixClients.map { (userId, matrixClient) ->
@@ -404,7 +427,7 @@ class RoomListViewModelImpl(
             }) {
                 it.toMap()
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), mapOf())
+        }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
         syncStateError = syncState.map {
             it.entries.associate { (userId, syncState) ->
@@ -412,10 +435,10 @@ class RoomListViewModelImpl(
             }
         }
             .debounce(3.seconds)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), mapOf())
+            .stateIn(coroutineScope, WhileSubscribed(), mapOf())
         allSyncError = syncStateError.map {
             it.all { (_, error) -> error }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
         var initialSyncFinishedOnce = false
         initialSyncFinished = syncState
             .filterNot { it.isEmpty() }
@@ -425,7 +448,7 @@ class RoomListViewModelImpl(
                 if (it) initialSyncFinishedOnce = true
                 it
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
         resetSpacesWhenNotShown()
         resetSearchWhenNotShown()
@@ -523,6 +546,12 @@ class RoomListViewModelImpl(
     override fun openAccountsOverview() {
         onOpenAccountsOverview()
     }
+
+    override fun verifyAccount(userId: UserId) {
+        coroutineScope.launch {
+            selfVerificationTrigger.invoke(userId)
+        }
+    }
 }
 
 class PreviewRoomListViewModel : RoomListViewModel {
@@ -550,26 +579,15 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())
     override val closeProfileNeeded: Boolean = true
 
-    override fun createNewRoom() {
-    }
-
-    override fun createNewRoomFor(userId: UserId) {
-    }
-
-    override fun selectRoom(roomId: RoomId) {
-    }
-
-    override fun errorDismiss() {
-    }
-
-    override fun sendLogs() {
-    }
-
-    override fun openAccountsOverview() {
-    }
-
-    override fun closeProfile() {
-    }
+    override fun createNewRoom() {}
+    override fun createNewRoomFor(userId: UserId) {}
+    override fun selectRoom(roomId: RoomId) {}
+    override fun errorDismiss() {}
+    override fun sendLogs() {}
+    override fun openAccountsOverview() {}
+    override fun closeProfile() {}
+    override fun verifyAccount(userId: UserId) {}
 }

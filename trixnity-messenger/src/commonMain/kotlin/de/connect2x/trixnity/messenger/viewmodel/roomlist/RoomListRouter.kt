@@ -35,7 +35,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
 
 
@@ -50,7 +49,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    ) {
+) {
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(

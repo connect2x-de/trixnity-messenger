@@ -706,6 +706,8 @@ class MainViewModelTest : ShouldSpec() {
                                         override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
                                             MutableStateFlow(true)
+                                        override val unverifiedAccounts: StateFlow<List<UserId>> =
+                                            MutableStateFlow(listOf())
                                         override val closeProfileNeeded: Boolean = false
                                         override val accountViewModel: AccountViewModel = object : AccountViewModel {
                                             override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
@@ -742,6 +744,9 @@ class MainViewModelTest : ShouldSpec() {
                                         }
 
                                         override fun closeProfile() {
+                                        }
+
+                                        override fun verifyAccount(userId: UserId) {
                                         }
                                     }
                                 }
