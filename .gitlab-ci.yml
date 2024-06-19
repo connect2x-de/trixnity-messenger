@@ -10,6 +10,7 @@ stages:
   - build
   - test
   - security
+  - changelog
   - publish
 
 variables:
@@ -70,6 +71,11 @@ variables:
   DOCKER_TLS_CERTDIR: "/certs"
   DOCKER_TLS_VERIFY: 1
   DOCKER_CERT_PATH: "${DOCKER_TLS_CERTDIR}/client"
+
+.if-merge-request: &if-merge-request
+  - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+    when: never
 
 .if-merge-request-or-main: &if-merge-request-or-main
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -201,6 +207,24 @@ security:dependencies:
     - trivy repo ./ --exit-code 0
     - trivy repo ./ --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output report.json
     - trivy repo ./ --exit-code 1 --severity CRITICAL
+
+changelog:
+  stage: changelog
+  interruptible: true
+  timeout: 5m
+  needs: [ ]
+  tags: [ "saas-linux-small-amd64" ]
+  rules:
+    - *if-merge-request
+  script:
+    - git fetch origin main
+    - |
+      if git diff --name-only HEAD origin/main | grep "CHANGELOG.md"; then
+        echo "CHANGELOG.md has changed"
+      else
+        echo "CHANGELOG.md has not changed"
+        exit 1
+      fi
 
 publish:mac:
   stage: publish

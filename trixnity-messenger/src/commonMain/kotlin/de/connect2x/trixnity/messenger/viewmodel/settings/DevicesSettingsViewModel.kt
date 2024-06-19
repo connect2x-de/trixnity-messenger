@@ -47,9 +47,10 @@ interface DevicesSettingsViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         onCloseDevicesSettings: () -> Unit,
-    ): DevicesSettingsViewModel {
-        return DevicesSettingsViewModelImpl(viewModelContext, onCloseDevicesSettings)
-    }
+    ): DevicesSettingsViewModel = DevicesSettingsViewModelImpl(
+        viewModelContext,
+        onCloseDevicesSettings,
+    )
 
     companion object : DevicesSettingsViewModelFactory
 }

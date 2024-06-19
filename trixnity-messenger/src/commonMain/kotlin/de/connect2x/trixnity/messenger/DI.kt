@@ -122,6 +122,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopicImpl
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlockingImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
@@ -221,6 +223,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
+        single<SelfVerificationTrigger> { SelfVerificationTriggerImpl() }
 
         single<AuthorizeUia> { AuthorizeUiaImpl() }
         single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }

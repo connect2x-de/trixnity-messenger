@@ -117,7 +117,10 @@ open class SSOLoginViewModelImpl(
         }.build()
 
     private val loginUrl =
-        Url("$serverUrl/_matrix/client/v3/login/sso/redirect/$providerId?redirectUrl=$redirectUrl").toString()
+        URLBuilder(serverUrl).apply {
+            path("/_matrix/client/v3/login/sso/redirect/$providerId")
+            parameters.append("redirectUrl", redirectUrl.toString())
+        }.build().toString()
 
     override val waitForRedirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isResumingLogin: MutableStateFlow<Boolean> = MutableStateFlow(false)

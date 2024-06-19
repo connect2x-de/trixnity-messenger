@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -72,7 +73,7 @@ open class AddMatrixAccountViewModelImpl(
             .map { it.isEmpty() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    final override val serverUrl = MutableStateFlow("")
+    final override val serverUrl = MutableStateFlow(get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
 
     private val httpClientFactory = get<HttpClientFactory>()()
 
