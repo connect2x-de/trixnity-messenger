@@ -2,10 +2,18 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,9 +26,6 @@ import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -28,55 +33,50 @@ import org.koin.dsl.module
 class CreateNewRoomViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns userId1
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
-            }
+            resetMocks(
+                matrixClientMock,
+                matrixClientServerApiClientMock,
+                userServiceMock,
+                usersApiClientMock,
+                roomsApiClientMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns userId1
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.user } returns usersApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         }
 
         should("filter users by search term") {
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("user1"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("user1"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -87,12 +87,12 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                             )
                         )
                     )
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("us"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("us"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -105,12 +105,12 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                             )
                         )
                     )
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("user3"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("user3"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(

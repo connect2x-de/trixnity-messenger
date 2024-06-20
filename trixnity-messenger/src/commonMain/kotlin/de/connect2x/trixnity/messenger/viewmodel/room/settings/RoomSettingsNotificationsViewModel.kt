@@ -57,55 +57,51 @@ open class RoomSettingsNotificationsViewModelImpl(
         NotificationLevels.SILENT to NotificationLevelImpl(i18n, NotificationLevels.SILENT),
         NotificationLevels.DEFAULT to NotificationLevelImpl(i18n, NotificationLevels.DEFAULT),
     )
-    override val selectedRoomNotificationsLevel: StateFlow<NotificationLevel>
+    override val selectedRoomNotificationsLevel: StateFlow<NotificationLevel> =
+        matrixClient.user.getAccountData<PushRulesEventContent>().map { prs ->
+            prs?.let { pushRules ->
+                val roomActions =
+                    pushRules.global?.room
+                        ?.filter { it.enabled }
+                        ?.find { pushRule -> pushRule.roomId == selectedRoomId }
+                        ?.actions
+                        ?.filter { it !is PushAction.Unknown }
+
+                val overrideActions =
+                    pushRules.global?.override
+                        ?.filter { it.enabled }
+                        ?.find { pushRule ->
+                            pushRule.conditions?.any { pushCondition ->
+                                pushCondition == PushCondition.EventMatch(
+                                    key = "room_id",
+                                    pattern = selectedRoomId.full
+                                )
+                            } ?: false
+                                    && pushRule.conditions?.size == 1
+                        }?.actions
+                        ?.filter { it !is PushAction.Unknown }
+
+                val level = when {
+                    overrideActions == null && roomActions != null && roomActions.isNotEmpty() ->
+                        NotificationLevels.ALL
+
+                    overrideActions == null && roomActions != null && roomActions.isEmpty() ->
+                        NotificationLevels.MENTIONS
+
+                    roomActions == null && overrideActions != null && overrideActions.isEmpty() ->
+                        NotificationLevels.SILENT
+
+                    else -> NotificationLevels.DEFAULT
+                }
+                roomNotificationLevels.getValue(level)
+            } ?: roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            roomNotificationLevels.getValue(NotificationLevels.ALL)
+        )
     override val isNotificationsLevelLoading = MutableStateFlow(false)
-
-    init {
-        selectedRoomNotificationsLevel =
-            matrixClient.user.getAccountData<PushRulesEventContent>().map { prs ->
-                prs?.let { pushRules ->
-                    val roomActions =
-                        pushRules.global?.room
-                            ?.filter { it.enabled }
-                            ?.find { pushRule -> pushRule.roomId == selectedRoomId }
-                            ?.actions
-                            ?.filter { it !is PushAction.Unknown }
-
-                    val overrideActions =
-                        pushRules.global?.override
-                            ?.filter { it.enabled }
-                            ?.find { pushRule ->
-                                pushRule.conditions?.any { pushCondition ->
-                                    pushCondition == PushCondition.EventMatch(
-                                        key = "room_id",
-                                        pattern = selectedRoomId.full
-                                    )
-                                } ?: false
-                                        && pushRule.conditions?.size == 1
-                            }?.actions
-                            ?.filter { it !is PushAction.Unknown }
-
-                    val level = when {
-                        overrideActions == null && roomActions != null && roomActions.isNotEmpty() ->
-                            NotificationLevels.ALL
-
-                        overrideActions == null && roomActions != null && roomActions.isEmpty() ->
-                            NotificationLevels.MENTIONS
-
-                        roomActions == null && overrideActions != null && overrideActions.isEmpty() ->
-                            NotificationLevels.SILENT
-
-                        else -> NotificationLevels.DEFAULT
-                    }
-                    roomNotificationLevels.getValue(level)
-                } ?: roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
-            }.stateIn(
-                coroutineScope,
-                SharingStarted.WhileSubscribed(),
-                roomNotificationLevels.getValue(NotificationLevels.ALL)
-            )
-    }
-
+    
     override fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel) {
         coroutineScope.launch {
             error.value = null

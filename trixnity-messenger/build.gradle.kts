@@ -6,12 +6,12 @@ plugins {
     id("com.android.library")
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("io.kotest.multiplatform")
-    id("com.google.devtools.ksp")
-    id("co.touchlab.skie")
     `maven-publish`
-    id("co.touchlab.kmmbridge")
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.kotest)
+    alias(libs.plugins.mokkery)
+    alias(libs.plugins.skie)
+    alias(libs.plugins.kmmbridge)
+    alias(libs.plugins.dokka)
 }
 
 kotlin {
@@ -88,7 +88,6 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(libs.mock.mockmp)
                 implementation(libs.okio.fakefilesystem)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.bundles.kotest)
@@ -182,14 +181,6 @@ android {
             isDefault = true
         }
     }
-}
-
-dependencies {
-    configurations
-        .filter { it.name.startsWith("ksp") && it.name.contains("Test") }
-        .forEach {
-            add(it.name, "org.kodein.mock:mockmp-processor:${libs.versions.mocKmp.get()}")
-        }
 }
 
 publishing {

@@ -1,26 +1,25 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import dev.mokkery.matcher.*
+
+import dev.mokkery.answering.*
+
+import dev.mokkery.*
+
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 
 class FormattersTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
-    @Mock
-    lateinit var clock: Clock
+    val clock = mock<Clock>()
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
 
-            mocker.every { clock.now() } returns Instant.parse("2022-03-10T19:00:00.000Z")
+            every { clock.now() } returns Instant.parse("2022-03-10T19:00:00.000Z")
         }
 
         should("show the time when date is today") {

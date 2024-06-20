@@ -1,9 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.*
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.pause
+import com.arkivanov.essenty.lifecycle.resume
+import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -11,16 +17,36 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
-
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
@@ -38,11 +64,6 @@ import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction2
-import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
@@ -51,8 +72,6 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
     override fun timeout(): Long = 10_000
-
-    private val mocker = Mocker()
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
@@ -63,27 +82,20 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
     private val bob = UserId("bob", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
+    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    @Mock
-    lateinit var roomHeaderViewModelMock: RoomHeaderViewModel
+    val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
 
-    @Mock
-    lateinit var inputAreaViewModelMock: InputAreaViewModel
-    private lateinit var roomUser: Mocker.Every<Flow<RoomUserReceipts?>>
+    val inputAreaViewModelMock = mock<InputAreaViewModel>()
+    private lateinit var roomUser: BlockingAnsweringScope<Flow<RoomUserReceipts?>>
     private lateinit var readMarkerCalled: MutableStateFlow<List<Pair<EventId?, EventId?>>>
     private lateinit var outerCoroutineScope: CoroutineScope
 
@@ -91,101 +103,108 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         val aliceRoomUser = roomUser(me, "Alice")
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
             Dispatchers.setMain(Dispatchers.Unconfined)
+
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                matrixClientServerApiMock,
+                roomsApiClientMock,
+                roomHeaderViewModelMock,
+                inputAreaViewModelMock
+            )
 
             lifecycleRegistry = LifecycleRegistry()
             lifecycleRegistry.start()
 
             messengerSettings = createTestMatrixMessengerSettingsHolder()
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns me
-                every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STARTED)
-                every { matrixClientMock.api } returns matrixClientServerApiMock
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns me
+            every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STARTED)
+            every { matrixClientMock.api } returns matrixClientServerApiMock
 
-                every { matrixClientServerApiMock.room } returns roomsApiClientMock
-                readMarkerCalled = MutableStateFlow(listOf())
-                everySuspending {
-                    roomsApiClientMock.setReadMarkers(isAny(), isAny(), isAny(), isAny(), isNull())
-                } runs { params ->
-                    readMarkerCalled.update { old -> old + (params[1] as EventId? to params[2] as EventId?) }
-                    Result.success(Unit)
-                }
-                every { roomServiceMock.getPreviousTimelineEvent(isAny(), isAny()) } returns
-                        flowOf(
-                            TimelineEvent(
-                                messageEvent(
-                                    sender = alice,
-                                    eventId = EventId("dummy"),
-                                    roomId = RoomId("dummy")
-                                ) { text("dummy") },
-                                gap = null,
-                                previousEventId = null,
-                                nextEventId = null
+            every { matrixClientServerApiMock.room } returns roomsApiClientMock
+            readMarkerCalled = MutableStateFlow(listOf())
+            everySuspend {
+                roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), eqNull())
+            } calls { params ->
+                readMarkerCalled.update { old -> old + (params.args[1] as EventId? to params.args[2] as EventId?) }
+                Result.success(Unit)
+            }
+            every { roomServiceMock.getPreviousTimelineEvent(any(), any()) } returns
+                    flowOf(
+                        TimelineEvent(
+                            messageEvent(
+                                sender = alice,
+                                eventId = EventId("dummy"),
+                                roomId = RoomId("dummy")
+                            ) { text("dummy") },
+                            gap = null,
+                            previousEventId = null,
+                            nextEventId = null
+                        )
+                    )
+            every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
+            every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+            every { userServiceMock.getById(any(), any()) } returns flowOf(aliceRoomUser)
+
+            every { userServiceMock.getAll(eq(roomId)) } returns MutableStateFlow(
+                mapOf(
+                    me to flowOf(
+                        RoomUser(
+                            roomId,
+                            me,
+                            "User1",
+                            StateEvent(
+                                MemberEventContent(membership = Membership.JOIN),
+                                EventId(""),
+                                me,
+                                roomId,
+                                0L,
+                                stateKey = ""
                             )
                         )
-                every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
-                every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
-                every { userServiceMock.getById(isAny(), isAny()) } returns flowOf(aliceRoomUser)
-
-                every { userServiceMock.getAll(isEqual(roomId)) } returns MutableStateFlow(
-                    mapOf(
-                        me to flowOf(
-                            RoomUser(
+                    ),
+                    alice to flowOf(
+                        RoomUser(
+                            roomId, alice, "Alice", StateEvent(
+                                MemberEventContent(membership = Membership.JOIN),
+                                EventId(""),
+                                alice,
                                 roomId,
-                                me,
-                                "User1",
-                                StateEvent(
-                                    MemberEventContent(membership = Membership.JOIN),
-                                    EventId(""),
-                                    me,
-                                    roomId,
-                                    0L,
-                                    stateKey = ""
-                                )
+                                0L,
+                                stateKey = ""
                             )
-                        ),
-                        alice to flowOf(
-                            RoomUser(
-                                roomId, alice, "Alice", StateEvent(
-                                    MemberEventContent(membership = Membership.JOIN),
-                                    EventId(""),
-                                    alice,
-                                    roomId,
-                                    0L,
-                                    stateKey = ""
-                                )
+                        )
+                    ),
+                    bob to flowOf(
+                        RoomUser(
+                            roomId, bob, "Bob", StateEvent(
+                                MemberEventContent(membership = Membership.JOIN),
+                                EventId(""),
+                                bob,
+                                roomId,
+                                0L,
+                                stateKey = ""
                             )
-                        ),
-                        bob to flowOf(
-                            RoomUser(
-                                roomId, bob, "Bob", StateEvent(
-                                    MemberEventContent(membership = Membership.JOIN),
-                                    EventId(""),
-                                    bob,
-                                    roomId,
-                                    0L,
-                                    stateKey = ""
-                                )
-                            )
-                        ),
-                    )
+                        )
+                    ),
                 )
-                every { userServiceMock.getAllReceipts(isEqual(roomId)) } returns MutableStateFlow(emptyMap())
-                roomUser = every { userServiceMock.getReceiptsById(isEqual(roomId), isAny()) }
-                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
-                roomUser returns flowOf(null)
-                everySuspending { userServiceMock.loadMembers(roomId, false) } returns Unit
-            }
+            )
+            every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
+            roomUser = every { userServiceMock.getReceiptsById(eq(roomId), any()) }
+            every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
+            roomUser returns flowOf(null)
+            everySuspend { userServiceMock.loadMembers(roomId, false) } returns Unit
+
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
                 it.copy(
                     readMarkerIsPublic = true
@@ -200,7 +219,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("show the unread marker at the element after the fully read event initially") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -223,7 +242,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("remove the unread marker from an element that is fully read now") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -250,7 +269,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("compute a new unread marker element when the last unread marker is removed") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -277,7 +296,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("not show unread marker at StateEvents like 'user joined room'") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -297,7 +316,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("show the unread marker only above messages by someone else even if my messages come after the fully read message") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -321,7 +340,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
         // some events are not shown yet: reactions, audio / video calls, etc.
         should("show the unread marker above the last unread message even when there are multiple events afterwards that are not displayed") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -344,7 +363,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("not show the unread marker when only elements that are not displayed are unread") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -369,7 +388,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         // this scenario takes into account that the server marks new messages as unread, but since we are active at the
         // end of the timeline, we should mark those messages as read immediately
         should("not show the unread marker and mark message as read when a new message is added to the end of the timeline and the user is active there") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -398,7 +417,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             assertUnreadMarkerAtIndex(-1, cut)
         }
         should("not show the unread marker and mark message as read when a new message is added to the end of the timeline and the user is active there if the message before was from us") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -427,7 +446,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("show the unread marker if the user is active in the timeline but not at the end") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -456,7 +475,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("not change the unread marker when already shown and a new message appears") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -484,7 +503,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark the last visible message as read when the room is opened") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -505,7 +524,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark the last message that is eligible as read when the room is opened") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -531,7 +550,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark the last visible message as read when the last visible message changes") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -557,7 +576,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
 
         should("not mark messages as read that are older than the previous last read message") {
             roomUser returns flowOf(createRoomUserReceipts(UserId("userId", "localhost"), EventId("3")))
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -585,7 +604,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
                 it.copy(readMarkerIsPublic = false)
             }
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -602,13 +621,13 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             cut.lastVisibleTimelineElement.value = "1"
 
             assertUnreadMarkerAtIndex(1, cut)
-            mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                roomsApiClientMock.setReadMarkers(isEqual(roomId), isNull(), isNull(), isEqual(EventId("1")), isAny())
+            verifySuspend {
+                roomsApiClientMock.setReadMarkers(eq(roomId), eqNull(), eqNull(), eq(EventId("1")), any())
             }
         }
 
         should("mark the last message as fully read when the room is changed or app exited (view model is destroyed)") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -634,7 +653,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
         }
 
         should("mark the last message as fully read when the app is paused") {
-            val timelineMock = timeline(mocker, roomServiceMock, roomId) {
+            val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hello")
                 }
@@ -704,10 +723,10 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
-            onBack = mockFunction0(mocker),
-            onOpenModal = mockFunction4(mocker),
-            onShowSettings = mockFunction0(mocker),
-            onOpenMention = mockFunction2(mocker),
+            onBack = mock(),
+            onOpenModal = mock(),
+            onShowSettings = mock(),
+            onOpenMention = mock(),
         )
     }
 

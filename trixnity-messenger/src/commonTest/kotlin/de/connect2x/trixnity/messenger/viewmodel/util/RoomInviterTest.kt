@@ -1,22 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -24,13 +24,9 @@ import org.koin.dsl.module
 class RoomInviterTest : ShouldSpec() {
     override fun timeout(): Long = 3_000
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
-
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
     private val roomId = RoomId("room", "localhost")
     private val me = UserId("test", "localhost")
@@ -41,25 +37,19 @@ class RoomInviterTest : ShouldSpec() {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns me
-                every { matrixClientMock.room } returns roomServiceMock
-            }
-
+            resetMocks(matrixClientMock, roomServiceMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns me
         }
 
         should("get the inviter from the matching invitation state event") {
-            mocker.every { roomServiceMock.getState<MemberEventContent>(roomId, me.full) } returns flowOf(
+            every { roomServiceMock.getState(roomId, MemberEventContent::class, me.full) } returns flowOf(
                 StateEvent(
                     content = MemberEventContent(
                         membership = Membership.INVITE,
@@ -76,7 +66,7 @@ class RoomInviterTest : ShouldSpec() {
         }
 
         should("not run indefinitely") {
-            mocker.every { roomServiceMock.getState<MemberEventContent>(roomId, me.full) } returns MutableStateFlow(
+            every { roomServiceMock.getState(roomId, MemberEventContent::class, me.full) } returns MutableStateFlow(
                 StateEvent(
                     content = MemberEventContent(
                         membership = Membership.LEAVE, // no invite!

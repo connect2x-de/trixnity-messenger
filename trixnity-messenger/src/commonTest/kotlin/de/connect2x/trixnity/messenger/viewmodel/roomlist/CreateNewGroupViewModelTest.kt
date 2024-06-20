@@ -2,9 +2,20 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
@@ -13,8 +24,10 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
@@ -30,8 +43,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
@@ -40,67 +51,64 @@ import kotlin.time.Duration.Companion.seconds
 class CreateNewGroupViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 10_000
 
-    val mocker = Mocker()
-
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    private val onBackMock = mockFunction0<Unit>(mocker)
-    private val onGroupCreatedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
+    private val onBackMock = mock<Function0<Unit>>()
+    private val onGroupCreatedMock = mock<Function2<UserId, RoomId, Unit>>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns userId1
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.users } returns usersApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
-            }
+            resetMocks(
+                matrixClientMock,
+                matrixClientServerApiClientMock,
+                usersApiClientMock,
+                roomsApiClientMock,
+                userServiceMock,
+                onBackMock,
+                onGroupCreatedMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns userId1
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.user } returns usersApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         }
 
         should("create a room for public + encrypted") {
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
                 )
             } returns Result.success(RoomId("room1", "localhost"))
             val cut = createNewGroupViewModel()
@@ -111,25 +119,25 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             }
             cut.createNewGroup()
 
-            mocker.verifyWithSuspend(exhaustive = false) {
+            verifySuspend {
                 roomsApiClientMock.createRoom(
-                    isAny(),
-                    isAny(),
-                    isNull(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(
+                    any(),
+                    any(),
+                    eqNull(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    eq(
                         listOf(
                             InitialStateEvent(EncryptionEventContent(), "")
                         )
                     ),
-                    isEqual(CreateRoom.Request.Preset.PUBLIC),
-                    isAny(),
-                    isAny(),
-                    isNull(),
+                    eq(CreateRoom.Request.Preset.PUBLIC),
+                    any(),
+                    any(),
+                    eqNull(),
                 )
             }
         }
@@ -145,12 +153,12 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
         }
 
         should("add user to group list when selected and remove from list when deselected") {
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -191,36 +199,36 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
 
         should("create group with all selected users") {
             val roomId = RoomId("room1", "localhost")
-            mocker.every {
-                onGroupCreatedMock.invoke(isAny(), isAny())
+            every {
+                onGroupCreatedMock.invoke(any(), any())
             } returns Unit
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isEqual(DirectoryVisibility.PRIVATE),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(setOf(userId2, userId3)),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(
+                    eq(DirectoryVisibility.PRIVATE),
+                    any(),
+                    any(),
+                    any(),
+                    eq(setOf(userId2, userId3)),
+                    any(),
+                    any(),
+                    any(),
+                    eq(
                         listOf(
                             InitialStateEvent(EncryptionEventContent(), "")
                         )
                     ),
-                    isAny(),
-                    isEqual(false),
-                    isAny(),
-                    isNull(),
+                    any(),
+                    eq(false),
+                    any(),
+                    eqNull(),
                 )
             } returns Result.success(roomId)
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull(),
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull(),
                 )
             } returns Result.success(
                 SearchUsers.Response(
@@ -244,7 +252,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             cut.createNewGroup()
 
             eventually(3.seconds) {
-                mocker.verify(exhaustive = false) {
+                verify {
                     onGroupCreatedMock.invoke(UserId("test", "server"), roomId)
                 }
             }
@@ -253,28 +261,28 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
         should("create group with a custom topic") {
             val roomId = RoomId("room1", "localhost")
             val topicText = "This is a room for testing!"
-            mocker.every {
-                onGroupCreatedMock.invoke(isAny(), isAny())
+            every {
+                onGroupCreatedMock.invoke(any(), any())
             } returns Unit
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isEqual(DirectoryVisibility.PRIVATE),
-                    isAny(),
-                    isAny(),
-                    isEqual(topicText),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(
+                    eq(DirectoryVisibility.PRIVATE),
+                    any(),
+                    any(),
+                    eq(topicText),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    eq(
                         listOf(
                             InitialStateEvent(EncryptionEventContent(), "")
                         )
                     ),
-                    isAny(),
-                    isEqual(false),
-                    isAny(),
-                    isNull(),
+                    any(),
+                    eq(false),
+                    any(),
+                    eqNull(),
                 )
             } returns Result.success(roomId)
 
@@ -283,7 +291,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             cut.createNewGroup()
 
             eventually(3.seconds) {
-                mocker.verify(exhaustive = false) {
+                verify {
                     onGroupCreatedMock.invoke(UserId("test", "server"), roomId)
                 }
             }
@@ -291,29 +299,29 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
 
         should("show error message when group cannot be created") {
             var groupCreatedWasCalled = false
-            mocker.every { onGroupCreatedMock.invoke(isAny(), isAny()) } runs {
+            every { onGroupCreatedMock.invoke(any(), any()) } calls {
                 groupCreatedWasCalled = true
             }
 
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isEqual(DirectoryVisibility.PRIVATE),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(setOf(userId2, userId3)),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(
+                    eq(DirectoryVisibility.PRIVATE),
+                    any(),
+                    any(),
+                    any(),
+                    eq(setOf(userId2, userId3)),
+                    any(),
+                    any(),
+                    any(),
+                    eq(
                         listOf(
                             InitialStateEvent(EncryptionEventContent(), "")
                         )
                     ),
-                    isAny(),
-                    isEqual(false),
-                    isAny(),
-                    isNull(),
+                    any(),
+                    eq(false),
+                    any(),
+                    eqNull(),
                 )
             } returns Result.failure(
                 MatrixServerException(
@@ -321,12 +329,12 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                     ErrorResponse.Forbidden("403")
                 )
             )
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(

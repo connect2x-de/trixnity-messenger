@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
@@ -11,6 +11,12 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import kotlinx.coroutines.CoroutineDispatcher
@@ -27,36 +33,25 @@ import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RootViewModelTest : ShouldSpec() {
-    private val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val downloadManagerMock = mock<DownloadManager>()
 
-    @Mock
-    lateinit var downloadManagerMock: DownloadManager
+    val accountViewModelMock = mock<AccountViewModel>()
 
-    @Mock
-    lateinit var accountViewModelMock: AccountViewModel
+    val roomListViewModelMock = mock<RoomListViewModel>()
 
-    @Mock
-    lateinit var roomListViewModelMock: RoomListViewModel
-
-    @Mock
-    lateinit var mainViewModelMock: MainViewModel
+    val mainViewModelMock = mock<MainViewModel>()
 
     private val lifecycle = LifecycleRegistry()
 
@@ -66,28 +61,32 @@ class RootViewModelTest : ShouldSpec() {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                downloadManagerMock,
+                accountViewModelMock,
+                roomListViewModelMock,
+                mainViewModelMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            everySuspend { matrixClientMock.syncOnce<Unit>(any(), any(), any()) } returns
+                    Result.success(Unit)
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                everySuspending { matrixClientMock.syncOnce<Unit>(isAny(), isAny(), isAny()) } returns
-                        Result.success(Unit)
+            every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
+            every { userServiceMock.getAllReceipts(any()) } returns MutableStateFlow(mapOf())
 
-                every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
-                every { userServiceMock.getAllReceipts(isAny()) } returns MutableStateFlow(mapOf())
+            every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STOPPED)
 
-                every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STOPPED)
-
-                every { mainViewModelMock.start() } runs {}
-            }
+            every { mainViewModelMock.start() } calls {}
         }
 
         should("show account creation when there is no account defined yet") {

@@ -69,13 +69,8 @@ open class ReplyToViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, ReplyToViewModel {
 
     private val thumbnails = get<Thumbnails>()
-    override val replyTo: StateFlow<ReplyType?>
-
-    private val thumbnailLoading = MutableStateFlow(false)
-    private val thumbnailCache = MutableStateFlow<ByteArray?>(null)
-
-    init {
-        replyTo = combine(
+    override val replyTo: StateFlow<ReplyType?> =
+        combine(
             matrixClient.room.getTimelineEvent(selectedRoomId, eventId),
             matrixClient.room.getTimelineEvent(selectedRoomId, eventId)
                 .flatMapLatest {
@@ -129,7 +124,9 @@ open class ReplyToViewModelImpl(
                 else -> UnknownReply(sender)
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    }
+
+    private val thumbnailLoading = MutableStateFlow(false)
+    private val thumbnailCache = MutableStateFlow<ByteArray?>(null)
 
     override fun cancelReplyTo() {
         onCancelReplyTo()

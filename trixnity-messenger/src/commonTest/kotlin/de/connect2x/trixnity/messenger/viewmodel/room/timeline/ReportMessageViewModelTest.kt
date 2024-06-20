@@ -2,19 +2,21 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
-import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.beInstanceOf
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +42,6 @@ import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -51,30 +50,23 @@ import kotlin.coroutines.CoroutineContext
 class ReportMessageViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val roomId = RoomId("room1", "localhost")
 
     private val ourUserId = UserId("bob", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
+    private lateinit var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
-    private val onMessageReportFinished = mockFunction1<Unit, EventId>(mocker)
+    private val onMessageReportFinished = mock<Function1<EventId, Unit>>()
 
 
     init {
@@ -96,66 +88,69 @@ class ReportMessageViewModelTest : ShouldSpec() {
         )
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns ourUserId
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
-
-                canSendEventMocker = every {
-                    userServiceMock.canSendEvent(isAny(), isAny())
-                }
-
-                canSendEventMocker returns flowOf(true)
-                everySuspending {
-                    roomServiceMock.sendMessage(
-                        isEqual(roomId),
-                        isAny(),
-                        isAny()
-                    )
-                } returns ""
-                every {
-                    roomServiceMock.getTimelineEvent(isAny(), isEqual(eventId), isAny())
-                } returns flowOf(
-                    TimelineEvent(
-                        event = messageEvent,
-                        content = Result.success(RoomMessageEventContent.TextBased.Text("Hello")),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                matrixClientServerApiClientMock,
+                roomsApiClientMock,
+                onMessageReportFinished
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
                 )
-                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
-                    Room(
-                        roomId,
-                        isDirect = true
-                    )
-                )
-                every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(
-                    aliceRoomUser
-                )
-                every { onMessageReportFinished.invoke(isAny()) } returns Unit
+            }.koin
+            every { matrixClientMock.userId } returns ourUserId
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-                everySuspending {
-                    roomsApiClientMock.reportEvent(
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                        isAny()
-                    )
-                } returns Result.success(Unit)
+            canSendEventMocker = every {
+                userServiceMock.canSendEvent(any(), any())
             }
+
+            canSendEventMocker returns flowOf(true)
+            everySuspend {
+                roomServiceMock.sendMessage(
+                    eq(roomId),
+                    any(),
+                    any()
+                )
+            } returns ""
+            every {
+                roomServiceMock.getTimelineEvent(any(), eq(eventId), any())
+            } returns flowOf(
+                TimelineEvent(
+                    event = messageEvent,
+                    content = Result.success(RoomMessageEventContent.TextBased.Text("Hello")),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            )
+            every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+                Room(
+                    roomId,
+                    isDirect = true
+                )
+            )
+            every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(
+                aliceRoomUser
+            )
+            every { onMessageReportFinished.invoke(any()) } returns Unit
+
+            everySuspend {
+                roomsApiClientMock.reportEvent(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } returns Result.success(Unit)
         }
 
 
@@ -169,7 +164,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
 
             cut.submitReportToMessage()
 
-            mocker.verify(exhaustive = false) {
+            verify {
                 onMessageReportFinished.invoke(messageEvent.id)
             }
 

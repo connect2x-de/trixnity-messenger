@@ -8,43 +8,39 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
 
 class MatrixClientInitializationViewModelTest : ShouldSpec() {
-    private val mocker = Mocker()
+    val matrixClientsMock = mock<MatrixClients>()
 
-    @Mock
-    lateinit var matrixClientsMock: MatrixClients
-
-    private val onNoAccountsMock = mockFunction0<Unit>(mocker)
+    private val onNoAccountsMock = mock<Function0<Unit>>()
     private lateinit var cut: MatrixClientInitializationViewModel
 
     init {
-        mocker.reset()
-        injectMocks(mocker)
-
         beforeTest {
-            with(mocker) {
-                every { onNoAccountsMock.invoke() } returns Unit
-                everySuspending { matrixClientsMock.initFromStore() } returns
-                        MatrixClients.InitFromStoreResult(
-                            success = emptySet(),
-                            failures = emptyMap(),
-                        )
-            }
+            resetMocks(matrixClientsMock, onNoAccountsMock)
+            every { onNoAccountsMock.invoke() } returns Unit
+            everySuspend { matrixClientsMock.initFromStore() } returns
+                    MatrixClients.InitFromStoreResult(
+                        success = emptySet(),
+                        failures = emptyMap(),
+                    )
         }
 
         // still fails from time to time for no apparent reason, so deactivate
@@ -54,7 +50,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                 selectedAccount = null
             )
             eventually(4.seconds) { // TODO: optimize timeout
-                mocker.verify(exhaustive = false) { onNoAccountsMock.invoke() }
+                verify { onNoAccountsMock.invoke() }
             }
         }
 

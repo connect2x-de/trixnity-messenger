@@ -2,9 +2,21 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.nulls.beNull
@@ -14,8 +26,19 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
@@ -35,9 +58,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArrayFlow
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -46,35 +66,27 @@ import kotlin.coroutines.CoroutineContext
 class InputAreaViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val roomId = RoomId("room1", "localhost")
     private val ourUserId = UserId("bob", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var mediaServiceMock: MediaService
+    val mediaServiceMock = mock<MediaService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    private lateinit var canSendEventMocker: Mocker.Every<Flow<Boolean>>
+    private lateinit var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
-    private val onMessageEditFinishedMock = mockFunction1<Unit, EventId>(mocker)
-    private val onMessageReplToFinishedMock = mockFunction1<Unit, EventId>(mocker)
+    private val onMessageEditFinishedMock = mock<Function1<EventId, Unit>>()
+    private val onMessageReplToFinishedMock = mock<Function1<EventId, Unit>>()
 
-    private lateinit var allRoomUsersMock: Mocker.Every<Flow<Map<UserId, Flow<RoomUser?>>?>>
+    private lateinit var allRoomUsersMock: BlockingAnsweringScope<Flow<Map<UserId, Flow<RoomUser?>>?>>
 
     init {
         coroutineTestScope = true
@@ -96,58 +108,63 @@ class InputAreaViewModelTest : ShouldSpec() {
         )
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { mediaServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns ourUserId
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
-
-                canSendEventMocker = every {
-                    userServiceMock.canSendEvent(isAny(), isAny())
-                }
-
-                canSendEventMocker returns flowOf(true)
-                everySuspending { roomServiceMock.sendMessage(isEqual(roomId), isAny(), isAny()) } returns ""
-                every {
-                    roomServiceMock.getTimelineEvent(isAny(), isEqual(eventId), isAny())
-                } returns flowOf(
-                    TimelineEvent(
-                        event = messageEvent,
-                        content = Result.success(RoomMessageEventContent.TextBased.Text("Hello")),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                mediaServiceMock,
+                matrixClientServerApiClientMock,
+                roomsApiClientMock,
+                onMessageEditFinishedMock,
+                onMessageReplToFinishedMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { mediaServiceMock }
+                    }
                 )
-                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
-                allRoomUsersMock = every { userServiceMock.getAll(roomId) }
-                allRoomUsersMock returns MutableStateFlow(
-                    mapOf(
-                        aliceUserId to flowOf(aliceRoomUser),
-                        alvinUserId to flowOf(alvinRoomUser),
-                        ourUserId to flowOf(bobRoomUser),
-                        zoopUserId to flowOf(zoopRoomUser),
-                    )
-                )
-                every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
-                every { onMessageEditFinishedMock.invoke(isAny()) } returns Unit
-                every { onMessageReplToFinishedMock.invoke(isAny()) } returns Unit
+            }.koin
+            every { matrixClientMock.userId } returns ourUserId
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-                everySuspending {
-                    mediaServiceMock.getThumbnail(isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
-                } returns Result.success("image".toByteArray().toByteArrayFlow())
+            canSendEventMocker = every {
+                userServiceMock.canSendEvent(any(), any())
             }
+
+            canSendEventMocker returns flowOf(true)
+            everySuspend { roomServiceMock.sendMessage(eq(roomId), any(), any()) } returns ""
+            every {
+                roomServiceMock.getTimelineEvent(any(), eq(eventId), any())
+            } returns flowOf(
+                TimelineEvent(
+                    event = messageEvent,
+                    content = Result.success(RoomMessageEventContent.TextBased.Text("Hello")),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            )
+            every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
+            allRoomUsersMock = every { userServiceMock.getAll(roomId) }
+            allRoomUsersMock returns MutableStateFlow(
+                mapOf(
+                    aliceUserId to flowOf(aliceRoomUser),
+                    alvinUserId to flowOf(alvinRoomUser),
+                    ourUserId to flowOf(bobRoomUser),
+                    zoopUserId to flowOf(zoopRoomUser),
+                )
+            )
+            every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
+            every { onMessageEditFinishedMock.invoke(any()) } returns Unit
+            every { onMessageReplToFinishedMock.invoke(any()) } returns Unit
+
+            everySuspend {
+                mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any())
+            } returns Result.success("image".toByteArray().toByteArrayFlow())
         }
 
         should("not allow sending when message is empty") {
@@ -228,7 +245,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             cut.isEdit.value shouldBe false
             cut.message.value shouldBe ""
             cut.shouldFocus.value shouldBe null
-            mocker.verify(exhaustive = false) {
+            verify {
                 onMessageEditFinishedMock.invoke(eventId)
             }
 
@@ -251,7 +268,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             cut.isEdit.value shouldBe false
             cut.message.value shouldBe ""
             cut.shouldFocus.value shouldBe null
-            mocker.verify(exhaustive = false) {
+            verify {
                 onMessageEditFinishedMock.invoke(eventId)
             }
 
@@ -282,7 +299,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             cut.replyToViewModel.value shouldBe null
             cut.message.value shouldBe ""
             cut.shouldFocus.value shouldBe null
-            mocker.verify(exhaustive = false) {
+            verify {
                 onMessageReplToFinishedMock.invoke(messageEvent.id)
             }
 
@@ -291,8 +308,8 @@ class InputAreaViewModelTest : ShouldSpec() {
         }
 
         should("set 'is typing' when message was changed and is not empty") {
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isAny(), isAny(), isNull())
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), any(), any(), eqNull())
             } returns Result.success(Unit)
 
             val cut = inputAreaViewModel(coroutineContext)
@@ -300,8 +317,8 @@ class InputAreaViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             cut.message.value = "a"
             testCoroutineScheduler.advanceUntilIdle()
-            mocker.verifyWithSuspend(exhaustive = false) {
-                roomsApiClientMock.setTyping(isEqual(roomId), isEqual(ourUserId), isEqual(true), isAny(), isNull())
+            verifySuspend {
+                roomsApiClientMock.setTyping(eq(roomId), eq(ourUserId), eq(true), any(), eqNull())
             }
 
             subscriberJob.cancel()
@@ -310,14 +327,14 @@ class InputAreaViewModelTest : ShouldSpec() {
 
         should("keep 'is typing' when message changes at least once every 3 seconds") {
             var setTypingCancelWasCalled = false
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isEqual(false), isAny(), isNull())
-            } runs {
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            } calls {
                 setTypingCancelWasCalled = true
                 Result.success(Unit)
             }
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isEqual(true), isAny(), isNull())
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
             } returns Result.success(Unit)
 
             val cut = inputAreaViewModel(coroutineContext)
@@ -341,14 +358,14 @@ class InputAreaViewModelTest : ShouldSpec() {
 
         should("set 'is not typing' when the message is deleted (i_e_, it is empty again)") {
             var setTypingCancelWasCalled = false
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isEqual(false), isAny(), isNull())
-            } runs {
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            } calls {
                 setTypingCancelWasCalled = true
                 Result.success(Unit)
             }
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isEqual(true), isAny(), isNull())
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
             } returns Result.success(Unit)
 
             val cut = inputAreaViewModel(coroutineContext)
@@ -367,14 +384,14 @@ class InputAreaViewModelTest : ShouldSpec() {
 
         should("set 'is not typing' when the message has been sent") {
             var setTypingCancelWasCalled = false
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isEqual(false), isAny(), isNull())
-            } runs {
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            } calls {
                 setTypingCancelWasCalled = true
                 Result.success(Unit)
             }
-            mocker.everySuspending {
-                roomsApiClientMock.setTyping(isAny(), isAny(), isEqual(true), isAny(), isNull())
+            everySuspend {
+                roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
             } returns Result.success(Unit)
 
             val cut = inputAreaViewModel(coroutineContext)
@@ -732,7 +749,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             selectedRoomId = roomId,
             onMessageEditFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,
-            onShowAttachmentSendView = mockFunction1(mocker),
+            onShowAttachmentSendView = mock(),
         )
     }
 

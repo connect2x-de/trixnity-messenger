@@ -1,5 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
@@ -13,13 +21,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
@@ -28,19 +33,13 @@ import kotlin.time.Duration.Companion.seconds
 class UserBlockingTest : ShouldSpec() {
     override fun timeout(): Long = 1_000
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
-
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
     private val userId = UserId("test", "server")
     private val contact1 = UserId("jerk", "localhost")
@@ -50,32 +49,29 @@ class UserBlockingTest : ShouldSpec() {
     private val blockedUsers = MutableStateFlow(mapOf<UserId, JsonObject>())
 
     init {
-        mocker.reset()
-        injectMocks(mocker)
 
         beforeTest {
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(module { single { userServiceMock } })
-                }.koin
-                every { userServiceMock.getAccountData<IgnoredUserListEventContent>() } returns
-                        blockedUsers.map { IgnoredUserListEventContent(it) }
-                every { matrixClientMock.userId } returns userId
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.user } returns usersApiClientMock
-                everySuspending {
-                    usersApiClientMock.setAccountData(
-                        content = isAny(),
-                        userId = isEqual(userId),
-                        asUserId = isAny(),
-                        key = isAny(),
-                    )
-                } runs {
-                    delay(33) // Simulate a request delay to check for concurrency issues.
-                    val event = it[0] as IgnoredUserListEventContent
-                    blockedUsers.value = event.ignoredUsers
-                    Result.success(Unit)
-                }
+            resetMocks(matrixClientMock, userServiceMock, matrixClientServerApiClientMock, usersApiClientMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(module { single { userServiceMock } })
+            }.koin
+            every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns
+                    blockedUsers.map { IgnoredUserListEventContent(it) }
+            every { matrixClientMock.userId } returns userId
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.user } returns usersApiClientMock
+            everySuspend {
+                usersApiClientMock.setAccountData(
+                    content = any(),
+                    userId = eq(userId),
+                    asUserId = any(),
+                    key = any(),
+                )
+            } calls {
+                delay(33) // Simulate a request delay to check for concurrency issues.
+                val event = it.args[0] as IgnoredUserListEventContent
+                blockedUsers.value = event.ignoredUsers
+                Result.success(Unit)
             }
         }
 
