@@ -123,7 +123,7 @@ class ExportRoomTest : ShouldSpec() {
         should("export timeline") {
             val cut = cut()
 
-            cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success
+            cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success()
 
             with(mocker) {
                 verifyWithSuspend(exhaustive = false) {
@@ -145,7 +145,7 @@ class ExportRoomTest : ShouldSpec() {
             val cut = cut()
 
             val progress = MutableStateFlow(ExportRoomProgress())
-            cut(roomId, fakeProperties, matrixClientMock, progress = progress) shouldBe ExportRoomResult.Success
+            cut(roomId, fakeProperties, matrixClientMock, progress = progress) shouldBe ExportRoomResult.Success()
 
             progress.value shouldBe ExportRoomProgress(20, 20)
         }
@@ -158,7 +158,7 @@ class ExportRoomTest : ShouldSpec() {
                 matrixClientMock,
                 rangeStartCondition = { it.eventId == EventId("5") },
                 rangeEndCondition = { it.eventId == EventId("15") },
-            ) shouldBe ExportRoomResult.Success
+            ) shouldBe ExportRoomResult.Success()
 
             with(mocker) {
                 verifyWithSuspend {
