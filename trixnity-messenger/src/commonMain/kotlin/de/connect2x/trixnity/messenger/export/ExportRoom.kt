@@ -89,7 +89,7 @@ class ExportRoomImpl(
         val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
             ?: return@coroutineScope ExportRoomResult.RoomNotFound
 
-        log.debug { "search for start event (may take some time due to network request)" }
+        log.debug { "search for start event (may take some time due to network requests)" }
         val startFrom = matrixClient.room.getTimelineEvents(
             roomId = roomId,
             startFrom = lastEventId,

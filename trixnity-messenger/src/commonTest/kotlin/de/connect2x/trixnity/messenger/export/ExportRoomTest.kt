@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.export
 
+import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,10 +28,11 @@ import org.koin.dsl.module
 class ExportRoomTest : ShouldSpec() {
 
     private val roomId = RoomId("room1", "localhost")
+    private val roomIdWithErrors = RoomId("roomWithErrors", "localhost")
     private val alice = UserId("alice", "localhost")
     private val fakeProperties = object : ExportRoomSinkProperties {}
 
-    private fun timelineEvent(i: Long) = flowOf(
+    private fun timelineEvent(i: Long, decryptionError: Boolean = false) = flowOf(
         TimelineEvent(
             event = ClientEvent.RoomEvent.MessageEvent(
                 content = RoomMessageEventContent.TextBased.Text(i.toString()),
@@ -42,7 +44,15 @@ class ExportRoomTest : ShouldSpec() {
             previousEventId = null,
             nextEventId = null,
             gap = null,
-        )
+        ).run {
+            if (decryptionError) copy(
+                content = Result.failure(
+                    TimelineEvent.TimelineEventContentError.DecryptionError(
+                        IllegalStateException("decryption error")
+                    )
+                )
+            ) else this
+        }
     )
 
     private fun timelineEventWithMedia(i: Long) = flowOf(
@@ -91,27 +101,59 @@ class ExportRoomTest : ShouldSpec() {
                         }
                     )
                 }.koin
-                every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(
+                every { roomServiceMock.getById(isEqual(roomId)) } returns MutableStateFlow(
                     Room(isDirect = true, roomId = roomId, lastEventId = EventId("19"))
+                )
+                every { roomServiceMock.getById(isEqual(roomIdWithErrors)) } returns MutableStateFlow(
+                    Room(isDirect = true, roomId = roomIdWithErrors, lastEventId = EventId("21"))
                 )
                 val timeline =
                     (0..9).map { timelineEvent(it.toLong()) } +
                             (10..19).map { timelineEventWithMedia(it.toLong()) }
+                val timelineWithErrors =
+                    (0..7).map { timelineEvent(it.toLong()) } +
+                            (8..9).map { timelineEvent(it.toLong(), true) } +
+                            (10..21).map { timelineEventWithMedia(it.toLong()) }
 
                 every {
-                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isEqual(Direction.BACKWARDS), isAny())
+                    roomServiceMock.getTimelineEvents(isEqual(roomId), isAny(), isEqual(Direction.BACKWARDS), isAny())
                 } returns timeline.reversed().asFlow()
                 every {
-                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isEqual(Direction.FORWARDS), isAny())
+                    roomServiceMock.getTimelineEvents(
+                        isEqual(roomIdWithErrors),
+                        isAny(),
+                        isEqual(Direction.BACKWARDS),
+                        isAny()
+                    )
+                } returns timelineWithErrors.reversed().asFlow()
+
+                every {
+                    roomServiceMock.getTimelineEvents(isEqual(roomId), isAny(), isEqual(Direction.FORWARDS), isAny())
                 } runs { params ->
                     val eventId = params[1] as EventId
                     timeline.asFlow().dropWhile { it.first().eventId != eventId }
                 }
+                every {
+                    roomServiceMock.getTimelineEvents(
+                        isEqual(roomIdWithErrors),
+                        isAny(),
+                        isEqual(Direction.FORWARDS),
+                        isAny()
+                    )
+                } runs { params ->
+                    val eventId = params[1] as EventId
+                    timelineWithErrors.asFlow().dropWhile { it.first().eventId != eventId }
+                }
 
-
-                everySuspending { mediaServiceMock.getMedia(isAny(), isAny(), isAny()) } returns Result.success(
-                    flowOf(ByteArray(0))
-                )
+                everySuspending {
+                    mediaServiceMock.getMedia(isEqual("mxc://localhost/20"), isAny(), isAny())
+                } returns Result.failure(IllegalStateException("download error"))
+                everySuspending {
+                    mediaServiceMock.getMedia(isEqual("mxc://localhost/21"), isAny(), isAny())
+                } returns Result.failure(IllegalStateException("download error"))
+                everySuspending {
+                    mediaServiceMock.getMedia(isAny(), isAny(), isAny())
+                } returns Result.success(flowOf(ByteArray(0)))
 
                 every { sinkFactoryMock.create(isAny(), isAny()) } returns sinkMock
                 everySuspending { sinkMock.start() } returns Result.success(Unit)
@@ -186,6 +228,29 @@ class ExportRoomTest : ShouldSpec() {
                     sinkMock.finish()
                 }
             }
+        }
+        should("add errors to result") {
+            val cut = cut()
+
+            cut(roomIdWithErrors, fakeProperties, matrixClientMock) shouldBe
+                    ExportRoomResult.Success(
+                        missingMedia = listOf(
+                            ExportRoomResult.Success.MissingMedia(
+                                EventId("20"),
+                                "bXhjOi8vbG9jYWxob3N0LzIw",
+                                "download error"
+                            ),
+                            ExportRoomResult.Success.MissingMedia(
+                                EventId("21"),
+                                "bXhjOi8vbG9jYWxob3N0LzIx",
+                                "download error"
+                            ),
+                        ),
+                        decryptionFailed = listOf(
+                            DecryptionFailed(eventId = EventId("8"), reason = "error while decrypting TimelineEvent"),
+                            DecryptionFailed(eventId = EventId("9"), reason = "error while decrypting TimelineEvent"),
+                        ),
+                    )
         }
     }
 
