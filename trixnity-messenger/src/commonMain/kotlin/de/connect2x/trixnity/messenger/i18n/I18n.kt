@@ -854,8 +854,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun exportRoomSuccessWithErrors() = translate {
         EN - "The export was successful, but there were some errors."
-        DE - "Der export war erfolgreich, dennoch gab es ein paar Fehler."
-    }
+        DE - "Der Export war erfolgreich, dennoch sind Fehler aufgetreten."
 
     fun exportRoomEmote(message: String) = translate {
         EN - "* $message"
