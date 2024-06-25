@@ -17,4 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- allow to invite user with MXID even if the profile cannot be found
+
 ### Security

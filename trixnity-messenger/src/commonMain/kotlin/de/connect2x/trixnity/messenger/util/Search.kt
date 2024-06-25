@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
@@ -66,32 +65,29 @@ class SearchImpl(
         filterNot: (userId: UserId) -> Boolean
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
-        val userByUserIdAsync = async {
-            if (userId.isValid()) {
-                matrixClient.api.user.getProfile(userId).fold(
-                    onFailure = { exc ->
-                        log.error(exc) { "Cannot access user profile for $userId." }
-                        null
-                    },
-                    onSuccess = { profileResponse ->
-                        val image = profileResponse.avatarUrl?.let { url ->
-                            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                                onSuccess = { it.toByteArray() },
-                                onFailure = { null }
-                            )
-                        }
-                        searchUserElement(
-                            SearchUsers.Response.SearchUser(
-                                avatarUrl = profileResponse.avatarUrl,
-                                displayName = profileResponse.displayName,
-                                userId,
-                            ), image
-                        )
-                    })
-            } else null
-        }
-        // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
-        val searchUsersAsync = async {
+        if (userId.isValid()) {
+            val profile = matrixClient.api.user.getProfile(userId)
+                .onFailure { exc ->
+                    log.error(exc) { "Cannot access user profile for $userId." }
+                }
+                .getOrNull()
+            val image = profile?.avatarUrl?.let { url ->
+                matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
+                    onSuccess = { it.toByteArray() },
+                    onFailure = { null }
+                )
+            }
+            listOf(
+                searchUserElement(
+                    SearchUsers.Response.SearchUser(
+                        avatarUrl = profile?.avatarUrl,
+                        displayName = profile?.displayName,
+                        userId,
+                    ), image
+                )
+            )
+        } else {
+            // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
             matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language
                     onSuccess = { response ->
@@ -110,11 +106,6 @@ class SearchImpl(
                     }
                 )
         }
-
-        val user = userByUserIdAsync.await()
-        val searchUsers = searchUsersAsync.await()
-
-        return@coroutineScope listOfNotNull(user) + searchUsers
     }
 
     private suspend fun getImage(matrixClient: MatrixClient, searchUser: SearchUsers.Response.SearchUser): ByteArray? {
