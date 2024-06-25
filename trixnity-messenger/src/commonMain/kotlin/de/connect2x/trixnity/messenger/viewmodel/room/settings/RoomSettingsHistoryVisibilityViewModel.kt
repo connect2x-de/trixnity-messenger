@@ -52,8 +52,7 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
                 if (room?.isDirect == true) {
                     HistoryVisibilityEventContent.HistoryVisibility.entries
                         .filterNot { it == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE }
-                }
-                else HistoryVisibilityEventContent.HistoryVisibility.entries
+                } else HistoryVisibilityEventContent.HistoryVisibility.entries
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val roomHistoryVisibility = matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
@@ -68,30 +67,34 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isHistoryVisibilityChanging = MutableStateFlow(false)
 
+    private val isEncrypted = matrixClient.room.getById(selectedRoomId).map { it?.encrypted ?: true }
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         log.debug { "changeRoomHistoryVisibility for $selectedRoomId to $newVisibility" }
         if (canChangeRoomHistoryVisibility.value) {
             coroutineScope.launch {
-                isHistoryVisibilityChanging.value = true
-                matrixClient.api.room.sendStateEvent(
-                    selectedRoomId,
-                    HistoryVisibilityEventContent(newVisibility),
-                    stateKey = ""
+                if (!(isEncrypted.first() && newVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE)) {
+                    isHistoryVisibilityChanging.value = true
+                    matrixClient.api.room.sendStateEvent(
+                        selectedRoomId,
+                        HistoryVisibilityEventContent(newVisibility),
+                        stateKey = ""
 
-                )
-                    .onFailure {
-                        log.error(it) { "Failed to change room history visibility: ${it.message}" }
-                        error.value = i18n.settingsRoomHistoryVisibilityChangeError()
-                        isHistoryVisibilityChanging.value = false
-                    }
-                    .onSuccess {
-                        error.value = null
-                        withTimeoutOrNull(5.seconds) {
-                            matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
-                                .first { it?.content?.historyVisibility == newVisibility }
+                    )
+                        .onFailure {
+                            log.error(it) { "Failed to change room history visibility: ${it.message}" }
+                            error.value = i18n.settingsRoomHistoryVisibilityChangeError()
+                            isHistoryVisibilityChanging.value = false
                         }
-                        isHistoryVisibilityChanging.value = false
-                    }
+                        .onSuccess {
+                            error.value = null
+                            withTimeoutOrNull(5.seconds) {
+                                matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
+                                    .first { it?.content?.historyVisibility == newVisibility }
+                            }
+                            isHistoryVisibilityChanging.value = false
+                        }
+                }
+                log.error { "Cannot change HistoryVisibility for $selectedRoomId to WORLD_READABLE because the room is encrypted" }
             }
         } else {
             log.error { "Insufficient power level to change room history visibility" }
