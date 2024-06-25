@@ -359,6 +359,9 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
     }
 
     private suspend fun TestScope.withTestingHarness(testFn: suspend TestScope.() -> Unit) {
+        serverAliases.value = null
+        directoryAliases.value = emptyMap()
+
         testFn(this)
         cancelNeverEndingCoroutines()
     }
