@@ -67,7 +67,7 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isHistoryVisibilityChanging = MutableStateFlow(false)
 
-    private val isEncrypted = matrixClient.room.getById(selectedRoomId).map { it?.encrypted ?: true }
+    private val isEncrypted = matrixClient.room.getById(selectedRoomId).map { it?.encrypted ?: false }
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         log.debug { "changeRoomHistoryVisibility for $selectedRoomId to $newVisibility" }
         if (canChangeRoomHistoryVisibility.value) {
