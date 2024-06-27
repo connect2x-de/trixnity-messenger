@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix user mentions when user not found
+- image dimensions should be null, when not determined
 
 ### Security
 
