@@ -13,7 +13,6 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.koin.core.component.get
 
 
 interface TextMessageViewModelFactory {
@@ -94,10 +93,10 @@ open class TextMessageViewModelImpl(
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val mentionsInMessage: Map<String, StateFlow<MessageMention?>> =
-        mentionsStateFlow(message, roomId, matrixClient, get(), coroutineScope)
+        mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
     override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>? =
         formattedBody?.let {
-            mentionsStateFlow(it, roomId, matrixClient, get(), coroutineScope)
+            mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
 
     override fun openMention(messageMention: MessageMention) {
