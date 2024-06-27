@@ -131,6 +131,7 @@ kotlin {
                 implementation(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
+                implementation(libs.okio.nodefilesystyem)
             }
         }
         val jvmAndNativeTest by creating {

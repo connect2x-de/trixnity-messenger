@@ -50,6 +50,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 uuid = { module = "com.benasher44:uuid", version.ref = "uuid" }
 korge = { module = "com.soywiz.korlibs.korim:korim", version.ref = "korge" }
 mock-mockmp = { module = "org.kodein.mock:mockmp-runtime", version.ref = "mocKmp" }
+okio-nodefilesystyem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio"}
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
