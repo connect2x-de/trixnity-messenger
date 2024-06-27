@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- use room alias in mention, when given
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- fix user mentions when user not found
 
 ### Security
 
