@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -42,9 +41,12 @@ fun mentionsStateFlow(
         .mapValues { (_, mention) ->
             when (mention) {
                 is CoreMention.User -> matrixClient.user.getById(roomId, mention.userId)
-                    .filterNotNull()
                     .map {
-                        MessageMention.User(it.toUserInfoElement(matrixClient))
+                        MessageMention.User(
+                            it?.toUserInfoElement(matrixClient)
+                            // TODO call api.user.getProfile as fallback
+                                ?: UserInfoElement(mention.userId.full, mention.userId)
+                        )
                     }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -95,14 +97,18 @@ fun mentionsStateFlow(
             }
         }
 
-private fun parseRoom(roomId: RoomId, matrixClient: MatrixClient): Flow<RoomInfoElement?> =
+private fun parseRoom(
+    roomId: RoomId,
+    matrixClient: MatrixClient,
+    forceAlias: RoomAliasId? = null
+): Flow<RoomInfoElement?> =
     combine(
         matrixClient.room.getById(roomId),
         matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map { it?.content },
     ) { room, aliases ->
         room?.toRoomInfoElement(
             matrixClient,
-            aliases?.alias?.full ?: aliases?.aliases?.firstOrNull()?.full ?: room.roomId.full
+            forceAlias?.full ?: aliases?.alias?.full ?: aliases?.aliases?.firstOrNull()?.full ?: room.roomId.full
         )
     }
 
@@ -118,7 +124,7 @@ private suspend fun parseRoom(
             if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId
             else null
         } ?: return flowOf(null)
-    return parseRoom(foundRoomId, matrixClient)
+    return parseRoom(foundRoomId, matrixClient, roomAliasId)
 }
 
 sealed interface MessageMention {
