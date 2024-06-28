@@ -204,6 +204,7 @@ open class OutboxElementHolderViewModelImpl(
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
                             onOpenModal = onOpenModal,
+                            mediaUploadProgress = outboxMessage.mediaUploadProgress
                         )
                     }
 
@@ -222,6 +223,7 @@ open class OutboxElementHolderViewModelImpl(
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
                             onOpenModal = onOpenModal,
+                            mediaUploadProgress = outboxMessage.mediaUploadProgress
                         )
                     }
 

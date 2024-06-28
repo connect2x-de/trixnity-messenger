@@ -1,13 +1,18 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
@@ -27,6 +32,7 @@ interface AudioMessageViewModelFactory {
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         onOpenModal: OpenModalCallback,
+        mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
     ): AudioMessageViewModel {
         return AudioMessageViewModelImpl(
             viewModelContext,
@@ -42,6 +48,7 @@ interface AudioMessageViewModelFactory {
             sender,
             invitation,
             onOpenModal,
+            mediaUploadProgress
         )
     }
 
@@ -50,6 +57,7 @@ interface AudioMessageViewModelFactory {
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {
     val duration: Int?
+    val progress: StateFlow<FileTransferProgressElement?>
     fun openAudio()
 }
 
@@ -67,6 +75,7 @@ open class AudioMessageViewModelImpl(
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     private val onOpenModal: OpenModalCallback,
+    mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
 ) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val duration: Int? = content.info?.duration
@@ -76,6 +85,15 @@ open class AudioMessageViewModelImpl(
         sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+    override val progress: StateFlow<FileTransferProgressElement?> = mediaUploadProgress.map {
+        if (it != null) {
+            FileTransferProgressElement(
+                percent = if (it.total > 0) it.transferred/it.total.toFloat() else 0.0f,
+                formattedProgress = formatProgress(it)
+            )
+        }
+        else null
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openAudio() {
         // TODO if you have audio working, replace with: 'url?.let { onOpenModal(OpenModalType.AUDIO, it, encryptedFile) }'

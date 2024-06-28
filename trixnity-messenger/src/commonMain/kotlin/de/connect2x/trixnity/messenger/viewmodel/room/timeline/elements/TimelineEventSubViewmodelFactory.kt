@@ -370,6 +370,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     sender = sender,
                     invitation = invitation,
                     onOpenModal = onOpenModal,
+                    mediaUploadProgress = MutableStateFlow(null)
                 )
             }
 
@@ -389,6 +390,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
                     onOpenModal = onOpenModal,
+                    mediaUploadProgress = MutableStateFlow(null)
                 )
             }
 

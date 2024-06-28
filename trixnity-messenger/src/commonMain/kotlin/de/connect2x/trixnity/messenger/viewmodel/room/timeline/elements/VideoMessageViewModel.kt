@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -41,6 +43,7 @@ interface VideoMessageViewModelFactory {
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         onOpenModal: OpenModalCallback,
+        mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
     ): VideoMessageViewModel {
         return VideoMessageViewModelImpl(
             viewModelContext,
@@ -56,6 +59,7 @@ interface VideoMessageViewModelFactory {
             sender,
             invitation,
             onOpenModal,
+            mediaUploadProgress
         )
     }
 
@@ -89,6 +93,7 @@ open class VideoMessageViewModelImpl(
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     private val onOpenModal: OpenModalCallback,
+    mediaUploadProgress: StateFlow<FileTransferProgress?>
 ) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
@@ -109,9 +114,15 @@ open class VideoMessageViewModelImpl(
     override val width: Int = videoWidth(content)
     override val height: Int = videoHeight(content)
     override val duration: Int? = content.info?.duration
-    override val progress: StateFlow<FileTransferProgressElement?> =
-        thumbnails.mapProgressToProgressElement(thumbnailProgressFlow)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val progress: StateFlow<FileTransferProgressElement?> = mediaUploadProgress.map {
+        if (it != null) {
+            FileTransferProgressElement(
+                percent = if (it.total > 0) it.transferred/it.total.toFloat() else 0.0f,
+                formattedProgress = formatProgress(it)
+            )
+        }
+        else null
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun getMaxHeight(): Int = 300
 
