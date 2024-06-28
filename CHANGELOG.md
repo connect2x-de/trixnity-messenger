@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- mentions in formattedBody
-
 ### Changed
-
-- use room alias in mention, when given
-- upgrade Trixnity
 
 ### Deprecated
 
@@ -22,11 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- fix user mentions when user not found
-- image dimensions should be null, when not determined
-- image dimensions are computed correctly for Desktop and Android
-
 ### Security
+
+## 2.0.3
+
+### Added
+
+- mentions in formattedBody
+
+### Fixed
+
+- image dimensions should be null, when not determined
 
 ## 2.0.2
 
