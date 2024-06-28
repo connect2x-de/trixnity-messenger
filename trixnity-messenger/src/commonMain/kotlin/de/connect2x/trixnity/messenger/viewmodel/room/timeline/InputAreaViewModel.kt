@@ -32,15 +32,20 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getState
+import net.folivo.trixnity.client.room.message.mentions
 import net.folivo.trixnity.client.room.message.replace
 import net.folivo.trixnity.client.room.message.reply
 import net.folivo.trixnity.client.room.message.text
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
+import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
@@ -265,11 +270,76 @@ open class InputAreaViewModelImpl(
             val text = message.value
             coroutineScope.launch {
                 val editedEvent = editMode.value
+                val mentions = MatrixRegex.findMentions(text)
+                val mentionLinks = mentions
+                    .mapValues { (_, mention) ->
+                        // TODO should use matrix: uri instead!
+                        val matrixUri: String
+                        val anchorContent: String
+                        when (mention) {
+                            is Mention.Event -> {
+                                val alias =
+                                    matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId).first()
+                                        ?.content?.run { alias ?: aliases?.firstOrNull() }
+                                matrixUri =
+                                    if (alias != null)
+                                        "https://matrix.to/#/${alias.full}/${mention.eventId.full}"
+                                    else
+                                        "https://matrix.to/#/${selectedRoomId.full}/${mention.eventId.full}"
+                                anchorContent = matrixUri
+                            }
+
+                            is Mention.RoomEvent -> {
+                                val alias =
+                                    matrixClient.room.getState<CanonicalAliasEventContent>(mention.roomId).first()
+                                        ?.content?.run { alias ?: aliases?.firstOrNull() }
+                                matrixUri =
+                                    if (alias != null)
+                                        "https://matrix.to/#/${alias.full}/${mention.eventId.full}"
+                                    else
+                                        "https://matrix.to/#/${mention.roomId.full}/${mention.eventId.full}"
+                                anchorContent = matrixUri
+                            }
+
+                            is Mention.RoomAliasEvent -> {
+                                matrixUri =
+                                    "https://matrix.to/#/${mention.roomAliasId.full}/${mention.eventId.full}"
+                                anchorContent = matrixUri
+                            }
+
+                            is Mention.Room -> {
+                                val alias =
+                                    matrixClient.room.getState<CanonicalAliasEventContent>(mention.roomId).first()
+                                        ?.content?.run { alias ?: aliases?.firstOrNull() }
+                                matrixUri =
+                                    if (alias != null) "https://matrix.to/#/${alias.full}"
+                                    else "https://matrix.to/#/${selectedRoomId.full}"
+                                anchorContent = alias?.full ?: mention.roomId.full
+                            }
+
+                            is Mention.RoomAlias -> {
+                                matrixUri = "https://matrix.to/#/${mention.roomAliasId.full}"
+                                anchorContent = mention.roomAliasId.full
+                            }
+
+                            is Mention.User -> {
+                                val userName = matrixClient.user.getById(selectedRoomId, mention.userId).first()?.name
+                                matrixUri = "https://matrix.to/#/${mention.userId.full}"
+                                anchorContent = userName ?: mention.userId.full
+                            }
+                        }
+                        """<a href="$matrixUri">$anchorContent</a>"""
+                    }
+                val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
+                val formattedBody = mentionLinks.entries.fold(text) { currentText, (oldValue, newValue) ->
+                    currentText.replace(oldValue, newValue)
+                }
                 if (editedEvent != null) {
                     log.debug { "send message (edit)" }
                     matrixClient.room.sendMessage(selectedRoomId) {
-                        replace(editedEvent) // TODO replace a reply event will destroy the replied part
-                        text(text)
+                        replace(editedEvent)
+                        mentions(mentionedUsers)
+                        text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
                     }
                     editMode.value = null
                     _shouldFocus.value = null
@@ -283,7 +353,8 @@ open class InputAreaViewModelImpl(
                                 .first()
                         matrixClient.room.sendMessage(selectedRoomId) {
                             reply(event)
-                            text(text)
+                            mentions(mentionedUsers)
+                            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
                         }
                         replyToViewModel.value = null
                         _shouldFocus.value = null
@@ -291,7 +362,8 @@ open class InputAreaViewModelImpl(
                     } else {
                         log.debug { "send message" }
                         matrixClient.room.sendMessage(selectedRoomId) {
-                            text(text)
+                            mentions(mentionedUsers)
+                            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
                         }
                     }
                 }

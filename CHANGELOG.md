@@ -20,3 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 2.0.3
+
+### Added
+
+- mentions in formattedBody
+
+### Fixed
+
+- image dimensions should be null, when not determined
+
+## 2.0.2
+
+### Fixed
+
+- allow to invite user with MXID even if the profile cannot be found
