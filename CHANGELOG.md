@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- mentions in formattedBody
+
 ### Changed
 
 - restrict ability to change room history to WORLD_READABLE when the group is encrypted
+
+- use room alias in mention, when given
+- upgrade Trixnity
 
 ### Deprecated
 
@@ -19,4 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix user mentions when user not found
+- image dimensions should be null, when not determined
+- image dimensions are computed correctly for Desktop and Android
+
 ### Security
+
+## 2.0.2
+
+### Fixed
+
+- allow to invite user with MXID even if the profile cannot be found

@@ -8,7 +8,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.toByteArray
 
 data class RoomInfoElement(
-    val roomName: String,
+    val name: String,
     var roomId: RoomId,
     val roomImageInitials: String,
     val roomImage: ByteArray?,
@@ -19,7 +19,7 @@ data class RoomInfoElement(
 
         other as RoomInfoElement
 
-        if (roomName != other.roomName) return false
+        if (name != other.name) return false
         if (roomId != other.roomId) return false
         if (roomImageInitials != other.roomImageInitials) return false
         if (roomImage != null) {
@@ -31,7 +31,7 @@ data class RoomInfoElement(
     }
 
     override fun hashCode(): Int {
-        var result = roomName.hashCode()
+        var result = name.hashCode()
         result = 31 * result + roomId.hashCode()
         result = 31 * result + roomImageInitials.hashCode()
         result = 31 * result + (roomImage?.contentHashCode() ?: 0)
@@ -41,8 +41,8 @@ data class RoomInfoElement(
 
 suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String): RoomInfoElement {
     return RoomInfoElement(
-        roomName = name,
-        roomId = this.roomId,
+        name = name,
+        roomId = roomId,
         roomImageInitials = Initials.compute(name),
         roomImage = this.avatarUrl?.let {
             matrixClient.media.getMedia(it).getOrNull()?.toByteArray()
