@@ -22,7 +22,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("2.0.4")
+    version = withVersionSuffix("2.1.0")
 
     repositories {
         mavenLocal()
