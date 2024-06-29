@@ -4,17 +4,17 @@ import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
-import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.component.get
 
 
 interface AudioMessageViewModelFactory {
@@ -85,15 +85,9 @@ open class AudioMessageViewModelImpl(
         sender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), UserInfoElement("", UserId("")))
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
-    override val progress: StateFlow<FileTransferProgressElement?> = mediaUploadProgress.map {
-        if (it != null) {
-            FileTransferProgressElement(
-                percent = if (it.total > 0) it.transferred/it.total.toFloat() else 0.0f,
-                formattedProgress = formatProgress(it)
-            )
-        }
-        else null
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    private val thumbnails = get<Thumbnails>()
+    override val progress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openAudio() {
         // TODO if you have audio working, replace with: 'url?.let { onOpenModal(OpenModalType.AUDIO, it, encryptedFile) }'
