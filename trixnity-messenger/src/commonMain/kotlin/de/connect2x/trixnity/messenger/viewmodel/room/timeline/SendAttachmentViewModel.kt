@@ -20,7 +20,6 @@ import net.folivo.trixnity.client.room.message.image
 import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.byteArrayFlowFromSource
-import net.folivo.trixnity.utils.toByteArray
 import okio.Buffer
 import org.koin.core.component.get
 
@@ -99,7 +98,7 @@ class SendAttachmentViewModelImpl(
                     when {
                         isImage ?: false -> {
                             log.debug { "send an image" }
-                            val (width, height) = getImageDimensions(byteArrayFlow.toByteArray())
+                            val (width, height) = getImageDimensions(byteArrayFlow)
                             image(
                                 body = file.fileName,
                                 fileName = file.fileName,
