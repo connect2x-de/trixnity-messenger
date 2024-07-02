@@ -39,6 +39,7 @@ interface RoomSettingsHistoryVisibilityViewModel {
     val canChangeRoomHistoryVisibility: StateFlow<Boolean>
     val isHistoryVisibilityChanging: StateFlow<Boolean>
     fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility)
+    fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean
 }
 
 class RoomSettingsHistoryVisibilityViewModelImpl(
@@ -67,12 +68,19 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isHistoryVisibilityChanging = MutableStateFlow(false)
 
-    private val isEncrypted = matrixClient.room.getById(selectedRoomId).map { it?.encrypted ?: false }
+    val isEncrypted = MutableStateFlow(false)
+
+    init {
+        coroutineScope.launch {
+            isEncrypted.value = matrixClient.room.getById(selectedRoomId).map { it?.encrypted ?: false }.first()
+        }
+    }
+
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         log.debug { "changeRoomHistoryVisibility for $selectedRoomId to $newVisibility" }
         if (canChangeRoomHistoryVisibility.value) {
             coroutineScope.launch {
-                if (!(isEncrypted.first() && newVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE)) {
+                if (!(isEncrypted.value && newVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE)) {
                     isHistoryVisibilityChanging.value = true
                     matrixClient.api.room.sendStateEvent(
                         selectedRoomId,
@@ -102,6 +110,10 @@ class RoomSettingsHistoryVisibilityViewModelImpl(
             isHistoryVisibilityChanging.value = false
         }
     }
+
+    override fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean {
+        return !(isEncrypted.value && newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE)
+    }
 }
 
 class PreviewRoomSettingsHistoryVisibilityViewModel : RoomSettingsHistoryVisibilityViewModel {
@@ -114,6 +126,10 @@ class PreviewRoomSettingsHistoryVisibilityViewModel : RoomSettingsHistoryVisibil
 
     override fun changeRoomHistoryVisibility(newVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
         roomHistoryVisibility.value = newVisibility
+    }
+
+    override fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean {
+        return true
     }
 }
 

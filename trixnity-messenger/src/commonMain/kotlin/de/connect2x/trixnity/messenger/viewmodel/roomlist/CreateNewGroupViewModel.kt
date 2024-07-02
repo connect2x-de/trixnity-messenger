@@ -63,6 +63,7 @@ interface CreateNewGroupViewModel {
 
     fun changeEncryptionStatus(newEncryptionStatus: Boolean)
     fun changeOptionalHistoryVisibility(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility)
+    fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility) : Boolean
 }
 
 open class CreateNewGroupViewModelImpl(
@@ -188,6 +189,10 @@ open class CreateNewGroupViewModelImpl(
             log.error { "Cannot change room history visibility to 'WORLD_READABLE because the room is encrypted" }
         } else optionalRoomHistoryVisibility.value = newHistoryVisibility
     }
+
+    override fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean {
+        return !(newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && isEncrypted.value)
+    }
 }
 
 class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
@@ -236,5 +241,9 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
         if (newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && isEncrypted.value) {
             log.error { "Cannot change room history visibility to 'WORLD_READABLE because the room is encrypted" }
         } else optionalRoomHistoryVisibility.value = newHistoryVisibility
+    }
+
+    override fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean {
+        return !(newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && isEncrypted.value)
     }
 }
