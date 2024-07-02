@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import dev.mokkery.matcher.*
+
+import dev.mokkery.answering.*
+
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage.ReferencedTextMessage
 import io.kotest.core.spec.style.ShouldSpec
@@ -13,7 +17,8 @@ class ReferencedTextMessageTest : ShouldSpec({
     }
 
     should("shorten referenced message when message length exceeds maxLines") {
-        val cut = ReferencedTextMessage(UserInfoElement("Martin", UserId("martin:matrix.org")), "Hello World!\n2\n3\n4\n5")
+        val cut =
+            ReferencedTextMessage(UserInfoElement("Martin", UserId("martin:matrix.org")), "Hello World!\n2\n3\n4\n5")
         cut.messageShortened(maxLines = 4) shouldBe "Hello World!\n2\n3\n..."
     }
 }

@@ -8,6 +8,7 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -15,10 +16,30 @@ import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.*
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElement
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.SpaceViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
@@ -28,8 +49,17 @@ import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeTypeOf
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.DeviceTrustLevel
@@ -40,7 +70,6 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
@@ -54,8 +83,6 @@ import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
@@ -64,8 +91,6 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 5_000
-
-    private val mocker = Mocker()
 
     private lateinit var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
@@ -76,149 +101,145 @@ class MainViewModelTest : ShouldSpec() {
 
     private lateinit var messengerSettings: MatrixMessengerSettingsHolder
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock2: MatrixClient
+    val matrixClientMock2 = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var keySecretServiceMock: KeySecretService
+    val keySecretServiceMock = mock<KeySecretService>()
 
-    @Mock
-    lateinit var keyTrustServiceMock: KeyTrustService
+    val keyTrustServiceMock = mock<KeyTrustService>()
 
-    @Mock
-    lateinit var verificationServiceMock: VerificationService
+    val verificationServiceMock = mock<VerificationService>()
 
-    @Mock
-    lateinit var verificationServiceMock2: VerificationService
+    val verificationServiceMock2 = mock<VerificationService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var downloadManagerMock: DownloadManager
+    val downloadManagerMock = mock<DownloadManager>()
 
-    @Mock
-    lateinit var isNetworkAvailable: IsNetworkAvailable
+    val isNetworkAvailable = mock<IsNetworkAvailable>()
 
-    @Mock
-    lateinit var roomHeaderViewModelMock: RoomHeaderViewModel
+    val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
 
-    @Mock
-    lateinit var inputAreaViewModelMock: InputAreaViewModel
+    val inputAreaViewModelMock = mock<InputAreaViewModel>()
 
-    @Mock
-    lateinit var runInitialSyncMock: RunInitialSync
+    val runInitialSyncMock = mock<RunInitialSync>()
 
-    lateinit var selfVerificationMethods: Mocker.Every<Flow<VerificationService.SelfVerificationMethods>>
-    lateinit var networkAvailable: Mocker.Every<Boolean>
-    lateinit var syncState: Mocker.Every<StateFlow<SyncState>>
-    lateinit var initialSyncDone: Mocker.Every<StateFlow<Boolean>>
+    lateinit var selfVerificationMethods: BlockingAnsweringScope<Flow<VerificationService.SelfVerificationMethods>>
+    lateinit var networkAvailable: BlockingAnsweringScope<Boolean>
+    lateinit var syncState: BlockingAnsweringScope<StateFlow<SyncState>>
+    lateinit var initialSyncDone: BlockingAnsweringScope<StateFlow<Boolean>>
     private val startSyncPresenceCapture = mutableListOf<Presence>()
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
+            resetMocks(
+                matrixClientMock,
+                matrixClientMock2,
+                roomServiceMock,
+                keyServiceMock,
+                keySecretServiceMock,
+                keyTrustServiceMock,
+                verificationServiceMock,
+                verificationServiceMock2,
+                userServiceMock,
+                downloadManagerMock,
+                isNetworkAvailable,
+                roomHeaderViewModelMock,
+                inputAreaViewModelMock,
+                runInitialSyncMock,
+            )
             lifecycle = LifecycleRegistry()
             lifecycle.resume()
-
+            startSyncPresenceCapture.clear()
             messengerSettings = createTestMatrixMessengerSettingsHolder()
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(module {
-                        single { roomServiceMock }
-                        single { keyServiceMock }
-                        single { userServiceMock }
-                        single { verificationServiceMock }
-                    })
-                }.koin
-                every { matrixClientMock.userId } returns myUserId
-                every { matrixClientMock.deviceId } returns myDeviceId
-                every { matrixClientMock.displayName } returns MutableStateFlow(null)
-                every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
-                syncState = every { matrixClientMock.syncState }
-                syncState returns MutableStateFlow(SyncState.RUNNING)
-                everySuspending { matrixClientMock.startSync(isAny(startSyncPresenceCapture)) } returns Unit
-                everySuspending { matrixClientMock.stopSync(isAny()) } returns Unit
-                everySuspending { matrixClientMock.cancelSync(isAny()) } returns Unit
+            every { matrixClientMock.di } returns koinApplication {
+                modules(module {
+                    single { roomServiceMock }
+                    single { keyServiceMock }
+                    single { userServiceMock }
+                    single { verificationServiceMock }
+                })
+            }.koin
+            every { matrixClientMock.userId } returns myUserId
+            every { matrixClientMock.deviceId } returns myDeviceId
+            every { matrixClientMock.displayName } returns MutableStateFlow(null)
+            every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+            syncState = every { matrixClientMock.syncState }
+            syncState returns MutableStateFlow(SyncState.RUNNING)
+            everySuspend { matrixClientMock.startSync(any()) } calls { startSyncPresenceCapture.add(it.arg(0)) }
+            everySuspend { matrixClientMock.stopSync(any()) } returns Unit
+            everySuspend { matrixClientMock.cancelSync(any()) } returns Unit
 
-                every { roomServiceMock.getAll() } returns roomsFlow
-                every {
-                    roomServiceMock.getState(isAny(), isEqual(CreateEventContent::class), isAny())
-                } returns MutableStateFlow(null)
-                every {
-                    roomServiceMock.getTimeline(
-                        isAny(),
-                        isAny<suspend (Flow<TimelineEvent>) -> Unit>()
-                    )
-                } returns
-                        NoOpTimeline
-                every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(null)
-                every {
-                    roomServiceMock.getAccountData(isAny(), isEqual(FullyReadEventContent::class), isAny())
-                } returns flowOf(null)
-                every { roomServiceMock.getOutbox() } returns flowOf(mapOf())
-                every { userServiceMock.getAll(isAny()) } returns flowOf(mapOf())
-                every { userServiceMock.getById(isAny(), isAny()) } returns flowOf(null)
-                every { userServiceMock.getAllReceipts(isAny()) } returns flowOf(mapOf())
-                every { userServiceMock.getReceiptsById(isAny(), isAny()) } returns flowOf(null)
+            every { roomServiceMock.getAll() } returns roomsFlow
+            every {
+                roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            } returns MutableStateFlow(null)
+            every {
+                roomServiceMock.getTimeline(
+                    any(),
+                    any<suspend (Flow<TimelineEvent>) -> Unit>()
+                )
+            } returns
+                    NoOpTimeline
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
+            every {
+                roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
+            } returns flowOf(null)
+            every { roomServiceMock.getOutbox() } returns flowOf(mapOf())
+            every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
+            every { userServiceMock.getById(any(), any()) } returns flowOf(null)
+            every { userServiceMock.getAllReceipts(any()) } returns flowOf(mapOf())
+            every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
 
-                every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(null)
-                selfVerificationMethods =
-                    every { verificationServiceMock.getSelfVerificationMethods() }
-                selfVerificationMethods returns MutableStateFlow(PreconditionsNotMet(emptySet()))
+            every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(null)
+            selfVerificationMethods =
+                every { verificationServiceMock.getSelfVerificationMethods() }
+            selfVerificationMethods returns MutableStateFlow(PreconditionsNotMet(emptySet()))
 
-                every { keyServiceMock.getTrustLevel(isAny<UserId>(), isAny()) } returns
-                        flowOf(DeviceTrustLevel.Valid(true))
+            every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns
+                    flowOf(DeviceTrustLevel.Valid(true))
 
-                everySuspending { userServiceMock.loadMembers(RoomId(isAny()), isAny()) } returns Unit
-                every { userServiceMock.getAccountData<DirectEventContent>() } returns
-                        MutableStateFlow(DirectEventContent(emptyMap()))
+            everySuspend { userServiceMock.loadMembers(RoomId(any()), any()) } returns Unit
+            every { userServiceMock.getAccountData(DirectEventContent::class) } returns
+                    MutableStateFlow(DirectEventContent(emptyMap()))
 
-                networkAvailable = every { isNetworkAvailable.invoke() }
-                networkAvailable returns false
+            networkAvailable = every { isNetworkAvailable.invoke() }
+            networkAvailable returns false
 
-                initialSyncDone = every { matrixClientMock.initialSyncDone }
-                initialSyncDone returns MutableStateFlow(true)
+            initialSyncDone = every { matrixClientMock.initialSyncDone }
+            initialSyncDone returns MutableStateFlow(true)
 
-                // matrixClientMock2
-                every { matrixClientMock2.di } returns koinApplication {
-                    modules(module {
-                        single { roomServiceMock }
-                        single { keyServiceMock }
-                        single { userServiceMock }
-                        single { verificationServiceMock2 }
-                    })
-                }.koin
-                every { matrixClientMock2.userId } returns myUserId
-                every { matrixClientMock2.deviceId } returns myDeviceId
-                every { matrixClientMock2.displayName } returns MutableStateFlow(null)
-                every { matrixClientMock2.avatarUrl } returns MutableStateFlow(null)
-                every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
-                everySuspending { matrixClientMock2.startSync() } returns Unit
-                everySuspending { matrixClientMock2.cancelSync(isAny()) } returns Unit
-                every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
-            }
+            // matrixClientMock2
+            every { matrixClientMock2.di } returns koinApplication {
+                modules(module {
+                    single { roomServiceMock }
+                    single { keyServiceMock }
+                    single { userServiceMock }
+                    single { verificationServiceMock2 }
+                })
+            }.koin
+            every { matrixClientMock2.userId } returns myUserId
+            every { matrixClientMock2.deviceId } returns myDeviceId
+            every { matrixClientMock2.displayName } returns MutableStateFlow(null)
+            every { matrixClientMock2.avatarUrl } returns MutableStateFlow(null)
+            every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
+            everySuspend { matrixClientMock2.startSync() } returns Unit
+            everySuspend { matrixClientMock2.cancelSync(any()) } returns Unit
+            every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
         }
 
         afterTest {
             lifecycle.destroy()
-            startSyncPresenceCapture.clear()
         }
 
         should("select no room initially") {
-            mocker.everySuspending {
-                matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
+            everySuspend {
+                matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
@@ -422,8 +443,8 @@ class MainViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.everySuspending {
-                matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
+            everySuspend {
+                matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
@@ -439,50 +460,48 @@ class MainViewModelTest : ShouldSpec() {
         }
 
         should("show multiple self verifications sequentially if needed") {
-            with(mocker) {
-                // test
-                selfVerificationMethods returns MutableStateFlow(
-                    VerificationService.SelfVerificationMethods.CrossSigningEnabled(
-                        setOf(
-                            SelfVerificationMethod.CrossSignedDeviceVerification(
-                                UserId(""),
-                                setOf(),
-                            ) { _, _ -> Result.failure(RuntimeException()) },
-                            SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                                keySecretServiceMock,
-                                keyTrustServiceMock,
-                                "keyId",
-                                SecretKeyEventContent.AesHmacSha2Key()
-                            )
+            // test
+            selfVerificationMethods returns MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(
+                            UserId(""),
+                            setOf(),
+                        ) { _, _ -> Result.failure(RuntimeException()) },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key()
                         )
                     )
                 )
-                // test2
-                every { verificationServiceMock2.activeDeviceVerification } returns MutableStateFlow(null)
-                every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(
-                    VerificationService.SelfVerificationMethods.CrossSigningEnabled(
-                        setOf(
-                            SelfVerificationMethod.CrossSignedDeviceVerification(
-                                UserId(""),
-                                setOf(),
-                            ) { _, _ -> Result.failure(RuntimeException()) },
-                            SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                                keySecretServiceMock,
-                                keyTrustServiceMock,
-                                "keyId",
-                                SecretKeyEventContent.AesHmacSha2Key()
-                            )
+            )
+            // test2
+            every { verificationServiceMock2.activeDeviceVerification } returns MutableStateFlow(null)
+            every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(
+                            UserId(""),
+                            setOf(),
+                        ) { _, _ -> Result.failure(RuntimeException()) },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key()
                         )
                     )
                 )
+            )
 
-                everySuspending {
-                    matrixClientMock.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
-                } returns Result.success(Unit)
-                everySuspending {
-                    matrixClientMock2.syncOnce(isAny(), isAny(), isAny<suspend (Sync.Response) -> Unit>())
-                } returns Result.success(Unit)
-            }
+            everySuspend {
+                matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            } returns Result.success(Unit)
+            everySuspend {
+                matrixClientMock2.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            } returns Result.success(Unit)
 
 
             val cut = mainViewModel(
@@ -513,7 +532,7 @@ class MainViewModelTest : ShouldSpec() {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
-            mocker.everySuspending { runInitialSyncMock.invoke(matrixClientMock) } runs {
+            everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls {
                 delay(500.milliseconds)
                 true
             }
@@ -529,7 +548,7 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(700.milliseconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
-                mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
+                verifySuspend { matrixClientMock.startSync() }
             }
 
         }
@@ -538,7 +557,7 @@ class MainViewModelTest : ShouldSpec() {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(false)
-            mocker.everySuspending { runInitialSyncMock.invoke(matrixClientMock) } runs {
+            everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls {
                 delay(500.milliseconds)
                 true
             }
@@ -554,7 +573,7 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(2.seconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
-                mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
+                verifySuspend { matrixClientMock.startSync() }
             }
         }
 
@@ -567,7 +586,7 @@ class MainViewModelTest : ShouldSpec() {
 
             eventually(800.milliseconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
-                mocker.verifyWithSuspend(exhaustive = false) { matrixClientMock.startSync() }
+                verifySuspend { matrixClientMock.startSync() }
             }
         }
 
@@ -575,26 +594,26 @@ class MainViewModelTest : ShouldSpec() {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
-            mocker.everySuspending { runInitialSyncMock.invoke(matrixClientMock) } returns true
+            everySuspend { runInitialSyncMock.invoke(matrixClientMock) } returns true
             mainViewModel()
 
             eventually(300.milliseconds) {
-                mocker.verifyWithSuspend(exhaustive = false) {
-                    called { matrixClientMock.startSync() }
+                verifySuspend {
+                    matrixClientMock.startSync()
                 }
             }
 
             lifecycle.stop()
             eventually(300.milliseconds) {
-                mocker.verifyWithSuspend(exhaustive = false) {
-                    called { matrixClientMock.cancelSync(isAny()) }
+                verifySuspend {
+                    matrixClientMock.cancelSync(any())
                 }
             }
 
             lifecycle.resume()
             eventually(300.milliseconds) {
-                mocker.verifyWithSuspend(exhaustive = false) {
-                    called { matrixClientMock.startSync() }
+                verifySuspend {
+                    matrixClientMock.startSync()
                 }
             }
         }
@@ -620,7 +639,7 @@ class MainViewModelTest : ShouldSpec() {
             delay(10.milliseconds)
 
             startSyncPresenceCapture shouldBe
-                    mutableListOf(
+                    listOf(
                         Presence.ONLINE, // initial sync
                         Presence.ONLINE, // first normal sync
                         Presence.OFFLINE, // 4 changes

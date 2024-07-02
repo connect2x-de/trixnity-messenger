@@ -14,7 +14,7 @@ buildscript {
 plugins {
     alias(libs.plugins.kotest).apply(false)
     kotlin("plugin.serialization") version libs.versions.kotlin.get() apply false
-    alias(libs.plugins.ksp).apply(false)
+    alias(libs.plugins.mokkery).apply(false)
     alias(libs.plugins.skie).apply(false)
     alias(libs.plugins.kmmbridge).apply(false)
     alias(libs.plugins.dokka).apply(false)
@@ -22,7 +22,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("2.0.4")
+    version = withVersionSuffix("2.1.0")
 
     repositories {
         mavenLocal()

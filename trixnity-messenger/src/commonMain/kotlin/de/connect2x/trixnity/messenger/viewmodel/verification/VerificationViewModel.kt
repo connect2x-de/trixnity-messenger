@@ -9,7 +9,17 @@ import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.*
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.AcceptSasStart
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.AcceptedByOtherClient
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Cancelled
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.CompareEmojisOrNumbers
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.None
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Rejected
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Request
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.SelectVerificationMethod
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Success
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Timeout
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Wait
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
@@ -23,8 +33,14 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.*
+import net.folivo.trixnity.client.verification.ActiveDeviceVerification
+import net.folivo.trixnity.client.verification.ActiveSasVerificationMethod
+import net.folivo.trixnity.client.verification.ActiveSasVerificationState
+import net.folivo.trixnity.client.verification.ActiveVerification
+import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -242,7 +258,10 @@ open class VerificationViewModelImpl(
                     matrixClient.room.getTimelineEvent(roomId, timelineEventId).collectLatest {
                         it?.let { timelineEvent ->
                             activeVerification.value =
-                                matrixClient.verification.getActiveUserVerification(timelineEvent)
+                                matrixClient.verification.getActiveUserVerification(
+                                    timelineEvent.roomId,
+                                    timelineEvent.eventId
+                                )
                             if (activeVerification.value != null) {
                                 log.debug { "new user verification in room $roomId (timelineEvent $timelineEvent)" }
                                 verificationSteps()

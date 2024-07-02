@@ -5,14 +5,26 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
@@ -29,13 +41,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.*
+import net.folivo.trixnity.client.key.DeviceTrustLevel
+import net.folivo.trixnity.client.key.KeyService
+import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncApiClient
@@ -47,19 +59,12 @@ import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction2
-import org.kodein.mock.mockFunction5
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomViewModelTest : ShouldSpec() {
-    private val mocker = Mocker()
-
     private lateinit var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
 
@@ -69,139 +74,133 @@ class RoomViewModelTest : ShouldSpec() {
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var verificationServiceMock: VerificationService
+    val verificationServiceMock = mock<VerificationService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var syncApiClientMock: SyncApiClient
+    val syncApiClientMock = mock<SyncApiClient>()
 
-    @Mock
-    lateinit var downloadManagerMock: DownloadManager
+    val downloadManagerMock = mock<DownloadManager>()
 
-    @Mock
-    lateinit var isNetworkAvailable: IsNetworkAvailable
+    val isNetworkAvailable = mock<IsNetworkAvailable>()
 
-    @Mock
-    lateinit var runInitialSyncMock: RunInitialSync
+    val runInitialSyncMock = mock<RunInitialSync>()
 
-    @Mock
-    lateinit var minimizeMessengerMock: () -> Unit
+    val minimizeMessengerMock = mock<() -> Unit>()
 
-    lateinit var selfVerificationMethods: Mocker.Every<Flow<VerificationService.SelfVerificationMethods>>
-    lateinit var syncState: Mocker.Every<StateFlow<SyncState>>
+    lateinit var selfVerificationMethods: BlockingAnsweringScope<Flow<VerificationService.SelfVerificationMethods>>
+    lateinit var syncState: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                keyServiceMock,
+                verificationServiceMock,
+                userServiceMock,
+                matrixClientServerApiClientMock,
+                syncApiClientMock,
+                downloadManagerMock,
+                isNetworkAvailable,
+                runInitialSyncMock,
+                minimizeMessengerMock,
+            )
             lifecycle = LifecycleRegistry()
             lifecycle.resume()
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(module {
-                        single { roomServiceMock }
-                        single { keyServiceMock }
-                        single { userServiceMock }
-                        single { verificationServiceMock }
-                    })
-                }.koin
+            every { matrixClientMock.di } returns koinApplication {
+                modules(module {
+                    single { roomServiceMock }
+                    single { keyServiceMock }
+                    single { userServiceMock }
+                    single { verificationServiceMock }
+                })
+            }.koin
 
-                every { matrixClientMock.userId } returns myUserId
-                every { matrixClientMock.deviceId } returns myDeviceId
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                syncState = every { matrixClientMock.syncState }
-                syncState returns MutableStateFlow(SyncState.RUNNING)
-                everySuspending { matrixClientMock.startSync() } returns Unit
-                everySuspending { matrixClientMock.cancelSync(isAny()) } returns Unit
+            every { matrixClientMock.userId } returns myUserId
+            every { matrixClientMock.deviceId } returns myDeviceId
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            syncState = every { matrixClientMock.syncState }
+            syncState returns MutableStateFlow(SyncState.RUNNING)
+            everySuspend { matrixClientMock.startSync() } returns Unit
+            everySuspend { matrixClientMock.cancelSync(any()) } returns Unit
 
-                every { matrixClientServerApiClientMock.sync } returns syncApiClientMock
+            every { matrixClientServerApiClientMock.sync } returns syncApiClientMock
 
-                every { roomServiceMock.getAll() } returns roomsFlow
-                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId))
-                every {
-                    roomServiceMock.getAccountData<FullyReadEventContent>(
-                        roomId,
-                        ""
-                    )
-                } returns MutableStateFlow(null)
-                every {
-                    roomServiceMock.getTimeline(
-                        isAny(),
-                        isAny<suspend (Flow<TimelineEvent>) -> Unit>()
-                    )
-                } returns
-                        NoOpTimeline
-                every { roomServiceMock.getById(isAny()) } returns flowOf(null)
-                every {
-                    roomServiceMock.getAccountData(isAny(), isEqual(FullyReadEventContent::class), isAny())
-                } returns flowOf(null)
-                every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
-
-                every {
-                    roomServiceMock.getState(isAny(), isEqual(CreateEventContent::class), isAny())
-                } returns MutableStateFlow(null)
-
-                every {
-                    roomServiceMock.getState(isAny(), isEqual(PowerLevelsEventContent::class), isAny())
-                } returns MutableStateFlow(null)
-                every {
-                    roomServiceMock.usersTyping
-                } returns MutableStateFlow(mapOf())
-
-                every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(
-                    null
+            every { roomServiceMock.getAll() } returns roomsFlow
+            every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId))
+            every {
+                roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, "")
+            } returns MutableStateFlow(null)
+            every {
+                roomServiceMock.getTimeline(
+                    any(),
+                    any<suspend (Flow<TimelineEvent>) -> Unit>()
                 )
-                selfVerificationMethods =
-                    every { verificationServiceMock.getSelfVerificationMethods() }
-                selfVerificationMethods returns MutableStateFlow(
-                    VerificationService.SelfVerificationMethods.PreconditionsNotMet(
-                        emptySet()
-                    )
+            } returns
+                    NoOpTimeline
+            every { roomServiceMock.getById(any()) } returns flowOf(null)
+            every {
+                roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "")
+            } returns flowOf(null)
+            every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
+
+            every {
+                roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            } returns MutableStateFlow(null)
+
+            every {
+                roomServiceMock.getState(any(), eq(PowerLevelsEventContent::class), any())
+            } returns MutableStateFlow(null)
+            every {
+                roomServiceMock.usersTyping
+            } returns MutableStateFlow(mapOf())
+
+            every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(
+                null
+            )
+            selfVerificationMethods =
+                every { verificationServiceMock.getSelfVerificationMethods() }
+            selfVerificationMethods returns MutableStateFlow(
+                VerificationService.SelfVerificationMethods.PreconditionsNotMet(
+                    emptySet()
                 )
+            )
 
-                every { keyServiceMock.getTrustLevel(isAny<UserId>(), isAny()) } returns
-                        flowOf(DeviceTrustLevel.Valid(false))
+            every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns
+                    flowOf(DeviceTrustLevel.Valid(false))
 
-                everySuspending {
-                    userServiceMock.loadMembers(
-                        RoomId(isAny()),
-                        isAny()
-                    )
-                } returns Unit
-                every { userServiceMock.getById(isAny(), isAny()) } returns MutableStateFlow(null)
+            everySuspend {
+                userServiceMock.loadMembers(
+                    RoomId(any()),
+                    any()
+                )
+            } returns Unit
+            every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
 
-                every { userServiceMock.userPresence } returns MutableStateFlow(emptyMap())
-                every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
-                every { userServiceMock.getAllReceipts(isEqual(roomId)) } returns MutableStateFlow(emptyMap())
-                every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
-                every { userServiceMock.getAccountData<DirectEventContent>("") } returns
-                        MutableStateFlow(null)
-                every { userServiceMock.getAccountData<PushRulesEventContent>("") } returns
-                        MutableStateFlow(null)
-                every { userServiceMock.getPowerLevel(isAny(), isAny()) } returns MutableStateFlow(50)
-                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
+            every { userServiceMock.userPresence } returns MutableStateFlow(emptyMap())
+            every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
+            every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
+            every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
+            every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns
+                    MutableStateFlow(null)
+            every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
+                    MutableStateFlow(null)
+            every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
+            every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
 
-                every { minimizeMessengerMock.invoke() } returns Unit
-            }
+            every { minimizeMessengerMock.invoke() } returns Unit
         }
 
         afterTest {
@@ -415,10 +414,10 @@ class RoomViewModelTest : ShouldSpec() {
                 coroutineContext = Dispatchers.Unconfined,
             ),
             roomId = roomId,
-            onRoomBack = mockFunction0(mocker),
-            onOpenModal = mockFunction5(mocker),
+            onRoomBack = mock(),
+            onOpenModal = mock(),
             isBackButtonVisible = MutableStateFlow(false),
-            onOpenMention = mockFunction2(mocker),
+            onOpenMention = mock(),
         )
         return roomViewModel
     }

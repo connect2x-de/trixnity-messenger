@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountView
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.FlowCollector
@@ -23,6 +22,9 @@ import net.folivo.trixnity.client.serverDiscovery
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
+import net.folivo.trixnity.utils.takeBytes
+import net.folivo.trixnity.utils.toByteArray
+import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
@@ -129,9 +131,16 @@ open class AddMatrixAccountViewModelImpl(
                         is LoginType.SSO ->
                             loginType.identityProviders.map { identityProvider ->
                                 val icon = identityProvider.icon?.let {
-                                    api.media.download(it).onFailure {
+                                    var byteArray: ByteArray? = null
+                                    api.media.download(it) {
+                                        byteArray =
+                                            it.content.toByteArrayFlow()
+                                                .takeBytes(10 * 1024 * 1024) // max 10 MB
+                                                .toByteArray()
+                                    }.onFailure {
                                         log.warn { "could not download idp icon $it" }
-                                    }.getOrNull()?.content?.toByteArray()
+                                    }.getOrNull()
+                                    byteArray
                                 }
                                 AddMatrixAccountMethod.SSO(
                                     serverUrl = serverDiscoveryUrl.toString(),

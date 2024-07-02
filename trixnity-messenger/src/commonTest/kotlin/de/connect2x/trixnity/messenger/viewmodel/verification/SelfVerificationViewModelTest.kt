@@ -2,9 +2,19 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -26,10 +36,6 @@ import net.folivo.trixnity.client.verification.VerificationService.SelfVerificat
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import net.folivo.trixnity.crypto.key.RecoveryKeyInvalidException
-import org.kodein.mock.Fake
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -38,46 +44,41 @@ import kotlin.coroutines.CoroutineContext
 class SelfVerificationViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val verificationServiceMock = mock<VerificationService>()
 
-    @Mock
-    lateinit var verificationServiceMock: VerificationService
+    val keySecretService = mock<KeySecretService>()
 
-    @Mock
-    lateinit var keySecretService: KeySecretService
+    val keyTrustService = mock<KeyTrustService>()
 
-    @Mock
-    lateinit var keyTrustService: KeyTrustService
+    val verifyAccountMock = mock<VerifyAccount>()
 
-    @Mock
-    lateinit var verifyAccountMock: VerifyAccount
+    val aesHmacSha2Key: SecretKeyEventContent.AesHmacSha2Key = SecretKeyEventContent.AesHmacSha2Key()
 
-    @Fake
-    lateinit var aesHmacSha2Key: SecretKeyEventContent.AesHmacSha2Key
-
-    private val onCloseSelfVerificationMock = mockFunction0<Unit>(mocker)
+    private val onCloseSelfVerificationMock = mock<Function0<Unit>>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(
+                matrixClientMock,
+                verificationServiceMock,
+                keySecretService,
+                keyTrustService,
+                verifyAccountMock,
+                onCloseSelfVerificationMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { verificationServiceMock }
+                    }
+                )
+            }.koin
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { verificationServiceMock }
-                        }
-                    )
-                }.koin
-
-                every { matrixClientMock.userId } returns UserId("test", "localhost")
-            }
+            every { matrixClientMock.userId } returns UserId("test", "localhost")
         }
 
         should("show verification help, initially") {
@@ -104,7 +105,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -141,8 +142,8 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { onCloseSelfVerificationMock.invoke() } returns Unit
-            mocker.every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
+            every { onCloseSelfVerificationMock.invoke() } returns Unit
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -150,7 +151,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             deviceVerificationCalled shouldBe true
-            mocker.verify(exhaustive = false) { onCloseSelfVerificationMock.invoke() }
+            verify { onCloseSelfVerificationMock.invoke() }
 
             cancelNeverEndingCoroutines()
         }
@@ -168,7 +169,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -199,7 +200,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -225,13 +226,11 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            with(mocker) {
-                every { onCloseSelfVerificationMock.invoke() } returns Unit
-                everySuspending {
-                    verifyAccountMock.verify(isAny(), isEqual("iAmA Reco very Key1"))
-                } returns Result.success(Unit)
-                every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
-            }
+            every { onCloseSelfVerificationMock.invoke() } returns Unit
+            everySuspend {
+                verifyAccountMock.verify(any(), eq("iAmA Reco very Key1"))
+            } returns Result.success(Unit)
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -241,8 +240,8 @@ class SelfVerificationViewModelTest : ShouldSpec() {
 
             cut.recoveryKeyWrong.value shouldBe false
             testCoroutineScheduler.advanceUntilIdle()
-            mocker.verifyWithSuspend(exhaustive = false) {
-                verifyAccountMock.verify(isAny(), isEqual("iAmA Reco very Key1"))
+            verifySuspend {
+                verifyAccountMock.verify(any(), eq("iAmA Reco very Key1"))
                 onCloseSelfVerificationMock.invoke()
             }
 
@@ -263,12 +262,10 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 )
             )
             var onCloseMockWasCalled = false
-            with(mocker) {
-                every { onCloseSelfVerificationMock.invoke() } runs { onCloseMockWasCalled = true }
-                everySuspending { verifyAccountMock.verify(isAny(), isEqual("iAmA Sooo very Wron")) } returns
-                        Result.failure(RecoveryKeyInvalidException("Nope"))
-                every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
-            }
+            every { onCloseSelfVerificationMock.invoke() } calls { onCloseMockWasCalled = true }
+            everySuspend { verifyAccountMock.verify(any(), eq("iAmA Sooo very Wron")) } returns
+                    Result.failure(RecoveryKeyInvalidException("Nope"))
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -298,12 +295,10 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 )
             )
             var onCloseMockWasCalled = false
-            with(mocker) {
-                every { onCloseSelfVerificationMock.invoke() } runs { onCloseMockWasCalled = true }
-                everySuspending { verifyAccountMock.verify(isAny(), isEqual("iAmA Reco very Key1")) } returns
-                        Result.failure(RuntimeException("Oh no!"))
-                every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
-            }
+            every { onCloseSelfVerificationMock.invoke() } calls { onCloseMockWasCalled = true }
+            everySuspend { verifyAccountMock.verify(any(), eq("iAmA Reco very Key1")) } returns
+                    Result.failure(RuntimeException("Oh no!"))
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
@@ -333,7 +328,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
+            every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
             cut.waitForAvailableVerificationMethods()
