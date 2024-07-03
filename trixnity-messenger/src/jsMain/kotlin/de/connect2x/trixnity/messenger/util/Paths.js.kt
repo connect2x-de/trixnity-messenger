@@ -1,11 +1,13 @@
 package de.connect2x.trixnity.messenger.util
 
 import js.objects.Object
+import js.objects.jso
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.idb.indexedDB
+import web.navigator.navigator
 import web.storage.localStorage
 
 actual fun platformPathsModule(): Module = module {
@@ -29,4 +31,10 @@ suspend fun Path.deleteVirtualFileSystemData() {
     localStorageKeys.forEach { localStorageKey ->
         if (localStorageKey.startsWith(path)) localStorage.removeItem(localStorageKey)
     }
+
+    var opfsDirectory = navigator.storage.getDirectory()
+    for (segment in segments.dropLast(1)) {
+        opfsDirectory = opfsDirectory.getDirectoryHandle(segment, jso { create = true })
+    }
+    opfsDirectory.removeEntry(segments.last(), jso { recursive = true })
 }
