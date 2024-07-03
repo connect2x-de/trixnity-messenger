@@ -2,9 +2,20 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -30,17 +41,12 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class ChangePowerLevelViewModelTest : ShouldSpec() {
-
-    val mocker = Mocker()
 
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -73,69 +79,66 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
         )
     )
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
+    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
+    private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
-    private val closeMemberOptions = mockFunction0<Unit>(mocker)
+    private val closeMemberOptions = mock<Function0<Unit>>()
 
 
     init {
         coroutineTestScope = true
 
-
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                syncStateMocker = every { matrixClientMock.syncState }
-                syncStateMocker returns MutableStateFlow(SyncState.STARTED)
-
-                every { matrixClientMock.api } returns matrixClientServerApiMock
-                every { matrixClientServerApiMock.room } returns roomsApiClientMock
-
-                every {
-                    roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
-                } returns MutableStateFlow(
-                    StateEvent(
-                        PowerLevelsEventContent(),
-                        EventId("eventId"),
-                        bob,
-                        roomId,
-                        123,
-                        null,
-                        ""
-                    )
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                matrixClientServerApiMock,
+                roomsApiClientMock,
+                closeMemberOptions
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
                 )
-            }
+            }.koin
+            syncStateMocker = every { matrixClientMock.syncState }
+            syncStateMocker returns MutableStateFlow(SyncState.STARTED)
+
+            every { matrixClientMock.api } returns matrixClientServerApiMock
+            every { matrixClientServerApiMock.room } returns roomsApiClientMock
+
+            every {
+                roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
+            } returns MutableStateFlow(
+                StateEvent(
+                    PowerLevelsEventContent(),
+                    EventId("eventId"),
+                    bob,
+                    roomId,
+                    123,
+                    null,
+                    ""
+                )
+            )
         }
 
         context("changing a role") {
 
             beforeTest {
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(100L)
 
@@ -144,16 +147,16 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             should("close member options after changing the user role") {
 
                 var closeMemberOptionsWasCalled = false
-                mocker.every { closeMemberOptions.invoke() } runs {
+                every { closeMemberOptions.invoke() } calls {
                     closeMemberOptionsWasCalled = true
                 }
 
-                mocker.everySuspending {
+                everySuspend {
                     roomsApiClientMock.sendStateEvent(
-                        isEqual(roomId),
-                        isAny(),
-                        isAny(),
-                        isNull()
+                        eq(roomId),
+                        any(),
+                        any(),
+                        eqNull()
                     )
                 } returns Result.success(EventId(""))
 
@@ -164,12 +167,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 testCoroutineScheduler.advanceUntilIdle()
 
                 cut.error.value shouldBe ""
-                mocker.verifyWithSuspend(exhaustive = false, false) {
+                verifySuspend {
                     roomsApiClientMock.sendStateEvent(
-                        isEqual(roomId),
-                        isEqual(PowerLevelsEventContent(users = mapOf(alice to 100L))),
-                        isAny(),
-                        isNull()
+                        eq(roomId),
+                        eq(PowerLevelsEventContent(users = mapOf(alice to 100L))),
+                        any(),
+                        eqNull()
                     )
                 }
 
@@ -182,7 +185,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
                 var closeMemberOptionsWasCalled = false
-                mocker.every { closeMemberOptions.invoke() } runs {
+                every { closeMemberOptions.invoke() } calls {
                     closeMemberOptionsWasCalled = true
                 }
 
@@ -199,12 +202,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             should("show an error message when changing a role fails") {
 
-                mocker.everySuspending {
+                everySuspend {
                     roomsApiClientMock.sendStateEvent(
-                        isEqual(roomId),
-                        isAny(),
-                        isAny(),
-                        isNull()
+                        eq(roomId),
+                        any(),
+                        any(),
+                        eqNull()
                     )
                 } returns Result.failure(Throwable())
 
@@ -223,7 +226,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
         context("change Power Level") {
 
             beforeTest {
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(100L)
 
@@ -232,16 +235,16 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             should("close member options after changing the power level successfully") {
 
                 var closeMemberOptionsWasCalled = false
-                mocker.every { closeMemberOptions.invoke() } runs {
+                every { closeMemberOptions.invoke() } calls {
                     closeMemberOptionsWasCalled = true
                 }
 
-                mocker.everySuspending {
+                everySuspend {
                     roomsApiClientMock.sendStateEvent(
-                        isEqual(roomId),
-                        isAny(),
-                        isAny(),
-                        isNull()
+                        eq(roomId),
+                        any(),
+                        any(),
+                        eqNull()
                     )
                 } returns Result.success(EventId(""))
 
@@ -252,12 +255,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 testCoroutineScheduler.advanceUntilIdle()
 
                 cut.error.value shouldBe ""
-                mocker.verifyWithSuspend(exhaustive = false, false) {
+                verifySuspend {
                     roomsApiClientMock.sendStateEvent(
-                        isEqual(roomId),
-                        isEqual(PowerLevelsEventContent(users = mapOf(alice to 99L))),
-                        isAny(),
-                        isNull()
+                        eq(roomId),
+                        eq(PowerLevelsEventContent(users = mapOf(alice to 99L))),
+                        any(),
+                        eqNull()
                     )
                 }
 
@@ -269,7 +272,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
                 var closeMemberOptionsWasCalled = false
-                mocker.every { closeMemberOptions.invoke() } runs {
+                every { closeMemberOptions.invoke() } calls {
                     closeMemberOptionsWasCalled = true
                 }
 
@@ -286,12 +289,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             should("show an error message if changing the power level fails") {
 
-                mocker.everySuspending {
+                everySuspend {
                     roomsApiClientMock.sendStateEvent(
-                        isEqual(roomId),
-                        isAny(),
-                        isAny(),
-                        isNull()
+                        eq(roomId),
+                        any(),
+                        any(),
+                        eqNull()
                     )
                 } returns Result.failure(Throwable())
 
@@ -309,7 +312,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             should("show an error message if input is empty") {
 
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(100L)
 
@@ -327,7 +330,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             }
             should("show an error message if input is not a number") {
 
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(100L)
 
@@ -344,7 +347,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             }
             should("show an error message if input is < 0 or > 100") {
 
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(100)
 
@@ -361,7 +364,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             }
             should("show an error message if input level is higher than allowed to set by us") {
 
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(56)
 
@@ -376,7 +379,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             }
             should("show an error message if we are not allowed to change the power level") {
 
-                mocker.every {
+                every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(null)
 

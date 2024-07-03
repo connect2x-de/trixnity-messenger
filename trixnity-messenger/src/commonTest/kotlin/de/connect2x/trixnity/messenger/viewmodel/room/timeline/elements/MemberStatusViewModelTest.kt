@@ -2,16 +2,26 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.RoomUser
@@ -24,8 +34,6 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -33,64 +41,56 @@ import kotlin.coroutines.CoroutineContext
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberStatusViewModelTest : ShouldSpec() {
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
-
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every {
-                    userServiceMock.getById(isAny(), isEqual(UserId("bob", "localhost")))
-                } returns MutableStateFlow(
-                    RoomUser(
-                        roomId = RoomId("room1", "localhost"),
-                        userId = UserId("bob", "localhost"),
-                        name = "Bob",
-                        event = StateEvent(
-                            content = MemberEventContent(membership = Membership.JOIN),
-                            id = EventId(""),
-                            sender = UserId(""),
-                            roomId = RoomId(""),
-                            originTimestamp = 0L,
-                            stateKey = "",
-                        ),
-                    )
+            resetMocks(matrixClientMock, userServiceMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
                 )
-                every {
-                    userServiceMock.getById(isAny(), isEqual(UserId("mallory", "localhost")))
-                } returns MutableStateFlow(
-                    RoomUser(
-                        roomId = RoomId("room1", "localhost"),
-                        userId = UserId("mallory", "localhost"),
-                        name = "Mallory",
-                        event = StateEvent(
-                            content = MemberEventContent(membership = Membership.JOIN),
-                            id = EventId(""),
-                            sender = UserId(""),
-                            roomId = RoomId(""),
-                            originTimestamp = 0L,
-                            stateKey = "",
-                        ),
-                    )
+            }.koin
+            every {
+                userServiceMock.getById(any(), eq(UserId("bob", "localhost")))
+            } returns MutableStateFlow(
+                RoomUser(
+                    roomId = RoomId("room1", "localhost"),
+                    userId = UserId("bob", "localhost"),
+                    name = "Bob",
+                    event = StateEvent(
+                        content = MemberEventContent(membership = Membership.JOIN),
+                        id = EventId(""),
+                        sender = UserId(""),
+                        roomId = RoomId(""),
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    ),
                 )
-            }
+            )
+            every {
+                userServiceMock.getById(any(), eq(UserId("mallory", "localhost")))
+            } returns MutableStateFlow(
+                RoomUser(
+                    roomId = RoomId("room1", "localhost"),
+                    userId = UserId("mallory", "localhost"),
+                    name = "Mallory",
+                    event = StateEvent(
+                        content = MemberEventContent(membership = Membership.JOIN),
+                        id = EventId(""),
+                        sender = UserId(""),
+                        roomId = RoomId(""),
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    ),
+                )
+            )
         }
 
         should("show an indicator for name changes") {

@@ -1,5 +1,17 @@
 package de.connect2x.trixnity.messenger.export
 
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.matcher.nullable.notNull
+import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +31,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -60,64 +70,52 @@ class ExportRoomTest : ShouldSpec() {
         )
     )
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val mediaServiceMock = mock<MediaService>()
 
-    @Mock
-    lateinit var mediaServiceMock: MediaService
+    val sinkFactoryMock = mock<ExportRoomSinkFactory>()
 
-    @Mock
-    lateinit var sinkFactoryMock: ExportRoomSinkFactory
-
-    @Mock
-    lateinit var sinkMock: ExportRoomSink
+    val sinkMock = mock<ExportRoomSink>()
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { mediaServiceMock }
-                        }
-                    )
-                }.koin
-                every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(
-                    Room(isDirect = true, roomId = roomId, lastEventId = EventId("19"))
+            resetMocks(matrixClientMock, roomServiceMock, mediaServiceMock, sinkFactoryMock, sinkMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { mediaServiceMock }
+                    }
                 )
-                val timeline =
-                    (0..9).map { timelineEvent(it.toLong()) } +
-                            (10..19).map { timelineEventWithMedia(it.toLong()) }
+            }.koin
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(
+                Room(isDirect = true, roomId = roomId, lastEventId = EventId("19"))
+            )
+            val timeline =
+                (0..9).map { timelineEvent(it.toLong()) } +
+                        (10..19).map { timelineEventWithMedia(it.toLong()) }
 
-                every {
-                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isEqual(Direction.BACKWARDS), isAny())
-                } returns timeline.reversed().asFlow()
-                every {
-                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isEqual(Direction.FORWARDS), isAny())
-                } runs { params ->
-                    val eventId = params[1] as EventId
-                    timeline.asFlow().dropWhile { it.first().eventId != eventId }
-                }
-
-
-                everySuspending { mediaServiceMock.getMedia(isAny(), isAny(), isAny()) } returns Result.success(
-                    flowOf(ByteArray(0))
-                )
-
-                every { sinkFactoryMock.create(isAny(), isAny()) } returns sinkMock
-                everySuspending { sinkMock.start() } returns Result.success(Unit)
-                everySuspending { sinkMock.finish() } returns Result.success(Unit)
-                everySuspending { sinkMock.processTimelineEvent(isAny(), isAny()) } returns Result.success(Unit)
+            every {
+                roomServiceMock.getTimelineEvents(any(), any(), eq(Direction.BACKWARDS), any())
+            } returns timeline.reversed().asFlow()
+            every {
+                roomServiceMock.getTimelineEvents(any(), any(), eq(Direction.FORWARDS), any())
+            } calls { params ->
+                val eventId = params.args[1] as EventId
+                timeline.asFlow().dropWhile { it.first().eventId != eventId }
             }
+
+            everySuspend { mediaServiceMock.getMedia(any(), any(), any()) } returns Result.success(
+                flowOf(ByteArray(0))
+            )
+
+            every { sinkFactoryMock.create(any(), any()) } returns sinkMock
+            everySuspend { sinkMock.start() } returns Result.success(Unit)
+            everySuspend { sinkMock.finish() } returns Result.success(Unit)
+            everySuspend { sinkMock.processTimelineEvent(any(), any()) } returns Result.success(Unit)
         }
 
         should("export timeline") {
@@ -125,20 +123,18 @@ class ExportRoomTest : ShouldSpec() {
 
             cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success
 
-            with(mocker) {
-                verifyWithSuspend(exhaustive = false) {
-                    sinkFactoryMock.create(roomId, fakeProperties)
+            verifySuspend(VerifyMode.order) {
+                sinkFactoryMock.create(roomId, fakeProperties)
 
-                    sinkMock.start()
-                    (0..9).forEach {
-                        sinkMock.processTimelineEvent(isEqual(timelineEvent(it.toLong()).first()), isNull())
-                    }
-                    (10..19).forEach {
-                        mediaServiceMock.getMedia(isAny(), isAny(), isEqual(false))
-                        sinkMock.processTimelineEvent(isEqual(timelineEventWithMedia(it.toLong()).first()), isNotNull())
-                    }
-                    sinkMock.finish()
+                sinkMock.start()
+                (0..9).forEach {
+                    sinkMock.processTimelineEvent(eq(timelineEvent(it.toLong()).first()), eqNull())
                 }
+                (10..19).forEach {
+                    mediaServiceMock.getMedia(any(), any(), eq(false))
+                    sinkMock.processTimelineEvent(eq(timelineEventWithMedia(it.toLong()).first()), notNull())
+                }
+                sinkMock.finish()
             }
         }
         should("track progress") {
@@ -160,31 +156,22 @@ class ExportRoomTest : ShouldSpec() {
                 rangeEndCondition = { it.eventId == EventId("15") },
             ) shouldBe ExportRoomResult.Success
 
-            with(mocker) {
-                verifyWithSuspend {
-                    sinkFactoryMock.create(roomId, fakeProperties)
+            verifySuspend(VerifyMode.order) {
+                sinkFactoryMock.create(roomId, fakeProperties)
 
-                    matrixClientMock.di
-                    roomServiceMock.getById(isAny())
+                sinkMock.start()
 
-                    matrixClientMock.di
-                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny())
+                roomServiceMock.getTimelineEvents(any(), any(), any(), any())
 
-                    sinkMock.start()
-
-                    matrixClientMock.di
-                    roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny())
-
-                    (6..9).forEach {
-                        sinkMock.processTimelineEvent(isEqual(timelineEvent(it.toLong()).first()), isNull())
-                    }
-                    (10..14).forEach {
-                        matrixClientMock.di
-                        mediaServiceMock.getMedia(isAny(), isAny(), isEqual(false))
-                        sinkMock.processTimelineEvent(isEqual(timelineEventWithMedia(it.toLong()).first()), isNotNull())
-                    }
-                    sinkMock.finish()
+                (6..9).forEach {
+                    sinkMock.processTimelineEvent(eq(timelineEvent(it.toLong()).first()), eqNull())
                 }
+                (10..14).forEach {
+                    matrixClientMock.di
+                    mediaServiceMock.getMedia(any(), any(), eq(false))
+                    sinkMock.processTimelineEvent(eq(timelineEventWithMedia(it.toLong()).first()), notNull())
+                }
+                sinkMock.finish()
             }
         }
     }

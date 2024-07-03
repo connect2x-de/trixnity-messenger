@@ -5,12 +5,31 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.isNot
+import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.viewmodel.*
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
+import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -19,35 +38,43 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import isNot
-import isRoomOf
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.*
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.room.*
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
+import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.space.ChildEventContent
-import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -57,8 +84,6 @@ import io.kotest.matchers.Matcher as KoMatcher
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class RoomListViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
-
-    val mocker = Mocker()
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
@@ -76,47 +101,35 @@ class RoomListViewModelTest : ShouldSpec() {
 
     private val user2Flow = MutableStateFlow(roomUser(roomId1, user2))
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock2: MatrixClient
+    val matrixClientMock2 = mock<MatrixClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var userServiceMock2: UserService
+    val userServiceMock2 = mock<UserService>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var roomServiceMock2: RoomService
+    val roomServiceMock2 = mock<RoomService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    @Mock
-    lateinit var roomNameMock: RoomName
+    val roomNameMock = mock<RoomName>()
 
-    @Mock
-    lateinit var profileManagerMock: ProfileManager
+    val profileManagerMock = mock<ProfileManager>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var keyServiceMock2: KeyService
+    val keyServiceMock2 = mock<KeyService>()
 
-    private val onRoomSelectedMock = mockFunction2<Unit, UserId, RoomId>(mocker)
-    private val onAccountSelected = mockFunction0<Unit>(mocker)
+    private val onRoomSelectedMock = mock<Function2<UserId, RoomId, Unit>>()
+    private val onAccountSelected = mock<Function0<Unit>>()
 
-    lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
-    lateinit var roomName3Mocker: Mocker.Every<Flow<String>>
+    lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
+    lateinit var roomName3Mocker: BlockingAnsweringScope<Flow<String>>
 
     private val roomCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Room)
     private val spaceCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Space)
@@ -125,164 +138,175 @@ class RoomListViewModelTest : ShouldSpec() {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
 
             lifecycleRegistry = LifecycleRegistry()
             lifecycleRegistry.resume()
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                        }
-                    )
-                }.koin
-                syncStateMocker = every { matrixClientMock.syncState }
-                syncStateMocker returns MutableStateFlow(SyncState.RUNNING)
-                every { matrixClientMock.userId } returns user1
-                every { matrixClientMock.room } returns roomServiceMock
-                every { matrixClientMock.user } returns userServiceMock
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+            resetMocks(
+                matrixClientMock,
+                matrixClientMock2,
+                userServiceMock,
+                userServiceMock2,
+                roomServiceMock,
+                roomServiceMock2,
+                matrixClientServerApiClientMock,
+                roomsApiClientMock,
+                roomNameMock,
+                profileManagerMock,
+                keyServiceMock,
+                keyServiceMock2,
+                onRoomSelectedMock,
+                onAccountSelected,
+            )
 
-                every { userServiceMock.getById(isEqual(roomId1), isEqual(user1)) } returns
-                        MutableStateFlow(roomUser(roomId1, user1))
-                every { userServiceMock.getById(isEqual(roomId2), isEqual(user1)) } returns
-                        MutableStateFlow(roomUser(roomId2, user1))
-                every { userServiceMock.getById(isEqual(roomId1), isEqual(user2)) } returns user2Flow
-                every { userServiceMock.getById(isAny(), isEqual(user2)) } returns
-                        MutableStateFlow(roomUser(roomId2, user2))
-                every { userServiceMock.getById(isEqual(roomId1), isEqual(user3)) } returns
-                        MutableStateFlow(roomUser(roomId1, user3))
-
-                every { userServiceMock.getAll(roomId1) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(roomId1, user1)),
-                                user2 to flowOf(roomUser(roomId1, user2))
-                            )
-                        )
-                every { userServiceMock.getAll(roomId2) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(roomId2, user1)),
-                                user2 to flowOf(roomUser(roomId2, user2))
-                            )
-                        )
-                every { userServiceMock.getAll(roomId3) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(roomId3, user1)),
-                                user3 to flowOf(roomUser(roomId3, user3))
-                            )
-                        )
-                every { userServiceMock.getAll(roomId4) } returns
-                        MutableStateFlow(mapOf(user1 to flowOf(roomUser(roomId4, user1))))
-                every { userServiceMock.getAll(isEqual(roomId5)) } returns MutableStateFlow(emptyMap())
-                every { userServiceMock.userPresence } returns MutableStateFlow(mapOf())
-
-                every {
-                    roomServiceMock.getState<CreateEventContent>(
-                        isNot(listOf(roomId5, spaceId1, spaceId2)),
-                        isAny(),
-                        isAny()
-                    )
-                } returns flowOf(
-                    StateEvent(
-                        content = roomCreateEventContent,
-                        id = EventId(""),
-                        sender = user1,
-                        roomId = roomId1,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                    }
                 )
-                every {
-                    roomServiceMock.getState(
-                        isAny(),
-                        isEqual(JoinRulesEventContent::class),
-                        isAny()
+            }.koin
+            syncStateMocker = every { matrixClientMock.syncState }
+            syncStateMocker returns MutableStateFlow(SyncState.RUNNING)
+            every { matrixClientMock.userId } returns user1
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+
+            every { userServiceMock.getById(eq(roomId1), eq(user1)) } returns
+                    MutableStateFlow(roomUser(roomId1, user1))
+            every { userServiceMock.getById(eq(roomId2), eq(user1)) } returns
+                    MutableStateFlow(roomUser(roomId2, user1))
+            every { userServiceMock.getById(eq(roomId1), eq(user2)) } returns user2Flow
+            every { userServiceMock.getById(any(), eq(user2)) } returns
+                    MutableStateFlow(roomUser(roomId2, user2))
+            every { userServiceMock.getById(eq(roomId1), eq(user3)) } returns
+                    MutableStateFlow(roomUser(roomId1, user3))
+
+            every { userServiceMock.getAll(roomId1) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(roomId1, user1)),
+                            user2 to flowOf(roomUser(roomId1, user2))
+                        )
                     )
-                } returns MutableStateFlow(
-                    StateEvent(
-                        content = JoinRulesEventContent(
-                            joinRule = JoinRulesEventContent.JoinRule.Private
-                        ),
-                        EventId("1"),
-                        user1,
-                        roomId1,
-                        0L,
-                        stateKey = "",
+            every { userServiceMock.getAll(roomId2) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(roomId2, user1)),
+                            user2 to flowOf(roomUser(roomId2, user2))
+                        )
                     )
+            every { userServiceMock.getAll(roomId3) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(roomId3, user1)),
+                            user3 to flowOf(roomUser(roomId3, user3))
+                        )
+                    )
+            every { userServiceMock.getAll(roomId4) } returns
+                    MutableStateFlow(mapOf(user1 to flowOf(roomUser(roomId4, user1))))
+            every { userServiceMock.getAll(eq(roomId5)) } returns MutableStateFlow(emptyMap())
+            every { userServiceMock.userPresence } returns MutableStateFlow(mapOf())
+
+            every {
+                roomServiceMock.getState(
+                    isNot(listOf(roomId5, spaceId1, spaceId2)),
+                    CreateEventContent::class,
+                    any()
                 )
+            } returns flowOf(
+                StateEvent(
+                    content = roomCreateEventContent,
+                    id = EventId(""),
+                    sender = user1,
+                    roomId = roomId1,
+                    originTimestamp = 0L,
+                    stateKey = ""
+                )
+            )
+            every {
+                roomServiceMock.getState(
+                    any(),
+                    eq(JoinRulesEventContent::class),
+                    any()
+                )
+            } returns MutableStateFlow(
+                StateEvent(
+                    content = JoinRulesEventContent(
+                        joinRule = JoinRulesEventContent.JoinRule.Private
+                    ),
+                    EventId("1"),
+                    user1,
+                    roomId1,
+                    0L,
+                    stateKey = "",
+                )
+            )
 
-                every { onRoomSelectedMock.invoke(isAny(), isAny()) } returns Unit
+            every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
-                every { onAccountSelected.invoke() } returns Unit
+            every { onAccountSelected.invoke() } returns Unit
 
-                every {
-                    roomNameMock.getRoomName(isRoomOf(roomId1), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room1")
-                every {
-                    roomNameMock.getRoomName(isEqual(roomId1), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room1")
-                every {
-                    roomNameMock.getRoomName(isRoomOf(roomId2), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room2")
-                every {
-                    roomNameMock.getRoomName(isEqual(roomId2), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room2")
-                roomName3Mocker =
-                    every { roomNameMock.getRoomName(isRoomOf(roomId3), isEqual(matrixClientMock), isAny()) }
-                roomName3Mocker returns flowOf("room3-but-also-room2")
-                every {
-                    roomNameMock.getRoomName(isEqual(roomId3), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room3-but-also-room2")
-                every {
-                    roomNameMock.getRoomName(isRoomOf(roomId4), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room4")
-                every {
-                    roomNameMock.getRoomName(isEqual(roomId4), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room4")
-                every {
-                    roomNameMock.getRoomName(isRoomOf(roomId5), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room5")
-                every {
-                    roomNameMock.getRoomName(isEqual(roomId5), isEqual(matrixClientMock), isAny())
-                } returns flowOf("room5")
-                every {
-                    roomNameMock.getRoomName(isRoomOf(spaceId1), isEqual(matrixClientMock), isAny())
-                } returns
-                        flowOf("space and beyond")
-                every {
-                    roomNameMock.getRoomName(isRoomOf(spaceId2), isEqual(matrixClientMock), isAny())
-                } returns flowOf("space and beyond and beyonder")
-                every { roomServiceMock.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
+            every {
+                roomNameMock.getRoomName(isRoomOf(roomId1), eq(matrixClientMock), any())
+            } returns flowOf("room1")
+            every {
+                roomNameMock.getRoomName(eq(roomId1), eq(matrixClientMock), any())
+            } returns flowOf("room1")
+            every {
+                roomNameMock.getRoomName(isRoomOf(roomId2), eq(matrixClientMock), any())
+            } returns flowOf("room2")
+            every {
+                roomNameMock.getRoomName(eq(roomId2), eq(matrixClientMock), any())
+            } returns flowOf("room2")
+            roomName3Mocker =
+                every { roomNameMock.getRoomName(isRoomOf(roomId3), eq(matrixClientMock), any()) }
+            roomName3Mocker returns flowOf("room3-but-also-room2")
+            every {
+                roomNameMock.getRoomName(eq(roomId3), eq(matrixClientMock), any())
+            } returns flowOf("room3-but-also-room2")
+            every {
+                roomNameMock.getRoomName(isRoomOf(roomId4), eq(matrixClientMock), any())
+            } returns flowOf("room4")
+            every {
+                roomNameMock.getRoomName(eq(roomId4), eq(matrixClientMock), any())
+            } returns flowOf("room4")
+            every {
+                roomNameMock.getRoomName(isRoomOf(roomId5), eq(matrixClientMock), any())
+            } returns flowOf("room5")
+            every {
+                roomNameMock.getRoomName(eq(roomId5), eq(matrixClientMock), any())
+            } returns flowOf("room5")
+            every {
+                roomNameMock.getRoomName(isRoomOf(spaceId1), eq(matrixClientMock), any())
+            } returns
+                    flowOf("space and beyond")
+            every {
+                roomNameMock.getRoomName(isRoomOf(spaceId2), eq(matrixClientMock), any())
+            } returns flowOf("space and beyond and beyonder")
+            every { roomServiceMock.getLastTimelineEvent(any(), any()) } returns flowOf(null)
 
-                every {
-                    roomServiceMock.getAllState<ChildEventContent>(isEqual(spaceId1), isAny())
-                } returns flowOf(mapOf())
+            every {
+                roomServiceMock.getAllState(eq(spaceId1), ChildEventContent::class)
+            } returns flowOf(mapOf())
 
-                every { userServiceMock.getAccountData<DirectEventContent>() } returns
-                        MutableStateFlow(
-                            DirectEventContent(
-                                mappings = mapOf(
-                                    user2 to setOf(roomId1),
-                                )
+            every { userServiceMock.getAccountData(DirectEventContent::class) } returns
+                    MutableStateFlow(
+                        DirectEventContent(
+                            mappings = mapOf(
+                                user2 to setOf(roomId1),
                             )
                         )
+                    )
 
-                every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
-                everySuspending { profileManagerMock.closeProfile() } returns Unit
-            }
+            every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
+            everySuspend { profileManagerMock.closeProfile() } returns Unit
         }
 
         should("sort rooms by last received message") {
-            mocker.every {
+            every {
                 roomServiceMock.getState(roomId5, CreateEventContent::class, "")
             } returns
                     flowOf(
@@ -322,22 +346,20 @@ class RoomListViewModelTest : ShouldSpec() {
                 createEventContent = roomCreateEventContent,
                 lastRelevantEventTimestamp = null
             ) // with invite
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3),
-                        roomId4 to MutableStateFlow(room4),
-                        roomId5 to MutableStateFlow(room5),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3),
+                    roomId4 to MutableStateFlow(room4),
+                    roomId5 to MutableStateFlow(room5),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
-                every { roomServiceMock.getById(roomId5) } returns MutableStateFlow(room5)
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+            every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
+            every { roomServiceMock.getById(roomId5) } returns MutableStateFlow(room5)
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -355,7 +377,7 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("set 'initialSyncFinished' to 'true' when the initial sync with the matrix server is completed") {
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(emptyMap())
+            every { roomServiceMock.getAll() } returns MutableStateFlow(emptyMap())
             val syncState = MutableStateFlow(SyncState.STARTED)
             syncStateMocker returns syncState
 
@@ -374,7 +396,7 @@ class RoomListViewModelTest : ShouldSpec() {
         }
 
         should("leave 'initialSyncFinished as 'false' when the client reconnects to the matrix server") {
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(emptyMap())
+            every { roomServiceMock.getAll() } returns MutableStateFlow(emptyMap())
             val syncState = MutableStateFlow(SyncState.RUNNING)
             syncStateMocker returns syncState
 
@@ -397,22 +419,22 @@ class RoomListViewModelTest : ShouldSpec() {
 
         should("open a normal room on selection") {
             val room = Room(roomId1, createEventContent = roomCreateEventContent)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
+            every { roomServiceMock.getById(roomId1) } returns flowOf(room)
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(Room(roomId1))
                 )
             )
             var joinedRoomWasCalled = false
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.joinRoom(
-                    isEqual(roomId1),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    eq(roomId1),
+                    any(),
+                    any(),
+                    any(),
+                    any()
                 )
-            } runs {
+            } calls {
                 joinedRoomWasCalled = true
                 Result.success(roomId1)
             }
@@ -424,7 +446,7 @@ class RoomListViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             joinedRoomWasCalled shouldBe false
-            mocker.verify(exhaustive = false) { onRoomSelectedMock.invoke(isAny(), isEqual(roomId1)) }
+            verify { onRoomSelectedMock.invoke(any(), eq(roomId1)) }
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -432,19 +454,19 @@ class RoomListViewModelTest : ShouldSpec() {
 
         should("join the room first and then open the room when the selected room is an invitation") {
             val room = Room(roomId1, membership = Membership.INVITE)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
+            every { roomServiceMock.getById(roomId1) } returns flowOf(room)
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(Room(roomId1))
                 )
             )
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.joinRoom(
-                    isEqual(roomId1),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    eq(roomId1),
+                    any(),
+                    any(),
+                    any(),
+                    any()
                 )
             } returns Result.success(roomId1)
 
@@ -454,9 +476,9 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.selectRoom(roomId1)
             testCoroutineScheduler.advanceUntilIdle()
 
-            mocker.verifyWithSuspend(exhaustive = false) {
-                roomsApiClientMock.joinRoom(isEqual(roomId1), isAny(), isAny(), isAny(), isAny())
-                onRoomSelectedMock.invoke(isAny(), isEqual(roomId1))
+            verifySuspend {
+                roomsApiClientMock.joinRoom(eq(roomId1), any(), any(), any(), any())
+                onRoomSelectedMock.invoke(any(), eq(roomId1))
             }
 
             subscriberJob.cancel()
@@ -465,19 +487,19 @@ class RoomListViewModelTest : ShouldSpec() {
 
         should("display an error message when the selected room is an invitation and the join fails") {
             val room = Room(roomId1, membership = Membership.INVITE)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
+            every { roomServiceMock.getById(roomId1) } returns flowOf(room)
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(Room(roomId1))
                 )
             )
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.joinRoom(
-                    isEqual(roomId1),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    eq(roomId1),
+                    any(),
+                    any(),
+                    any(),
+                    any()
                 )
             } returns Result.failure(RuntimeException("Oh no!"))
 
@@ -496,19 +518,19 @@ class RoomListViewModelTest : ShouldSpec() {
 
         should("display info message when trying to join a room while the client is not connected to the server") {
             val room = Room(roomId1, membership = Membership.INVITE)
-            mocker.every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(
+            every { roomServiceMock.getById(roomId1) } returns flowOf(room)
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
                 mapOf(
                     roomId1 to MutableStateFlow(Room(roomId1))
                 )
             )
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.joinRoom(
-                    isEqual(roomId1),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
+                    eq(roomId1),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns Result.success(roomId1)
             val syncState = MutableStateFlow(SyncState.ERROR)
@@ -528,7 +550,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
         should("not show search initially") {
-            mocker.every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
@@ -541,16 +563,14 @@ class RoomListViewModelTest : ShouldSpec() {
         should("yield all rooms as search result when search term which is blank") {
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2)
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2)
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
@@ -570,18 +590,16 @@ class RoomListViewModelTest : ShouldSpec() {
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3)
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3)
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -603,18 +621,16 @@ class RoomListViewModelTest : ShouldSpec() {
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3)
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3)
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -642,12 +658,10 @@ class RoomListViewModelTest : ShouldSpec() {
                     roomId2 to MutableStateFlow(room2),
                 )
             )
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns roomList
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            }
+            every { roomServiceMock.getAll() } returns roomList
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -682,12 +696,10 @@ class RoomListViewModelTest : ShouldSpec() {
                     roomId3 to MutableStateFlow(room3),
                 )
             )
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns roomList
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            }
+            every { roomServiceMock.getAll() } returns roomList
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -715,19 +727,17 @@ class RoomListViewModelTest : ShouldSpec() {
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val room3NameFlow = MutableStateFlow("room2-other")
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                roomName3Mocker returns room3NameFlow
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+            roomName3Mocker returns room3NameFlow
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -749,22 +759,20 @@ class RoomListViewModelTest : ShouldSpec() {
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val room3NameFlow = MutableStateFlow("room2-other")
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                every {
-                    roomNameMock.getRoomName(isEqual(room3), isEqual(matrixClientMock), isAny())
-                } returns room3NameFlow
-                roomName3Mocker returns room3NameFlow
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+            every {
+                roomNameMock.getRoomName(eq(room3), eq(matrixClientMock), any())
+            } returns room3NameFlow
+            roomName3Mocker returns room3NameFlow
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -789,20 +797,18 @@ class RoomListViewModelTest : ShouldSpec() {
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
             val space = Room(spaceId1, createEventContent = spaceCreateEventContent)
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        spaceId1 to MutableStateFlow(space),
-                        roomId3 to MutableStateFlow(room3),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    spaceId1 to MutableStateFlow(space),
+                    roomId3 to MutableStateFlow(room3),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            }
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -818,42 +824,40 @@ class RoomListViewModelTest : ShouldSpec() {
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
             val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
             val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        spaceId1 to MutableStateFlow(space1),
-                        spaceId2 to MutableStateFlow(space2),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    spaceId1 to MutableStateFlow(space1),
+                    spaceId2 to MutableStateFlow(space2),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
-                every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-                every { roomServiceMock.getState<CreateEventContent>(spaceId1, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
+            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
+            every { roomServiceMock.getState(spaceId1, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
-                every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+                    )
+            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
-            }
+                    )
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -874,61 +878,59 @@ class RoomListViewModelTest : ShouldSpec() {
             val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
             val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
             val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3),
-                        roomId4 to MutableStateFlow(room4),
-                        spaceId1 to MutableStateFlow(space1),
-                        spaceId2 to MutableStateFlow(space2),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3),
+                    roomId4 to MutableStateFlow(room4),
+                    spaceId1 to MutableStateFlow(space1),
+                    spaceId2 to MutableStateFlow(space2),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
-                every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
-                every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-                every { roomServiceMock.getState<CreateEventContent>(spaceId1, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+            every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
+            every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
+            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
+            every { roomServiceMock.getState(spaceId1, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
-                every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+                    )
+            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
+                    )
 
-                every {
-                    roomServiceMock.getAllState<ChildEventContent>(isEqual(spaceId2), isAny())
-                } returns
-                        flowOf(
-                            mapOf(
-                                roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
-                                roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
-                            )
+            every {
+                roomServiceMock.getAllState(eq(spaceId2), ChildEventContent::class)
+            } returns
+                    flowOf(
+                        mapOf(
+                            roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
+                            roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
                         )
+                    )
 
-                every { userServiceMock.getAll(spaceId1) } returns MutableStateFlow(emptyMap())
-                every { userServiceMock.getAll(spaceId2) } returns MutableStateFlow(emptyMap())
-            }
+            every { userServiceMock.getAll(spaceId1) } returns MutableStateFlow(emptyMap())
+            every { userServiceMock.getAll(spaceId2) } returns MutableStateFlow(emptyMap())
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -959,53 +961,51 @@ class RoomListViewModelTest : ShouldSpec() {
             val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
             val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
             val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3),
-                        roomId4 to MutableStateFlow(room4),
-                        spaceId2 to MutableStateFlow(space2),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3),
+                    roomId4 to MutableStateFlow(room4),
+                    spaceId2 to MutableStateFlow(space2),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
-                every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-                every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+            every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
+            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
+            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
+                    )
 
-                every {
-                    roomServiceMock.getAllState<ChildEventContent>(isEqual(spaceId2), isAny())
-                } returns
-                        flowOf(
-                            mapOf(
-                                roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
-                                roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
-                            )
+            every {
+                roomServiceMock.getAllState(eq(spaceId2), ChildEventContent::class)
+            } returns
+                    flowOf(
+                        mapOf(
+                            roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
+                            roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
                         )
+                    )
 
-                every { userServiceMock.getAll(spaceId2) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(spaceId2, user1)),
-                                user2 to flowOf(roomUser(spaceId2, user2)),
-                                user3 to flowOf(roomUser(spaceId2, user3))
-                            )
+            every { userServiceMock.getAll(spaceId2) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(spaceId2, user1)),
+                            user2 to flowOf(roomUser(spaceId2, user2)),
+                            user3 to flowOf(roomUser(spaceId2, user3))
                         )
-            }
+                    )
 
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
@@ -1026,88 +1026,100 @@ class RoomListViewModelTest : ShouldSpec() {
             val roomId22 = RoomId("room22", "localhost") // group
             val roomId23 = RoomId("room23", "localhost") // group
             val spaceId21 = RoomId("space21", "localhost") // space with room23
-            with(mocker) {
-                every { matrixClientMock2.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock2 }
-                            single { userServiceMock2 }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock2.userId } returns user2
-                every { matrixClientMock2.room } returns roomServiceMock2
-                every { matrixClientMock2.user } returns userServiceMock2
-                every { matrixClientMock2.api } returns matrixClientServerApiClientMock
-                every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
-
-                every { userServiceMock2.getById(isEqual(roomId21), isEqual(user1)) } returns
-                        MutableStateFlow(roomUser(roomId21, user1))
-                every { userServiceMock2.getById(isEqual(roomId22), isEqual(user1)) } returns
-                        MutableStateFlow(roomUser(roomId22, user1))
-                every { userServiceMock2.getById(isEqual(roomId21), isEqual(user2)) } returns user2Flow
-                every { userServiceMock2.getById(isAny(), isEqual(user2)) } returns
-                        MutableStateFlow(roomUser(roomId22, user2))
-                every { userServiceMock2.getById(isEqual(roomId21), isEqual(user3)) } returns
-                        MutableStateFlow(roomUser(roomId21, user3))
-
-                every { userServiceMock2.getAll(roomId21) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(roomId21, user1)),
-                                user2 to flowOf(roomUser(roomId21, user2))
-                            )
-                        )
-                every { userServiceMock2.getAll(roomId22) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(roomId22, user1)),
-                                user2 to flowOf(roomUser(roomId22, user2))
-                            )
-                        )
-                every { userServiceMock2.getAll(roomId23) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(roomId23, user1)),
-                                user3 to flowOf(roomUser(roomId23, user3))
-                            )
-                        )
-                every { userServiceMock2.userPresence } returns MutableStateFlow(mapOf())
-
-                every {
-                    roomServiceMock2.getState<CreateEventContent>(
-                        isNot(listOf(spaceId2, spaceId21)),
-                        isAny(),
-                        isAny()
-                    )
-                } returns flowOf(
-                    StateEvent(
-                        content = CreateEventContent(creator = user1),
-                        id = EventId(""),
-                        sender = user1,
-                        roomId = roomId1,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    )
+            every { matrixClientMock2.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock2 }
+                        single { userServiceMock2 }
+                    }
                 )
+            }.koin
+            every { matrixClientMock2.userId } returns user2
+            every { matrixClientMock2.api } returns matrixClientServerApiClientMock
+            every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
 
-                every {
-                    roomNameMock.getRoomName(isAny<Room>(), isAny(), isAny())
-                } returns flowOf("room")
-                every {
-                    roomNameMock.getRoomName(isAny<RoomId>(), isAny(), isAny())
-                } returns flowOf("room")
-                every { roomServiceMock2.getLastTimelineEvent(isAny(), isAny()) } returns flowOf(null)
+            every { userServiceMock2.getById(eq(roomId21), eq(user1)) } returns
+                    MutableStateFlow(roomUser(roomId21, user1))
+            every { userServiceMock2.getById(eq(roomId22), eq(user1)) } returns
+                    MutableStateFlow(roomUser(roomId22, user1))
+            every { userServiceMock2.getById(eq(roomId21), eq(user2)) } returns user2Flow
+            every { userServiceMock2.getById(any(), eq(user2)) } returns
+                    MutableStateFlow(roomUser(roomId22, user2))
+            every { userServiceMock2.getById(eq(roomId21), eq(user3)) } returns
+                    MutableStateFlow(roomUser(roomId21, user3))
 
-                every { userServiceMock2.getAccountData<DirectEventContent>() } returns
-                        MutableStateFlow(
-                            DirectEventContent(
-                                mappings = mapOf(
-                                    user2 to setOf(roomId21),
-                                )
+            every { userServiceMock2.getAll(roomId21) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(roomId21, user1)),
+                            user2 to flowOf(roomUser(roomId21, user2))
+                        )
+                    )
+            every { userServiceMock2.getAll(roomId22) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(roomId22, user1)),
+                            user2 to flowOf(roomUser(roomId22, user2))
+                        )
+                    )
+            every { userServiceMock2.getAll(roomId23) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(roomId23, user1)),
+                            user3 to flowOf(roomUser(roomId23, user3))
+                        )
+                    )
+            every { userServiceMock2.userPresence } returns MutableStateFlow(mapOf())
+
+            every {
+                roomServiceMock2.getState(
+                    isNot(listOf(spaceId2, spaceId21)),
+                    CreateEventContent::class,
+                    any()
+                )
+            } returns flowOf(
+                StateEvent(
+                    content = CreateEventContent(creator = user1),
+                    id = EventId(""),
+                    sender = user1,
+                    roomId = roomId1,
+                    originTimestamp = 0L,
+                    stateKey = ""
+                )
+            )
+            every {
+                roomServiceMock2.getState(
+                    any(),
+                    JoinRulesEventContent::class,
+                    any()
+                )
+            } returns flowOf(
+                StateEvent(
+                    content = JoinRulesEventContent(JoinRulesEventContent.JoinRule.Invite),
+                    id = EventId(""),
+                    sender = user1,
+                    roomId = roomId1,
+                    originTimestamp = 0L,
+                    stateKey = ""
+                )
+            )
+
+            every {
+                roomNameMock.getRoomName(any<Room>(), any(), any())
+            } returns flowOf("room")
+            every {
+                roomNameMock.getRoomName(any<RoomId>(), any(), any())
+            } returns flowOf("room")
+            every { roomServiceMock2.getLastTimelineEvent(any(), any()) } returns flowOf(null)
+
+            every { userServiceMock2.getAccountData(DirectEventContent::class) } returns
+                    MutableStateFlow(
+                        DirectEventContent(
+                            mappings = mapOf(
+                                user2 to setOf(roomId21),
                             )
                         )
-            }
+                    )
 
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent, isDirect = true)
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
@@ -1118,91 +1130,89 @@ class RoomListViewModelTest : ShouldSpec() {
             val room23 = Room(roomId23, createEventContent = roomCreateEventContent)
             val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
             val space21 = Room(spaceId21, createEventContent = spaceCreateEventContent)
-            with(mocker) {
-                every { roomServiceMock.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId1 to MutableStateFlow(room1),
-                        roomId2 to MutableStateFlow(room2),
-                        roomId3 to MutableStateFlow(room3),
-                        roomId4 to MutableStateFlow(room4),
-                        spaceId2 to MutableStateFlow(space2),
-                    )
+            every { roomServiceMock.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId1 to MutableStateFlow(room1),
+                    roomId2 to MutableStateFlow(room2),
+                    roomId3 to MutableStateFlow(room3),
+                    roomId4 to MutableStateFlow(room4),
+                    spaceId2 to MutableStateFlow(space2),
                 )
-                every { roomServiceMock2.getAll() } returns MutableStateFlow(
-                    mapOf(
-                        roomId21 to MutableStateFlow(room21),
-                        roomId22 to MutableStateFlow(room22),
-                        roomId23 to MutableStateFlow(room23),
-                        spaceId21 to MutableStateFlow(space21),
-                    )
+            )
+            every { roomServiceMock2.getAll() } returns MutableStateFlow(
+                mapOf(
+                    roomId21 to MutableStateFlow(room21),
+                    roomId22 to MutableStateFlow(room22),
+                    roomId23 to MutableStateFlow(room23),
+                    spaceId21 to MutableStateFlow(space21),
                 )
-                every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-                every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-                every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-                every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
-                every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-                every { roomServiceMock2.getById(roomId21) } returns MutableStateFlow(room21)
-                every { roomServiceMock2.getById(roomId22) } returns MutableStateFlow(room22)
-                every { roomServiceMock2.getById(roomId23) } returns MutableStateFlow(room23)
-                every { roomServiceMock2.getById(spaceId21) } returns MutableStateFlow(space21)
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+            every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
+            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
+            every { roomServiceMock2.getById(roomId21) } returns MutableStateFlow(room21)
+            every { roomServiceMock2.getById(roomId22) } returns MutableStateFlow(room22)
+            every { roomServiceMock2.getById(roomId23) } returns MutableStateFlow(room23)
+            every { roomServiceMock2.getById(spaceId21) } returns MutableStateFlow(space21)
 
-                every { roomServiceMock.getState<CreateEventContent>(spaceId2, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
-                every { roomServiceMock2.getState<CreateEventContent>(spaceId21, "") } returns
-                        flowOf(
-                            StateEvent(
-                                CreateEventContent(
-                                    creator = user1,
-                                    federate = false,
-                                    roomVersion = "",
-                                    type = RoomType.Space,
-                                ),
-                                EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                            )
+                    )
+            every { roomServiceMock2.getState(spaceId21, CreateEventContent::class, "") } returns
+                    flowOf(
+                        StateEvent(
+                            CreateEventContent(
+                                creator = user1,
+                                federate = false,
+                                roomVersion = "",
+                                type = RoomType.Space,
+                            ),
+                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
                         )
+                    )
 
-                every {
-                    roomServiceMock.getAllState<ChildEventContent>(isEqual(spaceId2), isAny())
-                } returns
-                        flowOf(
-                            mapOf(
-                                roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
-                                roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
-                            )
+            every {
+                roomServiceMock.getAllState(eq(spaceId2), ChildEventContent::class)
+            } returns
+                    flowOf(
+                        mapOf(
+                            roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
+                            roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
                         )
-                every {
-                    roomServiceMock2.getAllState<ChildEventContent>(isEqual(spaceId2), isAny())
-                } returns flowOf(mapOf())
-                every {
-                    roomServiceMock2.getAllState<ChildEventContent>(isEqual(spaceId21), isAny())
-                } returns
-                        flowOf(
-                            mapOf(
-                                roomId23.full to flowOf(spaceChildEvent(spaceId21, roomId23)),
-                            )
+                    )
+            every {
+                roomServiceMock2.getAllState(eq(spaceId2), ChildEventContent::class)
+            } returns flowOf(mapOf())
+            every {
+                roomServiceMock2.getAllState(eq(spaceId21), ChildEventContent::class)
+            } returns
+                    flowOf(
+                        mapOf(
+                            roomId23.full to flowOf(spaceChildEvent(spaceId21, roomId23)),
                         )
+                    )
 
-                every { userServiceMock.getAll(spaceId2) } returns
-                        MutableStateFlow(
-                            mapOf(
-                                user1 to flowOf(roomUser(spaceId2, user1)),
-                                user2 to flowOf(roomUser(spaceId2, user2)),
-                                user3 to flowOf(roomUser(spaceId2, user3)),
-                            )
+            every { userServiceMock.getAll(spaceId2) } returns
+                    MutableStateFlow(
+                        mapOf(
+                            user1 to flowOf(roomUser(spaceId2, user1)),
+                            user2 to flowOf(roomUser(spaceId2, user2)),
+                            user3 to flowOf(roomUser(spaceId2, user3)),
                         )
-                every { userServiceMock2.getAll(spaceId2) } returns MutableStateFlow(mapOf())
-                every { userServiceMock2.getAll(spaceId21) } returns MutableStateFlow(mapOf())
-            }
+                    )
+            every { userServiceMock2.getAll(spaceId2) } returns MutableStateFlow(mapOf())
+            every { userServiceMock2.getAll(spaceId21) } returns MutableStateFlow(mapOf())
 
             val cut = roomListViewModel(
                 coroutineContext,
@@ -1287,32 +1297,30 @@ class RoomListViewModelTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             val syncState = MutableStateFlow(SyncState.STOPPED)
 
-            with(mocker) {
-                every { matrixClientMock2.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock2 }
-                            single { userServiceMock2 }
-                            single { keyServiceMock2 }
-                        }
-                    )
-                }.koin
+            every { matrixClientMock2.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock2 }
+                        single { userServiceMock2 }
+                        single { keyServiceMock2 }
+                    }
+                )
+            }.koin
 
-                every { keyServiceMock.getTrustLevel(isAny<UserId>(), isAny()) } returns
-                        flowOf(DeviceTrustLevel.CrossSigned(true))
-                every { keyServiceMock2.getTrustLevel(isAny<UserId>(), isAny()) } returns
-                        flowOf(DeviceTrustLevel.CrossSigned(false))
-                every { matrixClientMock.userId } returns user1
-                every { matrixClientMock2.userId } returns user2
-                every { matrixClientMock.deviceId } returns "device1"
-                every { matrixClientMock2.deviceId } returns "device2"
-                every { matrixClientMock.syncState } returns syncState
-                every { matrixClientMock2.syncState } returns syncState
-                every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
-                every { roomServiceMock2.getAll() } returns MutableStateFlow(mapOf())
-                every { userServiceMock2.getAccountData<DirectEventContent>() } returns
-                        MutableStateFlow(DirectEventContent(mappings = mapOf()))
-            }
+            every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns
+                    flowOf(DeviceTrustLevel.CrossSigned(true))
+            every { keyServiceMock2.getTrustLevel(any<UserId>(), any()) } returns
+                    flowOf(DeviceTrustLevel.CrossSigned(false))
+            every { matrixClientMock.userId } returns user1
+            every { matrixClientMock2.userId } returns user2
+            every { matrixClientMock.deviceId } returns "device1"
+            every { matrixClientMock2.deviceId } returns "device2"
+            every { matrixClientMock.syncState } returns syncState
+            every { matrixClientMock2.syncState } returns syncState
+            every { roomServiceMock.getAll() } returns MutableStateFlow(mapOf())
+            every { roomServiceMock2.getAll() } returns MutableStateFlow(mapOf())
+            every { userServiceMock2.getAccountData(DirectEventContent::class) } returns
+                    MutableStateFlow(DirectEventContent(mappings = mapOf()))
 
             launch { cut.unverifiedAccounts.collect() }
             testCoroutineScheduler.advanceUntilIdle()
@@ -1394,11 +1402,11 @@ class RoomListViewModelTest : ShouldSpec() {
             ),
             selectedRoomId = MutableStateFlow(RoomId("roomId", "localhost")),
             onRoomSelected = onRoomSelectedMock,
-            onCreateNewRoom = mockFunction1(mocker),
-            onUserSettingsSelected = mockFunction0(mocker),
-            onOpenAppInfo = mockFunction0(mocker),
-            onOpenAccountsOverview = mockFunction0(mocker),
-            onSendLogs = mockFunction0(mocker),
+            onCreateNewRoom = mock(),
+            onUserSettingsSelected = mock(),
+            onOpenAppInfo = mock(),
+            onOpenAccountsOverview = mock(),
+            onSendLogs = mock(),
             onAccountSelected = onAccountSelected
         )
     }

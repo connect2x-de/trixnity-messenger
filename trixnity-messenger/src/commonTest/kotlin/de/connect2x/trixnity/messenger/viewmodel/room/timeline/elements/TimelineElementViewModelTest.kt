@@ -2,19 +2,35 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.isTimelineEvent
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
-import isTimelineEvent
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
@@ -26,10 +42,13 @@ import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.*
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
+import net.folivo.trixnity.core.model.events.RoomEventContent
+import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -37,11 +56,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction1
-import org.kodein.mock.mockFunction2
-import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -50,56 +64,46 @@ import kotlin.coroutines.CoroutineContext
 class TimelineElementViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val roomId = RoomId("room", "localhost")
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var downloadManagerMock: DownloadManager
+    val downloadManagerMock = mock<DownloadManager>()
 
-    private lateinit var roomUserMeMocker: Mocker.Every<Flow<RoomUser?>>
+    private lateinit var roomUserMeMocker: BlockingAnsweringScope<Flow<RoomUser?>>
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(matrixClientMock, roomServiceMock, userServiceMock, downloadManagerMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns me
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns me
+            roomUserMeMocker =
+                every { userServiceMock.getById(eq(roomId), eq(me)) }
+            roomUserMeMocker returns MutableStateFlow(roomUser(me, "Me"))
+            every { userServiceMock.getById(eq(roomId), eq(alice)) } returns
+                    MutableStateFlow(roomUser(alice, "Alice"))
+            every { userServiceMock.getById(eq(roomId), eq(bob)) } returns
+                    MutableStateFlow(roomUser(bob, "Bob"))
 
-                roomUserMeMocker =
-                    every { userServiceMock.getById(isEqual(roomId), isEqual(me)) }
-                roomUserMeMocker returns MutableStateFlow(roomUser(me, "Me"))
-                every { userServiceMock.getById(isEqual(roomId), isEqual(alice)) } returns
-                        MutableStateFlow(roomUser(alice, "Alice"))
-                every { userServiceMock.getById(isEqual(roomId), isEqual(bob)) } returns
-                        MutableStateFlow(roomUser(bob, "Bob"))
-
-                every { userServiceMock.canRedactEvent(isAny(), isAny()) } returns flowOf(true)
-                every { userServiceMock.canSendEvent(isAny(), isAny()) } returns flowOf(true)
-            }
+            every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+            every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
         }
 
         should("display a text message") {
@@ -328,11 +332,11 @@ class TimelineElementViewModelTest : ShouldSpec() {
             isReadFlow = MutableStateFlow(false),
             readBy = MutableStateFlow(listOf()),
             shouldShowUnreadMarkerFlow = MutableStateFlow(false),
-            onMessageEdited = mockFunction1(mocker),
-            onMessageRepliedTo = mockFunction1(mocker),
-            onMessageReportTo = mockFunction1(mocker),
-            onOpenModal = mockFunction4(mocker),
-            onOpenMention = mockFunction2(mocker),
+            onMessageEdited = mock(),
+            onMessageRepliedTo = mock(),
+            onMessageReportTo = mock(),
+            onOpenModal = mock(),
+            onOpenMention = mock(),
         )
     }
 
@@ -349,10 +353,10 @@ class TimelineElementViewModelTest : ShouldSpec() {
             gap = null,
         )
 
-        mocker.every {
+        every {
             roomServiceMock.getPreviousTimelineEvent(
                 isTimelineEvent(timelineEvent),
-                isAny(),
+                any(),
             )
         } returns
                 previousEvent?.let { MutableStateFlow(it) }

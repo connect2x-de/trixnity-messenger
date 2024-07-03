@@ -2,18 +2,41 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.*
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.ADMIN
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -22,7 +45,6 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
@@ -36,8 +58,6 @@ import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -45,8 +65,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberListElementViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
-
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
@@ -78,86 +96,82 @@ class MemberListElementViewModelTest : ShouldSpec() {
         )
     )
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
+    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
     lateinit var i18n: I18n
 
-    private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
+    private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
 
             i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                        }
-                    )
-                }.koin
-                syncStateMocker = every { matrixClientMock.syncState }
-                syncStateMocker returns MutableStateFlow(SyncState.STARTED)
-                every { matrixClientMock.api } returns matrixClientServerApiMock
-
-                every { matrixClientServerApiMock.room } returns roomsApiClientMock
-
-                every { matrixClientMock.userId } returns me
-
-                every { roomServiceMock.getById(isEqual(roomId)) } returns MutableStateFlow(
-                    Room(isDirect = true, roomId = roomId)
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                keyServiceMock,
+                matrixClientServerApiMock,
+                usersApiClientMock,
+                roomsApiClientMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                    }
                 )
+            }.koin
+            syncStateMocker = every { matrixClientMock.syncState }
+            syncStateMocker returns MutableStateFlow(SyncState.STARTED)
+            every { matrixClientMock.api } returns matrixClientServerApiMock
 
-                every { userServiceMock.canKickUser(isEqual(roomId), isAny()) } returns
-                        MutableStateFlow(true)
-                every { userServiceMock.getPowerLevel(isEqual(roomId), isEqual(alice)) } returns
-                        MutableStateFlow(50)
-                every {
-                    userServiceMock.canSetPowerLevelToMax(isEqual(roomId), isAny())
-                } returns MutableStateFlow(100)
-                every { userServiceMock.getAccountData<IgnoredUserListEventContent>() } returns flowOf(
-                    IgnoredUserListEventContent(emptyMap())
-                )
+            every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
-                every { keyServiceMock.getTrustLevel(isAny()) } returns flowOf(UserTrustLevel.Blocked)
+            every { matrixClientMock.userId } returns me
 
-                every { userServiceMock.userPresence} returns MutableStateFlow(
-                    mapOf(me to PresenceEventContent(Presence.OFFLINE))
-                )
+            every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
+                Room(isDirect = true, roomId = roomId)
+            )
 
-            }
+            every { userServiceMock.canKickUser(eq(roomId), any()) } returns
+                    MutableStateFlow(true)
+            every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns
+                    MutableStateFlow(50)
+            every {
+                userServiceMock.canSetPowerLevelToMax(eq(roomId), any())
+            } returns MutableStateFlow(100)
+            every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
+                IgnoredUserListEventContent(emptyMap())
+            )
+
+            every { keyServiceMock.getTrustLevel(any()) } returns flowOf(UserTrustLevel.Blocked)
+
+            every { userServiceMock.userPresence } returns MutableStateFlow(
+                mapOf(me to PresenceEventContent(Presence.OFFLINE))
+            )
         }
 
 
         should("initially do not create MemberElement before subscription") {
 
-            mocker.every { userServiceMock.getPowerLevel(isEqual(roomId), isAny()) } returns
+            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns
                     MutableStateFlow(50)
 
             val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
@@ -171,7 +185,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
         should("Create MemberElement after subscription") {
 
-            mocker.every { userServiceMock.getPowerLevel(isEqual(roomId), isAny()) } returns
+            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns
                     MutableStateFlow(50)
 
             val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
@@ -187,18 +201,18 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
         context("kicking an user") {
             beforeTest {
-                mocker.every {
-                    userServiceMock.getPowerLevel(isEqual(roomId), isAny())
+                every {
+                    userServiceMock.getPowerLevel(eq(roomId), any())
                 } returns
                         MutableStateFlow(50)
             }
             should("return to room settings after kicking an user") {
-                mocker.everySuspending {
+                everySuspend {
                     roomsApiClientMock.kickUser(
-                        isEqual(roomId),
-                        isEqual(alice),
-                        isNull(),
-                        isNull()
+                        eq(roomId),
+                        eq(alice),
+                        eqNull(),
+                        eqNull()
                     )
                 } returns Result.success(Unit)
 
@@ -207,8 +221,8 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 testCoroutineScheduler.advanceTimeBy(100.milliseconds)
 
                 cut.error.value shouldBe ""
-                mocker.verifyWithSuspend(exhaustive = false, false) {
-                    roomsApiClientMock.kickUser(isEqual(roomId), isEqual(alice), isNull(), isNull())
+                verifySuspend {
+                    roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
                 }
                 cut.memberOptionsOpen.value shouldBe false
                 cancelNeverEndingCoroutines()
@@ -229,12 +243,12 @@ class MemberListElementViewModelTest : ShouldSpec() {
             }
 
             should("show an error message when kicking an user fails") {
-                mocker.everySuspending {
+                everySuspend {
                     roomsApiClientMock.kickUser(
-                        isEqual(roomId),
-                        isEqual(alice),
-                        isNull(),
-                        isNull()
+                        eq(roomId),
+                        eq(alice),
+                        eqNull(),
+                        eqNull()
                     )
                 } returns
                         Result.failure(RuntimeException("Oh nooo"))
@@ -252,18 +266,18 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
         context("role computation for the member list") {
             beforeTest {
-                mocker.every {
-                    userServiceMock.getPowerLevel(isEqual(roomId), isEqual(alice))
+                every {
+                    userServiceMock.getPowerLevel(eq(roomId), eq(alice))
                 } returns
                         MutableStateFlow(50)
-                mocker.every {
-                    userServiceMock.getPowerLevel(isEqual(roomId), isEqual(me))
+                every {
+                    userServiceMock.getPowerLevel(eq(roomId), eq(me))
                 } returns
                         MutableStateFlow(50)
             }
             context("Member is admin") {
                 should("return the role: admin") {
-                    mocker.every {
+                    every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
@@ -272,7 +286,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
                 }
                 should("show role name in view") {
-                    mocker.every {
+                    every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
@@ -283,7 +297,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
             }
             context("Member is moderator") {
                 should("return the role: moderator") {
-                    mocker.every {
+                    every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
@@ -291,7 +305,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     cancelNeverEndingCoroutines()
                 }
                 should("show role name in view") {
-                    mocker.every {
+                    every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
@@ -304,7 +318,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
             context("Member is a normal user") {
                 should("return the role: user") {
-                    mocker.every {
+                    every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
@@ -312,7 +326,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     cancelNeverEndingCoroutines()
                 }
                 should("do not show role name in view") {
-                    mocker.every {
+                    every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
