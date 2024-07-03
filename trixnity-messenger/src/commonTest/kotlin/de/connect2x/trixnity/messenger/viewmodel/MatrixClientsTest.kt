@@ -1,52 +1,60 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.*
+import de.connect2x.trixnity.messenger.AccountAlreadyExistsException
 import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
+import de.connect2x.trixnity.messenger.MatrixClientFactory
+import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixClientsImpl
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
+import dev.mokkery.answering.SuspendAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.AuthenticationApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType.User
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class MatrixClientsTest : ShouldSpec() {
     override fun timeout(): Long = 5_000
 
-    val mocker = Mocker()
-
     private lateinit var mutableMatrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
     private lateinit var loginState: MutableStateFlow<MatrixClient.LoginState>
 
-    @Mock
-    lateinit var matrixClientMock1: MatrixClient
+    val matrixClientMock1 = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock2: MatrixClient
+    val matrixClientMock2 = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientServerApiClient: MatrixClientServerApiClient
+    val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var authenticationApiClient: AuthenticationApiClient
+    val authenticationApiClient = mock<AuthenticationApiClient>()
 
-    @Mock
-    lateinit var matrixClientFactory: MatrixClientFactory
+    val matrixClientFactory = mock<MatrixClientFactory>()
 
-    @Mock
-    lateinit var deleteAccountData: DeleteAccountData
+    val deleteAccountData = mock<DeleteAccountData>()
 
     lateinit var settings: MatrixMessengerSettingsHolder
 
@@ -55,78 +63,82 @@ class MatrixClientsTest : ShouldSpec() {
     private var initFromStoreCalled = false
     private var initFromStoreCalledCount = 0
 
-    private lateinit var login: Mocker.EverySuspend<Result<MatrixClientFactory.LoginResult>>
-    private lateinit var initFromStore: Mocker.EverySuspend<Result<MatrixClient?>>
+    private lateinit var login: SuspendAnsweringScope<Result<MatrixClientFactory.LoginResult>>
+    private lateinit var initFromStore: SuspendAnsweringScope<Result<MatrixClient?>>
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
             settings = createTestMatrixMessengerSettingsHolder()
             loginCalled = false
             logoutCalled = false
             initFromStoreCalled = false
             initFromStoreCalledCount = 0
 
-            with(mocker) {
-                login = everySuspending {
-                    matrixClientFactory.login(
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                        isAny()
+            resetMocks(
+                matrixClientMock1,
+                matrixClientMock2,
+                matrixClientServerApiClient,
+                authenticationApiClient,
+                matrixClientFactory,
+                deleteAccountData
+            )
+            login = everySuspend {
+                matrixClientFactory.login(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            }
+
+            login calls {
+                val username = checkNotNull((it.args[1] as? User)?.user)
+                runCatching {
+                    @Suppress("UNCHECKED_CAST")
+                    (it.args[4] as? suspend (MatrixClient.LoginInfo) -> Unit)
+                        ?.invoke(MatrixClient.LoginInfo(UserId(username, "server"), "", ""))
+                    loginCalled = true
+                    MatrixClientFactory.LoginResult(
+                        when (username) {
+                            "test1" -> matrixClientMock1
+                            "test2" -> matrixClientMock2
+                            else -> fail("username $username not supported in login")
+                        }, null
                     )
                 }
-
-                login runs {
-                    val username = checkNotNull((it[1] as? User)?.user)
-                    runCatching {
-                        @Suppress("UNCHECKED_CAST")
-                        (it[4] as? suspend (MatrixClient.LoginInfo) -> Unit)
-                            ?.invoke(MatrixClient.LoginInfo(UserId(username, "server"), "", ""))
-                        loginCalled = true
-                        MatrixClientFactory.LoginResult(
-                            when (username) {
-                                "test1" -> matrixClientMock1
-                                "test2" -> matrixClientMock2
-                                else -> fail("username $username not supported in login")
-                            }, null
-                        )
-                    }
-                }
-                initFromStore = everySuspending { matrixClientFactory.initFromStore(isAny(), isAny()) }
-                initFromStore runs {
-                    val username = checkNotNull((it[0] as? UserId)).localpart
-                    initFromStoreCalled = true
-                    initFromStoreCalledCount++
-                    val matrixClient = when (username) {
-                        "test1" -> matrixClientMock1
-                        "test2" -> matrixClientMock2
-                        else -> fail("username $username not supported in login")
-                    }
-                    Result.success(matrixClient)
-                }
-
-                every { matrixClientMock1.userId } returns UserId("test1", "server")
-                every { matrixClientMock2.userId } returns UserId("test2", "server")
-                loginState = MutableStateFlow(MatrixClient.LoginState.LOGGED_IN)
-                every { matrixClientMock1.loginState } returns loginState
-                every { matrixClientMock2.loginState } returns loginState
-                everySuspending { matrixClientMock1.logout() } runs {
-                    logoutCalled = true
-                    Result.success(Unit)
-                }
-                every { matrixClientServerApiClient.authentication } returns authenticationApiClient
-                every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
-                everySuspending { authenticationApiClient.logout(isAny()) } returns Result.success(Unit)
-                everySuspending { matrixClientMock1.stop(isAny()) } returns Unit
-                everySuspending { matrixClientMock2.stop(isAny()) } returns Unit
-
-                everySuspending { deleteAccountData.invoke(isAny()) } returns Unit
             }
+            initFromStore = everySuspend { matrixClientFactory.initFromStore(any(), any()) }
+            initFromStore calls {
+                val username = checkNotNull((it.args[0] as? UserId)).localpart
+                initFromStoreCalled = true
+                initFromStoreCalledCount++
+                val matrixClient = when (username) {
+                    "test1" -> matrixClientMock1
+                    "test2" -> matrixClientMock2
+                    else -> fail("username $username not supported in login")
+                }
+                Result.success(matrixClient)
+            }
+
+            every { matrixClientMock1.userId } returns UserId("test1", "server")
+            every { matrixClientMock2.userId } returns UserId("test2", "server")
+            loginState = MutableStateFlow(MatrixClient.LoginState.LOGGED_IN)
+            every { matrixClientMock1.loginState } returns loginState
+            every { matrixClientMock2.loginState } returns loginState
+            everySuspend { matrixClientMock1.logout() } calls {
+                logoutCalled = true
+                Result.success(Unit)
+            }
+            every { matrixClientServerApiClient.authentication } returns authenticationApiClient
+            every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
+            everySuspend { authenticationApiClient.logout(any()) } returns Result.success(Unit)
+            everySuspend { matrixClientMock1.stop(any()) } returns Unit
+            everySuspend { matrixClientMock2.stop(any()) } returns Unit
+
+            everySuspend { deleteAccountData.invoke(any()) } returns Unit
             mutableMatrixClients = MutableStateFlow(mapOf())
         }
 
@@ -217,7 +229,7 @@ class MatrixClientsTest : ShouldSpec() {
             should("has failure when init from store is not possible") {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
-                initFromStore runs {
+                initFromStore calls {
                     initFromStoreCalled = true
                     Result.success(null)
                 }
@@ -233,7 +245,7 @@ class MatrixClientsTest : ShouldSpec() {
             should("has failure on exception") {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
-                initFromStore runs {
+                initFromStore calls {
                     Result.failure(StoreLockedException("The database is locked."))
                 }
                 cut.initFromStore() shouldBe MatrixClients.InitFromStoreResult(
@@ -261,8 +273,8 @@ class MatrixClientsTest : ShouldSpec() {
                 )
                 logoutCalled shouldBe true
                 settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
-                mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop(isAny())
+                verifySuspend {
+                    matrixClientMock1.stop(any())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -283,8 +295,8 @@ class MatrixClientsTest : ShouldSpec() {
                 cut.value shouldBe mapOf()
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf()
-                mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop(isAny())
+                verifySuspend {
+                    matrixClientMock1.stop(any())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -308,8 +320,8 @@ class MatrixClientsTest : ShouldSpec() {
                 )
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
-                mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
-                    matrixClientMock1.stop(isAny())
+                verifySuspend {
+                    matrixClientMock1.stop(any())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 

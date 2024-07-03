@@ -17,6 +17,7 @@ variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
   GRADLE_USER_HOME: $CI_PROJECT_DIR/.gradle
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
+  KOTLIN_DATA_DIR: $CI_PROJECT_DIR/.kotlin
   BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/trixnity/trixnity-build-linux:latest
 
 .cache-linux: &cache-linux
@@ -30,6 +31,7 @@ variables:
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
+      - $KOTLIN_DATA_DIR
 
 .pull-cache-linux: &pull-cache-linux
   - key: "$CI_COMMIT_REF_NAME-linux"
@@ -38,6 +40,7 @@ variables:
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
+      - $KOTLIN_DATA_DIR
 
 .cache-mac: &cache-mac
   - key: global-trixnity-messenger-cache-mac
@@ -45,11 +48,13 @@ variables:
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
+      - $KOTLIN_DATA_DIR
   - key: "$CI_COMMIT_REF_NAME-mac"
     policy: push
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
+      - $KOTLIN_DATA_DIR
 
 .pull-cache-mac: &pull-cache-mac
   - key: "$CI_COMMIT_REF_NAME-mac"
@@ -58,6 +63,7 @@ variables:
     paths:
       - $GRADLE_USER_HOME
       - $KONAN_DATA_DIR
+      - $KOTLIN_DATA_DIR
 
 .artifact-reports: &artifact-reports
   name: reports

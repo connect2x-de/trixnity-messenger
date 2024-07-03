@@ -3,9 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
@@ -23,15 +25,11 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 class RoomNameCalculationTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
-
-    val mocker = Mocker()
 
     private val user1 = UserId("user1", "server")
     private val user2 = UserId("user2", "server")
@@ -39,61 +37,54 @@ class RoomNameCalculationTest : ShouldSpec() {
     private val user4 = UserId("user4", "server")
     private val roomId = RoomId("room1", "server")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var roomInviterMock: RoomInviter
+    val roomInviterMock = mock<RoomInviter>()
 
     lateinit var i18n: I18n
 
-    lateinit var user1Mocker: Mocker.Every<Flow<RoomUser?>>
+    lateinit var user1Mocker: BlockingAnsweringScope<Flow<RoomUser?>>
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
+            resetMocks(matrixClientMock, userServiceMock, roomInviterMock)
             i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                user1Mocker = every { userServiceMock.getById(roomId, user1) }
-                user1Mocker returns flowOf(
-                    RoomUser(
-                        roomId,
-                        userId = user1,
-                        name = "User 1",
-                        event = memberEvent(user1),
-                    )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
                 )
-                every { userServiceMock.getById(roomId, user2) } returns flowOf(
-                    RoomUser(
-                        roomId,
-                        userId = user2,
-                        name = "User 2",
-                        event = memberEvent(user2),
-                    )
+            }.koin
+            user1Mocker = every { userServiceMock.getById(roomId, user1) }
+            user1Mocker returns flowOf(
+                RoomUser(
+                    roomId,
+                    userId = user1,
+                    name = "User 1",
+                    event = memberEvent(user1),
                 )
-                every { userServiceMock.getById(roomId, user3) } returns flowOf(
-                    RoomUser(
-                        roomId,
-                        userId = user3,
-                        name = "User 3",
-                        event = memberEvent(user3),
-                    )
+            )
+            every { userServiceMock.getById(roomId, user2) } returns flowOf(
+                RoomUser(
+                    roomId,
+                    userId = user2,
+                    name = "User 2",
+                    event = memberEvent(user2),
                 )
-                every { userServiceMock.getById(roomId, user4) } returns flowOf(null)
-            }
+            )
+            every { userServiceMock.getById(roomId, user3) } returns flowOf(
+                RoomUser(
+                    roomId,
+                    userId = user3,
+                    name = "User 3",
+                    event = memberEvent(user3),
+                )
+            )
+            every { userServiceMock.getById(roomId, user4) } returns flowOf(null)
         }
 
         should("return the room id when name field is empty") {

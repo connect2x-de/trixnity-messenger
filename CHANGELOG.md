@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- upgraded to Kotlin 2.0
+- changed JS media store to OPFS
+- internal: changed gradle lock mode
+- force remove of account data on logout
 - improvements in ExportRoom: parallel decryption, collect decryption errors
 
 ### Deprecated

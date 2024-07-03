@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import dev.mokkery.matcher.*
+
+import dev.mokkery.answering.*
+
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.JsonObject

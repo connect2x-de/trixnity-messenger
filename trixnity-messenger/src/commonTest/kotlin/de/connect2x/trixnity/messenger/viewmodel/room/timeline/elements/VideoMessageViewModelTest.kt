@@ -2,25 +2,33 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction4
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -31,33 +39,23 @@ import kotlin.time.Duration.Companion.seconds
 class VideoMessageViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
-
-    @Mock
-    lateinit var thumbnailsMock: Thumbnails
+    val thumbnailsMock = mock<Thumbnails>()
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
             Dispatchers.setMain(Dispatchers.Unconfined)
-
-            mocker.every { thumbnailsMock.mapProgressToProgressElement(isAny()) } returns flowOf(null)
+            resetMocks(matrixClientMock, thumbnailsMock)
+            every { thumbnailsMock.mapProgressToProgressElement(any()) } returns flowOf(null)
         }
 
         should("load a thumbnail successfully") {
-            mocker.everySuspending {
+            everySuspend {
                 thumbnailsMock.loadThumbnail(
-                    isEqual(matrixClientMock),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    eq(matrixClientMock),
+                    any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                 )
             } returns "thumbnail".encodeToByteArray()
 
@@ -72,17 +70,13 @@ class VideoMessageViewModelTest : ShouldSpec() {
         }
 
         should("load a thumbnail that takes a while to load") {
-            mocker.everySuspending {
+            everySuspend {
                 thumbnailsMock.loadThumbnail(
-                    isEqual(matrixClientMock),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    eq(matrixClientMock),
+                    any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                 )
-            } runs {
+            } calls {
                 delay(500.milliseconds)
                 "thumbnail".encodeToByteArray()
             }
@@ -103,15 +97,11 @@ class VideoMessageViewModelTest : ShouldSpec() {
         }
 
         should("return 'null' for a thumbnail that cannot be loaded") {
-            mocker.everySuspending {
+            everySuspend {
                 thumbnailsMock.loadThumbnail(
-                    isEqual(matrixClientMock),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    eq(matrixClientMock),
+                    any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                 )
             } returns null
 
@@ -151,7 +141,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(true),
             sender = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
             invitation = flowOf(null),
-            onOpenModal = mockFunction4(mocker),
+            onOpenModal = mock(),
         )
     }
 }

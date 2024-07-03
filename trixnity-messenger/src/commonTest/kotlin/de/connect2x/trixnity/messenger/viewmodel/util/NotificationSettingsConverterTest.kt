@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import dev.mokkery.matcher.*
+
+import dev.mokkery.answering.*
+
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings.Activity
 import io.kotest.core.spec.style.ShouldSpec

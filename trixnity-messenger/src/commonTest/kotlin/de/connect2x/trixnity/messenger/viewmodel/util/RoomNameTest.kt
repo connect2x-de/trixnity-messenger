@@ -3,6 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
@@ -22,57 +27,45 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 class RoomNameTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val roomId = RoomId("Room", "localhost")
 
     private val user1Id = UserId("user1", "localhost")
     private val user2Id = UserId("user2", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var roomInviter: RoomInviter
+    val roomInviter = mock<RoomInviter>()
 
     lateinit var i18n: I18n
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
+            resetMocks(matrixClientMock, roomServiceMock, userServiceMock, roomInviter)
             i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns user1Id
-            }
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns user1Id
         }
 
         should("change the name of the room according to the explicitName field") {
-            mocker.every { userServiceMock.getAll(isEqual(roomId)) } returns MutableStateFlow(emptyMap())
+            every { userServiceMock.getAll(eq(roomId)) } returns MutableStateFlow(emptyMap())
             val room = MutableStateFlow(
                 createBasicRoom(
                     RoomDisplayName(
@@ -83,9 +76,9 @@ class RoomNameTest : ShouldSpec() {
                     )
                 )
             )
-            mocker.every { roomServiceMock.getById(roomId) } returns room
-            mocker.every {
-                userServiceMock.getById(isEqual(roomId), isEqual(user1Id))
+            every { roomServiceMock.getById(roomId) } returns room
+            every {
+                userServiceMock.getById(eq(roomId), eq(user1Id))
             } returns MutableStateFlow(
                 createRoomUser(
                     i = 1,
