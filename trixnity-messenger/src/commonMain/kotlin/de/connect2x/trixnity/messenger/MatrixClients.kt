@@ -206,13 +206,13 @@ class MatrixClientsImpl(
     override suspend fun logout(userId: UserId): Result<Unit> {
         log.info { "logout (userId=$userId)" }
         return matrixClients.value[userId]?.let { matrixClient ->
-            matrixClient.logout()
-                .onFailure {
-                    log.error(it) { "could not logout $userId" }
-                }
-                .mapCatching {
-                    remove(userId).getOrThrow()
-                }
+            withContext(NonCancellable) {
+                matrixClient.logout()
+                    .onFailure {
+                        log.error(it) { "could not logout $userId" }
+                    }
+                remove(userId)
+            }
         } ?: Result.success(Unit)
     }
 
