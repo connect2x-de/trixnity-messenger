@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.export
 
 import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.resetMocks
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -37,10 +38,11 @@ import org.koin.dsl.module
 class ExportRoomTest : ShouldSpec() {
 
     private val roomId = RoomId("room1", "localhost")
+    private val roomIdWithErrors = RoomId("roomWithErrors", "localhost")
     private val alice = UserId("alice", "localhost")
     private val fakeProperties = object : ExportRoomSinkProperties {}
 
-    private fun timelineEvent(i: Long) = flowOf(
+    private fun timelineEvent(i: Long, decryptionError: Boolean = false) = flowOf(
         TimelineEvent(
             event = ClientEvent.RoomEvent.MessageEvent(
                 content = RoomMessageEventContent.TextBased.Text(i.toString()),
@@ -52,7 +54,15 @@ class ExportRoomTest : ShouldSpec() {
             previousEventId = null,
             nextEventId = null,
             gap = null,
-        )
+        ).run {
+            if (decryptionError) copy(
+                content = Result.failure(
+                    TimelineEvent.TimelineEventContentError.DecryptionError(
+                        IllegalStateException("decryption error")
+                    )
+                )
+            ) else this
+        }
     )
 
     private fun timelineEventWithMedia(i: Long) = flowOf(
@@ -91,27 +101,60 @@ class ExportRoomTest : ShouldSpec() {
                     }
                 )
             }.koin
-            every { roomServiceMock.getById(any()) } returns MutableStateFlow(
+            every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
                 Room(isDirect = true, roomId = roomId, lastEventId = EventId("19"))
+            )
+            every { roomServiceMock.getById(roomIdWithErrors) } returns MutableStateFlow(
+                Room(isDirect = true, roomId = roomIdWithErrors, lastEventId = EventId("21"))
             )
             val timeline =
                 (0..9).map { timelineEvent(it.toLong()) } +
                         (10..19).map { timelineEventWithMedia(it.toLong()) }
+            val timelineWithErrors =
+                (0..7).map { timelineEvent(it.toLong()) } +
+                        (8..9).map { timelineEvent(it.toLong(), true) } +
+                        (10..21).map { timelineEventWithMedia(it.toLong()) }
 
             every {
-                roomServiceMock.getTimelineEvents(any(), any(), eq(Direction.BACKWARDS), any())
+                roomServiceMock.getTimelineEvents(roomId, any(), Direction.BACKWARDS, any())
             } returns timeline.reversed().asFlow()
             every {
-                roomServiceMock.getTimelineEvents(any(), any(), eq(Direction.FORWARDS), any())
+                roomServiceMock.getTimelineEvents(
+                    roomIdWithErrors,
+                    any(),
+                    Direction.BACKWARDS,
+                    any()
+                )
+            } returns timelineWithErrors.reversed().asFlow()
+
+            every {
+                roomServiceMock.getTimelineEvents(roomId, any(), Direction.FORWARDS, any())
             } calls { params ->
                 val eventId = params.args[1] as EventId
                 timeline.asFlow().dropWhile { it.first().eventId != eventId }
             }
+            every {
+                roomServiceMock.getTimelineEvents(
+                    roomIdWithErrors,
+                    any(),
+                    Direction.FORWARDS,
+                    any()
+                )
+            } calls { params ->
+                val eventId = params.args[1] as EventId
+                timelineWithErrors.asFlow().dropWhile { it.first().eventId != eventId }
+            }
 
-            everySuspend { mediaServiceMock.getMedia(any(), any(), any()) } returns Result.success(
-                flowOf(ByteArray(0))
-            )
-
+            everySuspend {
+                mediaServiceMock.getMedia(any(), any(), any())
+            } returns Result.success(flowOf(ByteArray(0)))
+            everySuspend {
+                mediaServiceMock.getMedia("mxc://localhost/20", any(), any())
+            } returns Result.failure(IllegalStateException("download error"))
+            everySuspend {
+                mediaServiceMock.getMedia("mxc://localhost/21", any(), any())
+            } returns Result.failure(IllegalStateException("download error"))
+            
             every { sinkFactoryMock.create(any(), any()) } returns sinkMock
             everySuspend { sinkMock.start() } returns Result.success(Unit)
             everySuspend { sinkMock.finish() } returns Result.success(Unit)
@@ -121,7 +164,7 @@ class ExportRoomTest : ShouldSpec() {
         should("export timeline") {
             val cut = cut()
 
-            cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success
+            cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)
@@ -141,7 +184,7 @@ class ExportRoomTest : ShouldSpec() {
             val cut = cut()
 
             val progress = MutableStateFlow(ExportRoomProgress())
-            cut(roomId, fakeProperties, matrixClientMock, progress = progress) shouldBe ExportRoomResult.Success
+            cut(roomId, fakeProperties, matrixClientMock, progress = progress) shouldBe ExportRoomResult.Success()
 
             progress.value shouldBe ExportRoomProgress(20, 20)
         }
@@ -154,7 +197,7 @@ class ExportRoomTest : ShouldSpec() {
                 matrixClientMock,
                 rangeStartCondition = { it.eventId == EventId("5") },
                 rangeEndCondition = { it.eventId == EventId("15") },
-            ) shouldBe ExportRoomResult.Success
+            ) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)
@@ -173,6 +216,29 @@ class ExportRoomTest : ShouldSpec() {
                 }
                 sinkMock.finish()
             }
+        }
+        should("add errors to result") {
+            val cut = cut()
+
+            cut(roomIdWithErrors, fakeProperties, matrixClientMock) shouldBe
+                    ExportRoomResult.Success(
+                        missingMedia = listOf(
+                            ExportRoomResult.Success.MissingMedia(
+                                EventId("20"),
+                                "bXhjOi8vbG9jYWxob3N0LzIw",
+                                "download error"
+                            ),
+                            ExportRoomResult.Success.MissingMedia(
+                                EventId("21"),
+                                "bXhjOi8vbG9jYWxob3N0LzIx",
+                                "download error"
+                            ),
+                        ),
+                        decryptionFailed = listOf(
+                            DecryptionFailed(eventId = EventId("8"), reason = "error while decrypting TimelineEvent"),
+                            DecryptionFailed(eventId = EventId("9"), reason = "error while decrypting TimelineEvent"),
+                        ),
+                    )
         }
     }
 
