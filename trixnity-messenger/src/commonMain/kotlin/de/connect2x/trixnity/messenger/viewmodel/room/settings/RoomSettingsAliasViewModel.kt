@@ -129,11 +129,19 @@ class RoomSettingsAliasViewModelImpl(
         coroutineScope.launch {
             val newAliases = roomAliases.value?.aliases.orEmpty() + alias
 
-            if (this.aliasExists(alias)) {
-                log.debug { "Alias $alias already exists" }
-                newAliasError.value = i18n.settingsRoomAliasAddExists()
-                _isUpdating.value = false
-                return@launch
+            when (matrixClient.api.room.getRoomAlias(alias).getOrNull()?.roomId) {
+                selectedRoomId -> {
+                    newAliasError.value = null
+                    _isUpdating.value = false
+                    return@launch
+                }
+                null -> Unit
+                else -> {
+                    log.debug { "Alias $alias already exists" }
+                    newAliasError.value = i18n.settingsRoomAliasAddExists()
+                    _isUpdating.value = false
+                    return@launch
+                }
             }
 
             matrixClient.api.room.setRoomAlias(selectedRoomId, alias, userId).fold(
