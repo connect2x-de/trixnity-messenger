@@ -32,10 +32,11 @@ allprojects {
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven")
     }
 
-    dependencyLocking {
-        lockMode = LockMode.DEFAULT
-        lockAllConfigurations()
-    }
+    if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
+        dependencyLocking {
+            lockAllConfigurations()
+        }
 
-    val dependenciesForAll by tasks.registering(DependencyReportTask::class) { }
+        val dependenciesForAll by tasks.registering(DependencyReportTask::class) { }
+    }
 }
