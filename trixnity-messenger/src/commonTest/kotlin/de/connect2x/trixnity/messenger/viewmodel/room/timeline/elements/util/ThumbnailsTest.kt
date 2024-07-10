@@ -1,59 +1,59 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
-import de.connect2x.trixnity.messenger.viewmodel.mock.MediaServiceMock
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.utils.toByteArrayFlow
-import org.kodein.mock.Fake
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ThumbnailsTest : ShouldSpec() {
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val mediaServiceMock: MediaService = mock()
 
-    lateinit var mediaServiceMock: MediaService
-
-    @Fake
-    lateinit var jwk: EncryptedFile.JWK
+    val jwk: EncryptedFile.JWK = EncryptedFile.JWK("bla")
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-            mediaServiceMock = MediaServiceMock(mocker)
+            resetMocks(matrixClientMock, mediaServiceMock)
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { mediaServiceMock }
-                        }
-                    )
-                }.koin
-            }
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { mediaServiceMock }
+                    }
+                )
+            }.koin
         }
 
         should("load encrypted thumbnail file successfully") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(thumbnailFile),
-                    isAny(),
-                    isAny()
+                    eq(thumbnailFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.success("encryptedThumbnail".encodeToByteArray().toByteArrayFlow())
@@ -74,20 +74,20 @@ class ThumbnailsTest : ShouldSpec() {
 
         should("get the original file (<1MB) when the the encrypted thumbnail could not be loaded") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(thumbnailFile),
-                    isAny(),
-                    isAny()
+                    eq(thumbnailFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.failure(RuntimeException("Oh no!"))
             val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(originalFile),
-                    isAny(),
-                    isAny()
+                    eq(originalFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
@@ -108,20 +108,20 @@ class ThumbnailsTest : ShouldSpec() {
 
         should("get no thumbnail when neither the encrypted thumbnail nor the original file could be loaded") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(thumbnailFile),
-                    isAny(),
-                    isAny()
+                    eq(thumbnailFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.failure(RuntimeException("Oh no!"))
             val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(originalFile),
-                    isAny(),
-                    isAny()
+                    eq(originalFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.failure(RuntimeException("Oh no!"))
@@ -142,20 +142,20 @@ class ThumbnailsTest : ShouldSpec() {
 
         should("get no thumbnail when the encrypted thumbnail could not be loaded and the original file is larger than 1MB") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(thumbnailFile),
-                    isAny(),
-                    isAny()
+                    eq(thumbnailFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.failure(RuntimeException("Oh no!"))
             val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(originalFile),
-                    isAny(),
-                    isAny()
+                    eq(originalFile),
+                    any(),
+                    any()
                 )
             } returns
                     Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
@@ -176,13 +176,13 @@ class ThumbnailsTest : ShouldSpec() {
 
         should("suspend when loading the encrypted thumbnail takes a while") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    isEqual(thumbnailFile),
-                    isAny(),
-                    isAny()
+                    eq(thumbnailFile),
+                    any(),
+                    any()
                 )
-            } runs {
+            } calls {
                 delay(500)
                 Result.success("encryptedThumbnail".encodeToByteArray().toByteArrayFlow())
             }

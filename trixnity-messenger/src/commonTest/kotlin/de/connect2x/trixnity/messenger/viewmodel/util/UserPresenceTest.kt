@@ -1,5 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.resetMocks
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -18,16 +24,12 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class UserPresenceTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
-
-    val mocker = Mocker()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val scope = CoroutineScope(testDispatcher)
@@ -36,39 +38,36 @@ class UserPresenceTest : ShouldSpec() {
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClient: MatrixClientServerApiClient
+    val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var directRoomMock: DirectRoom
+    val directRoomMock = mock<DirectRoom>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.api } returns matrixClientServerApiClient
-                every { matrixClientServerApiClient.users } returns usersApiClientMock
-            }
+            resetMocks(
+                matrixClientMock,
+                userServiceMock,
+                matrixClientServerApiClient,
+                usersApiClientMock,
+                directRoomMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.api } returns matrixClientServerApiClient
+            every { matrixClientServerApiClient.user } returns usersApiClientMock
         }
 
         should("return null when not a direct room") {
@@ -78,8 +77,8 @@ class UserPresenceTest : ShouldSpec() {
                     bob to PresenceEventContent(presence = Presence.UNAVAILABLE)
                 )
             )
-            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+            every { userServiceMock.userPresence } returns userPresenceFlow
+            every { directRoomMock.getUsers(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
                 emptyList()
             )
 
@@ -98,8 +97,8 @@ class UserPresenceTest : ShouldSpec() {
                     bob to PresenceEventContent(presence = Presence.UNAVAILABLE)
                 )
             )
-            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+            every { userServiceMock.userPresence } returns userPresenceFlow
+            every { directRoomMock.getUsers(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
                 listOf(alice)
             )
 
@@ -113,11 +112,11 @@ class UserPresenceTest : ShouldSpec() {
 
         should("return 'offline' initially when no presence status found") {
             val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
-            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+            every { userServiceMock.userPresence } returns userPresenceFlow
+            every { directRoomMock.getUsers(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
                 listOf(alice)
             )
-            mocker.everySuspending { usersApiClientMock.getPresence(alice) } returns
+            everySuspend { usersApiClientMock.getPresence(alice) } returns
                     Result.failure(RuntimeException("Oh no!"))
 
             val cut = userPresence()
@@ -131,11 +130,11 @@ class UserPresenceTest : ShouldSpec() {
 
         should("update the presence information via a server request for users whose presence status is not known yet") {
             val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
-            mocker.every { userServiceMock.userPresence } returns userPresenceFlow
-            mocker.every { directRoomMock.getUsers(isEqual(matrixClientMock), isEqual(room)) } returns MutableStateFlow(
+            every { userServiceMock.userPresence } returns userPresenceFlow
+            every { directRoomMock.getUsers(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
                 listOf(alice)
             )
-            mocker.everySuspending { usersApiClientMock.getPresence(alice) } returns
+            everySuspend { usersApiClientMock.getPresence(alice) } returns
                     Result.success(PresenceEventContent(presence = Presence.ONLINE))
 
             val cut = userPresence()

@@ -56,6 +56,7 @@ interface RoomSettingsViewModel {
     val memberListViewModel: MemberListViewModel
     val hasPowerToInvite: StateFlow<Boolean>
     val isDirect: StateFlow<Boolean>
+    val isEncrypted: StateFlow<Boolean>
 
     fun openAddMembersView()
     fun openExportRoomView()
@@ -116,6 +117,8 @@ class RoomSettingsViewModelImpl(
 
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
+    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
@@ -141,6 +144,7 @@ class RoomSettingsViewModelImpl(
                     leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageGroup()
                     leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonGroup()
                 }
+                isEncrypted.value = it?.encrypted ?:false
             }
         }
     }
@@ -207,6 +211,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun openAddMembersView() {
     }

@@ -1,6 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
 import kotlinx.coroutines.flow.Flow
@@ -48,22 +53,19 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.kodein.mock.Mocker
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
 
 fun roomUsers(
-    mocker: Mocker,
     userService: UserService,
     roomId: RoomId,
     block: RoomUserBuilder.() -> Unit,
 ) {
-    RoomUserBuilder(mocker, userService, roomId).apply(block)
+    RoomUserBuilder(userService, roomId).apply(block)
 }
 
 class RoomUserBuilder(
-    mocker: Mocker,
     private val userService: UserService,
     private val roomId: RoomId
 ) {
@@ -75,14 +77,14 @@ class RoomUserBuilder(
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
     init {
-        mocker.every { userService.getAll(roomId) } returns users.map {
+        every { userService.getAll(roomId) } returns users.map {
             it.associate { (user, _) ->
                 user.userId to flowOf(
                     user
                 )
             }
         }
-        mocker.every { userService.getAllReceipts(roomId) } returns users.map {
+        every { userService.getAllReceipts(roomId) } returns users.map {
             it.associate { (_, receipts) ->
                 receipts.userId to flowOf(
                     receipts
@@ -122,14 +124,13 @@ class RoomUserBuilder(
 }
 
 fun timeline(
-    mocker: Mocker,
     roomServiceMock: RoomService,
     roomId: RoomId,
     pageSize: Int = 20,
     block: TimelineBuilder.() -> Unit,
 ): TimelineMock {
-    val fullyReadMock = mocker.every {
-        roomServiceMock.getAccountData(isEqual(roomId), isEqual(FullyReadEventContent::class), isAny())
+    val fullyReadMock = every {
+        roomServiceMock.getAccountData(roomId, FullyReadEventContent::class)
     }
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
     fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
@@ -145,20 +146,20 @@ fun timeline(
             unreadMessageCount = 0,
         )
     )
-    mocker.every { roomServiceMock.getById(roomId) } returns room
+    every { roomServiceMock.getById(roomId) } returns room
 
-    val timelineMock = TimelineMock(room, fullyReadEventIndex, mocker, roomServiceMock).apply { addEvents(block) }
-    mocker.every {
+    val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
+    every {
         roomServiceMock.getTimeline(
-            isEqual(roomId),
-            isAny<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
+            eq(roomId),
+            any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
         )
-    } runs {
+    } calls {
         @Suppress("UNCHECKED_CAST")
         MockedTimeline(
             pageSize,
             timelineMock,
-            it[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
+            it.args[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
         )
     }
 
@@ -168,10 +169,9 @@ fun timeline(
 class TimelineMock(
     room: MutableStateFlow<Room>,
     val fullyReadEventIndex: MutableStateFlow<Int?>,
-    mocker: Mocker,
     roomServiceMock: RoomService,
 ) {
-    private val timelineBuilder = TimelineBuilder(room, mocker, roomServiceMock)
+    private val timelineBuilder = TimelineBuilder(room, roomServiceMock)
     val eventsInStore: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
     val loadBeforeCalledCount = MutableStateFlow(0)
     val loadAfterCalledCount = MutableStateFlow(0)
@@ -250,7 +250,6 @@ object NoOpTimeline : Timeline<Unit> {
 
 class TimelineBuilder(
     private val room: MutableStateFlow<Room>,
-    private val mocker: Mocker,
     private val roomServiceMock: RoomService,
 ) {
     private val roomId = room.value.roomId
@@ -270,8 +269,8 @@ class TimelineBuilder(
                 gap = null
             )
         )
-        mocker.every {
-            roomServiceMock.getTimelineEvent(isEqual(roomId), isEqual(id), isAny())
+        every {
+            roomServiceMock.getTimelineEvent(roomId, id, any())
         } returns newTimelineEvent
 
         previousTimelineEvent?.update {

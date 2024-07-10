@@ -138,9 +138,6 @@ open class RoomHeaderViewModelImpl(
     private val onShowRoomSettings: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
 
-    override val roomHeaderInfo: StateFlow<RoomHeaderInfo>
-    override val userTrustLevel: StateFlow<UserTrustLevel?>
-    override val canVerifyUser: StateFlow<Boolean>
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private val directRoom = get<DirectRoom>()
@@ -149,6 +146,65 @@ open class RoomHeaderViewModelImpl(
     private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
+
+    override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
+        combine(
+            matrixClient.room.getById(selectedRoomId),
+            roomName.getRoomName(selectedRoomId, matrixClient),
+            roomTopic.getRoomTopic(selectedRoomId, matrixClient),
+            userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
+            matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId)
+        ) { room, roomNameElement, roomTopicElement, userPresence, joinRules ->
+            val roomImage = room?.avatarUrl?.let { avatarUrl ->
+                matrixClient.media.getThumbnail(
+                    avatarUrl,
+                    avatarSize().toLong(),
+                    avatarSize().toLong()
+                ).fold(
+                    onSuccess = { it },
+                    onFailure = {
+                        log.error(it) { "Cannot load avatar image for room '${roomNameElement}'." }
+                        null
+                    }
+                )
+            }?.toByteArray()
+            RoomHeaderInfo(
+                roomName = roomNameElement,
+                roomTopic = roomTopicElement,
+                roomImageInitials = initials.compute(roomNameElement),
+                roomImage = roomImage,
+                presence = userPresence?.presence,
+                isEncrypted = room?.encrypted == true,
+                isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
+            )
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            RoomHeaderInfo(
+                roomName = "",
+                roomTopic = "",
+                roomImageInitials = initials.compute(selectedRoomId.full),
+                roomImage = null,
+                presence = Presence.OFFLINE,
+                isEncrypted = false,
+                isPublic = true,
+            )
+        )
+    override val userTrustLevel: StateFlow<UserTrustLevel?> =
+        directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest {
+            it.firstOrNull()?.let { userId ->
+                matrixClient.key.getTrustLevel(userId)
+            } ?: flowOf(null)
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val canVerifyUser: StateFlow<Boolean> =
+        combine(
+            directRoom.getUsers(matrixClient, selectedRoomId),
+            userTrustLevel
+        ) { otherUsers, userTrustLevel ->
+            val otherUserVerified =
+                userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
+            otherUsers.size == 1 && otherUserVerified.not()
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val usersTyping = matrixClient.room.usersTyping.map { map ->
         map[selectedRoomId]?.let { typingInfo(it) }
@@ -173,69 +229,6 @@ open class RoomHeaderViewModelImpl(
         directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest { userIds ->
             if (userIds.size == 1) userBlocking.isUserBlocked(matrixClient, userIds[0]) else flowOf(false)
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-
-    init {
-        roomHeaderInfo =
-            combine(
-                matrixClient.room.getById(selectedRoomId),
-                roomName.getRoomName(selectedRoomId, matrixClient),
-                roomTopic.getRoomTopic(selectedRoomId, matrixClient),
-                userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
-                matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId)
-            ) { room, roomNameElement, roomTopicElement, userPresence, joinRules ->
-                val roomImage = room?.avatarUrl?.let { avatarUrl ->
-                    matrixClient.media.getThumbnail(
-                        avatarUrl,
-                        avatarSize().toLong(),
-                        avatarSize().toLong()
-                    ).fold(
-                        onSuccess = { it },
-                        onFailure = {
-                            log.error(it) { "Cannot load avatar image for room '${roomNameElement}'." }
-                            null
-                        }
-                    )
-                }?.toByteArray()
-                RoomHeaderInfo(
-                    roomName = roomNameElement,
-                    roomTopic = roomTopicElement,
-                    roomImageInitials = initials.compute(roomNameElement),
-                    roomImage = roomImage,
-                    presence = userPresence?.presence,
-                    isEncrypted = room?.encrypted == true,
-                    isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
-                )
-            }.stateIn(
-                coroutineScope,
-                SharingStarted.WhileSubscribed(),
-                RoomHeaderInfo(
-                    roomName = "",
-                    roomTopic = "",
-                    roomImageInitials = initials.compute(selectedRoomId.full),
-                    roomImage = null,
-                    presence = Presence.OFFLINE,
-                    isEncrypted = false,
-                    isPublic = true,
-                )
-            )
-
-        userTrustLevel =
-            directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest {
-                it.firstOrNull()?.let { userId ->
-                    matrixClient.key.getTrustLevel(userId)
-                } ?: flowOf(null)
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-        canVerifyUser =
-            combine(
-                directRoom.getUsers(matrixClient, selectedRoomId),
-                userTrustLevel
-            ) { otherUsers, userTrustLevel ->
-                val otherUserVerified =
-                    userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
-                otherUsers.size == 1 && otherUserVerified.not()
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    }
 
     override fun verifyUser() {
         onVerifyUser()

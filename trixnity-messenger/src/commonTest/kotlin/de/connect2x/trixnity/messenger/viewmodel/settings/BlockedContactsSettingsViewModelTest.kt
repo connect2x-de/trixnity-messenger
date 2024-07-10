@@ -2,10 +2,18 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -16,9 +24,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -28,16 +33,11 @@ import kotlin.time.Duration.Companion.seconds
 class BlockedContactsSettingsViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 3_000
 
-    val mocker = Mocker()
+    val matrixClientMock1 = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock1: MatrixClient
+    val matrixClientMock2 = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock2: MatrixClient
-
-    @Mock
-    lateinit var userBlockingMock: UserBlocking
+    val userBlockingMock = mock<UserBlocking>()
 
     private val contact1 = UserId("jerk", "localhost")
     private val contact2 = UserId("another_jerk", "localhost")
@@ -46,22 +46,18 @@ class BlockedContactsSettingsViewModelTest : ShouldSpec() {
     private val blockedContactsForUser1 = MutableStateFlow(listOf<UserId>())
 
     init {
-        mocker.reset()
-        injectMocks(mocker)
 
         beforeTest {
             blockedContactsForUser1.value = listOf(
                 contact3,
                 contact1,
             )
+            resetMocks(matrixClientMock1, matrixClientMock2, userBlockingMock)
+            every { userBlockingMock.getBlockedUsers(eq(matrixClientMock1)) } returns
+                    blockedContactsForUser1
 
-            with(mocker) {
-                every { userBlockingMock.getBlockedUsers(isEqual(matrixClientMock1)) } returns
-                        blockedContactsForUser1
-
-                every { userBlockingMock.getBlockedUsers(isEqual(matrixClientMock2)) } returns
-                        flowOf(listOf(contact1, contact2))
-            }
+            every { userBlockingMock.getBlockedUsers(eq(matrixClientMock2)) } returns
+                    flowOf(listOf(contact1, contact2))
         }
 
         should("return a list and count of blocked contacts per account") {
@@ -92,14 +88,14 @@ class BlockedContactsSettingsViewModelTest : ShouldSpec() {
 
         should("mark a blocked contact as unblocking and then unblock them") {
             val isRequestCompleted = MutableStateFlow(false)
-            mocker.everySuspending {
+            everySuspend {
                 userBlockingMock.unblockUser(
-                    isEqual(matrixClientMock1),
-                    isEqual(contact3),
-                    isAny(),
-                    isAny(),
+                    eq(matrixClientMock1),
+                    eq(contact3),
+                    any(),
+                    any(),
                 )
-            } runs { isRequestCompleted.first { it } }
+            } calls { isRequestCompleted.first { it } }
 
             val viewModel = blockedContactsSettingsViewModel(coroutineContext, User.USER1)
             launch { viewModel.blockedContactsList.collect() }
@@ -154,7 +150,7 @@ class BlockedContactsSettingsViewModelTest : ShouldSpec() {
                 userId = user.userId,
                 di = di,
             ),
-            onCloseBlockedContactsSettings = mockFunction0(mocker),
+            onCloseBlockedContactsSettings = mock(),
         )
     }
 
