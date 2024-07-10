@@ -48,6 +48,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHisto
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsJoinRulesViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
@@ -359,6 +360,7 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsNotificationsViewModelFactory> { RoomSettingsNotificationsViewModelFactory }
     single<RoomSettingsHistoryVisibilityViewModelFactory> { RoomSettingsHistoryVisibilityViewModelFactory }
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
+    single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
 }
 
 private fun timelineViewModels() = module {
