@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.async.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
@@ -59,6 +59,20 @@ class RoomSettingsSecurityViewModelImpl(
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override fun enableRoomEncryption() {
+        log.debug { "enableRoomEncryption for $selectedRoomId" }
+        if (canEncrypt.value) {
+            coroutineScope.launch {
+                val roomApiClient = matrixClient.api.room
+                roomApiClient.sendStateEvent(selectedRoomId, EncryptionEventContent())
+                    .onSuccess {
+                        error.value = null
+                    }
+                    .onFailure {
+                        log.error(it) { "Failed to enable room E2E encryption: ${it.message}" }
+                        error.value = i18n.roomEndToEndEncryptionEnableError(it.message?: "")
+                    }
+            }
+        }
     }
 }
 
