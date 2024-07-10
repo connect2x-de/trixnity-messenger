@@ -2,9 +2,19 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -29,12 +39,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
-import org.kodein.mock.mockFunction2
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -42,85 +46,83 @@ import org.koin.dsl.module
 class CreateNewChatViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    private val onCancelMock = mockFunction0<Unit>(mocker)
-    private val goToRoomMock = mockFunction2<Unit, UserId, RoomId>(mocker)
+    private val onCancelMock = mock<Function0<Unit>>()
+    private val goToRoomMock = mock<Function2<UserId, RoomId, Unit>>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                matrixClientServerApiClientMock,
+                usersApiClientMock,
+                roomsApiClientMock,
+                userServiceMock,
+                onCancelMock,
+                goToRoomMock,
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                        single { roomServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns userId1
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.user } returns usersApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                            single { roomServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns userId1
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.user } returns usersApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+            every { goToRoomMock.invoke(any(), any()) } returns Unit
 
-                every { goToRoomMock.invoke(isAny(), isAny()) } returns Unit
-            }
         }
 
         should("jump to room for users which I have already a direct conversation with") {
             var createRoomCalled = false
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
                 )
-            } runs {
+            } calls {
                 createRoomCalled = true
                 Result.failure(RuntimeException("Should not happen!"))
             }
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -134,12 +136,12 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                         )
                     )
             val roomId = RoomId("room1", "localhost")
-            mocker.every {
-                userServiceMock.getAccountData<DirectEventContent>(isAny(), isAny())
+            every {
+                userServiceMock.getAccountData(DirectEventContent::class, any())
             } returns MutableStateFlow(
                 DirectEventContent(mapOf(userId2 to setOf(roomId)))
             )
-            mocker.every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(Room(roomId))
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(roomId))
 
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
@@ -151,73 +153,73 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             }
 
             cut.onUserClick(user2)
-            mocker.verify(exhaustive = false) { goToRoomMock.invoke(userId1, roomId) }
+            verify { goToRoomMock.invoke(userId1, roomId) }
             createRoomCalled shouldBe false
         }
 
         should("create a direct chat with selected user and go to new room") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(DirectEventContent::class), isAny())
+            every {
+                userServiceMock.getAccountData(eq(DirectEventContent::class), any())
             } returns MutableStateFlow(DirectEventContent(emptyMap()))
 
-            mocker.everySuspending { usersApiClientMock.searchUsers(isAny(), isAny(), isAny(), isNull()) } returns
+            everySuspend { usersApiClientMock.searchUsers(any(), any(), any(), eqNull()) } returns
                     Result.success(SearchUsers.Response(false, listOf()))
             val roomId = RoomId("room1", "localhost")
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(setOf(userId2)),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
-                    isAny(),
-                    isEqual(true),
-                    isAny(),
-                    isNull(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    eq(setOf(userId2)),
+                    any(),
+                    any(),
+                    any(),
+                    eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    any(),
+                    eq(true),
+                    any(),
+                    eqNull(),
                 )
             } returns Result.success(roomId)
-            mocker.every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(Room(roomId))
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(roomId))
 
             val cut = createNewChatViewModel()
 
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             cut.onUserClick(user2)
-            mocker.verify(exhaustive = false) { goToRoomMock.invoke(userId1, roomId) }
+            verify { goToRoomMock.invoke(userId1, roomId) }
         }
 
         should("create a new room if a direct room can be found, but not in the room list") {
             val roomId = RoomId("room1", "localhost")
             var createRoomCalled = false
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
                 )
-            } runs {
+            } calls {
                 createRoomCalled = true
                 Result.success(roomId)
             }
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -230,12 +232,12 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                             )
                         )
                     )
-            mocker.every {
-                userServiceMock.getAccountData<DirectEventContent>(isAny(), isAny())
+            every {
+                userServiceMock.getAccountData(DirectEventContent::class, any())
             } returns MutableStateFlow(
                 DirectEventContent(mapOf(userId2 to setOf(roomId)))
             )
-            mocker.every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(null) // no local room!
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(null) // no local room!
 
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
@@ -252,30 +254,30 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
         should("display error message when direct message could not be created") {
             var cancelWasCalled = false
-            mocker.every { onCancelMock.invoke() } runs {
+            every { onCancelMock.invoke() } calls {
                 cancelWasCalled = true
             }
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(DirectEventContent::class), isAny())
+            every {
+                userServiceMock.getAccountData(eq(DirectEventContent::class), any())
             } returns MutableStateFlow(DirectEventContent(emptyMap()))
 
-            mocker.everySuspending { usersApiClientMock.searchUsers(isAny(), isAny(), isAny(), isNull()) } returns
+            everySuspend { usersApiClientMock.searchUsers(any(), any(), any(), eqNull()) } returns
                     Result.success(SearchUsers.Response(false, listOf()))
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.createRoom(
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(setOf(userId2)),
-                    isAny(),
-                    isAny(),
-                    isAny(),
-                    isEqual(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
-                    isAny(),
-                    isEqual(true),
-                    isAny(),
-                    isNull(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    eq(setOf(userId2)),
+                    any(),
+                    any(),
+                    any(),
+                    eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    any(),
+                    eq(true),
+                    any(),
+                    eqNull(),
                 )
             } returns Result.failure(
                 MatrixServerException(
@@ -283,7 +285,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                     ErrorResponse.Forbidden("403")
                 )
             )
-            mocker.every { roomServiceMock.getById(isAny()) } returns MutableStateFlow(Room(RoomId("a", "local")))
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(RoomId("a", "local")))
 
             val cut = createNewChatViewModel()
 
@@ -307,8 +309,8 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 coroutineContext = Dispatchers.Unconfined
             ),
             createNewRoomViewModel = createNewRoomViewModel(),
-            onCreateGroup = mockFunction1(mocker),
-            onSearchGroup = mockFunction1(mocker),
+            onCreateGroup = mock(),
+            onSearchGroup = mock(),
             onCancel = onCancelMock,
             goToRoom = goToRoomMock,
         )

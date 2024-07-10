@@ -2,10 +2,15 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
+import dev.mokkery.*
+import dev.mokkery.answering.*
+import dev.mokkery.matcher.*
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
@@ -30,10 +35,6 @@ import net.folivo.trixnity.clientserverapi.model.devices.Device
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -43,86 +44,82 @@ import kotlin.time.Duration.Companion.seconds
 class VerificationViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 4_000
 
-    val mocker = Mocker()
-
     private val ownUserId = UserId("userId", "localhost")
     private val ownDeviceId = "deviceId"
     private val otherUserId = UserId("otherUserId")
     private val otherDeviceId = "otherDevice"
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var devicesApiClientMock: DeviceApiClient
+    val devicesApiClientMock = mock<DeviceApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var verificationService: VerificationService
+    val verificationService = mock<VerificationService>()
 
-    @Mock
-    lateinit var activeVerification: ActiveDeviceVerification
+    val activeVerification = mock<ActiveDeviceVerification>()
 
-    @Mock
-    lateinit var activeVerification2: ActiveDeviceVerification
+    val activeVerification2 = mock<ActiveDeviceVerification>()
 
-    private val onCloseDeviceVerificationMock = mockFunction0<Unit>(mocker)
-    private val onRedoSelfVerificationMock = mockFunction0<Unit>(mocker)
+    private val onCloseDeviceVerificationMock = mock<Function0<Unit>>()
+    private val onRedoSelfVerificationMock = mock<Function0<Unit>>()
     private lateinit var activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification>
 
     init {
         isolationMode = IsolationMode.InstancePerTest
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
             Dispatchers.setMain(Dispatchers.Unconfined)
 
             activeDeviceVerificationFlow = MutableStateFlow(activeVerification)
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { keyServiceMock }
-                            single { verificationService }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns ownUserId
-                every { matrixClientMock.deviceId } returns ownDeviceId
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.json } returns Json
-                every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
-                every { matrixClientServerApiClientMock.user } returns usersApiClientMock
+            resetMocks(
+                matrixClientMock,
+                keyServiceMock,
+                matrixClientServerApiClientMock,
+                devicesApiClientMock,
+                usersApiClientMock,
+                verificationService,
+                activeVerification,
+                activeVerification2,
+                onCloseDeviceVerificationMock,
+                onRedoSelfVerificationMock,
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { keyServiceMock }
+                        single { verificationService }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns ownUserId
+            every { matrixClientMock.deviceId } returns ownDeviceId
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.json } returns Json
+            every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
+            every { matrixClientServerApiClientMock.user } returns usersApiClientMock
 
-                everySuspending {
-                    devicesApiClientMock.getDevice(isAny(), isNull())
-                } returns Result.success(Device(ownDeviceId))
-                everySuspending { usersApiClientMock.getDisplayName(isAny()) } returns Result.success("otherUser")
+            everySuspend {
+                devicesApiClientMock.getDevice(any(), eqNull())
+            } returns Result.success(Device(ownDeviceId))
+            everySuspend { usersApiClientMock.getDisplayName(any()) } returns Result.success("otherUser")
 
-                every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
-                every { activeVerification.theirDeviceId } returns otherDeviceId
-                every { activeVerification.theirUserId } returns otherUserId
-                every { activeVerification2.theirDeviceId } returns otherDeviceId
-                every { activeVerification2.theirUserId } returns otherUserId
+            every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
+            every { activeVerification.theirDeviceId } returns otherDeviceId
+            every { activeVerification.theirUserId } returns otherUserId
+            every { activeVerification2.theirDeviceId } returns otherDeviceId
+            every { activeVerification2.theirUserId } returns otherUserId
 
-                every { onCloseDeviceVerificationMock.invoke() } returns Unit
-            }
+            every { onCloseDeviceVerificationMock.invoke() } returns Unit
         }
 
         should("show verification request when a verification is started by another client") {
-            with(mocker) {
-                every { activeVerification.state } returns MutableStateFlow(theirRequest())
-            }
+            every { activeVerification.state } returns MutableStateFlow(theirRequest())
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
@@ -134,17 +131,15 @@ class VerificationViewModelTest : ShouldSpec() {
         }
 
         should("start verification if verification state is 'ready'") {
-            with(mocker) {
-                every { activeVerification.state } returns MutableStateFlow(
-                    ActiveVerificationState.Ready(
-                        ownDeviceId = ownDeviceId,
-                        methods = emptySet(),
-                        relatesTo = null,
-                        transactionId = null,
-                        send = mockFunction1(mocker),
-                    )
+            every { activeVerification.state } returns MutableStateFlow(
+                ActiveVerificationState.Ready(
+                    ownDeviceId = ownDeviceId,
+                    methods = emptySet(),
+                    relatesTo = null,
+                    transactionId = null,
+                    send = mock(),
                 )
-            }
+            )
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
@@ -156,20 +151,18 @@ class VerificationViewModelTest : ShouldSpec() {
         }
 
         should("redo self verification if the trust level of the device is not 'verified' after verification") {
-            with(mocker) {
-                every { onRedoSelfVerificationMock.invoke() } returns Unit
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ownUserId), isEqual(ownDeviceId))
-                } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
-                every { activeVerification.state } returns MutableStateFlow(
-                    ActiveVerificationState.Cancel(
-                        content = VerificationCancelEventContent(
-                            VerificationCancelEventContent.Code.KeyMismatch, "", null, null
-                        ),
-                        isOurOwn = false
-                    )
+            every { onRedoSelfVerificationMock.invoke() } returns Unit
+            every {
+                keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
+            every { activeVerification.state } returns MutableStateFlow(
+                ActiveVerificationState.Cancel(
+                    content = VerificationCancelEventContent(
+                        VerificationCancelEventContent.Code.KeyMismatch, "", null, null
+                    ),
+                    isOurOwn = false
                 )
-            }
+            )
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
@@ -178,7 +171,7 @@ class VerificationViewModelTest : ShouldSpec() {
                 deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Cancelled>()
                 deviceVerificationStepWrapper.viewModel.ok()
 
-                mocker.verify(exhaustive = false) {
+                verify {
                     onRedoSelfVerificationMock.invoke()
                     onCloseDeviceVerificationMock.invoke()
                 }
@@ -189,15 +182,13 @@ class VerificationViewModelTest : ShouldSpec() {
 
         should("not redo self verification if the trust level of own device is 'verified' after verification") {
             var onRedoWasCalled = false
-            with(mocker) {
-                every { onRedoSelfVerificationMock.invoke() } runs {
-                    onRedoWasCalled = true
-                }
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ownUserId), isEqual(ownDeviceId))
-                } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
-                every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
+            every { onRedoSelfVerificationMock.invoke() } calls {
+                onRedoWasCalled = true
             }
+            every {
+                keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
+            every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
@@ -207,7 +198,7 @@ class VerificationViewModelTest : ShouldSpec() {
                 deviceVerificationStepWrapper.viewModel.ok()
 
                 onRedoWasCalled shouldBe false
-                mocker.verify(exhaustive = false) {
+                verify {
                     onCloseDeviceVerificationMock.invoke()
                 }
             }
@@ -216,13 +207,11 @@ class VerificationViewModelTest : ShouldSpec() {
         }
 
         should("show request screen again, when verification is re-initiated") {
-            with(mocker) {
-                every {
-                    keyServiceMock.getTrustLevel(isEqual(ownUserId), isEqual(ownDeviceId))
-                } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
-                every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
-                every { activeVerification2.state } returns MutableStateFlow(theirRequest())
-            }
+            every {
+                keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
+            every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
+            every { activeVerification2.state } returns MutableStateFlow(theirRequest())
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
@@ -268,6 +257,6 @@ class VerificationViewModelTest : ShouldSpec() {
         supportedMethods = emptySet(),
         relatesTo = null,
         transactionId = null,
-        send = mockFunction1(mocker),
+        send = mock(),
     )
 }

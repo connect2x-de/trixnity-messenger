@@ -469,12 +469,6 @@ instead and optionally invoke tasks like `publishAndroidReleasePublicationToMave
 `publishJvmPublicationToMavenLocal` and `publishJsPublicationToMavenLocal` if needed.
 Same goes for macOS/iOS targets.
 
-## Upgrade lock
-
-If any dependency is upgraded, the locks also have to be upgraded. This is done with the following command:
-
-Run `./gradlew dependenciesForAll --write-locks --no-parallel`.
-
 ## Contributions
 
 If you want to contribute to the project, you need to sign the [Contributor License Agreement](CLA.md).

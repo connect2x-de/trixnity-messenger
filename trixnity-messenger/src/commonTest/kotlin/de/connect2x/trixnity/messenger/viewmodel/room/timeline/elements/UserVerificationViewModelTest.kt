@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -9,11 +10,21 @@ import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityM
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -36,7 +47,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
-import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -44,54 +54,42 @@ import org.koin.dsl.module
 class UserVerificationViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
-
     private val thisRoom = RoomId("room", "localhost")
     private val timelineEventId = EventId("event-0")
     private val me = UserId("test", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var activeVerifications: ActiveVerifications
+    val activeVerifications = mock<ActiveVerifications>()
 
-    @Mock
-    lateinit var verificationViewModel: VerificationViewModel
+    val verificationViewModel = mock<VerificationViewModel>()
 
-    @Mock
-    lateinit var activeVerification: ActiveVerification
+    val activeVerification = mock<ActiveVerification>()
 
-    @Fake
-    lateinit var verificationRequestMessageEventContent: RoomMessageEventContent.VerificationRequest
+    val verificationRequestMessageEventContent: RoomMessageEventContent.VerificationRequest =
+        RoomMessageEventContent.VerificationRequest("bla", UserId("bla"), setOf())
 
-    @Fake
-    lateinit var ready: ActiveVerificationState.Ready
+    val ready: ActiveVerificationState.Ready = ActiveVerificationState.Ready("bla", setOf(), null, null, {})
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns me
-            }
+            resetMocks(matrixClientMock, roomServiceMock, activeVerification, verificationViewModel, activeVerification)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns me
         }
 
         should("show 'from us' when verification request targeted at other user") {
-            mocker.everySuspending {
-                activeVerifications.getActiveVerification(isAny(), isEqual(thisRoom), isEqual(timelineEventId))
+            everySuspend {
+                activeVerifications.getActiveVerification(any(), eq(thisRoom), eq(timelineEventId))
             } returns activeVerification
             val cut = userVerificationViewModel(
                 verificationRequestMessageEventContent.copy(
@@ -109,9 +107,9 @@ class UserVerificationViewModelTest : ShouldSpec() {
         }
 
         should("show as active when the verification has not timed out and is not done or cancelled") {
-            mocker.every { activeVerification.state } returns MutableStateFlow(ready)
-            mocker.everySuspending {
-                activeVerifications.getActiveVerification(isAny(), isEqual(thisRoom), isEqual(timelineEventId))
+            every { activeVerification.state } returns MutableStateFlow(ready)
+            everySuspend {
+                activeVerifications.getActiveVerification(any(), eq(thisRoom), eq(timelineEventId))
             } returns activeVerification
             val cut = userVerificationViewModel(verificationRequestMessageEventContent)
 
@@ -119,11 +117,11 @@ class UserVerificationViewModelTest : ShouldSpec() {
         }
 
         should("show as inactive when verification has timed out") {
-            mocker.everySuspending {
+            everySuspend {
                 activeVerifications.getActiveVerification(
-                    isEqual(matrixClientMock),
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId)
+                    eq(matrixClientMock),
+                    eq(thisRoom),
+                    eq(timelineEventId)
                 )
             } returns null
             val cut = userVerificationViewModel(verificationRequestMessageEventContent)
@@ -132,12 +130,12 @@ class UserVerificationViewModelTest : ShouldSpec() {
         }
 
         should("show as inactive when the verification has not timed out, but is done or cancelled") {
-            mocker.every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
-            mocker.everySuspending {
+            every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
+            everySuspend {
                 activeVerifications.getActiveVerification(
-                    isEqual(matrixClientMock),
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId)
+                    eq(matrixClientMock),
+                    eq(thisRoom),
+                    eq(timelineEventId)
                 )
             } returns activeVerification
             val cut = userVerificationViewModel(verificationRequestMessageEventContent)
@@ -146,21 +144,21 @@ class UserVerificationViewModelTest : ShouldSpec() {
         }
 
         should("search for correct end event for an inactive verification") {
-            mocker.everySuspending {
+            everySuspend {
                 activeVerifications.getActiveVerification(
-                    isEqual(matrixClientMock),
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId)
+                    eq(matrixClientMock),
+                    eq(thisRoom),
+                    eq(timelineEventId)
                 )
             } returns null
-            mocker.every {
+            every {
                 roomServiceMock.getTimelineEvent(
-                    isEqual(thisRoom), isEqual(timelineEventId), isAny(),
+                    eq(thisRoom), eq(timelineEventId), any(),
                 )
             } returns MutableStateFlow(
                 timelineEvent(timelineEventId)
             )
-            mocker.every { roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny()) } returns
+            every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns
                     flow {
                         emit(
                             flowOf(
@@ -193,23 +191,23 @@ class UserVerificationViewModelTest : ShouldSpec() {
         }
 
         should("interpret the end state as 'cancelled' when the corresponding end event for an inactive verification cannot be found in the next 40 messages") {
-            mocker.everySuspending {
+            everySuspend {
                 activeVerifications.getActiveVerification(
-                    isEqual(matrixClientMock),
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId)
+                    eq(matrixClientMock),
+                    eq(thisRoom),
+                    eq(timelineEventId)
                 )
             } returns null
 
-            mocker.every {
+            every {
                 roomServiceMock.getTimelineEvent(
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId),
-                    isAny(),
+                    eq(thisRoom),
+                    eq(timelineEventId),
+                    any(),
                 )
             } returns MutableStateFlow(timelineEvent(timelineEventId))
 
-            mocker.every { roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny()) } returns
+            every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns
                     flow {
                         (0..40).forEach { eventIdNo ->
                             emit(
@@ -231,23 +229,23 @@ class UserVerificationViewModelTest : ShouldSpec() {
 
         should("consider encrypted timeline events in the search for end events of inactive verification")
         {
-            mocker.everySuspending {
+            everySuspend {
                 activeVerifications.getActiveVerification(
-                    isEqual(matrixClientMock),
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId)
+                    eq(matrixClientMock),
+                    eq(thisRoom),
+                    eq(timelineEventId)
                 )
             } returns null
 
-            mocker.every {
+            every {
                 roomServiceMock.getTimelineEvent(
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId),
-                    isAny(),
+                    eq(thisRoom),
+                    eq(timelineEventId),
+                    any(),
                 )
             } returns MutableStateFlow(timelineEvent(timelineEventId))
 
-            mocker.every { roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny()) } returns
+            every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns
                     flow {
                         emit(
                             flowOf(
@@ -290,24 +288,24 @@ class UserVerificationViewModelTest : ShouldSpec() {
 
         should("ignore end events of other verifications")
         {
-            mocker.everySuspending {
+            everySuspend {
                 activeVerifications.getActiveVerification(
-                    isEqual(matrixClientMock),
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId)
+                    eq(matrixClientMock),
+                    eq(thisRoom),
+                    eq(timelineEventId)
                 )
             } returns null
 
-            mocker.every {
+            every {
                 roomServiceMock.getTimelineEvent(
-                    isEqual(thisRoom),
-                    isEqual(timelineEventId),
-                    isAny(),
+                    eq(thisRoom),
+                    eq(timelineEventId),
+                    any(),
                 )
             } returns MutableStateFlow(timelineEvent(timelineEventId))
             val otherEventId = EventId("completely different")
 
-            mocker.every { roomServiceMock.getTimelineEvents(isAny(), isAny(), isAny(), isAny()) } returns
+            every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns
                     flow {
                         emit(
                             flowOf(

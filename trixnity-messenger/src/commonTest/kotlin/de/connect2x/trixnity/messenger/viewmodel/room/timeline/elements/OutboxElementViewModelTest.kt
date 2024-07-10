@@ -2,9 +2,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -21,38 +25,28 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.*
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction1
-import org.kodein.mock.mockFunction2
-import org.kodein.mock.mockFunction4
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OutboxElementViewModelTest : ShouldSpec() {
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val downloadManagerMock = mock<DownloadManager>()
 
-    @Mock
-    lateinit var downloadManagerMock: DownloadManager
-
-    @Mock
-    lateinit var clock: Clock
+    val clock = mock<Clock>()
 
     private val roomId = RoomId("room1", "localhost")
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            mocker.every { clock.now() } returns Instant.parse("2020-10-01T01:00:00.000Z")
+            resetMocks(matrixClientMock, downloadManagerMock, clock)
+            every { clock.now() } returns Instant.parse("2020-10-01T01:00:00.000Z")
         }
 
         should("result in a TextMessageViewModel for a text message") {
@@ -154,8 +148,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
             showDateAboveFlow = flowOf(false),
             showChatBubbleEdgeFlow = flowOf(false),
             selectedRoomId = roomId,
-            onOpenModal = mockFunction4(mocker),
-            onOpenMention = mockFunction2(mocker),
+            onOpenModal = mock(),
+            onOpenMention = mock(),
         )
     }
 }

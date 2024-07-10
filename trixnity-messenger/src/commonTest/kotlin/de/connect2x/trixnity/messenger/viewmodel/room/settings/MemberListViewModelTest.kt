@@ -2,18 +2,28 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -22,7 +32,6 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.core.model.EventId
@@ -36,16 +45,12 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberListViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
-
     private val roomId = RoomId("room", "localhost")
 
     private val me = UserId("user1", "localhost")
@@ -87,76 +92,73 @@ class MemberListViewModelTest : ShouldSpec() {
         )
     )
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var matrixClientServerApiMock: MatrixClientServerApiClient
+    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { keyServiceMock }
-                        }
-                    )
-                }.koin
-
-                every { matrixClientMock.api } returns matrixClientServerApiMock
-
-                every { matrixClientServerApiMock.room } returns roomsApiClientMock
-
-                every { matrixClientMock.userId } returns me
-
-                every { roomServiceMock.getById(isEqual(roomId)) } returns MutableStateFlow(
-                    Room(isDirect = true, roomId = roomId)
+            resetMocks(
+                matrixClientMock,
+                roomsApiClientMock,
+                userServiceMock,
+                keyServiceMock,
+                matrixClientServerApiMock,
+                roomsApiClientMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { keyServiceMock }
+                    }
                 )
+            }.koin
 
-                every {
-                    userServiceMock.getAll(isEqual(roomId))
-                } returns MutableStateFlow(
-                    mapOf(
-                        roomUserMe.userId to flowOf(roomUserMe),
-                        roomUserAlice.userId to flowOf(roomUserAlice),
-                        roomUserBob.userId to flowOf(roomUserBob),
-                    )
-                )
-                every { userServiceMock.canKickUser(isEqual(roomId), isAny()) } returns
-                        MutableStateFlow(true)
-                every { userServiceMock.getPowerLevel(isEqual(roomId), isAny()) } returns
-                        MutableStateFlow(50)
-                every { userServiceMock.canSetPowerLevelToMax(isEqual(roomId), isAny()) } returns MutableStateFlow(1)
-                every { userServiceMock.getAccountData<IgnoredUserListEventContent>() } returns flowOf(
-                    IgnoredUserListEventContent(emptyMap())
-                )
+            every { matrixClientMock.api } returns matrixClientServerApiMock
 
-                every { keyServiceMock.getTrustLevel(isAny()) } returns flowOf(UserTrustLevel.Blocked)
+            every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
-                every { userServiceMock.userPresence } returns MutableStateFlow(
-                    mapOf(me to PresenceEventContent(Presence.OFFLINE))
+            every { matrixClientMock.userId } returns me
+
+            every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
+                Room(isDirect = true, roomId = roomId)
+            )
+
+            every {
+                userServiceMock.getAll(eq(roomId))
+            } returns MutableStateFlow(
+                mapOf(
+                    roomUserMe.userId to flowOf(roomUserMe),
+                    roomUserAlice.userId to flowOf(roomUserAlice),
+                    roomUserBob.userId to flowOf(roomUserBob),
                 )
-            }
+            )
+            every { userServiceMock.canKickUser(eq(roomId), any()) } returns
+                    MutableStateFlow(true)
+            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns
+                    MutableStateFlow(50)
+            every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(1)
+            every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
+                IgnoredUserListEventContent(emptyMap())
+            )
+
+            every { keyServiceMock.getTrustLevel(any()) } returns flowOf(UserTrustLevel.Blocked)
+
+            every { userServiceMock.userPresence } returns MutableStateFlow(
+                mapOf(me to PresenceEventContent(Presence.OFFLINE))
+            )
         }
 
         should("create List of sorted MemberListElementViewModels after initiation and subscription") {
@@ -181,47 +183,45 @@ class MemberListViewModelTest : ShouldSpec() {
                 stateKey = ""
             )
 
-            with(mocker) {
-                every {
-                    roomServiceMock.getState(
-                        roomId,
-                        PowerLevelsEventContent::class,
-                        ""
-                    )
-                } returns MutableStateFlow(powerLevelEvent)
+            every {
+                roomServiceMock.getState(
+                    roomId,
+                    PowerLevelsEventContent::class,
+                    ""
+                )
+            } returns MutableStateFlow(powerLevelEvent)
 
-                every {
-                    roomServiceMock.getState(
-                        roomId,
-                        CreateEventContent::class,
-                        ""
-                    )
-                } returns MutableStateFlow(createEvent)
+            every {
+                roomServiceMock.getState(
+                    roomId,
+                    CreateEventContent::class,
+                    ""
+                )
+            } returns MutableStateFlow(createEvent)
 
-                every {
-                    userServiceMock.getPowerLevel(
-                        alice,
-                        bob,
-                        powerLevelsEventContent = powerLevelsEventContent,
-                    )
-                } returns 100
+            every {
+                userServiceMock.getPowerLevel(
+                    alice,
+                    bob,
+                    powerLevelsEventContent = powerLevelsEventContent,
+                )
+            } returns 100
 
-                every {
-                    userServiceMock.getPowerLevel(
-                        bob,
-                        bob,
-                        powerLevelsEventContent = powerLevelsEventContent,
-                    )
-                } returns 50
+            every {
+                userServiceMock.getPowerLevel(
+                    bob,
+                    bob,
+                    powerLevelsEventContent = powerLevelsEventContent,
+                )
+            } returns 50
 
-                every {
-                    userServiceMock.getPowerLevel(
-                        me,
-                        bob,
-                        powerLevelsEventContent = powerLevelsEventContent,
-                    )
-                } returns 1
-            }
+            every {
+                userServiceMock.getPowerLevel(
+                    me,
+                    bob,
+                    powerLevelsEventContent = powerLevelsEventContent,
+                )
+            } returns 1
 
             val cut = memberListViewModel(coroutineContext)
 

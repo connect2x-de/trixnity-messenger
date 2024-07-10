@@ -23,10 +23,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -70,7 +69,8 @@ interface ExportRoomViewModel {
 
         data class Error(
             val message: String,
-            val missingMedia: List<ExportRoomResult.SuccessWithMissingMedia.MissingMedia>? = null
+            val missingMedia: List<ExportRoomResult.Success.MissingMedia>? = null,
+            val decryptionFailed: List<ExportRoomResult.Success.DecryptionFailed>? = null
         ) : State
     }
 
@@ -168,12 +168,11 @@ class ExportRoomViewModelImpl(
                         state.value = Error(i18n.exportRoomErrorSink(result.throwable.message ?: "unknown"))
                     }
 
-                    is ExportRoomResult.SuccessWithMissingMedia -> {
-                        state.value = Error(i18n.exportRoomSuccessWithMissingMedia(), result.missingMedia)
-                    }
-
-                    ExportRoomResult.Success -> {
-                        state.value = Success(progress.value, progressString.value)
+                    is ExportRoomResult.Success -> {
+                        state.value =
+                            if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty())
+                                Error(i18n.exportRoomSuccessWithErrors(), result.missingMedia, result.decryptionFailed)
+                            else Success(progress.value, progressString.value)
                     }
                 }
                 job.value = null
@@ -204,10 +203,9 @@ class PreviewExportRoomViewModel : ExportRoomViewModel {
         MutableStateFlow(
             Error(
                 message = "An error has occurred", missingMedia = listOf(
-                    ExportRoomResult.SuccessWithMissingMedia.MissingMedia(
-                        "a.txt",
-                        sender = UserId("martin", "localhost"),
-                        timestamp = Instant.DISTANT_PAST,
+                    ExportRoomResult.Success.MissingMedia(
+                        EventId("abc"),
+                        "fileName",
                         reason = "cannot export file"
                     )
                 )

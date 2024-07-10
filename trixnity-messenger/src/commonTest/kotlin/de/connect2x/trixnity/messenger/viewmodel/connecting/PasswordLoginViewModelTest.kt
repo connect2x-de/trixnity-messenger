@@ -6,95 +6,90 @@ import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.client.engine.*
-import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.util.network.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.invoke
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PasswordLoginViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
+    val matrixClientFactoryMock = mock<MatrixClientFactory>()
 
-    @Mock
-    lateinit var matrixClientFactoryMock: MatrixClientFactory
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
-
-    private val onBackMock = mockFunction0<Unit>(mocker)
-    private val onLoginMock = mockFunction1<Unit, MatrixClient>(mocker)
+    private val onBackMock = mock<Function0<Unit>>()
+    private val onLoginMock = mock<Function1<MatrixClient, Unit>>()
 
     init {
         beforeTest {
-            mocker.reset()
             Dispatchers.setMain(Dispatchers.Unconfined)
-            injectMocks(mocker)
 
-            with(mocker) {
-                every { onBackMock() } returns Unit
-                every { onLoginMock(isAny()) } returns Unit
-                every { matrixClientMock.userId } returns UserId("test", "server")
-            }
+            resetMocks(matrixClientFactoryMock, matrixClientMock, onBackMock, onLoginMock)
+            every { onBackMock() } returns Unit
+            every { onLoginMock(any()) } returns Unit
+            every { matrixClientMock.userId } returns UserId("test", "server")
         }
 
         should("call login and start sync") {
-            mocker.everySuspending {
+            everySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
             } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
             val cut = viewModel()
             cut.canLogin.first { it }
             cut.tryLogin()
 
-            mocker.verifyWithSuspend(exhaustive = false) {
+            verifySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
-                onLoginMock.invoke(isAny())
+                onLoginMock.invoke(any())
             }
             cut.addMatrixAccountState.value shouldBe AddMatrixAccountState.Success
         }
 
         should("set addMatrixAccountState when login fails because it was forbidden") {
-            mocker.everySuspending {
+            everySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
             } returns Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")))
             val cut = viewModel()
@@ -106,13 +101,13 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
 
         should("show the correct error message when server is configured wrong") {
-            mocker.everySuspending {
+            everySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
             } returns Result.failure(UnresolvedAddressException())
             val cut = viewModel()
@@ -122,13 +117,13 @@ class PasswordLoginViewModelTest : ShouldSpec() {
         }
 
         should("show the correct error message when an unknown error occurs") {
-            mocker.everySuspending {
+            everySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
             } returns Result.failure(Exception("Something unexpected."))
             val cut = viewModel()
@@ -139,34 +134,34 @@ class PasswordLoginViewModelTest : ShouldSpec() {
         }
 
         should("cancel login when user aborts the login") {
-            mocker.everySuspending {
+            everySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
             } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
             val cut = viewModel()
             cut.canLogin.first { it }
             cut.back()
 
-            mocker.verify(exhaustive = false) {
+            verify {
                 onBackMock.invoke()
             }
         }
 
         should("abort with correct Exception in callback when store is locked") {
-            mocker.everySuspending {
+            everySuspend {
                 matrixClientFactoryMock.login(
-                    isAny(),
-                    isEqual(IdentifierType.User("timmy")),
-                    isEqual("sup3rs3cr3t"),
-                    isAny(),
-                    isAny(),
+                    any(),
+                    eq(IdentifierType.User("timmy")),
+                    eq("sup3rs3cr3t"),
+                    any(),
+                    any(),
                 )
-            } runs { throw StoreLockedException() }
+            } calls { throw StoreLockedException() }
             val cut = viewModel()
             cut.canLogin.first { it }
             cut.tryLogin()

@@ -2,11 +2,21 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.mock.MediaServiceMock
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.capture.Capture
+import dev.mokkery.matcher.capture.capture
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -23,9 +33,6 @@ import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArray
 import okio.fakefilesystem.FakeFileSystem
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -34,17 +41,13 @@ import kotlin.coroutines.CoroutineContext
 class AvatarCutterViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val mediaServiceMock = mock<MediaService>()
 
-    lateinit var mediaServiceMock: MediaService
+    val fileDescriptorMock = mock<FileDescriptor>()
 
-    @Mock
-    lateinit var fileDescriptorMock: FileDescriptor
-
-    private val onCloseMock = mockFunction0<Unit>(mocker)
+    private val onCloseMock = mock<Function0<Unit>>()
 
     private lateinit var fakeFileSystem: FakeFileSystem
 
@@ -53,38 +56,32 @@ class AvatarCutterViewModelTest : ShouldSpec() {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-            mediaServiceMock = MediaServiceMock(mocker)
+            resetMocks(matrixClientMock, mediaServiceMock, fileDescriptorMock, onCloseMock)
             fakeFileSystem = FakeFileSystem()
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { mediaServiceMock }
-                        }
-                    )
-                }.koin
-            }
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { mediaServiceMock }
+                    }
+                )
+            }.koin
 
             should("try to upload image") {
-                val thumbnailCapture = mutableListOf<ByteArrayFlow>()
-                with(mocker) {
-                    everySuspending {
-                        mediaServiceMock.prepareUploadThumbnail(
-                            isAny(capture = thumbnailCapture),
-                            isAny()
-                        )
-                    } returns Pair("cache://localhost/123456", ThumbnailInfo())
-                    everySuspending {
-                        mediaServiceMock.uploadMedia(isEqual("cache://localhost/123456"), isAny(), isAny())
-                    } returns Result.success("mxc://localhost/123456")
-                    everySuspending {
-                        matrixClientMock.setAvatarUrl("mxc://localhost/123456")
-                    } returns Result.success(Unit)
-                    every { onCloseMock.invoke() } returns Unit
-                }
+                val thumbnailCapture = Capture.slot<ByteArrayFlow>()
+                everySuspend {
+                    mediaServiceMock.prepareUploadThumbnail(
+                        capture(thumbnailCapture),
+                        any()
+                    )
+                } returns Pair("cache://localhost/123456", ThumbnailInfo())
+                everySuspend {
+                    mediaServiceMock.uploadMedia(eq("cache://localhost/123456"), any(), any())
+                } returns Result.success("mxc://localhost/123456")
+                everySuspend {
+                    matrixClientMock.setAvatarUrl("mxc://localhost/123456")
+                } returns Result.success(Unit)
+                every { onCloseMock.invoke() } returns Unit
 
                 val cut = avatarCutterViewModel(coroutineContext)
                 cut.upload.value shouldBe false
@@ -93,27 +90,25 @@ class AvatarCutterViewModelTest : ShouldSpec() {
 
                 cut.upload.value shouldBe true
                 cut.error.value shouldBe null
-                mocker.verify(exhaustive = false) { onCloseMock.invoke() }
-                thumbnailCapture.single().toByteArray() shouldBe "image".encodeToByteArray()
+                verify { onCloseMock.invoke() }
+                thumbnailCapture.values.first().toByteArray() shouldBe "image".encodeToByteArray()
                 cancelNeverEndingCoroutines()
             }
 
             should("display error message when uploading fails") {
                 var onCloseWasCalled = false
                 val thumbnailCapture = mutableListOf<ByteArrayFlow>()
-                with(mocker) {
-                    everySuspending {
-                        mediaServiceMock.prepareUploadThumbnail(
-                            isAny(capture = thumbnailCapture),
-                            isAny()
-                        )
-                    } returns Pair("cache://localhost/123456", ThumbnailInfo())
-                    everySuspending {
-                        mediaServiceMock.uploadMedia(isEqual("cache://localhost/123456"), isAny(), isAny())
-                    } returns Result.failure(RuntimeException("Oh no!"))
-                    every { onCloseMock.invoke() } runs {
-                        onCloseWasCalled = true
-                    }
+                everySuspend {
+                    mediaServiceMock.prepareUploadThumbnail(
+                        capture(thumbnailCapture),
+                        any()
+                    )
+                } returns Pair("cache://localhost/123456", ThumbnailInfo())
+                everySuspend {
+                    mediaServiceMock.uploadMedia(eq("cache://localhost/123456"), any(), any())
+                } returns Result.failure(RuntimeException("Oh no!"))
+                every { onCloseMock.invoke() } calls {
+                    onCloseWasCalled = true
                 }
 
                 val cut = avatarCutterViewModel(coroutineContext)
@@ -131,6 +126,7 @@ class AvatarCutterViewModelTest : ShouldSpec() {
             }
         }
     }
+
     private suspend fun avatarCutterViewModel(coroutineContext: CoroutineContext): AvatarCutterViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return AvatarCutterViewModelImpl(
@@ -145,7 +141,8 @@ class AvatarCutterViewModelTest : ShouldSpec() {
                                     "server"
                                 ) to matrixClientMock
                             )
-                        ) )
+                        )
+                    )
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext

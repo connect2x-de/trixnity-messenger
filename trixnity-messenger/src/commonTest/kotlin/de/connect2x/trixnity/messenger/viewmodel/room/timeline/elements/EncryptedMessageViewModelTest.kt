@@ -2,9 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -24,27 +26,20 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EncryptedMessageViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
-
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(matrixClientMock)
         }
 
         should("show wait for decryption if the encrypted element is not yet decrypted") {

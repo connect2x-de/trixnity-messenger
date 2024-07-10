@@ -1,8 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
-import de.connect2x.trixnity.messenger.viewmodel.mock.MediaServiceMock
+import dev.mokkery.*
+import dev.mokkery.answering.*
+import dev.mokkery.matcher.*
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -18,8 +21,6 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
@@ -27,22 +28,16 @@ import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class DownloadManagerTest : ShouldSpec() {
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
-
-    lateinit var mediaServiceMock: MediaService
+    val mediaServiceMock: MediaService = mock()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-            mediaServiceMock = MediaServiceMock(mocker)
-
-            mocker.every { matrixClientMock.di } returns koinApplication {
+            resetMocks(mediaServiceMock)
+            every { matrixClientMock.di } returns koinApplication {
                 modules(
                     module {
                         single { mediaServiceMock }
@@ -54,8 +49,8 @@ class DownloadManagerTest : ShouldSpec() {
         should("return 'success' when download is finished successfully") {
             Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
             val cut = DownloadManagerImpl(coroutineContext)
-            mocker.everySuspending {
-                mediaServiceMock.getMedia(isEqual("mxc://localhost/ABCDEFGH"), isAny(), isAny())
+            everySuspend {
+                mediaServiceMock.getMedia(eq("mxc://localhost/ABCDEFGH"), any(), any())
             } returns Result.success("test".encodeToByteArray().toByteArrayFlow())
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
             val success = MutableStateFlow(false)
@@ -80,8 +75,8 @@ class DownloadManagerTest : ShouldSpec() {
                 initialisationVector = "vector",
                 hashes = mapOf()
             )
-            mocker.everySuspending {
-                mediaServiceMock.getEncryptedMedia(isEqual(encryptedFile), isAny(), isAny())
+            everySuspend {
+                mediaServiceMock.getEncryptedMedia(eq(encryptedFile), any(), any())
             } returns Result.success("test".encodeToByteArray().toByteArrayFlow())
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
             val success = MutableStateFlow(false)
@@ -102,15 +97,15 @@ class DownloadManagerTest : ShouldSpec() {
             val cut = DownloadManagerImpl(coroutineContext)
             val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> =
                 MutableStateFlow(null)
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getMedia(
-                    isEqual("mxc://localhost/ABCDEFGH"),
-                    isAny(),
-                    isAny()
+                    eq("mxc://localhost/ABCDEFGH"),
+                    any(),
+                    any()
                 )
-            } runs {
+            } calls {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it[1] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success("test".encodeToByteArray().toByteArrayFlow())
             }
@@ -149,15 +144,15 @@ class DownloadManagerTest : ShouldSpec() {
             val cut = DownloadManagerImpl(coroutineContext)
             val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> =
                 MutableStateFlow(null)
-            mocker.everySuspending {
+            everySuspend {
                 mediaServiceMock.getMedia(
-                    isEqual("mxc://localhost/ABCDEFGH"),
-                    isAny(),
-                    isAny()
+                    eq("mxc://localhost/ABCDEFGH"),
+                    any(),
+                    any()
                 )
-            } runs {
+            } calls {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it[1] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success("test".encodeToByteArray().toByteArrayFlow())
             }

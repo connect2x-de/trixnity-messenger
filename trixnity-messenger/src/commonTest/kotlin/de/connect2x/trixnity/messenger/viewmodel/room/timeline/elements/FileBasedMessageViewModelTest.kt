@@ -2,29 +2,44 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
-import org.kodein.mock.*
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
@@ -34,39 +49,29 @@ import kotlin.time.Duration.Companion.seconds
 class FileBasedMessageViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val downloadManagerMock = mock<DownloadManager>()
 
-    @Mock
-    lateinit var downloadManagerMock: DownloadManager
-
-    @Mock
-    lateinit var mediaServiceMock: MediaService
+    val mediaServiceMock = mock<MediaService>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { mediaServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.media } returns mediaServiceMock
-            }
+            resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { mediaServiceMock }
+                    }
+                )
+            }.koin
         }
 
         should("download a file and return the result if successful") {
             val file = "download".encodeToByteArray()
-            mocker.every {
-                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isAny(), isAny(), isAny(), isAny())
+            every {
+                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
             } returns async { Result.success(file.toByteArrayFlow()) }
 
             val cut = fileBasedMessageViewModel()
@@ -79,8 +84,8 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         }
 
         should("download a file and set Result to 'failure' if not successful") {
-            mocker.every {
-                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isAny(), isAny(), isAny(), isAny())
+            every {
+                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
             } returns async { Result.failure(RuntimeException("Oh no!")) }
 
 
@@ -96,8 +101,8 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         should("download a file and return 'null' if the download is cancelled") {
             val scope = CoroutineScope(Dispatchers.Default)
 
-            mocker.every {
-                downloadManagerMock.startDownloadAsync(isEqual(matrixClientMock), isAny(), isAny(), isAny(), isAny())
+            every {
+                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
             } returns scope.async {
                 delay(5.seconds)
                 Result.success("download".encodeToByteArray().toByteArrayFlow())
