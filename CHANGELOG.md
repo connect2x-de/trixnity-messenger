@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - force remove of account data on logout
 - improvements in ExportRoom: parallel decryption, collect decryption errors
 - move gradle locks to CI
+- restrict ability to change room history to WORLD_READABLE when the group is encrypted
+
 
 ### Deprecated
 
