@@ -17,6 +17,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.eq.eq
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -110,11 +111,11 @@ class RoomSettingsSecurityViewModelTest : ShouldSpec() {
             mockSendStateEvent(EncryptionEventContent(), encryptionEventCounter)
 
             val cut = roomSettingsSecurityViewModel(coroutineContext, MutableStateFlow(null))
-            eventually(200.milliseconds) {
+            continually(200.milliseconds) {
                 cut.canEnableEncryption.value shouldBe false
             }
             cut.enableEncryption()
-            eventually(200.milliseconds) {
+            continually(200.milliseconds) {
                 encryptionEventCounter.value shouldBe 0
             }
             cancelNeverEndingCoroutines()
