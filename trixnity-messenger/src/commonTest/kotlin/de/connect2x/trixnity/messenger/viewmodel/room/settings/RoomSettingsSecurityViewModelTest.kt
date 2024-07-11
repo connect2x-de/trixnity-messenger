@@ -39,6 +39,7 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class RoomSettingsSecurityViewModelTest : ShouldSpec() {
@@ -109,11 +110,11 @@ class RoomSettingsSecurityViewModelTest : ShouldSpec() {
             mockSendStateEvent(EncryptionEventContent(), encryptionEventCounter)
 
             val cut = roomSettingsSecurityViewModel(coroutineContext, MutableStateFlow(null))
-            eventually(2.seconds) {
+            eventually(200.milliseconds) {
                 cut.canEnableEncryption.value shouldBe false
             }
             cut.enableEncryption()
-            eventually(2.seconds) {
+            eventually(200.milliseconds) {
                 encryptionEventCounter.value shouldBe 0
             }
             cancelNeverEndingCoroutines()

@@ -69,12 +69,12 @@ class RoomSettingsSecurityViewModelImpl(
                     }
                     .onFailure {
                         log.error(it) { "Failed to enable room E2E encryption: ${it.message}" }
-                        error.value = i18n.roomEncryptionEnableError(it.message?: "")
+                        error.value = i18n.roomEncryptionEnableError()
                     }
             }
         } else {
             log.error { "Failed to enable room E2E encryption: encryption was already enabled" }
-            error.value = i18n.roomEncryptionEnableError(i18n.roomEncryptionAlreadyEnabled())
+            error.value = i18n.roomEncryptionAlreadyEnabledError()
         }
     }
 }
