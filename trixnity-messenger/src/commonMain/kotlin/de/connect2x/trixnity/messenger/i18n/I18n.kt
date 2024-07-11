@@ -978,14 +978,19 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: Zeitüberschreitung"
     }
 
-    fun roomEndToEndEncryptionEnableError(error: String) = translate {
-        EN - "There was an error enabling the end to end encryption: $error"
+    fun roomEncryptionEnableError(error: String) = translate {
+        EN - "There was an error enabling the end-to-end encryption: $error"
         DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung: $error"
     }
 
     fun roomEncryptionAlreadyEnabled() = translate {
         EN - "the encryption was already enabled"
         DE - "Die Verschlüsselung wurde bereits aktiviert"
+    }
+
+    fun roomEncryptionEnabled(user: String) = translate {
+        EN - "$user enabled the end-to-end encryption"
+        DE - "$user hat die Ende-zu-Ende Verschlüsselung aktiviert"
     }
 }
 
