@@ -40,7 +40,7 @@ class RoomEncryptionEnableViewModelTest : ShouldSpec() {
             val cut = roomEncryptionEnableViewModel(coroutineContext = coroutineContext)
             val subscriberJob = launch { cut.roomEncryptionEnableMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomEncryptionEnableMessage.value shouldBe "Bob enabled the end-to-end encryption"
+            cut.roomEncryptionEnableMessage.value shouldBe "Bob enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -51,7 +51,7 @@ class RoomEncryptionEnableViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.roomEncryptionEnableMessage.collect {} }
             userFlow.value = UserInfoElement("Bobby", UserId("booby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomEncryptionEnableMessage.value shouldBe "Bobby enabled the end-to-end encryption"
+            cut.roomEncryptionEnableMessage.value shouldBe "Bobby enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
