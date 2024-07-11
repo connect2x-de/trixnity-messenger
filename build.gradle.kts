@@ -14,7 +14,7 @@ buildscript {
 plugins {
     alias(libs.plugins.kotest).apply(false)
     kotlin("plugin.serialization") version libs.versions.kotlin.get() apply false
-    alias(libs.plugins.ksp).apply(false)
+    alias(libs.plugins.mokkery).apply(false)
     alias(libs.plugins.skie).apply(false)
     alias(libs.plugins.kmmbridge).apply(false)
     alias(libs.plugins.dokka).apply(false)
@@ -22,7 +22,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("2.0.3")
+    version = withVersionSuffix("2.1.0")
 
     repositories {
         mavenLocal()
@@ -32,10 +32,11 @@ allprojects {
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven")
     }
 
-    dependencyLocking {
-        lockMode = LockMode.LENIENT
-        lockAllConfigurations()
-    }
+    if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
+        dependencyLocking {
+            lockAllConfigurations()
+        }
 
-    val dependenciesForAll by tasks.registering(DependencyReportTask::class) { }
+        val dependenciesForAll by tasks.registering(DependencyReportTask::class) { }
+    }
 }

@@ -5,10 +5,16 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
@@ -23,29 +29,21 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class AddMatrixAccountViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
-
-    private val onCancelMock = mockFunction0<Unit>(mocker)
-    private val onAddMatrixAccountMethodMock = mockFunction1<Unit, AddMatrixAccountMethod>(mocker)
+    private val onCancelMock = mock<Function0<Unit>>()
+    private val onAddMatrixAccountMethodMock = mock<Function1<AddMatrixAccountMethod, Unit>>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-
-            with(mocker) {
-                every { onAddMatrixAccountMethodMock(isAny()) } returns Unit
-                every { onCancelMock() } returns Unit
-            }
+            resetMocks(onCancelMock, onAddMatrixAccountMethodMock)
+            every { onAddMatrixAccountMethodMock(any()) } returns Unit
+            every { onCancelMock() } returns Unit
         }
 
         should("do server discovery and collect login and registration options") {
@@ -195,7 +193,7 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
 
             cut.selectAddMatrixAccountMethod(AddMatrixAccountMethod.Password("https://server.host"))
 
-            mocker.verify {
+            verify {
                 onAddMatrixAccountMethodMock.invoke(AddMatrixAccountMethod.Password("https://server.host"))
             }
 

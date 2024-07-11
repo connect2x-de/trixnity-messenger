@@ -2,10 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -25,8 +27,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData.UnsignedStateEventData
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import kotlin.coroutines.CoroutineContext
 
@@ -34,17 +34,13 @@ import kotlin.coroutines.CoroutineContext
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
 
-    val mocker = Mocker()
-
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(matrixClientMock)
         }
 
         should("display who changed the room's history") {
@@ -65,7 +61,11 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.historyVisibilityMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group from '${cut.translateVisibility(previousHistoryVisibilityEvent)}' to '${cut.translateVisibility(newHistoryVisibilityEvent)}'"""
+            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group from '${
+                cut.translateVisibility(
+                    previousHistoryVisibilityEvent
+                )
+            }' to '${cut.translateVisibility(newHistoryVisibilityEvent)}'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -74,11 +74,18 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
         should("display who changed the room's history visibility without the old history if not set") {
             val newHistoryVisibilityEvent = HistoryVisibilityEventContent.HistoryVisibility.SHARED
             val cut =
-                historyVisibilityChangeStatusViewModel(timelineEvent = timelineEvent(newHistoryVisibilityEventContent = newHistoryVisibilityEvent), coroutineContext = coroutineContext)
+                historyVisibilityChangeStatusViewModel(
+                    timelineEvent = timelineEvent(newHistoryVisibilityEventContent = newHistoryVisibilityEvent),
+                    coroutineContext = coroutineContext
+                )
             val subscriberJob = launch { cut.historyVisibilityMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group to '${cut.translateVisibility(newHistoryVisibilityEvent)}'"""
+            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group to '${
+                cut.translateVisibility(
+                    newHistoryVisibilityEvent
+                )
+            }'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()

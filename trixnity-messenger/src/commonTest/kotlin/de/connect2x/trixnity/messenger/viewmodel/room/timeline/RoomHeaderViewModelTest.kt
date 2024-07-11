@@ -2,16 +2,37 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.*
+import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
+import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
+import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
@@ -21,7 +42,6 @@ import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -31,136 +51,128 @@ import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.utils.toByteArrayFlow
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomHeaderViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
-
     private val roomId = RoomId("room1", "localhost")
     private val me = UserId("bob", "localhost")
     private val otherUser = UserId("cob", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var mediaServiceMock: MediaService
+    val mediaServiceMock = mock<MediaService>()
 
-    @Mock
-    lateinit var keyServiceMock: KeyService
+    val keyServiceMock = mock<KeyService>()
 
-    @Mock
-    lateinit var roomNameMock: RoomName
+    val roomNameMock = mock<RoomName>()
 
-    @Mock
-    lateinit var roomTopicMock: RoomTopic
+    val roomTopicMock = mock<RoomTopic>()
 
-    @Mock
-    lateinit var initialsMock: Initials
+    val initialsMock = mock<Initials>()
 
-    @Mock
-    lateinit var userPresenceMock: UserPresence
+    val userPresenceMock = mock<UserPresence>()
 
-    @Mock
-    lateinit var directRoomMock: DirectRoom
+    val directRoomMock = mock<DirectRoom>()
 
-    @Mock
-    lateinit var userBlockingMock: UserBlocking
+    val userBlockingMock = mock<UserBlocking>()
 
-    private lateinit var roomNameElement: Mocker.Every<Flow<String>>
-    private lateinit var roomTopicElement: Mocker.Every<Flow<String>>
-    private lateinit var ignoredUsers: Mocker.Every<Flow<IgnoredUserListEventContent?>>
+    private lateinit var roomNameElement: BlockingAnsweringScope<Flow<String>>
+    private lateinit var roomTopicElement: BlockingAnsweringScope<Flow<String>>
+    private lateinit var ignoredUsers: BlockingAnsweringScope<Flow<IgnoredUserListEventContent?>>
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                            single { mediaServiceMock }
-                            single { keyServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns me
-
-                roomNameElement = every {
-                    roomNameMock.getRoomName(isAny<RoomId>(), isAny(), isAny<Boolean>())
-                }
-                roomNameElement returns MutableStateFlow("My Room")
-                roomTopicElement = every {
-                    roomTopicMock.getRoomTopic(isAny<RoomId>(), isAny(), isAny<Boolean>())
-                }
-                roomTopicElement returns MutableStateFlow("My Topic")
-                every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
-
-                ignoredUsers = every { userServiceMock.getAccountData<IgnoredUserListEventContent>() }
-                ignoredUsers returns flowOf(
-                    IgnoredUserListEventContent(emptyMap())
+            resetMocks(
+                matrixClientMock,
+                roomServiceMock,
+                userServiceMock,
+                mediaServiceMock,
+                keyServiceMock,
+                roomNameMock,
+                roomTopicMock,
+                initialsMock,
+                userPresenceMock,
+                directRoomMock,
+                userBlockingMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                        single { mediaServiceMock }
+                        single { keyServiceMock }
+                    }
                 )
+            }.koin
+            every { matrixClientMock.userId } returns me
 
-                every { initialsMock.compute(isAny()) } returns "MR"
-                every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
-                    Room(roomId, avatarUrl = "mxc://localhost/123456")
-                )
-                every {
-                    roomServiceMock.getState(
-                        isAny(),
-                        isEqual(JoinRulesEventContent::class),
-                        isAny()
-                    )
-                } returns MutableStateFlow(
-                    ClientEvent.RoomEvent.StateEvent(
-                        content = JoinRulesEventContent(
-                            joinRule = JoinRulesEventContent.JoinRule.Public
-                        ),
-                        EventId("1"),
-                        me,
-                        roomId,
-                        0L,
-                        stateKey = "",
-                    )
-                )
-                everySuspending {
-                    mediaServiceMock.getThumbnail(
-                        isEqual("mxc://localhost/123456"),
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                        isAny(),
-                    )
-                } returns Result.success("image".encodeToByteArray().toByteArrayFlow())
-                every { userPresenceMock.presentEventContentFlow(isAny(), isEqual(roomId)) } returns flowOf(
-                    PresenceEventContent(presence = Presence.ONLINE)
-                )
-                every { userBlockingMock.isUserBlocked(isAny(), isAny()) } returns MutableStateFlow(false)
+            roomNameElement = every {
+                roomNameMock.getRoomName(any<RoomId>(), any(), any<Boolean>())
             }
+            roomNameElement returns MutableStateFlow("My Room")
+            roomTopicElement = every {
+                roomTopicMock.getRoomTopic(any<RoomId>(), any(), any<Boolean>())
+            }
+            roomTopicElement returns MutableStateFlow("My Topic")
+            every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
+
+            ignoredUsers = every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) }
+            ignoredUsers returns flowOf(
+                IgnoredUserListEventContent(emptyMap())
+            )
+
+            every { initialsMock.compute(any()) } returns "MR"
+            every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+                Room(roomId, avatarUrl = "mxc://localhost/123456")
+            )
+            every {
+                roomServiceMock.getState(
+                    any(),
+                    eq(JoinRulesEventContent::class),
+                    any()
+                )
+            } returns MutableStateFlow(
+                ClientEvent.RoomEvent.StateEvent(
+                    content = JoinRulesEventContent(
+                        joinRule = JoinRulesEventContent.JoinRule.Public
+                    ),
+                    EventId("1"),
+                    me,
+                    roomId,
+                    0L,
+                    stateKey = "",
+                )
+            )
+            everySuspend {
+                mediaServiceMock.getThumbnail(
+                    eq("mxc://localhost/123456"),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns Result.success("image".encodeToByteArray().toByteArrayFlow())
+            every { userPresenceMock.presentEventContentFlow(any(), eq(roomId)) } returns flowOf(
+                PresenceEventContent(presence = Presence.ONLINE)
+            )
+            every { userBlockingMock.isUserBlocked(any(), any()) } returns MutableStateFlow(false)
         }
 
         should("should show correct room name with initials and avatar and react to changes") {
             val roomName = MutableStateFlow("My Room")
             roomNameElement returns roomName
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
@@ -190,7 +202,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         }
 
         should("compute trust level of `null` for non-direct rooms") {
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
@@ -202,8 +214,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         should("react to changes in the user's trust level") {
             val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
             val directRoom = MutableStateFlow(listOf(otherUser))
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns directRoom
-            mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns trustLevel
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns directRoom
+            every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
@@ -222,8 +234,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
         should("allow to verify other user if not yet verified and vice versa") {
             val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(listOf(otherUser))
-            mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns trustLevel
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
+            every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
             val cut = roomHeaderViewModel(coroutineContext)
             testCoroutineScheduler.advanceUntilIdle()
@@ -237,8 +249,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         }
 
         should("not allow user verification in non-direct room") {
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(emptyList())
-            mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns flowOf(
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+            every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
 
@@ -253,8 +265,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
         should("allow to block user in a direct room with only 2 users and user is not yet blocked and unblock if already blocked") {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns flowOf(listOf(otherUser))
-            mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns flowOf(
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
+            every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
 
@@ -277,8 +289,8 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
         should("not allow to block user in non-direct rooms or direct rooms with more than 2 participants") {
             val directRoom = MutableStateFlow(listOf(otherUser, UserId("another_dude", "localhost")))
-            mocker.every { directRoomMock.getUsers(isAny(), isEqual(roomId)) } returns directRoom
-            mocker.every { keyServiceMock.getTrustLevel(isEqual(otherUser)) } returns flowOf(
+            every { directRoomMock.getUsers(any(), eq(roomId)) } returns directRoom
+            every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
 
@@ -323,9 +335,9 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
-            onBack = mockFunction0(mocker),
-            onVerifyUser = mockFunction0(mocker),
-            onShowRoomSettings = mockFunction0(mocker),
+            onBack = mock(),
+            onVerifyUser = mock(),
+            onShowRoomSettings = mock(),
         )
         subscribe(roomHeaderViewModel)
         return roomHeaderViewModel

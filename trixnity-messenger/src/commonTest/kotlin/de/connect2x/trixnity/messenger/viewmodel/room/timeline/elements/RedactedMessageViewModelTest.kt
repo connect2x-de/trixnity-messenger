@@ -2,14 +2,19 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.isTimelineEvent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import isTimelineEvent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -31,8 +36,6 @@ import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -45,38 +48,30 @@ class RedactedMessageViewModelTest : ShouldSpec() {
     private val me = UserId("jonas", "localhost")
     val eventId = EventId("0")
 
-    val mocker = Mocker()
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val roomServiceMock = mock<RoomService>()
 
-    @Mock
-    lateinit var roomServiceMock: RoomService
-
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-
-                every { matrixClientMock.userId } returns me
-                mocker.every { userServiceMock.getById(roomId, ourUserId) } returns MutableStateFlow(
-                    roomUser(me, "TestUser")
+            resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    }
                 )
-            }
+            }.koin
+
+            every { matrixClientMock.userId } returns me
+            every { userServiceMock.getById(roomId, ourUserId) } returns MutableStateFlow(
+                roomUser(me, "TestUser")
+            )
         }
 
 
@@ -180,10 +175,10 @@ class RedactedMessageViewModelTest : ShouldSpec() {
             gap = null,
         )
 
-        mocker.every {
+        every {
             roomServiceMock.getPreviousTimelineEvent(
                 isTimelineEvent(timelineEvent),
-                isAny(),
+                any(),
             )
         } returns
                 previousEvent?.let { MutableStateFlow(it) }

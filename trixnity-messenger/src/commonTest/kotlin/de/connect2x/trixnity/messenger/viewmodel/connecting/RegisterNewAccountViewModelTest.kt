@@ -6,66 +6,65 @@ import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.firstWithClue
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.AuthorizeUiaMock
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
-import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.Register
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
-import org.kodein.mock.mockFunction1
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RegisterNewAccountViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
+    val matrixClientFactoryMock = mock<MatrixClientFactory>()
 
-    @Mock
-    lateinit var matrixClientFactoryMock: MatrixClientFactory
-
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
     private lateinit var coroutineScope: CoroutineScope
     private lateinit var authorizeUia: AuthorizeUiaMock
 
-    private val onLoginMock = mockFunction1<Unit, MatrixClient>(mocker)
+    private val onLoginMock = mock<Function1<MatrixClient, Unit>>()
 
     init {
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
 
             coroutineScope = CoroutineScope(Dispatchers.Default)
             authorizeUia = AuthorizeUiaMock(coroutineScope)
-            with(mocker) {
-                everySuspending {
-                    matrixClientFactoryMock.loginWith(isAny(), isAny(), isAny())
-                } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+            resetMocks(matrixClientFactoryMock, matrixClientMock, onLoginMock)
+            everySuspend {
+                matrixClientFactoryMock.loginWith(any(), any(), any())
+            } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
 
-                every { onLoginMock.invoke(isAny()) } returns Unit
-                every { matrixClientMock.userId } returns UserId("test", "server")
-            }
+            every { onLoginMock.invoke(any()) } returns Unit
+            every { matrixClientMock.userId } returns UserId("test", "server")
         }
         afterTest {
             coroutineScope.cancel()
@@ -94,19 +93,19 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             )
 
             eventually(2.seconds) {
-                mocker.verifyWithSuspend(exhaustive = false) {
+                verifySuspend {
                     matrixClientFactoryMock.loginWith(
-                        isEqual(Url("http://myMatrixServer:55678")),
-                        isEqual(
+                        eq(Url("http://myMatrixServer:55678")),
+                        eq(
                             MatrixClient.LoginInfo(
                                 UserId("@user1:myMatrixServer:55678"),
                                 "GHTYAJCE",
                                 "abc123"
                             )
                         ),
-                        isAny(),
+                        any(),
                     )
-                    onLoginMock.invoke(isAny())
+                    onLoginMock.invoke(any())
                 }
             }
 
@@ -151,7 +150,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             ),
             serverUrl,
             onLogin = onLoginMock,
-            onBack = mockFunction0(mocker),
+            onBack = mock(),
         )
     }
 }

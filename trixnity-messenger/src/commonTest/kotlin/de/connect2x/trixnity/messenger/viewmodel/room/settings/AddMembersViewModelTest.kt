@@ -2,9 +2,20 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
@@ -31,74 +42,68 @@ import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
-import org.kodein.mock.mockFunction0
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddMembersViewModelTest : ShouldSpec() {
-    val mocker = Mocker()
-
     private val roomId = RoomId("room", "localhost")
 
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var usersApiClientMock: UserApiClient
+    val usersApiClientMock = mock<UserApiClient>()
 
-    @Mock
-    lateinit var roomsApiClientMock: RoomApiClient
+    val roomsApiClientMock = mock<RoomApiClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    private val onBackMock = mockFunction0<Unit>(mocker)
+    private val onBackMock = mock<Function0<Unit>>()
 
-    private lateinit var syncStateMocker: Mocker.Every<StateFlow<SyncState>>
+    private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
         beforeTest {
             Dispatchers.setMain(Dispatchers.Unconfined)
-            mocker.reset()
-            injectMocks(mocker)
 
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                syncStateMocker = every { matrixClientMock.syncState }
-                syncStateMocker returns MutableStateFlow(SyncState.STARTED)
+            resetMocks(
+                matrixClientMock,
+                matrixClientServerApiClientMock,
+                usersApiClientMock,
+                roomsApiClientMock,
+                userServiceMock,
+                onBackMock
+            )
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            syncStateMocker = every { matrixClientMock.syncState }
+            syncStateMocker returns MutableStateFlow(SyncState.STARTED)
 
-                every { matrixClientMock.userId } returns userId1
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.user } returns usersApiClientMock
-                every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
-                every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
-            }
+            every { matrixClientMock.userId } returns userId1
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.user } returns usersApiClientMock
+            every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+            every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         }
 
         should("add user to group list when selected and remove from list when deselected") {
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -140,30 +145,30 @@ class AddMembersViewModelTest : ShouldSpec() {
         }
 
         should("add Members with all selected users and go back to room settings") {
-            mocker.every { onBackMock.invoke() } returns Unit
+            every { onBackMock.invoke() } returns Unit
 
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.inviteUser(
-                    isEqual(roomId),
-                    isEqual(userId2),
-                    isNull(),
-                    isNull()
+                    eq(roomId),
+                    eq(userId2),
+                    eqNull(),
+                    eqNull()
                 )
             } returns Result.success(Unit)
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.inviteUser(
-                    isEqual(roomId),
-                    isEqual(userId3),
-                    isNull(),
-                    isNull()
+                    eq(roomId),
+                    eq(userId3),
+                    eqNull(),
+                    eqNull()
                 )
             } returns Result.success(Unit)
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(
@@ -190,23 +195,23 @@ class AddMembersViewModelTest : ShouldSpec() {
             cut.addMembers()
 
             eventually(3.seconds) {
-                mocker.verify(exhaustive = false) { onBackMock.invoke() }
+                verify { onBackMock.invoke() }
                 cut.error.value shouldBe null
             }
         }
 
         should("show error message when a user cannot be added") {
             var onBackWasCalled = false
-            mocker.every { onBackMock.invoke() } runs {
+            every { onBackMock.invoke() } calls {
                 onBackWasCalled = true
             }
 
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.inviteUser(
-                    isEqual(roomId),
-                    isEqual(userId2),
-                    isNull(),
-                    isNull()
+                    eq(roomId),
+                    eq(userId2),
+                    eqNull(),
+                    eqNull()
                 )
             } returns Result.failure(
                 MatrixServerException(
@@ -214,12 +219,12 @@ class AddMembersViewModelTest : ShouldSpec() {
                     ErrorResponse.Forbidden("403")
                 )
             )
-            mocker.everySuspending {
+            everySuspend {
                 roomsApiClientMock.inviteUser(
-                    isEqual(roomId),
-                    isEqual(userId3),
-                    isNull(),
-                    isNull()
+                    eq(roomId),
+                    eq(userId3),
+                    eqNull(),
+                    eqNull()
                 )
             } returns Result.failure(
                 MatrixServerException(
@@ -227,12 +232,12 @@ class AddMembersViewModelTest : ShouldSpec() {
                     ErrorResponse.Forbidden("403")
                 )
             )
-            mocker.everySuspending {
+            everySuspend {
                 usersApiClientMock.searchUsers(
-                    isEqual("u"),
-                    isAny(),
-                    isAny(),
-                    isNull()
+                    eq("u"),
+                    any(),
+                    any(),
+                    eqNull()
                 )
             } returns
                     Result.success(

@@ -71,20 +71,8 @@ open class DevicesSettingsViewModelImpl(
     private val onCloseDevicesSettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, DevicesSettingsViewModel {
 
-    override val accountsWithDevices: StateFlow<List<AccountWithDevices>>
-    override val error = MutableStateFlow<String?>(null)
-
-    private val initialLoad = MutableStateFlow(true)
-    override val removalForDeviceId = MutableStateFlow<String?>(null)
-    private val authorizeUia = get<AuthorizeUia>()
-
-    private val backCallback = BackCallback {
-        back()
-    }
-
-    init {
-        backHandler.register(backCallback)
-        accountsWithDevices = matrixClients.scopedMapLatest { matrixClients ->
+    override val accountsWithDevices: StateFlow<List<AccountWithDevices>> =
+        matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, matrixClient) ->
                 log.trace { "devices for account '$userId' will be loaded" }
                 val isLoading = MutableStateFlow(true)
@@ -167,6 +155,18 @@ open class DevicesSettingsViewModelImpl(
                 )
             }
         }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
+    override val error = MutableStateFlow<String?>(null)
+
+    private val initialLoad = MutableStateFlow(true)
+    override val removalForDeviceId = MutableStateFlow<String?>(null)
+    private val authorizeUia = get<AuthorizeUia>()
+
+    private val backCallback = BackCallback {
+        back()
+    }
+
+    init {
+        backHandler.register(backCallback)
     }
 
     private fun CoroutineScope.isVerified(

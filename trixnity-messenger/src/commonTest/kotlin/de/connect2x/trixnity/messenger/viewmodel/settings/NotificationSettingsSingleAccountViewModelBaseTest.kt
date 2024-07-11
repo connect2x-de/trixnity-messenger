@@ -3,9 +3,17 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.firstWithClue
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
@@ -26,8 +34,6 @@ import net.folivo.trixnity.core.model.push.PushAction
 import net.folivo.trixnity.core.model.push.PushRuleKind
 import net.folivo.trixnity.core.model.push.PushRuleSet
 import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -35,8 +41,6 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
-    val mocker = Mocker()
-
     private val userId = UserId("alice", "dino.unicorn")
 
     private val sampleSettings =
@@ -63,17 +67,13 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
 
     private val samplePushRuleSet = sampleSettings.toPushRuleSet(userId)
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
-    @Mock
-    lateinit var matrixClientServerApiClientMock: MatrixClientServerApiClient
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
-    @Mock
-    lateinit var pushApiClientMock: PushApiClient
+    val pushApiClientMock = mock<PushApiClient>()
 
     private val continueHandlePushRuleRequest = MutableStateFlow(false)
     private val pushRulesEventContentState = MutableStateFlow<PushRuleSet?>(samplePushRuleSet)
@@ -83,49 +83,45 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
         timeout = 20_000 // virtual time!
 
         beforeTest {
-
-            mocker.reset()
-            injectMocks(mocker)
+            resetMocks(matrixClientMock, userServiceMock, matrixClientServerApiClientMock, pushApiClientMock)
 
             continueHandlePushRuleRequest.value = false
             pushRulesEventContentState.value = samplePushRuleSet
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns userId
-                every { matrixClientMock.api } returns matrixClientServerApiClientMock
-                every { matrixClientServerApiClientMock.push } returns pushApiClientMock
-                every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
-                        pushRulesEventContentState.map { PushRulesEventContent((it)) }
-                everySuspending {
-                    pushApiClientMock.setPushRule(isAny(), isAny(), isAny(), isAny(), isAny(), isAny(), isAny())
-                } runs {
-                    continueHandlePushRuleRequest.first { it }
-                    Result.success(Unit)
-                }
-                everySuspending {
-                    pushApiClientMock.deletePushRule(isAny(), isAny(), isAny(), isAny())
-                } runs {
-                    continueHandlePushRuleRequest.first { it }
-                    Result.success(Unit)
-                }
-                everySuspending {
-                    pushApiClientMock.setPushRuleActions(isAny(), isAny(), isAny(), isAny(), isAny())
-                } runs {
-                    continueHandlePushRuleRequest.first { it }
-                    Result.success(Unit)
-                }
-                everySuspending {
-                    pushApiClientMock.setPushRuleEnabled(isAny(), isAny(), isAny(), isAny(), isAny())
-                } runs {
-                    continueHandlePushRuleRequest.first { it }
-                    Result.success(Unit)
-                }
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns userId
+            every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientServerApiClientMock.push } returns pushApiClientMock
+            every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
+                    pushRulesEventContentState.map { PushRulesEventContent((it)) }
+            everySuspend {
+                pushApiClientMock.setPushRule(any(), any(), any(), any(), any(), any(), any())
+            } calls {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
+            everySuspend {
+                pushApiClientMock.deletePushRule(any(), any(), any(), any())
+            } calls {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
+            everySuspend {
+                pushApiClientMock.setPushRuleActions(any(), any(), any(), any(), any())
+            } calls {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
+            everySuspend {
+                pushApiClientMock.setPushRuleEnabled(any(), any(), any(), any(), any())
+            } calls {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
             }
         }
 
@@ -155,7 +151,7 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
             pushRulesEventContentState.value = newSettings.toPushRuleSet(userId)
             cut.accountSettingsIsUpdating.firstWithClue(false)
 
-            mocker.verifyWithSuspend(exhaustive = false, inOrder = false) {
+            verifySuspend {
                 pushApiClientMock.setPushRule(
                     scope = "global",
                     kind = PushRuleKind.CONTENT,

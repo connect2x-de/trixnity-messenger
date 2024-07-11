@@ -60,6 +60,10 @@ interface CreateNewGroupViewModel {
     fun removeUserFromList(user: SearchUserElement)
     fun removeUserFromGroup(user: SearchUserElement)
     fun addUserToList(user: SearchUserElement)
+
+    fun changeEncryptionStatus(newEncryptionStatus: Boolean)
+    fun changeOptionalHistoryVisibility(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility)
+    fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility) : Boolean
 }
 
 open class CreateNewGroupViewModelImpl(
@@ -168,6 +172,27 @@ open class CreateNewGroupViewModelImpl(
             createNewRoomViewModel.foundUsers.value += user
         }
     }
+
+    override fun changeEncryptionStatus(newEncryptionStatus: Boolean) {
+        if (newEncryptionStatus &&
+            optionalRoomHistoryVisibility.value == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+        ) {
+            optionalRoomHistoryVisibility.value = HistoryVisibilityEventContent.HistoryVisibility.SHARED
+        }
+        isEncrypted.value = newEncryptionStatus
+    }
+
+    override fun changeOptionalHistoryVisibility(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
+        if (newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+            && isEncrypted.value
+        ) {
+            log.error { "Cannot change room history visibility to 'WORLD_READABLE because the room is encrypted" }
+        } else optionalRoomHistoryVisibility.value = newHistoryVisibility
+    }
+
+    override fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean {
+        return !(newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && isEncrypted.value)
+    }
 }
 
 class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
@@ -205,4 +230,20 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override fun addUserToList(user: SearchUserElement) {
     }
 
+    override fun changeEncryptionStatus(newEncryptionStatus: Boolean) {
+        if (newEncryptionStatus && optionalRoomHistoryVisibility.value == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE) {
+            optionalRoomHistoryVisibility.value = HistoryVisibilityEventContent.HistoryVisibility.INVITED
+        }
+        isEncrypted.value = newEncryptionStatus
+    }
+
+    override fun changeOptionalHistoryVisibility(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility) {
+        if (newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && isEncrypted.value) {
+            log.error { "Cannot change room history visibility to 'WORLD_READABLE because the room is encrypted" }
+        } else optionalRoomHistoryVisibility.value = newHistoryVisibility
+    }
+
+    override fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean {
+        return !(newHistoryVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && isEncrypted.value)
+    }
 }

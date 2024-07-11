@@ -912,9 +912,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es gab einen Fehler beim Export: $message"
     }
 
-    fun exportRoomSuccessWithMissingMedia() = translate {
-        EN - "The export was successful, but not all media could be downloaded"
-        DE - "Der export war erfolgreich, dennoch konnten nicht alle Medien nicht heruntergeladen werden."
+    fun exportRoomSuccessWithErrors() = translate {
+        EN - "The export was successful, but there were some errors."
+        DE - "Der Export war erfolgreich, dennoch sind Fehler aufgetreten."
     }
 
     fun exportRoomEmote(message: String) = translate {

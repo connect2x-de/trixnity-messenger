@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import dev.mokkery.matcher.*
+
+import dev.mokkery.answering.*
+
 import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldState.Edit
 import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldState.Read
 import io.kotest.core.spec.style.ShouldSpec
@@ -188,8 +192,8 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
     private fun editableTextFieldModel(
         coroutineContext: CoroutineContext,
     ): EditableTextFieldViewModelImpl = EditableTextFieldViewModelImpl(
-            coroutineScope = CoroutineScope(context = coroutineContext),
-            onApplyChange = onApplyValue,
-            serverValue = serverValue,
-        )
+        coroutineScope = CoroutineScope(context = coroutineContext),
+        onApplyChange = onApplyValue,
+        serverValue = serverValue,
+    )
 }

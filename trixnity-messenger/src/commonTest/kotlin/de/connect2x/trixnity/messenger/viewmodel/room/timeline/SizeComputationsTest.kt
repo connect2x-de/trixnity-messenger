@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 class SizeComputationsTest : ShouldSpec() {
 
     init {
-
         should("return height of image if image can be placed in bounds") {
             SizeComputations.getHeight(200, 400, 300, 400f) shouldBe 200
         }

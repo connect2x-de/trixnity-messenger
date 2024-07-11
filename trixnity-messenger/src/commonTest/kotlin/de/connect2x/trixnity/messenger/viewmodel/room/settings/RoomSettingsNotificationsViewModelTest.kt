@@ -2,14 +2,24 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
@@ -20,8 +30,6 @@ import net.folivo.trixnity.core.model.push.PushAction
 import net.folivo.trixnity.core.model.push.PushCondition
 import net.folivo.trixnity.core.model.push.PushRule
 import net.folivo.trixnity.core.model.push.PushRuleSet
-import org.kodein.mock.Mock
-import org.kodein.mock.Mocker
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -30,40 +38,32 @@ import kotlin.coroutines.CoroutineContext
 class RoomSettingsNotificationsViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 4_000
 
-    val mocker = Mocker()
-
     private val roomId = RoomId("room", "localhost")
 
     private val me = UserId("user1", "localhost")
 
-    @Mock
-    lateinit var matrixClientMock: MatrixClient
+    val matrixClientMock = mock<MatrixClient>()
 
-    @Mock
-    lateinit var userServiceMock: UserService
+    val userServiceMock = mock<UserService>()
 
     init {
         coroutineTestScope = true
 
         beforeTest {
-            mocker.reset()
-            injectMocks(mocker)
-
-            with(mocker) {
-                every { matrixClientMock.di } returns koinApplication {
-                    modules(
-                        module {
-                            single { userServiceMock }
-                        }
-                    )
-                }.koin
-                every { matrixClientMock.userId } returns me
-            }
+            resetMocks(matrixClientMock, userServiceMock)
+            every { matrixClientMock.di } returns koinApplication {
+                modules(
+                    module {
+                        single { userServiceMock }
+                    }
+                )
+            }.koin
+            every { matrixClientMock.userId } returns me
         }
 
         should("set room's push rule to DEFAULT'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            every {
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
             } returns MutableStateFlow(
                 PushRulesEventContent(
                     global = PushRuleSet()
@@ -80,8 +80,8 @@ class RoomSettingsNotificationsViewModelTest : ShouldSpec() {
         }
 
         should("set room's push rule to ALL'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            every {
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
             } returns MutableStateFlow(
                 PushRulesEventContent(
                     global = PushRuleSet(
@@ -107,8 +107,8 @@ class RoomSettingsNotificationsViewModelTest : ShouldSpec() {
         }
 
         should("set room's push rule to MENTIONS'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            every {
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
             } returns MutableStateFlow(
                 PushRulesEventContent(
                     global = PushRuleSet(
@@ -134,8 +134,8 @@ class RoomSettingsNotificationsViewModelTest : ShouldSpec() {
         }
 
         should("set room's push rule to SILENT'") {
-            mocker.every {
-                userServiceMock.getAccountData(isEqual(PushRulesEventContent::class), isAny())
+            every {
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
             } returns MutableStateFlow(
                 PushRulesEventContent(
                     global = PushRuleSet(
