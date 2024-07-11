@@ -129,29 +129,56 @@ class RoomSettingsAliasViewModelImpl(
         coroutineScope.launch {
             val newAliases = roomAliases.value?.aliases.orEmpty() + alias
 
-            when (matrixClient.api.room.getRoomAlias(alias).getOrNull()?.roomId) {
-                selectedRoomId -> {
-                    newAliasError.value = null
+            matrixClient.api.room.getRoomAlias(alias).fold(
+                onSuccess = {
+                    if (it.roomId == selectedRoomId) {
+                        log.debug { "Alias $alias already exists in this room" }
+                        newAliasError.value = null
+                        _isUpdating.value = false
+                        return@launch
+                    } else {
+                        log.debug { "Alias $alias already exists in another room" }
+                        newAliasError.value = i18n.settingsRoomAliasAddExists()
+                        _isUpdating.value = false
+                        return@launch
+                    }
+                },
+                onFailure = { error ->
+                    newAliasError.value =
+                        if (error !is MatrixServerException) {
+                            log.error { error.stackTraceToString() }
+                            i18n.settingsRoomAliasGeneric()
+                        } else {
+                            when (val response = error.errorResponse) {
+                                is ErrorResponse.InvalidParam -> i18n.settingsRoomAliasChangeInvalidSyntax()
+                                is ErrorResponse.NotFound -> {
+                                    log.trace { "Happy path: Room Alias doesn't exist yet" }
+                                    return@fold
+                                }
+
+                                else -> {
+                                    log.warn { "Unexpected Error: ${response.error}" }
+                                    i18n.settingsRoomAliasGeneric()
+                                }
+                            }
+                        }
+
                     _isUpdating.value = false
                     return@launch
                 }
-                null -> Unit
-                else -> {
-                    log.debug { "Alias $alias already exists" }
-                    newAliasError.value = i18n.settingsRoomAliasAddExists()
-                    _isUpdating.value = false
-                    return@launch
-                }
-            }
+            )
+
+            log.info { "Get Check" }
 
             matrixClient.api.room.setRoomAlias(selectedRoomId, alias, userId).fold(
                 onSuccess = {
                     withTimeoutOrNull(5.seconds) {
                         matrixClient.api.room.getRoomAlias(alias).getOrNull()?.roomId
                     }.let {
-                        log.debug { "Alias exists in $it" }
+                        log.info { "Alias exists in $it" }
 
                         if (it != selectedRoomId) {
+                            log.debug { "Upon verification, Alias wasn't added successfully" }
                             newAliasError.value = i18n.settingsRoomAliasGeneric()
                             _isUpdating.value = false
                             return@launch
@@ -161,6 +188,7 @@ class RoomSettingsAliasViewModelImpl(
                 onFailure = { error ->
                     newAliasError.value =
                         if (error !is MatrixServerException) {
+                            log.error { error.stackTraceToString() }
                             i18n.settingsRoomAliasGeneric()
                         } else {
                             when (val response = error.errorResponse) {
@@ -178,6 +206,8 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
             )
+
+            log.info { "Set Check" }
 
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
@@ -204,6 +234,7 @@ class RoomSettingsAliasViewModelImpl(
                 onFailure = { error ->
                     newAliasError.value =
                         if (error !is MatrixServerException) {
+                            log.error { error.stackTraceToString() }
                             i18n.settingsRoomAliasGeneric()
                         } else {
                             when (val response = error.errorResponse) {
@@ -228,6 +259,8 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
             )
+
+            log.info { "Send Check" }
 
             newAlias.value = ""
             newAliasError.value = null
