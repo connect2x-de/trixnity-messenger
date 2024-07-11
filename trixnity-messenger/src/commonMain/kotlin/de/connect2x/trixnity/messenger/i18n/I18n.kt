@@ -980,7 +980,12 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun roomEndToEndEncryptionEnableError(error: String) = translate {
         EN - "There was an error enabling the end to end encryption: $error"
-        DE - "Es gab einen Fehler beim Aktivieren der End zu End Verschlüsselung: $error"
+        DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung: $error"
+    }
+
+    fun roomEncryptionAlreadyEnabled() = translate {
+        EN - "the encryption was already enabled"
+        DE - "Die Verschlüsselung wurde bereits aktiviert"
     }
 }
 

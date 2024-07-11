@@ -37,8 +37,8 @@ interface RoomSettingsSecurityViewModelFactory {
 
 interface RoomSettingsSecurityViewModel {
     val isEncrypted: StateFlow<Boolean>
-    val canEncrypt: StateFlow<Boolean>
-    fun enableRoomEncryption()
+    val canEnableEncryption: StateFlow<Boolean>
+    fun enableEncryption()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,17 +50,17 @@ class RoomSettingsSecurityViewModelImpl(
     override val isEncrypted: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
         .mapLatest { room -> requireNotNull(room).encrypted }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val canEncrypt: StateFlow<Boolean> =
+    override val canEnableEncryption: StateFlow<Boolean> =
         combine(
             matrixClient.user.canSendEvent<EncryptionEventContent>(selectedRoomId),
             isEncrypted
         ) { canEncrypt, isEncrypted ->
             return@combine canEncrypt && !isEncrypted
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override fun enableRoomEncryption() {
+    override fun enableEncryption() {
         log.debug { "enableRoomEncryption for $selectedRoomId" }
-        if (canEncrypt.value) {
+        if (canEnableEncryption.value) {
             coroutineScope.launch {
                 val roomApiClient = matrixClient.api.room
                 roomApiClient.sendStateEvent(selectedRoomId, EncryptionEventContent())
@@ -72,14 +72,17 @@ class RoomSettingsSecurityViewModelImpl(
                         error.value = i18n.roomEndToEndEncryptionEnableError(it.message?: "")
                     }
             }
+        } else {
+            log.error { "Failed to enable room E2E encryption: encryption was already enabled" }
+            error.value = i18n.roomEndToEndEncryptionEnableError(i18n.roomEncryptionAlreadyEnabled())
         }
     }
 }
 
 class PreviewRoomSettingsSecurityViewModel : RoomSettingsSecurityViewModel {
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val canEncrypt: StateFlow<Boolean> = MutableStateFlow(false)
+    override val canEnableEncryption: StateFlow<Boolean> = MutableStateFlow(false)
 
-    override fun enableRoomEncryption() {
+    override fun enableEncryption() {
     }
 }
