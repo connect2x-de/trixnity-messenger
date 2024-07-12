@@ -26,7 +26,7 @@ import org.koin.dsl.koinApplication
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class RoomEncryptionEnableViewModelTest : ShouldSpec() {
+class RoomEncryptionEnabledViewModelTest : ShouldSpec() {
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -37,33 +37,33 @@ class RoomEncryptionEnableViewModelTest : ShouldSpec() {
         }
 
         should("display who enabled to end-to-end encryption") {
-            val cut = roomEncryptionEnableViewModel(coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomEncryptionEnableMessage.collect {} }
+            val cut = roomEncryptionEnabledViewModel(coroutineContext = coroutineContext)
+            val subscriberJob = launch { cut.roomEncryptionEnabledMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomEncryptionEnableMessage.value shouldBe "Bob enabled end-to-end encryption"
+            cut.roomEncryptionEnabledMessage.value shouldBe "Bob enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
         should("react to username changes") {
             val userFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost")))
-            val cut = roomEncryptionEnableViewModel(userFlow = userFlow, coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomEncryptionEnableMessage.collect {} }
+            val cut = roomEncryptionEnabledViewModel(userFlow = userFlow, coroutineContext = coroutineContext)
+            val subscriberJob = launch { cut.roomEncryptionEnabledMessage.collect {} }
             userFlow.value = UserInfoElement("Bobby", UserId("booby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomEncryptionEnableMessage.value shouldBe "Bobby enabled end-to-end encryption"
+            cut.roomEncryptionEnabledMessage.value shouldBe "Bobby enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
     }
 
-    private fun roomEncryptionEnableViewModel(
+    private fun roomEncryptionEnabledViewModel(
         timelineEvent: TimelineEvent = timelineEvent(),
         userFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext
-    ): RoomEncryptionEnableViewModel =
-        RoomEncryptionEnableViewModelImpl(
+    ): RoomEncryptionEnabledViewModel =
+        RoomEncryptionEnabledViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
