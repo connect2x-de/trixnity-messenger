@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapLatest
@@ -18,8 +19,8 @@ import kotlin.time.toDuration
 
 interface UserSearchHandler {
     val initialUsers: MutableStateFlow<List<Search.SearchUserElement>>
-    val currentSearchTerm: MutableStateFlow<String>
-    val actualSearchTerm: MutableStateFlow<String>
+    val currentSearchTerm: StateFlow<String>
+    val actualSearchTerm: StateFlow<String>
     val foundUsers: MutableStateFlow<List<Search.SearchUserElement>>
     val waitForUserResults: MutableStateFlow<Boolean>
 

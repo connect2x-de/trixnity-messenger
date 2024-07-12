@@ -175,23 +175,24 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
 
             val cut = createNewGroupViewModel()
+            val searchHandler = cut.createNewRoomViewModel.searchHandler
             val subscriberJob = launch { cut.canCreateNewGroup.collect {} }
-            cut.createNewRoomViewModel.userSearchTerm.value = "u"
-            cut.foundUsers.first {
+            searchHandler.setSearchTerm("u")
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
             cut.onUserClick(user2)
 
             eventually(3.seconds) {
                 cut.groupUsers.value shouldContainExactly listOf(user2)
-                cut.foundUsers.value shouldNotContain user2
+                searchHandler.foundUsers.value shouldNotContain user2
             }
 
             cut.removeUserFromGroup(user2)
 
             eventually(3.seconds) {
                 cut.groupUsers.value shouldBe emptyList()
-                cut.foundUsers.value shouldContain user2
+                searchHandler.foundUsers.value shouldContain user2
             }
 
             subscriberJob.cancel()
@@ -243,8 +244,9 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
             val cut = createNewGroupViewModel()
-            cut.createNewRoomViewModel.userSearchTerm.value = "u"
-            cut.foundUsers.first {
+            val searchHandler = cut.createNewRoomViewModel.searchHandler
+            searchHandler.setSearchTerm("u")
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
             cut.onUserClick(user2)
@@ -351,8 +353,9 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
 
             val cut = createNewGroupViewModel()
-            cut.createNewRoomViewModel.userSearchTerm.value = "u"
-            cut.foundUsers.first {
+            val searchHandler = cut.createNewRoomViewModel.searchHandler
+            searchHandler.setSearchTerm("u")
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
             cut.onUserClick(user2)
