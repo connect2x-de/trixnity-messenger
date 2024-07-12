@@ -79,7 +79,7 @@ class AddMembersViewModelImpl(
 
     override val error = MutableStateFlow<String?>(null)
     override val errorCause = MutableStateFlow<String?>(null)
-    internal val foundUsers = potentialMembersViewModel.foundUsers.asStateFlow()
+    internal val foundUsers = potentialMembersViewModel.searchHandler.foundUsers.asStateFlow()
 
     override fun addMembers() {
         log.info { "add ${groupUsers.value.joinToString { it.displayName }} to group" }
@@ -153,7 +153,9 @@ class AddMembersViewModelImpl(
     override fun removeUserFromList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.foundUsers.value = potentialMembersViewModel.foundUsers.value - user
+            potentialMembersViewModel.searchHandler.apply {
+                foundUsers.value -= user
+            }
         }
     }
 
@@ -165,7 +167,9 @@ class AddMembersViewModelImpl(
     override fun addUserToList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.foundUsers.value = potentialMembersViewModel.foundUsers.value + user
+            potentialMembersViewModel.searchHandler.apply {
+                foundUsers.value += user
+            }
         }
     }
 
