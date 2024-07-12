@@ -199,7 +199,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
 
             is EncryptionEventContent -> {
                 log.trace { "Create room encryption view model: ${event.id}" }
-                viewModelContext.get<RoomEncryptionEnableViewModelFactory>().create(
+                viewModelContext.get<RoomEncryptionEnabledViewModelFactory>().create(
                     viewModelContext = viewModelContext,
                     timelineEvent = timelineEvent,
                     content = content,

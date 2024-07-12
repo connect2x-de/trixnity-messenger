@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 
-interface RoomEncryptionEnableViewModelFactory {
+interface RoomEncryptionEnabledViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         formattedDate: String,
@@ -22,8 +22,8 @@ interface RoomEncryptionEnableViewModelFactory {
         invitation: Flow<String?>,
         sender: Flow<UserInfoElement>,
         isDirectFlow: StateFlow<Boolean>
-    ): RoomEncryptionEnableViewModel =
-        RoomEncryptionEnableViewModelImpl(
+    ): RoomEncryptionEnabledViewModel =
+        RoomEncryptionEnabledViewModelImpl(
             viewModelContext,
             timelineEvent,
             content,
@@ -34,14 +34,14 @@ interface RoomEncryptionEnableViewModelFactory {
             isDirectFlow
         )
 
-    companion object : RoomEncryptionEnableViewModelFactory
+    companion object : RoomEncryptionEnabledViewModelFactory
 }
 
-interface RoomEncryptionEnableViewModel: BaseTimelineElementViewModel {
-    val roomEncryptionEnableMessage: StateFlow<String?>
+interface RoomEncryptionEnabledViewModel: BaseTimelineElementViewModel {
+    val roomEncryptionEnabledMessage: StateFlow<String?>
 }
 
-class RoomEncryptionEnableViewModelImpl(
+class RoomEncryptionEnabledViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     timelineEvent: TimelineEvent?,
     content: EncryptionEventContent,
@@ -50,11 +50,11 @@ class RoomEncryptionEnableViewModelImpl(
     invitation: Flow<String?>,
     sender: Flow<UserInfoElement>,
     isDirectFlow: StateFlow<Boolean>
-): MatrixClientViewModelContext by viewModelContext, RoomEncryptionEnableViewModel {
+): MatrixClientViewModelContext by viewModelContext, RoomEncryptionEnabledViewModel {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val roomEncryptionEnableMessage: StateFlow<String?> = sender.mapLatest { userInfo ->
+    override val roomEncryptionEnabledMessage: StateFlow<String?> = sender.mapLatest { userInfo ->
         return@mapLatest i18n.roomEncryptionEnabled(userInfo.name)
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }
