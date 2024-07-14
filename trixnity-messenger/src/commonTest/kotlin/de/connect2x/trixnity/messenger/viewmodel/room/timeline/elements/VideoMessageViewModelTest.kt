@@ -142,6 +142,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
             sender = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
             invitation = flowOf(null),
             onOpenModal = mock(),
+            mediaUploadProgress = MutableStateFlow(null)
         )
     }
 }

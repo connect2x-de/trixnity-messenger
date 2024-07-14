@@ -69,7 +69,7 @@ interface VideoMessageViewModel : FileBasedMessageViewModel {
     val width: Int
     val height: Int
     val duration: Int?
-    val progress: StateFlow<FileTransferProgressElement?>
+    val uploadProgress: StateFlow<FileTransferProgressElement?>
     fun getMaxHeight(): Int
     fun getHeight(maxWidth: Float): Int
     fun getWidth(maxWidth: Float, possibleHeight: Float): Int
@@ -112,7 +112,7 @@ open class VideoMessageViewModelImpl(
     override val width: Int = videoWidth(content)
     override val height: Int = videoHeight(content)
     override val duration: Int? = content.info?.duration
-    override val progress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun getMaxHeight(): Int = 300
@@ -147,7 +147,7 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val width: Int = 300
     override val height: Int = 200
     override val duration: Int = 950
-    override val progress: MutableStateFlow<FileTransferProgressElement?> =
+    override val uploadProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow(FileTransferProgressElement(0.3f, "145kB / 550kB"))
 
     override val fileSize: Int? = 200

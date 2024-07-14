@@ -69,7 +69,7 @@ interface ImageMessageViewModel : FileBasedMessageViewModel {
     val thumbnail: StateFlow<ByteArray?>
     val width: Int
     val height: Int
-    val progress: StateFlow<FileTransferProgressElement?>
+    val uploadProgress: StateFlow<FileTransferProgressElement?>
 
     fun openImage()
     fun getMaxHeight(): Int
@@ -113,7 +113,7 @@ class ImageMessageViewModelImpl(
 
     override val width: Int = imageWidth(content)
     override val height: Int = imageHeight(content)
-    override val progress: StateFlow<FileTransferProgressElement?> =
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> =
         if (mediaUploadProgress.value != null) {
             thumbnails.mapProgressToProgressElement(mediaUploadProgress)
         } else {
@@ -151,7 +151,7 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     override val thumbnail: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
     override val width: Int = 300
     override val height: Int = 200
-    override val progress: MutableStateFlow<FileTransferProgressElement?> =
+    override val uploadProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow(FileTransferProgressElement(0.3f, "145kB / 550kB"))
 
     override fun openImage() {

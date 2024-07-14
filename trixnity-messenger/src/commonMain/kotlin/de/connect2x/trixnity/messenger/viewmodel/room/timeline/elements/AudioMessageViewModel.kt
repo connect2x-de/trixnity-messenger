@@ -57,7 +57,7 @@ interface AudioMessageViewModelFactory {
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {
     val duration: Int?
-    val progress: StateFlow<FileTransferProgressElement?>
+    val uploadProgress: StateFlow<FileTransferProgressElement?>
     fun openAudio()
 }
 
@@ -86,7 +86,7 @@ open class AudioMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     private val thumbnails = get<Thumbnails>()
-    override val progress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openAudio() {

@@ -54,7 +54,7 @@ interface FileMessageViewModelFactory {
 
 interface FileMessageViewModel : FileBasedMessageViewModel {
     val formattedSize: String
-    val progress: StateFlow<FileTransferProgressElement?>
+    val uploadProgress: StateFlow<FileTransferProgressElement?>
 }
 
 open class FileMessageViewModelImpl(
@@ -82,6 +82,6 @@ open class FileMessageViewModelImpl(
 
     override val formattedSize: String = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
     private val thumbnails = get<Thumbnails>()
-    override val progress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }
