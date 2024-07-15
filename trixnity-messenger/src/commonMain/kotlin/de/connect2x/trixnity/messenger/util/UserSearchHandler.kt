@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.UserId
@@ -19,8 +18,7 @@ import kotlin.time.toDuration
 
 interface UserSearchHandler {
     val initialUsers: MutableStateFlow<List<Search.SearchUserElement>>
-    val currentSearchTerm: StateFlow<String>
-    val actualSearchTerm: StateFlow<String>
+    val searchTerm: StateFlow<String>
     val foundUsers: MutableStateFlow<List<Search.SearchUserElement>>
     val waitForUserResults: MutableStateFlow<Boolean>
 
@@ -43,19 +41,22 @@ class DefaultUserSearchHandler(
     }
 
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val currentSearchTerm: MutableStateFlow<String> = MutableStateFlow("")
-    override val actualSearchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
-        coroutineScope.launch(::updateSearchTerm)
         coroutineScope.launch(::searchUsers)
     }
 
     private suspend fun searchUsers() {
-        actualSearchTerm
-            .onEach { if (it.isBlank()) foundUsers.value = initialUsers.value }
+        searchTerm
+            .mapLatest {
+                if (it.isBlank()) foundUsers.value = initialUsers.value
+                if (mxidPattern.matches(it)) it.lowercase()
+                else it
+            }
+            .debounce(debounceDuration)
             .filter { it.isNotBlank() }
             .collect {
                 waitForUserResults.value = true
@@ -64,26 +65,14 @@ class DefaultUserSearchHandler(
             }
     }
 
-    private suspend fun updateSearchTerm() {
-        currentSearchTerm
-            .debounce(debounceDuration)
-            .mapLatest {
-                if (mxidPattern.matches(it)) it.lowercase()
-                else it
-            }
-            .collect { actualSearchTerm.value = it }
-    }
-
     override fun setSearchTerm(value: String) {
-        currentSearchTerm.value = value
-        actualSearchTerm.value = value
+        searchTerm.value = value
     }
 }
 
 object PreviewUserSearchHandler : UserSearchHandler {
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val currentSearchTerm: MutableStateFlow<String> = MutableStateFlow("")
-    override val actualSearchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
