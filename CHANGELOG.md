@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- add upload progress to Video-, Audio- and File-Message-ViewModels
+
 ### Changed
 
 - upgraded to Kotlin 2.0
@@ -18,8 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improvements in ExportRoom: parallel decryption, collect decryption errors
 - move gradle locks to CI
 - restrict ability to change room history to WORLD_READABLE when the group is encrypted
-- add upload progress to Video-, Audio- and File-Message-ViewModels 
-
 
 ### Deprecated
 
