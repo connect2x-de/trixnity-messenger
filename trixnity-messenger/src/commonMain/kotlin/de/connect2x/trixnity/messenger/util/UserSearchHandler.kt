@@ -17,12 +17,14 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 interface UserSearchHandler {
-    val initialUsers: MutableStateFlow<List<Search.SearchUserElement>>
+    val initialUsers: StateFlow<List<Search.SearchUserElement>>
     val searchTerm: StateFlow<String>
-    val foundUsers: MutableStateFlow<List<Search.SearchUserElement>>
-    val waitForUserResults: MutableStateFlow<Boolean>
+    val foundUsers: StateFlow<List<Search.SearchUserElement>>
+    val waitForUserResults: StateFlow<Boolean>
 
     fun setSearchTerm(value: String)
+    fun addFoundUserElement(element: Search.SearchUserElement)
+    fun removeFoundUserElement(element: Search.SearchUserElement)
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -68,13 +70,23 @@ class DefaultUserSearchHandler(
     override fun setSearchTerm(value: String) {
         searchTerm.value = value
     }
+
+    override fun addFoundUserElement(element: Search.SearchUserElement) {
+        foundUsers.value += element
+    }
+
+    override fun removeFoundUserElement(element: Search.SearchUserElement) {
+        foundUsers.value -= element
+    }
 }
 
 object PreviewUserSearchHandler : UserSearchHandler {
-    override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-    override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val initialUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
+    override val searchTerm: StateFlow<String> = MutableStateFlow("")
+    override val foundUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
+    override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun setSearchTerm(value: String) {}
+    override fun addFoundUserElement(element: Search.SearchUserElement) {}
+    override fun removeFoundUserElement(element: Search.SearchUserElement) {}
 }
