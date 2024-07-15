@@ -992,25 +992,6 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$user hat die Ende-zu-Ende Verschlüsselung aktiviert"
     }
 
-    fun roomSettingsEnableEncryptionWarningTitleGroup() = translate {
-        DE - "Verschlüsselung für diese Gruppe aktivieren?"
-        EN - "Enable encryption for this group?"
-    }
-
-    fun roomSettingsEnableEncryptionWarningMessageGroup() = translate {
-        DE - "Die Aktivierung der Verschlüsselung der Gruppe kann nicht rückgängig gemacht werden."
-        EN - "The activation of the encryption of the group cannot be revoked."
-    }
-
-    fun roomSettingsEnableEncryptionWarningTitleChat() = translate {
-        DE - "Verschlüsselung für diesen Chat aktivieren?"
-        EN - "Enable encryption for this chat?"
-    }
-
-    fun roomSettingsEnableEncryptionWarningMessageChat() = translate {
-        DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
-        EN - "The activation of the encryption of the chat cannot be revoked."
-    }
 }
 
 internal fun getLang(

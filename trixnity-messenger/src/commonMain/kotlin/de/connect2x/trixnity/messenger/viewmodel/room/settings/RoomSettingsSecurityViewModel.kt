@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -40,8 +39,6 @@ interface RoomSettingsSecurityViewModel {
     val isEncrypted: StateFlow<Boolean>
     val canEnableEncryption: StateFlow<Boolean>
     val isEncryptionWarningOpen: StateFlow<Boolean>
-    val encryptionWarningTitle: StateFlow<String>
-    val encryptionWarningMessage: StateFlow<String>
 
     fun openEnableEncryptionWarning()
     fun closeEnableEncryptionWarning()
@@ -65,22 +62,6 @@ class RoomSettingsSecurityViewModelImpl(
             return@combine canEncrypt && !isEncrypted
         }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isEncryptionWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val encryptionWarningTitle: MutableStateFlow<String> = MutableStateFlow("")
-    override val encryptionWarningMessage: MutableStateFlow<String> = MutableStateFlow("")
-
-    init {
-        coroutineScope.launch {
-            matrixClient.room.getById(selectedRoomId).filterNotNull().collect { room ->
-                if (room.isDirect) {
-                    encryptionWarningTitle.value = i18n.roomSettingsEnableEncryptionWarningTitleChat()
-                    encryptionWarningMessage.value = i18n.roomSettingsEnableEncryptionWarningMessageChat()
-                } else {
-                    encryptionWarningTitle.value = i18n.roomSettingsEnableEncryptionWarningTitleGroup()
-                    encryptionWarningMessage.value = i18n.roomSettingsEnableEncryptionWarningMessageGroup()
-                }
-            }
-        }
-    }
 
     override fun openEnableEncryptionWarning() {
         this.isEncryptionWarningOpen.value = true
@@ -115,8 +96,6 @@ class PreviewRoomSettingsSecurityViewModel : RoomSettingsSecurityViewModel {
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canEnableEncryption: StateFlow<Boolean> = MutableStateFlow(false)
     override val isEncryptionWarningOpen: StateFlow<Boolean> = MutableStateFlow(false)
-    override val encryptionWarningTitle: MutableStateFlow<String> = MutableStateFlow("")
-    override val encryptionWarningMessage: MutableStateFlow<String> = MutableStateFlow("")
 
     override fun openEnableEncryptionWarning() {}
     override fun closeEnableEncryptionWarning() {}
