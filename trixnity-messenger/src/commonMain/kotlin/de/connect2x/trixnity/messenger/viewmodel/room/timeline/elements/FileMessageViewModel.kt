@@ -54,7 +54,6 @@ interface FileMessageViewModelFactory {
 
 interface FileMessageViewModel : FileBasedMessageViewModel {
     val formattedSize: String
-    val uploadProgress: StateFlow<FileTransferProgressElement?>
 }
 
 open class FileMessageViewModelImpl(

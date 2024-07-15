@@ -69,7 +69,6 @@ interface ImageMessageViewModel : FileBasedMessageViewModel {
     val thumbnail: StateFlow<ByteArray?>
     val width: Int
     val height: Int
-    val uploadProgress: StateFlow<FileTransferProgressElement?>
 
     fun openImage()
     fun getMaxHeight(): Int

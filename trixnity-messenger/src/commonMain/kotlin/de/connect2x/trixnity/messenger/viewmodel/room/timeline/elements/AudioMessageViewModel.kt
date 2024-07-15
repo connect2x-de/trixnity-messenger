@@ -57,7 +57,6 @@ interface AudioMessageViewModelFactory {
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {
     val duration: Int?
-    val uploadProgress: StateFlow<FileTransferProgressElement?>
     fun openAudio()
 }
 

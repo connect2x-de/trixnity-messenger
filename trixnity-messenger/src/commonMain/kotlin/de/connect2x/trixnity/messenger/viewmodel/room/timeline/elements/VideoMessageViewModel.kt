@@ -69,7 +69,6 @@ interface VideoMessageViewModel : FileBasedMessageViewModel {
     val width: Int
     val height: Int
     val duration: Int?
-    val uploadProgress: StateFlow<FileTransferProgressElement?>
     fun getMaxHeight(): Int
     fun getHeight(maxWidth: Float): Int
     fun getWidth(maxWidth: Float, possibleHeight: Float): Int
