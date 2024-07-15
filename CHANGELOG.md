@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Setting to enable E2E encryption in rooms
+- upload progress to Video-, Audio- and File-Message-ViewModels
 
 ### Changed
 

@@ -27,6 +27,7 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
     val saveFileDialogOpen: StateFlow<Boolean>
     val downloadProgress: StateFlow<FileTransferProgressElement?>
     val downloadSuccessful: StateFlow<Boolean?>
+    val uploadProgress: StateFlow<FileTransferProgressElement?>
     val fileName: String
     val fileSize: Int?
     val fileMimeType: String?

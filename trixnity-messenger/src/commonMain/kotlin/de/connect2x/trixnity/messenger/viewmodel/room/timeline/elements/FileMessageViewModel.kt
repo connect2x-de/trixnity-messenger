@@ -1,15 +1,20 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.component.get
 
 interface FileMessageViewModelFactory {
     fun create(
@@ -25,6 +30,7 @@ interface FileMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
+        mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
     ): FileMessageViewModel {
         return FileMessageViewModelImpl(
             viewModelContext,
@@ -38,7 +44,8 @@ interface FileMessageViewModelFactory {
             showBigGap,
             showSender,
             sender,
-            invitation
+            invitation,
+            mediaUploadProgress
         )
     }
 
@@ -62,6 +69,7 @@ open class FileMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
+    mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
 ) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
@@ -72,4 +80,7 @@ open class FileMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val formattedSize: String = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
+    private val thumbnails = get<Thumbnails>()
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }
