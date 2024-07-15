@@ -24,6 +24,7 @@ import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
@@ -193,6 +194,20 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     invitation = invitation,
                     sender = sender,
                     isDirectFlow = isDirect,
+                )
+            }
+
+            is EncryptionEventContent -> {
+                log.trace { "Create room encryption view model: ${event.id}" }
+                viewModelContext.get<RoomEncryptionEnabledViewModelFactory>().create(
+                    viewModelContext = viewModelContext,
+                    timelineEvent = timelineEvent,
+                    content = content,
+                    formattedDate = formatDate(receivedDateTime),
+                    showDateAbove = showDateAbove,
+                    invitation = invitation,
+                    sender = sender,
+                    isDirectFlow = isDirect
                 )
             }
 
@@ -370,6 +385,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     sender = sender,
                     invitation = invitation,
                     onOpenModal = onOpenModal,
+                    mediaUploadProgress = MutableStateFlow(null)
                 )
             }
 
@@ -389,6 +405,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
                     onOpenModal = onOpenModal,
+                    mediaUploadProgress = MutableStateFlow(null)
                 )
             }
 
@@ -407,6 +424,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showSender = showSender,
                     sender = sender,
                     invitation = invitation,
+                    mediaUploadProgress = MutableStateFlow(null)
                 )
             }
 

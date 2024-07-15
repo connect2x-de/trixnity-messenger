@@ -711,6 +711,7 @@ class TimelineViewModelImpl(
 
     private fun closeAttachmentSendView() {
         sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is Config.None }
+        jumpToEndOfTimeline()
     }
 
     private fun onMessageEdited(eventId: EventId) {

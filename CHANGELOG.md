@@ -10,17 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `UserSearchHandler` interface for facilitating user input sanitization of user search terms
+- Setting to enable E2E encryption in rooms
+- Upload progress to Video-, Audio- and File-Message-ViewModels
 
 ### Changed
 
-- upgraded to Kotlin 2.0
-- changed JS media store to OPFS
-- internal: changed gradle lock mode
-- force remove of account data on logout
-- improvements in ExportRoom: parallel decryption, collect decryption errors
-- move gradle locks to CI
-- restrict ability to change room history to WORLD_READABLE when the group is encrypted
-
+- Upgraded to Kotlin 2.0
+- Changed JS media store to OPFS
+- Internal: changed gradle lock mode
+- Force remove of account data on logout
+- Improvements in ExportRoom: parallel decryption, collect decryption errors
+- Move gradle locks to CI
+- Restrict ability to change room history to WORLD_READABLE when the group is encrypted
+- Fixed typo in RoomEncryptionEnabledViewModel
+- Upgrade gradle to 8.9
 
 ### Deprecated
 

@@ -41,6 +41,7 @@ interface VideoMessageViewModelFactory {
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         onOpenModal: OpenModalCallback,
+        mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
     ): VideoMessageViewModel {
         return VideoMessageViewModelImpl(
             viewModelContext,
@@ -56,6 +57,7 @@ interface VideoMessageViewModelFactory {
             sender,
             invitation,
             onOpenModal,
+            mediaUploadProgress
         )
     }
 
@@ -67,7 +69,6 @@ interface VideoMessageViewModel : FileBasedMessageViewModel {
     val width: Int
     val height: Int
     val duration: Int?
-    val progress: StateFlow<FileTransferProgressElement?>
     fun getMaxHeight(): Int
     fun getHeight(maxWidth: Float): Int
     fun getWidth(maxWidth: Float, possibleHeight: Float): Int
@@ -89,6 +90,7 @@ open class VideoMessageViewModelImpl(
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     private val onOpenModal: OpenModalCallback,
+    mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
 ) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
@@ -109,9 +111,8 @@ open class VideoMessageViewModelImpl(
     override val width: Int = videoWidth(content)
     override val height: Int = videoHeight(content)
     override val duration: Int? = content.info?.duration
-    override val progress: StateFlow<FileTransferProgressElement?> =
-        thumbnails.mapProgressToProgressElement(thumbnailProgressFlow)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun getMaxHeight(): Int = 300
 
@@ -145,7 +146,7 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val width: Int = 300
     override val height: Int = 200
     override val duration: Int = 950
-    override val progress: MutableStateFlow<FileTransferProgressElement?> =
+    override val uploadProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow(FileTransferProgressElement(0.3f, "145kB / 550kB"))
 
     override val fileSize: Int? = 200
