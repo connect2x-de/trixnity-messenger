@@ -54,7 +54,7 @@ class RoomSettingsSecurityViewModelImpl(
     private val error: MutableStateFlow<String?>
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsSecurityViewModel {
     override val isChat: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
-        .mapLatest { requireNotNull(it).isDirect }
+        .mapLatest { it?.isDirect == true }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isEncrypted: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
         .mapLatest { room -> requireNotNull(room).encrypted }
