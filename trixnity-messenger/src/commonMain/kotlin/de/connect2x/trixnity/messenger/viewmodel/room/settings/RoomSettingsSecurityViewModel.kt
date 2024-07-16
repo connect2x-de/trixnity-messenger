@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
@@ -36,8 +37,13 @@ interface RoomSettingsSecurityViewModelFactory {
 }
 
 interface RoomSettingsSecurityViewModel {
+    val isChat: StateFlow<Boolean>
     val isEncrypted: StateFlow<Boolean>
     val canEnableEncryption: StateFlow<Boolean>
+    val isEncryptionWarningOpen: StateFlow<Boolean>
+
+    fun openEnableEncryptionWarning()
+    fun closeEnableEncryptionWarning()
     fun enableEncryption()
 }
 
@@ -47,6 +53,9 @@ class RoomSettingsSecurityViewModelImpl(
     private val selectedRoomId: RoomId,
     private val error: MutableStateFlow<String?>
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsSecurityViewModel {
+    override val isChat: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
+        .mapLatest { it?.isDirect == true }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isEncrypted: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
         .mapLatest { room -> requireNotNull(room).encrypted }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -57,6 +66,15 @@ class RoomSettingsSecurityViewModelImpl(
         ) { canEncrypt, isEncrypted ->
             return@combine canEncrypt && !isEncrypted
         }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val isEncryptionWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    override fun openEnableEncryptionWarning() {
+        this.isEncryptionWarningOpen.value = true
+    }
+
+    override fun closeEnableEncryptionWarning() {
+        this.isEncryptionWarningOpen.value = false
+    }
 
     override fun enableEncryption() {
         log.debug { "enableRoomEncryption for $selectedRoomId" }
@@ -80,9 +98,12 @@ class RoomSettingsSecurityViewModelImpl(
 }
 
 class PreviewRoomSettingsSecurityViewModel : RoomSettingsSecurityViewModel {
-    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isChat: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isEncrypted: StateFlow<Boolean> = MutableStateFlow(false)
     override val canEnableEncryption: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isEncryptionWarningOpen: StateFlow<Boolean> = MutableStateFlow(false)
 
-    override fun enableEncryption() {
-    }
+    override fun openEnableEncryptionWarning() {}
+    override fun closeEnableEncryptionWarning() {}
+    override fun enableEncryption() {}
 }

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Setting to enable E2E encryption in rooms
 - upload progress to Video-, Audio- and File-Message-ViewModels
+- add warning dialog to 'enable encryption' setting
 
 ### Changed
 
