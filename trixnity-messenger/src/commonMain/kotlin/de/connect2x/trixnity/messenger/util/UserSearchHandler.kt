@@ -17,8 +17,8 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 interface UserSearchHandler {
-    val initialUsers: StateFlow<List<Search.SearchUserElement>>
     val searchTerm: StateFlow<String>
+    val initialUsers: StateFlow<List<Search.SearchUserElement>>
     val foundUsers: StateFlow<List<Search.SearchUserElement>>
     val waitForUserResults: StateFlow<Boolean>
 
@@ -42,8 +42,8 @@ class DefaultUserSearchHandler(
             Regex("""${UserId.sigilCharacter}([a-zA-Z\d.\-_=/]+):(${MatrixRegex.domain.pattern})""")
     }
 
-    override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -81,8 +81,8 @@ class DefaultUserSearchHandler(
 }
 
 object PreviewUserSearchHandler : UserSearchHandler {
-    override val initialUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val searchTerm: StateFlow<String> = MutableStateFlow("")
+    override val initialUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)
 
