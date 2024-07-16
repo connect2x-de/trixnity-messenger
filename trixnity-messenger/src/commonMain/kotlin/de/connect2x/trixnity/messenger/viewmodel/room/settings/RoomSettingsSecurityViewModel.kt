@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
@@ -36,6 +37,7 @@ interface RoomSettingsSecurityViewModelFactory {
 }
 
 interface RoomSettingsSecurityViewModel {
+    val isChat: StateFlow<Boolean>
     val isEncrypted: StateFlow<Boolean>
     val canEnableEncryption: StateFlow<Boolean>
     val isEncryptionWarningOpen: StateFlow<Boolean>
@@ -51,6 +53,9 @@ class RoomSettingsSecurityViewModelImpl(
     private val selectedRoomId: RoomId,
     private val error: MutableStateFlow<String?>
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsSecurityViewModel {
+    override val isChat: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
+        .mapLatest { requireNotNull(it).isDirect }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isEncrypted: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
         .mapLatest { room -> requireNotNull(room).encrypted }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -93,7 +98,8 @@ class RoomSettingsSecurityViewModelImpl(
 }
 
 class PreviewRoomSettingsSecurityViewModel : RoomSettingsSecurityViewModel {
-    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isChat: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isEncrypted: StateFlow<Boolean> = MutableStateFlow(false)
     override val canEnableEncryption: StateFlow<Boolean> = MutableStateFlow(false)
     override val isEncryptionWarningOpen: StateFlow<Boolean> = MutableStateFlow(false)
 
