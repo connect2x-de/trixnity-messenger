@@ -70,7 +70,12 @@ open class DevicesSettingsViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseDevicesSettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, DevicesSettingsViewModel {
-    private val _accountWithDevices: MutableStateFlow<List<AccountWithDevices>> = makeAccountWithDevices()
+    private val _accountWithDevices: MutableStateFlow<List<AccountWithDevices>> =
+        MutableStateFlow(emptyList<AccountWithDevices>()).also {
+            coroutineScope.launch {
+                getAccountDevices().collect(it)
+            }
+        }
     override val accountsWithDevices: StateFlow<List<AccountWithDevices>> = _accountWithDevices
     override val error = MutableStateFlow<String?>(null)
 
@@ -156,14 +161,6 @@ open class DevicesSettingsViewModelImpl(
         coroutineScope.launch {
             _accountWithDevices.value = getAccountDevices().first {
                 it.isNotEmpty()
-            }
-        }
-    }
-
-    private fun makeAccountWithDevices(): MutableStateFlow<List<AccountWithDevices>>  {
-        return MutableStateFlow(emptyList<AccountWithDevices>()).also {
-            coroutineScope.launch {
-                getAccountDevices().collect(it)
             }
         }
     }
