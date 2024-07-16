@@ -991,6 +991,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "$user enabled end-to-end encryption"
         DE - "$user hat die Ende-zu-Ende Verschlüsselung aktiviert"
     }
+
 }
 
 internal fun getLang(
