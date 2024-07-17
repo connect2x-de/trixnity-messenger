@@ -129,22 +129,23 @@ class ExportRoomViewModelImpl(
 
     private val progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress())
     private val progressString: StateFlow<String> = progress
-        .map { (processed, total) ->
-            when {
-                total == null -> i18n.exportRoomStateInit(0)
-                processed == null -> i18n.exportRoomStateInit(total)
-                processed == total -> i18n.exportRoomStateFinished(total)
-                else -> i18n.exportRoomStateProcessed(processed, total)
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+        .map { it.toProgressString() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+
+    private fun ExportRoomProgress.toProgressString(): String =
+        when {
+            total == null -> i18n.exportRoomStateInit(0)
+            processed == null -> i18n.exportRoomStateInit(total)
+            processed == total -> i18n.exportRoomStateFinished(total)
+            else -> i18n.exportRoomStateProcessed(processed, total)
+        }
 
     override val state: MutableStateFlow<ExportRoomViewModel.State> = MutableStateFlow(None)
 
     override fun start() {
         val properties = properties.value
         if (canExport(job.value, properties)) {
-            state.value = Running(progress, progressString)
             job.value = coroutineScope.launch {
+                state.value = Running(progress, progressString)
                 val result = exportRoom(
                     roomId = roomId,
                     properties = properties,
@@ -165,14 +166,18 @@ class ExportRoomViewModelImpl(
                     }
 
                     is ExportRoomResult.SinkError -> {
+                        log.error(result.throwable) { "could not export" }
                         state.value = Error(i18n.exportRoomErrorSink(result.throwable.message ?: "unknown"))
                     }
 
                     is ExportRoomResult.Success -> {
                         state.value =
-                            if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty())
+                            if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty()) {
+                                log.warn { "export success with errors: $result" }
                                 Error(i18n.exportRoomSuccessWithErrors(), result.missingMedia, result.decryptionFailed)
-                            else Success(progress.value, progressString.value)
+                            } else {
+                                Success(progress.value, progress.value.toProgressString())
+                            }
                     }
                 }
                 job.value = null
