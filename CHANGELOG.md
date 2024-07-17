@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - restrict ability to change room history to WORLD_READABLE when the group is encrypted
 - fixed typo in RoomEncryptionEnabledViewModel
 - upgrade gradle to 8.9
+- only create media directory in export when needed
 
 ### Deprecated
 
