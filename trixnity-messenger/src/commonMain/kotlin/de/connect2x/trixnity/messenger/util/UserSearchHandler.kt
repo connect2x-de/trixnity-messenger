@@ -28,7 +28,7 @@ interface UserSearchHandler {
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-class DefaultUserSearchHandler(
+open class DefaultUserSearchHandler(
     coroutineScope: CoroutineScope,
     private val search: Search,
     private val client: MatrixClient,
