@@ -852,9 +852,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es gab einen Fehler beim Export: $message"
     }
 
-    fun exportRoomSuccessWithErrors() = translate {
-        EN - "The export was successful, but there were some errors."
-        DE - "Der Export war erfolgreich, dennoch sind Fehler aufgetreten."
+    fun exportRoomSuccessWithErrors(missingMedia: Int, deryptionFailures: Int) = translate {
+        EN - "The export was successful, but some media could not be exported ($missingMedia) and some messages could not be decrypted ($deryptionFailures)."
+        DE - "Der Export war erfolgreich, dennoch konnten einige Medien nicht exportiert ($missingMedia) und einige Nachrichten nicht entschlüsselt werden ($deryptionFailures)."
     }
 
     fun exportRoomEmote(message: String) = translate {
@@ -982,6 +982,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "There was an error enabling the end-to-end encryption"
         DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung"
     }
+
     fun roomEncryptionAlreadyEnabledError() = translate {
         EN - "There was an error enabling the end-to-end encryption: the encryption was already enabled"
         DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung: Die Verschlüsselung ist bereits aktiviert"

@@ -117,9 +117,9 @@ class ExportRoomImpl(
             .map { flow -> async { flow.first { it.content != null } } }
             .chunked(buffer)
             .map { list ->
-                log.trace { "wait for chunk to be decrypted (size=${list.size})" }
+                log.trace { "wait for chunk to be processed (size=${list.size})" }
                 list.awaitAll()
-                    .also { log.trace { "chunk fully decrypted (size=${list.size})" } }
+                    .also { log.trace { "chunk fully processed (size=${list.size})" } }
             }
             .transform { list -> list.forEach { emit(it) } }
             .collect { timelineEvent ->

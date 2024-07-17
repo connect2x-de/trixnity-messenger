@@ -174,7 +174,16 @@ class ExportRoomViewModelImpl(
                         state.value =
                             if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty()) {
                                 log.warn { "export success with errors: $result" }
-                                Error(i18n.exportRoomSuccessWithErrors(), result.missingMedia, result.decryptionFailed)
+                                with(result) {
+                                    Error(
+                                        message = i18n.exportRoomSuccessWithErrors(
+                                            missingMedia.size,
+                                            decryptionFailed.size
+                                        ),
+                                        missingMedia = missingMedia,
+                                        decryptionFailed = decryptionFailed
+                                    )
+                                }
                             } else {
                                 Success(progress.value, progress.value.toProgressString())
                             }
