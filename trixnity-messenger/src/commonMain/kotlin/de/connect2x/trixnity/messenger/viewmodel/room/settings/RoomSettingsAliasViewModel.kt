@@ -105,7 +105,7 @@ class RoomSettingsAliasViewModelImpl(
         }
 
         if (!canChangeRoomAlias.value) {
-            log.error { "Cancelled add Alias $currentNewAlias due to missing permissions" }
+            log.warn { "Cancelled add Alias $currentNewAlias due to missing permissions" }
             newAliasError.value = i18n.settingsRoomAliasAddAliasInsufficientPowerLevel()
             _isUpdating.value = false
             return
@@ -119,7 +119,7 @@ class RoomSettingsAliasViewModelImpl(
         val alias = RoomAliasId(currentNewAlias)
 
         if (allAliases.value.contains(alias)) {
-            log.error { "Cancelled adding Alias $alias due to already existing" }
+            log.warn { "Cancelled adding Alias $alias due to already existing" }
             newAliasError.value = i18n.settingsRoomAliasAddAliasExisting()
             return
         }
@@ -132,12 +132,12 @@ class RoomSettingsAliasViewModelImpl(
             matrixClient.api.room.getRoomAlias(alias).fold(
                 onSuccess = {
                     if (it.roomId == selectedRoomId) {
-                        log.error { "Alias $alias already exists in this room" }
+                        log.warn { "Alias $alias already exists in this room" }
                         newAliasError.value = null
                         _isUpdating.value = false
                         return@launch
                     } else {
-                        log.error { "Alias $alias already exists in another room" }
+                        log.warn { "Alias $alias already exists in another room" }
                         newAliasError.value = i18n.settingsRoomAliasAddExists()
                         _isUpdating.value = false
                         return@launch
@@ -176,7 +176,7 @@ class RoomSettingsAliasViewModelImpl(
                         log.info { "Alias exists in $it" }
 
                         if (it != selectedRoomId) {
-                            log.error { "Upon verification, Alias wasn't added successfully" }
+                            log.warn { "Upon verification, Alias wasn't added successfully" }
                             newAliasError.value = i18n.settingsRoomAliasGeneric()
                             _isUpdating.value = false
                             return@launch
@@ -218,7 +218,7 @@ class RoomSettingsAliasViewModelImpl(
                             .first { it?.content?.aliases?.contains(alias) == true }
                     }.let {
                         if (it?.content?.aliases?.contains(alias) == false) {
-                            log.error { "Creation of Alias $alias failed" }
+                            log.warn { "Creation of Alias $alias failed" }
                             removeAliasError.value = i18n.settingsRoomAliasGeneric()
                             _isUpdating.value = false
                             return@launch
@@ -267,13 +267,13 @@ class RoomSettingsAliasViewModelImpl(
         }
 
         if (!canChangeRoomAlias.value) {
-            log.error { "Cancelled change of Alias $alias to mainalias due to missing permissions" }
+            log.warn { "Cancelled change of Alias $alias to mainalias due to missing permissions" }
             updateError.value = i18n.settingsRoomAliasChangeMainInsufficientPowerLevel()
             return
         }
 
         if (!moreAliases.value.contains(alias?.full) && mainAlias.value != alias?.full) {
-            log.error { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
+            log.warn { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
             updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
             return
         }
@@ -305,7 +305,7 @@ class RoomSettingsAliasViewModelImpl(
                             .first { it?.content?.alias == alias }
                     }.let {
                         if (it?.roomId != selectedRoomId) {
-                            log.error { "Upon verification, failed to change Main Alias" }
+                            log.warn { "Upon verification, failed to change Main Alias" }
                             updateError.value = i18n.settingsRoomAliasGeneric()
                             _isUpdating.value = false
                             return@launch
@@ -354,7 +354,7 @@ class RoomSettingsAliasViewModelImpl(
         }
 
         if (!canChangeRoomAlias.value) {
-            log.error { "Cancelled removal of Alias $alias due to missing permissions" }
+            log.warn { "Cancelled removal of Alias $alias due to missing permissions" }
             removeAliasError.value = i18n.settingsRoomAliasRemoveInsufficientPowerLevel()
             return
         }
@@ -402,7 +402,7 @@ class RoomSettingsAliasViewModelImpl(
             matrixClient.api.room.deleteRoomAlias(alias, userId).fold(
                 onSuccess = {
                     if (this.aliasExists(alias)) {
-                        log.error { "Deleting failed, alias $alias still exists in $it" }
+                        log.warn { "Deleting failed, alias $alias still exists in $it" }
                         removeAliasError.value = i18n.settingsRoomAliasGeneric()
                         _isUpdating.value = false
                         return@launch
