@@ -154,7 +154,7 @@ class ExportRoomTest : ShouldSpec() {
             everySuspend {
                 mediaServiceMock.getMedia("mxc://localhost/21", any(), any())
             } returns Result.failure(IllegalStateException("download error"))
-            
+
             every { sinkFactoryMock.create(any(), any()) } returns sinkMock
             everySuspend { sinkMock.start() } returns Result.success(Unit)
             everySuspend { sinkMock.finish() } returns Result.success(Unit)
@@ -165,6 +165,25 @@ class ExportRoomTest : ShouldSpec() {
             val cut = cut()
 
             cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success()
+
+            verifySuspend(VerifyMode.order) {
+                sinkFactoryMock.create(roomId, fakeProperties)
+
+                sinkMock.start()
+                (0..9).forEach {
+                    sinkMock.processTimelineEvent(eq(timelineEvent(it.toLong()).first()), eqNull())
+                }
+                (10..19).forEach {
+                    mediaServiceMock.getMedia(any(), any(), eq(false))
+                    sinkMock.processTimelineEvent(eq(timelineEventWithMedia(it.toLong()).first()), notNull())
+                }
+                sinkMock.finish()
+            }
+        }
+        should("export timeline in chunks") {
+            val cut = cut()
+
+            cut(roomId, fakeProperties, matrixClientMock, buffer = 15) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)

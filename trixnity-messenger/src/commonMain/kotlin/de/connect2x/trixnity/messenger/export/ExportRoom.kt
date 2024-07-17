@@ -89,18 +89,17 @@ class ExportRoomImpl(
         val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
             ?: return@coroutineScope ExportRoomResult.RoomNotFound
 
-        log.debug { "search for start event (may take some time due to network requests)" }
+        log.debug { "search for archiving start event of $roomId (may take some time due to network requests)" }
         val startFrom = matrixClient.room.getTimelineEvents(
             roomId = roomId,
             startFrom = lastEventId,
             direction = GetEvents.Direction.BACKWARDS,
             config = { this.decryptionTimeout = Duration.ZERO } // don't decrypt yet
         )
-            .map { flow -> flow.first { it.content != null } }
-            .takeWhile { !rangeStartCondition(it) }
+            .takeWhile { !rangeStartCondition(it.first()) }
             .onEach { progress.update { it.copy(total = (it.total ?: 0) + 1) } }
-            .last().eventId
-        log.debug { "start archiving from $startFrom" }
+            .last().first().eventId
+        log.debug { "start archiving of $roomId (start=$startFrom, total=${progress.value.total})" }
 
         sink.start().onFailure { return@coroutineScope ExportRoomResult.SinkError(it) }
 
@@ -113,12 +112,16 @@ class ExportRoomImpl(
             config = { this.decryptionTimeout = decryptionTimeout }
         )
             .buffer(buffer)
+            .takeWhile { !rangeEndCondition(it.first()) }
+            .takeWhileInclusive { it.first().eventId != lastEventId }
             .map { flow -> async { flow.first { it.content != null } } }
             .chunked(buffer)
-            .map { list -> list.awaitAll() }
+            .map { list ->
+                log.trace { "wait for chunk to be decrypted (size=${list.size})" }
+                list.awaitAll()
+                    .also { log.trace { "chunk fully decrypted (size=${list.size})" } }
+            }
             .transform { list -> list.forEach { emit(it) } }
-            .takeWhile { !rangeEndCondition(it) }
-            .takeWhileInclusive { it.eventId != lastEventId }
             .collect { timelineEvent ->
                 val content = timelineEvent.content?.getOrNull()
                 if (content is RoomMessageEventContent.FileBased) {
@@ -164,6 +167,7 @@ class ExportRoomImpl(
                     sink.processTimelineEvent(timelineEvent)
                 }
                 progress.update { it.copy(processed = (it.processed ?: 0) + 1) }
+                log.trace { "archiving progress: (${progress.value.processed}/${progress.value.total})" }
             }
 
         sink.finish().onFailure { return@coroutineScope ExportRoomResult.SinkError(it) }
