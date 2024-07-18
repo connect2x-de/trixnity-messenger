@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `UserSearchHandler` interface for facilitating user input sanitization of user search terms
 - Setting to enable E2E encryption in rooms
 - Upload progress to Video-, Audio- and File-Message-ViewModels
-- Upload progress to Video-, Audio- and File-Message-ViewModels
 - Add warning dialog to 'enable encryption' setting
 
 ### Changed
