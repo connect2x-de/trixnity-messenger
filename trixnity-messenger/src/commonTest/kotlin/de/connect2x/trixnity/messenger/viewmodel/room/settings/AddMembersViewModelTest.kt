@@ -122,7 +122,7 @@ class AddMembersViewModelTest : ShouldSpec() {
             val cut = createNewAddMembersViewmodel()
             val subscriberJob = launch { cut.canAddMembers.collect {} }
             val searchHandler = cut.potentialMembersViewModel.searchHandler
-            searchHandler.setSearchTerm("u")
+            searchHandler.searchTerm.value = "u"
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -187,7 +187,7 @@ class AddMembersViewModelTest : ShouldSpec() {
 
             val cut = createNewAddMembersViewmodel()
             val searchHandler = cut.potentialMembersViewModel.searchHandler
-            searchHandler.setSearchTerm("u")
+            searchHandler.searchTerm.value = "u"
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -257,7 +257,7 @@ class AddMembersViewModelTest : ShouldSpec() {
 
             val cut = createNewAddMembersViewmodel()
             val searchHandler = cut.potentialMembersViewModel.searchHandler
-            searchHandler.setSearchTerm("u")
+            searchHandler.searchTerm.value = "u"
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }

@@ -145,7 +145,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 val cut = createPotentialMembersViewModel()
                 val searchHandler = cut.searchHandler
 
-                searchHandler.setSearchTerm("us")
+                searchHandler.searchTerm.value = "us"
                 searchHandler.foundUsers.first {
                     it == listOf(
                         Search.SearchUserElementImpl(
@@ -160,7 +160,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                         )
                     )
                 }
-                searchHandler.setSearchTerm("user3")
+                searchHandler.searchTerm.value = "user3"
                 searchHandler.foundUsers.first {
                     it == listOf(
                         Search.SearchUserElementImpl(
@@ -170,7 +170,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                         )
                     )
                 }
-                searchHandler.setSearchTerm("user1")
+                searchHandler.searchTerm.value = "user1"
                 searchHandler.foundUsers.first {
                     it == emptyList<SearchUserElement>()
                 }
@@ -253,7 +253,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 val cut = createPotentialMembersViewModel()
                 val searchHandler = cut.searchHandler
 
-                searchHandler.setSearchTerm("us")
+                searchHandler.searchTerm.value = "us"
                 searchHandler.foundUsers.first {
                     it == listOf(
                         Search.SearchUserElementImpl(

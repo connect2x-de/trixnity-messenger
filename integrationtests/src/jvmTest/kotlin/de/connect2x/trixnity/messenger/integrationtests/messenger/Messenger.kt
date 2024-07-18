@@ -154,7 +154,7 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         val createNewChatViewModel = roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewChat::class).viewModel
         log.debug { "search for user '$username'" }
         val searchHandler = createNewChatViewModel.createNewRoomViewModel.searchHandler
-        searchHandler.setSearchTerm(username)
+        searchHandler.searchTerm.value = username
         searchHandler.waitForUserResults.first { it.not() }
         val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
         createNewChatViewModel.onUserClick(users.first())
@@ -185,7 +185,7 @@ suspend fun MatrixMessengerWithRoot.createGroupWithUsers(groupName: String, vara
         val searchHandler = createNewGroupViewModel.createNewRoomViewModel.searchHandler
         usernames.forEach { username ->
             log.debug { "search for user '$username'" }
-            searchHandler.setSearchTerm(username)
+            searchHandler.searchTerm.value = username
             searchHandler.waitForUserResults.first { it.not() }
             val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
             createNewGroupViewModel.onUserClick(users.first())

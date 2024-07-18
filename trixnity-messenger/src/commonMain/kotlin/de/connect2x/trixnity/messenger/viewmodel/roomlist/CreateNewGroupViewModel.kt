@@ -88,7 +88,6 @@ open class CreateNewGroupViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
-    internal val foundUsers = createNewRoomViewModel.searchHandler.foundUsers
 
     private val backCallback = BackCallback {
         back()
@@ -157,7 +156,7 @@ open class CreateNewGroupViewModelImpl(
     override fun removeUserFromList(user: SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            createNewRoomViewModel.searchHandler.removeFoundUserElement(user)
+            createNewRoomViewModel.searchHandler.foundUsers.value -= user
         }
     }
 
@@ -169,7 +168,7 @@ open class CreateNewGroupViewModelImpl(
     override fun addUserToList(user: SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            createNewRoomViewModel.searchHandler.addFoundUserElement(user)
+            createNewRoomViewModel.searchHandler.foundUsers.value += user
         }
     }
 

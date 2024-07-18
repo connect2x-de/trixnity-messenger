@@ -2,13 +2,12 @@ package de.connect2x.trixnity.messenger.util
 
 import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.UserId
@@ -17,17 +16,13 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 interface UserSearchHandler {
-    val searchTerm: StateFlow<String>
+    val searchTerm: MutableStateFlow<String>
     val initialUsers: StateFlow<List<Search.SearchUserElement>>
-    val foundUsers: StateFlow<List<Search.SearchUserElement>>
+    val foundUsers: MutableStateFlow<List<Search.SearchUserElement>>
     val waitForUserResults: StateFlow<Boolean>
-
-    fun setSearchTerm(value: String)
-    fun addFoundUserElement(element: Search.SearchUserElement)
-    fun removeFoundUserElement(element: Search.SearchUserElement)
 }
 
-@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+@OptIn(FlowPreview::class)
 open class DefaultUserSearchHandler(
     coroutineScope: CoroutineScope,
     private val search: Search,
@@ -37,7 +32,7 @@ open class DefaultUserSearchHandler(
     private val filterNot: (UserId) -> Boolean = { true }
 ) : UserSearchHandler {
     companion object {
-        // Pattern that matches out-of-spec MXID expressions for correcting them
+        // Pattern that matches MXIDs without case sensitivity
         private val mxidPattern: Regex =
             Regex("""${UserId.sigilCharacter}([a-zA-Z\d.\-_=/]+):(${MatrixRegex.domain.pattern})""")
     }
@@ -45,7 +40,7 @@ open class DefaultUserSearchHandler(
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     init {
         coroutineScope.launch(::searchUsers)
@@ -53,7 +48,7 @@ open class DefaultUserSearchHandler(
 
     private suspend fun searchUsers() {
         searchTerm
-            .mapLatest {
+            .map {
                 if (it.isBlank()) foundUsers.value = initialUsers.value
                 if (mxidPattern.matches(it)) it.lowercase()
                 else it
@@ -66,27 +61,11 @@ open class DefaultUserSearchHandler(
                 waitForUserResults.value = false
             }
     }
-
-    override fun setSearchTerm(value: String) {
-        searchTerm.value = value
-    }
-
-    override fun addFoundUserElement(element: Search.SearchUserElement) {
-        foundUsers.value += element
-    }
-
-    override fun removeFoundUserElement(element: Search.SearchUserElement) {
-        foundUsers.value -= element
-    }
 }
 
 object PreviewUserSearchHandler : UserSearchHandler {
-    override val searchTerm: StateFlow<String> = MutableStateFlow("")
+    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val initialUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val foundUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
+    override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)
-
-    override fun setSearchTerm(value: String) {}
-    override fun addFoundUserElement(element: Search.SearchUserElement) {}
-    override fun removeFoundUserElement(element: Search.SearchUserElement) {}
 }

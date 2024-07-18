@@ -177,7 +177,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             val cut = createNewGroupViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
             val subscriberJob = launch { cut.canCreateNewGroup.collect {} }
-            searchHandler.setSearchTerm("u")
+            searchHandler.searchTerm.value = "u"
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -245,7 +245,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
             val cut = createNewGroupViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.setSearchTerm("u")
+            searchHandler.searchTerm.value = "u"
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -354,7 +354,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
 
             val cut = createNewGroupViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.setSearchTerm("u")
+            searchHandler.searchTerm.value = "u"
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }

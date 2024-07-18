@@ -152,7 +152,7 @@ class AddMembersViewModelImpl(
     override fun removeUserFromList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.searchHandler.removeFoundUserElement(user)
+            potentialMembersViewModel.searchHandler.foundUsers.value -= user
         }
     }
 
@@ -164,7 +164,7 @@ class AddMembersViewModelImpl(
     override fun addUserToList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.searchHandler.addFoundUserElement(user)
+            potentialMembersViewModel.searchHandler.foundUsers.value += user
         }
     }
 
