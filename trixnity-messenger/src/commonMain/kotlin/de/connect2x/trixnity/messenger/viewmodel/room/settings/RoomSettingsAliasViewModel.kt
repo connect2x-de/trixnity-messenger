@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
@@ -99,7 +100,7 @@ class RoomSettingsAliasViewModelImpl(
     override fun addNewAlias() {
         val currentNewAlias = newAlias.value
 
-        if (isUpdating.value) {
+        if (_isUpdating.getAndUpdate { true }) {
             log.debug { "Cancelled add Alias $currentNewAlias due to event still updating" }
             return
         }
@@ -113,6 +114,7 @@ class RoomSettingsAliasViewModelImpl(
 
         if (!MatrixRegex.roomAlias.matches(currentNewAlias)) {
             newAliasError.value = i18n.settingsRoomAliasAddAliasInvalid()
+            _isUpdating.value = false
             return
         }
 
@@ -121,10 +123,9 @@ class RoomSettingsAliasViewModelImpl(
         if (allAliases.value.contains(alias)) {
             log.warn { "Cancelled adding Alias $alias due to already existing" }
             newAliasError.value = i18n.settingsRoomAliasAddAliasExisting()
+            _isUpdating.value = false
             return
         }
-
-        _isUpdating.value = true
 
         coroutineScope.launch {
             val newAliases = roomAliases.value?.aliases.orEmpty() + alias
@@ -134,12 +135,10 @@ class RoomSettingsAliasViewModelImpl(
                     if (it.roomId == selectedRoomId) {
                         log.warn { "Alias $alias already exists in this room" }
                         newAliasError.value = null
-                        _isUpdating.value = false
                         return@launch
                     } else {
                         log.warn { "Alias $alias already exists in another room" }
                         newAliasError.value = i18n.settingsRoomAliasAddExists()
-                        _isUpdating.value = false
                         return@launch
                     }
                 },
@@ -163,7 +162,6 @@ class RoomSettingsAliasViewModelImpl(
                             }
                         }
 
-                    _isUpdating.value = false
                     return@launch
                 }
             )
@@ -185,7 +183,6 @@ class RoomSettingsAliasViewModelImpl(
                         }
                     }
 
-                _isUpdating.value = false
                 return@launch
             }
 
@@ -227,36 +224,35 @@ class RoomSettingsAliasViewModelImpl(
                             }
                         }
 
-                    _isUpdating.value = false
                     return@launch
                 }
             )
 
             newAlias.value = ""
             newAliasError.value = null
-            _isUpdating.value = false
-        }
+        }.invokeOnCompletion { _isUpdating.value = false }
     }
 
     override fun changeMainAlias(alias: RoomAliasId?) {
-        if (isUpdating.value) {
+        if (_isUpdating.getAndUpdate { true }) {
             log.debug { "Cancelled change of Alias $alias to main alias due to event still updating" }
+            _isUpdating.value = false
             return
         }
 
         if (!canChangeRoomAlias.value) {
             log.warn { "Cancelled change of Alias $alias to mainalias due to missing permissions" }
             updateError.value = i18n.settingsRoomAliasChangeMainInsufficientPowerLevel()
+            _isUpdating.value = false
             return
         }
 
         if (!moreAliases.value.contains(alias?.full) && mainAlias.value != alias?.full) {
             log.warn { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
             updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
+            _isUpdating.value = false
             return
         }
-
-        _isUpdating.value = true
 
         val currentMainAlias = RoomAliasId(mainAlias.value ?: "")
         val currentMoreAliases = moreAliases.value.map {
@@ -308,18 +304,16 @@ class RoomSettingsAliasViewModelImpl(
                             }
                         }
 
-                    _isUpdating.value = false
                     return@launch
                 }
             )
 
             updateError.value = null
-            _isUpdating.value = false
-        }
+        }.invokeOnCompletion { _isUpdating.value = false }
     }
 
     override fun removeAlias(alias: RoomAliasId) {
-        if (isUpdating.value) {
+        if (_isUpdating.getAndUpdate { true }) {
             log.debug { "Cancelled removal of Alias $alias due to event still updating" }
             return
         }
@@ -327,10 +321,9 @@ class RoomSettingsAliasViewModelImpl(
         if (!canChangeRoomAlias.value) {
             log.warn { "Cancelled removal of Alias $alias due to missing permissions" }
             removeAliasError.value = i18n.settingsRoomAliasRemoveInsufficientPowerLevel()
+            _isUpdating.value = false
             return
         }
-
-        _isUpdating.value = true
 
         coroutineScope.launch {
             matrixClient.api.room.sendStateEvent(
@@ -373,7 +366,6 @@ class RoomSettingsAliasViewModelImpl(
                             }
                         }
 
-                    _isUpdating.value = false
                     return@launch
                 }
             )
@@ -393,14 +385,12 @@ class RoomSettingsAliasViewModelImpl(
                         }
                 }
 
-                _isUpdating.value = false
                 return@launch
             }
 
 
             removeAliasError.value = null
-            _isUpdating.value = false
-        }
+        }.invokeOnCompletion { _isUpdating.value = false }
     }
 }
 
