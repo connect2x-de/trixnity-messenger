@@ -326,6 +326,25 @@ class RoomSettingsAliasViewModelImpl(
         }
 
         coroutineScope.launch {
+            matrixClient.api.room.deleteRoomAlias(alias, userId).onFailure { error ->
+                if (error !is MatrixServerException) {
+                    log.error(error) { "Unexpected Failure" }
+                    removeAliasError.value = i18n.settingsRoomAliasGeneric()
+                } else {
+                    removeAliasError.value =
+                        when (val response = error.errorResponse) {
+                            is ErrorResponse.NotFound -> return@onFailure
+
+                            else -> {
+                                log.error(error) { "Unexpected Error: ${response.error}" }
+                                i18n.settingsRoomAliasGeneric()
+                            }
+                        }
+                }
+
+                return@launch
+            }
+
             matrixClient.api.room.sendStateEvent(
                 selectedRoomId,
                 CanonicalAliasEventContent(
@@ -369,25 +388,6 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
             )
-            matrixClient.api.room.deleteRoomAlias(alias, userId).onFailure { error ->
-                if (error !is MatrixServerException) {
-                    log.error(error) { "Unexpected Failure" }
-                    removeAliasError.value = i18n.settingsRoomAliasGeneric()
-                } else {
-                    removeAliasError.value =
-                        when (val response = error.errorResponse) {
-                            is ErrorResponse.NotFound -> i18n.settingsRoomAliasRemoveNotFound()
-
-                            else -> {
-                                log.error(error) { "Unexpected Error: ${response.error}" }
-                                i18n.settingsRoomAliasGeneric()
-                            }
-                        }
-                }
-
-                return@launch
-            }
-
 
             removeAliasError.value = null
         }.invokeOnCompletion { _isUpdating.value = false }
