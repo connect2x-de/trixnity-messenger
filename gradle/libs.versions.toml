@@ -1,6 +1,6 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.5.0" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.6.0" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "2.0.0" # https://github.com/JetBrains/kotlin/releases
 kotlinWrappers = "1.0.0-pre.767" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.8.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
