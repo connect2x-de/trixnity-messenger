@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.firstWithContent
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
@@ -114,7 +115,7 @@ class ExportRoomImpl(
             .buffer(buffer)
             .takeWhile { !rangeEndCondition(it.first()) }
             .takeWhileInclusive { it.first().eventId != lastEventId }
-            .map { flow -> async { flow.first { it.content != null } } }
+            .map { flow -> async { flow.firstWithContent() } }
             .chunked(buffer)
             .map { list ->
                 log.trace { "wait for chunk to be processed (size=${list.size})" }

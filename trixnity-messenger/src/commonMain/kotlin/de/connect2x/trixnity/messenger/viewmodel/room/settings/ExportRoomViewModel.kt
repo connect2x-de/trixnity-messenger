@@ -190,13 +190,17 @@ class ExportRoomViewModelImpl(
                     }
                 }
                 job.value = null
+            }.also {
+                it.invokeOnCompletion {
+                    job.value = null
+                    state.value = None
+                }
             }
         }
     }
 
     override fun abort() {
         job.value?.cancel()
-        job.value = null
     }
 
     override fun back() {
