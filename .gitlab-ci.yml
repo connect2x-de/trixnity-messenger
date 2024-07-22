@@ -212,6 +212,7 @@ security:dependencies:
       dependency_scanning: report.json
   before_script:
     - apk add openjdk17
+    - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
     - ./gradlew dependenciesForAll --write-locks --no-parallel > dependencies.txt
   script:
     - trivy repo ./ --exit-code 0
