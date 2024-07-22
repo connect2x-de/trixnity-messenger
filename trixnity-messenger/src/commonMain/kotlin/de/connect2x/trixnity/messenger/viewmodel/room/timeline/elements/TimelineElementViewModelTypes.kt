@@ -61,12 +61,12 @@ interface TextBasedViewModel : RoomMessageViewModel {
     /**
      * Users, Events and Room mentioned in the event's message
      */
-    val mentionsInMessage: Map<String, StateFlow<MessageMention?>>
+    val mentionsInMessage: Map<IntRange, StateFlow<MessageMention?>>
 
     /**
      * Users, Events and Room mentioned in the event's formatted body
      */
-    val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>?
+    val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention?>>?
 
     /**
      * Open the mention in the UI

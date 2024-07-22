@@ -36,7 +36,7 @@ fun mentionsStateFlow(
     roomId: RoomId,
     matrixClient: MatrixClient,
     coroutineScope: CoroutineScope
-): Map<String, StateFlow<MessageMention?>> =
+): Map<IntRange, StateFlow<MessageMention?>> =
     MatrixRegex.findMentions(content)
         .mapValues { (_, mention) ->
             when (mention) {
@@ -65,35 +65,14 @@ fun mentionsStateFlow(
                         )
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-                is Mention.RoomAliasEvent ->
-                    flow {
-                        emitAll(
-                            parseRoom(mention.roomAliasId, matrixClient).flatMapLatest { roomInfo ->
-                                if (roomInfo == null) flowOf(null)
-                                else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
-                                    .map { event ->
-                                        event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
-                                    }
-                            }
-                        )
-                    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-                is Mention.RoomEvent ->
-                    parseRoom(mention.roomId, matrixClient).flatMapLatest { roomInfo ->
+                is Mention.Event -> parseRoom(mention.roomId ?: roomId, matrixClient)
+                    .flatMapLatest { roomInfo ->
                         if (roomInfo == null) flowOf(null)
                         else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
                             .map { event ->
                                 event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
                             }
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-                is Mention.Event -> parseRoom(roomId, matrixClient).flatMapLatest { roomInfo ->
-                    if (roomInfo == null) flowOf(null)
-                    else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
-                        .map { event ->
-                            event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
-                        }
-                }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
             }
         }
 
