@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.UserId
@@ -23,13 +24,13 @@ interface UserSearchHandler {
 }
 
 @OptIn(FlowPreview::class)
-open class DefaultUserSearchHandler(
+class DefaultUserSearchHandler(
     coroutineScope: CoroutineScope,
     private val search: Search,
     private val client: MatrixClient,
     private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
     private val limit: Long? = 100,
-    private val filterNot: (UserId) -> Boolean = { true }
+    private val filterNot: (UserId) -> Boolean = { false }
 ) : UserSearchHandler {
     companion object {
         // Pattern that matches MXIDs without case sensitivity
@@ -40,7 +41,7 @@ open class DefaultUserSearchHandler(
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
         coroutineScope.launch(::searchUsers)
@@ -48,13 +49,13 @@ open class DefaultUserSearchHandler(
 
     private suspend fun searchUsers() {
         searchTerm
+            .onEach { if (it.isBlank()) foundUsers.value = initialUsers.value }
+            .debounce(debounceDuration)
+            .filter { it.isNotBlank() }
             .map {
-                if (it.isBlank()) foundUsers.value = initialUsers.value
                 if (mxidPattern.matches(it)) it.lowercase()
                 else it
             }
-            .debounce(debounceDuration)
-            .filter { it.isNotBlank() }
             .collect {
                 waitForUserResults.value = true
                 foundUsers.value = search.searchUsers(client, it, limit, filterNot)
