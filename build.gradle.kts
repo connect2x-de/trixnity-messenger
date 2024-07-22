@@ -37,6 +37,6 @@ allprojects {
             lockAllConfigurations()
         }
 
-        val dependenciesForAll by tasks.registering(DependencyReportTask::class) { }
+        val dependenciesForAll by tasks.registering(DependencyReportTask::class) {}
     }
 }
