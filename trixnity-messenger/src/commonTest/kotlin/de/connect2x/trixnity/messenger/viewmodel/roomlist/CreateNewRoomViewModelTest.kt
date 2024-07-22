@@ -121,25 +121,26 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                     )
 
             val cut = createNewRoomViewModel()
+            val searchHandler = cut.searchHandler
 
             println("search: 'us'")
-            cut.userSearchTerm.value = "us"
-            cut.foundUsers.first {
+            searchHandler.searchTerm.value = "us"
+            searchHandler.foundUsers.first {
                 it == listOf(
                     Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U"),
                     Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
                 )
             }
             println("search: 'user3'")
-            cut.userSearchTerm.value = "user3"
-            cut.foundUsers.first {
+            searchHandler.searchTerm.value = "user3"
+            searchHandler.foundUsers.first {
                 it == listOf(
                     Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
                 )
             }
             println("search: 'user1'")
-            cut.userSearchTerm.value = "user1"
-            cut.foundUsers.first {
+            searchHandler.searchTerm.value = "user1"
+            searchHandler.foundUsers.first {
                 it == emptyList<SearchUserElement>()
             }
         }

@@ -121,8 +121,9 @@ class AddMembersViewModelTest : ShouldSpec() {
 
             val cut = createNewAddMembersViewmodel()
             val subscriberJob = launch { cut.canAddMembers.collect {} }
-            cut.potentialMembersViewModel.userSearchTerm.value = "u"
-            cut.potentialMembersViewModel.foundUsers.first {
+            val searchHandler = cut.potentialMembersViewModel.searchHandler
+            searchHandler.searchTerm.value = "u"
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
             cut.canAddMembers.value shouldBe false
@@ -131,7 +132,7 @@ class AddMembersViewModelTest : ShouldSpec() {
             eventually(3.seconds) {
                 cut.canAddMembers.value shouldBe true
                 cut.groupUsers.value shouldContainExactly listOf(user2)
-                cut.potentialMembersViewModel.foundUsers.value shouldNotContain user2
+                searchHandler.foundUsers.value shouldNotContain user2
             }
 
             cut.removeUserFromGroup(user2)
@@ -139,7 +140,7 @@ class AddMembersViewModelTest : ShouldSpec() {
             eventually(3.seconds) {
                 cut.canAddMembers.value shouldBe false
                 cut.groupUsers.value shouldBe emptyList()
-                cut.potentialMembersViewModel.foundUsers.value shouldContain user2
+                searchHandler.foundUsers.value shouldContain user2
             }
             subscriberJob.cancel()
         }
@@ -185,8 +186,9 @@ class AddMembersViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
 
             val cut = createNewAddMembersViewmodel()
-            cut.potentialMembersViewModel.userSearchTerm.value = "u"
-            cut.potentialMembersViewModel.foundUsers.first {
+            val searchHandler = cut.potentialMembersViewModel.searchHandler
+            searchHandler.searchTerm.value = "u"
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
             cut.onUserClick(user2)
@@ -254,8 +256,9 @@ class AddMembersViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
 
             val cut = createNewAddMembersViewmodel()
-            cut.potentialMembersViewModel.userSearchTerm.value = "u"
-            cut.potentialMembersViewModel.foundUsers.first {
+            val searchHandler = cut.potentialMembersViewModel.searchHandler
+            searchHandler.searchTerm.value = "u"
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
             cut.onUserClick(user2)
