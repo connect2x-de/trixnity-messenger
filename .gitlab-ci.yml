@@ -213,7 +213,7 @@ security:dependencies:
   before_script:
     - apk add openjdk17
     - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-    - ./gradlew dependenciesForAll --write-locks --no-parallel --stacktrace --no-daemon
+    - ./gradlew dependenciesForAll --write-locks --no-parallel --stacktrace --no-daemon > /dev/null
   script:
     - trivy repo ./ --exit-code 0
     - trivy repo ./ --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output report.json
