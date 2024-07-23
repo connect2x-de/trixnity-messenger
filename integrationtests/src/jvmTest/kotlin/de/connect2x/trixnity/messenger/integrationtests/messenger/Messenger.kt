@@ -153,10 +153,10 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         roomListViewModel.createNewRoom()
         val createNewChatViewModel = roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewChat::class).viewModel
         log.debug { "search for user '$username'" }
-        createNewChatViewModel.createNewRoomViewModel.userSearchTerm.update { username }
-        createNewChatViewModel.createNewRoomViewModel.waitForUserResults.first { it.not() }
-        val users =
-            createNewChatViewModel.createNewRoomViewModel.foundUsers.first { users -> users.any { it.displayName == username } }
+        val searchHandler = createNewChatViewModel.createNewRoomViewModel.searchHandler
+        searchHandler.searchTerm.value = username
+        searchHandler.waitForUserResults.first { it.not() }
+        val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
         createNewChatViewModel.onUserClick(users.first())
         log.debug { "chat should have been created -> check to find it in the list" }
         val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
@@ -182,12 +182,12 @@ suspend fun MatrixMessengerWithRoot.createGroupWithUsers(groupName: String, vara
         roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewChat::class).viewModel.createGroup()
         val createNewGroupViewModel =
             roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewGroup::class).viewModel
+        val searchHandler = createNewGroupViewModel.createNewRoomViewModel.searchHandler
         usernames.forEach { username ->
             log.debug { "search for user '$username'" }
-            createNewGroupViewModel.createNewRoomViewModel.userSearchTerm.update { username }
-            createNewGroupViewModel.createNewRoomViewModel.waitForUserResults.first { it.not() }
-            val users =
-                createNewGroupViewModel.createNewRoomViewModel.foundUsers.first { users -> users.any { it.displayName == username } }
+            searchHandler.searchTerm.value = username
+            searchHandler.waitForUserResults.first { it.not() }
+            val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
             createNewGroupViewModel.onUserClick(users.first())
         }
         createNewGroupViewModel.optionalRoomName.update { groupName }
