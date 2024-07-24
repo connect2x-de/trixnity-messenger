@@ -133,7 +133,13 @@ class ExportRoomImpl(
                             ?.encodeToByteArray()?.toByteString()?.base64Url()?.substringBefore("=")
                             ?.let { baseName ->
                                 val extension =
-                                    content.info?.mimeType?.let(ContentType::parse)?.fileExtensions()?.firstOrNull()
+                                    content.info?.mimeType?.let {
+                                        try {
+                                            ContentType.parse(it)
+                                        } catch (e: Exception) {
+                                            null
+                                        }
+                                    }?.fileExtensions()?.firstOrNull()
                                 if (extension != null) "$baseName.$extension"
                                 else baseName
                             }
