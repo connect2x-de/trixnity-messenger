@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Java toolchain configuration in emoji subproject
 - Only create media directory in export when needed
 - Export view model exposes more info in error message
+- Export uses better timestamp formats
 
 ### Deprecated
 

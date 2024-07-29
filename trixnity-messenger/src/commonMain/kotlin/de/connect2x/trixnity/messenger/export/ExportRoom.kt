@@ -3,8 +3,8 @@ package de.connect2x.trixnity.messenger.export
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
+import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -20,12 +20,17 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.firstWithContent
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -130,18 +135,18 @@ class ExportRoomImpl(
                     val mediaFile = content.file
                     val fileName =
                         (mediaFile?.url ?: mediaUrl)
-                            ?.encodeToByteArray()?.toByteString()?.base64Url()?.substringBefore("=")
+                            ?.encodeToByteArray()?.toByteString()?.sha256()?.base64Url()
                             ?.let { baseName ->
-                                val extension =
-                                    content.info?.mimeType?.let {
-                                        try {
-                                            ContentType.parse(it)
-                                        } catch (e: Exception) {
-                                            null
-                                        }
-                                    }?.fileExtensions()?.firstOrNull()
-                                if (extension != null) "$baseName.$extension"
-                                else baseName
+                                val timestamp = exportTimestampFormat.format(
+                                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                                        .toLocalDateTime(TimeZone.of(timezone()))
+                                )
+                                val prefix = "$timestamp $baseName - "
+                                val remainingLength = 255 - prefix.length
+                                val originalFileName = (content.fileName ?: content.body)
+                                    .filter { allowedFileNameChars.contains(it) }
+                                    .takeLast(remainingLength)
+                                prefix + originalFileName
                             }
                             ?: run {
                                 log.warn { "content did not contain any url" }
@@ -182,6 +187,26 @@ class ExportRoomImpl(
         log.info { "export of $roomId finished" }
         ExportRoomResult.Success(missingMedia.toList(), decryptionFailed.toList())
     }
+}
+
+internal val exportTimestampFormat by lazy {
+    LocalDateTime.Format {
+        year()
+        chars("-")
+        monthNumber()
+        chars("-")
+        dayOfMonth()
+        chars(" ")
+        hour()
+        chars("-")
+        minute()
+        chars("-")
+        second()
+    }
+}
+
+private val allowedFileNameChars by lazy {
+    ('0'..'9') + ('a'..'z') + ('A'..'Z') + '-' + '.' + '_'
 }
 
 // TODO remove with kotlinx-coroutines >= 1.9.0
