@@ -244,12 +244,12 @@ class ExportRoomTest : ShouldSpec() {
                         missingMedia = listOf(
                             ExportRoomResult.Success.MissingMedia(
                                 EventId("20"),
-                                "bXhjOi8vbG9jYWxob3N0LzIw",
+                                "1970-01-01 01-00-00 5QY614QVkcLdYtkkYsCMVNBTJpodaRYi_eWwpDOq3Pw= - 20",
                                 "download error"
                             ),
                             ExportRoomResult.Success.MissingMedia(
                                 EventId("21"),
-                                "bXhjOi8vbG9jYWxob3N0LzIx",
+                                "1970-01-01 01-00-00 q-16CVWL4b6kAxFcS-a4WalLqh7GwCFXHvFQa1P0eIE= - 21",
                                 "download error"
                             ),
                         ),
