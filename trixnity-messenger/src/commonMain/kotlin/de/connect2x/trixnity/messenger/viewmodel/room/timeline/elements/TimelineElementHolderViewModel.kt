@@ -426,8 +426,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
             override val formattedDate: String = "23.11.22"
             override val showDateAbove: Boolean = true
-            override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
-            override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
+            override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention>> = mapOf()
+            override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention>> = mapOf()
             override fun openMention(messageMention: MessageMention) {
             }
         })
@@ -523,8 +523,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val invitation: MutableStateFlow<String?> = MutableStateFlow(null)
                 override val formattedDate: String = "23.11.22"
                 override val showDateAbove: Boolean = false
-                override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
-                override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>> = mapOf()
+                override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention>> = mapOf()
+                override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention>> = mapOf()
                 override fun openMention(messageMention: MessageMention) {
                 }
             }

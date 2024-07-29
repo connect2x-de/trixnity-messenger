@@ -89,9 +89,9 @@ open class EmoteMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<MessageMention?>> =
+    override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention?>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>? =
+    override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention?>>? =
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }

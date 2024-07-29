@@ -30,11 +30,11 @@ import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import net.folivo.trixnity.core.model.events.stateKeyOrNull
 
 fun interface TimelineEventContentToString {
-    operator fun invoke(timelineEvent: TimelineEvent, filename: String?): String?
+    operator fun invoke(timelineEvent: TimelineEvent, fileName: String?): String?
 }
 
 class TimelineEventContentToStringImpl(private val i18n: I18n) : TimelineEventContentToString {
-    override fun invoke(timelineEvent: TimelineEvent, filename: String?): String? {
+    override fun invoke(timelineEvent: TimelineEvent, fileName: String?): String? {
         val contentResult = timelineEvent.content
         return when {
             contentResult != null -> when {
@@ -47,10 +47,16 @@ class TimelineEventContentToStringImpl(private val i18n: I18n) : TimelineEventCo
                                     is RoomMessageEventContent.TextBased.Text -> body
                                     is RoomMessageEventContent.TextBased.Emote -> i18n.exportRoomEmote(body)
                                     is RoomMessageEventContent.TextBased.Notice -> i18n.exportRoomNotice(body)
-                                    is RoomMessageEventContent.FileBased.Image -> i18n.exportRoomImage(body)
-                                    is RoomMessageEventContent.FileBased.Audio -> i18n.exportRoomAudio(body)
-                                    is RoomMessageEventContent.FileBased.Video -> i18n.exportRoomVideo(body)
-                                    is RoomMessageEventContent.FileBased.File -> i18n.exportRoomFile(body)
+                                    is RoomMessageEventContent.FileBased -> {
+                                        val name = fileName ?: content.fileName ?: content.body
+                                        when (content) {
+                                            is RoomMessageEventContent.FileBased.Image -> i18n.exportRoomImage(name)
+                                            is RoomMessageEventContent.FileBased.Audio -> i18n.exportRoomAudio(name)
+                                            is RoomMessageEventContent.FileBased.Video -> i18n.exportRoomVideo(name)
+                                            is RoomMessageEventContent.FileBased.File -> i18n.exportRoomFile(name)
+                                        }
+                                    }
+
                                     is RoomMessageEventContent.Location -> i18n.exportRoomLocation(body, content.geoUri)
                                     is RoomMessageEventContent.Unknown,
                                     is RoomMessageEventContent.VerificationRequest -> null

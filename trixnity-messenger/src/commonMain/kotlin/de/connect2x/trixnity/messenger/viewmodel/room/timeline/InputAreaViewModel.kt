@@ -278,33 +278,9 @@ open class InputAreaViewModelImpl(
                         val anchorContent: String
                         when (mention) {
                             is Mention.Event -> {
-                                val alias =
-                                    matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId).first()
-                                        ?.content?.run { alias ?: aliases?.firstOrNull() }
-                                matrixUri =
-                                    if (alias != null)
-                                        "https://matrix.to/#/${alias.full}/${mention.eventId.full}"
-                                    else
-                                        "https://matrix.to/#/${selectedRoomId.full}/${mention.eventId.full}"
-                                anchorContent = matrixUri
-                            }
-
-                            is Mention.RoomEvent -> {
-                                val alias =
-                                    matrixClient.room.getState<CanonicalAliasEventContent>(mention.roomId).first()
-                                        ?.content?.run { alias ?: aliases?.firstOrNull() }
-                                matrixUri =
-                                    if (alias != null)
-                                        "https://matrix.to/#/${alias.full}/${mention.eventId.full}"
-                                    else
-                                        "https://matrix.to/#/${mention.roomId.full}/${mention.eventId.full}"
-                                anchorContent = matrixUri
-                            }
-
-                            is Mention.RoomAliasEvent -> {
-                                matrixUri =
-                                    "https://matrix.to/#/${mention.roomAliasId.full}/${mention.eventId.full}"
-                                anchorContent = matrixUri
+                                val roomId = mention.roomId ?: selectedRoomId
+                                matrixUri = "https://matrix.to/#/${roomId.full}/${mention.eventId.full}"
+                                anchorContent = mention.label ?: matrixUri
                             }
 
                             is Mention.Room -> {
@@ -314,25 +290,25 @@ open class InputAreaViewModelImpl(
                                 matrixUri =
                                     if (alias != null) "https://matrix.to/#/${alias.full}"
                                     else "https://matrix.to/#/${selectedRoomId.full}"
-                                anchorContent = alias?.full ?: mention.roomId.full
+                                anchorContent = mention.label ?: alias?.full ?: mention.roomId.full
                             }
 
                             is Mention.RoomAlias -> {
                                 matrixUri = "https://matrix.to/#/${mention.roomAliasId.full}"
-                                anchorContent = mention.roomAliasId.full
+                                anchorContent = mention.label ?: mention.roomAliasId.full
                             }
 
                             is Mention.User -> {
                                 val userName = matrixClient.user.getById(selectedRoomId, mention.userId).first()?.name
                                 matrixUri = "https://matrix.to/#/${mention.userId.full}"
-                                anchorContent = userName ?: mention.userId.full
+                                anchorContent = mention.label ?: userName ?: mention.userId.full
                             }
                         }
                         """<a href="$matrixUri">$anchorContent</a>"""
                     }
                 val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
-                val formattedBody = mentionLinks.entries.fold(text) { currentText, (oldValue, newValue) ->
-                    currentText.replace(oldValue, newValue)
+                val formattedBody = mentionLinks.entries.fold(text) { currentText, (range, newValue) ->
+                    currentText.replaceRange(range, newValue)
                 }
                 if (editedEvent != null) {
                     log.debug { "send message (edit)" }
