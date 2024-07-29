@@ -359,7 +359,22 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
         }
 
         should("set the display name for this device and update the device") {
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+            val device = MutableStateFlow(device1)
+
+            everySuspend {
+                devicesApiClientMock.updateDevice(any(), any(), eqNull())
+            } calls {
+                val deviceId = it.args[0] as String
+                val deviceName = it.args[1] as String
+
+                if (deviceId == device.value.deviceId) {
+                    device.value = device.value.copy(displayName = deviceName)
+                }
+
+                Result.success(Unit)
+            }
+            everySuspend { devicesApiClientMock.getDevices() } calls { Result.success(listOf(device.value, device2)) }
+
             every {
                 keyServiceMock.getTrustLevel(any<UserId>(), any())
             } returns flowOf(DeviceTrustLevel.Valid(true))
