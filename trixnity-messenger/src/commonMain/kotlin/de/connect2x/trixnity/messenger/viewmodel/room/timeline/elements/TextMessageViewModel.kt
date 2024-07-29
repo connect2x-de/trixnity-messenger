@@ -92,9 +92,9 @@ open class TextMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val mentionsInMessage: Map<String, StateFlow<MessageMention?>> =
+    override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention?>> =
         mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
-    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention?>>? =
+    override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention?>>? =
         formattedBody?.let {
             mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
         }
@@ -123,7 +123,7 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = true
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
-    override val mentionsInMessage: Map<String, StateFlow<MessageMention>> = mapOf()
-    override val mentionsInFormattedBody: Map<String, StateFlow<MessageMention>>? = mapOf()
+    override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention>> = mapOf()
+    override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention>>? = mapOf()
     override fun openMention(messageMention: MessageMention) {}
 }

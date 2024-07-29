@@ -147,8 +147,9 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
 
             val cut = createNewChatViewModel()
-            cut.createNewRoomViewModel.userSearchTerm.value = "u"
-            cut.createNewRoomViewModel.foundUsers.first {
+            val searchHandler = cut.createNewRoomViewModel.searchHandler
+            searchHandler.searchTerm.value = "u"
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
 
@@ -243,8 +244,9 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
 
             val cut = createNewChatViewModel()
-            cut.createNewRoomViewModel.userSearchTerm.value = "u"
-            cut.createNewRoomViewModel.foundUsers.first {
+            val searchHandler = cut.createNewRoomViewModel.searchHandler
+            searchHandler.searchTerm.value = "u"
+            searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
 

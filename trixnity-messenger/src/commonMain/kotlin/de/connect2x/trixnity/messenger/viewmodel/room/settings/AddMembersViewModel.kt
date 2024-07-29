@@ -9,7 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -79,7 +78,7 @@ class AddMembersViewModelImpl(
 
     override val error = MutableStateFlow<String?>(null)
     override val errorCause = MutableStateFlow<String?>(null)
-    internal val foundUsers = potentialMembersViewModel.foundUsers.asStateFlow()
+    internal val foundUsers = potentialMembersViewModel.searchHandler.foundUsers
 
     override fun addMembers() {
         log.info { "add ${groupUsers.value.joinToString { it.displayName }} to group" }
@@ -144,7 +143,7 @@ class AddMembersViewModelImpl(
 
     override suspend fun onUserClick(user: Search.SearchUserElement) {
         if (groupUsers.value.contains(user).not()) {
-            groupUsers.value = groupUsers.value + user
+            groupUsers.value += user
             removeUserFromList(user)
         }
     }
@@ -153,19 +152,19 @@ class AddMembersViewModelImpl(
     override fun removeUserFromList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.foundUsers.value = potentialMembersViewModel.foundUsers.value - user
+            potentialMembersViewModel.searchHandler.foundUsers.value -= user
         }
     }
 
     override fun removeUserFromGroup(user: Search.SearchUserElement) {
-        groupUsers.value = groupUsers.value - user
+        groupUsers.value -= user
         addUserToList(user)
     }
 
     override fun addUserToList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.foundUsers.value = potentialMembersViewModel.foundUsers.value + user
+            potentialMembersViewModel.searchHandler.foundUsers.value += user
         }
     }
 

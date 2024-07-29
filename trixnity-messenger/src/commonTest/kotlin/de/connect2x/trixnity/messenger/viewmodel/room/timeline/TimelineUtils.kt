@@ -186,6 +186,10 @@ class MockedTimeline(
     transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper
 ) : TimelineBase<TimelineViewModelImpl.TimelineElementWrapper>(transformer) {
     private val eventsInStore = timelineMock.eventsInStore
+
+    override suspend fun Flow<TimelineEvent>.canLoadBefore(): Flow<Boolean> = flowOf(true)
+    override suspend fun Flow<TimelineEvent>.canLoadAfter(): Flow<Boolean> = flowOf(true)
+    
     override val state = combine(super.state, eventsInStore) { state, allEvents ->
         state.copy(
             canLoadBefore = allEvents.indexOfFirst { it.value.eventId == state.lastLoadedEventIdBefore } > 0,

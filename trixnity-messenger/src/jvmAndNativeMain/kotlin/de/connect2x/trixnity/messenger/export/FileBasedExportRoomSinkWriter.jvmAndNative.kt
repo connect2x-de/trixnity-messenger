@@ -4,6 +4,7 @@ import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.writeTo
 import okio.FileSystem
 import okio.buffer
+import okio.use
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -29,7 +30,6 @@ class OkioFileBasedExportRoomSinkWriter(
     private val mediaPath = destination.resolve("media")
     override suspend fun start() {
         fileSystem.createDirectory(destination)
-        fileSystem.createDirectory(mediaPath)
     }
 
     override suspend fun addContent(content: String) {
@@ -37,9 +37,10 @@ class OkioFileBasedExportRoomSinkWriter(
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
-        val mediaSink = fileSystem.sink(mediaPath.resolve(filename)).buffer()
-        content.writeTo(mediaSink)
-        mediaSink.close()
+        fileSystem.createDirectory(mediaPath)
+        fileSystem.sink(mediaPath.resolve(filename)).buffer().use {
+            content.writeTo(it)
+        }
     }
 
     override suspend fun finish() {

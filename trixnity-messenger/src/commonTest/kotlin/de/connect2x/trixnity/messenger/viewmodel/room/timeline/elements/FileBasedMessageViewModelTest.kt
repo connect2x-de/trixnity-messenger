@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -156,6 +157,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showBigGap = false,
             showSender = MutableStateFlow(false),
             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
+            uploadProgress = MutableStateFlow(null)
         )
         return fileBasedMessageViewModelInstance
     }
@@ -173,6 +175,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         override val showBigGap: Boolean,
         override val showSender: StateFlow<Boolean>,
         override val sender: StateFlow<UserInfoElement>,
+        override val uploadProgress: StateFlow<FileTransferProgressElement?>,
     ) : AbstractFileBasedMessageViewModel(
         viewModelContext,
         RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile)

@@ -1,7 +1,21 @@
 plugins {
     id("application")
     kotlin("jvm")
-    kotlin("plugin.serialization").version(libs.versions.kotlin.get()) // for creation of Emojis.kt
+    kotlin("plugin.serialization") version libs.versions.kotlin.get() // for creation of Emojis.kt
+}
+
+val jvmTarget = libs.versions.kotlinJvmTarget.get().toInt()
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jvmTarget)
+    }
+    sourceCompatibility = JavaVersion.toVersion(jvmTarget)
+    targetCompatibility = sourceCompatibility
+}
+
+kotlin {
+    jvmToolchain(jvmTarget)
 }
 
 application {
@@ -9,9 +23,5 @@ application {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-}
-
-kotlin {
-    jvmToolchain(libs.versions.kotlinJvmTarget.get().toInt())
+    implementation(libs.kotlinx.serialization)
 }

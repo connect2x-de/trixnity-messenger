@@ -3,8 +3,8 @@ package de.connect2x.trixnity.messenger.export
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
+import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -20,11 +20,17 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.firstWithContent
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -89,18 +95,17 @@ class ExportRoomImpl(
         val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
             ?: return@coroutineScope ExportRoomResult.RoomNotFound
 
-        log.debug { "search for start event (may take some time due to network requests)" }
+        log.debug { "search for archiving start event of $roomId (may take some time due to network requests)" }
         val startFrom = matrixClient.room.getTimelineEvents(
             roomId = roomId,
             startFrom = lastEventId,
             direction = GetEvents.Direction.BACKWARDS,
             config = { this.decryptionTimeout = Duration.ZERO } // don't decrypt yet
         )
-            .map { flow -> flow.first { it.content != null } }
-            .takeWhile { !rangeStartCondition(it) }
+            .takeWhile { !rangeStartCondition(it.first()) }
             .onEach { progress.update { it.copy(total = (it.total ?: 0) + 1) } }
-            .last().eventId
-        log.debug { "start archiving from $startFrom" }
+            .last().first().eventId
+        log.debug { "start archiving of $roomId (start=$startFrom, total=${progress.value.total})" }
 
         sink.start().onFailure { return@coroutineScope ExportRoomResult.SinkError(it) }
 
@@ -113,12 +118,16 @@ class ExportRoomImpl(
             config = { this.decryptionTimeout = decryptionTimeout }
         )
             .buffer(buffer)
-            .map { flow -> async { flow.first { it.content != null } } }
+            .takeWhile { !rangeEndCondition(it.first()) }
+            .takeWhileInclusive { it.first().eventId != lastEventId }
+            .map { flow -> async { flow.firstWithContent() } }
             .chunked(buffer)
-            .map { list -> list.awaitAll() }
+            .map { list ->
+                log.trace { "wait for chunk to be processed (size=${list.size})" }
+                list.awaitAll()
+                    .also { log.trace { "chunk fully processed (size=${list.size})" } }
+            }
             .transform { list -> list.forEach { emit(it) } }
-            .takeWhile { !rangeEndCondition(it) }
-            .takeWhileInclusive { it.eventId != lastEventId }
             .collect { timelineEvent ->
                 val content = timelineEvent.content?.getOrNull()
                 if (content is RoomMessageEventContent.FileBased) {
@@ -126,12 +135,18 @@ class ExportRoomImpl(
                     val mediaFile = content.file
                     val fileName =
                         (mediaFile?.url ?: mediaUrl)
-                            ?.encodeToByteArray()?.toByteString()?.base64Url()?.substringBefore("=")
+                            ?.encodeToByteArray()?.toByteString()?.sha256()?.base64Url()
                             ?.let { baseName ->
-                                val extension =
-                                    content.info?.mimeType?.let(ContentType::parse)?.fileExtensions()?.firstOrNull()
-                                if (extension != null) "$baseName.$extension"
-                                else baseName
+                                val timestamp = exportTimestampFormat.format(
+                                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                                        .toLocalDateTime(TimeZone.of(timezone()))
+                                )
+                                val prefix = "$timestamp $baseName - "
+                                val remainingLength = 255 - prefix.length
+                                val originalFileName = (content.fileName ?: content.body)
+                                    .filter { allowedFileNameChars.contains(it) }
+                                    .takeLast(remainingLength)
+                                prefix + originalFileName
                             }
                             ?: run {
                                 log.warn { "content did not contain any url" }
@@ -164,6 +179,7 @@ class ExportRoomImpl(
                     sink.processTimelineEvent(timelineEvent)
                 }
                 progress.update { it.copy(processed = (it.processed ?: 0) + 1) }
+                log.trace { "archiving progress: (${progress.value.processed}/${progress.value.total})" }
             }
 
         sink.finish().onFailure { return@coroutineScope ExportRoomResult.SinkError(it) }
@@ -171,6 +187,26 @@ class ExportRoomImpl(
         log.info { "export of $roomId finished" }
         ExportRoomResult.Success(missingMedia.toList(), decryptionFailed.toList())
     }
+}
+
+internal val exportTimestampFormat by lazy {
+    LocalDateTime.Format {
+        year()
+        chars("-")
+        monthNumber()
+        chars("-")
+        dayOfMonth()
+        chars(" ")
+        hour()
+        chars("-")
+        minute()
+        chars("-")
+        second()
+    }
+}
+
+private val allowedFileNameChars by lazy {
+    ('0'..'9') + ('a'..'z') + ('A'..'Z') + '-' + '.' + '_'
 }
 
 // TODO remove with kotlinx-coroutines >= 1.9.0
