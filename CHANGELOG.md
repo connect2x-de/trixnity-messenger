@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
+- Fix wrong filename in export
 
 ### Security
 
