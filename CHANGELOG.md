@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.1.0
+
+### Added
+
 - `UserSearchHandler` interface for facilitating user input sanitization of user search terms
 - Setting to enable E2E encryption in rooms
 - Upload progress to Video-, Audio- and File-Message-ViewModels
@@ -31,16 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export uses better timestamp formats
 - Upgrade Trixnity to 4.6.1
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
-
-### Security
 
 ## 2.0.3
 
