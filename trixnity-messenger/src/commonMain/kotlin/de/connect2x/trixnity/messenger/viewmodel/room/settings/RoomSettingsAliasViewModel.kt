@@ -243,9 +243,11 @@ class RoomSettingsAliasViewModelImpl(
                 }
 
                 if (!moreAliases.value.contains(alias?.full) && mainAlias.value != alias?.full) {
-                    log.warn { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
-                    updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
-                    return@launch
+                    if (alias != null) {
+                        log.warn { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
+                        updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
+                        return@launch
+                    }
                 }
 
                 val currentMainAlias = RoomAliasId(mainAlias.value ?: "")
@@ -269,7 +271,13 @@ class RoomSettingsAliasViewModelImpl(
                     onSuccess = {
                         withTimeoutOrNull(5.seconds) {
                             matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId)
-                                .first { it?.content?.alias == alias }
+                                .first {
+                                    if (alias == currentMainAlias || alias == null) {
+                                        it?.content?.aliases?.contains(currentMainAlias) ?: false
+                                    } else {
+                                        it?.content?.alias == alias
+                                    }
+                                }
                         }
                     },
                     onFailure = { error ->
