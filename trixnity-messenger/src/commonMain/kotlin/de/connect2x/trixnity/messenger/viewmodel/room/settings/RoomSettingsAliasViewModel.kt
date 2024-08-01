@@ -242,12 +242,10 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
 
-                if (!moreAliases.value.contains(alias?.full) && mainAlias.value != alias?.full) {
-                    if (alias != null) {
-                        log.warn { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
-                        updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
-                        return@launch
-                    }
+                if (alias != null && !moreAliases.value.contains(alias.full) && mainAlias.value != alias.full) {
+                    log.warn { "Cancelled change of Alias $alias to mainalias due to not being related to that room" }
+                    updateError.value = i18n.settingsRoomAliasChangeMainUnrelatedAlias()
+                    return@launch
                 }
 
                 val currentMainAlias = RoomAliasId(mainAlias.value ?: "")
@@ -255,11 +253,17 @@ class RoomSettingsAliasViewModelImpl(
                     RoomAliasId(it)
                 }.toSet()
 
+                if (alias == currentMainAlias) {
+                    log.warn { "Cancelled change of Alias $alias to mainalias due to already being it" }
+                    updateError.value = null
+                    return@launch
+                }
+
                 matrixClient.api.room.sendStateEvent(
                     selectedRoomId,
                     CanonicalAliasEventContent(
-                        if (alias == currentMainAlias || alias == null) null else alias,
-                        if (alias == currentMainAlias || alias == null) {
+                        alias,
+                        if (alias == null) {
                             log.trace { "Moved mainAlias ($currentMainAlias) into others" }
                             currentMoreAliases + currentMainAlias
                         } else {
@@ -272,7 +276,7 @@ class RoomSettingsAliasViewModelImpl(
                         withTimeoutOrNull(5.seconds) {
                             matrixClient.room.getState<CanonicalAliasEventContent>(selectedRoomId)
                                 .first {
-                                    if (alias == currentMainAlias || alias == null) {
+                                    if (alias == null) {
                                         it?.content?.aliases?.contains(currentMainAlias) ?: false
                                     } else {
                                         it?.content?.alias == alias

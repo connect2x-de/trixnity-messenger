@@ -5,12 +5,14 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import dev.mokkery.annotations.DelicateMokkeryApi
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
+import dev.mokkery.matcher.matching
 import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
@@ -45,6 +47,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 
+@OptIn(DelicateMokkeryApi::class)
 class RoomSettingsAliasViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 20_000
 
@@ -316,7 +319,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
             }
         }
 
-        should("remove main alias when main alias is passed") {
+        should("don't change main alias when main alias is passed") {
             withTestingHarness {
                 val addError = MutableStateFlow<String?>(null)
                 val changeMainAliasError = MutableStateFlow<String?>(null)
@@ -353,19 +356,8 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 eventually(2.seconds) {
                     viewModel.isUpdating.value shouldBe false
                     changeMainAliasError.value shouldBe null
-                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
-                    viewModel.mainAlias.value shouldBe null
-                }
-
-                verifySuspend(mode = VerifyMode.soft) {
-                    roomsApiClientMock.sendStateEvent(
-                        any(), eq(
-                            CanonicalAliasEventContent(
-                                null,
-                                setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                            )
-                        ), any(), any()
-                    )
+                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
                 }
             }
         }
