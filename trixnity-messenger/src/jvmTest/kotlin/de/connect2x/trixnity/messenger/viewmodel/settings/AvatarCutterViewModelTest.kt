@@ -37,6 +37,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
+
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class AvatarCutterViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
@@ -148,7 +149,8 @@ class AvatarCutterViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext
             ),
             file = fileDescriptorMock,
-            onCloseMock,
+            onClose = onCloseMock,
+            roomId = null,
         )
     }
 }

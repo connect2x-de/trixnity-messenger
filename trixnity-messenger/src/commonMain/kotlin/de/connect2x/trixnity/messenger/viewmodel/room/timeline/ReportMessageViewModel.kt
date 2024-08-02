@@ -68,7 +68,7 @@ open class ReportMessageViewModelImpl(
     }
 }
 
-class ReportMessagePreviewViewModel : ReportMessageViewModel {
+class PreviewReportMessageViewModel : ReportMessageViewModel {
     override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun submitReportToMessage() {

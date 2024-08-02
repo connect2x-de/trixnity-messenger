@@ -3,9 +3,12 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import de.connect2x.trixnity.messenger.util.*
+import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.launchPop
+import de.connect2x.trixnity.messenger.util.popSuspending
+import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
@@ -24,9 +27,18 @@ class AvatarCutterRouter(
     private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {
             is Config.None -> Wrapper.None
-            is Config.AvatarCutter -> Wrapper.AvatarCutter(
+            is Config.AvatarCutterUserProfile -> Wrapper.AvatarCutter(
                 viewModelContext.get<AvatarCutterViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
+                    file = config.file,
+                    onClose = ::onClose,
+                )
+            )
+
+            is Config.AvatarCutterRoom -> Wrapper.AvatarCutter(
+                viewModelContext.get<AvatarCutterViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
+                    roomId = config.roomId,
                     file = config.file,
                     onClose = ::onClose,
                 )
@@ -34,7 +46,11 @@ class AvatarCutterRouter(
         }
 
     suspend fun show(userId: UserId, file: FileDescriptor) {
-        navigation.pushSuspending(Config.AvatarCutter(userId, file))
+        navigation.pushSuspending(Config.AvatarCutterUserProfile(userId, file))
+    }
+
+    suspend fun show(userId: UserId, roomId: RoomId, file: FileDescriptor) {
+        navigation.pushSuspending(Config.AvatarCutterRoom(userId, roomId, file))
     }
 
     suspend fun close() {
@@ -46,9 +62,15 @@ class AvatarCutterRouter(
     }
 
     sealed class Config {
-        data class AvatarCutter(
+        data class AvatarCutterUserProfile(
             val userId: UserId,
-            val file: FileDescriptor
+            val file: FileDescriptor,
+        ) : Config()
+
+        data class AvatarCutterRoom(
+            val userId: UserId,
+            val roomId: RoomId,
+            val file: FileDescriptor,
         ) : Config()
 
         data object None : Config()
