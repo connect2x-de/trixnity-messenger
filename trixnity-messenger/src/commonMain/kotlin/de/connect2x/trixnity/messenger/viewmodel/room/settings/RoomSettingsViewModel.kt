@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -14,6 +15,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -27,6 +29,7 @@ interface RoomSettingsViewModelFactory {
         onShowAddMembers: () -> Unit,
         onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
+        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
@@ -35,6 +38,7 @@ interface RoomSettingsViewModelFactory {
             onShowExportRoom = onShowExportRoom,
             onCloseRoomSettings = onCloseRoomSettings,
             onBack = onBack,
+            onOpenAvatarCutter = onOpenAvatarCutter,
         )
     }
 
@@ -43,11 +47,12 @@ interface RoomSettingsViewModelFactory {
 
 interface RoomSettingsViewModel {
     val error: StateFlow<String?>
+    val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
     val roomSettingsTopicViewModel: RoomSettingsTopicViewModel
     val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel
     val roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel
-    val roomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel
+    val roomSettingsJoinRulesViewModel: RoomSettingsJoinRulesViewModel
     val roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
@@ -74,17 +79,24 @@ class RoomSettingsViewModelImpl(
     private val onShowExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
+    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
-
 
     private val backCallback = BackCallback {
         close()
     }
+
     init {
         backHandler.register(backCallback)
     }
 
     override val error = MutableStateFlow<String?>(null)
+
+    override val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel by lazy {
+        get<ChangeRoomAvatarViewModelFactory>()
+            .create(viewModelContext, selectedRoomId, onOpenAvatarCutter)
+    }
+
     override val roomSettingsNameViewModel by lazy {
         get<RoomSettingsNameViewModelFactory>()
             .create(viewModelContext, selectedRoomId)
@@ -150,7 +162,7 @@ class RoomSettingsViewModelImpl(
                     leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageGroup()
                     leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonGroup()
                 }
-                isEncrypted.value = it?.encrypted ?:false
+                isEncrypted.value = it?.encrypted ?: false
             }
         }
     }
@@ -204,13 +216,14 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel
-        = PreviewRoomSettingsHistoryVisibilityViewModel()
-    override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel
-        = PreviewRoomSettingsJoinRulesViewModel()
-    override val roomSettingsSecurityViewModel: PreviewRoomSettingsSecurityViewModel
-        = PreviewRoomSettingsSecurityViewModel()
+    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel =
+        PreviewRoomSettingsHistoryVisibilityViewModel()
+    override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel =
+        PreviewRoomSettingsJoinRulesViewModel()
+    override val roomSettingsSecurityViewModel: PreviewRoomSettingsSecurityViewModel =
+        PreviewRoomSettingsSecurityViewModel()
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel = PreviewChangeAvatarViewModel()
     override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
     override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val leaveRoomWarningTitle: MutableStateFlow<String> = MutableStateFlow("leave room warning title")
