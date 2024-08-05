@@ -39,6 +39,8 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.BannedMemberListElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.BannedMemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
@@ -357,6 +359,8 @@ private fun roomSettingsViewModels() = module {
     single<ChangeRoomAvatarViewModelFactory> { ChangeRoomAvatarViewModelFactory }
     single<MemberListElementViewModelFactory> { MemberListElementViewModelFactory }
     single<MemberListViewModelFactory> { MemberListViewModelFactory }
+    single<BannedMemberListElementViewModelFactory> { BannedMemberListElementViewModelFactory }
+    single<BannedMemberListViewModelFactory> { BannedMemberListViewModelFactory }
     single<PotentialMembersViewModelFactory> { PotentialMembersViewModelFactory }
     single<RoomSettingsViewModelFactory> { RoomSettingsViewModelFactory }
     single<RoomSettingsNameViewModelFactory> { RoomSettingsNameViewModelFactory }
