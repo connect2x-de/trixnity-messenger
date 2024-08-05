@@ -151,6 +151,9 @@ class MemberListViewModelTest : ShouldSpec() {
                     MutableStateFlow(true)
             every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns
                     MutableStateFlow(50)
+            every { userServiceMock.getById(eq(roomId), eq(roomUserMe.userId)) } returns flowOf(roomUserMe)
+            every { userServiceMock.getById(eq(roomId), eq(roomUserAlice.userId)) } returns flowOf(roomUserAlice)
+            every { userServiceMock.getById(eq(roomId), eq(roomUserBob.userId)) } returns flowOf(roomUserBob)
             every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(1)
             every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
                 IgnoredUserListEventContent(emptyMap())

@@ -60,7 +60,6 @@ interface RoomSettingsViewModel {
     val leaveRoomWarningMessage: StateFlow<String>
     val leaveRoomWarningConfirmButtonText: StateFlow<String>
     val memberListViewModel: MemberListViewModel
-    val bannedMemberListViewModel: BannedMemberListViewModel
     val hasPowerToInvite: StateFlow<Boolean>
     val isDirect: StateFlow<Boolean>
     val isEncrypted: StateFlow<Boolean>
@@ -141,12 +140,6 @@ class RoomSettingsViewModelImpl(
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
-            selectedRoomId = selectedRoomId, error = error
-        )
-
-    override val bannedMemberListViewModel: BannedMemberListViewModel =
-        get<BannedMemberListViewModelFactory>().create(
-            viewModelContext = childContext("bannedMemberList-${selectedRoomId}"),
             selectedRoomId = selectedRoomId, error = error
         )
 
@@ -237,7 +230,6 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val leaveRoomWarningMessage: MutableStateFlow<String> = MutableStateFlow("leave room warning message")
     override val leaveRoomWarningConfirmButtonText: MutableStateFlow<String> = MutableStateFlow("confirm")
     override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
-    override val bannedMemberListViewModel: PreviewBannedMemberListViewModel = PreviewBannedMemberListViewModel()
     override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
