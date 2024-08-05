@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
@@ -174,24 +175,18 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     override val saveFileDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
     override val downloadProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val downloadSuccessful: StateFlow<Boolean> = MutableStateFlow(false)
+    override val downloadError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val fileName: String = "image-1234567890123456678901234567890.jpg"
-    override val fileSize: Int? = 200
-    override val fileMimeType: String? = "image/jpg"
+    override val fileSize: Int = 200
+    override val fileMimeType: String = "image/jpg"
 
-    override fun downloadFile(): DownloadFile {
-        return object : DownloadFile {
-            override suspend fun getFileResult(): Result<ByteArrayFlow> =
-                Result.success(flowOf(previewImageByteArray()))
-
-            override suspend fun getFile(): ByteArrayFlow? = flowOf(previewImageByteArray())
+    override fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit) {
+        CoroutineScope(Dispatchers.Default).launch {
+            onFile(flowOf(previewImageByteArray()))
         }
     }
 
     override fun cancelDownload() {
-    }
-
-    override fun getCoroutineContextForDownloadingFile(): CoroutineScope {
-        return CoroutineScope(Dispatchers.Default)
     }
 
     override fun openSaveFileDialog() {

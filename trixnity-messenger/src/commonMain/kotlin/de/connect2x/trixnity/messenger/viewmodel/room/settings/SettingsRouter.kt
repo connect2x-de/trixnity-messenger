@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.launchBringToFront
 import de.connect2x.trixnity.messenger.util.launchPop
@@ -15,7 +16,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.Wr
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
+
 
 private val log = KotlinLogging.logger {}
 
@@ -46,7 +49,6 @@ interface SettingsRouter {
         @Serializable
         data object ExportRoom : Config()
     }
-
 }
 
 class SettingsRouterImpl(
@@ -54,6 +56,7 @@ class SettingsRouterImpl(
     private val roomId: RoomId,
     private val onSettingsBack: () -> Unit,
     private val onRoomBack: () -> Unit,
+    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : SettingsRouter {
 
     private val settingsNavigation = StackNavigation<Config>()
@@ -80,6 +83,7 @@ class SettingsRouterImpl(
                     onShowAddMembers = ::showAddMembers,
                     onShowExportRoom = ::showExportRoom,
                     onCloseRoomSettings = onSettingsBack,
+                    onOpenAvatarCutter = onOpenAvatarCutter,
                 )
             )
 

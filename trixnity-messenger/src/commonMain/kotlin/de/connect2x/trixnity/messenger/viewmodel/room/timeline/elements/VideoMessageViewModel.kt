@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
@@ -111,8 +112,9 @@ open class VideoMessageViewModelImpl(
     override val width: Int = videoWidth(content)
     override val height: Int = videoHeight(content)
     override val duration: Int? = content.info?.duration
-    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> =
+        thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun getMaxHeight(): Int = 300
 
@@ -149,8 +151,8 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val uploadProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow(FileTransferProgressElement(0.3f, "145kB / 550kB"))
 
-    override val fileSize: Int? = 200
-    override val fileMimeType: String? = "video/mp4"
+    override val fileSize: Int = 200
+    override val fileMimeType: String = "video/mp4"
 
     override fun openVideo() {
     }
@@ -173,23 +175,16 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val saveFileDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
     override val downloadProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val downloadSuccessful: StateFlow<Boolean> = MutableStateFlow(false)
-
+    override val downloadError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val fileName: String = "video-123456789012345678901234567890.png"
 
-    override fun downloadFile(): DownloadFile {
-        return object : DownloadFile {
-            override suspend fun getFileResult(): Result<ByteArrayFlow> =
-                Result.success(flowOf(previewImageByteArray()))
-
-            override suspend fun getFile(): ByteArrayFlow? = flowOf(previewImageByteArray())
+    override fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit) {
+        CoroutineScope(Dispatchers.Default).launch {
+            onFile(flowOf(previewImageByteArray()))
         }
     }
 
     override fun cancelDownload() {
-    }
-
-    override fun getCoroutineContextForDownloadingFile(): CoroutineScope {
-        return CoroutineScope(Dispatchers.Default)
     }
 
     override fun openSaveFileDialog() {

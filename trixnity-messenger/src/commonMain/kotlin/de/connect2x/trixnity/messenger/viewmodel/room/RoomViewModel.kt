@@ -4,6 +4,7 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 
 
@@ -30,6 +32,7 @@ interface RoomViewModelFactory {
         onRoomBack: () -> Unit,
         onOpenModal: OpenModalUserCallback,
         onOpenMention: OpenMentionCallback,
+        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
@@ -37,7 +40,8 @@ interface RoomViewModelFactory {
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
             onOpenModal = onOpenModal,
-            onOpenMention = onOpenMention
+            onOpenMention = onOpenMention,
+            onOpenAvatarCutter = onOpenAvatarCutter,
         )
     }
 
@@ -61,6 +65,7 @@ open class RoomViewModelImpl(
     onOpenModal: OpenModalUserCallback,
     onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
+    onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
     override val isTwoPane = MutableStateFlow(false)
@@ -73,6 +78,7 @@ open class RoomViewModelImpl(
         roomId = roomId,
         onRoomBack = onRoomBack,
         onSettingsBack = ::onSettingsBack,
+        onOpenAvatarCutter = onOpenAvatarCutter,
     )
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(
