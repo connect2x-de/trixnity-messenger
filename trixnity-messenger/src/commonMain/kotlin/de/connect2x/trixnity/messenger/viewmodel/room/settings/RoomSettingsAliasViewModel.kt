@@ -54,11 +54,13 @@ interface RoomSettingsAliasViewModel {
     val mainAlias: StateFlow<String?>
     val moreAliases: StateFlow<Set<String>>
 
+    val domain: String
+
     val isUpdating: StateFlow<Boolean>
 
     val newAlias: MutableStateFlow<String>
 
-    fun addNewAlias()
+    fun addNewAlias(onlyLocalpart: Boolean = false)
     fun changeMainAlias(alias: RoomAliasId?)
     fun removeAlias(alias: RoomAliasId)
 
@@ -86,6 +88,8 @@ class RoomSettingsAliasViewModelImpl(
         .map { it?.aliases?.map(RoomAliasId::toString)?.toSet().orEmpty() }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptySet())
 
+    override val domain: String = matrixClient.userId.domain
+
     override val canChangeRoomAlias: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<CanonicalAliasEventContent>(selectedRoomId)
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
@@ -97,8 +101,8 @@ class RoomSettingsAliasViewModelImpl(
 
     internal val i18n = get<I18n>()
 
-    override fun addNewAlias() {
-        val currentNewAlias = newAlias.value
+    override fun addNewAlias(onlyLocalpart: Boolean) {
+        val currentNewAlias = if (onlyLocalpart) "#${newAlias.value}:$domain" else newAlias.value
 
         if (_isUpdating.getAndUpdate { true }) {
             log.debug { "Cancelled add Alias $currentNewAlias due to event still updating" }
@@ -402,11 +406,12 @@ class RoomSettingsAliasViewModelImpl(
 class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     override val canChangeRoomAlias: StateFlow<Boolean> = MutableStateFlow(false)
     override val mainAlias: MutableStateFlow<Nothing?> = MutableStateFlow(null)
+    override val domain: String = "example.org"
     override val moreAliases: StateFlow<Set<String>> = MutableStateFlow(emptySet())
     override val isUpdating: StateFlow<Boolean> = MutableStateFlow(false)
     override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
 
-    override fun addNewAlias() {
+    override fun addNewAlias(onlyLocalpart: Boolean) {
     }
 
     override fun changeMainAlias(alias: RoomAliasId?) {
