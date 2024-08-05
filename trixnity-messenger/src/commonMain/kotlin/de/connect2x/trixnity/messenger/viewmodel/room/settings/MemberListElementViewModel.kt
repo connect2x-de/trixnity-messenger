@@ -14,6 +14,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -67,6 +68,7 @@ interface MemberListElementViewModel {
     val kickUserWarningMessage: StateFlow<String>
     val kickUserWarningTitle: StateFlow<String>
     val iHavePowerToKickUser: StateFlow<Boolean>
+    val iHavePowerToBanUser: StateFlow<Boolean>
     val role: StateFlow<Role>
     val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
@@ -81,6 +83,7 @@ interface MemberListElementViewModel {
     fun openKickUserWarning()
     fun closeKickUserWarning()
     fun kickUser(userId: UserId)
+    fun banUser(reason: String?)
     fun blockUser()
     fun unblockUser()
 
@@ -161,6 +164,12 @@ class MemberListElementViewModelImpl(
     override val showPowerLevel = MutableStateFlow(false)
 
     override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val iHavePowerToBanUser: StateFlow<Boolean> = combine(
+        matrixClient.user.canBanUser(selectedRoomId, userId),
+        matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
+    ) { canBanUser, powerLevel -> canBanUser && powerLevel >= MODERATOR.getMinPowerLevel() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
@@ -276,6 +285,39 @@ class MemberListElementViewModelImpl(
             }
         }
     }
+
+    override fun banUser(reason: String?) {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                error.value = i18n.settingsRoomMemberBanUserErrorOffline()
+                return@launch
+            }
+
+            if (iHavePowerToBanUser.value) {
+                matrixClient.api.room.banUser(
+                    roomId = selectedRoomId,
+                    userId = userId,
+                    reason = reason,
+                    asUserId = matrixClient.userId
+                ).fold(
+                    onSuccess = {
+                        closeMemberOptions()
+                    },
+                    onFailure = {
+                        if (it is CancellationException) {
+                            return@launch
+                        }
+
+                        log.error(it) { "cannot ban user $userId from $selectedRoomId: ${it.message}" }
+                        error.value = i18n.settingsRoomMemberBanUserError()
+                    }
+                )
+            } else {
+                error.value = i18n.settingsRoomMemberBanUserErrorNotPossible()
+            }
+        }
+    }
+
 
     override fun blockUser() {
         coroutineScope.launch {
