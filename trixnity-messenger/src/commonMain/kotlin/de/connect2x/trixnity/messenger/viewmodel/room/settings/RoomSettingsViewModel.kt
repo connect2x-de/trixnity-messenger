@@ -222,12 +222,6 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel
-        = PreviewRoomSettingsHistoryVisibilityViewModel()
-    override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel
-        = PreviewRoomSettingsJoinRulesViewModel()
-    override val roomSettingsSecurityViewModel: PreviewRoomSettingsSecurityViewModel
-        = PreviewRoomSettingsSecurityViewModel()
     override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
         = PreviewRoomSettingsAliasViewModel()
     override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel =
