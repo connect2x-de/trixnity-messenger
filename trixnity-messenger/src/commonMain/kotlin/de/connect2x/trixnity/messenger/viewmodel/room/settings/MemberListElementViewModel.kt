@@ -11,15 +11,16 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
@@ -64,12 +65,15 @@ interface MemberListElementViewModel {
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val memberOptionsOpen: StateFlow<Boolean>
     val error: StateFlow<String?>
+    val banReason: StateFlow<String?>
     val kickUserWarningOpen: StateFlow<Boolean>
     val kickUserWarningMessage: StateFlow<String>
     val kickUserWarningTitle: StateFlow<String>
     val iHavePowerToKickUser: StateFlow<Boolean>
     val banUserWarningOpen: StateFlow<Boolean>
     val iHavePowerToBanUser: StateFlow<Boolean>
+    val unbanUserWarningOpen: StateFlow<Boolean>
+    val iHavePowerToUnbanUser: StateFlow<Boolean>
     val role: StateFlow<Role>
     val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
@@ -87,6 +91,9 @@ interface MemberListElementViewModel {
     fun openBanUserWarning()
     fun closeBanUserWarning()
     fun banUser(reason: String?)
+    fun openUnbanUserWarning()
+    fun closeUnbanUserWarning()
+    fun unbanUser(reason: String?)
     fun blockUser()
     fun unblockUser()
 
@@ -137,12 +144,14 @@ interface MemberListElementViewModel {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MemberListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomUser: RoomUser,
     override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId
 ) : MatrixClientViewModelContext by viewModelContext, MemberListElementViewModel {
+    // TODO: Add reason flow
 
     override val memberOptionsOpen = MutableStateFlow(false)
     override val userId = roomUser.userId
@@ -152,6 +161,11 @@ class MemberListElementViewModelImpl(
     override val kickUserWarningTitle = MutableStateFlow("")
 
     override val banUserWarningOpen = MutableStateFlow(false)
+
+    override val unbanUserWarningOpen = MutableStateFlow(false)
+    override val banReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, userId)
+        .mapLatest { it?.event?.content?.reason }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
@@ -175,6 +189,9 @@ class MemberListElementViewModelImpl(
         matrixClient.user.canBanUser(selectedRoomId, userId),
         matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
     ) { canBanUser, powerLevel -> canBanUser && powerLevel >= MODERATOR.getMinPowerLevel() }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
@@ -273,6 +290,14 @@ class MemberListElementViewModelImpl(
         banUserWarningOpen.value = false
     }
 
+    override fun openUnbanUserWarning() {
+        unbanUserWarningOpen.value = true
+    }
+
+    override fun closeUnbanUserWarning() {
+        unbanUserWarningOpen.value = false
+    }
+
     override fun kickUser(userId: UserId) {
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
@@ -331,6 +356,40 @@ class MemberListElementViewModelImpl(
         }
     }
 
+    override fun unbanUser(reason: String?) {
+        val roomUserId = roomUser.userId
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                error.value = i18n.settingsRoomMemberUnbanUserErrorOffline()
+                return@launch
+            }
+
+            if (iHavePowerToUnbanUser.value) {
+                matrixClient.api.room.unbanUser(
+                    roomId = selectedRoomId,
+                    userId = roomUserId,
+                    reason = reason,
+                    asUserId = null
+                ).fold(
+                    onSuccess = {
+                        closeMemberOptions()
+                        error.value = null
+                    },
+                    onFailure = {
+                        if (it is CancellationException) {
+                            return@launch
+                        }
+
+                        log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
+                        error.value = i18n.settingsRoomMemberUnbanUserError()
+                    }
+                )
+            } else {
+                log.error { "cannot unban user $roomUserId from $selectedRoomId: User is not able to unban this member" }
+                error.value = i18n.settingsRoomMemberUnbanUserErrorNotPossible()
+            }
+        }
+    }
 
     override fun blockUser() {
         coroutineScope.launch {
