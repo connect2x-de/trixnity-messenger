@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Editable room avatar
 - Setting to ban members from rooms
+- List of banned users in a room
+- Setting to unban banned users from rooms
 
 ### Changed
 - upgrade trixnity version

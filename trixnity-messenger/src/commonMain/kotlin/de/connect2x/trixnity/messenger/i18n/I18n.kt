@@ -1017,6 +1017,22 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "You cannot ban users when you are offline"
         DE - "Sie können offline keine Nutzer sperren"
     }
+
+    fun settingsRoomMemberUnbanUserError() = translate {
+        EN - "There was an error unbanning the user"
+        DE - "Es gab einen Fehler beim Entsperren des Nutzers"
+    }
+
+    fun settingsRoomMemberUnbanUserErrorNotPossible() = translate {
+        EN - "You are unable to unban the user"
+        DE - "Sie können den Nutzer nicht entsperren"
+    }
+
+    fun settingsRoomMemberUnbanUserErrorOffline() = translate {
+        EN - "You cannot unban users when you are offline"
+        DE - "Sie können offline keine Nutzer entsperren"
+    }
+
 }
 
 internal fun getLang(

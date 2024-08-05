@@ -68,6 +68,7 @@ interface MemberListElementViewModel {
     val kickUserWarningMessage: StateFlow<String>
     val kickUserWarningTitle: StateFlow<String>
     val iHavePowerToKickUser: StateFlow<Boolean>
+    val banUserWarningOpen: StateFlow<Boolean>
     val iHavePowerToBanUser: StateFlow<Boolean>
     val role: StateFlow<Role>
     val powerLevel: StateFlow<Long>
@@ -83,6 +84,8 @@ interface MemberListElementViewModel {
     fun openKickUserWarning()
     fun closeKickUserWarning()
     fun kickUser(userId: UserId)
+    fun openBanUserWarning()
+    fun closeBanUserWarning()
     fun banUser(reason: String?)
     fun blockUser()
     fun unblockUser()
@@ -147,6 +150,8 @@ class MemberListElementViewModelImpl(
     override val kickUserWarningOpen = MutableStateFlow(false)
     override val kickUserWarningMessage = MutableStateFlow("")
     override val kickUserWarningTitle = MutableStateFlow("")
+
+    override val banUserWarningOpen = MutableStateFlow(false)
 
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
@@ -258,6 +263,14 @@ class MemberListElementViewModelImpl(
 
     override fun closeKickUserWarning() {
         kickUserWarningOpen.value = false
+    }
+
+    override fun openBanUserWarning() {
+        banUserWarningOpen.value = true
+    }
+
+    override fun closeBanUserWarning() {
+        banUserWarningOpen.value = false
     }
 
     override fun kickUser(userId: UserId) {
