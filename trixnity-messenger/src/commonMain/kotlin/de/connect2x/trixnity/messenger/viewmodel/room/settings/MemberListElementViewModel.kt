@@ -31,12 +31,14 @@ import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
@@ -66,7 +68,8 @@ interface MemberListElementViewModel {
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val memberOptionsOpen: StateFlow<Boolean>
     val error: StateFlow<String?>
-    val banReason: StateFlow<String?>
+    val membershipReason: StateFlow<String?>
+    val membership: StateFlow<Membership?>
     val kickUserWarningOpen: StateFlow<Boolean>
     val kickUserWarningMessage: StateFlow<String>
     val kickUserWarningTitle: StateFlow<String>
@@ -162,8 +165,11 @@ class MemberListElementViewModelImpl(
     override val banUserWarningOpen = MutableStateFlow(false)
 
     override val unbanUserWarningOpen = MutableStateFlow(false)
-    override val banReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, userId)
+    override val membershipReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, userId)
         .mapLatest { it?.event?.content?.reason }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val membership: StateFlow<Membership?> = matrixClient.user.getById(selectedRoomId, userId)
+        .mapLatest { it?.membership }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val initials = get<Initials>()
@@ -184,10 +190,7 @@ class MemberListElementViewModelImpl(
     override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val iHavePowerToBanUser: StateFlow<Boolean> = combine(
-        matrixClient.user.canBanUser(selectedRoomId, userId),
-        matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
-    ) { canBanUser, powerLevel -> canBanUser && powerLevel >= MODERATOR.getMinPowerLevel() }
+    override val iHavePowerToBanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canUnbanUser(selectedRoomId, userId)
