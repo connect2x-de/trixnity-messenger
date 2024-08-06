@@ -334,8 +334,7 @@ class MemberListElementViewModelImpl(
                 matrixClient.api.room.banUser(
                     roomId = selectedRoomId,
                     userId = userId,
-                    reason = reason,
-                    asUserId = matrixClient.userId
+                    reason = reason
                 ).fold(
                     onSuccess = {
                         closeMemberOptions()
@@ -367,8 +366,7 @@ class MemberListElementViewModelImpl(
                 matrixClient.api.room.unbanUser(
                     roomId = selectedRoomId,
                     userId = roomUserId,
-                    reason = reason,
-                    asUserId = null
+                    reason = reason
                 ).fold(
                     onSuccess = {
                         closeMemberOptions()
