@@ -156,6 +156,8 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     MutableStateFlow(true)
             every { userServiceMock.canBanUser(eq(roomId), any()) } returns
                     MutableStateFlow(true)
+            every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns
+                    MutableStateFlow(true)
             every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns
                     MutableStateFlow(50)
             every {

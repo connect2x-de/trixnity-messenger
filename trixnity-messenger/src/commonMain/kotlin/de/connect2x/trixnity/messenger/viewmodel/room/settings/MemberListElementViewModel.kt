@@ -15,6 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -151,8 +152,6 @@ class MemberListElementViewModelImpl(
     override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId
 ) : MatrixClientViewModelContext by viewModelContext, MemberListElementViewModel {
-    // TODO: Add reason flow
-
     override val memberOptionsOpen = MutableStateFlow(false)
     override val userId = roomUser.userId
 
@@ -189,10 +188,10 @@ class MemberListElementViewModelImpl(
         matrixClient.user.canBanUser(selectedRoomId, userId),
         matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
     ) { canBanUser, powerLevel -> canBanUser && powerLevel >= MODERATOR.getMinPowerLevel() }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, userId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canUnbanUser(selectedRoomId, userId)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
