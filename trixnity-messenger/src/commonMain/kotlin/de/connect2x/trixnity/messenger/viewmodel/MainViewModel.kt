@@ -503,9 +503,9 @@ open class MainViewModelImpl(
     override fun openMention(userId: UserId, messageMention: MessageMention) {
         when (messageMention) {
             is MessageMention.User -> {
-                val (localpart, domain) = messageMention.user
+                val user = messageMention.user.userId
                 // TODO: implement and open user view (profile)
-                log.warn { "UserView to display $localpart:$domain not implemented yet" }
+                log.warn { "UserView to display $user not implemented yet" }
             }
 
             is MessageMention.Room -> {
@@ -515,7 +515,7 @@ open class MainViewModelImpl(
             }
 
             is MessageMention.Event -> {
-                val eventId = messageMention.event
+                val eventId = messageMention.event.eventId
                 // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
