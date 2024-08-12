@@ -204,6 +204,31 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
+    fun setAsMainAlias(username: String, alias: String) = translate {
+        EN - "$username set main alias to $alias"
+        DE - "$username hat $alias als Hauptalias festgelegt"
+    }
+
+    fun removeAsMainAlias(username: String, alias: String) = translate {
+        EN - "$username remove $alias as main alias"
+        DE - "$username hat $alias als Hauptalias entfernt"
+    }
+
+    fun addedAlias(username: String, alias: String) = translate {
+        EN - "$username added alias $alias"
+        DE - "$username hat den Alias $alias hinzugefügt"
+    }
+
+    fun removedAlias(username: String, alias: String) = translate {
+        EN - "$username removed alias $alias"
+        DE - "$username hat den Alias $alias entfernt"
+    }
+
+    fun aliasesChanged(username: String) = translate {
+        EN - "$username changed the aliases"
+        DE - "$username hat die Aliase verändert"
+    }
+
     fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) =
         translate {
             EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"

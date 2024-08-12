@@ -74,6 +74,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberSt
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAliasChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomEncryptionEnabledViewModelFactory
@@ -336,6 +337,7 @@ private fun timelineElementsViewModels() = module {
     single<RoomEncryptionEnabledViewModelFactory> { RoomEncryptionEnabledViewModelFactory }
     single<RoomNameChangeStatusViewModelFactory> { RoomNameChangeStatusViewModelFactory }
     single<RoomTopicChangeStatusViewModelFactory> { RoomTopicChangeStatusViewModelFactory }
+    single<RoomAliasChangeStatusViewModelFactory> { RoomAliasChangeStatusViewModelFactory }
     single<HistoryVisibilityChangeStatusViewModelFactory> { HistoryVisibilityChangeStatusViewModelFactory }
     single<TextMessageViewModelFactory> { TextMessageViewModelFactory }
     single<EmoteMessageViewModelFactory> { EmoteMessageViewModelFactory }
