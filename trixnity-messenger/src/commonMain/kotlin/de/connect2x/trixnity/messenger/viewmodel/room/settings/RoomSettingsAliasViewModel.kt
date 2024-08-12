@@ -133,7 +133,7 @@ class RoomSettingsAliasViewModelImpl(
                     onSuccess = {
                         if (it.roomId == selectedRoomId) {
                             log.warn { "Alias $alias already exists in this room" }
-                            newAliasError.value = null
+                            newAliasError.value = i18n.settingsRoomAliasAddExists()
                             return@launch
                         } else {
                             log.warn { "Alias $alias already exists in another room" }
