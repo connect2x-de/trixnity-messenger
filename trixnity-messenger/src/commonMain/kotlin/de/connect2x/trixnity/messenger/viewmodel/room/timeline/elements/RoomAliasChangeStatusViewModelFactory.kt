@@ -6,13 +6,11 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 
 interface RoomAliasChangeStatusViewModelFactory {
     fun create(
