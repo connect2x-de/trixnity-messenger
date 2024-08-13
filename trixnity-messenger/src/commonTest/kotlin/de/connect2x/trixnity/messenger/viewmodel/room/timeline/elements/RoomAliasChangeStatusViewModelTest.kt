@@ -57,22 +57,6 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
             resetMocks(matrixClientMock)
         }
 
-        should("display who changed the room's topic (with reference to the old topic)") {
-            val cut = roomAliasChangeStatusViewModel(
-                previousEventContent = CanonicalAliasEventContent(),
-                eventContent = CanonicalAliasEventContent(),
-                coroutineContext = coroutineContext
-            )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
-
-            eventually(2.seconds) {
-                // stuff
-            }
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
         should("display main alias switch") {
             val cut = roomAliasChangeStatusViewModel(
                 previousEventContent = CanonicalAliasEventContent(
@@ -82,6 +66,50 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 eventContent = CanonicalAliasEventContent(
                     alias = alias1,
                     aliases = setOf(alias2, alias3)
+                ),
+                coroutineContext = coroutineContext
+            )
+            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+
+            eventually(2.seconds) {
+                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
+            }
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("display main alias creation based on alt_alias") {
+            val cut = roomAliasChangeStatusViewModel(
+                previousEventContent = CanonicalAliasEventContent(
+                    alias = null,
+                    aliases = setOf(alias1, alias2)
+                ),
+                eventContent = CanonicalAliasEventContent(
+                    alias = alias1,
+                    aliases = setOf(alias2)
+                ),
+                coroutineContext = coroutineContext
+            )
+            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+
+            eventually(2.seconds) {
+                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
+            }
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("display main alias creation out of nowhere") {
+            val cut = roomAliasChangeStatusViewModel(
+                previousEventContent = CanonicalAliasEventContent(
+                    alias = null,
+                    aliases = setOf(alias2)
+                ),
+                eventContent = CanonicalAliasEventContent(
+                    alias = alias1,
+                    aliases = setOf(alias2)
                 ),
                 coroutineContext = coroutineContext
             )
@@ -132,7 +160,7 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removeAsMainAlias(user.name, alias2.full), i18n.removedAlias(user.name, alias2.full))
+                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias2.full))
             }
 
             subscriberJob.cancel()
@@ -176,7 +204,7 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.addedAlias(user.name, alias5.full), i18n.addedAlias(user.name, alias4.full))
+                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.addedAlias(user.name, alias4.full), i18n.addedAlias(user.name, alias5.full))
             }
 
             subscriberJob.cancel()
@@ -221,7 +249,7 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias5.full), i18n.removedAlias(user.name, alias4.full))
+                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias4.full), i18n.removedAlias(user.name, alias5.full))
             }
 
             subscriberJob.cancel()

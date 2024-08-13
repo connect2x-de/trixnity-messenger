@@ -78,14 +78,14 @@ open class RoomAliasChangeStatusViewModelImpl(
             val mainAliasChange =
                 if (content.alias != null && content.alias != previousContent.alias) {
                     i18n.setAsMainAlias(userInfo.name, content.alias.toString())
-                } else if (content.alias == null && previousContent.alias != null) {
+                } else if (content.alias == null && currentAliases.contains(previousContent.alias)) {
                     i18n.removeAsMainAlias(userInfo.name, previousContent.alias.toString())
                 } else null
 
             val allCurrentAliases = currentAliases + content.alias
             val allPreviousAliases = previousAliases + previousContent.alias
 
-            val newAliases = (allCurrentAliases - allPreviousAliases).map {
+            val newAliases = (currentAliases - allPreviousAliases).map {
                 it?.let { alias ->
                     i18n.addedAlias(userInfo.name, alias.full)
                 }
@@ -97,7 +97,7 @@ open class RoomAliasChangeStatusViewModelImpl(
                 }
             }
 
-            (newAliases + removedAliases + mainAliasChange).filterNotNull().reversed()
+            (newAliases + removedAliases + mainAliasChange).filterNotNull()
                 .ifEmpty {
                     log.warn { "Couldn't identify changes in event" }
                     listOf(i18n.aliasesChanged(userInfo.name))
