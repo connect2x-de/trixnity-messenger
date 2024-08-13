@@ -17,6 +17,7 @@ import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
@@ -104,6 +105,10 @@ open class RoomNameImpl(
         name: RoomDisplayName?,
         matrixClient: MatrixClient,
     ): Flow<String> {
+        val fallbackName = matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map {
+            it?.content?.alias?.full ?: roomId.full
+        }
+
         if (name != null) {
             val (explicitName, roomIsEmpty, otherUsersCount) = name
             val heroes = name.heroes
@@ -111,7 +116,7 @@ open class RoomNameImpl(
             return when {
                 !explicitName.isNullOrEmpty() -> flowOf(explicitName)
                 heroes.isEmpty() && roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
-                heroes.isEmpty() -> flowOf(roomId.full)
+                heroes.isEmpty() -> fallbackName
                 else -> combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
                     val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
                         when {
@@ -141,7 +146,8 @@ open class RoomNameImpl(
                 }
             }
         }
-        return flowOf(roomId.full)
+
+        return fallbackName
     }
 
     protected open fun nameFromHeroes(
