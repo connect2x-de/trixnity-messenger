@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+
+private val log = KotlinLogging.logger("RoomAliasChangeStatusViewModel")
 
 interface RoomAliasChangeStatusViewModelFactory {
     fun create(
@@ -65,29 +68,39 @@ open class RoomAliasChangeStatusViewModelImpl(
                 return@map emptyList()
             }
 
+            if (previousContent == content) {
+                return@map emptyList()
+            }
+
             val previousAliases = previousContent.aliases ?: emptySet()
             val currentAliases = content.aliases ?: emptySet()
 
             val mainAliasChange =
-                if (content.alias != null && previousAliases.contains(content.alias)) {
+                if (content.alias != null && content.alias != previousContent.alias) {
                     i18n.setAsMainAlias(userInfo.name, content.alias.toString())
-                } else if (previousContent.alias != null && content.alias != previousContent.alias) {
+                } else if (content.alias == null && previousContent.alias != null) {
                     i18n.removeAsMainAlias(userInfo.name, previousContent.alias.toString())
                 } else null
 
-            val newAliases = (currentAliases - previousAliases - previousContent.alias).map {
+            val allCurrentAliases = currentAliases + content.alias
+            val allPreviousAliases = previousAliases + previousContent.alias
+
+            val newAliases = (allCurrentAliases - allPreviousAliases).map {
                 it?.let { alias ->
                     i18n.addedAlias(userInfo.name, alias.full)
                 }
             }
 
-            val removedAliases = (previousAliases - previousAliases - content.alias).map {
+            val removedAliases = (allPreviousAliases - allCurrentAliases).map {
                 it?.let { alias ->
                     i18n.removedAlias(userInfo.name, alias.full)
                 }
             }
 
-            (newAliases + removedAliases + mainAliasChange).filterNotNull()
-                .ifEmpty { listOf(i18n.aliasesChanged(userInfo.name)) }
+            (newAliases + removedAliases + mainAliasChange).filterNotNull().reversed()
+                .ifEmpty {
+                    log.warn { "Couldn't identify changes in event" }
+                    listOf(i18n.aliasesChanged(userInfo.name))
+                }
         }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
 }
