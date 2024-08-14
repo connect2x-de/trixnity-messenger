@@ -118,7 +118,7 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
 
     override val enabledForThisDevice: StateFlow<Boolean> = settings[userId]
         .map { it?.base?.notificationsEnabled == true }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override fun toggleEnabledForThisDevice() {
         coroutineScope.launch {
