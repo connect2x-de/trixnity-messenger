@@ -978,6 +978,16 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: Zeitüberschreitung"
     }
 
+    fun yourNewProfileAvatar() = translate {
+        EN - "Your new profile avatar"
+        DE - "Ihr neues Profilbild"
+    }
+
+    fun yourNewRoomAvatar() = translate {
+        EN - "Your new room image"
+        DE - "Ihr neues Raumbild"
+    }
+
     fun roomEncryptionEnableError() = translate {
         EN - "There was an error enabling the end-to-end encryption"
         DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung"
@@ -992,7 +1002,6 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "$user enabled end-to-end encryption"
         DE - "$user hat die Ende-zu-Ende Verschlüsselung aktiviert"
     }
-
 }
 
 internal fun getLang(

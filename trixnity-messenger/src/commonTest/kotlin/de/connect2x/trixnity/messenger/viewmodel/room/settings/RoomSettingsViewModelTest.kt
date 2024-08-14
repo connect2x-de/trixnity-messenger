@@ -51,6 +51,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
+
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class RoomSettingsViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 4_000
@@ -294,7 +295,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             selectedRoomId = roomId,
             onBack = onBackMock,
             onCloseRoomSettings = mock(),
-
+            onOpenAvatarCutter = { _, _, _ -> },
             onShowAddMembers = mock(),
             onShowExportRoom = mock(),
         )

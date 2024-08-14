@@ -9,17 +9,17 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.beOfType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,6 +39,7 @@ import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
@@ -48,7 +49,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FileBasedMessageViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
+    override fun timeout(): Long = 5_000
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -67,9 +68,10 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                     }
                 )
             }.koin
+            every { downloadManagerMock.scope } returns CoroutineScope(Dispatchers.Default)
         }
 
-        should("download a file and return the result if successful") {
+        should("download a file and return the result on success") {
             val file = "download".encodeToByteArray()
             every {
                 downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
@@ -78,10 +80,21 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             val cut = fileBasedMessageViewModel()
             cut.openSaveFileDialog()
 
-            val downloadFile = cut.downloadFile()
+            val downloadCalls = MutableStateFlow(0)
+            var downloadResult: ByteArrayFlow? = null
+            cut.downloadFile {
+                downloadResult = it
+                downloadCalls.value++
+            }
 
-            downloadFile.getFileResult().getOrNull()?.toByteArray() shouldBe file
-            cut.saveFileDialogOpen.value shouldBe false
+            eventually(3.seconds) {
+                downloadResult?.toByteArray() shouldBe file
+                downloadCalls.value shouldBe 1
+                cut.saveFileDialogOpen.value shouldBe false
+                cut.downloadError.value shouldBe null
+            }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("download a file and set Result to 'failure' if not successful") {
@@ -89,14 +102,24 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                 downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
             } returns async { Result.failure(RuntimeException("Oh no!")) }
 
-
             val cut = fileBasedMessageViewModel()
             cut.openSaveFileDialog()
 
-            val downloadFile = cut.downloadFile()
+            val downloadCalls = MutableStateFlow(0)
+            var downloadResult: ByteArrayFlow? = null
+            cut.downloadFile {
+                downloadResult = it
+                downloadCalls.value++
+            }
 
-            downloadFile.getFileResult().exceptionOrNull() should beOfType<RuntimeException>()
-            cut.saveFileDialogOpen.value shouldBe true // to show error message
+            eventually(3.seconds) {
+                downloadResult shouldBe null
+                downloadCalls.value shouldBe 0
+                cut.downloadError.value shouldNotBe null
+                cut.saveFileDialogOpen.value shouldBe true // to show error message
+            }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("download a file and return 'null' if the download is cancelled") {
@@ -112,12 +135,17 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             val cut = fileBasedMessageViewModel()
             cut.openSaveFileDialog()
 
-            val downloadFile = cut.downloadFile()
+            val downloadCalls = MutableStateFlow(0)
+            var downloadResult: ByteArrayFlow? = null
+            cut.downloadFile {
+                downloadResult = it
+                downloadCalls.value++
+            }
 
             val job = scope.launch(Dispatchers.Default) {
                 delay(100.milliseconds)
-                val result = downloadFile.getFileResult()
-                result.getOrNull() shouldBe null
+                downloadResult shouldBe null
+                downloadCalls.value shouldBe 0
             }
 
             cut.saveFileDialogOpen.value shouldNotBe false // downloading has not yet begun
@@ -129,6 +157,8 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
                 job.isCancelled shouldBe false // assert in the job is OK
                 cut.saveFileDialogOpen.value shouldBe false
             }
+
+            cancelNeverEndingCoroutines()
         }
     }
 
