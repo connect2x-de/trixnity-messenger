@@ -49,7 +49,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
                 delay(15000)
             }
         }
-    }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
 
     override val notificationPermissionsNecessary: StateFlow<Boolean> =
