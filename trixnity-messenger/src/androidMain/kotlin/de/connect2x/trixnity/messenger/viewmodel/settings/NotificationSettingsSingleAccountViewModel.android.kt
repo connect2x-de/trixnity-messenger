@@ -10,12 +10,14 @@ import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -38,18 +40,17 @@ class NotificationSettingsSingleAccountViewModelImpl(
     ),
     NotificationSettingsSingleAccountViewModel {
     val context = get<Context>()
-    private val _notificationPermissionGranted = MutableStateFlow(false)
 
-    init {
-        coroutineScope.launch {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                while (isActive) {
-                    _notificationPermissionGranted.value =
-                        context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                }
+
+    private val _notificationPermissionGranted = flow {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            while (coroutineScope.isActive) {
+                emit(context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
+                delay(15000)
             }
         }
-    }
+    }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
 
     override val notificationPermissionsNecessary: StateFlow<Boolean> =
         enabledForThisDevice.combine(_notificationPermissionGranted) { settingEnabled, permissionGranted -> settingEnabled && !permissionGranted }
