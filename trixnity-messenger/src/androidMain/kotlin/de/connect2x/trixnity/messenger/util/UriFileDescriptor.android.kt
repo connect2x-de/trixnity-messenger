@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -78,9 +79,13 @@ class UriFileDescriptor(
             rotationMatrix.postRotate(degrees.toFloat())
             val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, rotationMatrix, true)
             val byteOutput = ByteArrayOutputStream()
-            val mimeType = when (mimeType?.contentSubtype) {
+            val mimeType = when (mimeType?.contentSubtype?.uppercase()) {
                 "PNG" -> Bitmap.CompressFormat.PNG
                 "JPEG" -> Bitmap.CompressFormat.JPEG
+                "WEBP" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) Bitmap.CompressFormat.WEBP_LOSSLESS
+                    else Bitmap.CompressFormat.JPEG
+                }
                 else -> Bitmap.CompressFormat.JPEG
             }
             rotatedBitmap.compress(mimeType, 100, byteOutput)
