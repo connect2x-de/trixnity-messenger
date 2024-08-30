@@ -72,7 +72,7 @@ class UriFileDescriptor(
     private fun rotateImage(inputStream: InputStream, degrees: Int): InputStream {
         //TODO Make rotation dependent on file size because of in Memory operation
         val bitmap = BitmapFactory.decodeStream(inputStream)
-        log.debug { "Rotating file of class" }
+        log.debug { "Rotating $fileName by $degrees degrees" }
         if (bitmap != null) {
             val rotationMatrix = Matrix()
             rotationMatrix.postRotate(degrees.toFloat())
