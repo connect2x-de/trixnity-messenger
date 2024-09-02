@@ -10,6 +10,8 @@ data class MatrixMultiMessengerConfiguration(
     override var urlProtocol: String = "trixnity",
     override var urlHost: String = "localhost",
     override var sendLogsEmailAddress: String? = null,
+    override var privacyInfoUrl: String = "",
+    override var imprintUrl: String = "",
     /**
      * Consider using [messengerConfiguration], as it can be called multiple times.
      */

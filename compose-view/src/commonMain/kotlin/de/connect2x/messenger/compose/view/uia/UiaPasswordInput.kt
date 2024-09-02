@@ -1,0 +1,93 @@
+package de.connect2x.messenger.compose.view.uia
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.MatrixUsername
+import de.connect2x.messenger.compose.view.common.PasswordField
+import de.connect2x.messenger.compose.view.common.TabInTextField
+import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModel
+
+interface UiaPasswordInputView {
+    @Composable
+    fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel)
+}
+
+@Composable
+fun UiaPasswordInput(uiaStepPasswordViewModel: UiaStepPasswordViewModel) {
+    DI.current.get<UiaPasswordInputView>().create(uiaStepPasswordViewModel)
+}
+
+class UiaPasswordInputViewImpl : UiaPasswordInputView {
+    @Composable
+    override fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel) {
+        val i18n = DI.current.get<I18nView>()
+        val isSubmitting = uiaStepPasswordViewModel.isSubmitting.collectAsState().value
+        val error = uiaStepPasswordViewModel.error.collectAsState().value
+        val tabToNextAndEnterSend = TabInTextField(true, uiaStepPasswordViewModel::submit)
+        UiaModalBox {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                UiaHeading(i18n.uiaPasswordTitle())
+                if (error != null) {
+                    ErrorView(error)
+                }
+                if (isSubmitting) LoadingSpinner()
+                Spacer(Modifier.height(20.dp))
+                MatrixUsername(
+                    username = uiaStepPasswordViewModel.username.collectAsStateForTextField(),
+                    setUsername = { uiaStepPasswordViewModel.username.value = it },
+                    label = i18n.addMatrixClientMatrixUsername(),
+                    modifier = tabToNextAndEnterSend,
+                )
+                Spacer(Modifier.height(20.dp))
+                PasswordField(
+                    password = uiaStepPasswordViewModel.password.collectAsStateForTextField(),
+                    onPasswordChange = { uiaStepPasswordViewModel.password.value = it },
+                    modifier = tabToNextAndEnterSend
+                ) { Text(i18n.addMatrixClientPassword()) }
+                Spacer(Modifier.height(40.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    OutlinedButton(
+                        onClick = uiaStepPasswordViewModel::cancel,
+                        modifier = Modifier.buttonPointerModifier(),
+                    ) {
+                        Text(i18n.commonCancel().capitalize(Locale.current))
+                    }
+                    Button(
+                        enabled = !isSubmitting,
+                        onClick = uiaStepPasswordViewModel::submit,
+                        modifier = Modifier.buttonPointerModifier(),
+                    ) {
+                        Text(i18n.uiaPasswordButtonSubmit().capitalize(Locale.current))
+                    }
+                }
+            }
+        }
+    }
+}

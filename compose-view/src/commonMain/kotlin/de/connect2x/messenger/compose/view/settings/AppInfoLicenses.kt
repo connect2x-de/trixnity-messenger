@@ -1,0 +1,61 @@
+package de.connect2x.messenger.compose.view.settings
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.GetLicences
+import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.MessengerModal
+import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
+import de.connect2x.messenger.compose.view.common.NextButton
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
+
+interface AppInfoLicensesView {
+    @Composable
+    fun create(appInfoViewModel: AppInfoViewModel)
+}
+
+@Composable
+fun AppInfoLicenses(appInfoViewModel: AppInfoViewModel) {
+    DI.current.get<AppInfoLicensesView>().create(appInfoViewModel)
+}
+
+class AppInfoLicensesViewImpl : AppInfoLicensesView {
+    @Composable
+    override fun create(appInfoViewModel: AppInfoViewModel) {
+        val i18n = DI.current.get<I18nView>()
+        val lazyListState = rememberLazyListState()
+        MessengerModal(onDismiss = { appInfoViewModel.showLicenses.value = false }, i18n.appInfoLicenses()) {
+            val getLicences = GetLicences.current
+            val licences = remember { mutableStateOf<String?>(null) }
+            LaunchedEffect(Unit) {
+                licences.value = getLicences()
+            }
+            val currentLicences = licences.value
+            if (currentLicences.isNullOrEmpty()) CircularProgressIndicator()
+            else {
+                Box(Modifier.fillMaxSize()) {
+                    LibrariesContainer(currentLicences, lazyListState = lazyListState)
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                        lazyListState = lazyListState,
+                        false,
+                    )
+                }
+            }
+            MessengerModalButtonRow({
+                NextButton(text = i18n.commonBack()) { appInfoViewModel.showLicenses.value = false }
+            })
+        }
+    }
+}

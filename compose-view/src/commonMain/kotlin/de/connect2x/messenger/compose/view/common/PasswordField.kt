@@ -1,0 +1,60 @@
+package de.connect2x.messenger.compose.view.common
+
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.i18n.I18nView
+
+
+@Composable
+fun PasswordField(
+    password: State<String>,
+    onPasswordChange: (String) -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    label: @Composable () -> Unit,
+) {
+    val passwordVisible = remember { mutableStateOf(false) }
+    val i18n = DI.current.get<I18nView>()
+
+    OutlinedTextField(
+        value = password.value,
+        onValueChange = onPasswordChange,
+        label = label,
+        enabled = enabled,
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().then(modifier),
+        visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(
+            autoCorrect = false,
+            capitalization = KeyboardCapitalization.None,
+            keyboardType = KeyboardType.Password,
+        ),
+        trailingIcon = {
+            IconButton(
+                onClick = { passwordVisible.value = !passwordVisible.value },
+                modifier = Modifier.buttonPointerModifier().focusable(false),
+            ) {
+                if (passwordVisible.value) Icon(Icons.Default.VisibilityOff, i18n.passwordVisibilityOff())
+                else Icon(Icons.Default.Visibility, i18n.passwordVisibility())
+            }
+        }
+    )
+}
