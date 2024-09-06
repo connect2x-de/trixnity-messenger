@@ -35,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +53,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
+import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
 import de.connect2x.messenger.compose.view.DI
@@ -63,7 +62,6 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ClickableText
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.FileName
-import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.files.SaveDialog
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -78,24 +76,11 @@ import de.connect2x.messenger.compose.view.room.timeline.TextReply
 import de.connect2x.messenger.compose.view.room.timeline.UnknownReply
 import de.connect2x.messenger.compose.view.room.timeline.VideoReply
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefault
+import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMessage
+import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
+import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 
@@ -140,7 +125,6 @@ private fun MessageText(
 }
 
 
-@OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun MessageTextContent(
     textBasedViewModel: TextBasedViewModel,
@@ -198,45 +182,10 @@ private fun MessageTextContent(
         val mentions = (textBasedViewModel.mentionsInFormattedBody ?: textBasedViewModel.mentionsInMessage)
             .map {
                 it.key to it.value.collectAsState().value
-            }
+            }.sortedByDescending { it.first.first }
 
-        val text = (textBasedViewModel.formattedBody ?: textBasedViewModel.message)
-            .let { text ->
-                mentions
-                    .toList()
-                    .foldIndexed(text) { index, currentText, (range, mention) ->
-                        val anchorContent = when (mention) {
-                            is MessageMention.Event -> i18n.eventMentionPile(mention.room.name)
-                            is MessageMention.Room -> mention.room.name
-                            is MessageMention.User -> mention.user.name
-
-
-                            null -> null
-                        }
-
-                        if (anchorContent == null) {
-                            currentText
-                        } else {
-                            currentText.replaceRange(
-                                range,
-                                """<a href="messenger-data:$index">$anchorContent</a>"""
-                            )
-                        }
-                    }
-            }
-            .let { text ->
-                if (textBasedViewModel.formattedBody == null) {
-                    text.replace(urlRegex) { "<a href=\"${it.value}\">${it.value}</a>" }
-                        .replace("\n", "<br>")
-                } else {
-                    text.substringAfter("</mx-reply>").removePrefix("\n")
-                }
-            }
-            .let { text ->
-                if (textBasedViewModel is EmoteMessageViewModel) {
-                    "${textBasedViewModel.sender.collectAsState().value.name} $text"
-                } else text
-            }
+        val message = textBasedViewModel.formattedBody ?: textBasedViewModel.message
+        val text = formatMessage(message, mentions, textBasedViewModel)
 
         val richTextState = rememberRichTextState()
         richTextState.setHtml(text)
@@ -245,44 +194,36 @@ private fun MessageTextContent(
             else MaterialTheme.messengerColors.link
         ) // Inherit link color from Messenger colors
 
-        val uriHandler = LocalUriHandler.current
+        if (mentions.any { it.second != null }) {
+            val baseUriHandler = LocalUriHandler.current
+            val uriHandler by remember {
+                mentionsUriHandler(baseUriHandler, textBasedViewModel, mentions.map { it.second })
+            }
 
-        val mentionUriHandler by remember {
-            mutableStateOf(object : UriHandler {
-                override fun openUri(uri: String) {
-                    if (!uri.startsWith("messenger-data:")) {
-                        uriHandler.openUri(uri)
-                        return
-                    }
-
-                    val key = uri.removePrefix("messenger-data:").toInt()
-                    val mention = mentions[key].second
-                    if (mention == null) {
-                        log.error { "No data for mention $key not found" }
-                        return
-                    }
-
-                    // todo: implement and open user view (profile)
-                    // todo: implement and open event view
-                    textBasedViewModel.openMention(mention)
-                }
-            })
+            MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
+        } else {
+            MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
         }
+    }
+}
 
-        CompositionLocalProvider(LocalUriHandler provides mentionUriHandler) {
-            BasicRichText(
-                state = richTextState,
-                modifier = Modifier.pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = onLongPress
-                    )
-                },
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = if (textBasedViewModel.isByMe) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.onSecondary
+@Composable
+fun MessageRichText(uriHandler: UriHandler, state: RichTextState, isByMe: Boolean, onLongPress: (Offset) -> Unit) {
+    CompositionLocalProvider(
+        LocalUriHandler provides uriHandler
+    ) {
+        BasicRichText(
+            state = state,
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = onLongPress
                 )
+            },
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = if (isByMe) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSecondary
             )
-        }
+        )
     }
 }
 
@@ -767,7 +708,7 @@ fun MessageLocationContent(viewmodel: LocationMessageViewModel, onLongPress: (Of
     )
 }
 
-private val urlRegex =
+internal val urlRegex =
     Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)")
 
 // just to try it out; on desktop relies on fix for https://github.com/JetBrains/compose-jb/issues/1450
