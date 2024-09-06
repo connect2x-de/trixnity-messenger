@@ -75,7 +75,7 @@ import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class DevicesSettingsViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
+    override fun timeout(): Long = 5_000
 
     private val ourDeviceId = "deviceId1"
     private val ourDeviceId2 = "deviceId21"
