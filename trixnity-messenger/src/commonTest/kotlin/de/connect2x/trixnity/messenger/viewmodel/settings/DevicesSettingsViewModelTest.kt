@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -141,6 +142,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
     val olmEncryptionServiceMock = mock<OlmEncryptionService>()
 
     val keyTrustServiceMock = mock<KeyTrustService>()
+
+    val clock = mock<Clock>()
 
     private lateinit var coroutineScope: CoroutineScope
     private lateinit var authorizeUia: AuthorizeUiaMock
@@ -525,6 +528,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             config = MatrixClientConfiguration(),
             storeScope = scope,
         ),
+        clock = clock,
     )
 
     private suspend fun devicesSettingsViewModel(coroutineContext: CoroutineContext): DevicesSettingsViewModelImpl {
