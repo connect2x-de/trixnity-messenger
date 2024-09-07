@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
@@ -26,6 +27,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
@@ -37,8 +39,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -241,24 +248,24 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                     get(1).userId shouldBe UserId("test2", "server")
 
                     get(0).isLoading.first { it.not() }
-                    get(0).devicesInAccount.first { it.thisDevice.deviceId == ourDeviceId }
-                    assertSoftly(get(0).devicesInAccount.value.thisDevice) {
+                    get(0).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId }
+                    assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull().thisDevice) {
                         deviceId shouldBe ourDeviceId
                         displayName.value shouldBe "device1"
                         lastSeenAt shouldBe "last seen: 12/10/2021"
                         isVerified.value shouldBe true
                     }
-                    get(0).devicesInAccount.value.otherDevices shouldHaveSize 1
-                    assertSoftly(get(0).devicesInAccount.value.otherDevices[0]) {
+                    get(0).devicesInAccount.value.shouldNotBeNull().otherDevices shouldHaveSize 1
+                    assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull().otherDevices[0]) {
                         deviceId shouldBe "deviceId2"
                         displayName.value shouldBe "device2"
                         lastSeenAt shouldBe "last seen: 12/10/2021"
                         isVerified.value shouldBe false
                     }
 
-                    get(1).devicesInAccount.first { it.thisDevice.deviceId == ourDeviceId2 }
-                    get(1).devicesInAccount.value.thisDevice.deviceId shouldBe ourDeviceId2
-                    get(1).devicesInAccount.value.otherDevices shouldHaveSize 1
+                    get(1).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId2 }
+                    get(1).devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId shouldBe ourDeviceId2
+                    get(1).devicesInAccount.value.shouldNotBeNull().otherDevices shouldHaveSize 1
                 }
             }
             cancelNeverEndingCoroutines()
@@ -285,8 +292,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             eventually(2.seconds) {
                 assertSoftly(accountsWithDevices.value) {
-                    get(0).devicesInAccount.first { it.thisDevice.deviceId == ourDeviceId }
-                    assertSoftly(get(0).devicesInAccount.value) {
+                    get(0).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId }
+                    assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull()) {
                         thisDevice.isVerified.value shouldBe false
                         otherDevices[0].isVerified.value shouldBe true
                     }
@@ -323,8 +330,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             eventually(2.seconds) {
                 accountsWithDevices.value shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.otherDevices shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.otherDevices[0].displayName.value shouldBe "device2"
+                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices shouldNot beEmpty()
+                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices[0].displayName.value shouldBe "device2"
             }
 
             getDevicesMocker returns Result.success(
@@ -337,8 +344,8 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             deviceKeysList.value += DeviceKeys(ourUserId, ourDeviceId, setOf(), Keys(setOf()))
             eventually(2.seconds) {
                 accountsWithDevices.value shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.otherDevices shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.otherDevices[0].displayName.value shouldBe "device2___new"
+                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices shouldNot beEmpty()
+                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices[0].displayName.value shouldBe "device2___new"
             }
 
             cancelNeverEndingCoroutines()
@@ -350,10 +357,12 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             val cut = devicesSettingsViewModel(coroutineContext)
             val accountsWithDevices = cut.accountsWithDevices
 
-            accountsWithDevices.first {
-                it.isNotEmpty()
-                        && it[0].loadingError.value != null
-            }
+            accountsWithDevices
+                .filter { it.isNotEmpty() }
+                .flatMapLatest { combine(it.map { it.loadingError }) { it } }
+                .first {
+                    it[0] != null
+                }
 
             cancelNeverEndingCoroutines()
         }
@@ -382,13 +391,20 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             val cut = devicesSettingsViewModel(coroutineContext)
             // wait until initial computation is done
             val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+            }
 
             cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
 
-            accountsWithDevices.first {
-                it.isNotEmpty() &&
-                        it[0].devicesInAccount.value.thisDevice.displayName.value == "device1 updated"
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first {
+                        it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
+                    }
             }
 
             cancelNeverEndingCoroutines()
@@ -403,7 +419,11 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             val cut = devicesSettingsViewModel(coroutineContext)
             val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+            }
 
             cut.error.value shouldBe null
             cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
@@ -429,7 +449,11 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             val cut = devicesSettingsViewModel(coroutineContext)
             val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+            }
 
             cut.verify(UserId("test", "server"), "deviceId2")
 
@@ -459,7 +483,11 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             val cut = devicesSettingsViewModel(coroutineContext)
             val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+            }
             cut.error.value shouldBe null
             cut.verify(UserId("test", "server"), "deviceId2")
 
@@ -481,7 +509,11 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             val cut = devicesSettingsViewModel(coroutineContext)
             val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+            }
 
             cut.remove(UserId("test", "server"), "deviceId2")
             val authorizeUiaParams = authorizeUia.onRequestFlowState.firstNotNullWithClue()
@@ -501,7 +533,11 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
             val cut = devicesSettingsViewModel(coroutineContext)
             val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.isNotEmpty() && it[0].devicesInAccount.value.thisDevice.deviceId == ourDeviceId }
+            eventually(1.seconds) {
+                accountsWithDevices
+                    .filter { it.isNotEmpty() }
+                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+            }
 
             cut.error.value shouldBe null
             cut.remove(UserId("test", "server"), "deviceId2")
@@ -564,6 +600,16 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext
             ),
             mock(),
-        )
+        ).also {
+            it.subscribeList()
+        }
+    }
+
+    private fun DevicesSettingsViewModelImpl.subscribeList() {
+        coroutineScope.launch {
+            accountsWithDevices.scopedCollectLatest {
+                it.forEach { launch { it.devicesInAccount.collect {} } }
+            }
+        }
     }
 }

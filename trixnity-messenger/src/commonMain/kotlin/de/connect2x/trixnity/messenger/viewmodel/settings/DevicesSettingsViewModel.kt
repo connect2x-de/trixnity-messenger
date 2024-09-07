@@ -8,19 +8,20 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.verification
@@ -38,7 +39,7 @@ data class DevicesInAccount(
 
 data class AccountWithDevices(
     val userId: UserId,
-    val devicesInAccount: StateFlow<DevicesInAccount>,
+    val devicesInAccount: StateFlow<DevicesInAccount?>,
     val isLoading: StateFlow<Boolean>,
     val loadingError: StateFlow<String?>,
 )
@@ -71,8 +72,87 @@ open class DevicesSettingsViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseDevicesSettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, DevicesSettingsViewModel {
-    private val _accountWithDevices: MutableStateFlow<List<AccountWithDevices>> = MutableStateFlow(emptyList())
-    override val accountsWithDevices: StateFlow<List<AccountWithDevices>> = _accountWithDevices
+    private val triggerDeviceListUpdate = MutableSharedFlow<Unit>(replay = 1)
+    override val accountsWithDevices: StateFlow<List<AccountWithDevices>> =
+        combine(matrixClients, triggerDeviceListUpdate) { m, _ -> m }
+            .scopedMapLatest { matrixClients ->
+                matrixClients.map { (userId, matrixClient) ->
+                    log.trace { "devices for account '$userId' will be loaded" }
+                    val isLoading = MutableStateFlow(false)
+                    val error = MutableStateFlow<String?>(null)
+                    AccountWithDevices(
+                        isLoading = isLoading,
+                        loadingError = error,
+                        userId = userId,
+                        devicesInAccount = run {
+                            log.trace { "get device keys for user ${matrixClient.userId}" }
+                            matrixClient.key.getDeviceKeys(matrixClient.userId).map {
+                                error.value = null
+                                isLoading.value = true
+                                log.trace { "loading info for devices ${it?.map { it.deviceId }}" }
+                                val devices = matrixClient.api.device.getDevices()
+                                log.trace { "devices: $devices" }
+                                val thisDevice =
+                                    devices.getOrNull()?.find { it.deviceId == matrixClient.deviceId }?.let {
+                                        DeviceInfo(
+                                            it.deviceId,
+                                            MutableStateFlow(displayName(it)),
+                                            lastSeenAt(it),
+                                            coroutineScope.isVerified(
+                                                matrixClient.key.getTrustLevel(
+                                                    matrixClient.userId,
+                                                    matrixClient.deviceId,
+                                                )
+                                            ),
+                                        )
+                                    } ?: DeviceInfo(
+                                        deviceId = "",
+                                        displayName = MutableStateFlow(""),
+                                        lastSeenAt = "",
+                                        isVerified = MutableStateFlow(false),
+                                    )
+                                val otherDevices = devices.getOrNull()
+                                    ?.filterNot { it.deviceId == matrixClient.deviceId }
+                                    ?.sortedByDescending { it.lastSeenTs }
+                                    ?.map {
+                                        val otherDeviceTrustLevel =
+                                            matrixClient.key.getTrustLevel(
+                                                matrixClient.userId,
+                                                it.deviceId,
+                                            )
+                                        DeviceInfo(
+                                            it.deviceId,
+                                            MutableStateFlow(displayName(it)),
+                                            lastSeenAt(it),
+                                            coroutineScope.isVerified(otherDeviceTrustLevel),
+                                        )
+                                    } ?: emptyList()
+                                log.trace { "thisDevice: $thisDevice, otherDevices: $otherDevices" }
+                                val result = DevicesInAccount(
+                                    thisDevice = thisDevice,
+                                    otherDevices = otherDevices,
+                                )
+                                if (devices.isFailure) {
+                                    val exc = devices.exceptionOrNull()
+                                    log.warn(exc) { "Cannot load devices from server." }
+                                    error.value = i18n.settingsDevicesLoadError()
+                                }
+
+                                log.trace { "device list for account $userId: $result" }
+                                result
+                            }.also {
+                                log.trace { "mapping of devices to DeviceInfo List finished -> inLoading == false" }
+                                isLoading.value = false
+                                initialLoad.value = false
+                            }
+                        }.stateIn(
+                            this,
+                            SharingStarted.WhileSubscribed(),
+                            null,
+                        )
+                    )
+                }
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
     override val error = MutableStateFlow<String?>(null)
 
     private val initialLoad = MutableStateFlow(true)
@@ -87,9 +167,7 @@ open class DevicesSettingsViewModelImpl(
         backHandler.register(backCallback)
 
         coroutineScope.launch {
-            matrixClients.collectLatest {
-                _accountWithDevices.value = it.getAccountDevices()
-            }
+            triggerDeviceListUpdate.emit(Unit)
         }
     }
 
@@ -120,7 +198,7 @@ open class DevicesSettingsViewModelImpl(
                         log.debug { "successfully updated device's display name on the server, now update locally" }
                         accountsWithDevices.value.find { accountWithDevices -> accountWithDevices.userId == userId }
                             ?.let { accountWithDevices ->
-                                accountWithDevices.devicesInAccount.value.let { accountDevice ->
+                                accountWithDevices.devicesInAccount.value?.let { accountDevice ->
                                     if (accountDevice.thisDevice.deviceId == deviceId)
                                         accountDevice.thisDevice
                                     else {
@@ -155,95 +233,12 @@ open class DevicesSettingsViewModelImpl(
                 log.error(exc) { "Cannot create a device verification for $deviceId." }
                 error.value = i18n.settingsDevicesVerificationError()
             }
-            updateDeviceList()
         }
     }
 
     override fun updateDeviceList() {
-        _accountWithDevices.value = matrixClients.value.getAccountDevices()
-    }
-
-    private fun Map<UserId, MatrixClient>.getAccountDevices(): List<AccountWithDevices> {
-        return this.map { (userId, matrixClient) ->
-            log.trace { "devices for account '$userId' will be loaded" }
-            val isLoading = MutableStateFlow(true)
-            val error = MutableStateFlow<String?>(null)
-            AccountWithDevices(
-                isLoading = isLoading,
-                loadingError = error,
-                userId = userId,
-                devicesInAccount = run {
-                    log.trace { "get device keys for user ${matrixClient.userId}" }
-                    matrixClient.key.getDeviceKeys(matrixClient.userId).map {
-                        log.trace { "loading info for devices ${it?.map { it.deviceId }}" }
-                        val devices = matrixClient.api.device.getDevices().getOrNull()
-                        log.trace { "devices: $devices" }
-                        val thisDevice = devices?.find { it.deviceId == matrixClient.deviceId }?.let {
-                            DeviceInfo(
-                                it.deviceId,
-                                MutableStateFlow(displayName(it)),
-                                lastSeenAt(it),
-                                coroutineScope.isVerified(
-                                    matrixClient.key.getTrustLevel(
-                                        matrixClient.userId,
-                                        matrixClient.deviceId,
-                                    )
-                                ),
-                            )
-                        } ?: DeviceInfo(
-                            deviceId = "",
-                            displayName = MutableStateFlow(""),
-                            lastSeenAt = "",
-                            isVerified = MutableStateFlow(false),
-                        )
-                        val otherDevices = devices
-                            ?.filterNot { it.deviceId == matrixClient.deviceId }
-                            ?.sortedByDescending { it.lastSeenTs }
-                            ?.map {
-                                val otherDeviceTrustLevel =
-                                    matrixClient.key.getTrustLevel(
-                                        matrixClient.userId,
-                                        it.deviceId,
-                                    )
-                                DeviceInfo(
-                                    it.deviceId,
-                                    MutableStateFlow(displayName(it)),
-                                    lastSeenAt(it),
-                                    coroutineScope.isVerified(otherDeviceTrustLevel),
-                                )
-                            } ?: emptyList()
-                        log.trace { "thisDevice: $thisDevice, otherDevices: $otherDevices" }
-                        val result = DevicesInAccount(
-                            thisDevice = thisDevice,
-                            otherDevices = otherDevices,
-                        )
-                        if (devices == null) {
-                            val exc = matrixClient.api.device.getDevices().exceptionOrNull()
-                            log.error(exc) { "Cannot load devices." }
-                            error.value = i18n.settingsDevicesLoadError()
-                        }
-
-                        log.trace { "device list for account $userId: $result" }
-                        result
-                    }.also {
-                        log.trace { "mapping of devices to DeviceInfo List finished -> inLoading == false" }
-                        isLoading.value = false
-                        initialLoad.value = false
-                    }
-                }.stateIn(
-                    coroutineScope,
-                    SharingStarted.Eagerly, // WhileSubscribed breaks tests
-                    DevicesInAccount(
-                        thisDevice = DeviceInfo(
-                            deviceId = "",
-                            displayName = MutableStateFlow(""),
-                            lastSeenAt = "",
-                            isVerified = MutableStateFlow(false),
-                        ),
-                        otherDevices = emptyList(),
-                    )
-                )
-            )
+        coroutineScope.launch {
+            triggerDeviceListUpdate.emit(Unit)
         }
     }
 
