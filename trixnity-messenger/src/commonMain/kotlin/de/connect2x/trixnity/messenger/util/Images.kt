@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
 import io.ktor.http.ContentType
-import korlibs.io.net.MimeType
 import net.folivo.trixnity.utils.ByteArrayFlow
 
 // TODO find a way to get the image dimensions without loading the image into memory

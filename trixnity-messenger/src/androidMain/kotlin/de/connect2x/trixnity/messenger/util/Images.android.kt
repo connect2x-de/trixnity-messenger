@@ -5,11 +5,11 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import com.ashampoo.kim.Kim
 import com.ashampoo.kim.format.tiff.constant.TiffTag
+import com.ashampoo.kim.model.MetadataUpdate
 import com.ashampoo.kim.model.TiffOrientation
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Image
-import korlibs.io.net.MimeType
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArray
 import java.io.ByteArrayOutputStream
@@ -44,10 +44,11 @@ actual suspend fun rotateImageToMetadataOrientation(imageBytes : ByteArray, mime
                 else -> Bitmap.CompressFormat.PNG
             }
             rotatedBitmap.compress(compressMimeType, 100, byteOutput)
-            return byteOutput.toByteArray()
+            val updatedBytes = Kim.update(byteOutput.toByteArray(), MetadataUpdate.Orientation(TiffOrientation.STANDARD))
+            return updatedBytes
         } else return imageBytes
     }
-    catch (e:Exception) {
+    catch (_:Exception) {
         return imageBytes
     }
 }

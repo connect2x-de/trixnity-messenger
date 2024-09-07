@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 import com.ashampoo.kim.Kim
 import com.ashampoo.kim.format.tiff.constant.TiffTag
+import com.ashampoo.kim.model.MetadataUpdate
 import com.ashampoo.kim.model.TiffOrientation
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
@@ -9,7 +10,6 @@ import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteReadChannel
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.EncodedImageFormat
@@ -42,11 +42,15 @@ actual suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeT
     try {
         val image = Image.makeFromEncoded(imageBytes)
         val bitmap = Bitmap.makeFromImage(image)
-        log.debug { "Rotating  by $degrees degrees" }
+        log.debug { "Rotating image by $degrees degrees" }
         val encoded = Image.makeFromBitmap(bitmap).encodeToData(EncodedImageFormat.PNG)
-        return encoded?.bytes ?: imageBytes
+        val updatedBytes = if (encoded != null) {
+            Kim.update(encoded.bytes, MetadataUpdate.Orientation(TiffOrientation.STANDARD))
+        }
+        else imageBytes
+        return updatedBytes
     }
-    catch (e : Exception) {
+    catch (_ : Exception) {
         return imageBytes
     }
 }
