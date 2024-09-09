@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Images uploaded on android are rotated correctly
+- Images uploaded on android and desktop are rotated correctly
 
 ### Changed
 
