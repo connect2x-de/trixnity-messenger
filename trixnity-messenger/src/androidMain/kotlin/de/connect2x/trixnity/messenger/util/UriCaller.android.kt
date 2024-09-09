@@ -15,7 +15,9 @@ actual fun platformUriCallerModule(): Module = module {
         UriCaller { uri, external ->
             log.info { "call uri: $uri" }
             if (!external) log.debug { "does not support internal uri calling yet" }
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
+                setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
         }
     }
 }

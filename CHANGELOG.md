@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- UriCaller not working on Android when MatrixMessenger is created in ApplicationContext
 
 ### Security
 
