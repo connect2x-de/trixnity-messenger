@@ -8,8 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
 - Images uploaded on android are rotated correctly
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.1.1
+
+### Added
 - Editable room avatar
 - permission necessary flag to android notification settings
 
