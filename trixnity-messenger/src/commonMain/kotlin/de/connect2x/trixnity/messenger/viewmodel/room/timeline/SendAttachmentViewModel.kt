@@ -30,7 +30,6 @@ import org.koin.core.component.get
 
 
 private val log = KotlinLogging.logger { }
-private const val MAX_IMAGE_FILE_SIZE_MB_TO_CHECK = 500
 
 interface SendAttachmentViewModelFactory {
     fun create(
@@ -99,7 +98,7 @@ class SendAttachmentViewModelImpl(
             _sendEnabled.value = _error.value == null
             _fileContent.value = if (isImage == true && !checkFileSizeExceedsLimit(
                     file.fileSize,
-                    MAX_IMAGE_FILE_SIZE_MB_TO_CHECK
+                    messengerConfiguration.imageAttachmentMaxProcessingSize
                 )
             ) get<ProcessImageUpload>().invoke(file.content.toByteArray(), file.mimeType ?: Image.PNG).toByteArrayFlow()
             else {

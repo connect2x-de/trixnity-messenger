@@ -26,7 +26,6 @@ actual fun platformProcessImageUploadModule(): Module = module {
  * of Exif Data
  */
 suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: ContentType): ByteArray {
-    //TODO Make rotation dependent on file size because of in Memory operation
     val metadata = Kim.readMetadata(imageBytes)
     val degrees = when (metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)) {
         TiffOrientation.ROTATE_RIGHT.value.toShort() -> 90
