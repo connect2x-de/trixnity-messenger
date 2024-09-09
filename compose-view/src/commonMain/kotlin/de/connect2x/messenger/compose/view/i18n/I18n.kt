@@ -1266,6 +1266,11 @@ abstract class I18nView(
         DE - "Geräteeinstellungen"
     }
 
+    fun notificationSettingsPlatformEnablePermissionsWarning() = translate {
+        EN - "Please enable notifications via the device settings"
+        DE - "Bitte erlauben Sie das Senden von Benachrichtigungen in den Geräteeinstellungen"
+    }
+
     fun notificationsSettingsPlatformPushMode(mode: String) = translate {
         EN - "Mode: $mode"
         DE - "Modus: $mode"

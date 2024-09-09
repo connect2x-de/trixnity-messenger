@@ -26,14 +26,13 @@ private val log = KotlinLogging.logger { }
 
 suspend fun setPush(
     context: Context,
-    anyNotificationsEnabled: Boolean,
     pushModesMapping: Map<UserId, PushMode>,
     matrixMessenger: MatrixMessenger,
 ) = coroutineScope {
     val pushModes = pushModesMapping.values
     log.debug { "push modes: $pushModes" }
 
-    if (anyNotificationsEnabled && pushModes.contains(PushMode.PUSH)) {
+    if (pushModes.contains(PushMode.PUSH)) {
         context.packageManager.setComponentEnabledSetting(
             ComponentName(context, FcmService::class.java),
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -59,7 +58,7 @@ suspend fun setPush(
         )
     }
 
-    if (anyNotificationsEnabled && pushModes.contains(PushMode.POLLING)) {
+    if (pushModes.contains(PushMode.POLLING)) {
         PollingNotificationsWorker.requestStart(context)
     } else {
         log.info { "since no accounts with polling policy are active, cancel POLLING worker" }
@@ -76,22 +75,21 @@ suspend fun setPush(
         }
     }
 
-    if (anyNotificationsEnabled)
-        pushModesMapping.forEach { (userId, _) ->
-            log.info { "create notification channel for $userId" }
-            val descriptionText = context.getString(R.string.push_channel_description)
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel =
-                NotificationChannel(pushChannelId(userId, matrixMessenger.di.get()), userId.full, importance).apply {
-                    description = descriptionText
-                    setShowBadge(true)
-                    lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-                    lightColor = ContextCompat.getColor(context, R.color.logo)
-                    enableLights(true)
-                }
-            // Register the channel with the system
-            val notificationManager: NotificationManager =
-                context.getSystemService(FirebaseMessagingService.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+    pushModesMapping.forEach { (userId, _) ->
+        log.info { "create notification channel for $userId" }
+        val descriptionText = context.getString(R.string.push_channel_description)
+        val importance = NotificationManager.IMPORTANCE_HIGH
+        val channel =
+            NotificationChannel(pushChannelId(userId, matrixMessenger.di.get()), userId.full, importance).apply {
+                description = descriptionText
+                setShowBadge(true)
+                lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                lightColor = ContextCompat.getColor(context, R.color.logo)
+                enableLights(true)
+            }
+        // Register the channel with the system
+        val notificationManager: NotificationManager =
+            context.getSystemService(FirebaseMessagingService.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
 }

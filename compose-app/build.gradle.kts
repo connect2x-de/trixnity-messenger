@@ -167,7 +167,10 @@ android {
         }
     }
     packaging {
-        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        resources {
+            excludes += "META-INF/versions/9/previous-compilation-data.bin"
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
     }
 }
 

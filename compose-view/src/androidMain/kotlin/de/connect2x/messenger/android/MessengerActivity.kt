@@ -56,6 +56,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -77,7 +78,10 @@ private const val REQUEST_POST_NOTIFICATIONS = 123456789
 @OptIn(ExperimentalResourceApi::class)
 class MessengerActivity : AppCompatActivity() {
     private val matrixMessengerServiceConnection = MatrixMessengerServiceConnection()
-    private val scope = CoroutineScope(Dispatchers.Default)
+    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { coroutineContext, throwable ->
+        log.error(throwable) { "error in main scope" }
+    })
+
 
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -117,17 +121,16 @@ class MessengerActivity : AppCompatActivity() {
                         .collect { settings ->
                             val anyNotificationsEnabled =
                                 settings.any { (_, settings) -> settings.base.notificationsEnabled }
-                            if (anyNotificationsEnabled) {
-                                withContext(Dispatchers.Main) {
+                            withContext(Dispatchers.Main) {
+                                if (anyNotificationsEnabled) {
                                     checkPermissionForNotifications()
+                                    setPush(
+                                        applicationContext,
+                                        settings.mapValues { it.value.platformNotifications.pushMode },
+                                        matrixMessenger,
+                                    )
                                 }
                             }
-                            setPush(
-                                applicationContext,
-                                anyNotificationsEnabled,
-                                settings.mapValues { it.value.platformNotifications.pushMode },
-                                matrixMessenger
-                            )
                         }
                 }
             }
