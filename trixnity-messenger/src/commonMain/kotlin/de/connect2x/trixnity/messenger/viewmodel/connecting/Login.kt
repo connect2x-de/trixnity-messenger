@@ -25,7 +25,7 @@ suspend fun MatrixClients.loginCatching(
     initialDeviceDisplayName: String,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: (MatrixClient) -> Unit,
+    onLogin: () -> Unit,
 ): MatrixClient? {
     log.info { "try to login" }
     return catchLogin(addMatrixAccountState, i18n, onLogin) {
@@ -44,7 +44,7 @@ suspend fun MatrixClients.loginCatching(
     initialDeviceDisplayName: String,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: (MatrixClient) -> Unit,
+    onLogin: () -> Unit,
 ): MatrixClient? {
     log.info { "try to login" }
     return catchLogin(addMatrixAccountState, i18n, onLogin) {
@@ -61,7 +61,7 @@ suspend fun MatrixClients.loginWithCatching(
     loginInfo: LoginInfo,
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: (MatrixClient) -> Unit,
+    onLogin: () -> Unit,
 ): MatrixClient? {
     log.info { "try to loginWith" }
     return catchLogin(addMatrixAccountState, i18n, onLogin) {
@@ -75,7 +75,7 @@ suspend fun MatrixClients.loginWithCatching(
 private suspend fun catchLogin(
     addMatrixAccountState: MutableStateFlow<AddMatrixAccountState>,
     i18n: I18n,
-    onLogin: (MatrixClient) -> Unit,
+    onLogin: () -> Unit,
     block: suspend () -> Result<MatrixClient>
 ): MatrixClient? {
     addMatrixAccountState.value = AddMatrixAccountState.Connecting
@@ -88,7 +88,7 @@ private suspend fun catchLogin(
         null to when (exc.statusCode) {
             HttpStatusCode.Forbidden -> i18n.connectingErrorForbidden()
             HttpStatusCode.NotFound -> i18n.connectingErrorNotFound()
-            else -> i18n.connectingErrorStandard()
+            else -> i18n.connectingErrorStandard(exc.message ?: i18n.commonUnknown())
         }
     } catch (exc: AccountAlreadyExistsException) {
         log.warn { "account already exists locally" }
@@ -113,17 +113,19 @@ private suspend fun catchLogin(
                 handleIoException(i18n, exc)
             }
 
-            else -> handleCause(i18n, exc.cause)
+            else -> handleCause(i18n, exc.cause ?: exc)
         }
     }
 
     when {
         errorMessage == null && matrixClient != null -> {
             addMatrixAccountState.value = AddMatrixAccountState.Success
-            onLogin(matrixClient)
+            onLogin()
         }
+
         errorMessage != null -> addMatrixAccountState.value = AddMatrixAccountState.Failure(errorMessage)
-        matrixClient == null -> addMatrixAccountState.value = AddMatrixAccountState.Failure(i18n.connectingErrorNoMatrixClient())
+        matrixClient == null -> addMatrixAccountState.value =
+            AddMatrixAccountState.Failure(i18n.connectingErrorNoMatrixClient())
     }
 
     return matrixClient
@@ -136,15 +138,15 @@ private suspend fun handleIoException(i18n: I18n, exc: Exception): String {
         exc.message?.startsWith("Failed to connect") == true ||
         exc.message == "Verbindungsaufbau abgelehnt"
     ) {
-        i18n.connectingErrorStandard()
+        i18n.connectingErrorStandard(exc.message ?: i18n.commonUnknown())
     } else if (exc.message?.startsWith("Cleartext HTTP traffic") == true) {
         i18n.connectingErrorHttps()
     } else {
-        handleCause(i18n, exc.cause)
+        handleCause(i18n, exc.cause ?: exc)
     }
 }
 
-private suspend fun handleCause(i18n: I18n, exc: Throwable?) = if (exc != null) {
+private suspend fun handleCause(i18n: I18n, exc: Throwable) =
     when (exc) {
         is UnresolvedAddressException, is IllegalArgumentException ->
             i18n.connectingErrorWrongAddress()
@@ -153,9 +155,5 @@ private suspend fun handleCause(i18n: I18n, exc: Throwable?) = if (exc != null) 
             handleIoException(i18n, exc)
         }
 
-        else -> i18n.connectingErrorStandard()
+        else -> i18n.connectingErrorStandard(exc.message ?: i18n.commonUnknown())
     }
-} else {
-    log.error { exc }
-    i18n.connectingErrorStandard()
-}

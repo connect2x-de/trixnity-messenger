@@ -14,7 +14,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
@@ -29,7 +28,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
@@ -43,7 +41,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
     val matrixClientMock = mock<MatrixClient>()
 
     private val onBackMock = mock<Function0<Unit>>()
-    private val onLoginMock = mock<Function1<MatrixClient, Unit>>()
+    private val onLoginMock = mock<Function0<Unit>>()
 
     init {
         beforeTest {
@@ -51,16 +49,14 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
             resetMocks(matrixClientFactoryMock, matrixClientMock, onBackMock, onLoginMock)
             every { onBackMock() } returns Unit
-            every { onLoginMock(any()) } returns Unit
+            every { onLoginMock() } returns Unit
             every { matrixClientMock.userId } returns UserId("test", "server")
         }
 
         should("call login and start sync") {
             everySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )
@@ -70,24 +66,20 @@ class PasswordLoginViewModelTest : ShouldSpec() {
             cut.tryLogin()
 
             verifySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )
-                onLoginMock.invoke(any())
+                onLoginMock.invoke()
             }
             cut.addMatrixAccountState.value shouldBe AddMatrixAccountState.Success
         }
 
         should("set addMatrixAccountState when login fails because it was forbidden") {
             everySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )
@@ -102,10 +94,8 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
         should("show the correct error message when server is configured wrong") {
             everySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )
@@ -118,10 +108,8 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
         should("show the correct error message when an unknown error occurs") {
             everySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )
@@ -135,10 +123,8 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
         should("cancel login when user aborts the login") {
             everySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )
@@ -154,10 +140,8 @@ class PasswordLoginViewModelTest : ShouldSpec() {
 
         should("abort with correct Exception in callback when store is locked") {
             everySuspend {
-                matrixClientFactoryMock.login(
+                matrixClientFactoryMock.loginWith(
                     any(),
-                    eq(IdentifierType.User("timmy")),
-                    eq("sup3rs3cr3t"),
                     any(),
                     any(),
                 )

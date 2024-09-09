@@ -9,13 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- allow to check login before creating a MatrixClient
+
 ### Changed
 
 ### Deprecated
 
 ### Removed
 
+- view model based login check
+
 ### Fixed
+
 - UriCaller not working on Android when MatrixMessenger is created in ApplicationContext
 
 ### Security
@@ -28,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - permission necessary flag to android notification settings
 
 ### Changed
+
 - upgrade trixnity version
 
 ### Deprecated
