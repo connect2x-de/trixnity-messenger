@@ -11,8 +11,3 @@ actual suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow): Pair<Int?, 
     val bitmapInfo = byteArrayFlow.toByteArray().asMemoryVfsFile().readBitmapInfo()
     return bitmapInfo?.let { it.width to it.height } ?: (null to null)
 }
-
-actual suspend fun rotateImageToMetadataOrientation(imageBytes : ByteArray, mimeType: ContentType) : ByteArray {
-    // TODO implement
-    return imageBytes
-}

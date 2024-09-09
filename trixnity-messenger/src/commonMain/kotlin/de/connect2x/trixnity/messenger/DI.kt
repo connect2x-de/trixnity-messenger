@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
+import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
@@ -266,6 +267,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformUrlHandlerModule(),
     platformUriCallerModule(),
     platformDeleteProfileDataModule(),
+    platformProcessImageUploadModule()
 )
 
 private fun timelineElementModule() = module {

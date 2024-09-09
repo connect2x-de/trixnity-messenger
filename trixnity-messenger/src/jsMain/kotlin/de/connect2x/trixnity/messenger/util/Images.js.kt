@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.ktor.http.ContentType
 import korlibs.image.format.readBitmapInfo
 import korlibs.io.file.std.asMemoryVfsFile
 import net.folivo.trixnity.utils.ByteArrayFlow
@@ -12,7 +11,3 @@ actual suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow): Pair<Int?, 
     return bitmapInfo?.let { it.width to it.height } ?: (null to null)
 }
 
-actual suspend fun rotateImageToMetadataOrientation(imageBytes : ByteArray, mimeType: ContentType) : ByteArray {
-    // TODO implement
-    return imageBytes
-}

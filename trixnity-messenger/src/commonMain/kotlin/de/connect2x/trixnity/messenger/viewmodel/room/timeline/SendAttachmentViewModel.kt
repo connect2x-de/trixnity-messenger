@@ -4,6 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.ManualFileDescriptor
+import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.util.rotateImageToMetadataOrientation
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -101,7 +102,7 @@ class SendAttachmentViewModelImpl(
                     file.fileSize,
                     MAX_IMAGE_FILE_SIZE_MB_TO_CHECK
                 )
-            ) rotateImageToMetadataOrientation(file.content.toByteArray(), file.mimeType ?: Image.PNG).toByteArrayFlow()
+            ) get<ProcessImageUpload>().invoke(file.content.toByteArray(), file.mimeType ?: Image.PNG).toByteArrayFlow()
             else {
                 file.content
             }
