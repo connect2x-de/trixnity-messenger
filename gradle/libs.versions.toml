@@ -21,7 +21,6 @@ zipjs = "2.7.45" # https://www.npmjs.com/package/@zip.js/zip.js
 skie = "0.8.2" # https://github.com/touchlab/SKIE/releases
 kmmBridge = "0.5.5" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.18.4"
-skiko = "0.8.9"
 
 # integration tests
 testContainers = "1.19.8" # https://github.com/testcontainers/testcontainers-java/releases
@@ -70,7 +69,6 @@ kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref =
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
 kim = { module = "com.ashampoo:kim", version.ref = "kim" }
-skiko = { module = "org.jetbrains.skiko:skiko-awt-runtime", version.ref = "skiko"}
 
 
 
