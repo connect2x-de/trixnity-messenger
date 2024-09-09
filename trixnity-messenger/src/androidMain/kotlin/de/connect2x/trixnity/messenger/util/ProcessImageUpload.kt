@@ -7,13 +7,13 @@ import com.ashampoo.kim.Kim
 import com.ashampoo.kim.format.tiff.constant.TiffTag
 import com.ashampoo.kim.model.TiffOrientation
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.ContentType
-import io.ktor.http.ContentType.Image
+import io.ktor.http.*
+import io.ktor.http.ContentType.*
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.io.ByteArrayOutputStream
 
-val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger { }
 
 actual fun platformProcessImageUploadModule(): Module = module {
     single<ProcessImageUpload> {
@@ -23,6 +23,10 @@ actual fun platformProcessImageUploadModule(): Module = module {
     }
 }
 
+/**
+ * Rotates the data of an image to its Metadata orientation to prevent issues caused by missing interpretation
+ * of Exif Data
+ */
 suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: ContentType): ByteArray {
     //TODO Make rotation dependent on file size because of in Memory operation
     val metadata = Kim.readMetadata(imageBytes)
@@ -43,9 +47,12 @@ suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: Co
             val compressMimeType = when {
                 mimeType.match(Image.PNG) -> Bitmap.CompressFormat.PNG
                 mimeType.match(Image.JPEG) -> Bitmap.CompressFormat.JPEG
+                mimeType.match("image/webp") && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R -> Bitmap.CompressFormat.WEBP_LOSSLESS
                 else -> Bitmap.CompressFormat.PNG
             }
-            rotatedBitmap.compress(compressMimeType, 100, byteOutput)
+            if (!rotatedBitmap.compress(compressMimeType, 100, byteOutput)) {
+                return imageBytes
+            }
             //Not needed currently since Metadata isn't sent. Might have to be reenabled later, if Metadata sending works to prevent sending of wrong metadata information
             //val updatedBytes = Kim.update(byteOutput.toByteArray(), MetadataUpdate.Orientation(TiffOrientation.STANDARD))
             return byteOutput.toByteArray()

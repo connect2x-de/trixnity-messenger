@@ -121,7 +121,7 @@ kotlin {
                     else -> error("Unsupported arch: $osArch")
                 }
 
-                val version = "0.8.9" // or any more recent version
+                val version = "0.8.9"
                 val target = "${targetOs}-${targetArch}"
                 implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$version")
 

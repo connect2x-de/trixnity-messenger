@@ -6,12 +6,11 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.ManualFileDescriptor
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.getImageDimensions
-import de.connect2x.trixnity.messenger.util.rotateImageToMetadataOrientation
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.ContentType.Image
+import io.ktor.http.ContentType.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -114,7 +113,7 @@ class SendAttachmentViewModelImpl(
             _sendEnabled.value = false
             coroutineScope.launch {
                 matrixClient.room.sendMessage(selectedRoomId) {
-                    val byteArrayFlow = file.content
+                    val byteArrayFlow = fileContent.value?:file.content
                     when {
                         isImage ?: false -> {
                             log.debug { "send an image" }
@@ -122,7 +121,7 @@ class SendAttachmentViewModelImpl(
                             image(
                                 body = file.fileName,
                                 fileName = file.fileName,
-                                image = fileContent.value ?: file.content,
+                                image = byteArrayFlow,
                                 type = file.mimeType,
                                 size = file.fileSize,
                                 width = width,

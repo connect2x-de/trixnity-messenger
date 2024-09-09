@@ -12,6 +12,10 @@ actual fun platformProcessImageUploadModule(): Module = module {
     }
 }
 
+/**
+ * Rotates the data of an image to its Metadata orientation to prevent issues caused by missing interpretation
+ * of Exif Data
+ */
 suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: ContentType): ByteArray {
     // TODO implement
     return imageBytes
