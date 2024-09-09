@@ -5,11 +5,18 @@ import com.ashampoo.kim.format.tiff.constant.TiffTag
 import com.ashampoo.kim.model.TiffOrientation
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.EncodedImageFormat
-import org.jetbrains.skia.Image
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import java.awt.geom.AffineTransform
+import java.awt.image.AffineTransformOp
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.floor
+import kotlin.math.sin
 
 private val log = KotlinLogging.logger { }
 
@@ -35,16 +42,28 @@ suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: Co
     }
     if (degrees != 0) {
         try {
-            val image = Image.makeFromEncoded(imageBytes)
-            val bitmap = Bitmap.makeFromImage(image)
             log.debug { "Rotating image by $degrees degrees" }
-            val encoded = Image.makeFromBitmap(bitmap).encodeToData(EncodedImageFormat.PNG)
+            val inputStream = ByteArrayInputStream(imageBytes)
+            val image = ImageIO.read(inputStream)
+            val radians = Math.toRadians(degrees.toDouble())
+            val sin = abs(sin(radians))
+            val cos = abs(cos(radians))
+            val width = floor(image.width * cos + image.height * sin).toInt()
+            val height = floor(image.height * cos + image.width * sin).toInt()
+            val rotatedImage = BufferedImage(width, height, image.type)
+            val transform = AffineTransform().apply {
+                this.translate(width.toDouble() / 2, height.toDouble() / 2)
+                this.rotate(radians)
+                this.translate(-image.width.toDouble() / 2, -image.height.toDouble() / 2)
+            }
+            val transformOperation = AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR)
+            transformOperation.filter(image, rotatedImage)
+            val outputStream = ByteArrayOutputStream()
+            ImageIO.write(rotatedImage, mimeType.contentSubtype, outputStream)
             //Not needed currently since Metadata isn't sent. Might have to be reenabled later, if Metadata sending works to prevent sending of wrong metadata information
             /* val updatedBytes = if (encoded != null) {
-            Kim.update(encoded.bytes, MetadataUpdate.Orientation(TiffOrientation.STANDARD))
-        }
-        else imageBytes*/
-            return encoded?.bytes ?: imageBytes
+            Kim.update(encoded.bytes, MetadataUpdate.Orientation(TiffOrientation.STANDARD)) */
+            return outputStream.toByteArray()
         } catch (_: Exception) {
             return imageBytes
         }
