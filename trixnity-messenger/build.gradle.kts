@@ -182,54 +182,6 @@ android {
     }
 }
 
-//publishing {
-//    val dokkaJar by tasks.registering(Jar::class) {
-//        dependsOn(tasks.dokkaHtml)
-//        from(tasks.dokkaHtml.flatMap { it.outputDirectory })
-//        archiveClassifier.set("javadoc")
-//        onlyIf { isCI }
-//    }
-//
-//    repositories {
-//        maven {
-//            url = uri("${System.getenv("CI_API_V4_URL")}/projects/47538655/packages/maven")
-//            name = "GitLab"
-//            credentials(HttpHeaderCredentials::class) {
-//                name = "Job-Token"
-//                value = System.getenv("CI_JOB_TOKEN")
-//            }
-//            authentication {
-//                create("header", HttpHeaderAuthentication::class)
-//            }
-//        }
-//    }
-//    publications.configureEach {
-//        if (this is MavenPublication) {
-//            pom {
-//                name.set(project.name)
-//                description.set("Multiplatform Kotlin SDK for Matrix messengers")
-//                url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
-//                licenses {
-//                    license {
-//                        name.set("GNU AFFERO GENERAL PUBLIC LICENSE version 3")
-//                        url.set("https://www.gnu.org/licenses/agpl-3.0.html")
-//                    }
-//                }
-//                developers {
-//                    developer {
-//                        id.set("michael.thiele")
-//                        id.set("benkuly")
-//                    }
-//                }
-//                scm {
-//                    url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
-//                }
-//            }
-//            if (isCI) artifact(dokkaJar)
-//        }
-//    }
-//}
-
 skie {
     analytics {
         disableUpload.set(true)
