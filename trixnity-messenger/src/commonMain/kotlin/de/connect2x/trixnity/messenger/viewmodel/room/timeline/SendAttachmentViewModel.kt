@@ -101,6 +101,10 @@ class SendAttachmentViewModelImpl(
                     messengerConfiguration.imageAttachmentMaxProcessingSize
                 )
             ) get<ProcessImageUpload>().invoke(file.content.toByteArray(), file.mimeType ?: Image.PNG).toByteArrayFlow()
+            else if (isImage == true) {
+                log.debug{"Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing"}
+                file.content
+            }
             else {
                 file.content
             }
