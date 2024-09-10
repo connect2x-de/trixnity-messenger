@@ -1,0 +1,6 @@
+<resources>
+    <string name="push_channel_name">Benachrichtigungen</string>
+    <string name="push_channel_description">Benachrichtigungen für dieses Konto</string>
+    <string name="receiving_channel_name">Warte auf neue Nachrichten</string>
+    <string name="receiving_channel_description"/>
+</resources>

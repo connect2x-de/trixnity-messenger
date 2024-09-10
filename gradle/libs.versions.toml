@@ -44,8 +44,6 @@ richeditor = "1.0.0-rc05-k2" # https://github.com/MohamedRejeb/Compose-Rich-Edit
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-androidCameraX = "1.4.0-beta02" # https://developer.android.com/jetpack/androidx/releases/camera
-zxingQrcode = "2.2.0" # https://github.com/zxing-cpp/zxing-cpp/releases
 kotlinBrowser = "1.0.0-pre.767" # https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-browser-js
 composeUiTest = "1.6.7" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
 filekit = "0.6.2"
@@ -107,12 +105,6 @@ compose-richeditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose"
 mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "cmpFilePicker" }
 qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrCodeKotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
-androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "androidCameraX" }
-androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidCameraX" }
-androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "androidCameraX" }
-androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "androidCameraX" }
-zxing-android = { module = "io.github.zxing-cpp:android", version.ref = "zxingQrcode" }
-android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradle" }
 gms-google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -122,7 +114,6 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version = "" }
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
-filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 ui-test-android = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "composeUiTest" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
 
@@ -131,7 +122,6 @@ kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework"
 jna = ["jna", "jna-platform"]
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 # ui
-androix-camera = ["androidx-camera-core", "androidx-camera-camera2", "androidx-camera-view", "androidx-camera-lifecycle"]
 android-common = ["androidx-appcompat", "androidx-work-runtime-ktx", "androidx-lifecycle-livedata-ktx", "androidx-activity-compose", "logback-android"]
 
 [plugins]
@@ -142,6 +132,5 @@ kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmBridge" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 # ui
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
-download-plugin = { id = "de.undercouch.download", version.ref = "downloadGradlePlugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
