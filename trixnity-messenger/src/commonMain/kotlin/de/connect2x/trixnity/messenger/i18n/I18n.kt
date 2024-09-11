@@ -357,9 +357,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$usernames und andere schreiben..."
     }
 
-    fun connectingErrorStandard() = translate {
-        EN - "Cannot connect to the Matrix server."
-        DE - "Matrix-Server kann nicht erreicht werden."
+    fun connectingErrorStandard(message: String) = translate {
+        EN - "Cannot connect to the Matrix server: $message"
+        DE - "Matrix-Server kann nicht erreicht werden: $message"
     }
 
     fun connectingErrorForbidden() = translate {

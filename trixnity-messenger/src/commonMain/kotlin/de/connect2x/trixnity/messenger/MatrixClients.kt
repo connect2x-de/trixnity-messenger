@@ -24,6 +24,7 @@ import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
@@ -105,11 +106,22 @@ class MatrixClientsImpl(
         password: String,
         initialDeviceDisplayName: String?,
     ): Result<MatrixClient> =
-        factory.login(
+        factory.loginWith(
             baseUrl = baseUrl,
-            identifier = identifier,
-            password = password,
-            initialDeviceDisplayName = initialDeviceDisplayName,
+            getLoginInfo = { api ->
+                api.authentication.login(
+                    identifier = identifier,
+                    password = password,
+                    type = LoginType.Password,
+                    initialDeviceDisplayName = initialDeviceDisplayName
+                ).getOrThrow().let { login ->
+                    LoginInfo(
+                        userId = login.userId,
+                        accessToken = login.accessToken,
+                        deviceId = login.deviceId,
+                    )
+                }
+            },
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
@@ -121,10 +133,21 @@ class MatrixClientsImpl(
         token: String,
         initialDeviceDisplayName: String?,
     ): Result<MatrixClient> =
-        factory.login(
+        factory.loginWith(
             baseUrl = baseUrl,
-            token = token,
-            initialDeviceDisplayName = initialDeviceDisplayName,
+            getLoginInfo = { api ->
+                api.authentication.login(
+                    token = token,
+                    type = LoginType.Token(),
+                    initialDeviceDisplayName = initialDeviceDisplayName
+                ).getOrThrow().let { login ->
+                    LoginInfo(
+                        userId = login.userId,
+                        accessToken = login.accessToken,
+                        deviceId = login.deviceId,
+                    )
+                }
+            },
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
@@ -137,7 +160,7 @@ class MatrixClientsImpl(
     ): Result<MatrixClient> =
         factory.loginWith(
             baseUrl = baseUrl,
-            loginInfo = loginInfo,
+            getLoginInfo = { loginInfo },
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
@@ -167,6 +190,7 @@ class MatrixClientsImpl(
 
     private suspend fun checkExisting(loginInfo: LoginInfo, baseUrl: Url) {
         if (value.containsKey(loginInfo.userId)) {
+            log.debug { "account ${loginInfo.userId} already exist -> logout" }
             matrixClientServerApiClientFactory(baseUrl, loginInfo.accessToken)
                 .authentication.logout()
                 .onFailure { log.error(it) { "could not logout of duplicate account" } }

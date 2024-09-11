@@ -22,7 +22,6 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
 import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -31,7 +30,7 @@ interface RegisterNewAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
-        onLogin: (MatrixClient) -> Unit,
+        onLogin: () -> Unit,
         onBack: () -> Unit,
     ): RegisterNewAccountViewModel =
         RegisterNewAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
@@ -54,17 +53,12 @@ interface RegisterNewAccountViewModel {
 
     fun register()
     fun back()
-
-    /**
-     * Part of [register] and thus should not be used directly. Should only be used to override the login process.
-     */
-    suspend fun loginWithAccessToken(userId: UserId, deviceId: String, accessToken: String)
 }
 
 class RegisterNewAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
-    private val onLogin: (MatrixClient) -> Unit,
+    private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 
@@ -110,7 +104,17 @@ class RegisterNewAccountViewModelImpl(
                         val deviceId = result.uia.value.deviceId
                         val accessToken = result.uia.value.accessToken
                         if (deviceId != null && accessToken != null) {
-                            loginWithAccessToken(result.uia.value.userId, deviceId, accessToken)
+                            matrixClients.loginWithCatching(
+                                baseUrl = serverUrl,
+                                loginInfo = MatrixClient.LoginInfo(
+                                    userId = result.uia.value.userId,
+                                    deviceId = deviceId,
+                                    accessToken = accessToken,
+                                ),
+                                addMatrixAccountState = addMatrixAccountState,
+                                i18n = i18n,
+                                onLogin = onLogin,
+                            )
                         } else {
                             log.error { "accessToken or deviceId missing in registration response" }
                             error.value = i18n.registrationErrorNotSuccessful()
@@ -138,24 +142,6 @@ class RegisterNewAccountViewModelImpl(
         }
     }
 
-    override suspend fun loginWithAccessToken(
-        userId: UserId,
-        deviceId: String,
-        accessToken: String,
-    ) {
-        matrixClients.loginWithCatching(
-            baseUrl = serverUrl,
-            loginInfo = MatrixClient.LoginInfo(
-                userId = userId,
-                deviceId = deviceId,
-                accessToken = accessToken,
-            ),
-            addMatrixAccountState = addMatrixAccountState,
-            i18n = i18n,
-            onLogin = onLogin,
-        )
-    }
-
     override fun back() {
         onBack()
     }
@@ -173,5 +159,4 @@ class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
 
     override fun register() {}
     override fun back() {}
-    override suspend fun loginWithAccessToken(userId: UserId, deviceId: String, accessToken: String) {}
 }
