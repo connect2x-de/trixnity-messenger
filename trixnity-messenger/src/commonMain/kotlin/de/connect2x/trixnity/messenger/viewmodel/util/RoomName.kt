@@ -105,18 +105,13 @@ open class RoomNameImpl(
         name: RoomDisplayName?,
         matrixClient: MatrixClient,
     ): Flow<String> {
-        val fallbackName = matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map {
-            it?.content?.alias?.full ?: roomId.full
-        }
-
         if (name != null) {
             val (explicitName, roomIsEmpty, otherUsersCount) = name
             val heroes = name.heroes
 
             return when {
                 !explicitName.isNullOrEmpty() -> flowOf(explicitName)
-                heroes.isEmpty() && roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
-                heroes.isEmpty() -> fallbackName
+                heroes.isEmpty() || roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
                 else -> combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
                     val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
                         when {
@@ -147,7 +142,7 @@ open class RoomNameImpl(
             }
         }
 
-        return fallbackName
+        return flowOf(roomId.full)
     }
 
     protected open fun nameFromHeroes(
