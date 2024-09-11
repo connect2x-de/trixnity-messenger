@@ -27,9 +27,7 @@ import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -42,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -725,50 +722,3 @@ fun MessageLocationContent(viewmodel: LocationMessageViewModel, onLongPress: (Of
 
 internal val urlRegex =
     Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)")
-
-// just to try it out; on desktop relies on fix for https://github.com/JetBrains/compose-jb/issues/1450
-// TODO add tests
-@Composable
-private fun String.toAnnotatedString(): AnnotatedString {
-    val urls = urlRegex.findAll(this)
-
-    fun AnnotatedString.Builder.addString(s: String) {
-        append(s)
-    }
-
-    @Composable
-    fun AnnotatedString.Builder.addUrl(url: String) {
-        Surface { }
-        val currentColor = LocalContentColor.current
-        pushStringAnnotation(tag = "link", annotation = url)
-        pushStyle(
-            SpanStyle(
-                color = currentColor.copy(alpha = 0.5f)
-                    .compositeOver(MaterialTheme.messengerColors.link)
-            )
-        )
-        append(url)
-        pop()
-        pop()
-    }
-
-    return with(AnnotatedString.Builder()) {
-        var stringRest = this@toAnnotatedString
-        var indexOfUrl: Int
-        urls.forEach { urlMatch ->
-            indexOfUrl = stringRest.indexOf(urlMatch.value)
-            stringRest = if (indexOfUrl == 0) {
-                addUrl(urlMatch.value)
-                stringRest.replaceFirst(urlMatch.value, "")
-            } else {
-                val before = stringRest.substring(IntRange(0, indexOfUrl - 1))
-                addString(before)
-                addUrl(urlMatch.value)
-                stringRest.replaceFirst(before, "").replaceFirst(urlMatch.value, "")
-            }
-
-        }
-        if (stringRest.isNotEmpty()) addString(stringRest)
-        toAnnotatedString()
-    }
-}
