@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
+import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
@@ -124,8 +125,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopicImpl
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlockingImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
@@ -136,6 +135,8 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerification
 import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModelFactory
@@ -195,7 +196,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         }
 
         single<MatrixClientFactory> {
-            MatrixClientFactoryImpl(get(), get(), get(), get())
+            MatrixClientFactoryImpl(get(), get(), get())
         }
         single<MatrixClients> {
             MatrixClientsImpl(get(), get(), get(), get(), get())
@@ -266,6 +267,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformUrlHandlerModule(),
     platformUriCallerModule(),
     platformDeleteProfileDataModule(),
+    platformProcessImageUploadModule()
 )
 
 private fun timelineElementModule() = module {

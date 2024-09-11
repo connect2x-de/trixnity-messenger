@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Images uploaded on android and desktop are rotated correctly
+
+- allow to check login before creating a MatrixClient
 
 - Compose Multiplatform UI
 
@@ -17,18 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- view model based login check
+
 ### Fixed
+
+- UriCaller not working on Android when MatrixMessenger is created in ApplicationContext
 
 ### Security
 
 ## 2.1.1
 
 ### Added
-
 - Editable room avatar
 - permission necessary flag to android notification settings
 
 ### Changed
+
 - upgrade trixnity version
 
 ### Deprecated
