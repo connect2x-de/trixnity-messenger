@@ -25,16 +25,16 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.EditOff
 import androidx.compose.material.icons.filled.Mood
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -66,6 +66,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
@@ -422,7 +423,7 @@ fun SendButton(inputAreaViewModel: InputAreaViewModel) {
             enabled = enabled
         ) {
             Icon(
-                Icons.Default.Send,
+                Icons.AutoMirrored.Filled.Send,
                 i18n.inputAreaSend(),
                 if (isMobile) Modifier else Modifier.size(20.dp)
             )
@@ -430,13 +431,12 @@ fun SendButton(inputAreaViewModel: InputAreaViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmojiButton(emojisOpen: MutableState<Boolean>) {
     val i18n = DI.get<I18nView>()
     val isMobile = Platform.current.isMobile
     CompositionLocalProvider(
-        LocalMinimumInteractiveComponentEnforcement provides false
+        LocalMinimumInteractiveComponentSize provides Dp.Unspecified
     ) {
         IconToggleButton(
             emojisOpen.value,
@@ -451,7 +451,6 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
@@ -465,7 +464,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     )
     AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
         CompositionLocalProvider(
-            LocalMinimumInteractiveComponentEnforcement provides false
+            LocalMinimumInteractiveComponentSize provides Dp.Unspecified
         ) {
             IconToggleButton(
                 showAttachmentDialog,

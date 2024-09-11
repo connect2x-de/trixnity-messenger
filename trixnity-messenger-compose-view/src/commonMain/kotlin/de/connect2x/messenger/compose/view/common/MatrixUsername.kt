@@ -55,9 +55,9 @@ class MatrixUsernameViewImpl : MatrixUsernameView {
             label = { Text(label) },
             trailingIcon = trailingIcon,
             keyboardOptions = KeyboardOptions(
-                autoCorrect = false,
                 capitalization = KeyboardCapitalization.None,
-                keyboardType = KeyboardType.Text,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Text
             ),
         )
     }

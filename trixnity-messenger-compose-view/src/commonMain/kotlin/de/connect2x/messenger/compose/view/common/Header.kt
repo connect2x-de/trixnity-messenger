@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +39,7 @@ fun Header(backAction: () -> Unit, title: @Composable () -> Unit, additionalButt
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(backAction, Modifier.buttonPointerModifier()) {
-                    Icon(Icons.Default.ArrowBack, i18n.commonBack())
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, i18n.commonBack())
                 }
                 Spacer(Modifier.size(10.dp))
                 title()

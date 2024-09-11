@@ -50,7 +50,7 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
                 )
             },
             placeholder = { Text(i18n.userSearchNameOrMatrixId()) },
-            keyboardOptions = KeyboardOptions(autoCorrect = false)
+            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false)
         )
     }
 }

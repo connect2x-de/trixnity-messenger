@@ -205,10 +205,9 @@ private fun MessageTextContent(
 
         val richTextState = rememberRichTextState()
         richTextState.setHtml(text)
-        richTextState.setConfig(
-            linkColor = if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe
+        richTextState.config.linkColor =
+            if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
-        ) // Inherit link color from Messenger colors
 
         if (mentions.any { it.second != null }) {
             val baseUriHandler = LocalUriHandler.current

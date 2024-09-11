@@ -44,9 +44,9 @@ fun PasswordField(
         modifier = Modifier.fillMaxWidth().then(modifier),
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
             capitalization = KeyboardCapitalization.None,
-            keyboardType = KeyboardType.Password,
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Password
         ),
         trailingIcon = {
             IconButton(

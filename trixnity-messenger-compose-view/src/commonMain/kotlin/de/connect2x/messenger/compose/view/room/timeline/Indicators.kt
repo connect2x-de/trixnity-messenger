@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -278,7 +278,7 @@ fun LeaveRoom(
                             contentPadding = PaddingValues(start = 2.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
                         ) {
                             Icon(
-                                Icons.Default.ExitToApp,
+                                Icons.AutoMirrored.Filled.ExitToApp,
                                 i18n.indicatorLeave(groupOrChat),
                             )
                         }

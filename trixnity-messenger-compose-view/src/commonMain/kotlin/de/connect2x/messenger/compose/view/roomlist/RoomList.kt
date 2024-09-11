@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -83,7 +82,7 @@ class RoomListViewImpl : RoomListView {
                                     Modifier.buttonPointerModifier(),
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Chat, i18n.accountCreateNewRoom())
+                                        Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom())
                                         Spacer(Modifier.size(10.dp))
                                         Text(i18n.roomListCreateRoom(), modifier = Modifier.weight(1.0f, fill = false))
                                     }

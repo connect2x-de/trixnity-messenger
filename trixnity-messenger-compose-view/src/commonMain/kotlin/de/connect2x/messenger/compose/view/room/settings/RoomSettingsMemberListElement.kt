@@ -16,7 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -197,7 +197,7 @@ fun ChangingPowerLevel(memberListElementViewModel: MemberListElementViewModel) {
                         onClick = { if (showPowerLevelHelp) memberListElementViewModel.changePowerLevelViewModel.closePowerLevelHelp() else memberListElementViewModel.changePowerLevelViewModel.openPowerLevelHelp() },
                         Modifier.buttonPointerModifier()
                     ) {
-                        Icon(Icons.Default.Help, i18n.commonHelp())
+                        Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
                     }
                 }
                 Spacer(Modifier.size(10.dp))

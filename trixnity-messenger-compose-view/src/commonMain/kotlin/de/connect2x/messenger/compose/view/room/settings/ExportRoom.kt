@@ -103,14 +103,20 @@ class ExportRoomViewImpl : ExportRoomView {
                         val progressString by state.progressString.collectAsState()
                         val (processed, total) = progress
                         if (processed == null || total == null) LinearProgressIndicator(Modifier.fillMaxWidth())
-                        else LinearProgressIndicator(progress = processed.toFloat() / total, Modifier.fillMaxWidth())
+                        else LinearProgressIndicator(
+                            progress = { processed.toFloat() / total },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                         Spacer(Modifier.size(10.dp))
                         Text(progressString)
                         Spacer(Modifier.size(20.dp))
                     }
 
                     is ExportRoomViewModel.State.Success -> {
-                        LinearProgressIndicator(progress = 1f, Modifier.fillMaxWidth())
+                        LinearProgressIndicator(
+                            progress = { 1f },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                         Spacer(Modifier.size(10.dp))
                         Text(state.progressString)
                         Spacer(Modifier.size(20.dp))

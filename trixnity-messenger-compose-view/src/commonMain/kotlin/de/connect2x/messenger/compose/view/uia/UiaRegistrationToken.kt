@@ -100,9 +100,9 @@ fun RegistrationToken(
         modifier = Modifier.fillMaxWidth().then(tabToNextAndEnterSend),
         label = { Text(i18n.uiaRegistrationTokenAddToken()) },
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
             capitalization = KeyboardCapitalization.None,
-            keyboardType = KeyboardType.Email,
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Email
         ),
     )
 }

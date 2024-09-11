@@ -36,9 +36,9 @@ class ServerInputFieldViewImpl : ServerInputFieldView {
             singleLine = true,
             onValueChange = { addMatrixAccountViewModel.serverUrl.value = it },
             keyboardOptions = KeyboardOptions(
-                autoCorrect = false,
                 capitalization = KeyboardCapitalization.None,
-                keyboardType = KeyboardType.Uri,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Uri
             ),
 
             modifier = Modifier.fillMaxWidth(),
