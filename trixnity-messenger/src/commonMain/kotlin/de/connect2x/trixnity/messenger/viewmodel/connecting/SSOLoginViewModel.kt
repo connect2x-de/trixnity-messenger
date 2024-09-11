@@ -158,7 +158,6 @@ open class SSOLoginViewModelImpl(
                             i18n = i18n,
                             onLogin = onLogin,
                         )
-                        addMatrixAccountState.value = None
                     } finally {
                         log.debug { "Clearing stored sso login info" }
                         messengerSettings.update<MatrixMessengerSettingsBase> {
