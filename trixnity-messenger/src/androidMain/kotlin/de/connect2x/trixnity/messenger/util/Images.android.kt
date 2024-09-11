@@ -9,3 +9,4 @@ actual suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow): Pair<Int?, 
     val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     return bitmap?.width to bitmap?.height
 }
+

@@ -83,6 +83,7 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.uuid)
                 implementation(libs.korge)
+                implementation(libs.kim)
             }
         }
         commonTest {
@@ -106,6 +107,7 @@ kotlin {
             dependencies {
                 implementation(libs.bundles.jna)
             }
+
         }
         androidMain {
             dependsOn(jvmAndNativeMain)

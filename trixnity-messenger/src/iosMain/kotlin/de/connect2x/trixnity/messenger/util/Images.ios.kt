@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import io.ktor.http.ContentType
 import korlibs.image.format.readBitmapInfo
 import korlibs.io.file.std.asMemoryVfsFile
 import net.folivo.trixnity.utils.ByteArrayFlow
