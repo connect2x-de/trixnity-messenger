@@ -219,144 +219,210 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
             }
         }
 
-        should("set main alias") {
-            withTestingHarness {
-                val addError = MutableStateFlow<String?>(null)
-                val changeMainAliasError = MutableStateFlow<String?>(null)
-                val viewModel = roomSettingsAliasViewModel(
-                    coroutineContext,
-                    addError = addError,
-                    updateError = changeMainAliasError
-                )
-
-                eventually(2.seconds) {
-                    viewModel.canChangeRoomAlias.value shouldBe true
-                }
-
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
-                viewModel.addNewAlias()
-
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    addError.value shouldBe null
-                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
-                }
-
-                viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
-
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    changeMainAliasError.value shouldBe null
-                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
-                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
-                }
-
-                verifySuspend(mode = VerifyMode.soft) {
-                    roomsApiClientMock.sendStateEvent(
-                        any(), eq(
-                            CanonicalAliasEventContent(
-                                RoomAliasId("#epicroom:127.0.0.1"),
-                                setOf()
-                            )
-                        ), any(), any()
+        context("main alias") {
+            should("set main alias") {
+                withTestingHarness {
+                    val addError = MutableStateFlow<String?>(null)
+                    val changeMainAliasError = MutableStateFlow<String?>(null)
+                    val viewModel = roomSettingsAliasViewModel(
+                        coroutineContext,
+                        addError = addError,
+                        updateError = changeMainAliasError
                     )
+
+                    eventually(2.seconds) {
+                        viewModel.canChangeRoomAlias.value shouldBe true
+                    }
+
+                    viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                    viewModel.addNewAlias()
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        addError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                    }
+
+                    verifySuspend(mode = VerifyMode.soft) {
+                        roomsApiClientMock.sendStateEvent(
+                            any(), eq(
+                                CanonicalAliasEventContent(
+                                    RoomAliasId("#epicroom:127.0.0.1"),
+                                    setOf()
+                                )
+                            ), any(), any()
+                        )
+                    }
                 }
             }
-        }
 
-        should("remove main alias when null is passed") {
-            withTestingHarness {
-                val addError = MutableStateFlow<String?>(null)
-                val changeMainAliasError = MutableStateFlow<String?>(null)
-                val viewModel = roomSettingsAliasViewModel(
-                    coroutineContext,
-                    addError = addError,
-                    updateError = changeMainAliasError
-                )
-
-                eventually(2.seconds) {
-                    viewModel.canChangeRoomAlias.value shouldBe true
-                }
-
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
-                viewModel.addNewAlias()
-
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    addError.value shouldBe null
-                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
-                }
-
-                viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
-
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    changeMainAliasError.value shouldBe null
-                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
-                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
-                }
-
-                viewModel.changeMainAlias(null)
-
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    changeMainAliasError.value shouldBe null
-                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
-                    viewModel.mainAlias.value shouldBe null
-                }
-
-                verifySuspend(mode = VerifyMode.soft) {
-                    roomsApiClientMock.sendStateEvent(
-                        any(), eq(
-                            CanonicalAliasEventContent(
-                                null,
-                                setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                            )
-                        ), any(), any()
+            should("remove main alias when null is passed") {
+                withTestingHarness {
+                    val addError = MutableStateFlow<String?>(null)
+                    val changeMainAliasError = MutableStateFlow<String?>(null)
+                    val viewModel = roomSettingsAliasViewModel(
+                        coroutineContext,
+                        addError = addError,
+                        updateError = changeMainAliasError
                     )
+
+                    eventually(2.seconds) {
+                        viewModel.canChangeRoomAlias.value shouldBe true
+                    }
+
+                    viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                    viewModel.addNewAlias()
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        addError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(null)
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe null
+                    }
+
+                    verifySuspend(mode = VerifyMode.soft) {
+                        roomsApiClientMock.sendStateEvent(
+                            any(), eq(
+                                CanonicalAliasEventContent(
+                                    null,
+                                    setOf(RoomAliasId("#epicroom:127.0.0.1"))
+                                )
+                            ), any(), any()
+                        )
+                    }
                 }
             }
-        }
 
-        should("don't change main alias when main alias is passed") {
-            withTestingHarness {
-                val addError = MutableStateFlow<String?>(null)
-                val changeMainAliasError = MutableStateFlow<String?>(null)
-                val viewModel = roomSettingsAliasViewModel(
-                    coroutineContext,
-                    addError = addError,
-                    updateError = changeMainAliasError
-                )
+            should("don't change main alias when main alias is passed") {
+                withTestingHarness {
+                    val addError = MutableStateFlow<String?>(null)
+                    val changeMainAliasError = MutableStateFlow<String?>(null)
+                    val viewModel = roomSettingsAliasViewModel(
+                        coroutineContext,
+                        addError = addError,
+                        updateError = changeMainAliasError
+                    )
 
-                eventually(2.seconds) {
-                    viewModel.canChangeRoomAlias.value shouldBe true
+                    eventually(2.seconds) {
+                        viewModel.canChangeRoomAlias.value shouldBe true
+                    }
+
+                    viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                    viewModel.addNewAlias()
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        addError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                    }
                 }
+            }
 
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
-                viewModel.addNewAlias()
+            should("set main alias and degrade original main alias") {
+                withTestingHarness {
+                    val addError = MutableStateFlow<String?>(null)
+                    val changeMainAliasError = MutableStateFlow<String?>(null)
+                    val viewModel = roomSettingsAliasViewModel(
+                        coroutineContext,
+                        addError = addError,
+                        updateError = changeMainAliasError
+                    )
 
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    addError.value shouldBe null
-                    viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
-                }
+                    eventually(2.seconds) {
+                        viewModel.canChangeRoomAlias.value shouldBe true
+                    }
 
-                viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+                    viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                    viewModel.addNewAlias()
 
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    changeMainAliasError.value shouldBe null
-                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
-                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
-                }
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        addError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                    }
 
-                viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+                    viewModel.newAlias.value = "#awesomeroom:127.0.0.1"
+                    viewModel.addNewAlias()
 
-                eventually(2.seconds) {
-                    viewModel.isUpdating.value shouldBe false
-                    changeMainAliasError.value shouldBe null
-                    viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
-                    viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        addError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#awesomeroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(RoomAliasId("#epicroom:127.0.0.1"))
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldNotContain "#epicroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe "#epicroom:127.0.0.1"
+                    }
+
+                    viewModel.changeMainAlias(RoomAliasId("#awesomeroom:127.0.0.1"))
+
+                    eventually(2.seconds) {
+                        viewModel.isUpdating.value shouldBe false
+                        changeMainAliasError.value shouldBe null
+                        viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
+                        viewModel.moreAliases.value shouldNotContain "#awesomeroom:127.0.0.1"
+                        viewModel.mainAlias.value shouldBe "#awesomeroom:127.0.0.1"
+                    }
+
+                    verifySuspend(mode = VerifyMode.soft) {
+                        roomsApiClientMock.sendStateEvent(
+                            any(), eq(
+                                CanonicalAliasEventContent(
+                                    RoomAliasId("#awesomeroom:127.0.0.1"),
+                                    setOf(RoomAliasId("#epicroom:127.0.0.1"))
+                                )
+                            ), any(), any()
+                        )
+                    }
                 }
             }
         }

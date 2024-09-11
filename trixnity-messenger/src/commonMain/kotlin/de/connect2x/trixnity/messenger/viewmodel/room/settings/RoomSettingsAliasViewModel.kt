@@ -267,13 +267,23 @@ class RoomSettingsAliasViewModelImpl(
                     selectedRoomId,
                     CanonicalAliasEventContent(
                         alias,
-                        if (alias == null) {
-                            log.trace { "Moved mainAlias ($currentMainAlias) into others" }
-                            currentMoreAliases + currentMainAlias
-                        } else {
-                            log.trace { "Moved alias ($alias) into mainAlias" }
-                            currentMoreAliases - alias
-                        }
+                        currentMoreAliases
+                            .let {
+                                if (alias == null) {
+                                    log.trace { "Moved mainAlias ($currentMainAlias) into others" }
+                                    it + currentMainAlias
+                                } else it
+                            }.let {
+                                if (alias != null) {
+                                    log.trace { "Moved alias ($alias) into mainAlias" }
+                                    it - alias
+                                } else it
+                            }.let {
+                                if (currentMainAlias.full.isNotBlank()) {
+                                    log.trace { "Moved mainalias ($currentMainAlias) into aliases" }
+                                    it + currentMainAlias
+                                } else it
+                            }
                     )
                 ).fold(
                     onSuccess = {
