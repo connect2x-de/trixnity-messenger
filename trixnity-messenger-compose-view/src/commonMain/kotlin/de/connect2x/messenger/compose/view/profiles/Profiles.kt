@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
@@ -27,7 +28,7 @@ fun Profiles(
     existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
     onCancel: () -> Unit,
 ) {
-    DI.current.get<ProfilesView>().create(matrixMultiMessenger, existingProfiles, onCancel)
+    DI.get<ProfilesView>().create(matrixMultiMessenger, existingProfiles, onCancel)
 }
 
 class ProfilesViewImpl : ProfilesView {

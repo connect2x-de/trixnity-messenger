@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 
@@ -17,7 +18,7 @@ interface AddMatrixAccountView {
 
 @Composable
 fun AddMatrixAccount(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
-    DI.current.get<AddMatrixAccountView>().create(addMatrixAccountViewModel)
+    DI.get<AddMatrixAccountView>().create(addMatrixAccountViewModel)
 }
 
 class AddMatrixAccountViewImpl : AddMatrixAccountView {

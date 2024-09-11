@@ -53,6 +53,7 @@ import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.files.LoadDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
@@ -65,7 +66,7 @@ interface ProfileSettingsView {
 
 @Composable
 fun ProfileSettings(profileViewModel: ProfileViewModel) {
-    DI.current.get<ProfileSettingsView>().create(profileViewModel)
+    DI.get<ProfileSettingsView>().create(profileViewModel)
 }
 
 class ProfileSettingsViewImpl : ProfileSettingsView {
@@ -83,7 +84,7 @@ class ProfileSettingsViewImpl : ProfileSettingsView {
 
 @Composable
 fun ProfileOverview(profileViewModel: ProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val error = profileViewModel.error.collectAsState().value
     val profileSingleViewModels = profileViewModel.profileSingleViewModels.collectAsState().value
     val scroll = rememberScrollState()
@@ -126,7 +127,7 @@ fun ProfileOfAccountCard(
 
 @Composable
 fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val avatar = profileSingleViewModel.avatar.collectAsState().value
     val initials = profileSingleViewModel.initials.collectAsState().value
 
@@ -149,7 +150,7 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
 
 @Composable
 fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileViewModel: ProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val displayName = profileSingleViewModel.displayName.collectAsState().value
     val editDisplayName = profileSingleViewModel.editDisplayName.collectAsStateForTextField().value
 
@@ -232,7 +233,7 @@ private fun done(
 
 @Composable
 fun ProfileUserId(profileSingleViewModel: ProfileSingleViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(i18n.profileUserName(), fontWeight = FontWeight.Bold)

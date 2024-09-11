@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModel
 
@@ -29,13 +30,13 @@ interface UiaActionConfirmationView {
 
 @Composable
 fun UiaActionConfirmation(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel) {
-    DI.current.get<UiaActionConfirmationView>().create(uiaActionConfirmationViewModel)
+    DI.get<UiaActionConfirmationView>().create(uiaActionConfirmationViewModel)
 }
 
 class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
     @Composable
     override fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val message = uiaActionConfirmationViewModel.confirmationMessage ?: "" // TODO shouldn't be nullable
         val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
         UiaModalBox {

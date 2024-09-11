@@ -15,6 +15,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
@@ -25,7 +26,7 @@ interface TypingIndicatorView {
 
 @Composable
 fun TypingIndicator(timelineViewModel: TimelineViewModel) {
-    with(DI.current.get<TypingIndicatorView>()) { create(timelineViewModel) }
+    with(DI.get<TypingIndicatorView>()) { create(timelineViewModel) }
 }
 
 class TypingIndicatorViewImpl : TypingIndicatorView {

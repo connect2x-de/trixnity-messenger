@@ -50,7 +50,7 @@ interface ClientView {
 
 @Composable
 fun Client(rootViewModel: RootViewModel) {
-    DI.current.get<ClientView>().create(rootViewModel)
+    DI.get<ClientView>().create(rootViewModel)
 }
 
 class ClientViewImpl : ClientView {

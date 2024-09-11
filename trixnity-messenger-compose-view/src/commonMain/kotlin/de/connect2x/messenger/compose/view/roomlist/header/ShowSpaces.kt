@@ -12,6 +12,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
@@ -22,13 +23,13 @@ interface ShowSpacesView {
 
 @Composable
 fun ShowSpaces(roomListViewModel: RoomListViewModel) {
-    DI.current.get<ShowSpacesView>().create(roomListViewModel)
+    DI.get<ShowSpacesView>().create(roomListViewModel)
 }
 
 class ShowSpacesViewImpl : ShowSpacesView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val spaces = roomListViewModel.spaces.collectAsState()
         val showSpaces = roomListViewModel.showSpaces.collectAsState()
 

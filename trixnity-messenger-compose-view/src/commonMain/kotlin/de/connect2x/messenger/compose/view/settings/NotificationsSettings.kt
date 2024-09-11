@@ -28,6 +28,7 @@ import de.connect2x.messenger.compose.view.common.ErrorText
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModel
@@ -40,14 +41,13 @@ interface NotificationsSettingsView {
 
 @Composable
 fun NotificationsSettings(notificationsSettingsViewModel: NotificationSettingsAllAccountsViewModel) {
-    DI.current.get<NotificationsSettingsView>().create(notificationsSettingsViewModel)
+    DI.get<NotificationsSettingsView>().create(notificationsSettingsViewModel)
 }
 
-// FIXME white labelling / show website
 class NotificationsSettingsViewImpl : NotificationsSettingsView {
     @Composable
     override fun create(notificationsSettingsViewModel: NotificationSettingsAllAccountsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val notificationSettings = notificationsSettingsViewModel.notificationSettings.collectAsState().value
         val scroll = rememberScrollState()
 
@@ -77,7 +77,7 @@ class NotificationsSettingsViewImpl : NotificationsSettingsView {
 fun NotificationSettingsSingleAccount(
     viewModel: NotificationSettingsSingleAccountViewModel,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
 
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
     SettingsAccountCard(viewModel.account) {
@@ -102,7 +102,7 @@ internal expect fun ColumnScope.PlatformNotificationSettings(
 fun ColumnScope.PlatformNotificationAccountSettings(
     viewModel: NotificationSettingsSingleAccountViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val settings by viewModel.accountSettings.collectAsState()
     val isUpdating by viewModel.accountSettingsIsUpdating.collectAsState()
     val canChangeSettings = !isUpdating

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.ROOM_LIST_WEIGHT
 import de.connect2x.messenger.compose.view.ROOM_WEIGHT
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.RoomSwitch
 import de.connect2x.messenger.compose.view.roomlist.RoomListSwitch
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
@@ -24,7 +25,7 @@ interface MessengerView {
 
 @Composable
 fun Messenger(mainViewModel: MainViewModel) {
-    DI.current.get<MessengerView>().create(mainViewModel)
+    DI.get<MessengerView>().create(mainViewModel)
 }
 
 class MessengerViewImpl : MessengerView {

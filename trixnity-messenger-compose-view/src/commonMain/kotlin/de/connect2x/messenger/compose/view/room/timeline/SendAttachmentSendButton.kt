@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 
@@ -28,13 +29,13 @@ interface SendAttachmentSendButtonView {
 
 @Composable
 fun SendAttachmentSendButton(sendAttachmentViewModel: SendAttachmentViewModel) {
-    with(DI.current.get<SendAttachmentSendButtonView>()) { create(sendAttachmentViewModel) }
+    with(DI.get<SendAttachmentSendButtonView>()) { create(sendAttachmentViewModel) }
 }
 
 class SendAttachmentSendButtonViewImpl : SendAttachmentSendButtonView {
     @Composable
     override fun create(sendAttachmentViewModel: SendAttachmentViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val sendEnabled = sendAttachmentViewModel.sendEnabled.collectAsState().value
         Row(
             Modifier

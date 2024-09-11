@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -21,9 +23,9 @@ interface ThemeDarkColorScheme {
 class ThemeDarkColorSchemeImpl : ThemeDarkColorScheme {
     @Composable
     override fun create(): ColorScheme {
-        val settings = DI.current.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
+        val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
         val accentColor =
-            settings?.base?.accentColor?.let { Color(it.toULong()) } ?: DI.current.get<DefaultAccentColor>().value
+            settings?.base?.accentColor?.let { Color(it.toULong()) } ?: DI.get<DefaultAccentColor>().value
         val accentHue = accentColor.hue
         return darkColorScheme(
             primary = accentColor,

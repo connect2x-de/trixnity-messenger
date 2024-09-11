@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
@@ -30,7 +31,7 @@ interface PasswordLoginView {
 
 @Composable
 fun PasswordLogin(passwordLoginViewModel: PasswordLoginViewModel) {
-    DI.current.get<PasswordLoginView>().create(passwordLoginViewModel)
+    DI.get<PasswordLoginView>().create(passwordLoginViewModel)
 }
 
 class PasswordLoginViewImpl : PasswordLoginView {
@@ -39,7 +40,7 @@ class PasswordLoginViewImpl : PasswordLoginView {
         val state = passwordLoginViewModel.addMatrixAccountState.collectAsState().value
         val canLogin = passwordLoginViewModel.canLogin.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(canLogin, passwordLoginViewModel::tryLogin)
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         Column {
             MatrixUsername(

@@ -27,6 +27,7 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModel
 
@@ -37,13 +38,13 @@ interface UiaRegistrationTokenView {
 
 @Composable
 fun UiaRegistrationToken(uiaStepRegistrationTokenViewModel: UiaStepRegistrationTokenViewModel) {
-    DI.current.get<UiaRegistrationTokenView>().create(uiaStepRegistrationTokenViewModel)
+    DI.get<UiaRegistrationTokenView>().create(uiaStepRegistrationTokenViewModel)
 }
 
 class UiaRegistrationTokenViewImpl : UiaRegistrationTokenView {
     @Composable
     override fun create(uiaStepRegistrationTokenViewModel: UiaStepRegistrationTokenViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isSubmitting = uiaStepRegistrationTokenViewModel.isSubmitting.collectAsState().value
         val error = uiaStepRegistrationTokenViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepRegistrationTokenViewModel::submit)
@@ -90,7 +91,7 @@ fun RegistrationToken(
     tabToNextAndEnterSend: Modifier,
 ) {
     val username by uiaStepRegistrationTokenViewModel.registrationToken.collectAsStateForTextField()
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     OutlinedTextField(
         enabled = true,
         value = username,

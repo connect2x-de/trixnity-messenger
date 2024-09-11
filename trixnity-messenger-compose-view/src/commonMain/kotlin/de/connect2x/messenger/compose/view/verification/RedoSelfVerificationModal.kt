@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModel
 
@@ -28,13 +29,13 @@ interface RedoSelfVerificationModalView {
 
 @Composable
 fun RedoSelfVerificationModal(redoSelfVerificationViewModel: RedoSelfVerificationViewModel) {
-    DI.current.get<RedoSelfVerificationModalView>().create(redoSelfVerificationViewModel)
+    DI.get<RedoSelfVerificationModalView>().create(redoSelfVerificationViewModel)
 }
 
 class RedoSelfVerificationModalViewImpl : RedoSelfVerificationModalView {
     @Composable
     override fun create(redoSelfVerificationViewModel: RedoSelfVerificationViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         MessengerModal(
             redoSelfVerificationViewModel::close,
             i18n.redoSelfVerificationTitle(redoSelfVerificationViewModel.userId),

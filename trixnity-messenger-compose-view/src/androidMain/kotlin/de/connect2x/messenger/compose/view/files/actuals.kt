@@ -51,12 +51,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -107,7 +107,7 @@ actual fun SaveDialog(
     downloadFile: (suspend (ByteArrayFlow) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var disposed by remember { mutableStateOf(false) } // only download file once
     if (error != null) AlertDialog(
         modifier = Modifier.defaultMinSize(minWidth = 400.dp),
@@ -201,8 +201,8 @@ actual fun LoadDialog(
     mode: LoadFileMode,
 ) {
     val context = LocalContext.current
-    val i18n = DI.current.get<I18n>()
-    val i18nView = DI.current.get<I18nView>()
+    val i18n = DI.get<I18n>()
+    val i18nView = DI.get<I18nView>()
     val visualMediaResult = remember { mutableStateOf<Uri?>(null) }
     val fileAttachmentResult = remember { mutableStateOf<Uri?>(null) }
     val mediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {

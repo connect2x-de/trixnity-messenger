@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.max
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -43,7 +44,7 @@ fun Avatar(
     size: Dp = avatarSize().dp,
     overlay: @Composable (BoxScope.() -> Unit)? = null
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     image?.let { imageBitmapFromBytes(it) }?.let { bitmap ->
         val maxScaleX = size / bitmap.width
         val maxScaleY = size / bitmap.height
@@ -97,7 +98,7 @@ fun AvatarWithImage(size: Dp = avatarSize().dp, content: @Composable BoxScope.()
 
 @Composable
 fun AvatarWithPresence(image: ByteArray?, initials: String, presence: Presence?) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Avatar(image, initials) {
         when (presence) {
             null -> {}

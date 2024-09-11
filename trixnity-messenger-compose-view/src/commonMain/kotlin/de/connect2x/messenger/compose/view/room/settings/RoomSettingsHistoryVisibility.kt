@@ -24,6 +24,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
@@ -39,13 +40,13 @@ interface RoomSettingsHistoryVisibilityView {
 
 @Composable
 fun RoomSettingsHistoryVisibility(roomSettingsViewModel: RoomSettingsViewModel) {
-    DI.current.get<RoomSettingsHistoryVisibilityView>().create(roomSettingsViewModel)
+    DI.get<RoomSettingsHistoryVisibilityView>().create(roomSettingsViewModel)
 }
 
 class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView {
     @Composable
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val historyVisibility =
             roomSettingsViewModel.roomSettingsHistoryVisibilityViewModel.roomHistoryVisibility.collectAsState().value
         val canChangeRoomHistoryVisibility =
@@ -108,7 +109,7 @@ fun VisibilityOption(
     roomSettingsHistoryVisibilityViewModel: RoomSettingsHistoryVisibilityViewModel,
     roomSettingsViewModel: RoomSettingsViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val historyVisibility = roomSettingsHistoryVisibilityViewModel.roomHistoryVisibility.collectAsState().value
     val isHistoryVisibilityChanging =
         roomSettingsHistoryVisibilityViewModel.isHistoryVisibilityChanging.collectAsState().value

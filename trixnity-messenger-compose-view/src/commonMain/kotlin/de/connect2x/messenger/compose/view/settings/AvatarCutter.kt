@@ -42,6 +42,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
@@ -57,13 +58,13 @@ interface AvatarCutterView {
 
 @Composable
 fun AvatarCutter(avatarCutterViewModel: AvatarCutterViewModel) {
-    DI.current.get<AvatarCutterView>().create(avatarCutterViewModel)
+    DI.get<AvatarCutterView>().create(avatarCutterViewModel)
 }
 
 class AvatarCutterViewImpl : AvatarCutterView {
     @Composable
     override fun create(avatarCutterViewModel: AvatarCutterViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val upload = avatarCutterViewModel.upload.collectAsState().value
         val error = avatarCutterViewModel.error.collectAsState().value
         var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -163,7 +164,7 @@ class AvatarCutterViewImpl : AvatarCutterView {
 
 @Composable
 fun AvatarCutterHeader(avatarCutterViewModel: AvatarCutterViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Row(
         Modifier
             .fillMaxWidth()

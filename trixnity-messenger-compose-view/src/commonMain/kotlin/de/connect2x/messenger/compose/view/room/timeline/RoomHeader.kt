@@ -17,9 +17,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +44,7 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
@@ -56,7 +57,7 @@ interface RoomHeaderView {
 
 @Composable
 fun RoomHeader(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean = true) {
-    with(DI.current.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton) }
+    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton) }
 }
 
 class RoomHeaderViewImpl : RoomHeaderView {
@@ -119,7 +120,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
 
 @Composable
 fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     IconButton(
         onClick = { roomHeaderViewModel.goBack() },
         modifier = Modifier.align(Alignment.CenterVertically).buttonPointerModifier()
@@ -179,7 +180,7 @@ fun RoomExtras(
 ) {
     val contextMenuOpen = remember { mutableStateOf(false) }
     val isMobile = Platform.current.isMobile
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     when {
         isMobile -> {
             if (showSettingsButton) IconButton(
@@ -227,7 +228,7 @@ fun RoomContextMenu(
     contextMenuOpen: MutableState<Boolean>,
     roomHeaderViewModel: RoomHeaderViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val canVerifyUser = roomHeaderViewModel.canVerifyUser.collectAsState().value
     val canBlockUser = roomHeaderViewModel.canBlockUser.collectAsState().value
     val canUnblockUser = roomHeaderViewModel.canUnblockUser.collectAsState().value

@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.util
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.urlRegex
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
@@ -11,7 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mes
 
 @Composable
 fun formatMessage(message: String, mentions: List<Pair<IntRange, MessageMention?>>, viewmodel: TextBasedViewModel): String {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     return message
         .formatMentions(mentions, i18n::eventMentionPile)
         .handleBodyTypes(viewmodel.formattedBody != null)

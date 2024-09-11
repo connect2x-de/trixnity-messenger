@@ -13,10 +13,11 @@ import de.connect2x.trixnity.messenger.util.OS
 import de.connect2x.trixnity.messenger.util.getOs
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.skia.Font
+import org.jetbrains.skia.FontMgr
 import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.Typeface
 import org.jetbrains.skia.shaper.Shaper
+
 
 private val log = KotlinLogging.logger { }
 
@@ -90,21 +91,25 @@ private fun createImageBitmap(unreadMessages: Long, iconSize: Float): ImageBitma
             iconSize < 1024f -> 15f
             else -> 160f
         }
-        val font = Font(Typeface.makeFromName("verdana", FontStyle.NORMAL), fontSize)
-        val shaper = Shaper.makePrimitive()
-        val string = if (unreadMessages > 99) "99+" else unreadMessages.toString()
-        val text = shaper.shape(string, font, 400f)
-        when {
-            iconSize < 1024f -> text?.let {
-                drawTextBlob(
-                    text,
-                    23f - ((string.length - 1) * 5f),
-                    0f,
-                    skiaPaint
-                )
-            }
+        FontMgr.default.matchFamilyStyle("verdana", FontStyle.NORMAL)?.use { typeface ->
+            Font(typeface, fontSize).use { font ->
+                Shaper.makePrimitive().use { shaper ->
+                    val string = if (unreadMessages > 99) "99+" else unreadMessages.toString()
+                    val text = shaper.shape(string, font, 400f)
+                    when {
+                        iconSize < 1024f -> text?.let {
+                            drawTextBlob(
+                                text,
+                                23f - ((string.length - 1) * 5f),
+                                0f,
+                                skiaPaint
+                            )
+                        }
 
-            else -> text?.let { drawTextBlob(text, 720f - ((string.length - 1) * 60f), 80f, skiaPaint) }
+                        else -> text?.let { drawTextBlob(text, 720f - ((string.length - 1) * 60f), 80f, skiaPaint) }
+                    }
+                }
+            }
         }
     }
     return image

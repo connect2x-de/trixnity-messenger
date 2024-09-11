@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.ThemeMode
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
@@ -29,13 +30,13 @@ interface AppearanceSettingsThemeView {
 
 @Composable
 fun ColumnScope.AppearanceSettingsTheme(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
-    with(DI.current.get<AppearanceSettingsThemeView>()) {create(appearanceSettingsViewModel)}
+    with(DI.get<AppearanceSettingsThemeView>()) {create(appearanceSettingsViewModel)}
 }
 
 class AppearanceSettingsThemeViewImpl : AppearanceSettingsThemeView {
     @Composable
     override fun ColumnScope.create(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val themeMode by appearanceSettingsViewModel.themeMode.collectAsState()
         val themeName = when (themeMode) {
             ThemeMode.LIGHT -> i18n.appearanceThemeLightHeading()

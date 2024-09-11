@@ -9,6 +9,7 @@ import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.common.NextButton
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
@@ -20,14 +21,14 @@ interface AppInfoPrivacyView {
 
 @Composable
 fun AppInfoPrivacy(appInfoViewModel: AppInfoViewModel) {
-    DI.current.get<AppInfoPrivacyView>().create(appInfoViewModel)
+    DI.get<AppInfoPrivacyView>().create(appInfoViewModel)
 }
 
 class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
-        val i18n = DI.current.get<I18nView>()
-        val privacyInfoUrl = DI.current.get<MatrixMessengerConfiguration>().privacyInfoUrl
+        val i18n = DI.get<I18nView>()
+        val privacyInfoUrl = DI.get<MatrixMessengerConfiguration>().privacyInfoUrl
         val richTextState = rememberRichTextState()
         LaunchedEffect(Unit) {
             richTextState.addLink(i18n.appInfoPrivacyLink(), privacyInfoUrl)

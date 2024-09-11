@@ -17,6 +17,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.NextButton
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
@@ -27,13 +28,13 @@ interface AppInfoLicensesView {
 
 @Composable
 fun AppInfoLicenses(appInfoViewModel: AppInfoViewModel) {
-    DI.current.get<AppInfoLicensesView>().create(appInfoViewModel)
+    DI.get<AppInfoLicensesView>().create(appInfoViewModel)
 }
 
 class AppInfoLicensesViewImpl : AppInfoLicensesView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val lazyListState = rememberLazyListState()
         MessengerModal(onDismiss = { appInfoViewModel.showLicenses.value = false }, i18n.appInfoLicenses()) {
             val getLicences = GetLicences.current

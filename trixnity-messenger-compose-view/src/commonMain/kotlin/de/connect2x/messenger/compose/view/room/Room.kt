@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.TWO_PANE_THRESHOLD
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSwitch
 import de.connect2x.messenger.compose.view.room.timeline.RoomContentSwitch
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel
@@ -27,7 +28,7 @@ interface RoomView {
 
 @Composable
 fun Room(roomViewModel: RoomViewModel) {
-    DI.current.get<RoomView>().create(roomViewModel)
+    DI.get<RoomView>().create(roomViewModel)
 }
 
 class RoomViewImpl : RoomView {

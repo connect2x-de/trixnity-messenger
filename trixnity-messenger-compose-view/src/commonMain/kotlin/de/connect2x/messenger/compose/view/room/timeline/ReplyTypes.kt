@@ -30,8 +30,9 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.ClickableText
 import de.connect2x.messenger.compose.view.common.FileName
-import de.connect2x.messenger.compose.view.theme.dp
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.dp
 
 interface TextReplyView {
     @Composable
@@ -40,7 +41,7 @@ interface TextReplyView {
 
 @Composable
 fun TextReply(text: String, maxLines: Int = 4) {
-    with(DI.current.get<TextReplyView>()) { create(text, maxLines) }
+    with(DI.get<TextReplyView>()) { create(text, maxLines) }
 }
 
 class TextReplyViewImpl : TextReplyView {
@@ -63,7 +64,7 @@ interface ImageReplyView {
 
 @Composable
 fun ImageReply(imageBitmap: ImageBitmap) {
-    with(DI.current.get<ImageReplyView>()) { create(imageBitmap) }
+    with(DI.get<ImageReplyView>()) { create(imageBitmap) }
 }
 
 class ImageReplyViewImpl : ImageReplyView {
@@ -85,13 +86,13 @@ interface ImageReplyDefaultView {
 
 @Composable
 fun ImageReplyDefault(fileName: String) {
-    with(DI.current.get<ImageReplyDefaultView>()) { create(fileName) }
+    with(DI.get<ImageReplyDefaultView>()) { create(fileName) }
 }
 
 class ImageReplyDefaultViewImpl : ImageReplyDefaultView {
     @Composable
     override fun create(fileName: String) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Default.Image,
@@ -110,13 +111,13 @@ interface VideoReplyView {
 
 @Composable
 fun VideoReply(imageBitmap: ImageBitmap) {
-    with(DI.current.get<VideoReplyView>()) { create(imageBitmap) }
+    with(DI.get<VideoReplyView>()) { create(imageBitmap) }
 }
 
 class VideoReplyViewImpl : VideoReplyView {
     @Composable
     override fun create(imageBitmap: ImageBitmap) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Box {
             Image(
                 imageBitmap,
@@ -141,14 +142,14 @@ interface VideoReplyDefaultView {
 
 @Composable
 fun VideoReplyDefault(fileName: String) {
-    with(DI.current.get<VideoReplyDefaultView>()) { create(fileName) }
+    with(DI.get<VideoReplyDefaultView>()) { create(fileName) }
 }
 
 class VideoReplyDefaultViewImpl : VideoReplyDefaultView {
     @Composable
     override fun create(fileName: String) {
 
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Default.VideoFile,
@@ -167,14 +168,14 @@ interface AudioReplyView {
 
 @Composable
 fun AudioReply(fileName: String) {
-    with(DI.current.get<AudioReplyView>()) { create(fileName) }
+    with(DI.get<AudioReplyView>()) { create(fileName) }
 }
 
 class AudioReplyViewImpl : AudioReplyView {
     @Composable
     override fun create(fileName: String) {
 
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Default.AudioFile,
@@ -194,14 +195,14 @@ interface FileReplyView {
 
 @Composable
 fun FileReply(fileName: String) {
-    with(DI.current.get<FileReplyView>()) { create(fileName) }
+    with(DI.get<FileReplyView>()) { create(fileName) }
 }
 
 class FileReplyViewImpl : FileReplyView {
     @Composable
     override fun create(fileName: String) {
 
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Default.Attachment,
@@ -221,13 +222,13 @@ interface LocationReplyView {
 
 @Composable
 fun LocationReply(name: String, location: String) {
-    with(DI.current.get<LocationReplyView>()) { create(name, location) }
+    with(DI.get<LocationReplyView>()) { create(name, location) }
 }
 
 class LocationReplyViewImpl : LocationReplyView {
     @Composable
     override fun create(name: String, location: String) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val (geoUrl, pos) = location
             .removePrefix("geo:").substringBefore(";").split(",")
             .let { (lat, lon) ->
@@ -253,13 +254,13 @@ interface UnknownReplyView {
 
 @Composable
 fun UnknownReply() {
-    with(DI.current.get<UnknownReplyView>()) { create() }
+    with(DI.get<UnknownReplyView>()) { create() }
 }
 
 class UnknownReplyViewImpl : UnknownReplyView {
     @Composable
     override fun create() {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Icon(
             Icons.Default.QuestionMark,
             i18n.commonUnknown(),

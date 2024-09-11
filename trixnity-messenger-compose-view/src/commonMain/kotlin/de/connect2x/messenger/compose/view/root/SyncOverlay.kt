@@ -2,12 +2,31 @@ package de.connect2x.messenger.compose.view.root
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,6 +35,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.AccountSync
@@ -30,14 +50,14 @@ interface SyncOverlayView {
 
 @Composable
 fun SyncOverlay(syncViewModel: SyncViewModel) {
-    DI.current.get<SyncOverlayView>().create(syncViewModel)
+    DI.get<SyncOverlayView>().create(syncViewModel)
 }
 
 class SyncOverlayViewImpl : SyncOverlayView {
     @Composable
     override fun create(syncViewModel: SyncViewModel) {
 
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val accountSyncStates by syncViewModel.accountSyncStates.collectAsState()
         val showAbortButton = remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
@@ -77,7 +97,7 @@ class SyncOverlayViewImpl : SyncOverlayView {
                                                 )
                                                 Text(i18n.syncOverlayInitialSync())
                                                 Text(
-                                                    text = i18n.syncOverlayInitialSyncInfo(DI.current.get<MatrixMessengerConfiguration>().appName),
+                                                    text = i18n.syncOverlayInitialSyncInfo(DI.get<MatrixMessengerConfiguration>().appName),
                                                     style = MaterialTheme.typography.bodySmall,
                                                 )
                                             }

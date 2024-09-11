@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.files.FilePathHelper
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
@@ -25,7 +26,7 @@ private val log = KotlinLogging.logger { }
 
 @Composable
 internal actual fun SelectDirectory(properties: FileBasedExportRoomProperties?, result: (Destination?) -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val context = LocalContext.current
 
     val filePathHelper = remember { FilePathHelper(context) }

@@ -34,6 +34,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.export.CSVFileBasedExportRoomProperties
 import de.connect2x.trixnity.messenger.export.Destination
@@ -62,13 +63,13 @@ interface ExportRoomView {
 
 @Composable
 fun ExportRoom(exportRoomViewModel: ExportRoomViewModel) {
-    DI.current.get<ExportRoomView>().create(exportRoomViewModel)
+    DI.get<ExportRoomView>().create(exportRoomViewModel)
 }
 
 class ExportRoomViewImpl : ExportRoomView {
     @Composable
     override fun create(exportRoomViewModel: ExportRoomViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         val roomName = exportRoomViewModel.roomName.collectAsState().value
         val isDirect = exportRoomViewModel.isDirect.collectAsState().value
@@ -161,7 +162,7 @@ class ExportRoomViewImpl : ExportRoomView {
 
 @Composable
 fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val properties = exportRoomViewModel.properties.collectAsState().value
 
     val targets = listOf(

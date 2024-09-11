@@ -37,6 +37,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModel
@@ -52,7 +53,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 
 @Composable
 fun DeviceVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val deviceDisplayName = verificationStepRequestViewModel.deviceDisplayName.collectAsState().value
     val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
 
@@ -73,7 +74,7 @@ fun DeviceVerificationRequest(verificationStepRequestViewModel: VerificationStep
 
 @Composable
 fun DeviceVerificationWaitForOther(cancelAction: (() -> Unit)? = null) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         LoadingSpinner()
         Spacer(Modifier.size(20.dp))
@@ -124,7 +125,7 @@ fun SelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificati
 
 @Composable
 fun AcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column {
         Text(i18n.verificationStartEmoji())
         Spacer(Modifier.size(20.dp))
@@ -135,7 +136,7 @@ fun AcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
 
 @Composable
 fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val emojis = verificationStepCompareViewModel.emojis
     val decimals = verificationStepCompareViewModel.decimals
     Column(Modifier.fillMaxWidth().align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -192,7 +193,7 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
 
 @Composable
 fun DeviceVerificationSuccess(verificationStepSuccessViewModel: VerificationStepSuccessViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val deviceName = verificationStepSuccessViewModel.deviceName.collectAsState().value ?: i18n.commonUnknown()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -209,7 +210,7 @@ fun VerificationRejected(
     verificationStepRejectedViewModel: VerificationStepRejectedViewModel,
     deviceVerification: Boolean = true
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -229,7 +230,7 @@ fun VerificationTimeout(
     verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
     deviceVerification: Boolean = true
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(i18n.verificationTimeout(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
@@ -247,7 +248,7 @@ fun VerificationCancelled(
     verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
     deviceVerification: Boolean = true
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = i18n.verificationCancelled(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
@@ -262,7 +263,7 @@ fun VerificationCancelled(
 
 @Composable
 private fun Emoji(emoji: Pair<String, Map<String, String?>>, maxWidth: Dp) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Column(
         Modifier
             .padding(10.dp)
@@ -284,7 +285,7 @@ private fun Number(number: Int) {
 
 @Composable
 private fun OkButton(onClick: () -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(1.0f, fill = true))
         Button(onClick, Modifier.buttonPointerModifier()) {

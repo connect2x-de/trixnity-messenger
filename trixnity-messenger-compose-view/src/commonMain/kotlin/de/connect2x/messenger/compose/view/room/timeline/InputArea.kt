@@ -78,6 +78,8 @@ import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.files.LoadDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
 import de.connect2x.messenger.compose.view.files.getClipboardFile
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
@@ -93,13 +95,13 @@ interface InputAreaView {
 
 @Composable
 fun InputArea(inputAreaViewModel: InputAreaViewModel) {
-    DI.current.get<InputAreaView>().create(inputAreaViewModel)
+    DI.get<InputAreaView>().create(inputAreaViewModel)
 }
 
 class InputAreaViewImpl : InputAreaView {
     @Composable
     override fun create(inputAreaViewModel: InputAreaViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isReplyTo = inputAreaViewModel.isReplyTo.collectAsState().value
         val replyToViewModel = inputAreaViewModel.replyToViewModel.collectAsState().value
         val canSendMessages = inputAreaViewModel.isAllowedToSendMessages.collectAsState().value
@@ -204,8 +206,8 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
-    val i18n = DI.current.get<I18nView>()
-    val fileSystem = DI.current.getOrNull<FileSystem>() // TODO this does not work in Web
+    val i18n = DI.get<I18nView>()
+    val fileSystem = DI.getOrNull<FileSystem>() // TODO this does not work in Web
     val message = inputAreaViewModel.message.collectAsStateForTextField()
     val selection = remember { mutableStateOf(TextRange(message.value.length)) }
     val focusRequester = remember { FocusRequester() }
@@ -313,7 +315,7 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
 
 @Composable
 fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val message = inputAreaViewModel.message.collectAsStateForTextField().value
     val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState().value
     val focusRequester = remember { FocusRequester() }
@@ -359,7 +361,7 @@ fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
         textStyle = MaterialTheme.typography.bodyMedium,
         keyboardOptions = KeyboardOptions.Default.copy(
             capitalization = KeyboardCapitalization.Sentences,
-            autoCorrect = true,
+            autoCorrectEnabled = true,
         ),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -380,7 +382,7 @@ fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
 
 @Composable
 fun EditButton(inputAreaViewModel: InputAreaViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val isMobile = Platform.current.isMobile
     Button(
         onClick = {
@@ -403,7 +405,7 @@ fun EditButton(inputAreaViewModel: InputAreaViewModel) {
 
 @Composable
 fun SendButton(inputAreaViewModel: InputAreaViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val enabled = inputAreaViewModel.isSendEnabled.collectAsState().value
     val isMobile = Platform.current.isMobile
     AnimatedVisibility(enabled, enter = fadeIn(), exit = fadeOut()) {
@@ -431,7 +433,7 @@ fun SendButton(inputAreaViewModel: InputAreaViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmojiButton(emojisOpen: MutableState<Boolean>) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val isMobile = Platform.current.isMobile
     CompositionLocalProvider(
         LocalMinimumInteractiveComponentEnforcement provides false
@@ -452,7 +454,7 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val isMobile = Platform.current.isMobile
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value

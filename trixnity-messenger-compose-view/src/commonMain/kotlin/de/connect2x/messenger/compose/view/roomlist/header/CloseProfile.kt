@@ -13,6 +13,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
@@ -23,13 +24,13 @@ interface CloseProfileView {
 
 @Composable
 fun CloseProfile(roomListViewModel: RoomListViewModel) {
-    DI.current.get<CloseProfileView>().create(roomListViewModel)
+    DI.get<CloseProfileView>().create(roomListViewModel)
 }
 
 class CloseProfileViewImpl : CloseProfileView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         if (roomListViewModel.closeProfileNeeded) {
             Box {

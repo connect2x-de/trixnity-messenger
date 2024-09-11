@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
@@ -39,14 +40,14 @@ interface PrivacySettingsView {
 
 @Composable
 fun PrivacySettings(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
-    DI.current.get<PrivacySettingsView>().create(privacySettingsViewModel)
+    DI.get<PrivacySettingsView>().create(privacySettingsViewModel)
 }
 
 class PrivacySettingsViewImpl : PrivacySettingsView {
     @Composable
     override fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
         val privacySettings = privacySettingsViewModel.privacySettings.collectAsState().value
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val scroll = rememberScrollState()
         Box(Modifier.fillMaxSize()) {
             Column {
@@ -73,12 +74,12 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
     val presenceIsPublic = privacySettingViewModel.presenceIsPublic.collectAsState().value
     val readMarkerIsPublic = privacySettingViewModel.readMarkerIsPublic.collectAsState().value
     val typingIsPublic = privacySettingViewModel.typingIsPublic.collectAsState().value
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
 
     SettingsAccountCard(privacySettingViewModel.account) {
         Setting(
             text = i18n.privacyPresenceIsPublic(),
-            explanation = i18n.privacyPresenceIsPublicExplanation(DI.current.get<MatrixMessengerConfiguration>().appName),
+            explanation = i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName),
             value = presenceIsPublic,
         ) {
             privacySettingViewModel.togglePresenceIsPublic()

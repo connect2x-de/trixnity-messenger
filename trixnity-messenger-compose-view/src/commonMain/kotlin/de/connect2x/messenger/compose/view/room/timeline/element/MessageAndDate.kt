@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModel
@@ -37,7 +38,7 @@ fun MessageAndDate(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     onLongPress: (Offset) -> Unit,
 ) {
-    DI.current.get<MessageAndDateView>().create(roomMessageViewModel, timelineElementHolderViewModel, onLongPress)
+    DI.get<MessageAndDateView>().create(roomMessageViewModel, timelineElementHolderViewModel, onLongPress)
 }
 
 class MessageAndDateViewImpl : MessageAndDateView {
@@ -94,7 +95,7 @@ fun MessageDateText(
     roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     if (roomMessageViewModel !is RedactedMessageViewModel) {
         roomMessageViewModel.formattedTime?.let {
             Row(

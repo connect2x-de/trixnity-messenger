@@ -25,6 +25,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import kotlinx.coroutines.launch
@@ -41,13 +42,13 @@ interface ProfileSelectionView {
 
 @Composable
 fun ProfileSelection(profileManager: ProfileManager, onCancel: () -> Unit) {
-    DI.current.get<ProfileSelectionView>().create(profileManager, onCancel)
+    DI.get<ProfileSelectionView>().create(profileManager, onCancel)
 }
 
 class ProfileSelectionViewImpl : ProfileSelectionView {
     @Composable
     override fun create(profileManager: ProfileManager, onCancel: () -> Unit) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val coroutineScope = rememberCoroutineScope()
         val profiles = profileManager.profiles.collectAsState().value
         val showProfileCreation = ShowProfileCreation.current

@@ -42,6 +42,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.ErrorDialog
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
@@ -60,13 +61,13 @@ interface TimelineView {
 
 @Composable
 fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
-    with(DI.current.get<TimelineView>()) { create(timelineViewModel) }
+    with(DI.get<TimelineView>()) { create(timelineViewModel) }
 }
 
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isFocused = IsFocused.current
         // because layout is reversed
         val timelineElementHolderViewModels =

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
 private val MAX_WIDTH = 1600.dp
@@ -21,7 +22,7 @@ interface MainView {
 
 @Composable
 fun Main(mainViewModel: MainViewModel) {
-    DI.current.get<MainView>().create(mainViewModel)
+    DI.get<MainView>().create(mainViewModel)
 }
 
 class MainViewImpl : MainView {

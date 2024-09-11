@@ -64,6 +64,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.files.SaveDialog
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.AudioReply
@@ -80,7 +81,22 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMess
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 
@@ -133,7 +149,7 @@ private fun MessageTextContent(
 ) {
     val referencedMessage = textBasedViewModel.referencedMessage.collectAsState().value
 
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
 
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         if (textBasedViewModel is NoticeMessageViewModel) {
@@ -229,7 +245,7 @@ fun MessageRichText(uriHandler: UriHandler, state: RichTextState, isByMe: Boolea
 
 @Composable
 private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val formattedMessage = redactedMessageViewModel.formattedMessage.collectAsState().value
     Row(Modifier.padding(10.dp)) {
         Icon(
@@ -249,7 +265,7 @@ private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) 
 
 @Composable
 private fun EncryptedMessage(encryptedMessageViewModel: EncryptedMessageViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val waitForDecryption = encryptedMessageViewModel.waitForDecryption.collectAsState().value
     if (waitForDecryption) {
         Row(Modifier.padding(10.dp)) {
@@ -319,7 +335,7 @@ private fun InboxMessageImage(
     imageMessageViewModel: ImageMessageViewModel,
     onLongPress: (Offset) -> Unit
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val uploadProgress = imageMessageViewModel.uploadProgress.collectAsState(null)
     val image = imageMessageViewModel.thumbnail.collectAsState()
 
@@ -412,7 +428,7 @@ private fun MessageVideo(
     onLongPress: (Offset) -> Unit,
     baseTimelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val thumbnail = videoMessageViewModel.thumbnail.collectAsState()
 
     val saveFileDialogOpen = videoMessageViewModel.saveFileDialogOpen.collectAsState()
@@ -511,7 +527,7 @@ private fun MessageAudio(
     baseTimelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     onLongPress: (Offset) -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val saveFileDialogOpen = audioMessageViewModel.saveFileDialogOpen.collectAsState()
     val downloadProgressElement = audioMessageViewModel.downloadProgress.collectAsState()
     val downloadSuccessful = audioMessageViewModel.downloadSuccessful.collectAsState()
@@ -590,7 +606,7 @@ private fun MessageFile(
     baseTimelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     onLongPress: (Offset) -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val saveFileDialogOpen = fileMessageViewModel.saveFileDialogOpen.collectAsState()
     val downloadProgressElement = fileMessageViewModel.downloadProgress.collectAsState()
     val downloadSuccessful = fileMessageViewModel.downloadSuccessful.collectAsState()
@@ -690,7 +706,7 @@ fun MessageLocation(viewmodel: LocationMessageViewModel, onLongPress: (Offset) -
 
 @Composable
 fun MessageLocationContent(viewmodel: LocationMessageViewModel, onLongPress: (Offset) -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = viewmodel.geoUri
         .removePrefix("geo:").substringBefore(";").split(",")
         .let { (lat, lon) ->

@@ -2,7 +2,12 @@ package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.VideoLabel
@@ -19,13 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModel
 import kotlinx.coroutines.delay
@@ -37,13 +47,13 @@ interface VideoOverlayView {
 
 @Composable
 fun VideoOverlay(videoViewModel: VideoViewModel) {
-    DI.current.get<VideoOverlayView>().create(videoViewModel)
+    DI.get<VideoOverlayView>().create(videoViewModel)
 }
 
 class VideoOverlayViewImpl : VideoOverlayView {
     @Composable
     override fun create(videoViewModel: VideoViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val video = videoViewModel.video.collectAsState()
         val progressElement = videoViewModel.progress.collectAsState()
         val isFocused = IsFocused.current

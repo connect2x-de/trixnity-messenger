@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
@@ -38,13 +39,13 @@ interface RoomSettingsMemberListView {
 
 @Composable
 fun RoomSettingsMemberList(roomSettingsViewModel: RoomSettingsViewModel) {
-    DI.current.get<RoomSettingsMemberListView>().create(roomSettingsViewModel)
+    DI.get<RoomSettingsMemberListView>().create(roomSettingsViewModel)
 }
 
 class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
     @Composable
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
         val memberListViewModels =
             roomSettingsViewModel.memberListViewModel.memberListElementViewModels.collectAsState().value

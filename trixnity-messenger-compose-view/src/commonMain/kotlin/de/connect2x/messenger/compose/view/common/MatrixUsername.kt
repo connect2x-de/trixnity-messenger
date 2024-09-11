@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 
 interface MatrixUsernameView {
     @Composable
@@ -32,7 +33,7 @@ fun MatrixUsername(
     modifier: Modifier = Modifier,
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
-    DI.current.get<MatrixUsernameView>().create(username, setUsername, label, enabled, modifier, trailingIcon)
+    DI.get<MatrixUsernameView>().create(username, setUsername, label, enabled, modifier, trailingIcon)
 }
 
 class MatrixUsernameViewImpl : MatrixUsernameView {

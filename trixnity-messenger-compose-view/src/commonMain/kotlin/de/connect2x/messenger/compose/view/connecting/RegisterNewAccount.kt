@@ -19,6 +19,7 @@ import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
 
@@ -30,13 +31,13 @@ interface RegisterNewAccountView {
 
 @Composable
 fun RegisterNewAccount(registerNewAccountViewModel: RegisterNewAccountViewModel) {
-    DI.current.get<RegisterNewAccountView>().create(registerNewAccountViewModel)
+    DI.get<RegisterNewAccountView>().create(registerNewAccountViewModel)
 }
 
 class RegisterNewAccountViewImpl : RegisterNewAccountView {
     @Composable
     override fun create(registerNewAccountViewModel: RegisterNewAccountViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val canRegisterNewUser = registerNewAccountViewModel.canRegisterNewUser.collectAsState().value
         val error = registerNewAccountViewModel.error.collectAsState().value
 

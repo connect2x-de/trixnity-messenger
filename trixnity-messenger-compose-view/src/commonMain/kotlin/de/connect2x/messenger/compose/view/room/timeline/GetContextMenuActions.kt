@@ -7,8 +7,16 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsDebug
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.*
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.ABORT_SEND
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.DEBUG
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.DOWNLOAD
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.EDIT
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REDACT
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPLY
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPORT
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.RETRY_SEND
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileBasedMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -52,7 +60,7 @@ fun BaseTimelineElementHolderViewModel.getContextMenuActions(
     downloadAction: () -> Unit,
     debugAction: () -> Unit
 ): State<List<BaseTimelineElementHolderContextMenuAction>> {
-    return with(DI.current.get<GetContextMenuActionsView>()) { create(i18n, downloadAction, debugAction) }
+    return with(DI.get<GetContextMenuActionsView>()) { create(i18n, downloadAction, debugAction) }
 }
 
 class GetContextMenuActionsViewImpl : GetContextMenuActionsView {

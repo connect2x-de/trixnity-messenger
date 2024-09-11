@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.common.AvatarWithImage
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.placeholder
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
@@ -41,7 +42,7 @@ fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
 ) {
-    DI.current.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel)
+    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel)
 }
 
 class RoomListElementViewImpl : RoomListElementView {
@@ -90,7 +91,7 @@ fun MatrixClientColor(roomElementViewModel: RoomListElementViewModel) {
 
 @Composable
 fun RoomImage(roomElementViewModel: RoomListElementViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val isInvite = roomElementViewModel.isInvite.collectAsState().value
     val roomImage = roomElementViewModel.roomImage.collectAsState().value
     val roomImageInitials = roomElementViewModel.roomImageInitials.collectAsState().value

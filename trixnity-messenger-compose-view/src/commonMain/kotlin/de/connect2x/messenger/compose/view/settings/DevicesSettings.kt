@@ -63,6 +63,7 @@ import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
@@ -77,13 +78,13 @@ interface DevicesSettingsView {
 
 @Composable
 fun DevicesSettings(devicesSettingsViewModel: DevicesSettingsViewModel) {
-    DI.current.get<DevicesSettingsView>().create(devicesSettingsViewModel)
+    DI.get<DevicesSettingsView>().create(devicesSettingsViewModel)
 }
 
 class DevicesSettingsViewImpl : DevicesSettingsView {
     @Composable
     override fun create(devicesSettingsViewModel: DevicesSettingsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val error = devicesSettingsViewModel.error.collectAsState()
         val scroll = rememberScrollState()
         Box(Modifier.fillMaxSize()) {
@@ -136,7 +137,7 @@ fun AccountWithDevicesList(
 
 @Composable
 fun ThisDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: DevicesSettingsViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val displayName = device.displayName.collectAsState().value
     val editDeviceDisplayName = remember { mutableStateOf(false) }
     val editedDisplayName = remember {
@@ -184,7 +185,7 @@ fun OtherDevices(
     otherDevices: List<DeviceInfo>,
     devicesSettingsViewModel: DevicesSettingsViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     if (otherDevices.isNotEmpty()) {
         Column(Modifier.padding(10.dp)) {
             Text(i18n.devicesOtherDevices(), style = MaterialTheme.typography.bodyLarge)
@@ -203,7 +204,7 @@ fun OtherDevices(
 
 @Composable
 fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: DevicesSettingsViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val displayName = device.displayName.collectAsState().value
     val isVerified = device.isVerified.collectAsState().value
     val showOptions = remember { mutableStateOf(false) }
@@ -284,7 +285,7 @@ fun DeviceRow(
     editedDisplayName: MutableState<TextFieldValue>,
     editActions: @Composable () -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val displayName = device.displayName.collectAsState().value
     val isVerified = device.isVerified.collectAsState().value
     val focusRequester = remember { FocusRequester() }

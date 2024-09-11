@@ -12,9 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
+import de.connect2x.messenger.compose.view.common.NextButton
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportMessageViewModel
 
@@ -23,7 +24,7 @@ fun MessageReport(
     reportToMessageViewModel: ReportMessageViewModel,
 ) {
 
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val focusRequester = remember { FocusRequester() }
     val reason = reportToMessageViewModel.messageReportReason.collectAsState().value
 

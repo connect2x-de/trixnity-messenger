@@ -33,6 +33,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.CloseApp
@@ -46,13 +47,13 @@ interface StoreFailureView {
 
 @Composable
 fun StoreFailure(storeFailureViewModel: StoreFailureViewModel) {
-    DI.current.get<StoreFailureView>().create(storeFailureViewModel)
+    DI.get<StoreFailureView>().create(storeFailureViewModel)
 }
 
 class StoreFailureViewImpl : StoreFailureView {
     @Composable
     override fun create(storeFailureViewModel: StoreFailureViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val deleteEnabled = storeFailureViewModel.deleteEnabled
         val scroll = rememberScrollState()
 
@@ -66,7 +67,7 @@ class StoreFailureViewImpl : StoreFailureView {
                     .heightIn(max = 600.dp)
                     .verticalScroll(scroll)
             ) {
-                val appName = DI.current.get<MatrixMessengerConfiguration>().appName
+                val appName = DI.get<MatrixMessengerConfiguration>().appName
                 if (deleteEnabled.not()
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -129,7 +130,7 @@ class StoreFailureViewImpl : StoreFailureView {
             )
         }
 
-        val closeApp = DI.current.get<CloseApp>()
+        val closeApp = DI.get<CloseApp>()
         LaunchedEffect(Unit) {
             if (deleteEnabled.not()) {
                 delay(5_000)

@@ -35,9 +35,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.vault
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -51,8 +48,12 @@ import de.connect2x.messenger.compose.view.common.WizardImage
 import de.connect2x.messenger.compose.view.common.WizardNextButton
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.copyToClipboard
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModel
+import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
+import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
+import de.connect2x.trixnity_messenger_compose_view.generated.resources.vault
 import kotlinx.coroutines.launch
 
 const val RECOVERY_KEY_EXPLANATION = "RECOVERY_KEY_EXPLANATION"
@@ -61,7 +62,7 @@ const val FINISHED = "FINISHED"
 
 @Composable
 fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val wizardSteps = listOf(
         WizardStep(
             id = RECOVERY_KEY_EXPLANATION,

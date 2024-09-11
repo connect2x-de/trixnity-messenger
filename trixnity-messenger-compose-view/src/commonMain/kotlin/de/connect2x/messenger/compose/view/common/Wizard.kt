@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.max
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
@@ -214,7 +215,7 @@ private fun RowScope.NextButton(
 
 @Composable
 private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, enabled: @Composable () -> Boolean) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Button(
         onClick = { currentStep.value = nextStep },
         modifier = Modifier.buttonPointerModifier(),
@@ -226,7 +227,7 @@ private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, 
 
 @Composable
 private fun BackButton(currentStep: MutableState<StepId>, previousStep: StepId) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Button(
         onClick = { currentStep.value = previousStep },
         modifier = Modifier.buttonPointerModifier(),

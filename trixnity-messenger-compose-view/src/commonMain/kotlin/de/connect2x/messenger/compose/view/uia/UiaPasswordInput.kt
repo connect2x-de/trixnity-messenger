@@ -24,6 +24,7 @@ import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModel
 
@@ -34,13 +35,13 @@ interface UiaPasswordInputView {
 
 @Composable
 fun UiaPasswordInput(uiaStepPasswordViewModel: UiaStepPasswordViewModel) {
-    DI.current.get<UiaPasswordInputView>().create(uiaStepPasswordViewModel)
+    DI.get<UiaPasswordInputView>().create(uiaStepPasswordViewModel)
 }
 
 class UiaPasswordInputViewImpl : UiaPasswordInputView {
     @Composable
     override fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isSubmitting = uiaStepPasswordViewModel.isSubmitting.collectAsState().value
         val error = uiaStepPasswordViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepPasswordViewModel::submit)

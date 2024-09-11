@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
@@ -36,7 +37,7 @@ fun MessageContainer(
     roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    DI.current.get<MessageContainerView>().create(roomMessageViewModel, timelineElementHolderViewModel)
+    DI.get<MessageContainerView>().create(roomMessageViewModel, timelineElementHolderViewModel)
 }
 
 class MessageContainerViewImpl : MessageContainerView {
@@ -102,7 +103,7 @@ class MessageContainerViewImpl : MessageContainerView {
 
 @Composable
 fun RedactionInProgress() {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Box(Modifier.size(16.dp).padding(2.dp)) {
         Icon(Icons.Default.AutoDelete, i18n.messageBubbleBeingDeleted())
     }

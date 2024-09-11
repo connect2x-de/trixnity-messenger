@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 
 @Composable
@@ -72,7 +73,7 @@ private fun ColumnScope.MoreInfo(
     content: @Composable ColumnScope.() -> Unit,
     icon: ImageVector,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var expanded by remember { mutableStateOf(false) }
     val rotateState by animateFloatAsState(
         targetValue = if (expanded) 180F else 0F,

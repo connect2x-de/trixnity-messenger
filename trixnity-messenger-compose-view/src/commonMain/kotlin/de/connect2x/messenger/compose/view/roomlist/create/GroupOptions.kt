@@ -23,6 +23,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
@@ -37,7 +38,7 @@ interface CreateGroupOptionsView {
 
 @Composable
 fun CreateGroupOptions(createNewGroupViewModel: CreateNewGroupViewModel) {
-    DI.current.get<CreateGroupOptionsView>().create(createNewGroupViewModel)
+    DI.get<CreateGroupOptionsView>().create(createNewGroupViewModel)
 }
 
 class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
@@ -46,7 +47,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val historyVisibility by createNewGroupViewModel.optionalRoomHistoryVisibility.collectAsState()
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         Column {
             Row(
@@ -134,7 +135,7 @@ private fun VisibilityOption(
     visibility: HistoryVisibilityEventContent.HistoryVisibility,
     createNewGroupViewModel: CreateNewGroupViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val historyVisibility by createNewGroupViewModel.optionalRoomHistoryVisibility.collectAsState()
     val isEncrypted = createNewGroupViewModel.isEncrypted.collectAsState().value
     Row(

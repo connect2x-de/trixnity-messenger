@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
@@ -43,13 +44,13 @@ interface InviteView {
 fun Invite(
     roomListElementViewModel: RoomListElementViewModel,
 ) {
-    DI.current.get<InviteView>().create(roomListElementViewModel)
+    DI.get<InviteView>().create(roomListElementViewModel)
 }
 
 class InviteViewImpl : InviteView {
     @Composable
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val showReject = remember { mutableStateOf(false) }
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val inviterUserInfo = roomListElementViewModel.inviterUserInfo.collectAsState().value

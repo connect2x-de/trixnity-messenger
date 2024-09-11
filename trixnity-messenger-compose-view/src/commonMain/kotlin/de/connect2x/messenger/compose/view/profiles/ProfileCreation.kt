@@ -16,10 +16,11 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
 import de.connect2x.trixnity.messenger.util.CloseApp
@@ -31,14 +32,14 @@ interface ProfileCreationView {
 
 @Composable
 fun ProfileCreation(profileCreationViewModel: ProfileCreationViewModel) {
-    DI.current.get<ProfileCreationView>().create(profileCreationViewModel)
+    DI.get<ProfileCreationView>().create(profileCreationViewModel)
 }
 
 class ProfileCreationViewImpl : ProfileCreationView {
     @Composable
     override fun create(profileCreationViewModel: ProfileCreationViewModel) {
-        val i18n = DI.current.get<I18nView>()
-        val closeApp = DI.current.get<CloseApp>()
+        val i18n = DI.get<I18nView>()
+        val closeApp = DI.get<CloseApp>()
         val profileName = profileCreationViewModel.profileName.collectAsStateForTextField().value
         val error = profileCreationViewModel.error.collectAsState().value
         val canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value

@@ -11,6 +11,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.WarningDialog
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.settings.Setting
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModel
@@ -22,13 +23,13 @@ interface RoomSettingsSecurityView {
 
 @Composable
 fun RoomSettingsSecurity(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel) {
-    DI.current.get<RoomSettingsSecurityView>().create(roomSettingsSecurityViewModel)
+    DI.get<RoomSettingsSecurityView>().create(roomSettingsSecurityViewModel)
 }
 
 class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
     @Composable
     override fun create(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isEncrypting = roomSettingsSecurityViewModel.isEncrypted.collectAsState().value
         val canEnableEncryption = roomSettingsSecurityViewModel.canEnableEncryption.collectAsState().value
         val leaveEnableEncryptionWarningOpen =
@@ -57,7 +58,7 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
 
 @Composable
 fun RoomSettingsEnableEncryptionWarning(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val isChat = roomSettingsSecurityViewModel.isChat.collectAsState().value
     val encryptionWarningTitle = if (isChat) {
         i18n.roomSettingsEnableEncryptionWarningTitleChat()

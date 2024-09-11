@@ -24,6 +24,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getStateName
@@ -38,7 +39,7 @@ interface RoomSettingsJoinRulesView {
 
 @Composable
 fun RoomSettingsJoinRules(roomSettingsViewModel: RoomSettingsViewModel) {
-    DI.current.get<RoomSettingsJoinRulesView>().create(roomSettingsViewModel)
+    DI.get<RoomSettingsJoinRulesView>().create(roomSettingsViewModel)
 }
 
 class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
@@ -48,7 +49,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
         val currentJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState()
         val joinRuleIsChanging =
             roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState()
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         Column {
             Text(i18n.chatJoinRule(), style = MaterialTheme.typography.titleMedium)
@@ -84,7 +85,7 @@ fun JoinRuleOption(
     joinRule: JoinRulesEventContent.JoinRule,
     joinRulesViewModel: RoomSettingsJoinRulesViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val currentJoinRule = joinRulesViewModel.joinRule.collectAsState().value
     val joinRuleIsChanging =
         joinRulesViewModel.isJoinRuleChanging.collectAsState().value

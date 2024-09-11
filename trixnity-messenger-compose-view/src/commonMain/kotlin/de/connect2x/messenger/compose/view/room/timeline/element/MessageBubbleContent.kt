@@ -55,6 +55,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuAction
@@ -93,7 +94,7 @@ fun MessageBubbleContent(
     messageActions: List<BaseTimelineElementHolderContextMenuAction>,
     showBottomSheet: MutableState<Boolean>,
 ) {
-    DI.current.get<MessageBubbleContentView>()
+    DI.get<MessageBubbleContentView>()
         .create(roomMessageViewModel, timelineElementHolderViewModel, messageActions, showBottomSheet)
 }
 

@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
@@ -24,7 +25,7 @@ interface SSOLoginView {
 
 @Composable
 fun SSOLogin(ssoLoginViewModel: SSOLoginViewModel) {
-    DI.current.get<SSOLoginView>().create(ssoLoginViewModel)
+    DI.get<SSOLoginView>().create(ssoLoginViewModel)
 }
 
 class SSOLoginViewImpl : SSOLoginView {
@@ -32,7 +33,7 @@ class SSOLoginViewImpl : SSOLoginView {
     override fun create(ssoLoginViewModel: SSOLoginViewModel) {
         val state = ssoLoginViewModel.addMatrixAccountState.collectAsState().value
         val waitForRedirect = ssoLoginViewModel.waitForRedirect.collectAsState().value
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         if (waitForRedirect) {
             Text(i18n.externalLogin(ssoLoginViewModel.providerName))

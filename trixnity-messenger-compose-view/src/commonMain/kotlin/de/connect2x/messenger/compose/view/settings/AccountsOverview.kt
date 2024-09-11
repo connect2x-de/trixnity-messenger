@@ -46,6 +46,7 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
@@ -57,13 +58,13 @@ interface AccountsOverviewView {
 
 @Composable
 fun AccountsOverview(accountsOverviewViewModel: AccountsOverviewViewModel) {
-    DI.current.get<AccountsOverviewView>().create(accountsOverviewViewModel)
+    DI.get<AccountsOverviewView>().create(accountsOverviewViewModel)
 }
 
 class AccountsOverviewViewImpl : AccountsOverviewView {
     @Composable
     override fun create(accountsOverviewViewModel: AccountsOverviewViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val accounts = remember { accountsOverviewViewModel.accounts }.collectAsState().value
         val scrollState = rememberScrollState()
         var showLogoutWarning by remember { mutableStateOf<AccountInfo?>(null) }

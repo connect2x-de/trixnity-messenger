@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 
@@ -27,13 +28,13 @@ interface UserSearchFieldView {
 
 @Composable
 fun UserSearchField(userSearchHandler: UserSearchHandler) {
-    DI.current.get<UserSearchFieldView>().create(userSearchHandler)
+    DI.get<UserSearchFieldView>().create(userSearchHandler)
 }
 
 class UserSearchFieldViewImpl : UserSearchFieldView {
     @Composable
     override fun create(userSearchHandler: UserSearchHandler) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val userSearchTerm = userSearchHandler.searchTerm.collectAsStateForTextField().value
 
         OutlinedTextField(

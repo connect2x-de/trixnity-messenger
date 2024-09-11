@@ -35,6 +35,7 @@ import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
@@ -46,14 +47,13 @@ interface SelfVerificationModalView {
 
 @Composable
 fun SelfVerificationModal(selfVerificationViewModel: SelfVerificationViewModel) {
-    DI.current.get<SelfVerificationModalView>().create(selfVerificationViewModel)
+    DI.get<SelfVerificationModalView>().create(selfVerificationViewModel)
 }
 
 class SelfVerificationModalViewImpl : SelfVerificationModalView {
     @Composable
     override fun create(selfVerificationViewModel: SelfVerificationViewModel) {
-
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val showVerificationHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
         val showPassphraseMethod = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
         val showRecoveryKeyMethod = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
@@ -74,7 +74,7 @@ class SelfVerificationModalViewImpl : SelfVerificationModalView {
 
 @Composable
 fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerificationViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     MessengerModalContent {
         Text(text = i18n.selfVerificationHelpOtherDevice())
         Text(text = i18n.selfVerificationHelpVerifyThis())
@@ -99,7 +99,7 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
 
 @Composable
 fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerificationViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
     val selectedVerificationMethod = remember { mutableStateOf<SelfVerificationMethod?>(null) }
 
@@ -206,7 +206,7 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
 fun ColumnScope.ShowPassphraseMethod(
     selfVerificationViewModel: SelfVerificationViewModel,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val passphraseWrong = selfVerificationViewModel.passphraseWrong.collectAsState()
     val error = selfVerificationViewModel.error.collectAsState()
     val passphrase = remember { mutableStateOf("") }
@@ -252,7 +252,7 @@ fun ColumnScope.ShowPassphraseMethod(
 fun ColumnScope.ShowRecoveryKeyMethod(
     selfVerificationViewModel: SelfVerificationViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val recoveryKeyWrong = selfVerificationViewModel.recoveryKeyWrong.collectAsState()
     val error = selfVerificationViewModel.error.collectAsState()
     val recoveryKey = remember { mutableStateOf("") }

@@ -32,6 +32,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
@@ -44,7 +45,7 @@ interface UserSearchResultListView {
 
 @Composable
 fun UserSearchResultList(userSearchHandler: UserSearchHandler, userClickReaction: suspend (SearchUserElement) -> Unit,) {
-    DI.current.get<UserSearchResultListView>().create(userSearchHandler, userClickReaction)
+    DI.get<UserSearchResultListView>().create(userSearchHandler, userClickReaction)
 }
 
 class UserSearchResultListViewImpl : UserSearchResultListView {
@@ -52,7 +53,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     override fun create(
         userSearchHandler: UserSearchHandler,
         userClickReaction: suspend (SearchUserElement) -> Unit, ) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val users = userSearchHandler.foundUsers.collectAsState().value
         val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
         val searchWasApplied = userSearchHandler.searchTerm.map { it.isNotBlank() }.collectAsState(false).value

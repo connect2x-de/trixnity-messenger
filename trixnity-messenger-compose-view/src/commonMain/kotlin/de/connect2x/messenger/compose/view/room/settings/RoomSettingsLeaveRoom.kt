@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.WarningDialog
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
@@ -30,7 +31,7 @@ interface RoomSettingsLeaveRoomView {
 
 @Composable
 fun RoomSettingsLeaveRoom(roomSettingsViewModel: RoomSettingsViewModel) {
-    DI.current.get<RoomSettingsLeaveRoomView>().create(roomSettingsViewModel)
+    DI.get<RoomSettingsLeaveRoomView>().create(roomSettingsViewModel)
 }
 
 class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
@@ -58,7 +59,7 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
 
 @Composable
 fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val leaveRoomWarningMessage = roomSettingsViewModel.leaveRoomWarningMessage.collectAsState().value
     val leaveRoomWarningTitle = roomSettingsViewModel.leaveRoomWarningTitle.collectAsState().value
     val leaveRoomWarningConfirmButtonText =

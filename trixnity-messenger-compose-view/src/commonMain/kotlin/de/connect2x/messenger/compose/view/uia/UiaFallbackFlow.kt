@@ -20,6 +20,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModel
 
@@ -30,13 +31,13 @@ interface UiaFallbackFlowView {
 
 @Composable
 fun UiaFallbackFlow(uiaStepFallbackViewModel: UiaStepFallbackViewModel) {
-    DI.current.get<UiaFallbackFlowView>().create(uiaStepFallbackViewModel)
+    DI.get<UiaFallbackFlowView>().create(uiaStepFallbackViewModel)
 }
 
 class UiaFallbackFlowViewImpl : UiaFallbackFlowView {
     @Composable
     override fun create(uiaStepFallbackViewModel: UiaStepFallbackViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val error = uiaStepFallbackViewModel.error.collectAsState().value
         val isAwaiting = uiaStepFallbackViewModel.waitForResult.collectAsState().value
         UiaModalBox {

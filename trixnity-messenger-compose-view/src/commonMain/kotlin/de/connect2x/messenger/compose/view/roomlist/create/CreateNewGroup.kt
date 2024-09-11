@@ -26,10 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
@@ -42,13 +43,13 @@ interface CreateNewGroupView {
 
 @Composable
 fun CreateNewGroup(createNewGroupViewModel: CreateNewGroupViewModel) {
-    DI.current.get<CreateNewGroupView>().create(createNewGroupViewModel)
+    DI.get<CreateNewGroupView>().create(createNewGroupViewModel)
 }
 
 class CreateNewGroupViewImpl : CreateNewGroupView {
     @Composable
     override fun create(createNewGroupViewModel: CreateNewGroupViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val canCreateNewGroup = createNewGroupViewModel.canCreateNewGroup.collectAsState()
         val error = createNewGroupViewModel.error.collectAsState()
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
@@ -139,7 +140,7 @@ fun OptionalRoomNameInput(
     createNewGroupViewModel: CreateNewGroupViewModel,
     optionalRoomName: String
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     OutlinedTextField(
         value = optionalRoomName,
         onValueChange = { createNewGroupViewModel.optionalRoomName.value = it },
@@ -155,7 +156,7 @@ fun OptionalRoomTopicInput(
     createNewGroupViewModel: CreateNewGroupViewModel,
     optionalRoomTopic: String
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     OutlinedTextField(
         value = optionalRoomTopic,
         onValueChange = { createNewGroupViewModel.optionalGroupTopic.value = it },

@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
@@ -14,17 +11,6 @@ kotlin {
     jvmToolchain(kotlinJvm.toInt())
     androidTarget {
         publishLibraryVariants("release")
-
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        instrumentedTestVariant {
-            sourceSetTree.set(KotlinSourceSetTree.test)
-            dependencies {
-                // TODO Remove the dependency on ui-test-junit4-android when 1.7.0 is released,
-                //  as the needed classes in will have moved to ui-test
-                implementation(libs.ui.test.android)
-                debugImplementation(libs.ui.test.android.manifest)
-            }
-        }
         compilations.configureEach {
             kotlinOptions.jvmTarget = kotlinJvm
         }
@@ -112,6 +98,11 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
+            }
+        }
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.androidx.test.monitor)
             }
         }
     }

@@ -7,6 +7,7 @@ import androidx.compose.ui.window.TrayState
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
@@ -46,7 +47,7 @@ fun Notifications(
     matrixMessenger: MatrixMessenger,
     trayState: TrayState,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
 
     val windowIsFocused = IsFocused.current
     LaunchedEffect(windowIsFocused) {

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
@@ -32,14 +33,14 @@ interface AppearanceSettingsView {
 
 @Composable
 fun AppearanceSettings(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
-    DI.current.get<AppearanceSettingsView>().create(appearanceSettingsViewModel)
+    DI.get<AppearanceSettingsView>().create(appearanceSettingsViewModel)
 }
 
 class AppearanceSettingsViewImpl : AppearanceSettingsView {
     @Composable
     override fun create(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
-        val i18n = DI.current.get<I18nView>()
-        val defaultAccentColor = DI.current.get<DefaultAccentColor>().value
+        val i18n = DI.get<I18nView>()
+        val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val scroll = rememberScrollState()
         val isHighContrast by appearanceSettingsViewModel.isHighContrast.collectAsState()
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()

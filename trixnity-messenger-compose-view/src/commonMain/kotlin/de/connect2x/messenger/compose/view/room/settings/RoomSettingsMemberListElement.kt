@@ -39,16 +39,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MessengerDialog
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.WarningDialog
+import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.*
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.ADMIN
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import net.folivo.trixnity.core.model.UserId
 
@@ -69,7 +72,7 @@ fun RoomSettingsMemberListElement(
     memberListElementViewModel: MemberListElementViewModel,
     clickedUser: MutableState<MemberListElementViewModel.MemberElement?>,
 ) {
-    DI.current.get<RoomSettingsMemberListElementView>()
+    DI.get<RoomSettingsMemberListElementView>()
         .create(memberListViewModel, memberUserId, memberListElementViewModel, clickedUser)
 }
 
@@ -81,7 +84,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         memberListElementViewModel: MemberListElementViewModel,
         clickedUser: MutableState<MemberListElementViewModel.MemberElement?>,
     ) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val memberElement = memberListElementViewModel.member.collectAsState().value
         val memberOptionsOpen = memberListElementViewModel.memberOptionsOpen.collectAsState().value
         val role = memberListElementViewModel.role.collectAsState().value
@@ -140,7 +143,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
 
 @Composable
 fun ChangingRoleWarning(memberListElementViewModel: MemberListElementViewModel, role: Role) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val newRole = getRoleName(role, i18n)
     val oldRole = getRoleName(memberListElementViewModel.role.collectAsState().value, i18n)
     val username = memberListElementViewModel.member.collectAsState().value?.displayName ?: i18n.commonUnknown()
@@ -168,7 +171,7 @@ fun ChangingRoleWarning(memberListElementViewModel: MemberListElementViewModel, 
 
 @Composable
 fun ChangingPowerLevel(memberListElementViewModel: MemberListElementViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val changePowerLevelInput =
         memberListElementViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsStateForTextField().value
     val showPowerLevelHelp =
@@ -259,7 +262,7 @@ private fun MemberOptions(
     userId: UserId,
     clickedUser: MutableState<MemberListElementViewModel.MemberElement?>
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val iHavePowerToKickUser =
         memberListElementViewModel.iHavePowerToKickUser.collectAsState().value
     val canSetRoleToAdmin =
@@ -409,7 +412,7 @@ fun KickUserWarning(
     memberListElementViewModel: MemberListElementViewModel,
     userId: UserId
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val kickUserWarningMessage =
         memberListElementViewModel.kickUserWarningMessage.collectAsState().value
     val kickUserWarningTitle =

@@ -36,6 +36,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModel
@@ -48,13 +49,13 @@ interface ReplyToAreaView {
 
 @Composable
 fun ColumnScope.ReplyToArea(replyToViewModel: ReplyToViewModel?) {
-    with(DI.current.get<ReplyToAreaView>()) { create(replyToViewModel) }
+    with(DI.get<ReplyToAreaView>()) { create(replyToViewModel) }
 }
 
 class ReplyToAreaViewImpl : ReplyToAreaView {
     @Composable
     override fun ColumnScope.create(replyToViewModel: ReplyToViewModel?) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val replyTo = replyToViewModel?.replyTo?.collectAsState()?.value
         val isMobile = Platform.current.isMobile
 
@@ -93,7 +94,7 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
 
 @Composable
 fun ReplyToPill(replyToViewModel: ReplyToViewModel, content: @Composable () -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val replyTo = replyToViewModel.replyTo.collectAsState().value
 
     ReferencedMessagePill(

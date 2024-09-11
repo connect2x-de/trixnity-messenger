@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FloatingActionButton
@@ -37,6 +38,7 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.header.AccountMenuItem
 import de.connect2x.messenger.compose.view.roomlist.header.SelectAccountHeader
@@ -53,7 +55,7 @@ interface RoomListView {
 
 @Composable
 fun RoomList(roomListViewModel: RoomListViewModel) {
-    DI.current.get<RoomListView>().create(roomListViewModel)
+    DI.get<RoomListView>().create(roomListViewModel)
 }
 
 class RoomListViewImpl : RoomListView {
@@ -63,7 +65,7 @@ class RoomListViewImpl : RoomListView {
         val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
         val allRooms = roomListViewModel.sortedRoomListElementViewModels.collectAsState().value
         val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Surface {
             Box(
                 Modifier
@@ -127,7 +129,7 @@ class RoomListViewImpl : RoomListView {
 
 @Composable
 fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
     val accounts = roomListViewModel.accountViewModel.accounts.collectAsState().value
     val selectActiveAccount = remember { mutableStateOf(false) }
@@ -150,7 +152,7 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
             ) {
-                Icon(Icons.Default.Chat, i18n.accountCreateNewRoom())
+                Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom())
             }
         }
 

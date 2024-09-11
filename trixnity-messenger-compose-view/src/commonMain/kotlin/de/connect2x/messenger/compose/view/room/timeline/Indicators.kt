@@ -33,12 +33,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.HistoryVisibilityChangeStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomEncryptionEnabledViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomNameChangeStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomTopicChangeStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 // FIXME
 
@@ -122,7 +131,7 @@ fun UnreadMessagesIndicator(
     if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
         val hasUnreadMarker = timelineElementHolderViewModel.shouldShowUnreadMarkerFlow.collectAsState().value
         if (hasUnreadMarker) {
-            val i18n = DI.current.get<I18nView>()
+            val i18n = DI.get<I18nView>()
             Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 HorizontalDivider(
                     Modifier.weight(1.0f).padding(end = 20.dp),
@@ -237,7 +246,7 @@ fun LeaveRoom(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     timelineViewModel: TimelineViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val viewModel = timelineElementHolderViewModel.timelineElementViewModel.collectAsState().value
     val isDirect = timelineViewModel.isDirect.collectAsState().value
     if (viewModel != null) {

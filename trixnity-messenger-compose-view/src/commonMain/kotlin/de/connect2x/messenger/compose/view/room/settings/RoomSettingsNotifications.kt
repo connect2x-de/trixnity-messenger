@@ -25,6 +25,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevels
@@ -37,13 +38,13 @@ interface RoomSettingsNotificationsView {
 
 @Composable
 fun RoomSettingsNotifications(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel) {
-    DI.current.get<RoomSettingsNotificationsView>().create(roomSettingsNotificationsViewModel)
+    DI.get<RoomSettingsNotificationsView>().create(roomSettingsNotificationsViewModel)
 }
 
 class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
     @Composable
     override fun create(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isLoading = roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsState().value
 
         Column {
@@ -82,7 +83,7 @@ fun RoomSettingsNotificationsLevel(
     roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel,
     level: NotificationLevel,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val selectedRoomNotificationLevel =
         roomSettingsNotificationsViewModel.selectedRoomNotificationsLevel.collectAsState()
     val name = level.name.collectAsState()

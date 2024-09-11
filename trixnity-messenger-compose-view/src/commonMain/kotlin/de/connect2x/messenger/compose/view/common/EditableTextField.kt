@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldViewModel
 
@@ -37,7 +38,7 @@ fun EditableTextField(
     textPlaceholder: String = "",
     textInfoCannotChange: String = "",
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val isLoading by viewModel.isLoading.collectAsState()
     val state = viewModel.state.collectAsState().value
     val displayValue by state.collectAsStateForTextField()

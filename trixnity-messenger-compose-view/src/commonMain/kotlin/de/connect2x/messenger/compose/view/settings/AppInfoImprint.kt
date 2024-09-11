@@ -9,6 +9,7 @@ import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.common.NextButton
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
@@ -20,15 +21,15 @@ interface AppInfoImprintView {
 
 @Composable
 fun AppInfoImprint(appInfoViewModel: AppInfoViewModel) {
-    DI.current.get<AppInfoImprintView>().create(appInfoViewModel)
+    DI.get<AppInfoImprintView>().create(appInfoViewModel)
 }
 
 // FIXME white labelling / show website
 class AppInfoImprintViewImpl : AppInfoImprintView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
-        val i18n = DI.current.get<I18nView>()
-        val imprintUrl = DI.current.get<MatrixMessengerConfiguration>().imprintUrl
+        val i18n = DI.get<I18nView>()
+        val imprintUrl = DI.get<MatrixMessengerConfiguration>().imprintUrl
         println("imprintUrl: $imprintUrl")
         val richTextState = rememberRichTextState()
         LaunchedEffect(Unit) {

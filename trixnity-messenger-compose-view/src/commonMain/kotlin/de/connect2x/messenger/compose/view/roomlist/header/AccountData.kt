@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 
@@ -20,7 +21,7 @@ interface AccountDataView {
 
 @Composable
 fun AccountData(roomListViewModel: RoomListViewModel) {
-    DI.current.get<AccountDataView>().create(roomListViewModel)
+    DI.get<AccountDataView>().create(roomListViewModel)
 }
 
 class AccountDataViewImpl : AccountDataView {

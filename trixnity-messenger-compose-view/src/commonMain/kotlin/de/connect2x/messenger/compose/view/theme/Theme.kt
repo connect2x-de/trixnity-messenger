@@ -7,6 +7,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 
 interface Theme {
     @Composable
@@ -26,10 +27,10 @@ fun MessengerTheme(
     messengerColors: MessengerColors = DefaultMessengerColors,
     messengerDpConstants: MessengerDpConstants = DefaultMessengerDpConstants,
     shapes: Shapes = MaterialTheme.shapes,
-    typography: Typography = DI.current.get<ThemeTypography>().create(),
+    typography: Typography = DI.get<ThemeTypography>().create(),
     content: @Composable () -> Unit,
 ) {
-    DI.current.get<Theme>()
+    DI.get<Theme>()
         .create(colorScheme, messengerColors, messengerDpConstants, shapes, typography, content)
 }
 

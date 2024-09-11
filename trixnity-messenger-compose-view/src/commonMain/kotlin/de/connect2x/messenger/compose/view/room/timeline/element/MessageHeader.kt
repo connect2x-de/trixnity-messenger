@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
@@ -26,7 +27,7 @@ fun MessageHeader(
     roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    DI.current.get<MessageHeaderView>().create(roomMessageViewModel, timelineElementHolderViewModel)
+    DI.get<MessageHeaderView>().create(roomMessageViewModel, timelineElementHolderViewModel)
 }
 
 class MessageHeaderViewImpl : MessageHeaderView {

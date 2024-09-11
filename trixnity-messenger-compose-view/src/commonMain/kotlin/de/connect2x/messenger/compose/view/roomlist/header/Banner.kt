@@ -54,11 +54,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.AvatarWithImage
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.thenNullable
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -93,7 +94,7 @@ fun Banner(
 
 @Composable
 fun SyncErrorBanner(roomListViewModel: RoomListViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val syncStateError = roomListViewModel.syncStateError.collectAsState().value
     val allSyncError = roomListViewModel.allSyncError.collectAsState().value
     val visible = syncStateError.any { (_, error) -> error }
@@ -127,7 +128,7 @@ fun SyncErrorBanner(roomListViewModel: RoomListViewModel) {
 
 @Composable
 fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val firstUserNotVerified = roomListViewModel.unverifiedAccounts.collectAsState().value.firstOrNull()
     Banner(
         firstUserNotVerified != null,
@@ -154,7 +155,7 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
 
 @Composable
 fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val showSearch = roomListViewModel.showSearch.collectAsState().value
     val searchTerm = roomListViewModel.searchTerm.collectAsStateForTextField().value
     val focusRequester = remember { FocusRequester() }
@@ -205,7 +206,7 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
 
 @Composable
 fun SpacesBanner(roomListViewModel: RoomListViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val spaces = roomListViewModel.spaces.collectAsState().value
     val showSpaces = roomListViewModel.showSpaces.collectAsState().value
     val listState = rememberLazyListState()

@@ -21,6 +21,7 @@ import de.connect2x.messenger.compose.view.common.EditButton
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.files.LoadDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModel
 
@@ -31,7 +32,7 @@ interface ChangeRoomAvatarView {
 
 @Composable
 fun ChangeRoomAvatar(changeRoomAvatarViewModel: ChangeRoomAvatarViewModel) {
-    DI.current.get<ChangeRoomAvatarView>().create(changeRoomAvatarViewModel)
+    DI.get<ChangeRoomAvatarView>().create(changeRoomAvatarViewModel)
 }
 
 class ChangeRoomAvatarViewImpl : ChangeRoomAvatarView {
@@ -41,7 +42,7 @@ class ChangeRoomAvatarViewImpl : ChangeRoomAvatarView {
         val openSelector = changeRoomAvatarViewModel.openImageSelector.collectAsState().value
         val avatar = changeRoomAvatarViewModel.avatar.collectAsState().value
         val initials = changeRoomAvatarViewModel.initials.collectAsState().value
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             Box(Modifier.align(Alignment.Center)) {
                 Avatar(avatar, initials, this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)) {

@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 
@@ -21,14 +22,14 @@ interface ServerInputFieldView {
 
 @Composable
 fun ServerInputField(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
-    DI.current.get<ServerInputFieldView>().create(addMatrixAccountViewModel)
+    DI.get<ServerInputFieldView>().create(addMatrixAccountViewModel)
 }
 
 class ServerInputFieldViewImpl : ServerInputFieldView {
     @Composable
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val serverUrl by addMatrixAccountViewModel.serverUrl.collectAsStateForTextField()
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         OutlinedTextField(
             value = serverUrl,

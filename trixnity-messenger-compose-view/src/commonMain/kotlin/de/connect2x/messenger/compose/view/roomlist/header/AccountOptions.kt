@@ -19,6 +19,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
@@ -31,14 +32,14 @@ interface AccountOptionsView {
 
 @Composable
 fun AccountOptions(accountViewModel: AccountViewModel, roomListViewModel: RoomListViewModel) {
-    DI.current.get<AccountOptionsView>().create(accountViewModel, roomListViewModel)
+    DI.get<AccountOptionsView>().create(accountViewModel, roomListViewModel)
 }
 
 class AccountOptionsViewImpl : AccountOptionsView {
     @Composable
     override fun create(accountViewModel: AccountViewModel, roomListViewModel: RoomListViewModel) {
-        val i18n = DI.current.get<I18nView>()
-        val config = DI.current.get<MatrixMessengerConfiguration>()
+        val i18n = DI.get<I18nView>()
+        val config = DI.get<MatrixMessengerConfiguration>()
         val menuOpen = remember { mutableStateOf(false) }
         IconButton({ menuOpen.value = menuOpen.value.not() }, Modifier.buttonPointerModifier()) {
             Icon(Icons.Default.MoreVert, i18n.accountMoreSettings())

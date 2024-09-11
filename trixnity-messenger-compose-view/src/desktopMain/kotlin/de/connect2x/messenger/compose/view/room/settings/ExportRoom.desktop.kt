@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
@@ -28,7 +29,7 @@ import okio.Path.Companion.toPath
 
 @Composable
 internal actual fun SelectDirectory(properties: FileBasedExportRoomProperties?, result: (Destination?) -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var showDirPicker by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         result(System.getProperty("user.home").toPath())

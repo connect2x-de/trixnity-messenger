@@ -13,6 +13,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNextButton
 import de.connect2x.messenger.compose.view.common.WizardStep
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
@@ -38,7 +39,7 @@ class AdditionalConnectingWizardStepImpl : AdditionalConnectingWizardStep {
 @Composable
 fun <T : Any> ConnectingWizard(viewModel: T) {
     val di = DI.current
-    val i18n = di.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val wizardStep = when (viewModel) {
         is AddMatrixAccountViewModel -> WizardStep(
             id = ADD_MATRIX_ACCOUNT,

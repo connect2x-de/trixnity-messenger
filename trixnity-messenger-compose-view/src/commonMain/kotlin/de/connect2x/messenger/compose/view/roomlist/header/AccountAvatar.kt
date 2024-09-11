@@ -32,6 +32,7 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
@@ -45,7 +46,7 @@ interface AccountAvatarView {
 
 @Composable
 fun RowScope.AccountAvatar(accountViewModel: AccountViewModel) {
-    with(DI.current.get<AccountAvatarView>()) { create(accountViewModel) }
+    with(DI.get<AccountAvatarView>()) { create(accountViewModel) }
 }
 
 class AccountAvatarViewImpl : AccountAvatarView {
@@ -62,7 +63,7 @@ class AccountAvatarViewImpl : AccountAvatarView {
 
 @Composable
 fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val accountSelectionOpen = remember { mutableStateOf(false) }
     val isSingleAccount = accountViewModel.isSingleAccount.collectAsState().value
     val activeAccountInfo = remember(accountViewModel.accounts.value, activeAccount) {
@@ -128,7 +129,7 @@ fun AvatarArea(
 
 @Composable
 fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
 
@@ -184,7 +185,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
 
 @Composable
 fun AllAccountsMenuItem(accountViewModel: AccountViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     DropdownMenuItem(
         text = {
             Row(

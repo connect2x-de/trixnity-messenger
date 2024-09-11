@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.blockPointerInput
+import de.connect2x.messenger.compose.view.get
 
 
 interface UiaModalBoxView {
@@ -26,7 +27,7 @@ interface UiaModalBoxView {
 
 @Composable
 fun UiaModalBox(content: @Composable BoxScope.() -> Unit) {
-    DI.current.get<UiaModalBoxView>().create(content)
+    DI.get<UiaModalBoxView>().create(content)
 }
 
 class UiaModalBoxViewImpl : UiaModalBoxView {

@@ -61,7 +61,8 @@ actual fun Tooltip(
     onClick: (() -> Unit)?,
     content: @Composable () -> Unit
 ) {
-    // FIXME
+    // FIXME just show the content for now
+    content()
 }
 
 actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =

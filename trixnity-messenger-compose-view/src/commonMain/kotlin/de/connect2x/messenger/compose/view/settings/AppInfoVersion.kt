@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 // TODO TIM
@@ -12,7 +13,7 @@ interface AppInfoVersionView {
 
 @Composable
 fun AppInfoVersion(appInfoViewModel: AppInfoViewModel) {
-    DI.current.get<AppInfoVersionView>().create(appInfoViewModel)
+    DI.get<AppInfoVersionView>().create(appInfoViewModel)
 }
 
 class AppInfoVersionViewImpl : AppInfoVersionView {

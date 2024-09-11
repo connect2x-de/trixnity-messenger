@@ -17,6 +17,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
 
@@ -27,14 +28,14 @@ interface MatrixClientLogoutView {
 
 @Composable
 fun MatrixClientLogout(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel) {
-    DI.current.get<MatrixClientLogoutView>().create(removeMatrixAccountViewModel)
+    DI.get<MatrixClientLogoutView>().create(removeMatrixAccountViewModel)
 }
 
 class MatrixClientLogoutViewImpl : MatrixClientLogoutView {
     @Composable
     override fun create(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel) {
         val error = removeMatrixAccountViewModel.error.collectAsState().value
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
 
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.align(Alignment.Center)) {

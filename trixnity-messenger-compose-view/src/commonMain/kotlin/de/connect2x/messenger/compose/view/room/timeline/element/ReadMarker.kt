@@ -15,8 +15,9 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.theme.dp
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -34,7 +35,7 @@ fun ReadMarker(
     roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    DI.current.get<ReadMarkerView>().create(roomMessageViewModel, timelineElementHolderViewModel)
+    DI.get<ReadMarkerView>().create(roomMessageViewModel, timelineElementHolderViewModel)
 }
 
 class ReadMarkerViewImpl : ReadMarkerView {
@@ -43,7 +44,7 @@ class ReadMarkerViewImpl : ReadMarkerView {
         roomMessageViewModel: RoomMessageViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel
     ) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
             val isRead = timelineElementHolderViewModel.isRead.collectAsState()
             val isByMe = roomMessageViewModel.isByMe

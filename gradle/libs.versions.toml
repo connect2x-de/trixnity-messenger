@@ -40,7 +40,7 @@ activity = "1.9.0" # https://developer.android.com/jetpack/androidx/releases/act
 androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-api
 
 # ui
-composeMultiplatform = "1.6.11" # https://github.com/JetBrains/compose-multiplatform/releases
+composeMultiplatform = "1.7.0-beta02" # https://github.com/JetBrains/compose-multiplatform/releases
 richeditor = "1.0.0-rc05-k2" # https://github.com/MohamedRejeb/Compose-Rich-Editor
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
@@ -57,6 +57,7 @@ firebase = "33.1.1" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://firebase.google.com/support/release-notes/android
 qrCodeKotlin = "4.1.1" # https://github.com/g0dkar/qrcode-kotlin/tags
 cmpFilePicker = "3.1.0" # https://github.com/Wavesonics/compose-multiplatform-file-picker/releases
+androidTestMonitor = "1.7.2" # https://developer.android.com/jetpack/androidx/releases/test
 
 [libraries]
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
@@ -117,8 +118,8 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version = "" }
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
-ui-test-android = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "composeUiTest" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
+androidx-test-monitor = {module = "androidx.test:monitor", version.ref = "androidTestMonitor"}
 
 [bundles]
 kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]

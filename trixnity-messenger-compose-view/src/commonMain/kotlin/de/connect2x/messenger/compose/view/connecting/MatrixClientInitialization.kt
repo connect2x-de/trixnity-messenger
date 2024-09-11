@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
 
 interface MatrixClientInitializationView {
@@ -19,7 +20,7 @@ interface MatrixClientInitializationView {
 
 @Composable
 fun MatrixClientInitialization(matrixClientInitializationViewModel: MatrixClientInitializationViewModel) {
-    DI.current.get<MatrixClientInitializationView>().create(matrixClientInitializationViewModel)
+    DI.get<MatrixClientInitializationView>().create(matrixClientInitializationViewModel)
 }
 
 class MatrixClientInitializationViewImpl : MatrixClientInitializationView {

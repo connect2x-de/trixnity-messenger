@@ -38,6 +38,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.verification.AcceptSasStart
 import de.connect2x.messenger.compose.view.verification.CompareEmojisOrNumbers
@@ -58,13 +59,13 @@ interface UserVerificationView {
 
 @Composable
 fun UserVerification(userVerificationViewModel: UserVerificationViewModel) {
-    DI.current.get<UserVerificationView>().create(userVerificationViewModel)
+    DI.get<UserVerificationView>().create(userVerificationViewModel)
 }
 
 class UserVerificationViewImpl : UserVerificationView {
     @Composable
     override fun create(userVerificationViewModel: UserVerificationViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val sender = userVerificationViewModel.sender.collectAsState().value
         val isActive = userVerificationViewModel.isActive.collectAsState().value
         val reachedEndState = userVerificationViewModel.reachedEndState.collectAsState().value
@@ -180,7 +181,7 @@ fun UserVerificationStepSwitch(viewModel: VerificationViewModel) {
 
 @Composable
 fun UserVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val theirDisplayName =
         verificationStepRequestViewModel.theirDisplayName.collectAsState().value ?: i18n.commonUnknown()
 
@@ -198,7 +199,7 @@ fun UserVerificationRequest(verificationStepRequestViewModel: VerificationStepRe
 
 @Composable
 fun UserVerificationSuccess() {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(i18n.userVerificationSuccessMessage())
         Icon(Icons.Default.CheckCircle, i18n.userVerificationSuccess())
@@ -207,6 +208,6 @@ fun UserVerificationSuccess() {
 
 @Composable
 fun VerificationAcceptedByOtherClient() {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Text(i18n.userVerificationOtherDevice())
 }

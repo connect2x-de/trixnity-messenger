@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.times
+import de.connect2x.messenger.compose.view.get
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
@@ -16,7 +17,7 @@ interface ThemeHighContrastLightColorScheme {
 
 class ThemeHighContrastLightColorSchemeImpl : ThemeHighContrastLightColorScheme {
     @Composable
-    override fun create(): ColorScheme = makeHighContrastColorScheme(DI.current.get<ThemeLightColorScheme>().create())
+    override fun create(): ColorScheme = makeHighContrastColorScheme(DI.get<ThemeLightColorScheme>().create())
         .also { log.debug { "create default high contrast color scheme from light" } }
 }
 
@@ -28,7 +29,7 @@ interface ThemeHighContrastDarkColorScheme {
 class ThemeHighContrastDarkColorSchemeImpl : ThemeHighContrastDarkColorScheme {
     @Composable
     override fun create(): ColorScheme =
-        makeHighContrastColorScheme(DI.current.get<ThemeDarkColorScheme>().create(), true)
+        makeHighContrastColorScheme(DI.get<ThemeDarkColorScheme>().create(), true)
             .also { log.debug { "create default high contrast color scheme from dark" } }
 }
 

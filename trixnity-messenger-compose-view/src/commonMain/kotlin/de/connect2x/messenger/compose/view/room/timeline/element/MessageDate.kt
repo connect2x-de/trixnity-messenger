@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
@@ -32,7 +33,7 @@ fun ColumnScope.MessageDate(
     roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    with(DI.current.get<MessageDateView>()) { create(roomMessageViewModel, timelineElementHolderViewModel) }
+    with(DI.get<MessageDateView>()) { create(roomMessageViewModel, timelineElementHolderViewModel) }
 }
 
 class MessageDateViewImpl : MessageDateView {

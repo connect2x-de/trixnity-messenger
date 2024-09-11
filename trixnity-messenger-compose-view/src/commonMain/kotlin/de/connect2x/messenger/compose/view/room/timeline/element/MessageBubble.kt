@@ -42,6 +42,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveDialog
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuAction
@@ -68,7 +69,7 @@ fun MessageBubble(
     roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    DI.current.get<MessageBubbleView>().create(roomMessageViewModel, timelineElementHolderViewModel)
+    DI.get<MessageBubbleView>().create(roomMessageViewModel, timelineElementHolderViewModel)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -77,7 +78,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         roomMessageViewModel: RoomMessageViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel
     ) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val downloadAction = remember { mutableStateOf(false) }
         val debugAction = remember { mutableStateOf(false) }
 

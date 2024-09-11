@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import net.folivo.trixnity.core.model.RoomId
@@ -32,7 +33,7 @@ fun LazyItemScope.RoomListElementContainer(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
 ) {
-    with(DI.current.get<RoomListElementContainerView>()) {create(roomId, roomListViewModel, roomListElementViewModel) }
+    with(DI.get<RoomListElementContainerView>()) {create(roomId, roomListViewModel, roomListElementViewModel) }
 }
 
 class RoomListElementContainerViewImpl : RoomListElementContainerView {

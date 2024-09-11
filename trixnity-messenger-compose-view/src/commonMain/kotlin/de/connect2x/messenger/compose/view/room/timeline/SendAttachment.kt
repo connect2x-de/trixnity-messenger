@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
@@ -50,13 +51,13 @@ interface SendAttachmentView {
 
 @Composable
 fun SendAttachment(sendAttachmentViewModel: SendAttachmentViewModel) {
-    with(DI.current.get<SendAttachmentView>()) { create(sendAttachmentViewModel) }
+    with(DI.get<SendAttachmentView>()) { create(sendAttachmentViewModel) }
 }
 
 class SendAttachmentViewImpl : SendAttachmentView {
     @Composable
     override fun create(sendAttachmentViewModel: SendAttachmentViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val error = sendAttachmentViewModel.error.collectAsState().value
         val fileSize = "(" + (sendAttachmentViewModel.file.fileSize?.let { size -> formatSize(size.toLong()) }
             ?: i18n.commonUnknown()) + ")"

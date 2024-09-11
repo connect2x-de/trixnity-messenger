@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageContainer
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerification
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
@@ -36,7 +37,7 @@ fun TimelineElement(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     timelineViewModel: TimelineViewModel,
 ) {
-    with(DI.current.get<TimelineElementView>()) { create(timelineElementHolderViewModel, timelineViewModel) }
+    with(DI.get<TimelineElementView>()) { create(timelineElementHolderViewModel, timelineViewModel) }
 }
 
 class TimelineElementViewImpl : TimelineElementView {

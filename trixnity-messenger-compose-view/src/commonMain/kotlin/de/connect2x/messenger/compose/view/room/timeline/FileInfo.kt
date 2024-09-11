@@ -6,8 +6,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.OverflowingText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.*
+import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.FILENAME_AND_INFO
+import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.FILENAME_ONLY
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileBasedMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModel
@@ -50,7 +52,7 @@ enum class OverflowingFileInfoDisplayMode {
 
 @Composable
 fun formatFileMetadata(roomMessageViewModel: RoomMessageViewModel): String {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     return when (roomMessageViewModel) {
 
         is VideoMessageViewModel ->

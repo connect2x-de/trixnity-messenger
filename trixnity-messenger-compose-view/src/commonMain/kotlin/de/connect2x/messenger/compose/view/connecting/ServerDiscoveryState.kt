@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
@@ -33,13 +34,13 @@ interface ServerDiscoveryStateView {
 
 @Composable
 fun ServerDiscoveryState(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
-    DI.current.get<ServerDiscoveryStateView>().create(addMatrixAccountViewModel)
+    DI.get<ServerDiscoveryStateView>().create(addMatrixAccountViewModel)
 }
 
 class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
     @Composable
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value
         when (serverDiscoveryState) {
             is ServerDiscoveryState.None -> {}

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
 interface ScrollToEndButtonView {
@@ -31,7 +32,7 @@ interface ScrollToEndButtonView {
 
 @Composable
 fun BoxScope.ScrollToEndButton(timelineViewModel: TimelineViewModel, canScrollToEnd: Boolean) {
-    with(DI.current.get<ScrollToEndButtonView>()) { create(timelineViewModel, canScrollToEnd) }
+    with(DI.get<ScrollToEndButtonView>()) { create(timelineViewModel, canScrollToEnd) }
 }
 
 class ScrollToEndButtonViewImpl : ScrollToEndButtonView {

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
@@ -26,13 +27,13 @@ interface RoomSettingsExportRoomView {
 
 @Composable
 fun RoomSettingsExportRoom(roomSettingsViewModel: RoomSettingsViewModel) {
-    DI.current.get<RoomSettingsExportRoomView>().create(roomSettingsViewModel)
+    DI.get<RoomSettingsExportRoomView>().create(roomSettingsViewModel)
 }
 
 class RoomSettingsExportRoomViewImpl : RoomSettingsExportRoomView {
     @Composable
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val isDirect = roomSettingsViewModel.isDirect.collectAsState().value
         val exportRoomText = i18n.exportRoom(if (isDirect) i18n.commonChat() else i18n.commonGroup())
         Row(verticalAlignment = Alignment.CenterVertically) {

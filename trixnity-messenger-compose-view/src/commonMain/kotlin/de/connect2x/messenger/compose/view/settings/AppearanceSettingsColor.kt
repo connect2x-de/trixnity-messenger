@@ -38,6 +38,7 @@ import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.common.lightness
 import de.connect2x.messenger.compose.view.common.saturation
+import de.connect2x.messenger.compose.view.get
 
 interface AppearanceSettingsColorView {
     @Composable
@@ -52,7 +53,7 @@ fun ColumnScope.AppearanceSettingsColor(text: String,
                                         defaultColor: Color,
                                         color: Color,
                                         set: (Color) -> Unit) {
-    with(DI.current.get<AppearanceSettingsColorView>()) {create(text, defaultColor, color, set) }
+    with(DI.get<AppearanceSettingsColorView>()) {create(text, defaultColor, color, set) }
 }
 
 class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {

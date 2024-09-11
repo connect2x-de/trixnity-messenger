@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.AvatarWithImage
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
@@ -37,13 +38,13 @@ interface CreateNewChatView {
 
 @Composable
 fun CreateNewChat(createNewChatViewModel: CreateNewChatViewModel) {
-    DI.current.get<CreateNewChatView>().create(createNewChatViewModel)
+    DI.get<CreateNewChatView>().create(createNewChatViewModel)
 }
 
 class CreateNewChatViewImpl : CreateNewChatView {
     @Composable
     override fun create(createNewChatViewModel: CreateNewChatViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val error = createNewChatViewModel.error.collectAsState()
         Box(Modifier.fillMaxSize()) {
             Box {
@@ -64,7 +65,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
 
 @Composable
 fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {

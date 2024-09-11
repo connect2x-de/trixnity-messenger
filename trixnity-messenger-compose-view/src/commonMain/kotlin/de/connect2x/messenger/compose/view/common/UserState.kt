@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +28,7 @@ import net.folivo.trixnity.client.key.UserTrustLevel
 fun RowScope.UserState(userTrustLevelFlow: StateFlow<UserTrustLevel?>, isUserBlockedFlow: StateFlow<Boolean>) {
     val userTrustLevel = userTrustLevelFlow.collectAsState().value
     val isUserBlocked = isUserBlockedFlow.collectAsState().value
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
 
     if (isUserBlocked) {
         Tooltip({ TooltipText(i18n.roomHeaderUserIsBlocked()) }) {

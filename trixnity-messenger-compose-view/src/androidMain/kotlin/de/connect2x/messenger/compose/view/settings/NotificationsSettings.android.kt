@@ -21,6 +21,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.PushMode
@@ -34,10 +35,9 @@ fun pushChannelId(userId: UserId, config: MatrixMessengerConfiguration) =
 
 @Composable
 fun DeviceSettingsButton(viewModel: NotificationSettingsSingleAccountViewModel) {
-    val di = DI.current
-    val context = di.get<Context>()
-    val messengerConfig = DI.current.get<MatrixMessengerConfiguration>()
-    val i18n = di.get<I18nView>()
+    val context = DI.get<Context>()
+    val messengerConfig = DI.get<MatrixMessengerConfiguration>()
+    val i18n = DI.get<I18nView>()
     Button(onClick =
     {
         val intent: Intent =
@@ -57,7 +57,7 @@ fun DeviceSettingsButton(viewModel: NotificationSettingsSingleAccountViewModel) 
 @SuppressLint("UnrememberedMutableState")
 @Composable
 internal actual fun ColumnScope.PlatformNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val pushMode by viewModel.pushMode.collectAsState()
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
     val permissionNecessary = viewModel.notificationPermissionsNecessary.collectAsState().value

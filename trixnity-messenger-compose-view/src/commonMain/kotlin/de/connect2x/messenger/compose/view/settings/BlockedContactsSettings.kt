@@ -37,6 +37,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
@@ -48,14 +49,14 @@ interface BlockedContactsSettingsView {
 
 @Composable
 fun BlockedContactsSettings(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel) {
-    DI.current.get<BlockedContactsSettingsView>().create(blockedContactsSettingsViewModel)
+    DI.get<BlockedContactsSettingsView>().create(blockedContactsSettingsViewModel)
 }
 
 class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
     @Composable
     override fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel) {
         val userList = blockedContactsSettingsViewModel.blockedContactsList.collectAsState().value
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val scroll = rememberScrollState()
         Box(Modifier.fillMaxSize()) {
             Column {

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
@@ -36,13 +37,13 @@ interface AppInfoView {
 
 @Composable
 fun AppInfo(appInfoViewModel: AppInfoViewModel) {
-    DI.current.get<AppInfoView>().create(appInfoViewModel)
+    DI.get<AppInfoView>().create(appInfoViewModel)
 }
 
 class AppInfoViewImpl : AppInfoView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val showPrivacy = appInfoViewModel.showPrivacy.collectAsState().value
         val showImprint = appInfoViewModel.showImprint.collectAsState().value
         val showLicenses = appInfoViewModel.showLicenses.collectAsState().value
@@ -51,7 +52,7 @@ class AppInfoViewImpl : AppInfoView {
             Column {
                 Header(
                     appInfoViewModel::close,
-                    i18n.accountAboutTheApp(DI.current.get<MatrixMessengerConfiguration>().appName)
+                    i18n.accountAboutTheApp(DI.get<MatrixMessengerConfiguration>().appName)
                         .capitalize(Locale.current),
                 )
                 AppInfoVersion(appInfoViewModel)
@@ -69,19 +70,19 @@ class AppInfoViewImpl : AppInfoView {
 
 @Composable
 fun PrivacyLink(appInfoViewModel: AppInfoViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Item(i18n.appInfoPrivacy(), { appInfoViewModel.showPrivacy.value = true }) { Icon(Icons.Outlined.PrivacyTip, "") }
 }
 
 @Composable
 fun ImprintLink(appInfoViewModel: AppInfoViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Item(i18n.appInfoImprint(), { appInfoViewModel.showImprint.value = true }) { Icon(Icons.Outlined.Email, "") }
 }
 
 @Composable
 fun LicensesLink(appInfoViewModel: AppInfoViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Item(
         i18n.appInfoLicenses(),
         { appInfoViewModel.showLicenses.value = true }) { Icon(Icons.AutoMirrored.Outlined.Wysiwyg, "") }

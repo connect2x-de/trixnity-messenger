@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
@@ -118,7 +119,7 @@ actual fun SaveDialog(
     downloadFile: (suspend (ByteArrayFlow) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var isOpened by remember { mutableStateOf(false) }
     if (error != null) AlertDialog(
         modifier = Modifier.defaultMinSize(minWidth = 400.dp),
@@ -161,9 +162,9 @@ actual fun LoadDialog(
     onCloseLoadFileDialog: () -> Unit,
     mode: LoadFileMode,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var isOpened by remember { mutableStateOf(false) }
-    val fileSystem = DI.current.get<FileSystem>()
+    val fileSystem = DI.get<FileSystem>()
     // Due to compose life cycles the launcher needs to be set up even if launch() is skipped.
     val launcher = rememberFilePickerLauncher(
         type = when (mode) {

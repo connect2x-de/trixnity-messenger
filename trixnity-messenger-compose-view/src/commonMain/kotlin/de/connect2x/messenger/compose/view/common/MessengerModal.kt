@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 
@@ -107,7 +108,7 @@ fun ColumnScope.MessengerModalButtonRow(
 
 @Composable
 fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Button(
         onClick = nextAction,
         modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
@@ -119,7 +120,7 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
 
 @Composable
 fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Button(
         onClick = { closeModalAction() },
         modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
@@ -134,8 +135,8 @@ fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = n
 
 @Composable
 fun RowScope.CloseMessengerButton(closeMessengerAction: () -> Unit) {
-    val i18n = DI.current.get<I18nView>()
-    val appName = DI.current.get<MatrixMessengerConfiguration>().appName
+    val i18n = DI.get<I18nView>()
+    val appName = DI.get<MatrixMessengerConfiguration>().appName
     Button(
         onClick = { closeMessengerAction() },
         modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
@@ -150,7 +151,7 @@ fun RowScope.CloseMessengerButton(closeMessengerAction: () -> Unit) {
 
 @Composable
 fun RowScope.BackButton(onBack: () -> Unit) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Button(
         onClick = onBack,
         modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
@@ -162,7 +163,7 @@ fun RowScope.BackButton(onBack: () -> Unit) {
 
 @Composable
 private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Row(
         Modifier
             .fillMaxWidth()
