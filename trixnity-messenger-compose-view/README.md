@@ -94,10 +94,10 @@ fun myThemeModule() = module {
         object : ThemeLightColorScheme {
             @Composable
             override fun create(): ColorScheme {
-                val settings = DI.current.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
+                val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
                 val accentColor =
                     settings?.base?.accentColor?.let { Color(it.toULong()) }
-                        ?: DI.current.get<DefaultAccentColor>().value
+                        ?: DI.get<DefaultAccentColor>().value
                 val accentHue = accentColor.hue
                 return lightColorScheme(
                     primary = accentColor,
@@ -130,7 +130,7 @@ Instead of viewmodels, here we need to extend `View`s. Each `View` comes with 3 
 
 * an `interface [Name]View { @Composable fun create(vm: [Name]ViewModel) }`
 * a compose function
-  `@Composable fun [Name](vm: [Name]ViewModel) { DI.current.get<[Name]View>().create(vm) }`
+  `@Composable fun [Name](vm: [Name]ViewModel) { DI.get<[Name]View>().create(vm) }`
 * a standard implementation:
   `class [Name]ViewImpl: [Name]View {  @Composable override fun create(vm: [Name]ViewModel) { ... } }`
 
