@@ -1,7 +1,7 @@
 [versions]
 kotlinJvmTarget = "11"
 trixnity = "4.6.2" # https://gitlab.com/trixnity/trixnity/-/releases
-kotlin = "2.0.0" # https://github.com/JetBrains/kotlin/releases
+kotlin = "2.0.10" # https://github.com/JetBrains/kotlin/releases
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.8.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.1" # https://github.com/Kotlin/kotlinx.serialization/releases
@@ -18,7 +18,7 @@ korge = "4.0.10" # https://github.com/korlibs/korge/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.45" # https://www.npmjs.com/package/@zip.js/zip.js
-skie = "0.8.2" # https://github.com/touchlab/SKIE/releases
+skie = "0.8.4" # https://github.com/touchlab/SKIE/releases
 kmmBridge = "0.5.5" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.18.4"
 
@@ -27,7 +27,7 @@ testContainers = "1.19.8" # https://github.com/testcontainers/testcontainers-jav
 kotlinLogging = "7.0.0" # https://github.com/MicroUtils/kotlin-logging/releases
 logback = "1.5.6" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
-activity = "1.9.0" # https://developer.android.com/jetpack/androidx/releases/activity
+activity = "1.9.2" # https://developer.android.com/jetpack/androidx/releases/activity
 androidGradle = "8.2.2" # https://developer.android.com/reference/tools/gradle-api
 
 [libraries]

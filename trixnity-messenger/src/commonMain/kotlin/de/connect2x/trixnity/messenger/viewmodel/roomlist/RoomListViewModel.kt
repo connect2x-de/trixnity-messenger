@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.InitialRoom
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -92,8 +92,6 @@ interface RoomListViewModelFactory {
 }
 
 interface RoomListViewModel {
-    val initialRoomId: RoomId?
-
     val selectedRoomId: StateFlow<RoomId?>
     val error: StateFlow<String?>
     val errorType: StateFlow<ErrorType>
@@ -185,8 +183,6 @@ class RoomListViewModelImpl(
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()
     private val initials = get<Initials>()
-
-    override val initialRoomId: RoomId? = getOrNull<InitialRoom>()?.id
 
     override val unverifiedAccounts = viewModelContext.matrixClients
         .flatMapLatest { clients ->
@@ -462,6 +458,15 @@ class RoomListViewModelImpl(
             combine(accountViewModel.accounts, activeAccount) { allAccounts, activeAccount ->
                 allAccounts.size == 1 || activeAccount != null
             }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // has to eager as it is used as a helper
+
+        // Handle room navigation requests through the timmy://localhost/room/<ID> scheme
+        coroutineScope.launch {
+            get<UrlHandler>().collect {
+                val segments = it.pathSegments
+                if (segments.size < 2 || segments[1] != "room") return@collect
+                selectRoom(RoomId(segments[2]))
+            }
+        }
     }
 
     private fun resetSpacesWhenNotShown() {
@@ -561,7 +566,6 @@ class RoomListViewModelImpl(
 
 class PreviewRoomListViewModel : RoomListViewModel {
     override val selectedRoomId: MutableStateFlow<RoomId?> = MutableStateFlow(null)
-    override val initialRoomId: RoomId? = null
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorType: MutableStateFlow<ErrorType> = MutableStateFlow(ErrorType.JUST_DISMISS)
     val roomId1 = RoomId("1", "localhost")
