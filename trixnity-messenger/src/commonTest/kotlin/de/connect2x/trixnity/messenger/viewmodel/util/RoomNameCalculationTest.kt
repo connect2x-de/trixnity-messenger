@@ -117,7 +117,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     summary = RoomSummary(heroes = listOf())
                 ),
                 matrixClientMock,
-            ).first() shouldBe "!room1:server"
+            ).first() shouldBe "Empty chat"
         }
 
         should("return the display name of the hero, when isEmpty=false, |heroes|=1, otherUserCount=0") {
