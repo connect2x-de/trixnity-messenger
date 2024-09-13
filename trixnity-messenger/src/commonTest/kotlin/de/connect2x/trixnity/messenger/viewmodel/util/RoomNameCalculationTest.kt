@@ -106,7 +106,7 @@ class RoomNameCalculationTest : ShouldSpec() {
             ).first() shouldBe "Room name"
         }
 
-        should("return the room id when isEmpty=false, |heroes|=0, otherUserCount=0") {
+        should("return 'Emmpty chat' when isEmpty=false, |heroes|=0, otherUserCount=0") {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
