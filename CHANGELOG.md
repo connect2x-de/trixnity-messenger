@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Images uploaded on android and desktop are rotated correctly
 - Allow to check login before creating a MatrixClient
-- `InitialRoom` component for passing through launch room IDs to `RoomListViewModel`
+- `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
 
 ### Changed
 
