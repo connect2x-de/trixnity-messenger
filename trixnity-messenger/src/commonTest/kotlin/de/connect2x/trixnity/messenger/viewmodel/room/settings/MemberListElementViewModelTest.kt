@@ -149,8 +149,14 @@ class MemberListElementViewModelTest : ShouldSpec() {
             every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
                 Room(isDirect = true, roomId = roomId)
             )
-
+            
+            every { userServiceMock.getById(eq(roomId), eq(roomUserAlice.userId)) } returns flowOf(roomUserAlice)
+            every { userServiceMock.getById(eq(roomId), eq(roomUserBob.userId)) } returns flowOf(roomUserBob)
             every { userServiceMock.canKickUser(eq(roomId), any()) } returns
+                    MutableStateFlow(true)
+            every { userServiceMock.canBanUser(eq(roomId), any()) } returns
+                    MutableStateFlow(true)
+            every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns
                     MutableStateFlow(true)
             every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns
                     MutableStateFlow(50)

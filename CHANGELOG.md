@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Images uploaded on android and desktop are rotated correctly
-
+- Setting to ban members from rooms
+- List of banned users in a room
+- Setting to unban banned users from rooms
 - allow to check login before creating a MatrixClient
 
 ### Changed

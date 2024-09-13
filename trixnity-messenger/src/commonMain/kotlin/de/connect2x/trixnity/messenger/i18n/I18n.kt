@@ -1002,6 +1002,37 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         EN - "$user enabled end-to-end encryption"
         DE - "$user hat die Ende-zu-Ende Verschlüsselung aktiviert"
     }
+
+    fun settingsRoomMemberBanUserError() = translate {
+        EN - "There was an error banning this user"
+        DE - "Es gab einen Fehler beim Sperren dieses Nutzers"
+    }
+
+    fun settingsRoomMemberBanUserErrorNotPossible() = translate {
+        EN - "You are unable to ban this user"
+        DE - "Sie können diesen Nutzer nicht sperren"
+    }
+
+    fun settingsRoomMemberBanUserErrorOffline() = translate {
+        EN - "You cannot ban users when you are offline"
+        DE - "Sie können offline keine Nutzer sperren"
+    }
+
+    fun settingsRoomMemberUnbanUserError() = translate {
+        EN - "There was an error unbanning the user"
+        DE - "Es gab einen Fehler beim Entsperren des Nutzers"
+    }
+
+    fun settingsRoomMemberUnbanUserErrorNotPossible() = translate {
+        EN - "You are unable to unban the user"
+        DE - "Sie können den Nutzer nicht entsperren"
+    }
+
+    fun settingsRoomMemberUnbanUserErrorOffline() = translate {
+        EN - "You cannot unban users when you are offline"
+        DE - "Sie können offline keine Nutzer entsperren"
+    }
+
 }
 
 internal fun getLang(
