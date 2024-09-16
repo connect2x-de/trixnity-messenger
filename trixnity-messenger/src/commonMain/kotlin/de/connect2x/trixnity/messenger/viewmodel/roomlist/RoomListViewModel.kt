@@ -463,7 +463,7 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             get<UrlHandler>().collect {
                 val segments = it.pathSegments
-                if (segments.size < 2 || segments[1] != "room") return@collect
+                if (segments.size < 3 || segments[1] != "room") return@collect
                 selectRoom(RoomId(segments[2]))
             }
         }
