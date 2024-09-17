@@ -65,7 +65,7 @@ class SendAttachmentViewImpl : SendAttachmentView {
         val isVideo = sendAttachmentViewModel.isVideo
         val isAudio = sendAttachmentViewModel.isAudio
         var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-
+        val fileContent = sendAttachmentViewModel.fileContent.collectAsState().value
 
         Column(Modifier.fillMaxSize()) {
             SendAttachmentTitle(sendAttachmentViewModel)
@@ -82,22 +82,22 @@ class SendAttachmentViewImpl : SendAttachmentView {
                 ) {
                     when {
                         isImage ?: false -> {
-                            LaunchedEffect(isImage) {
-                                if (isImage == true) {
-                                    val byteArray = sendAttachmentViewModel.file.content.toByteArray()
+                            if (fileContent != null) {
+                                LaunchedEffect(isImage) {
+                                    val byteArray = fileContent.toByteArray()
                                     imageBitmap = imageBitmapFromBytes(byteArray)
                                 }
-                            }
-                            imageBitmap?.let {
-                                Image(
-                                    it,
-                                    i18n.commonAttachment(),
-                                    Modifier
-                                        .align(Alignment.CenterHorizontally)
-                                        .weight(1.0f, false)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Inside,
-                                )
+                                imageBitmap?.let {
+                                    Image(
+                                        it,
+                                        i18n.commonAttachment(),
+                                        Modifier
+                                            .align(Alignment.CenterHorizontally)
+                                            .weight(1.0f, false)
+                                            .clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Inside,
+                                    )
+                                }
                             }
                         }
 
