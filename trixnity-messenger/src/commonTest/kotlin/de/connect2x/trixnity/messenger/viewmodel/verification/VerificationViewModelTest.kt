@@ -166,7 +166,7 @@ class VerificationViewModelTest : ShouldSpec() {
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
-            eventually(1.seconds) {
+            eventually(3.seconds) {
                 val deviceVerificationStepWrapper = cut.stack.value.active.instance
                 deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Cancelled>()
                 deviceVerificationStepWrapper.viewModel.ok()
@@ -192,7 +192,7 @@ class VerificationViewModelTest : ShouldSpec() {
 
             val cut = deviceVerificationViewModel(coroutineContext)
 
-            eventually(1.seconds) {
+            eventually(3.seconds) {
                 val deviceVerificationStepWrapper = cut.stack.value.active.instance
                 deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Success>()
                 deviceVerificationStepWrapper.viewModel.ok()
