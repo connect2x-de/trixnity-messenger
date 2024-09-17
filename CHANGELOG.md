@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
+
 ### Changed
 
 ### Deprecated
@@ -28,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- view model based login check
+- View model based login check
 
 ### Fixed
 
