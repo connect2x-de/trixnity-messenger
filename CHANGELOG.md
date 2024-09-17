@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Images uploaded on android and desktop are rotated correctly
 
 - allow to check login before creating a MatrixClient
@@ -25,12 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - UriCaller not working on Android when MatrixMessenger is created in ApplicationContext
+- Show errors in SSO Login
 
 ### Security
 
 ## 2.1.1
 
 ### Added
+
 - Editable room avatar
 - permission necessary flag to android notification settings
 
