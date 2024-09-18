@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded Trixnity to 4.6.3-DEV-22517472
+- Upgraded dependencies
+
 ### Deprecated
 
 ### Removed

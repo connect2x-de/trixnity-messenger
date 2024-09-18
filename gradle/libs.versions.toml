@@ -1,6 +1,6 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.6.2" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.6.3-DEV-22517472" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "2.0.10" # https://github.com/JetBrains/kotlin/releases
 
 jvmTarget = "17"
@@ -13,29 +13,29 @@ appName = "Messenger"
 
 sysnotify = "1.4.0-DEV-22169726" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
-kotlinxCoroutines = "1.8.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
+kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.1" # https://github.com/Kotlin/kotlinx.serialization/releases
 decompose = "3.1.0" # https://github.com/arkivanov/Decompose/releases
-kotlinxDatetime = "0.6.0" # https://github.com/Kotlin/kotlinx-datetime/releases
+kotlinxDatetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "3.5.6" # https://github.com/InsertKoinIO/koin/tags
 ktor = "2.3.12" # https://github.com/ktorio/ktor/releases
-mokkery = "2.1.1" # https://github.com/lupuuss/Mokkery/releases
+mokkery = "2.3.0" # https://github.com/lupuuss/Mokkery/releases
 kotest = "5.9.1" # https://github.com/kotest/kotest/releases
 jna = "5.14.0" # https://github.com/java-native-access/jna/tags
-okio = "3.9.0" # https://square.github.io/okio/changelog
+okio = "3.9.1" # https://square.github.io/okio/changelog
 uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
 korge = "4.0.10" # https://github.com/korlibs/korge/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
-zipjs = "2.7.45" # https://www.npmjs.com/package/@zip.js/zip.js
+zipjs = "2.7.52" # https://www.npmjs.com/package/@zip.js/zip.js
 skie = "0.8.4" # https://github.com/touchlab/SKIE/releases
 kmmBridge = "1.0.0" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.18.4"
 
 # integration tests
-testContainers = "1.19.8" # https://github.com/testcontainers/testcontainers-java/releases
+testContainers = "1.20.1" # https://github.com/testcontainers/testcontainers-java/releases
 kotlinLogging = "7.0.0" # https://github.com/MicroUtils/kotlin-logging/releases
-logback = "1.5.6" # https://github.com/qos-ch/logback/tags
+logback = "1.5.8" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
 activity = "1.9.2" # https://developer.android.com/jetpack/androidx/releases/activity
 androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-api
