@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - List of banned users in a room
 - Setting to unban banned users from rooms
 - allow to check login before creating a MatrixClient
+- `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
 
 ### Changed
 
@@ -21,14 +22,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- view model based login check
+### Fixed
+
+### Security
+
+## 2.1.2
+
+### Added
+
+- Images uploaded on android and desktop are rotated correctly
+- allow to check login before creating a MatrixClient
+
+### Removed
+
+- View model based login check
 
 ### Fixed
 
 - UriCaller not working on Android when MatrixMessenger is created in ApplicationContext
 - Show errors in SSO Login
-
-### Security
 
 ## 2.1.1
 

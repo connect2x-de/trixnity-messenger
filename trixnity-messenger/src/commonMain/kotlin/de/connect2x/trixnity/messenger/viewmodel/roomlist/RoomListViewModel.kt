@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -457,6 +458,15 @@ class RoomListViewModelImpl(
             combine(accountViewModel.accounts, activeAccount) { allAccounts, activeAccount ->
                 allAccounts.size == 1 || activeAccount != null
             }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // has to eager as it is used as a helper
+
+        // Handle room navigation requests through the timmy://localhost/room/<ID> scheme
+        coroutineScope.launch {
+            get<UrlHandler>().collect {
+                val segments = it.pathSegments
+                if (segments.size < 3 || segments[1] != "room") return@collect
+                selectRoom(RoomId(segments[2]))
+            }
+        }
     }
 
     private fun resetSpacesWhenNotShown() {
