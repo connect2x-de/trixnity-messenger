@@ -1,9 +1,7 @@
 package de.connect2x.messenger.android
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.asFlow
 import androidx.work.Constraints
 import androidx.work.Data
@@ -12,6 +10,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.sysnotify.create
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.filter
@@ -19,15 +20,40 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
+
+fun notificationModule(
+    userId: UserId? = null,
+    messengerConfig: MatrixMultiMessengerConfiguration,
+) = module {
+    // The default notification handler of the app should be available globally in the DI
+    val channelId = if (userId == null) CHANNEL_ID_DEFAULT else pushChannelId(
+        userId,
+        messengerConfig
+    )
+    log.debug { "Creating notification handler with channel ID $channelId" }
+    single<NotificationHandler> {
+        NotificationHandler.create(
+            name = messengerConfig.appName,
+            id = channelId,
+            contextGetter = { get() }, // This grabs the application context from the DI
+            activationIntent = { _, notification ->
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("${messengerConfig.urlProtocol}://localhost/room/${notification.userData}")
+                )
+            }
+        )
+    }
+}
 
 fun initialSyncModule() = module {
     single<RunInitialSync> {
         object : RunInitialSync {
             override suspend fun invoke(matrixClient: MatrixClient): Boolean {
-                createInitialSyncChannel(get())
                 val workRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>()
                     .setInputData(Data.Builder().apply {
                         putString("userId", matrixClient.userId.full)
@@ -57,23 +83,6 @@ fun initialSyncModule() = module {
                 // do NOT use unique work as multiple accounts can run the sync in parallel
                 WorkManager.getInstance(get()).enqueue(workRequest)
                 return success
-            }
-
-            fun createInitialSyncChannel(context: Context) {
-                val name = "Initialer Sync"
-                val descriptionText = "Einrichten von Timmy: Lade Kontodaten vom Server" // TODO i18n
-                val importance = NotificationManager.IMPORTANCE_LOW
-                val channel =
-                    NotificationChannel(CHANNEL_ID_INITIAL_SYNC, name, importance).apply {
-                        description = descriptionText
-                        lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-                        setSound(null, null)
-                        setShowBadge(false)
-                    }
-                // Register the channel with the system
-                val notificationManager: NotificationManager =
-                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.createNotificationChannel(channel)
             }
         }
     }

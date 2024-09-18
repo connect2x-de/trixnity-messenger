@@ -29,13 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arkivanov.decompose.defaultComponentContext
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
@@ -52,9 +49,13 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.sysnotify.handlePermissionRequest
+import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
+import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -71,51 +72,31 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 
-private val log = KotlinLogging.logger { }
-
-private const val REQUEST_POST_NOTIFICATIONS = 123456789
-
 @OptIn(ExperimentalResourceApi::class)
 class MessengerActivity : AppCompatActivity() {
+    private val log = KotlinLogging.logger { }
     private val matrixMessengerServiceConnection = MatrixMessengerServiceConnection()
-    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { coroutineContext, throwable ->
-        log.error(throwable) { "error in main scope" }
+    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
+        log.error(exception) { "Exception in MessengerActivity coroutine" }
     })
-
 
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        log.debug { "... Activity: onCreate()" }
-        log.debug { "App name: ${getString(R.string.app_name)}" }
+        log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMessengerServiceConnection.bind(applicationContext)
 
         this.backgroundSyncShouldBeRunning = false
 
-        NotificationManagerCompat.from(this).cancelAll()
-
-        if (Build.VERSION.SDK_INT < VERSION_CODES.Q) {
-            val writeExternalStoragePermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            if (writeExternalStoragePermission == PackageManager.PERMISSION_DENIED) {
-                val requestPermissionLauncher =
-                    registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-                        if (isGranted.not()) {
-                            // TODO show explanation
-                        }
-                    }
-                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
-        }
+        checkExternalStoragePermissions()
 
         scope.launch {
             val matrixMultiMessenger = matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first()
             launch {
                 matrixMultiMessenger.activeMatrixMessenger.filterNotNull().collectLatest { matrixMessenger ->
                     matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                        .map { settings ->
-                            settings.base.accounts.map { it.key to it.value }.toMap()
-                        }
+                        .map { it.base.accounts }
                         .distinctUntilChanged()
                         .conflate()
                         .collect { settings ->
@@ -123,7 +104,10 @@ class MessengerActivity : AppCompatActivity() {
                                 settings.any { (_, settings) -> settings.base.notificationsEnabled }
                             withContext(Dispatchers.Main) {
                                 if (anyNotificationsEnabled) {
-                                    checkPermissionForNotifications()
+                                    log.debug { "Notifications are enabled for active messenger, requesting permissions" }
+                                    matrixMultiMessenger.di.get<NotificationHandler>()
+                                        .withActivity(this@MessengerActivity)
+                                        .apply { requestPermissions() }
                                     setPush(
                                         applicationContext,
                                         settings.mapValues { it.value.platformNotifications.pushMode },
@@ -202,18 +186,17 @@ class MessengerActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkPermissionForNotifications() {
-        if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED -> {
-                    requestPermissions(
-                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                        REQUEST_POST_NOTIFICATIONS,
-                    )
-                }
+    private fun checkExternalStoragePermissions() {
+        if (Build.VERSION.SDK_INT < VERSION_CODES.Q) {
+            val writeExternalStoragePermission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (writeExternalStoragePermission == PackageManager.PERMISSION_DENIED) {
+                val requestPermissionLauncher =
+                    registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+                        if (isGranted.not()) {
+                            // TODO show explanation
+                        }
+                    }
+                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
         }
     }
@@ -223,27 +206,23 @@ class MessengerActivity : AppCompatActivity() {
         permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_POST_NOTIFICATIONS -> {
-                if ((grantResults.isNotEmpty() &&
-                            grantResults[0] == PackageManager.PERMISSION_GRANTED).not()
-                ) {
-                    // TODO explanation
-                }
-                return
-            }
+        scope.launch {
+            matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first().di
+                .get<NotificationHandler>()
+                .withActivity(this@MessengerActivity)
+                .handlePermissionRequest(requestCode, grantResults)
         }
     }
 
     override fun onStop() {
+        log.debug { "Stopping activity" }
         super.onStop()
-        log.debug { "onStop" }
         this.backgroundSyncShouldBeRunning = true
     }
 
     override fun onStart() {
+        log.debug { "Starting activity" }
         super.onStart()
-        log.debug { "onStart" }
         this.backgroundSyncShouldBeRunning = false
     }
 

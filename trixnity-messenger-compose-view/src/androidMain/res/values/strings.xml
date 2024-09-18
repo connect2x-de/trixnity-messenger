@@ -1,7 +1,3 @@
 <resources>
     <string name="app_name">Messenger</string>
-    <string name="push_channel_name">Notifications</string>
-    <string name="push_channel_description">Notifications for this account</string>
-    <string name="receiving_channel_name">Wait for notifications</string>
-    <string name="receiving_channel_description"/>
 </resources>

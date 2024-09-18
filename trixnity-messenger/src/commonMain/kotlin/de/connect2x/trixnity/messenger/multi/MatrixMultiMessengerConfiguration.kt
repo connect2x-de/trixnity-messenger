@@ -12,6 +12,7 @@ data class MatrixMultiMessengerConfiguration(
     override var sendLogsEmailAddress: String? = null,
     override var privacyInfoUrl: String = "",
     override var imprintUrl: String = "",
+    override var pushUrl: String? = null,
     /**
      * Consider using [messengerConfiguration], as it can be called multiple times.
      */

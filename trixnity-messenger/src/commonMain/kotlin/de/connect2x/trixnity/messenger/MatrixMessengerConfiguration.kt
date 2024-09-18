@@ -50,6 +50,7 @@ data class MatrixMessengerConfiguration(
 
     override var privacyInfoUrl: String = "",
     override var imprintUrl: String = "",
+    override var pushUrl: String? = null,
 
     /**
      * Inject and override modules.

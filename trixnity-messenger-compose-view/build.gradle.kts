@@ -52,6 +52,7 @@ kotlin {
                 implementation(compose.uiUtil)
                 implementation(libs.compose.richeditor)
                 implementation(libs.mpfilepicker)
+                implementation(libs.sysnotify)
             }
         }
         val desktopMain by getting {
@@ -72,6 +73,7 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
                 implementation(project.dependencies.platform(libs.firebase.bom))
                 implementation(libs.firebase.messaging.ktx)
+                implementation(libs.sysnotify.android)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
@@ -108,6 +110,12 @@ kotlin {
     }
 }
 
+dependencies {
+    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
+    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
+    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
+}
+
 android {
     namespace = "de.connect2x.messenger.compose.view"
     compileSdk = libs.versions.androidCompileSDK.get().toInt()
@@ -118,7 +126,8 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.androidMinimalSDK.get().toInt()
-        targetSdk = libs.versions.androidTargetSDK.get().toInt()
+        testOptions.targetSdk = libs.versions.androidTargetSDK.get().toInt()
+        lint.targetSdk = libs.versions.androidTargetSDK.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

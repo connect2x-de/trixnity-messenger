@@ -10,6 +10,7 @@ import android.os.IBinder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -21,10 +22,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.*
 
-private val log = KotlinLogging.logger { }
-
 class MatrixMultiMessengerService : Service() {
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val log = KotlinLogging.logger { }
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
+        log.error(exception) { "Exception in MatrixMultiMessengerService coroutine" }
+    })
 
     private val binder = LocalBinder()
     private val _matrixMultiMessenger: MutableStateFlow<MatrixMultiMessenger?> = MutableStateFlow(null)
@@ -60,23 +62,24 @@ class MatrixMultiMessengerService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        log.info { "bind service" }
+        log.info { "Binding service" }
         return binder
     }
 
     override fun onDestroy() {
-        log.info { "destroy service" }
-        super.onDestroy()
+        log.info { "Destroying service" }
         coroutineScope.cancel()
         runBlocking {
             _matrixMultiMessenger.value?.stop()
             _matrixMultiMessenger.value = null
         }
+        super.onDestroy()
     }
 }
 
 class MatrixMessengerServiceConnection : ServiceConnection {
-    private var coroutineScope: CoroutineScope? = null
+    private val log = KotlinLogging.logger { }
+    private lateinit var coroutineScope: CoroutineScope
 
     private val _matrixMultiMessenger = MutableStateFlow<MatrixMultiMessenger?>(null)
     val matrixMultiMessenger = _matrixMultiMessenger.asStateFlow()
@@ -84,17 +87,19 @@ class MatrixMessengerServiceConnection : ServiceConnection {
     override fun onServiceConnected(className: ComponentName, service: IBinder) {
         val binder = service as MatrixMultiMessengerService.LocalBinder
         log.info { "bind service" }
-        coroutineScope = CoroutineScope(Dispatchers.Default)
-        coroutineScope?.launch {
+        coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
+            log.error(exception) { "Exception in MatrixMessengerServiceConnection coroutine" }
+        })
+        coroutineScope.launch {
             binder.getService().matrixMultiMessenger.collect {
                 log.debug { "matrixMultiMessenger found" }
                 _matrixMultiMessenger.value = it
             }
-        }?.invokeOnCompletion { _matrixMultiMessenger.value = null }
+        }.invokeOnCompletion { _matrixMultiMessenger.value = null }
     }
 
-    override fun onServiceDisconnected(arg0: ComponentName) {
-        coroutineScope?.cancel()
+    override fun onServiceDisconnected(className: ComponentName) {
+        coroutineScope.cancel()
     }
 
     fun bind(context: Context) {
@@ -111,15 +116,22 @@ class MatrixMessengerServiceConnection : ServiceConnection {
     }
 }
 
-suspend inline fun <T> withMatrixMessengerService(
+inline fun <T> withMatrixMessengerServiceConnection(
     context: Context,
-    block: (matrixMultiMessenger: MatrixMultiMessenger) -> T
+    block: (connection: MatrixMessengerServiceConnection) -> T
 ): T {
     val connection = MatrixMessengerServiceConnection()
-    connection.bind(context)
     return try {
-        block(connection.matrixMultiMessenger.filterNotNull().first())
+        connection.bind(context)
+        block(connection)
     } finally {
         connection.unbind(context)
     }
+}
+
+suspend inline fun <T> withMatrixMessengerService(
+    context: Context,
+    block: (matrixMultiMessenger: MatrixMultiMessenger) -> T
+): T = withMatrixMessengerServiceConnection(context) {
+    block(it.matrixMultiMessenger.filterNotNull().first())
 }

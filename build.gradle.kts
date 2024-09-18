@@ -35,7 +35,8 @@ allprojects {
         google()
         mavenLocal()
         maven("https://oss.sonatype.org/content/repositories/snapshots")
-        maven("https://gitlab.com/api/v4/projects/26519650/packages/maven")
+        maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // trixnity
+        maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // sysnotify
     }
 
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
