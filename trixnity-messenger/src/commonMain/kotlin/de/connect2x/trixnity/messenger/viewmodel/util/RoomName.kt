@@ -105,8 +105,7 @@ open class RoomNameImpl(
         matrixClient: MatrixClient,
     ): Flow<String> {
         if (name != null) {
-            val (explicitName, roomIsEmpty, otherUsersCount) = name
-            val heroes = name.heroes
+            val (explicitName, heroes, otherUsersCount, roomIsEmpty) = name
 
             return when {
                 !explicitName.isNullOrEmpty() -> flowOf(explicitName)
@@ -115,11 +114,11 @@ open class RoomNameImpl(
                 else -> combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
                     val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
                         when {
-                            otherUsersCount == 0L && index < heroes.size - 2 || otherUsersCount > 0L && index < heroes.size - 1 -> {
+                            otherUsersCount == 0 && index < heroes.size - 2 || otherUsersCount > 0L && index < heroes.size - 1 -> {
                                 nameFromHeroes(roomUser, heroes, index) + ", "
                             }
 
-                            otherUsersCount == 0L && index == heroes.size - 2 -> {
+                            otherUsersCount == 0 && index == heroes.size - 2 -> {
                                 nameFromHeroes(roomUser, heroes, index) + " ${i18n.roomNameAnd()} "
                             }
 
