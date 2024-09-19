@@ -69,6 +69,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Einladung in $groupOrChat '$roomName'"
     }
 
+    fun roomNamePeople(count: Int) = translate {
+        EN - "$count persons"
+        DE - "$count Personen"
+    }
+
     fun roomNameEmptyChat() = translate {
         EN - "Empty chat"
         DE - "Leerer Chat"

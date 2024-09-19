@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.i18n.I18n
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -20,6 +21,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
+private val log = KotlinLogging.logger { }
 
 interface RoomName {
     fun getRoomName(
@@ -109,8 +111,17 @@ open class RoomNameImpl(
 
             return when {
                 !explicitName.isNullOrEmpty() -> flowOf(explicitName)
-                heroes.isEmpty() && roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
-                heroes.isEmpty() -> flowOf(roomId.full)
+                heroes.isEmpty() -> {
+                    when {
+                        roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
+                        otherUsersCount > 1 -> flowOf(i18n.roomNamePeople(otherUsersCount))
+                        else -> {
+                            log.warn { "undefined state in room name calculation. fallback to roomId" }
+                            flowOf(roomId.full)
+                        }
+                    }
+                }
+
                 else -> combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
                     val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
                         when {
