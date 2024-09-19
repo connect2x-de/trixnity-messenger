@@ -121,7 +121,7 @@ class UiaStepFallbackViewModelImpl(
 class UiaStepFallbackViewModelPreview(mode: PreviewMode = IDLE) : UiaStepFallbackViewModel {
     override val fallbackUrl: String = "https://fallbackUrl"
     override val waitForResult = MutableStateFlow(mode == AWAITING)
-    override val error = MutableStateFlow(if (mode == ERROR) "Something wrong!" else null)
+    override val error = MutableStateFlow(if (mode == ERROR) "Something's wrong!" else null)
     override fun openFallbackUrl() {}
     override fun confirm() {}
     override fun cancel() {}

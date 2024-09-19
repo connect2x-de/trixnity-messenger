@@ -1,0 +1,5 @@
+-keep class org.h2.** { *; }
+-keep class org.jetbrains.exposed.** { *; }
+-keep class de.connect2x.** { *; }
+-keep class org.cef.** { *; }
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory
