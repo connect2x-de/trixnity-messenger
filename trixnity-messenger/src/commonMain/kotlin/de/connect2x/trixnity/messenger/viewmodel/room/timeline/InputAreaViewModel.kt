@@ -316,9 +316,7 @@ open class InputAreaViewModelImpl(
                 }.replace("\n", "<br>").let {
                     val flavour = SFMFlavourDescriptor()
                     val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
-                    val html = HtmlGenerator(it, parsedTree, flavour).generateHtml()
-                    log.debug { "Generated message: $html" }
-                    html
+                    HtmlGenerator(it, parsedTree, flavour).generateHtml()
                 }.removePrefix("<body><p>").removeSuffix("</p></body>")
 
                 if (editedEvent != null) {
