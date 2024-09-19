@@ -16,12 +16,11 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toIcon
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import de.connect2x.messenger.android.NotificationHandlerProvider
 import de.connect2x.messenger.android.backgroundSyncShouldBeRunning
-import de.connect2x.messenger.android.toNotificationHandle
 import de.connect2x.messenger.android.withMatrixMessengerService
 import de.connect2x.messenger.compose.view.R
 import de.connect2x.sysnotify.Notification
-import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.getNotificationIcon
 import de.connect2x.sysnotify.push
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -45,7 +44,6 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.idOrNull
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership.INVITE
@@ -70,6 +68,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         matrixClient: MatrixClient,
         expectedRoomId: RoomId,
         expectedEventId: EventId,
+        notificationHandlerProvider: NotificationHandlerProvider,
     ) {
         val notification = matrixClient.notification.getNotifications().first {
             log.trace { "Notification: ${it.event.idOrNull} in ${it.event.roomIdOrNull} from ${it.event.senderOrNull}" }
@@ -97,6 +96,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 notification.event,
                 isDirect,
                 roomName,
+                notificationHandlerProvider,
             )
         }
     }
@@ -108,61 +108,58 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         event: ClientEvent<*>, // possibly decrypted
         isDirect: Boolean,
         roomName: String,
+        notificationHandlerProvider: NotificationHandlerProvider,
     ) {
         val content = event.content
         log.debug { "Content is RoomMessageEventContent: ${content is RoomMessageEventContent}" }
 
         event.roomIdOrNull?.let { roomId ->
-            val handler = matrixMessenger.di.get<NotificationHandler>()
-            if (content is RedactedEventContent) {
-                log.debug { "Redacted event: $content" }
-                handler.pop(roomId.toNotificationHandle())
-            } else {
-                val message = when {
-                    content is MemberEventContent && content.membership == INVITE -> roomName
-                    content is RoomMessageEventContent -> content.body
-                    else -> null
+            val message = when {
+                content is MemberEventContent && content.membership == INVITE -> roomName
+                content is RoomMessageEventContent -> content.body
+                else -> null
+            }
+
+            if (message != null) {
+                val sender = event.senderOrNull ?: return
+                val user = sender.let { matrixClient.user.getById(roomId, it).first() } ?: return
+
+                val (userName, userImage) = user.let {
+                    val image = it.avatarUrl?.let { avatarUrl ->
+                        matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                    }?.map { flow ->
+                        val bytes = flow.toByteArray()
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size).getCircledBitmap()
+                    }?.getOrNull()
+                    user.name to image
                 }
 
-                if (message != null) {
-                    val (username, userImage) = event.senderOrNull?.let { sender ->
-                        val user = matrixClient.user.getById(roomId, sender).first()
-                        val image = user?.avatarUrl?.let { avatarUrl ->
-                            matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                        }?.map { it.toByteArray() }
-                            ?.map { bytes ->
-                                BitmapFactory.decodeByteArray(bytes, 0, bytes.size).getCircledBitmap()
-                            }?.getOrNull()
-                        user?.name to image
-                    } ?: (null to null)
-
-                    handler.push(
-                        Notification(
-                            title = roomName,
-                            icon = context.resources.getNotificationIcon(R.drawable.ic_logo),
-                            userData = roomId.full
-                        )
-                    ) {
-                        var style = restoreMessagingStyle(context, roomId)
-                        if (style == null) {
-                            val person = Person.Builder().apply {
-                                setName(username)
-                                userImage?.let { setIcon(IconCompat.createFromIcon(context, it.toIcon())) }
-                            }.build()
-                            style = NotificationCompat.MessagingStyle(person).also {
-                                it.addMessage(
-                                    NotificationCompat.MessagingStyle.Message(
-                                        message, event.originTimestampOrNull ?: Instant.now().toEpochMilli(), person
-                                    )
+                notificationHandlerProvider.value[matrixClient.userId]?.push(
+                    Notification(
+                        title = roomName,
+                        icon = context.resources.getNotificationIcon(R.drawable.ic_logo),
+                        userData = roomId.full
+                    )
+                ) {
+                    var style = restoreMessagingStyle(context, roomId)
+                    if (style == null) {
+                        val person = Person.Builder().apply {
+                            setName(userName)
+                            userImage?.let { setIcon(IconCompat.createFromIcon(context, it.toIcon())) }
+                        }.build()
+                        style = NotificationCompat.MessagingStyle(person).also {
+                            it.addMessage(
+                                NotificationCompat.MessagingStyle.Message(
+                                    message, event.originTimestampOrNull ?: Instant.now().toEpochMilli(), person
                                 )
-                                it.conversationTitle = if (isDirect) "" else roomName
-                                it.isGroupConversation = isDirect.not()
-                            }
+                            )
+                            it.conversationTitle = if (isDirect) "" else roomName
+                            it.isGroupConversation = isDirect.not()
                         }
-                        setStyle(style)
-                        setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                        color = ContextCompat.getColor(context, R.color.logo)
                     }
+                    setStyle(style)
+                    setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                    color = ContextCompat.getColor(context, R.color.logo)
                 }
             }
         } ?: log.warn { "Cannot get roomId for event ${event.idOrNull}" }
@@ -220,6 +217,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                             matrixClient,
                             roomId,
                             eventId,
+                            matrixMultiMessenger.di.get(),
                         )
                     }
 

@@ -1,7 +1,5 @@
 package de.connect2x.messenger.android
 
-import android.content.Intent
-import android.net.Uri
 import androidx.lifecycle.asFlow
 import androidx.work.Constraints
 import androidx.work.Data
@@ -11,8 +9,8 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.sysnotify.SysNotifyIntent
 import de.connect2x.sysnotify.create
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.filter
@@ -20,31 +18,24 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
-fun notificationModule(
-    userId: UserId? = null,
-    messengerConfig: MatrixMultiMessengerConfiguration,
-) = module {
-    // The default notification handler of the app should be available globally in the DI
-    val channelId = if (userId == null) CHANNEL_ID_DEFAULT else pushChannelId(
-        userId,
-        messengerConfig
-    )
-    log.debug { "Creating notification handler with channel ID $channelId" }
+fun notificationModule() = module {
+    single<NotificationHandlerProvider> {
+        log.debug { "Creating notification handler provider" }
+        NotificationHandlerProviderImpl()
+    }
+    // FIXME sure?
     single<NotificationHandler> {
+        log.debug { "Creating default notification handler" }
         NotificationHandler.create(
-            name = messengerConfig.appName,
-            id = channelId,
-            contextGetter = { get() }, // This grabs the application context from the DI
-            activationIntent = { _, notification ->
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("${messengerConfig.urlProtocol}://localhost/room/${notification.userData}")
-                )
+            name = "Messenger",
+            id = CHANNEL_ID_DEFAULT,
+            contextGetter = { get() },
+            activationIntent = { context, notification ->
+                SysNotifyIntent(context, MessengerActivity::class.java, notification)
             }
         )
     }

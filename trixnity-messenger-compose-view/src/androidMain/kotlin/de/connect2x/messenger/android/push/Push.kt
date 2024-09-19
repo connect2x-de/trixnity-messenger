@@ -4,41 +4,40 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import com.google.firebase.messaging.FirebaseMessaging
-import de.connect2x.messenger.android.notificationModule
+import de.connect2x.messenger.android.NotificationHandlerProvider
 import de.connect2x.messenger.compose.view.cleanName
-import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformNotifications
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import net.folivo.trixnity.clientserverapi.model.push.PusherData
 import net.folivo.trixnity.clientserverapi.model.push.SetPushers
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin
-import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
 internal suspend fun setPush(
     context: Context,
+    matrixMultiMessenger: MatrixMultiMessenger,
     pushModes: Map<UserId, PushMode>,
     matrixMessenger: MatrixMessenger,
-) = coroutineScope {
+    scope: CoroutineScope,
+) {
     if (PushMode.PUSH in pushModes.values) {
         try {
             val token = FirebaseMessaging.getInstance().token.await()
             if (token != null) {
                 log.debug { "Got FCM token" }
-                setMatrixPushers(matrixMessenger, token, this)
+                setMatrixPushers(matrixMessenger, token, scope)
             } else {
                 log.warn { "FCM token is 'null'" }
             }
@@ -59,24 +58,8 @@ internal suspend fun setPush(
             PackageManager.DONT_KILL_APP,
         )
     }
-    // Dynamic (un)inject notification handlers for FCM channels
-    for ((userId, pushMode) in pushModes) {
-        if (pushMode == PushMode.PUSH) {
-            log.info { "Creating FCM notification handler for $userId" }
-            matrixMessenger.di.loadModules(listOf(notificationModule(userId, matrixMessenger.di.get())))
-            continue
-        }
-        log.info { "Disposing FCM notification handler for $userId" }
-        matrixMessenger.di.apply {
-            getOrNull<NotificationHandler>()?.apply innerApply@{
-                runBlocking { clearAll() }
-                unloadModules(listOf(module {
-                    single { this@innerApply }
-                }))
-                close()
-            }
-        }
-    }
+    matrixMultiMessenger.di.get<NotificationHandlerProvider>()
+        .updateHandlers(context, matrixMultiMessenger.di.get(), pushModes)
 }
 
 private fun setPushersRequest(fcmToken: String, userId: UserId, deviceId: String, di: Koin): SetPushers.Request {

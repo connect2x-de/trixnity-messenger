@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
+import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -52,6 +53,7 @@ class MatrixMultiMessengerService : Service() {
                         throw IllegalStateException("Cannot find configuration -> see README.md")
                     }
                     modules += initialSyncModule()
+                    modules += notificationModule()
                 }
             }
         }
@@ -70,7 +72,12 @@ class MatrixMultiMessengerService : Service() {
         log.info { "Destroying service" }
         coroutineScope.cancel()
         runBlocking {
-            _matrixMultiMessenger.value?.stop()
+            _matrixMultiMessenger.value?.apply {
+                di.get<NotificationHandler>().close()
+                di.get<NotificationHandlerProvider>().close()
+                stop()
+            }
+
             _matrixMultiMessenger.value = null
         }
         super.onDestroy()

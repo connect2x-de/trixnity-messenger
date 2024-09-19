@@ -9,9 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
+### Changed
 
-- Compose Multiplatform UI
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.2.0
+
+### Added
+
+- Compose Multiplatform UI 🎉
+  * a highly customizable Matrix messenger frontend
+  * see [Readme](trixnity-messenger-compose-view/README.md) for more information
+- `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
 
 ### Changed
 

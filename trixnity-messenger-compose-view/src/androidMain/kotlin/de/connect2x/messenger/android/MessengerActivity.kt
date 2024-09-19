@@ -107,12 +107,16 @@ class MessengerActivity : AppCompatActivity() {
                                     log.debug { "Notifications are enabled for active messenger, requesting permissions" }
                                     matrixMultiMessenger.di.get<NotificationHandler>()
                                         .withActivity(this@MessengerActivity)
-                                        .apply { requestPermissions() }
-                                    setPush(
-                                        applicationContext,
-                                        settings.mapValues { it.value.platformNotifications.pushMode },
-                                        matrixMessenger,
-                                    )
+                                        .requestPermissions()
+                                    scope.launch {
+                                        setPush(
+                                            applicationContext,
+                                            matrixMultiMessenger,
+                                            settings.mapValues { it.value.platformNotifications.pushMode },
+                                            matrixMessenger,
+                                            this,
+                                        )
+                                    }
                                 }
                             }
                         }
