@@ -51,7 +51,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.toByteArray
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
-import org.intellij.markdown.flavours.space.SFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
@@ -314,7 +313,7 @@ open class InputAreaViewModelImpl(
                 val formattedBody = mentionLinks.entries.fold(text) { currentText, (range, newValue) ->
                     currentText.replaceRange(range, newValue)
                 }.replace("\n", "<br>").let {
-                    val flavour = SFMFlavourDescriptor()
+                    val flavour = CommonMarkFlavourDescriptor()
                     val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
                     HtmlGenerator(it, parsedTree, flavour).generateHtml()
                 }.removePrefix("<body><p>").removeSuffix("</p></body>")
