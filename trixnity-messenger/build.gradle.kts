@@ -93,7 +93,6 @@ kotlin {
                 implementation(libs.okio.fakefilesystem)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.bundles.kotest)
-                implementation(libs.logback.classic)
                 implementation(libs.ktor.client.mock)
             }
         }
