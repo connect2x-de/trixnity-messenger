@@ -50,6 +50,10 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.toByteArray
+import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
+import org.intellij.markdown.flavours.space.SFMFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
@@ -309,7 +313,14 @@ open class InputAreaViewModelImpl(
                 val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
                 val formattedBody = mentionLinks.entries.fold(text) { currentText, (range, newValue) ->
                     currentText.replaceRange(range, newValue)
-                }
+                }.replace("\n", "<br>").let {
+                    val flavour = SFMFlavourDescriptor()
+                    val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
+                    val html = HtmlGenerator(it, parsedTree, flavour).generateHtml()
+                    log.debug { "Generated message: $html" }
+                    html
+                }.removePrefix("<body><p>").removeSuffix("</p></body>")
+
                 if (editedEvent != null) {
                     log.debug { "send message (edit)" }
                     matrixClient.room.sendMessage(selectedRoomId) {
