@@ -255,5 +255,5 @@ publish:linux:
     - *if-release
   script:
     - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease}PublicationToGitlabRepository
+      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
       --stacktrace

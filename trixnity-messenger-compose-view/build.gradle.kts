@@ -29,6 +29,7 @@ kotlin {
     }
     js("web", IR) {
         browser()
+        binaries.library()
     }
 
     sourceSets {
