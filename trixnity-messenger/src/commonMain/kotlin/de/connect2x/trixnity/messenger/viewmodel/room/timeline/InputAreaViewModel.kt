@@ -114,6 +114,7 @@ interface InputAreaViewModel {
     val isReplyTo: StateFlow<Boolean>
     val listOfMentions: StateFlow<List<Username>>
     val listOfMentionsLoading: StateFlow<Boolean?>
+    val useMarkdown: StateFlow<Boolean>
 
     /**
      * The UI should focus the input area whenever this value changes to a non-null value.
@@ -173,6 +174,8 @@ open class InputAreaViewModelImpl(
     override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _listOfMentionsLoading = MutableStateFlow<Boolean?>(null)
     override val listOfMentionsLoading: StateFlow<Boolean?> = _listOfMentionsLoading.asStateFlow()
+
+    override val useMarkdown = MutableStateFlow(true)
 
     private val mentionRegex = "@(\\S*)".toRegex()
     private val mentionInLineRegex = "^.*\\s@(\\S*$)|^@(\\S*$)".toRegex()
@@ -312,11 +315,16 @@ open class InputAreaViewModelImpl(
                 val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
                 val formattedBody = mentionLinks.entries.fold(text) { currentText, (range, newValue) ->
                     currentText.replaceRange(range, newValue)
-                }.replace("\n", "<br>").let {
-                    val flavour = CommonMarkFlavourDescriptor()
-                    val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
-                    HtmlGenerator(it, parsedTree, flavour).generateHtml()
-                }.removePrefix("<body><p>").removeSuffix("</p></body>")
+                }.let {
+                    if (useMarkdown.value) {
+                        val src = it.replace("\n", "<br>")
+                        val flavour = CommonMarkFlavourDescriptor()
+                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
+                        val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
+
+                        html.removePrefix("<body><p>").removeSuffix("</p></body>")
+                    } else it
+                }
 
                 if (editedEvent != null) {
                     log.debug { "send message (edit)" }
