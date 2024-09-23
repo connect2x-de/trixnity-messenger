@@ -37,24 +37,23 @@ val ShowProfileCreation =
 // FIXME
 interface ProfileSelectionView {
     @Composable
-    fun create(profileManager: ProfileManager, onCancel: () -> Unit)
+    fun create(profileManager: ProfileManager)
 }
 
 @Composable
-fun ProfileSelection(profileManager: ProfileManager, onCancel: () -> Unit) {
-    DI.get<ProfileSelectionView>().create(profileManager, onCancel)
+fun ProfileSelection(profileManager: ProfileManager) {
+    DI.get<ProfileSelectionView>().create(profileManager)
 }
 
 class ProfileSelectionViewImpl : ProfileSelectionView {
     @Composable
-    override fun create(profileManager: ProfileManager, onCancel: () -> Unit) {
+    override fun create(profileManager: ProfileManager) {
         val i18n = DI.get<I18nView>()
         val coroutineScope = rememberCoroutineScope()
         val profiles = profileManager.profiles.collectAsState().value
         val showProfileCreation = ShowProfileCreation.current
 
         MessengerModal(
-            onDismiss = onCancel,
             title = i18n.selectProfileHeader(),
         ) {
             MessengerModalContent {
@@ -65,7 +64,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
                         leadingContent = {
                             Icon(
                                 Icons.Default.AccountCircle,
-                                "Login",
+                                i18n.login(),
                                 Modifier.fillMaxHeight(),
                             )
                         },
@@ -80,14 +79,6 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
             }
             MessengerModalButtonRow(
                 button1 = {
-                    OutlinedButton(
-                        onClick = onCancel,
-                        modifier = Modifier.buttonPointerModifier()
-                    ) {
-                        Text(i18n.commonCancel().capitalize(Locale.current))
-                    }
-                },
-                button2 = {
                     Button(
                         onClick = {
                             showProfileCreation.value = true

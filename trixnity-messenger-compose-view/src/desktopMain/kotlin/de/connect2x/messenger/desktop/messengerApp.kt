@@ -171,7 +171,7 @@ fun CoroutineScope.messengerApp(
                         ShowProfileCreation provides showProfileCreation,
                     ) {
                         MessengerTheme {
-                            Profiles(matrixMultiMessenger, existingProfiles, ::exitApplication)
+                            Profiles(matrixMultiMessenger, existingProfiles)
                         }
                     }
                 }
