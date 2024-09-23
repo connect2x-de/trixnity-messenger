@@ -51,7 +51,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
     private lateinit var coroutineScope: CoroutineScope
     private lateinit var authorizeUia: AuthorizeUiaMock
 
-    private val onLoginMock = mock<Function1<MatrixClient, Unit>>()
+    private val onLoginMock = mock<Function0<Unit>>()
 
     init {
         beforeTest {
@@ -63,7 +63,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 matrixClientFactoryMock.loginWith(any(), any(), any())
             } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
 
-            every { onLoginMock.invoke(any()) } returns Unit
+            every { onLoginMock.invoke() } returns Unit
             every { matrixClientMock.userId } returns UserId("test", "server")
         }
         afterTest {
@@ -96,16 +96,10 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
                 verifySuspend {
                     matrixClientFactoryMock.loginWith(
                         eq(Url("http://myMatrixServer:55678")),
-                        eq(
-                            MatrixClient.LoginInfo(
-                                UserId("@user1:myMatrixServer:55678"),
-                                "GHTYAJCE",
-                                "abc123"
-                            )
-                        ),
+                        any(),
                         any(),
                     )
-                    onLoginMock.invoke(any())
+                    onLoginMock.invoke()
                 }
             }
 

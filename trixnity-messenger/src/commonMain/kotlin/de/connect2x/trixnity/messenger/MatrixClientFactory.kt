@@ -1,17 +1,14 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.MatrixClientFactory.LoginResult
-import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.client.fromStore
-import net.folivo.trixnity.client.login
 import net.folivo.trixnity.client.loginWith
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
@@ -24,24 +21,9 @@ interface MatrixClientFactory {
         val databasePassword: SecretByteArray?,
     )
 
-    suspend fun login(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        password: String,
-        initialDeviceDisplayName: String?,
-        checkExisting: suspend (LoginInfo) -> Unit,
-    ): Result<LoginResult>
-
-    suspend fun login(
-        baseUrl: Url,
-        token: String,
-        initialDeviceDisplayName: String?,
-        checkExisting: suspend (LoginInfo) -> Unit,
-    ): Result<LoginResult>
-
     suspend fun loginWith(
         baseUrl: Url,
-        loginInfo: LoginInfo,
+        getLoginInfo: suspend (MatrixClientServerApiClient) -> LoginInfo,
         checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<LoginResult>
 
@@ -54,75 +36,14 @@ interface MatrixClientFactory {
 class MatrixClientFactoryImpl(
     private val repositoriesModuleCreation: CreateRepositoriesModule,
     private val createMediaStore: CreateMediaStore,
-    private val getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
     private val configuration: CreateMatrixClientConfiguration,
+    private val onLogin: suspend (loginInfo: LoginInfo, baseUrl: Url) -> Unit = { _, _ -> },
 ) : MatrixClientFactory {
-
-    override suspend fun login(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        password: String,
-        initialDeviceDisplayName: String?,
-        checkExisting: suspend (LoginInfo) -> Unit,
-    ): Result<LoginResult> = kotlin.runCatching {
-        log.debug { "login to account" }
-        var databasePassword: SecretByteArray? = null
-        LoginResult(
-            matrixClient = MatrixClient.login(
-                baseUrl = baseUrl,
-                identifier = identifier,
-                password = password,
-                initialDeviceDisplayName = initialDeviceDisplayName ?: getDefaultDeviceDisplayName(),
-                repositoriesModuleFactory = { loginInfo ->
-                    checkExisting(loginInfo)
-                    createRepositoriesModuleOrThrow(loginInfo.userId).also {
-                        databasePassword = it.databasePassword
-                    }.module
-                },
-                mediaStoreFactory = { loginInfo ->
-                    checkExisting(loginInfo)
-                    createMediaStore(loginInfo.userId)
-                },
-                configuration = configuration(),
-            ).getOrThrow(),
-            databasePassword = databasePassword,
-        )
-    }
-
-    override suspend fun login(
-        baseUrl: Url,
-        token: String,
-        initialDeviceDisplayName: String?,
-        checkExisting: suspend (LoginInfo) -> Unit,
-    ): Result<LoginResult> = kotlin.runCatching {
-        log.debug { "login to account" }
-        var databasePassword: SecretByteArray? = null
-        LoginResult(
-            matrixClient = MatrixClient.login(
-                loginType = LoginType.Token(),
-                token = token,
-                baseUrl = baseUrl,
-                initialDeviceDisplayName = initialDeviceDisplayName ?: getDefaultDeviceDisplayName(),
-                repositoriesModuleFactory = { loginInfo ->
-                    checkExisting(loginInfo)
-                    createRepositoriesModuleOrThrow(loginInfo.userId).also {
-                        databasePassword = it.databasePassword
-                    }.module
-                },
-                mediaStoreFactory = { loginInfo ->
-                    checkExisting(loginInfo)
-                    createMediaStore(loginInfo.userId)
-                },
-                configuration = configuration(),
-            ).getOrThrow(),
-            databasePassword = databasePassword,
-        )
-    }
 
     override suspend fun loginWith(
         baseUrl: Url,
-        loginInfo: LoginInfo,
-        checkExisting: suspend (LoginInfo) -> Unit
+        getLoginInfo: suspend (MatrixClientServerApiClient) -> LoginInfo,
+        checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<LoginResult> = kotlin.runCatching {
         log.debug { "loginWith to account" }
         var databasePassword: SecretByteArray? = null
@@ -140,8 +61,15 @@ class MatrixClientFactoryImpl(
                     createMediaStore(loginInfo.userId)
                 },
                 getLoginInfo = {
-                    Result.success(loginInfo)
-                }).getOrThrow(),
+                    kotlin.runCatching {
+                        val loginInfo = getLoginInfo(it)
+                        checkExisting(loginInfo)
+                        onLogin(loginInfo, baseUrl)
+                        loginInfo
+                    }
+                },
+                configuration = configuration(),
+            ).getOrThrow(),
             databasePassword = databasePassword,
         )
     }

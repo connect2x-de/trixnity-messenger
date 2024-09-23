@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.i18n.I18n
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -20,6 +21,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
+private val log = KotlinLogging.logger { }
 
 interface RoomName {
     fun getRoomName(
@@ -105,21 +107,29 @@ open class RoomNameImpl(
         matrixClient: MatrixClient,
     ): Flow<String> {
         if (name != null) {
-            val (explicitName, roomIsEmpty, otherUsersCount) = name
-            val heroes = name.heroes
+            val (explicitName, heroes, otherUsersCount, roomIsEmpty) = name
 
             return when {
                 !explicitName.isNullOrEmpty() -> flowOf(explicitName)
-                heroes.isEmpty() && roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
-                heroes.isEmpty() -> flowOf(i18n.roomNameEmptyChat())
+                heroes.isEmpty() -> {
+                    when {
+                        roomIsEmpty -> flowOf(i18n.roomNameEmptyChat())
+                        otherUsersCount > 1 -> flowOf(i18n.roomNamePeople(otherUsersCount))
+                        else -> {
+                            log.warn { "undefined state in room name calculation. fallback to roomId" }
+                            flowOf(roomId.full)
+                        }
+                    }
+                }
+
                 else -> combine(heroes.map { matrixClient.user.getById(roomId, it) }) {
                     val heroConcat = it.mapIndexed { index: Int, roomUser: RoomUser? ->
                         when {
-                            otherUsersCount == 0L && index < heroes.size - 2 || otherUsersCount > 0L && index < heroes.size - 1 -> {
+                            otherUsersCount == 0 && index < heroes.size - 2 || otherUsersCount > 0L && index < heroes.size - 1 -> {
                                 nameFromHeroes(roomUser, heroes, index) + ", "
                             }
 
-                            otherUsersCount == 0L && index == heroes.size - 2 -> {
+                            otherUsersCount == 0 && index == heroes.size - 2 -> {
                                 nameFromHeroes(roomUser, heroes, index) + " ${i18n.roomNameAnd()} "
                             }
 

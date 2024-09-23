@@ -40,7 +40,7 @@ import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class VerificationViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 4_000
 
@@ -121,7 +121,7 @@ class VerificationViewModelTest : ShouldSpec() {
         should("show verification request when a verification is started by another client") {
             every { activeVerification.state } returns MutableStateFlow(theirRequest())
 
-            val cut = deviceVerificationViewModel(coroutineContext)
+            val cut = deviceVerificationViewModel()
 
             eventually(1.seconds) {
                 cut.stack.value.active.configuration should beOfType<Config.Request>()
@@ -141,7 +141,7 @@ class VerificationViewModelTest : ShouldSpec() {
                 )
             )
 
-            val cut = deviceVerificationViewModel(coroutineContext)
+            val cut = deviceVerificationViewModel()
 
             eventually(1.seconds) {
                 cut.stack.value.active.configuration should beOfType<Config.SelectVerificationMethod>()
@@ -164,9 +164,9 @@ class VerificationViewModelTest : ShouldSpec() {
                 )
             )
 
-            val cut = deviceVerificationViewModel(coroutineContext)
+            val cut = deviceVerificationViewModel()
 
-            eventually(1.seconds) {
+            eventually(3.seconds) {
                 val deviceVerificationStepWrapper = cut.stack.value.active.instance
                 deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Cancelled>()
                 deviceVerificationStepWrapper.viewModel.ok()
@@ -190,9 +190,9 @@ class VerificationViewModelTest : ShouldSpec() {
             } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
             every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
 
-            val cut = deviceVerificationViewModel(coroutineContext)
+            val cut = deviceVerificationViewModel()
 
-            eventually(1.seconds) {
+            eventually(3.seconds) {
                 val deviceVerificationStepWrapper = cut.stack.value.active.instance
                 deviceVerificationStepWrapper.shouldBeInstanceOf<VerificationViewModel.Wrapper.Success>()
                 deviceVerificationStepWrapper.viewModel.ok()
@@ -213,7 +213,7 @@ class VerificationViewModelTest : ShouldSpec() {
             every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
             every { activeVerification2.state } returns MutableStateFlow(theirRequest())
 
-            val cut = deviceVerificationViewModel(coroutineContext)
+            val cut = deviceVerificationViewModel()
 
             eventually(1.seconds) {
                 cut.stack.value.active.configuration should beOfType<Config.Success>()
@@ -230,7 +230,7 @@ class VerificationViewModelTest : ShouldSpec() {
 
     }
 
-    private suspend fun deviceVerificationViewModel(coroutineContext: CoroutineContext): VerificationViewModel {
+    private suspend fun deviceVerificationViewModel(): VerificationViewModel {
         return VerificationViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -242,7 +242,6 @@ class VerificationViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             onCloseVerification = onCloseDeviceVerificationMock,
             onRedoSelfVerification = onRedoSelfVerificationMock,

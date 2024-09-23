@@ -72,6 +72,7 @@ class RoomNameTest : ShouldSpec() {
                         explicitName = null,
                         isEmpty = false,
                         otherUsersCount = 1,
+                        heroes = listOf(user1Id),
                         summary = RoomSummary(heroes = listOf(user1Id))
                     )
                 )
@@ -100,6 +101,7 @@ class RoomNameTest : ShouldSpec() {
                         explicitName = "Room name",
                         isEmpty = false,
                         otherUsersCount = 1,
+                        heroes = listOf(user1Id, user2Id),
                         summary = RoomSummary(heroes = listOf(user1Id, user2Id))
                     )
                 )

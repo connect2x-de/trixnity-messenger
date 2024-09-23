@@ -34,6 +34,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.AuthenticationApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType.User
+import net.folivo.trixnity.clientserverapi.model.authentication.Login
 import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.seconds
 
@@ -84,23 +85,25 @@ class MatrixClientsTest : ShouldSpec() {
                 matrixClientFactory,
                 deleteAccountData
             )
+
             login = everySuspend {
-                matrixClientFactory.login(
+                matrixClientFactory.loginWith(
                     any(),
                     any(),
                     any(),
-                    any(),
-                    any()
                 )
             }
 
             login calls {
-                val username = checkNotNull((it.args[1] as? User)?.user)
                 runCatching {
                     @Suppress("UNCHECKED_CAST")
-                    (it.args[4] as? suspend (MatrixClient.LoginInfo) -> Unit)
-                        ?.invoke(MatrixClient.LoginInfo(UserId(username, "server"), "", ""))
+                    val loginInfo = (it.args[1] as suspend (MatrixClientServerApiClient) -> MatrixClient.LoginInfo)
+                        .invoke(matrixClientServerApiClient)
+                    @Suppress("UNCHECKED_CAST")
+                    (it.args[2] as? suspend (MatrixClient.LoginInfo) -> Unit)
+                        ?.invoke(loginInfo)
                     loginCalled = true
+                    val username = loginInfo.userId.localpart
                     MatrixClientFactory.LoginResult(
                         when (username) {
                             "test1" -> matrixClientMock1
@@ -110,6 +113,7 @@ class MatrixClientsTest : ShouldSpec() {
                     )
                 }
             }
+
             initFromStore = everySuspend { matrixClientFactory.initFromStore(any(), any()) }
             initFromStore calls {
                 val username = checkNotNull((it.args[0] as? UserId)).localpart
@@ -132,6 +136,25 @@ class MatrixClientsTest : ShouldSpec() {
                 logoutCalled = true
                 Result.success(Unit)
             }
+            everySuspend {
+                authenticationApiClient.login(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } calls { args ->
+                val username = args.args[0] as User
+                Result.success(
+                    Login.Response(
+                        UserId(username.user, "server"),
+                        accessToken = "",
+                        deviceId = ""
+                    )
+                )
+            }
             every { matrixClientServerApiClient.authentication } returns authenticationApiClient
             every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
             everySuspend { authenticationApiClient.logout(any()) } returns Result.success(Unit)
@@ -145,8 +168,8 @@ class MatrixClientsTest : ShouldSpec() {
         context("login") {
             should("login and register new account locally") {
                 val cut = createCut()
-                val result = cut.login(Url("https://example.org"), User("test1"), "password", "")
-                result.isSuccess shouldBe true
+                cut.login(Url("https://example.org"), User("test1"), "password", "")
+                    .getOrThrow()
                 cut.value shouldBe mapOf(UserId("test1", "server") to matrixClientMock1)
                 loginCalled shouldBe true
 
@@ -154,8 +177,8 @@ class MatrixClientsTest : ShouldSpec() {
             }
             should("login for another account and create additional MatrixClient") {
                 val cut = createCut()
-                cut.login(Url("https://example.org"), User("test1"), "password", "")
-                cut.login(Url("https://example2.org"), User("test2"), "password2", "")
+                cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
+                cut.login(Url("https://example2.org"), User("test2"), "password2", "").getOrThrow()
 
                 cut.value shouldBe mapOf(
                     UserId("test1", "server") to matrixClientMock1,
@@ -166,7 +189,7 @@ class MatrixClientsTest : ShouldSpec() {
             }
             should("not login again, if MatrixClient already present for account") {
                 val cut = createCut()
-                cut.login(Url("https://example.org"), User("test1"), "password", "").isSuccess shouldBe true
+                cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
                 loginCalled = false
                 cut.login(Url("https://example.org"), User("test1"), "password", "") shouldBe
                         Result.failure(AccountAlreadyExistsException(UserId("test1", "server")))

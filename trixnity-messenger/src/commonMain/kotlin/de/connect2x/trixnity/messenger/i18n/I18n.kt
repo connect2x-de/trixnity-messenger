@@ -69,6 +69,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Einladung in $groupOrChat '$roomName'"
     }
 
+    fun roomNamePeople(count: Int) = translate {
+        EN - "$count persons"
+        DE - "$count Personen"
+    }
+
     fun roomNameEmptyChat() = translate {
         EN - "Empty chat"
         DE - "Leerer Chat"
@@ -94,9 +99,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Gruppe"
     }
 
-    fun roomNameOther(othersCount: Long) = translate {
-        EN - if (othersCount == 1L) "one other" else "$othersCount others"
-        DE - if (othersCount == 1L) "ein anderer" else "$othersCount andere"
+    fun roomNameOther(othersCount: Int) = translate {
+        EN - if (othersCount == 1) "one other" else "$othersCount others"
+        DE - if (othersCount == 1) "ein anderer" else "$othersCount andere"
     }
 
     fun eventChangeAvatar(username: String) = translate {
@@ -382,9 +387,9 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$usernames und andere schreiben..."
     }
 
-    fun connectingErrorStandard() = translate {
-        EN - "Cannot connect to the Matrix server."
-        DE - "Matrix-Server kann nicht erreicht werden."
+    fun connectingErrorStandard(message: String) = translate {
+        EN - "Cannot connect to the Matrix server: $message"
+        DE - "Matrix-Server kann nicht erreicht werden: $message"
     }
 
     fun connectingErrorForbidden() = translate {

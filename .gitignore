@@ -12,3 +12,6 @@ build/
 test*.db
 desktop/test.db
 kotlin-js-store
+
+app-data/
+google-services.json

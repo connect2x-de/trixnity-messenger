@@ -217,7 +217,7 @@ class ProfileViewModelTest : ShouldSpec() {
                 )
             } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
             setDisplayNameMocker returns
-                    Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden()))
+                    Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
             val cut = profileViewModel()
             val profilesOfAccounts = cut.profileSingleViewModels

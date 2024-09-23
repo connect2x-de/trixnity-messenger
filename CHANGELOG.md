@@ -9,10 +9,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Fix device list loading set to false too early
+
+### Security
+
+## 2.2.2
+
+### Fixed
+
+- Missing configuration in loginWith
+
+## 2.2.0
+
+### Added
+
+- Compose Multiplatform UI 🎉
+    * a highly customizable Matrix messenger frontend
+    * see [Readme](trixnity-messenger-compose-view/README.md) for more information
+- `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
+
+### Changed
+
+- Upgraded Trixnity
+- Upgraded dependencies
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.1.2
+
+### Added
+
+- Images uploaded on android and desktop are rotated correctly
+- allow to check login before creating a MatrixClient
+
+### Removed
+
+- View model based login check
+
+### Fixed
+
+- UriCaller not working on Android when MatrixMessenger is created in ApplicationContext
+- Show errors in SSO Login
+
+## 2.1.1
+
+### Added
+
 - Editable room avatar
 - permission necessary flag to android notification settings
 
 ### Changed
+
 - upgrade trixnity version
 
 ### Deprecated
