@@ -42,6 +42,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.HistoryVisibilityChangeStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAliasChangeStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomEncryptionEnabledViewModel
@@ -90,6 +91,17 @@ fun RoomTopicChange(roomTopicChangeStatusViewModel: RoomTopicChangeStatusViewMod
         }
     }
 }
+
+@Composable
+fun RoomAliasChange(roomAliasChangeStatusViewModel: RoomAliasChangeStatusViewModel) {
+    val roomAliasChangeMessage = roomAliasChangeStatusViewModel.roomAliasChangeMessage.collectAsState().value
+    roomAliasChangeMessage.forEach {
+        Indicator(MaterialTheme.colorScheme.tertiary) {
+            IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
+        }
+    }
+}
+
 
 @Composable
 fun RoomEncryptionEnabled(roomEncryptionEnabledViewModel: RoomEncryptionEnabledViewModel) {

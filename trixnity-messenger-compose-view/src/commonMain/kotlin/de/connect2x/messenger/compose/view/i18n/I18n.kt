@@ -282,6 +282,41 @@ abstract class I18nView(
         DE - "neue Nachricht"
     }
 
+    fun addAlias() = translate {
+        EN - "add alias"
+        DE - "Alias hinzufügen"
+    }
+
+    fun deleteAlias() = translate {
+        EN - "delete alias"
+        DE - "Alias löschen"
+    }
+
+    fun makeMainAlias() = translate {
+        EN - "set as mainalias"
+        DE - "als Hauptalias setzen"
+    }
+
+    fun unmakeMainAlias() = translate {
+        EN - "remove as mainalias"
+        DE - "als Hauptalias entfernen"
+    }
+
+    fun manageAliases() = translate {
+        EN - "manage aliases"
+        DE - "Aliase verwalten"
+    }
+
+    fun newAlias() = translate {
+        EN - "new alias"
+        DE - "neuer alias"
+    }
+
+    fun aliases() = translate {
+        EN - "aliases"
+        DE - "Aliase"
+    }
+
     fun automated() = translate {
         EN - "Automated"
         DE - "Automatisiert"
@@ -739,6 +774,11 @@ abstract class I18nView(
     fun roomSettingsMembers() = translate {
         EN - "members"
         DE - "Mitglieder"
+    }
+
+    fun roomSettingsAliases() = translate {
+        EN - "Room Aliases"
+        DE - "Raumaliase"
     }
 
     fun roomSettingsMentions() = translate {
