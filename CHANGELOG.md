@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 2.2.2
+
+### Fixed
+
+- Missing configuration in loginWith
+
 ## 2.2.0
 
 ### Added
