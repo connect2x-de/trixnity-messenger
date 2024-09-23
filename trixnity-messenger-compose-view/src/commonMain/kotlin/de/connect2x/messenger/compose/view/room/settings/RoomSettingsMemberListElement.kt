@@ -501,8 +501,8 @@ fun KickUserWarning(
         confirmButtonText = i18n.memberListRemoveUserConfirmation(),
         dismissAction = { memberListElementViewModel.closeKickUserWarning() },
         confirmAction = {
-            memberListElementViewModel.closeKickUserWarning();
-            memberListElementViewModel.closeMemberOptions();
+            memberListElementViewModel.closeKickUserWarning()
+            memberListElementViewModel.closeMemberOptions()
             memberListElementViewModel.kickUser(userId)
         }
     )
@@ -511,7 +511,6 @@ fun KickUserWarning(
 @Composable
 fun BanUserWarning(
     memberListElementViewModel: MemberListElementViewModel,
-    userId: UserId
 ) {
     val i18n = DI.current.get<I18nView>()
     var reason by remember { mutableStateOf("") }
@@ -542,7 +541,6 @@ fun BanUserWarning(
 @Composable
 fun UnbanUserWarning(
     memberListElementViewModel: MemberListElementViewModel,
-    userId: UserId
 ) {
     val i18n = DI.current.get<I18nView>()
     var reason by remember { mutableStateOf("") }
