@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListView {
     @Composable
@@ -49,9 +50,18 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
         val memberListViewModels =
             roomSettingsViewModel.memberListViewModel.memberListElementViewModels.collectAsState().value
+
+        if (memberListViewModels.isEmpty()) {
+            return
+        }
+
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} (${memberListViewModels.count()})",
+                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} (${
+                    memberListViewModels.count {
+                        it.second.membership.value == Membership.JOIN
+                    }
+                })",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1.0f, false).fillMaxWidth(),
             )

@@ -17,6 +17,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,6 +31,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -54,6 +60,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListElementView {
     @Composable
@@ -94,6 +101,9 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val isLastMember =
             memberListViewModel.memberListElementViewModels.collectAsState().value.lastOrNull()?.first == memberListElementViewModel.userId
         val presence = memberListElementViewModel.presence.collectAsState().value
+        val membership = memberListElementViewModel.membership.collectAsState().value
+        val memberShipReason = memberListElementViewModel.membershipReason.collectAsState().value
+        var bannedMemberReasonOpen by remember { mutableStateOf(false) }
 
         Box(
             Modifier
@@ -112,7 +122,12 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                     else {
                         AvatarWithPresence(memberElement.image, memberElement.initials, presence)
                         Spacer(Modifier.size(5.dp))
-                        UserState(memberListElementViewModel.userTrustLevel, memberListElementViewModel.isUserBlocked)
+                        UserState(
+                            memberListElementViewModel.userTrustLevel,
+                            memberListElementViewModel.isUserBlocked,
+                            memberListElementViewModel.membership,
+                            memberListElementViewModel.iHavePowerToUnbanUser
+                        )
                         Spacer(Modifier.size(5.dp))
                         Text(
                             modifier = Modifier.fillMaxWidth().weight(1.0f, false),
@@ -128,10 +143,30 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 maxLines = 1
                             )
                         }
+                        if (!memberShipReason.isNullOrBlank() && membership == Membership.BAN) {
+                            Icon(
+                                if (bannedMemberReasonOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                if (bannedMemberReasonOpen) i18n.commonCollapse() else i18n.commonExpand(),
+                                Modifier.clickable { bannedMemberReasonOpen = !bannedMemberReasonOpen }
+                            )
+                        }
                     }
                 }
                 if (memberElement != null && memberOptionsOpen && memberElement == clickedUser.value) {
                     MemberOptions(memberListElementViewModel, memberUserId, clickedUser)
+                }
+                if (bannedMemberReasonOpen) {
+                    Column(
+                        Modifier
+                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                            .clickable {
+                                bannedMemberReasonOpen = false
+                            }
+                    ) {
+                        memberShipReason?.let {
+                            Text(it)
+                        }
+                    }
                 }
                 if (isLastMember.not()) {
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
@@ -265,6 +300,8 @@ private fun MemberOptions(
     val i18n = DI.get<I18nView>()
     val iHavePowerToKickUser =
         memberListElementViewModel.iHavePowerToKickUser.collectAsState().value
+    val iHavePowerToBanUser = memberListElementViewModel.iHavePowerToBanUser.collectAsState().value
+    val iHavePowerToUnbanUer = memberListElementViewModel.iHavePowerToUnbanUser.collectAsState().value
     val canSetRoleToAdmin =
         memberListElementViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState().value
     val canSetRoleToModerator =
@@ -282,8 +319,16 @@ private fun MemberOptions(
     val kickUserWarningOpen =
         memberListElementViewModel.kickUserWarningOpen.collectAsState().value
 
+    val banUserWarningOpen =
+        memberListElementViewModel.banUserWarningOpen.collectAsState().value
+
+    val unbanUserWarningOpen =
+        memberListElementViewModel.unbanUserWarningOpen.collectAsState().value
+
     val isUserBlocked = memberListElementViewModel.isUserBlocked.collectAsState().value
     val blockingInProgress = memberListElementViewModel.blockingInProgress.collectAsState().value
+
+    val membership = memberListElementViewModel.membership.collectAsState().value
 
     DropdownMenu(
         expanded = true,
@@ -292,6 +337,23 @@ private fun MemberOptions(
         },
         modifier = Modifier.background(MaterialTheme.colorScheme.background),
     ) {
+        if (membership == Membership.BAN) {
+            if (iHavePowerToUnbanUer) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            i18n.memberListUnbanUser(),
+                            Modifier.buttonPointerModifier(),
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                    },
+                    onClick = { memberListElementViewModel.openUnbanUserWarning() },
+                    contentPadding = PaddingValues(horizontal = 10.dp),
+                )
+            }
+
+            return@DropdownMenu
+        }
         if (canSetRoleToAdmin) {
             DropdownMenuItem(
                 text = {
@@ -371,6 +433,19 @@ private fun MemberOptions(
                 contentPadding = PaddingValues(horizontal = 10.dp),
             )
         }
+        if (iHavePowerToBanUser) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        i18n.memberListBanUser(),
+                        Modifier.buttonPointerModifier(),
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                },
+                onClick = { memberListElementViewModel.openBanUserWarning() },
+                contentPadding = PaddingValues(horizontal = 10.dp),
+            )
+        }
         if (blockingInProgress.not()) {
             if (isUserBlocked) {
                 DropdownMenuItem(
@@ -400,6 +475,8 @@ private fun MemberOptions(
         }
     }
     if (kickUserWarningOpen) KickUserWarning(memberListElementViewModel, userId)
+    if (banUserWarningOpen) BanUserWarning(memberListElementViewModel, userId)
+    if (unbanUserWarningOpen) UnbanUserWarning(memberListElementViewModel, userId)
     if (changingRoleWarningOpen != null) ChangingRoleWarning(
         memberListElementViewModel,
         changingRoleWarningOpen
@@ -427,6 +504,68 @@ fun KickUserWarning(
             memberListElementViewModel.closeKickUserWarning();
             memberListElementViewModel.closeMemberOptions();
             memberListElementViewModel.kickUser(userId)
+        }
+    )
+}
+
+@Composable
+fun BanUserWarning(
+    memberListElementViewModel: MemberListElementViewModel,
+    userId: UserId
+) {
+    val i18n = DI.current.get<I18nView>()
+    var reason by remember { mutableStateOf("") }
+
+    WarningDialog(
+        title = i18n.memberListBanTitle(),
+        message = {
+            OutlinedTextField(
+                value = reason,
+                onValueChange = {
+                    reason = it
+                },
+                label = {
+                    Text(i18n.commonOptionalReason())
+                }
+            )
+        },
+        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
+        confirmButtonText = i18n.memberListBanUserConfirmation(),
+        dismissAction = { memberListElementViewModel.closeBanUserWarning() },
+        confirmAction = {
+            memberListElementViewModel.closeBanUserWarning()
+            memberListElementViewModel.closeMemberOptions()
+            memberListElementViewModel.banUser(reason.ifBlank { null })
+        })
+}
+
+@Composable
+fun UnbanUserWarning(
+    memberListElementViewModel: MemberListElementViewModel,
+    userId: UserId
+) {
+    val i18n = DI.current.get<I18nView>()
+    var reason by remember { mutableStateOf("") }
+
+    WarningDialog(
+        title = i18n.unbanTitle(),
+        message = {
+            OutlinedTextField(
+                value = reason,
+                onValueChange = {
+                    reason = it
+                },
+                label = {
+                    Text(i18n.commonOptionalReason())
+                }
+            )
+        },
+        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
+        confirmButtonText = i18n.unbanUserConfirmation(),
+        dismissAction = { memberListElementViewModel.closeUnbanUserWarning() },
+        confirmAction = {
+            memberListElementViewModel.closeUnbanUserWarning()
+            memberListElementViewModel.unbanUser(reason.ifBlank { null })
         }
     )
 }
