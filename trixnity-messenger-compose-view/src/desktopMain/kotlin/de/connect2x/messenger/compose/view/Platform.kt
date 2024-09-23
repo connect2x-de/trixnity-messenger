@@ -6,6 +6,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -88,7 +89,7 @@ actual fun Tooltip(
             }
         },
         delayMillis = delayMillis,
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onClick?:{ }),
         content = content,
         tooltipPlacement = TooltipPlacement.CursorPoint(
             // to prevent the tooltip getting in the way of the mouse that in turn prevents clicks

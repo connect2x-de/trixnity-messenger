@@ -145,9 +145,7 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
                         selectActiveAccount.value = true
                     }
                 },
-                modifier = Modifier
-                    .buttonPointerModifier()
-                    .indication(indication = null, interactionSource = MutableInteractionSource()),
+                modifier = Modifier,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
             ) {

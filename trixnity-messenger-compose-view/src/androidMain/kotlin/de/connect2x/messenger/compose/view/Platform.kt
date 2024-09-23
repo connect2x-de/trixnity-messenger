@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +63,7 @@ actual fun Tooltip(
     val interactionSource = remember { MutableInteractionSource() }
     return Box(
         Modifier.combinedClickable(
-            indication = null,
+            indication = ripple(),
             interactionSource = interactionSource,
             role = Role.Button,
             onClick = if (onClick != null) onClick else {
