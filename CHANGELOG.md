@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Missing configuration in loginWith
+- Fix device list loading set to false too early
 
 ### Security
 
