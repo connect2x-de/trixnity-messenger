@@ -475,8 +475,8 @@ private fun MemberOptions(
         }
     }
     if (kickUserWarningOpen) KickUserWarning(memberListElementViewModel, userId)
-    if (banUserWarningOpen) BanUserWarning(memberListElementViewModel, userId)
-    if (unbanUserWarningOpen) UnbanUserWarning(memberListElementViewModel, userId)
+    if (banUserWarningOpen) BanUserWarning(memberListElementViewModel)
+    if (unbanUserWarningOpen) UnbanUserWarning(memberListElementViewModel)
     if (changingRoleWarningOpen != null) ChangingRoleWarning(
         memberListElementViewModel,
         changingRoleWarningOpen
