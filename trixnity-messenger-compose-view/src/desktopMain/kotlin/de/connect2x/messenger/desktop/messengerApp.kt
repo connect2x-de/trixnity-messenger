@@ -24,11 +24,8 @@ import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.GetLicences
-import de.connect2x.messenger.compose.view.GetLicencesImpl
 import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
@@ -142,9 +139,6 @@ fun CoroutineScope.messengerApp(
                         LocalWindowScope provides this@Window,
                         IsDebug provides isDebug,
                         DI provides matrixMessenger.di,
-                        GetLicences provides GetLicencesImpl {
-                            Res.readBytes("files/aboutlibraries.json").decodeToString()
-                        },
                     ) {
                         MessengerTheme {
                             Client(rootViewModel)
@@ -165,9 +159,6 @@ fun CoroutineScope.messengerApp(
                         LocalWindowScope provides this@Window,
                         IsDebug provides isDebug,
                         DI provides matrixMultiMessenger.di,
-                        GetLicences provides GetLicencesImpl {
-                            Res.readBytes("files/aboutlibraries.json").decodeToString()
-                        },
                         ShowProfileCreation provides showProfileCreation,
                     ) {
                         MessengerTheme {

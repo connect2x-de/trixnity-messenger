@@ -29,17 +29,19 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
     override fun create(appInfoViewModel: AppInfoViewModel) {
         val i18n = DI.get<I18nView>()
         val privacyInfoUrl = DI.get<MatrixMessengerConfiguration>().privacyInfoUrl
-        val richTextState = rememberRichTextState()
-        LaunchedEffect(Unit) {
-            richTextState.addLink(i18n.appInfoPrivacyLink(), privacyInfoUrl)
-        }
-        MessengerModal(onDismiss = { appInfoViewModel.showPrivacy.value = false }, i18n.appInfoPrivacy()) {
-            MessengerModalContent {
-                RichText(richTextState)
+        if (privacyInfoUrl != null) {
+            val richTextState = rememberRichTextState()
+            LaunchedEffect(Unit) {
+                richTextState.addLink(i18n.appInfoPrivacyLink(), privacyInfoUrl)
             }
-            MessengerModalButtonRow({
-                NextButton(text = i18n.commonBack()) { appInfoViewModel.showPrivacy.value = false }
-            })
+            MessengerModal(onDismiss = { appInfoViewModel.showPrivacy.value = false }, i18n.appInfoPrivacy()) {
+                MessengerModalContent {
+                    RichText(richTextState)
+                }
+                MessengerModalButtonRow({
+                    NextButton(text = i18n.commonBack()) { appInfoViewModel.showPrivacy.value = false }
+                })
+            }
         }
     }
 }

@@ -20,27 +20,35 @@ enum class BuildFlavor { PROD, DEV }
 
 val buildFlavor = BuildFlavor.valueOf(System.getenv("BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
 
-val buildConfigGenerator by tasks.registering(Sync::class) {
-    from(
-        resources.text.fromString(
+val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
+val licenses by tasks.registering(AboutLibrariesTask::class) {
+    resultDirectory = licensesDir
+    dependsOn("collectDependencies")
+}
+
+val buildConfigGenerator by tasks.registering {
+    val outputFile = generatedSrc.get().file("de/connect2x/$appNameCleaned/BuildConfig.kt")
+    doLast {
+        val licencesString = licensesDir.resolve("aboutlibraries.json").readText()
+        val quotes = "\"\"\""
+        val buildConfigString =
             """
             package de.connect2x.$appNameCleaned
             
             object BuildConfig {
                 const val version = "$version"
                 val flavor = Flavor.valueOf("$buildFlavor")
-                val appName = "$appName"
-                val appNameCleaned = "$appNameCleaned"
+                const val appName = "$appName"
+                const val appNameCleaned = "$appNameCleaned"
+                val licenses = $quotes$licencesString$quotes
             }
             
             enum class Flavor { PROD, DEV }
         """.trimIndent()
-        )
-    ) {
-        rename { "BuildConfig.kt" }
-        into("de/connect2x/$appNameCleaned")
+        outputFile.asFile.writeText(buildConfigString)
     }
-    into(generatedSrc)
+    outputs.dirs(generatedSrc)
+    dependsOn(licenses)
 }
 
 kotlin {
@@ -73,7 +81,7 @@ kotlin {
                 implementation(project(":trixnity-messenger-compose-view"))
                 implementation(compose.components.resources)
             }
-            kotlin.srcDir(buildConfigGenerator.map { it.destinationDir })
+            kotlin.srcDir(buildConfigGenerator.map { it.outputs })
         }
         val desktopMain by getting {
             dependencies {
@@ -175,12 +183,3 @@ android {
         }
     }
 }
-
-// aboutlibraries.json ########################################
-val licenses by tasks.registering(AboutLibrariesTask::class) {
-    resultDirectory = layout.projectDirectory.dir("src").dir("commonMain").dir("composeResources").dir("files").asFile
-    dependsOn("collectDependencies")
-}
-
-tasks.findByName("copyNonXmlValueResourcesForCommonMain")
-    ?.dependsOn(licenses)
