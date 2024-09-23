@@ -16,6 +16,10 @@ in [#trixnity-messenger:imbitbu.de](https://matrix.to/#/#trixnity-messenger:imbi
 Are you looking for a TI-Messenger SDK? Trixnity Messenger is the base for our TIM SDK. If you want to know more,
 contact us at [contact@connect2x.de](mailto:contact@connect2x.de).
 
+## UI
+
+If you are just interested in the UI and white labelling it, have a look at this [Readme](trixnity-messenger-compose-view/README.md).
+
 ## MVVM
 
 Trixnity Messenger follows the MVVM pattern, in particular it represents the view model (VM) part. Trixnity is the

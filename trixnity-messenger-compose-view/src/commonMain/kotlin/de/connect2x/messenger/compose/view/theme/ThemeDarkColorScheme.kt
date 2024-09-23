@@ -1,0 +1,63 @@
+package de.connect2x.messenger.compose.view.theme
+
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.Color
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.deriveFromHue
+import de.connect2x.messenger.compose.view.common.hue
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.getOrNull
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger { }
+
+interface ThemeDarkColorScheme {
+    @Composable
+    fun create(): ColorScheme
+}
+
+class ThemeDarkColorSchemeImpl : ThemeDarkColorScheme {
+    @Composable
+    override fun create(): ColorScheme {
+        val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
+        val accentColor =
+            settings?.base?.accentColor?.let { Color(it.toULong()) } ?: DI.get<DefaultAccentColor>().value
+        val accentHue = accentColor.hue
+        return darkColorScheme(
+            primary = accentColor,
+            onPrimary = md_theme_dark_onPrimary,
+            primaryContainer = md_theme_dark_primaryContainer.deriveFromHue(accentHue),
+            onPrimaryContainer = md_theme_dark_onPrimaryContainer,
+            secondary = md_theme_dark_secondary.deriveFromHue(accentHue),
+            onSecondary = md_theme_dark_onSecondary,
+            secondaryContainer = md_theme_dark_secondaryContainer,
+            onSecondaryContainer = md_theme_dark_onSecondaryContainer,
+            tertiary = md_theme_dark_tertiary,
+            onTertiary = md_theme_dark_onTertiary,
+            tertiaryContainer = md_theme_dark_tertiaryContainer,
+            onTertiaryContainer = md_theme_dark_onTertiaryContainer,
+            error = md_theme_dark_error,
+            errorContainer = md_theme_dark_errorContainer,
+            onError = md_theme_dark_onError,
+            onErrorContainer = md_theme_dark_onErrorContainer,
+            background = md_theme_dark_background,
+            onBackground = md_theme_dark_onBackground,
+            surface = md_theme_dark_surface,
+            onSurface = md_theme_dark_onSurface,
+            surfaceVariant = md_theme_dark_surfaceVariant.deriveFromHue(accentHue),
+            onSurfaceVariant = md_theme_dark_onSurfaceVariant,
+            outline = md_theme_dark_outline.deriveFromHue(accentHue),
+            inverseOnSurface = md_theme_dark_inverseOnSurface,
+            inverseSurface = md_theme_dark_inverseSurface.deriveFromHue(accentHue),
+            inversePrimary = md_theme_dark_inversePrimary.deriveFromHue(accentHue),
+            surfaceTint = md_theme_dark_surfaceTint.deriveFromHue(accentHue),
+            outlineVariant = md_theme_dark_outlineVariant,
+            scrim = md_theme_dark_scrim,
+        )
+            .also { log.debug { "create default dark color scheme" } }
+    }
+}

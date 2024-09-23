@@ -12,6 +12,8 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountView
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
@@ -26,13 +28,18 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
+import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
@@ -271,6 +278,85 @@ suspend fun MatrixMessengerWithRoot.findRoomWithId(roomId: RoomId) = with(root) 
                 }
             }
         roomListElements.first()
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.getAllRooms(username: String) = with(root) {
+    di.get<MatrixClients>().value.entries.find { (userId, _) -> userId.localpart == username }
+        ?.let { (_, matrixClient) ->
+            matrixClient.room.getAll().first().values.map { it.first() }
+                .also { log.debug { "found rooms: $it" } }
+        } ?: emptyList()
+
+}
+
+suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String) = with(root) {
+    withTimeout(20.seconds) {
+        val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+        val roomListViewModel = mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        roomListViewModel.selectRoom(roomId)
+        val timelineViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+            .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+        val inputAreaViewModel = timelineViewModel.inputAreaViewModel
+        val job = launch { inputAreaViewModel.isSendEnabled.collect {} }
+        inputAreaViewModel.message.value = message
+        log.debug { "wait for send to be enabled" }
+        inputAreaViewModel.isSendEnabled.first { it }
+        inputAreaViewModel.sendMessage()
+        timelineViewModel.jumpToEndOfTimeline() // TODO remove?
+        timelineViewModel.timelineElementHolderViewModels.first { vms ->
+            log.debug { "vms: $vms" }
+            timelineViewModel.firstVisibleTimelineElement.value = vms.firstOrNull()?.key
+            timelineViewModel.lastVisibleTimelineElement.value = vms.lastOrNull()?.key
+            vms
+                .filterIsInstance<TimelineElementHolderViewModel>()
+                .any {
+                    val vm = it.timelineElementViewModel.filterNotNull().first()
+                    log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
+                    vm is TextBasedViewModel && vm.message == message
+                }
+        }
+        job.cancel()
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.findMessage(roomId: RoomId, message: String): Boolean = with(root) {
+    withTimeoutOrNull(10.seconds) {
+        val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+        val roomListViewModel = mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        roomListViewModel.selectRoom(roomId)
+        val timelineViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+            .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+        timelineViewModel.timelineElementHolderViewModels.first { vms ->
+            log.debug { "vms: $vms" }
+            timelineViewModel.firstVisibleTimelineElement.value = vms.firstOrNull()?.key
+            timelineViewModel.lastVisibleTimelineElement.value = vms.lastOrNull()?.key
+            vms
+                .filterIsInstance<TimelineElementHolderViewModel>()
+                .any {
+                    val vm = it.timelineElementViewModel.filterNotNull().first()
+                    log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
+                    vm is TextBasedViewModel && vm.message == message
+                }
+        }
+        true
+    } ?: false
+}
+
+suspend fun MatrixMessengerWithRoot.logout(userId: UserId) = with(root) {
+    withTimeout(20.seconds) {
+        val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+        val roomListViewModel =
+            mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        roomListViewModel.openAccountsOverview()
+        val accountsOverviewViewModel =
+            mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.AccountsOverview::class).viewModel
+        accountsOverviewViewModel.removeAccount(userId)
+        stack.waitFor(RootRouter.Wrapper.MatrixClientLogout::class)
+        // since we do not have multiple accounts here, we have to wait for this view and not the MainView
+        // (the last account was deleted, so we expect the user to log in with a new account)
+        stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
+        log.debug { " +- logout finished" }
     }
 }
 

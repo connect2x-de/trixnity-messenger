@@ -7,6 +7,9 @@ interface MatrixMessengerBaseConfiguration {
     var urlProtocol: String
     var urlHost: String
     var sendLogsEmailAddress: String?
+    var privacyInfoUrl: String
+    var imprintUrl: String
+    var pushUrl: String?
 
     fun copyTo(other: MatrixMessengerBaseConfiguration) {
         other.appName = appName
@@ -14,5 +17,8 @@ interface MatrixMessengerBaseConfiguration {
         other.urlProtocol = urlProtocol
         other.urlHost = urlHost
         other.sendLogsEmailAddress = sendLogsEmailAddress
+        other.privacyInfoUrl = privacyInfoUrl
+        other.imprintUrl = imprintUrl
+        other.pushUrl = pushUrl
     }
 }

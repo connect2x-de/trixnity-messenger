@@ -100,6 +100,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = "Room name",
                     isEmpty = false,
                     otherUsersCount = 4,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -114,6 +115,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 0,
+                    heroes = listOf(),
                     summary = RoomSummary(heroes = listOf())
                 ),
                 matrixClientMock,
@@ -128,6 +130,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 0,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -142,6 +145,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 0,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 ),
                 matrixClientMock,
@@ -156,6 +160,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 0,
+                    heroes = listOf(user1, user2, user3),
                     summary = RoomSummary(heroes = listOf(user1, user2, user3))
                 ),
                 matrixClientMock,
@@ -170,6 +175,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 1,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -184,6 +190,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 1,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 ),
                 matrixClientMock,
@@ -198,6 +205,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 2,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -212,6 +220,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 2,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 ),
                 matrixClientMock,
@@ -226,6 +235,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 0,
+                    heroes = listOf(),
                     summary = RoomSummary(heroes = listOf())
                 ),
                 matrixClientMock,
@@ -240,6 +250,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 0,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -252,6 +263,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 0,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 )
 
@@ -271,6 +283,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 0,
+                    heroes = listOf(user1, user2, user3),
                     summary = RoomSummary(heroes = listOf(user1, user2, user3))
                 ),
                 matrixClientMock,
@@ -285,6 +298,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 1,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -299,6 +313,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 1,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 ),
                 matrixClientMock,
@@ -313,6 +328,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 2,
+                    heroes = listOf(user1),
                     summary = RoomSummary(heroes = listOf(user1))
                 ),
                 matrixClientMock,
@@ -327,6 +343,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 2,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 ),
                 matrixClientMock,
@@ -342,6 +359,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = false,
                     otherUsersCount = 1,
+                    heroes = listOf(user1, user2),
                     summary = RoomSummary(heroes = listOf(user1, user2))
                 )
 
@@ -364,6 +382,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     explicitName = null,
                     isEmpty = true,
                     otherUsersCount = 2,
+                    heroes = listOf(user1, user2, user4),
                     summary = RoomSummary(heroes = listOf(user1, user2, user4))
                 ),
                 matrixClientMock,

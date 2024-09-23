@@ -3,6 +3,8 @@ include(
     "trixnity-messenger",
     "integrationtests",
     "emojis",
+    "trixnity-messenger-compose-view",
+    "trixnity-messenger-compose-app",
 )
 
 buildCache {

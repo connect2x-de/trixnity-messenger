@@ -14,9 +14,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - List of banned users in a room
 - Setting to unban banned users from rooms
 - allow to check login before creating a MatrixClient
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Fix device list loading set to false too early
+
+### Security
+
+## 2.2.2
+
+### Fixed
+
+- Missing configuration in loginWith
+
+## 2.2.0
+
+### Added
+
+- Compose Multiplatform UI 🎉
+    * a highly customizable Matrix messenger frontend
+    * see [Readme](trixnity-messenger-compose-view/README.md) for more information
 - `timmy://localhost/room/<ID>` URI scheme for on-launch navigation
 
 ### Changed
+
+- Upgraded Trixnity
+- Upgraded dependencies
 
 ### Deprecated
 

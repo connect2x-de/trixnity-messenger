@@ -16,7 +16,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",
-                rootPath.toFile().resolve("timmy.log")
+                rootPath.toFile().resolve("messenger.log")
             )
             val intent = Intent(Intent.ACTION_SEND).apply {
                 data = Uri.parse("mailto:")

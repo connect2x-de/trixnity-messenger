@@ -24,6 +24,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(projects.trixnityMessenger)
+                implementation(libs.trixnity.client)
                 implementation(libs.trixnity.client.exposed)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(kotlin("test"))

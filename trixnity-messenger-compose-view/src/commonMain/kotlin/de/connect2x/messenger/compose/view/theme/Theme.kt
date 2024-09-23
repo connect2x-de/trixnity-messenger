@@ -1,0 +1,60 @@
+package de.connect2x.messenger.compose.view.theme
+
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
+
+interface Theme {
+    @Composable
+    fun create(
+        colorScheme: ColorScheme,
+        messengerColors: MessengerColors,
+        messengerDpConstants: MessengerDpConstants,
+        shapes: Shapes,
+        typography: Typography,
+        content: @Composable () -> Unit,
+    )
+}
+
+@Composable
+fun MessengerTheme(
+    colorScheme: ColorScheme = DefaultMessengerColorScheme,
+    messengerColors: MessengerColors = DefaultMessengerColors,
+    messengerDpConstants: MessengerDpConstants = DefaultMessengerDpConstants,
+    shapes: Shapes = MaterialTheme.shapes,
+    typography: Typography = DI.get<ThemeTypography>().create(),
+    content: @Composable () -> Unit,
+) {
+    DI.get<Theme>()
+        .create(colorScheme, messengerColors, messengerDpConstants, shapes, typography, content)
+}
+
+class ThemeImpl : Theme {
+    @Composable
+    override fun create(
+        colorScheme: ColorScheme,
+        messengerColors: MessengerColors,
+        messengerDpConstants: MessengerDpConstants,
+        shapes: Shapes,
+        typography: Typography,
+        content: @Composable () -> Unit,
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            shapes = shapes,
+            typography = typography
+        ) {
+            CompositionLocalProvider(
+                MessengerColorsProvider provides messengerColors,
+                MessengerDpConstantsProvider provides messengerDpConstants,
+            ) {
+                content()
+            }
+        }
+    }
+}
