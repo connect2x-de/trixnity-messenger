@@ -67,7 +67,8 @@ class MatrixClientFactoryImpl(
                         onLogin(loginInfo, baseUrl)
                         loginInfo
                     }
-                }
+                },
+                configuration = configuration(),
             ).getOrThrow(),
             databasePassword = databasePassword,
         )
