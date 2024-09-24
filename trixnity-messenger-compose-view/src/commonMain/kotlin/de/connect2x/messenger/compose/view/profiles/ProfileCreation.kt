@@ -23,7 +23,6 @@ import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
-import de.connect2x.trixnity.messenger.util.CloseApp
 
 interface ProfileCreationView {
     @Composable
