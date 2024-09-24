@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -106,8 +107,7 @@ class DevicesSettingsViewImpl : DevicesSettingsView {
 
 @Composable
 fun AccountDevices(devicesSettingsViewModel: DevicesSettingsViewModel) {
-    val devices = devicesSettingsViewModel
-        .accountsWithDevices.collectAsState().value
+    val devices = devicesSettingsViewModel.accountsWithDevices.collectAsState().value
     devices.map { accountWithDevices ->
         AccountWithDevicesList(accountWithDevices, devicesSettingsViewModel)
         Spacer(Modifier.size(10.dp))
@@ -119,10 +119,9 @@ fun AccountWithDevicesList(
     accountWithDevices: AccountWithDevices,
     devicesSettingsViewModel: DevicesSettingsViewModel,
 ) {
-    val isLoading = accountWithDevices.isLoading.collectAsState().value
-    val error = accountWithDevices.loadingError.collectAsState().value
-    val devicesInAccount = accountWithDevices
-        .devicesInAccount.collectAsState(null).value
+    val isLoading by accountWithDevices.isLoading.collectAsState()
+    val error by accountWithDevices.loadingError.collectAsState()
+    val devicesInAccount = accountWithDevices.devicesInAccount.collectAsState().value
     SettingsAccountCard(accountWithDevices.userId) {
         error?.let { ErrorView(it) }
         if (isLoading) {

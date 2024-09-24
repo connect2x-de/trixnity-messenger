@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Tooltips on the Web version now use the same design as the Android version
+- Instead of closing, profile abortion causes it to return to the previous screen
 
 ### Deprecated
 
@@ -21,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Android-Tooltips on buttons are shown again
 - Desktop-Tooltips can no longer move in front of the cursor, blocking button input
-- Missing configuration in loginWith
+- Fix device list loading set to false too early
+- Fix licenses by putting them into configuration
 
 ### Security
 

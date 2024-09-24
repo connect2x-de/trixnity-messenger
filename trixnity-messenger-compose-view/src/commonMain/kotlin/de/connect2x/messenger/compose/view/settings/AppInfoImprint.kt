@@ -24,24 +24,24 @@ fun AppInfoImprint(appInfoViewModel: AppInfoViewModel) {
     DI.get<AppInfoImprintView>().create(appInfoViewModel)
 }
 
-// FIXME white labelling / show website
 class AppInfoImprintViewImpl : AppInfoImprintView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
         val i18n = DI.get<I18nView>()
         val imprintUrl = DI.get<MatrixMessengerConfiguration>().imprintUrl
-        println("imprintUrl: $imprintUrl")
-        val richTextState = rememberRichTextState()
-        LaunchedEffect(Unit) {
-            richTextState.addLink(i18n.appInfoImprintLink(), imprintUrl)
-        }
-        MessengerModal(onDismiss = { appInfoViewModel.showImprint.value = false }, i18n.appInfoImprint()) {
-            MessengerModalContent {
-                RichText(richTextState)
+        if (imprintUrl != null) {
+            val richTextState = rememberRichTextState()
+            LaunchedEffect(Unit) {
+                richTextState.addLink(i18n.appInfoImprintLink(), imprintUrl)
             }
-            MessengerModalButtonRow({
-                NextButton(text = i18n.commonBack()) { appInfoViewModel.showImprint.value = false }
-            })
+            MessengerModal(onDismiss = { appInfoViewModel.showImprint.value = false }, i18n.appInfoImprint()) {
+                MessengerModalContent {
+                    RichText(richTextState)
+                }
+                MessengerModalButtonRow({
+                    NextButton(text = i18n.commonBack()) { appInfoViewModel.showImprint.value = false }
+                })
+            }
         }
     }
 }

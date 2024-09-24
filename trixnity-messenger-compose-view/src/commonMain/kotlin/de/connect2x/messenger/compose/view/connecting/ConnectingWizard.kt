@@ -54,14 +54,6 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             content = {
                 AddMatrixAccount(viewModel)
             },
-            additionalButton = {
-                OutlinedButton(
-                    onClick = viewModel::cancel,
-                    modifier = Modifier.buttonPointerModifier()
-                ) {
-                    Text(i18n.commonCancel().capitalize(Locale.current))
-                }
-            },
             nextButton = WizardNextButton.None, // user selects preferred login method directly
         )
 
