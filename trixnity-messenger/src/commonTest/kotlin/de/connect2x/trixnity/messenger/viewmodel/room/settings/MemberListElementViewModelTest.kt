@@ -80,7 +80,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
             EventId(""),
             alice,
             roomId,
-            0L,
+            0,
             stateKey = ""
         )
     )
@@ -91,7 +91,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
             EventId(""),
             bob,
             roomId,
-            0L,
+            0,
             stateKey = ""
         )
     )
@@ -149,17 +149,13 @@ class MemberListElementViewModelTest : ShouldSpec() {
             every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
                 Room(isDirect = true, roomId = roomId)
             )
-            
+
             every { userServiceMock.getById(eq(roomId), eq(roomUserAlice.userId)) } returns flowOf(roomUserAlice)
             every { userServiceMock.getById(eq(roomId), eq(roomUserBob.userId)) } returns flowOf(roomUserBob)
-            every { userServiceMock.canKickUser(eq(roomId), any()) } returns
-                    MutableStateFlow(true)
-            every { userServiceMock.canBanUser(eq(roomId), any()) } returns
-                    MutableStateFlow(true)
-            every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns
-                    MutableStateFlow(true)
-            every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns
-                    MutableStateFlow(50)
+            every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
+            every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
+            every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
+            every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(50)
             every {
                 userServiceMock.canSetPowerLevelToMax(eq(roomId), any())
             } returns MutableStateFlow(100)
@@ -177,8 +173,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
         should("initially do not create MemberElement before subscription") {
 
-            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns
-                    MutableStateFlow(50)
+            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
 
             val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
 
@@ -191,8 +186,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
         should("Create MemberElement after subscription") {
 
-            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns
-                    MutableStateFlow(50)
+            every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
 
             val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
 
@@ -209,9 +203,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
             beforeTest {
                 every {
                     userServiceMock.getPowerLevel(eq(roomId), any())
-                } returns
-                        MutableStateFlow(50)
+                } returns MutableStateFlow(50)
             }
+
             should("return to room settings after kicking an user") {
                 everySuspend {
                     roomsApiClientMock.kickUser(
@@ -274,13 +268,13 @@ class MemberListElementViewModelTest : ShouldSpec() {
             beforeTest {
                 every {
                     userServiceMock.getPowerLevel(eq(roomId), eq(alice))
-                } returns
-                        MutableStateFlow(50)
+                } returns MutableStateFlow(50)
+
                 every {
                     userServiceMock.getPowerLevel(eq(roomId), eq(me))
-                } returns
-                        MutableStateFlow(50)
+                } returns MutableStateFlow(50)
             }
+
             context("Member is admin") {
                 should("return the role: admin") {
                     every {
@@ -289,8 +283,8 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
                     cut.role.first { it != USER } shouldBe ADMIN
                     cancelNeverEndingCoroutines()
-
                 }
+
                 should("show role name in view") {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)

@@ -220,8 +220,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            every { roomServiceMock.getState(roomId, CreateEventContent::class, "") } returns
-                    MutableStateFlow(createEvent)
+            every { roomServiceMock.getState(roomId, CreateEventContent::class, "") } returns MutableStateFlow(createEvent)
             every { userServiceMock.getPowerLevel(eq(roomId), eq(me)) } returns flowOf(100)
 
             every {
@@ -272,8 +271,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns
-                    MutableStateFlow(powerLevelEvent)
+            every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns MutableStateFlow(powerLevelEvent)
 
             val createEvent = StateEvent(
                 CreateEventContent(creator = me),
@@ -409,7 +407,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 EventId(""),
                 requireNotNull(roomUser.value).userId,
                 roomId,
-                0L,
+                0,
                 stateKey = ""
             )
         )

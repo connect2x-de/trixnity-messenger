@@ -15,7 +15,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
@@ -163,8 +162,8 @@ class MemberListElementViewModelImpl(
     override val kickUserWarningTitle = MutableStateFlow("")
 
     override val banUserWarningOpen = MutableStateFlow(false)
-
     override val unbanUserWarningOpen = MutableStateFlow(false)
+
     override val membershipReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, userId)
         .mapLatest { it?.event?.content?.reason }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -333,27 +332,28 @@ class MemberListElementViewModelImpl(
                 return@launch
             }
 
-            if (iHavePowerToBanUser.value) {
-                matrixClient.api.room.banUser(
-                    roomId = selectedRoomId,
-                    userId = userId,
-                    reason = reason
-                ).fold(
-                    onSuccess = {
-                        closeMemberOptions()
-                    },
-                    onFailure = {
-                        if (it is CancellationException) {
-                            return@launch
-                        }
-
-                        log.error(it) { "cannot ban user $userId from $selectedRoomId: ${it.message}" }
-                        error.value = i18n.settingsRoomMemberBanUserError()
-                    }
-                )
-            } else {
+            if (!iHavePowerToBanUser.value) {
                 error.value = i18n.settingsRoomMemberBanUserErrorNotPossible()
+                return@launch
             }
+
+            matrixClient.api.room.banUser(
+                roomId = selectedRoomId,
+                userId = userId,
+                reason = reason
+            ).fold(
+                onSuccess = {
+                    closeMemberOptions()
+                },
+                onFailure = {
+                    if (it is CancellationException) {
+                        return@launch
+                    }
+
+                    log.error(it) { "cannot ban user $userId from $selectedRoomId: ${it.message}" }
+                    error.value = i18n.settingsRoomMemberBanUserError()
+                }
+            )
         }
     }
 
@@ -366,28 +366,29 @@ class MemberListElementViewModelImpl(
             }
 
             if (iHavePowerToUnbanUser.value) {
-                matrixClient.api.room.unbanUser(
-                    roomId = selectedRoomId,
-                    userId = roomUserId,
-                    reason = reason
-                ).fold(
-                    onSuccess = {
-                        closeMemberOptions()
-                        error.value = null
-                    },
-                    onFailure = {
-                        if (it is CancellationException) {
-                            return@launch
-                        }
-
-                        log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
-                        error.value = i18n.settingsRoomMemberUnbanUserError()
-                    }
-                )
-            } else {
                 log.error { "cannot unban user $roomUserId from $selectedRoomId: User is not able to unban this member" }
                 error.value = i18n.settingsRoomMemberUnbanUserErrorNotPossible()
+                return@launch
             }
+
+            matrixClient.api.room.unbanUser(
+                roomId = selectedRoomId,
+                userId = roomUserId,
+                reason = reason
+            ).fold(
+                onSuccess = {
+                    closeMemberOptions()
+                    error.value = null
+                },
+                onFailure = {
+                    if (it is CancellationException) {
+                        return@launch
+                    }
+
+                    log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
+                    error.value = i18n.settingsRoomMemberUnbanUserError()
+                }
+            )
         }
     }
 

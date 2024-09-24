@@ -1010,32 +1010,32 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun settingsRoomMemberBanUserError() = translate {
         EN - "There was an error banning this user"
-        DE - "Es gab einen Fehler beim Sperren dieses Nutzers"
+        DE - "Es gab einen Fehler beim Bannen dieses Teilnehmers"
     }
 
     fun settingsRoomMemberBanUserErrorNotPossible() = translate {
         EN - "You are unable to ban this user"
-        DE - "Sie können diesen Nutzer nicht sperren"
+        DE - "Sie können diesen Teilnehmer nicht bannen"
     }
 
     fun settingsRoomMemberBanUserErrorOffline() = translate {
         EN - "You cannot ban users when you are offline"
-        DE - "Sie können offline keine Nutzer sperren"
+        DE - "Sie können offline keine Teilnehmer bannen"
     }
 
     fun settingsRoomMemberUnbanUserError() = translate {
         EN - "There was an error unbanning the user"
-        DE - "Es gab einen Fehler beim Entbannen des Nutzers"
+        DE - "Es gab einen Fehler beim Entbannen des Teilnehmers"
     }
 
     fun settingsRoomMemberUnbanUserErrorNotPossible() = translate {
         EN - "You are unable to unban the user"
-        DE - "Sie können den Nutzer nicht entbannen"
+        DE - "Sie können den Teilnehmer nicht entbannen"
     }
 
     fun settingsRoomMemberUnbanUserErrorOffline() = translate {
         EN - "You cannot unban users when you are offline"
-        DE - "Sie können offline keine Nutzer entbannen"
+        DE - "Sie können offline keine Teilnehmer entbannen"
     }
 
 }

@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.common.icons
 
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
