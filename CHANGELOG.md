@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Instead of closing, profile abortion causes it to return to the previous screen
+
 ### Deprecated
 
 ### Removed
