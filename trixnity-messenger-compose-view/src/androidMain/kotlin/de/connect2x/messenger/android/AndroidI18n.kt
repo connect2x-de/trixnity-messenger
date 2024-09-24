@@ -6,7 +6,7 @@ import de.connect2x.trixnity.messenger.i18n.I18nBase.TranslateBuilder
 import de.connect2x.trixnity.messenger.i18n.Language
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.core.model.UserId
-import java.util.*
+import java.util.Locale
 
 internal object AndroidI18n {
     private val log = KotlinLogging.logger { }
