@@ -1,5 +1,6 @@
 import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
     kotlin("multiplatform")
@@ -14,8 +15,6 @@ val version = libs.versions.messenger.get()
 val appName = libs.versions.appName.get()
 val appNameCleaned = appName.replace("[-.\\s]".toRegex(), "").lowercase()
 
-val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
-
 enum class BuildFlavor { PROD, DEV }
 
 val buildFlavor = BuildFlavor.valueOf(System.getenv("BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
@@ -27,9 +26,15 @@ val licenses by tasks.registering(AboutLibrariesTask::class) {
 }
 
 val buildConfigGenerator by tasks.registering {
-    val outputFile = generatedSrc.get().file("de/connect2x/$appNameCleaned/BuildConfig.kt")
+    val licencesFile = licensesDir.resolve("aboutlibraries.json")
+    val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
+    inputs.file(licencesFile)
+    val outputFile = generatedSrc.get()
+        .dir("de/connect2x/$appNameCleaned")
+        .file("BuildConfig.kt")
+    outputFile.asFile.ensureParentDirsCreated()
     doLast {
-        val licencesString = licensesDir.resolve("aboutlibraries.json").readText()
+        val licencesString = licencesFile.readText()
         val quotes = "\"\"\""
         val buildConfigString =
             """
