@@ -89,7 +89,7 @@ actual fun Tooltip(
             }
         },
         delayMillis = delayMillis,
-        modifier = modifier.clickable(onClick = onClick?:{ }),
+        modifier = modifier,
         content = content,
         tooltipPlacement = TooltipPlacement.CursorPoint(
             // to prevent the tooltip getting in the way of the mouse that in turn prevents clicks
