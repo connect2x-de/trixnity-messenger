@@ -5,39 +5,24 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TooltipScope
-import androidx.compose.material3.TooltipState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat.getSystemService
-import kotlinx.coroutines.flow.MutableStateFlow
+import de.connect2x.messenger.compose.view.theme.messengerColors
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
+
+private val log = KotlinLogging.logger { }
 
 @Composable
 actual fun VerticalScrollbar(
@@ -74,15 +59,20 @@ actual fun Tooltip(
     onClick: (() -> Unit)?,
     content: @Composable () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val tooltipState = rememberTooltipState()
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = { tooltip() },
-        state = tooltipState
+        tooltip = {
+            PlainTooltip(
+                modifier = Modifier,
+                caretSize = TooltipDefaults.caretSize,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                content = { tooltip() }
+            )
+        },
+        state = rememberTooltipState(),
     ) {
         content()
-        scope.launch { tooltipState.show() }
     }
 }
 
