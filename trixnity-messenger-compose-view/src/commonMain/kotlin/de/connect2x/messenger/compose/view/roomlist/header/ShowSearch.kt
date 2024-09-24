@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.DI
@@ -32,16 +33,18 @@ class ShowSearchViewImpl : ShowSearchView {
 
         if (showSearch.value) {
             Tooltip(
-                tooltip = { TooltipText(i18n.accountDeactivateSearch()) },
-                onClick = { roomListViewModel.showSearch.value = false }) {
-                Icon(Icons.Default.SearchOff, i18n.accountDeactivateSearch())
-            }
+                tooltip = { TooltipText(i18n.accountDeactivateSearch()) }) {
+                IconButton(onClick = {roomListViewModel.showSearch.value = false},
+                ) {
+                    Icon(Icons.Default.SearchOff, i18n.accountActivateSearch())
+                }            }
         } else {
             Tooltip(
-                tooltip = { TooltipText(i18n.accountActivateSearch()) },
-                onClick = { roomListViewModel.showSearch.value = true }) {
-                Icon(Icons.Default.Search, i18n.accountActivateSearch())
-                Button()
+                tooltip = { TooltipText(i18n.accountActivateSearch()) }) {
+                IconButton(onClick = {roomListViewModel.showSearch.value = true},
+                    ) {
+                    Icon(Icons.Default.Search, i18n.accountActivateSearch())
+                }
             }
         }
     }
