@@ -43,7 +43,7 @@ class MessengerClientTest {
                             ShowProfileCreation provides showProfileCreation,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles, {})
+                                Profiles(matrixMultiMessenger, existingProfiles)
                             }
                         }
                     },

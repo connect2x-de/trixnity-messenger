@@ -173,9 +173,7 @@ class MessengerActivity : AppCompatActivity() {
                             ShowProfileCreation provides showProfileCreation,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles, onCancel = {
-                                    finishAndRemoveTask()
-                                })
+                                Profiles(matrixMultiMessenger, existingProfiles)
                             }
                         }
                     }
