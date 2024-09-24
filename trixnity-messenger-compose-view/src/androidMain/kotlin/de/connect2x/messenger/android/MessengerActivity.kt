@@ -36,8 +36,6 @@ import com.arkivanov.decompose.defaultComponentContext
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.GetLicences
-import de.connect2x.messenger.compose.view.GetLicencesImpl
 import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
@@ -55,7 +53,6 @@ import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -154,9 +151,6 @@ class MessengerActivity : AppCompatActivity() {
                                         LocalWindowScope provides null,
                                         IsDebug provides false,
                                         DI provides matrixMessenger.di,
-                                        GetLicences provides GetLicencesImpl {
-                                            Res.readBytes("files/aboutlibraries.json").decodeToString()
-                                        },
                                     ) {
                                         MessengerTheme {
                                             Client(rootViewModel)

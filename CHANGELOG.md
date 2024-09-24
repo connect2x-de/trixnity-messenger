@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix device list loading set to false too early
+- Fix licenses by putting them into configuration
 
 ### Security
 

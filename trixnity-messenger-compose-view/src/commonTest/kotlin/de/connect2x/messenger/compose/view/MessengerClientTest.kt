@@ -55,7 +55,6 @@ class MessengerClientTest {
                             LocalWindowScope provides null,
                             IsDebug provides false,
                             DI provides matrixMessenger.di,
-                            GetLicences provides GetLicencesImpl { "" },
                         ) {
                             MessengerTheme {
                                 Client(rootViewModel)

@@ -31,17 +31,12 @@ val PlatformType.isWeb
 val PlatformType.isDesktop
     get() = this == PlatformType.DESKTOP
 
-fun interface GetLicencesImpl {
-    suspend operator fun invoke(): String
-}
-
 val ImeVisible = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val Platform = compositionLocalOf<PlatformType> { error("compositionLocal not defined") }
 val IsFocused = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val LocalWindowScope = compositionLocalOf<Any? /* WindowScope? */> { error("compositionLocal not defined") }
 val IsDebug = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val DI = compositionLocalOf<Koin> { error("DI is not defined as compositionLocal") }
-val GetLicences = compositionLocalOf<GetLicencesImpl> { error("Licences is not defined as compositionLocal") }
 
 interface ClientView {
     @Composable
