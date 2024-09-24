@@ -151,7 +151,6 @@ open class RoomNameImpl(
                 }
             }
         }
-
         return flowOf(roomId.full)
     }
 
