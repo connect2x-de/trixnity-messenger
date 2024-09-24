@@ -65,43 +65,49 @@ class MemberListViewModelTest : ShouldSpec() {
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
-    private val roomUserMeFlow = MutableStateFlow(RoomUser(
-        roomId,
-        me,
-        "User1",
-        StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId(""),
+    private val roomUserMeFlow = MutableStateFlow(
+        RoomUser(
+            roomId,
             me,
-            roomId,
-            0L,
-            stateKey = ""
+            "User1",
+            StateEvent(
+                MemberEventContent(membership = Membership.JOIN),
+                EventId(""),
+                me,
+                roomId,
+                0L,
+                stateKey = ""
+            )
         )
-    ))
+    )
 
-    private val roomUserAliceFlow = MutableStateFlow(RoomUser(
-        roomId, alice, "Alice", StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId(""),
-            alice,
-            roomId,
-            0L,
-            stateKey = ""
+    private val roomUserAliceFlow = MutableStateFlow(
+        RoomUser(
+            roomId, alice, "Alice", StateEvent(
+                MemberEventContent(membership = Membership.JOIN),
+                EventId(""),
+                alice,
+                roomId,
+                0L,
+                stateKey = ""
+            )
         )
-    ))
+    )
 
-    private val roomUserBobFlow = MutableStateFlow(RoomUser(
-        roomId, bob, "Bob", StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId(""),
-            bob,
-            roomId,
-            0L,
-            stateKey = ""
+    private val roomUserBobFlow = MutableStateFlow(
+        RoomUser(
+            roomId, bob, "Bob", StateEvent(
+                MemberEventContent(membership = Membership.JOIN),
+                EventId(""),
+                bob,
+                roomId,
+                0L,
+                stateKey = ""
+            )
         )
-    ))
+    )
 
-    private val roomUserMapFlow = MutableStateFlow(mutableMapOf<UserId, MutableStateFlow<RoomUser>>())
+    private val roomUserMapFlow = MutableStateFlow(mapOf<UserId, MutableStateFlow<RoomUser>>())
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -119,8 +125,8 @@ class MemberListViewModelTest : ShouldSpec() {
         coroutineTestScope = true
 
         beforeTest {
-            roomUserMapFlow.value.clear()
-            roomUserMapFlow.value = mutableMapOf(
+            roomUserMapFlow.value = emptyMap()
+            roomUserMapFlow.value = mapOf(
                 me to roomUserMeFlow,
                 alice to roomUserAliceFlow,
                 bob to roomUserBobFlow,
@@ -173,8 +179,12 @@ class MemberListViewModelTest : ShouldSpec() {
             everySuspend { roomsApiClientMock.banUser(eq(roomId), any(), any(), any()) } calls {
                 val userId = (it.args[1] as UserId)
                 val roomUserFlow = userServiceMock.getById(roomId, userId) as MutableStateFlow<RoomUser?>
-                setMemberEventContentOf(roomUserFlow, MemberEventContent(membership = Membership.BAN,
-                    reason = it.args[2] as String))
+                setMemberEventContentOf(
+                    roomUserFlow, MemberEventContent(
+                        membership = Membership.BAN,
+                        reason = it.args[2] as String
+                    )
+                )
                 Result.success(Unit)
             }
             everySuspend { roomsApiClientMock.unbanUser(eq(roomId), any(), any(), any()) } calls {
@@ -242,7 +252,8 @@ class MemberListViewModelTest : ShouldSpec() {
             launch { cut.memberListElementViewModels.collect() }
             testCoroutineScheduler.advanceUntilIdle()
             val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
-            val roomUser = userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
+            val roomUser =
+                userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
             memberListElementViewModel.banUser("Test reason")
             eventually(2.seconds) {
                 requireNotNull(roomUser.value).membership shouldBe Membership.BAN
@@ -304,7 +315,8 @@ class MemberListViewModelTest : ShouldSpec() {
             launch { cut.memberListElementViewModels.collect() }
             testCoroutineScheduler.advanceUntilIdle()
             val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
-            val roomUser = userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
+            val roomUser =
+                userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
             setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.BAN))
             memberListElementViewModel.unbanUser(null)
 
@@ -391,14 +403,16 @@ class MemberListViewModelTest : ShouldSpec() {
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
-        roomUser.value = requireNotNull(roomUser.value).copy(event = StateEvent(
-            eventContent,
-            EventId(""),
-            requireNotNull(roomUser.value).userId,
-            roomId,
-            0L,
-            stateKey = ""
-        ))
+        roomUser.value = requireNotNull(roomUser.value).copy(
+            event = StateEvent(
+                eventContent,
+                EventId(""),
+                requireNotNull(roomUser.value).userId,
+                roomId,
+                0L,
+                stateKey = ""
+            )
+        )
     }
 
     private fun containSortedMemberListElementViewModelsFor(userIds: List<UserId>) =
@@ -409,21 +423,16 @@ class MemberListViewModelTest : ShouldSpec() {
                     acc && (vm?.userId == userId)
                 },
                 {
-                    "Expecting: " + userIds + "\n" +
-                            "but was:   " + resultList.fold(listOf<UserId>()) { acc, (_, vm) ->
-                        acc.plus(
-                            vm.userId
-                        )
+                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, (_, vm) ->
+                        acc + vm.userId
                     }
                 },
                 {
-                    "Expecting: " + userIds + "\n" +
-                            "but was:   " + resultList.fold(mutableListOf<UserId>()) { acc, pair ->
-                        acc.add(
-                            pair.first
-                        ); acc
+                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, (userId, _) ->
+                        acc + userId
                     }
-                })
+                }
+            )
         }
 
 
