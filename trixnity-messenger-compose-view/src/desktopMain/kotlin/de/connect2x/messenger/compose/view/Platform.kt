@@ -95,7 +95,7 @@ actual fun Tooltip(
             // to prevent the tooltip getting in the way of the mouse that in turn prevents clicks
             offset = DpOffset(
                 x = 10.dp,
-                y = 0.dp
+                y = 10.dp
             )
         )
     )
