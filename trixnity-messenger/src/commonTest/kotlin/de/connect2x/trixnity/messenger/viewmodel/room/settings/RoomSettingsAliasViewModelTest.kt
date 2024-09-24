@@ -107,14 +107,14 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     Result.failure(
                         MatrixServerException(
                             HttpStatusCode.NotFound,
-                            ErrorResponse.NotFound()
+                            ErrorResponse.NotFound("")
                         )
                     )
                 } else {
                     Result.failure(
                         MatrixServerException(
                             HttpStatusCode.BadRequest,
-                            ErrorResponse.InvalidParam()
+                            ErrorResponse.InvalidParam("")
                         )
                     )
                 }
