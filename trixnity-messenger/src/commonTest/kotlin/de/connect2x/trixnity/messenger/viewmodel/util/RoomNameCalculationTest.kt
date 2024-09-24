@@ -107,7 +107,7 @@ class RoomNameCalculationTest : ShouldSpec() {
             ).first() shouldBe "Room name"
         }
 
-        should("return 'Emmpty chat' when isEmpty=false, |heroes|=0, otherUserCount=0") {
+        should("return room id when isEmpty=false, |heroes|=0, otherUserCount=0") {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
                 roomId,
@@ -119,7 +119,7 @@ class RoomNameCalculationTest : ShouldSpec() {
                     summary = RoomSummary(heroes = listOf())
                 ),
                 matrixClientMock,
-            ).first() shouldBe "Empty chat"
+            ).first() shouldBe roomId
         }
 
         should("return the display name of the hero, when isEmpty=false, |heroes|=1, otherUserCount=0") {
