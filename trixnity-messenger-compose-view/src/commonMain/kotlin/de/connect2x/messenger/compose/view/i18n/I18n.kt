@@ -722,8 +722,8 @@ abstract class I18nView(
     }
 
     fun memberListBanTitle() = translate {
-        EN - "Surely ban the user?"
-        DE - "Sicher, den Teilnehmer bannen?"
+        EN - "Are you sure to ban this user?"
+        DE - "Möchten Sie den Teilnehmer wirklich bannen?"
     }
 
     fun unbannable() = translate {

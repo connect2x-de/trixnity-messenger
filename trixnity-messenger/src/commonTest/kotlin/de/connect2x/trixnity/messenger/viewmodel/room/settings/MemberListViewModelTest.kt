@@ -13,7 +13,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
@@ -56,7 +55,6 @@ import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
-import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -181,7 +179,7 @@ class MemberListViewModelTest : ShouldSpec() {
             }
             everySuspend { roomsApiClientMock.unbanUser(eq(roomId), any(), any(), any()) } calls {
                 val userId = (it.args[1] as UserId)
-                roomUserMapFlow.value.remove(userId) // TODO: Don't work
+                roomUserMapFlow.value -= userId
                 Result.success(Unit)
             }
 

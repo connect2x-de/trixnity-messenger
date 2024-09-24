@@ -102,7 +102,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
             memberListViewModel.memberListElementViewModels.collectAsState().value.lastOrNull()?.first == memberListElementViewModel.userId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val membership = memberListElementViewModel.membership.collectAsState().value
-        val memberShipReason = memberListElementViewModel.membershipReason.collectAsState().value
+        val membershipReason = memberListElementViewModel.membershipReason.collectAsState().value
         var bannedMemberReasonOpen by remember { mutableStateOf(false) }
 
         Box(
@@ -143,7 +143,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 maxLines = 1
                             )
                         }
-                        if (!memberShipReason.isNullOrBlank() && membership == Membership.BAN) {
+                        if (!membershipReason.isNullOrBlank() && membership == Membership.BAN) {
                             Icon(
                                 if (bannedMemberReasonOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                 if (bannedMemberReasonOpen) i18n.commonCollapse() else i18n.commonExpand(),
@@ -163,7 +163,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 bannedMemberReasonOpen = false
                             }
                     ) {
-                        memberShipReason?.let {
+                        membershipReason?.let {
                             Text(it)
                         }
                     }
