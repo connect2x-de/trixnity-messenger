@@ -246,7 +246,8 @@ fun ChangingPowerLevel(memberListElementViewModel: MemberListElementViewModel) {
                     isError = changePowerLevelInput.errorId != null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1
                 )
                 Spacer(Modifier.size(5.dp))
                 changePowerLevelInput.errorId?.let {
@@ -525,7 +526,8 @@ fun BanUserWarning(
                 },
                 label = {
                     Text(i18n.commonOptionalReason())
-                }
+                },
+                maxLines = 5
             )
         },
         dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
@@ -555,7 +557,8 @@ fun UnbanUserWarning(
                 },
                 label = {
                     Text(i18n.commonOptionalReason())
-                }
+                },
+                maxLines = 5
             )
         },
         dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
