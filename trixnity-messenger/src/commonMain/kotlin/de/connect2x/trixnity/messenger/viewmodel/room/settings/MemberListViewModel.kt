@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.flattenNotNull
@@ -36,6 +38,7 @@ interface MemberListViewModelFactory {
 
 interface MemberListViewModel {
     val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>>
+    val membershipCounts: Map<Membership, StateFlow<Int?>>
     val showLoadingSpinner: StateFlow<Boolean>
     val error: StateFlow<String?>
 }
@@ -58,7 +61,8 @@ open class MemberListViewModelImpl(
         ) { powerLevels, createEvent, roomUsers ->
             roomUsers.mapNotNull { roomUser ->
                 if (roomUser.membership == Membership.JOIN || roomUser.membership == Membership.INVITE ||
-                    roomUser.membership == Membership.BAN) {
+                    roomUser.membership == Membership.BAN
+                ) {
                     val userId = roomUser.userId
                     val memberListElementViewModel = viewModels.getOrPut(userId) {
                         get<MemberListElementViewModelFactory>()
@@ -78,7 +82,22 @@ open class MemberListViewModelImpl(
                     powerLevels
                 )
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    override val membershipCounts: Map<Membership, StateFlow<Int?>> =
+        Membership.entries.associateWith { membershipKind ->
+            memberListElementViewModels.map { currentMemberListElementViewModels ->
+                currentMemberListElementViewModels
+                    .mapNotNull {
+                        it.second.membership.firstOrNull { membershipStatus ->
+                            membershipStatus != null
+                        }
+                    }
+                    .count {
+                        it == membershipKind
+                    }
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        }
 
     init {
         coroutineScope.launch {
@@ -94,7 +113,8 @@ open class MemberListViewModelImpl(
 
 class PreviewMemberListViewModel : MemberListViewModel {
     override val memberListElementViewModels: MutableStateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
-        MutableStateFlow(listOf())
+        MutableStateFlow(emptyList())
+    override val membershipCounts: Map<Membership, StateFlow<Int?>> = emptyMap()
     override val showLoadingSpinner: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 

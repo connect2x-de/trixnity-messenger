@@ -48,20 +48,18 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
         val i18n = DI.get<I18nView>()
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
-        val memberListViewModels =
-            roomSettingsViewModel.memberListViewModel.memberListElementViewModels.collectAsState().value
+        val memberListViewModel = roomSettingsViewModel.memberListViewModel
+        val memberListElementViewModels =
+            memberListViewModel.memberListElementViewModels.collectAsState().value
+        val joinedMemberCount = memberListViewModel.membershipCounts[Membership.JOIN]?.collectAsState()?.value
 
-        if (memberListViewModels.isEmpty()) {
+        if (memberListElementViewModels.isEmpty()) {
             return
         }
 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} (${
-                    memberListViewModels.count {
-                        it.second.membership.value == Membership.JOIN
-                    }
-                })",
+                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} ${joinedMemberCount?.let { "($it)" }}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1.0f, false).fillMaxWidth(),
             )
@@ -77,7 +75,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 }
             }
         }
-        MemberList(roomSettingsViewModel.memberListViewModel)
+        MemberList(memberListViewModel)
     }
 }
 
