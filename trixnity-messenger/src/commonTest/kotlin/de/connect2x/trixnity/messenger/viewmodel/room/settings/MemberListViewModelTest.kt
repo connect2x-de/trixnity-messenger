@@ -315,13 +315,18 @@ class MemberListViewModelTest : ShouldSpec() {
             val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
-            setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.BAN))
-            memberListElementViewModel.unbanUser(null)
 
+            setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.BAN))
+            eventually(2.seconds) {
+                requireNotNull(roomUser.value).membership shouldBe Membership.BAN
+            }
+
+            memberListElementViewModel.unbanUser(null)
             val allUsers = userServiceMock.getAll(roomId) as MutableStateFlow<Map<UserId, Flow<RoomUser?>>>
             eventually(2.seconds) {
                 allUsers.value.size shouldBe 2
             }
+
             cancelNeverEndingCoroutines()
         }
 

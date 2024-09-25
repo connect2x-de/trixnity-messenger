@@ -365,7 +365,7 @@ class MemberListElementViewModelImpl(
                 return@launch
             }
 
-            if (iHavePowerToUnbanUser.value) {
+            if (!iHavePowerToUnbanUser.value) {
                 log.error { "cannot unban user $roomUserId from $selectedRoomId: User is not able to unban this member" }
                 error.value = i18n.settingsRoomMemberUnbanUserErrorNotPossible()
                 return@launch
