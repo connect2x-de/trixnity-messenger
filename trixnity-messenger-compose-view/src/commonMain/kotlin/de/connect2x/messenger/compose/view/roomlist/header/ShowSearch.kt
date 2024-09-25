@@ -7,8 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -34,6 +36,7 @@ class ShowSearchViewImpl : ShowSearchView {
             Tooltip(
                 tooltip = { TooltipText(i18n.accountDeactivateSearch()) }) {
                 IconButton(
+                    modifier = Modifier.buttonPointerModifier(),
                     onClick = { roomListViewModel.showSearch.value = false },
                 ) {
                     Icon(Icons.Default.SearchOff, i18n.accountActivateSearch())
@@ -43,6 +46,7 @@ class ShowSearchViewImpl : ShowSearchView {
             Tooltip(
                 tooltip = { TooltipText(i18n.accountActivateSearch()) }) {
                 IconButton(
+                    modifier = Modifier.buttonPointerModifier(),
                     onClick = { roomListViewModel.showSearch.value = true },
                 ) {
                     Icon(Icons.Default.Search, i18n.accountActivateSearch())

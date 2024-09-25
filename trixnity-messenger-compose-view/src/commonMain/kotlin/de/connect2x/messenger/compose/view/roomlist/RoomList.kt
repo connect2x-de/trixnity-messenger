@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view.roomlist
 
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -145,7 +143,7 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
                         selectActiveAccount.value = true
                     }
                 },
-                modifier = Modifier,
+                modifier = Modifier.buttonPointerModifier(),
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
             ) {
