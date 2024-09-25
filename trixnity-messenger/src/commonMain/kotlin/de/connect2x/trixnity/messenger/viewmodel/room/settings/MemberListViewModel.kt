@@ -1,9 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.flattenNotNull
