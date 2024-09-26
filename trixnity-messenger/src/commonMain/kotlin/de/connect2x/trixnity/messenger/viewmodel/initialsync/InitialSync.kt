@@ -6,7 +6,7 @@ import net.folivo.trixnity.client.MatrixClient
 private val log = KotlinLogging.logger { }
 
 /**
- * Since the initial sync (small and the big, "real" initial sync) can take some time due to thousands of events and
+ * Since the initial sync can take some time due to thousands of events and
  * poor network connection, it should be running in the background, even if the app is paused or destroyed.
  *
  * On Desktop, this is not relevant (either the app is running and syncing or it is stopped), but on Android the initial
