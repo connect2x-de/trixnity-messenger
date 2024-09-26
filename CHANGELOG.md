@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix device list loading set to false too early
 - Fix licenses by putting them into configuration
 - Fix default NotificationHandler using wrong app name and channel ID
+- Fix loading of complete timeline, when event mention is wrongly found.
 
 ### Security
 
