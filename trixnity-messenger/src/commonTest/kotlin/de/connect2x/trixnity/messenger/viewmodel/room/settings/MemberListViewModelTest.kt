@@ -27,6 +27,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
@@ -165,6 +168,7 @@ class MemberListViewModelTest : ShouldSpec() {
             every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns flowOf(50)
+            every { userServiceMock.getPowerLevel(any(), any(), any()) } returns 50
 
             every { userServiceMock.getById(eq(roomId), eq(me)) } returns roomUserMeFlow
             every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
@@ -411,6 +415,120 @@ class MemberListViewModelTest : ShouldSpec() {
                 )
             }
         }
+
+        should("Calculate membership amounts in a Room with 3 joined Members") {
+            val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
+                alices = Membership.JOIN,
+                bobs = Membership.JOIN,
+                mine = Membership.JOIN,
+            )
+
+            eventually(2.seconds) {
+                requireNotNull(roomAlice.value).membership shouldBe Membership.JOIN
+                requireNotNull(roomBob.value).membership shouldBe Membership.JOIN
+                requireNotNull(roomMe.value).membership shouldBe Membership.JOIN
+            }
+
+            val cut = memberListViewModel(coroutineContext)
+
+            eventually(2.seconds) {
+                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 3
+                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 0
+            }
+        }
+
+        should("Calculate membership amounts in a Room containing 1 banned and 2 joined Members") {
+            val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
+                alices = Membership.JOIN,
+                bobs = Membership.JOIN,
+                mine = Membership.BAN,
+            )
+
+            eventually(2.seconds) {
+                requireNotNull(roomAlice.value).membership shouldBe Membership.JOIN
+                requireNotNull(roomBob.value).membership shouldBe Membership.JOIN
+                requireNotNull(roomMe.value).membership shouldBe Membership.BAN
+            }
+
+            val cut = memberListViewModel(coroutineContext)
+
+            eventually(2.seconds) {
+
+                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 2
+                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 1
+                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 0
+            }
+        }
+
+        should("Calculate membership amounts in a Room containing 1 left and 2 knocking Members") {
+            val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
+                alices = Membership.KNOCK,
+                bobs = Membership.KNOCK,
+                mine = Membership.LEAVE,
+            )
+
+            eventually(2.seconds) {
+                requireNotNull(roomAlice.value).membership shouldBe Membership.KNOCK
+                requireNotNull(roomBob.value).membership shouldBe Membership.KNOCK
+                requireNotNull(roomMe.value).membership shouldBe Membership.LEAVE
+            }
+
+            val cut = memberListViewModel(coroutineContext)
+
+            eventually(2.seconds) {
+                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 2
+                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 1
+            }
+        }
+
+        should("Calculate membership amounts in a Room containing 1 joined and 2 invited Members") {
+            val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
+                alices = Membership.INVITE,
+                bobs = Membership.INVITE,
+                mine = Membership.JOIN,
+            )
+
+            eventually(2.seconds) {
+                requireNotNull(roomAlice.value).membership shouldBe Membership.INVITE
+                requireNotNull(roomBob.value).membership shouldBe Membership.INVITE
+                requireNotNull(roomMe.value).membership shouldBe Membership.JOIN
+            }
+
+            val cut = memberListViewModel(coroutineContext)
+
+            eventually(2.seconds) {
+                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 1
+                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 2
+                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 0
+                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 0
+            }
+        }
+    }
+
+    private fun setMembershipsAndGetRoomUsers(
+        alices: Membership,
+        bobs: Membership,
+        mine: Membership
+    ): Triple<StateFlow<RoomUser?>, StateFlow<RoomUser?>, StateFlow<RoomUser?>> {
+        val roomAlice = userServiceMock.getById(roomId, alice) as MutableStateFlow<RoomUser?>
+        setMemberEventContentOf(roomAlice, MemberEventContent(membership = alices))
+
+        val roomBob = userServiceMock.getById(roomId, bob) as MutableStateFlow<RoomUser?>
+        setMemberEventContentOf(roomBob, MemberEventContent(membership = bobs))
+
+        val roomMe = userServiceMock.getById(roomId, me) as MutableStateFlow<RoomUser?>
+        setMemberEventContentOf(roomMe, MemberEventContent(membership = mine))
+
+        return Triple(roomAlice, roomBob, roomMe)
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {

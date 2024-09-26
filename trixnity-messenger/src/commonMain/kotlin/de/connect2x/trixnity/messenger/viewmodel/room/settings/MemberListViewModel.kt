@@ -84,17 +84,13 @@ open class MemberListViewModelImpl(
 
     override val membershipCounts: Map<Membership, StateFlow<Int?>> =
         Membership.entries.associateWith { membershipKind ->
-            memberListElementViewModels.map { currentMemberListElementViewModels ->
-                currentMemberListElementViewModels
-                    .mapNotNull {
-                        it.second.membership.firstOrNull { membershipStatus ->
-                            membershipStatus != null
+            matrixClient.user.getAll(selectedRoomId).flattenNotNull()
+                .mapNotNull { currentMemberListElementViewModels ->
+                    currentMemberListElementViewModels
+                        .count { (_, roomUser) ->
+                            roomUser.membership == membershipKind
                         }
-                    }
-                    .count {
-                        it == membershipKind
-                    }
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
         }
 
     init {
