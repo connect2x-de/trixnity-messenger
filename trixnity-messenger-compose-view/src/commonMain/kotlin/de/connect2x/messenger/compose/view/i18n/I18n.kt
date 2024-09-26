@@ -1997,6 +1997,11 @@ abstract class I18nView(
         DE - "Antworten"
     }
 
+    fun reactMessage() = translate {
+        EN - "React"
+        DE - "Reagieren"
+    }
+
     fun reportMessage() = translate {
         EN - "Report"
         DE - "Bericht"

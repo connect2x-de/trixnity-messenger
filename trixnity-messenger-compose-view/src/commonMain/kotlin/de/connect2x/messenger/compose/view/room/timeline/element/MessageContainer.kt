@@ -98,6 +98,10 @@ class MessageContainerViewImpl : MessageContainerView {
             }
 
         }
+        MessageReactions(
+            roomMessageViewModel,
+            timelineElementHolderViewModel
+        )
     }
 }
 
