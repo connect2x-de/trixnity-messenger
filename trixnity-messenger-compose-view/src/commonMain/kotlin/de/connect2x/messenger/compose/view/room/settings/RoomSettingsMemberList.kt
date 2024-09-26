@@ -51,7 +51,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val memberListViewModel = roomSettingsViewModel.memberListViewModel
         val memberListElementViewModels =
             memberListViewModel.memberListElementViewModels.collectAsState().value
-        val joinedMemberCount = memberListViewModel.membershipCounts[Membership.JOIN]?.collectAsState()?.value
+        val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
         if (memberListElementViewModels.isEmpty()) {
             return

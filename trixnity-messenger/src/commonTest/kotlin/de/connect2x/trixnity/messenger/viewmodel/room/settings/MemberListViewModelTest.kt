@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -18,14 +19,15 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -261,6 +263,8 @@ class MemberListViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 requireNotNull(roomUser.value).membership shouldBe Membership.BAN
             }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("unban user from room") {
@@ -334,6 +338,8 @@ class MemberListViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 allUsers.value.size shouldBe 2
             }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("create List of sorted MemberListElementViewModels after initiation and subscription") {
@@ -409,6 +415,8 @@ class MemberListViewModelTest : ShouldSpec() {
                     listOf(alice, bob, me)
                 )
             }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("Calculate membership amounts in a Room with 3 joined Members") {
@@ -427,12 +435,18 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 3
-                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 0
+                cut.memberListElementViewModels.value.size shouldBe 3
             }
+
+            eventually(2.seconds) {
+                cut.membershipCounts.value[Membership.JOIN] shouldBe 3
+                cut.membershipCounts.value[Membership.BAN] shouldBe 0
+                cut.membershipCounts.value[Membership.INVITE] shouldBe 0
+                cut.membershipCounts.value[Membership.KNOCK] shouldBe 0
+                cut.membershipCounts.value[Membership.LEAVE] shouldBe 0
+            }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("Calculate membership amounts in a Room containing 1 banned and 2 joined Members") {
@@ -441,7 +455,6 @@ class MemberListViewModelTest : ShouldSpec() {
                 bobs = Membership.JOIN,
                 mine = Membership.BAN,
             )
-
             eventually(2.seconds) {
                 requireNotNull(roomAlice.value).membership shouldBe Membership.JOIN
                 requireNotNull(roomBob.value).membership shouldBe Membership.JOIN
@@ -451,13 +464,14 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-
-                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 2
-                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 1
-                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 0
+                cut.membershipCounts.value[Membership.JOIN] shouldBe 2
+                cut.membershipCounts.value[Membership.BAN] shouldBe 1
+                cut.membershipCounts.value[Membership.INVITE] shouldBe 0
+                cut.membershipCounts.value[Membership.KNOCK] shouldBe 0
+                cut.membershipCounts.value[Membership.LEAVE] shouldBe 0
             }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("Calculate membership amounts in a Room containing 1 left and 2 knocking Members") {
@@ -476,12 +490,14 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 2
-                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 1
+                cut.membershipCounts.value[Membership.JOIN] shouldBe 0
+                cut.membershipCounts.value[Membership.BAN] shouldBe 0
+                cut.membershipCounts.value[Membership.INVITE] shouldBe 0
+                cut.membershipCounts.value[Membership.KNOCK] shouldBe 2
+                cut.membershipCounts.value[Membership.LEAVE] shouldBe 1
             }
+
+            cancelNeverEndingCoroutines()
         }
 
         should("Calculate membership amounts in a Room containing 1 joined and 2 invited Members") {
@@ -500,12 +516,14 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.membershipCounts[Membership.JOIN]?.first { it != null } shouldBe 1
-                cut.membershipCounts[Membership.BAN]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.INVITE]?.first { it != null } shouldBe 2
-                cut.membershipCounts[Membership.KNOCK]?.first { it != null } shouldBe 0
-                cut.membershipCounts[Membership.LEAVE]?.first { it != null } shouldBe 0
+                cut.membershipCounts.value[Membership.JOIN] shouldBe 1
+                cut.membershipCounts.value[Membership.BAN] shouldBe 0
+                cut.membershipCounts.value[Membership.INVITE] shouldBe 2
+                cut.membershipCounts.value[Membership.KNOCK] shouldBe 0
+                cut.membershipCounts.value[Membership.LEAVE] shouldBe 0
             }
+
+            cancelNeverEndingCoroutines()
         }
     }
 
@@ -560,7 +578,7 @@ class MemberListViewModelTest : ShouldSpec() {
         }
 
 
-    private suspend fun memberListViewModel(
+    private suspend fun CoroutineScope.memberListViewModel(
         coroutineContext: CoroutineContext
     ): MemberListViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
@@ -578,6 +596,14 @@ class MemberListViewModelTest : ShouldSpec() {
             selectedRoomId = roomId,
 
             error = MutableStateFlow("")
-        )
+        ).also {
+            launch {
+                it.memberListElementViewModels.collect { }
+            }
+
+            launch {
+                it.membershipCounts.collect { }
+            }
+        }
     }
 }
