@@ -58,7 +58,8 @@ open class MemberListViewModelImpl(
             matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         ) { powerLevels, createEvent, roomUsers ->
             roomUsers.mapNotNull { roomUser ->
-                if (roomUser.membership == Membership.JOIN || roomUser.membership == Membership.INVITE ||
+                if (roomUser.membership == Membership.JOIN ||
+                    roomUser.membership == Membership.INVITE ||
                     roomUser.membership == Membership.BAN
                 ) {
                     val userId = roomUser.userId
@@ -85,8 +86,8 @@ open class MemberListViewModelImpl(
     override val membershipCounts: Map<Membership, StateFlow<Int?>> =
         Membership.entries.associateWith { membershipKind ->
             matrixClient.user.getAll(selectedRoomId).flattenNotNull()
-                .mapNotNull { currentMemberListElementViewModels ->
-                    currentMemberListElementViewModels
+                .mapNotNull { users ->
+                    users
                         .count { (_, roomUser) ->
                             roomUser.membership == membershipKind
                         }
