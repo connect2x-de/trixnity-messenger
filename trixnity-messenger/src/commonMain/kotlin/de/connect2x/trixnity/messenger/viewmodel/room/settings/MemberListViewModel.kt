@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.flattenNotNull
@@ -85,13 +86,12 @@ open class MemberListViewModelImpl(
 
     override val membershipCounts: Map<Membership, StateFlow<Int?>> =
         Membership.entries.associateWith { membershipKind ->
-            matrixClient.user.getAll(selectedRoomId).flattenNotNull()
-                .mapNotNull { users ->
-                    users
-                        .count { (_, roomUser) ->
-                            roomUser.membership == membershipKind
-                        }
-                }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            matrixClient.user.getAll(selectedRoomId).mapNotNull { users ->
+                users
+                    .count { (_, roomUser) ->
+                        roomUser.firstOrNull { it != null }?.membership == membershipKind
+                    }
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
         }
 
     init {
