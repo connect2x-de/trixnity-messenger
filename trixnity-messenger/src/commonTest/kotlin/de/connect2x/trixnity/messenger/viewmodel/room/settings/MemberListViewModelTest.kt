@@ -4,7 +4,6 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -26,6 +25,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -122,8 +122,6 @@ class MemberListViewModelTest : ShouldSpec() {
     val roomsApiClientMock = mock<RoomApiClient>()
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             roomUserMapFlow.value = emptyMap()
             roomUserMapFlow.value = mapOf(
@@ -209,8 +207,9 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns
-                    MutableStateFlow(powerLevelEvent)
+            every {
+                roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
+            } returns MutableStateFlow(powerLevelEvent)
 
             val createEvent = StateEvent(
                 CreateEventContent(creator = me),
@@ -220,7 +219,9 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            every { roomServiceMock.getState(roomId, CreateEventContent::class, "") } returns MutableStateFlow(createEvent)
+            every {
+                roomServiceMock.getState(roomId, CreateEventContent::class, "")
+            } returns MutableStateFlow(createEvent)
             every { userServiceMock.getPowerLevel(eq(roomId), eq(me)) } returns flowOf(100)
 
             every {
@@ -248,8 +249,11 @@ class MemberListViewModelTest : ShouldSpec() {
             } returns 100
 
             val cut = memberListViewModel(coroutineContext)
-            launch { cut.memberListElementViewModels.collect() }
-            testCoroutineScheduler.advanceUntilIdle()
+
+            eventually(2.seconds) {
+                cut.memberListElementViewModels.value.size shouldBe 3
+            }
+
             val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
@@ -258,7 +262,6 @@ class MemberListViewModelTest : ShouldSpec() {
                 requireNotNull(roomUser.value).membership shouldBe Membership.BAN
             }
             setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.JOIN))
-            cancelNeverEndingCoroutines()
         }
 
         should("unban user from room") {
@@ -271,7 +274,9 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns MutableStateFlow(powerLevelEvent)
+            every {
+                roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
+            } returns MutableStateFlow(powerLevelEvent)
 
             val createEvent = StateEvent(
                 CreateEventContent(creator = me),
@@ -281,8 +286,9 @@ class MemberListViewModelTest : ShouldSpec() {
                 roomId = roomId,
                 stateKey = ""
             )
-            every { roomServiceMock.getState(roomId, CreateEventContent::class, "") } returns
-                    MutableStateFlow(createEvent)
+            every {
+                roomServiceMock.getState(roomId, CreateEventContent::class, "")
+            } returns MutableStateFlow(createEvent)
             every { userServiceMock.getPowerLevel(eq(roomId), eq(me)) } returns flowOf(100)
 
             every {
@@ -310,8 +316,11 @@ class MemberListViewModelTest : ShouldSpec() {
             } returns 100
 
             val cut = memberListViewModel(coroutineContext)
-            launch { cut.memberListElementViewModels.collect() }
-            testCoroutineScheduler.advanceUntilIdle()
+
+            eventually(2.seconds) {
+                cut.memberListElementViewModels.value.size shouldBe 3
+            }
+
             val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
@@ -326,8 +335,6 @@ class MemberListViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 allUsers.value.size shouldBe 2
             }
-
-            cancelNeverEndingCoroutines()
         }
 
         should("create List of sorted MemberListElementViewModels after initiation and subscription") {
@@ -394,14 +401,15 @@ class MemberListViewModelTest : ShouldSpec() {
 
             val cut = memberListViewModel(coroutineContext)
 
-            launch { cut.memberListElementViewModels.collect() }
+            eventually(2.seconds) {
+                cut.memberListElementViewModels.value.size shouldBe 3
+            }
 
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.memberListElementViewModels.value should containSortedMemberListElementViewModelsFor(
-                listOf(alice, bob, me)
-            )
-            cancelNeverEndingCoroutines()
+            eventually(2.seconds) {
+                cut.memberListElementViewModels.value should containSortedMemberListElementViewModelsFor(
+                    listOf(alice, bob, me)
+                )
+            }
         }
     }
 
