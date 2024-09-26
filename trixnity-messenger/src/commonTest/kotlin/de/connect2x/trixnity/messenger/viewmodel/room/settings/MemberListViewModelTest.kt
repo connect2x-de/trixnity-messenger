@@ -14,7 +14,6 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
@@ -26,12 +25,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -261,11 +256,11 @@ class MemberListViewModelTest : ShouldSpec() {
             val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
+
             memberListElementViewModel.banUser("Test reason")
             eventually(2.seconds) {
                 requireNotNull(roomUser.value).membership shouldBe Membership.BAN
             }
-            setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.JOIN))
         }
 
         should("unban user from room") {
