@@ -33,18 +33,22 @@ class ShowSearchViewImpl : ShowSearchView {
         val showSearch = roomListViewModel.showSearch.collectAsState()
 
         if (showSearch.value) {
-            Tooltip({ TooltipText(i18n.accountDeactivateSearch()) }) {
-                IconButton({
-                    roomListViewModel.showSearch.value = false
-                }, Modifier.buttonPointerModifier()) {
-                    Icon(Icons.Default.SearchOff, i18n.accountDeactivateSearch())
+            Tooltip(
+                tooltip = { TooltipText(i18n.accountDeactivateSearch()) }) {
+                IconButton(
+                    modifier = Modifier.buttonPointerModifier(),
+                    onClick = { roomListViewModel.showSearch.value = false },
+                ) {
+                    Icon(Icons.Default.SearchOff, i18n.accountActivateSearch())
                 }
             }
         } else {
-            Tooltip({ TooltipText(i18n.accountActivateSearch()) }) {
-                IconButton({
-                    roomListViewModel.showSearch.value = true
-                }, Modifier.buttonPointerModifier()) {
+            Tooltip(
+                tooltip = { TooltipText(i18n.accountActivateSearch()) }) {
+                IconButton(
+                    modifier = Modifier.buttonPointerModifier(),
+                    onClick = { roomListViewModel.showSearch.value = true },
+                ) {
                     Icon(Icons.Default.Search, i18n.accountActivateSearch())
                 }
             }
