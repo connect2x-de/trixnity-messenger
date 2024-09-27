@@ -24,6 +24,7 @@ import org.koin.core.Koin
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
+
 @Composable
 actual fun VerticalScrollbar(
     modifier: Modifier,

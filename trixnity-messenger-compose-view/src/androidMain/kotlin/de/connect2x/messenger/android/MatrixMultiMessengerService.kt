@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.*
+import java.util.ServiceLoader
 
 class MatrixMultiMessengerService : Service() {
     private val log = KotlinLogging.logger { }

@@ -157,7 +157,6 @@ import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.module
 
-
 fun interface HttpUserAgent {
     operator fun invoke(): String
 }

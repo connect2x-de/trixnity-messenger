@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
 import de.connect2x.trixnity.messenger.multi.singleMode
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration.logLevel
 import io.github.oshai.kotlinlogging.Level
@@ -55,9 +54,6 @@ suspend fun startMessenger(
 //                LocalWindowScope provides this@Window, // FIXME
                     IsDebug provides false, // FIXME
                     DI provides matrixMessenger.di,
-                    GetLicences provides GetLicencesImpl {
-                        Res.readBytes("files/aboutlibraries.json").decodeToString()
-                    },
                 ) {
                     MessengerTheme {
                         Client(rootViewModel)
