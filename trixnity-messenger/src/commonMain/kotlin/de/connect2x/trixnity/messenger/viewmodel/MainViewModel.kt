@@ -82,7 +82,7 @@ interface MainViewModel {
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
     val showRoom: StateFlow<Boolean>
-    val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>>
+    val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -198,8 +198,7 @@ open class MainViewModelImpl(
     private val settingsWizardRouter : SettingsWizardRouter =
         SettingsWizardRouter(viewModelContext)
 
-    override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
-        settingsWizardRouter.stack
+    override val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper> = settingsWizardRouter.getWizardSteps()
 
     private fun backPressHandler() {
         if (imageRouter.isImageOpen()) {
@@ -243,7 +242,6 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
-        startLoginWizard()
     }
 
     private fun startSync() {
@@ -416,12 +414,6 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun startLoginWizard() {
-        log.debug{"Starting login wizard for user ${messengerSettings.value.base.selectedAccount}"}
-        coroutineScope.launch {
-            settingsWizardRouter.showCurrentWizardStep()
-        }
-    }
 
     override fun closeDetailsAndShowList() {
         coroutineScope.launch {
@@ -654,15 +646,8 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val settingsWizardRouterStack : Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
-        MutableValue(
-            ChildStack(
-                active = Child.Created(
-                    configuration = SettingsWizardRouter.Config.None,
-                    instance = SettingsWizardRouter.Wrapper.None
-                )
-            )
-        )
+    override val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper> =
+        mutableListOf()
 
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 
