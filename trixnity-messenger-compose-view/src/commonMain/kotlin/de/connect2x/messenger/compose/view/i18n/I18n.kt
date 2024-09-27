@@ -277,6 +277,21 @@ abstract class I18nView(
         DE - "Logo"
     }
 
+    fun commonOptionalReason() = translate {
+        EN - "Reason (optional)"
+        DE - "Grund (optional)"
+    }
+
+    fun commonExpand() = translate {
+        EN - "expand"
+        DE - "ausklappen"
+    }
+
+    fun commonCollapse() = translate {
+        EN - "collapse"
+        DE - "einklappen"
+    }
+
     fun newNotification() = translate {
         EN - "new notification"
         DE - "neue Nachricht"
@@ -691,9 +706,49 @@ abstract class I18nView(
         DE - "Teilnehmer entfernen"
     }
 
+    fun memberListBanUser() = translate {
+        EN - "ban user"
+        DE - "Teilnehmer bannen"
+    }
+
     fun memberListRemoveUserConfirmation() = translate {
         EN - "Yes, remove user"
         DE - "Ja, Teilnehmer entfernen"
+    }
+
+    fun memberListBanUserConfirmation() = translate {
+        EN - "Yes, ban user"
+        DE - "Ja, Teilnehmer bannen"
+    }
+
+    fun memberListBanTitle() = translate {
+        EN - "Are you sure to ban this user?"
+        DE - "Möchten Sie den Teilnehmer wirklich bannen?"
+    }
+
+    fun unbannable() = translate {
+        EN - "unbanable"
+        DE - "entbannbar"
+    }
+
+    fun notUnbannable() = translate {
+        EN - "not unbannable"
+        DE - "nicht entbannbar"
+    }
+
+    fun memberListUnbanUser() = translate {
+        EN - "unban user"
+        DE - "Teilnehmer entbannen"
+    }
+
+    fun unbanTitle() = translate {
+        EN - "Unban user"
+        DE - "Teilnehmer entbannen"
+    }
+
+    fun unbanUserConfirmation() = translate {
+        EN - "Yes, unban user"
+        DE - "Ja, Teilnehmer entbannen"
     }
 
     fun roomHeaderUserIsBlocked() = translate {
@@ -739,6 +794,11 @@ abstract class I18nView(
     fun roomSettingsMembers() = translate {
         EN - "members"
         DE - "Mitglieder"
+    }
+
+    fun roomSettingsBannedMembers() = translate {
+        EN - "Banned members"
+        DE - "Gebannte Mitglieder"
     }
 
     fun roomSettingsMentions() = translate {

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Setting to ban members from rooms
+- List of banned users in a room
+- Setting to unban banned users from rooms
+
 ### Changed
 
 - Tooltips on the Web version now use the same design as the Android version

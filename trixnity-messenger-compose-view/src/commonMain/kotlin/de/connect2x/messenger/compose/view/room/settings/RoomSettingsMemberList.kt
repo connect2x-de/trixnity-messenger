@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListView {
     @Composable
@@ -47,11 +48,18 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
         val i18n = DI.get<I18nView>()
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
-        val memberListViewModels =
-            roomSettingsViewModel.memberListViewModel.memberListElementViewModels.collectAsState().value
+        val memberListViewModel = roomSettingsViewModel.memberListViewModel
+        val memberListElementViewModels =
+            memberListViewModel.memberListElementViewModels.collectAsState().value
+        val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
+
+        if (memberListElementViewModels.isEmpty()) {
+            return
+        }
+
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} (${memberListViewModels.count()})",
+                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} ${joinedMemberCount?.let { "($it)" }}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1.0f, false).fillMaxWidth(),
             )
@@ -67,7 +75,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 }
             }
         }
-        MemberList(roomSettingsViewModel.memberListViewModel)
+        MemberList(memberListViewModel)
     }
 }
 
