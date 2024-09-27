@@ -209,6 +209,31 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
+    fun setAsMainAlias(username: String, alias: String) = translate {
+        EN - "$username set main alias to $alias"
+        DE - "$username hat $alias als Hauptalias festgelegt"
+    }
+
+    fun removeAsMainAlias(username: String, alias: String) = translate {
+        EN - "$username remove $alias as main alias"
+        DE - "$username hat $alias als Hauptalias entfernt"
+    }
+
+    fun addedAlias(username: String, alias: String) = translate {
+        EN - "$username added alias $alias"
+        DE - "$username hat den Alias $alias hinzugefügt"
+    }
+
+    fun removedAlias(username: String, alias: String) = translate {
+        EN - "$username removed alias $alias"
+        DE - "$username hat den Alias $alias entfernt"
+    }
+
+    fun aliasesChanged(username: String) = translate {
+        EN - "$username changed the aliases"
+        DE - "$username hat die Aliase verändert"
+    }
+
     fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) =
         translate {
             EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
@@ -738,6 +763,66 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun settingsRoomJoinRulesInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change room join rules"
         DE - "Unzureichendes Berechtigungslevel um die Raum-Beitrittsregeln zu ändern"
+    }
+
+    fun settingsRoomAliasRemoveInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to remove room alias"
+        DE - "Unzureichendes Berechtigungslevel um diesen Alias zu entfernen"
+    }
+
+    fun settingsRoomAliasChangeInvalidSyntax() = translate {
+        EN - "Invalid room alias"
+        DE - "Ungültiger Raumalias"
+    }
+
+    fun settingsRoomAliasAddExists() = translate {
+        EN - "Alias already exists"
+        DE - "Raumalias existiert bereits"
+    }
+
+    fun settingsRoomAliasBadAlias() = translate {
+        EN - "This room alias is associated with another room"
+        DE - "Dieser Raumalias ist mit einem anderen Raum assoziiert"
+    }
+
+    fun settingsRoomAliasGeneric() = translate {
+        EN - "Something went wrong"
+        DE - "Etwas ist schiefgelaufen"
+    }
+
+    fun settingsRoomAliasRemoveNotFound() = translate {
+        EN - "Alias was already removed"
+        DE - "Alias wurde bereits entfernt"
+    }
+
+    fun settingsRoomAliasChangeMainInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to change main room alias"
+        DE - "Unzureichendes Berechtigungslevel um den Hauptalias zu ändern"
+    }
+
+    fun settingsRoomAliasChangeMainUnrelatedAlias() = translate {
+        EN - "Room alias not related to this room"
+        DE - "Alias nicht mit diesem Raum assoziiert"
+    }
+
+    fun settingsRoomAliasChangeMainNotFound() = translate {
+        EN - "Couldn't find that main room alias"
+        DE - "Konnte diesen Hauptalias nicht finden"
+    }
+
+    fun settingsRoomAliasAddAliasInsufficientPowerLevel() = translate {
+        EN - "Insufficient power level to add a room alias"
+        DE - "Unzureichendes Berechtigungslevel um einen Alias hinzuzufügen"
+    }
+
+    fun settingsRoomAliasAddAliasInvalid() = translate {
+        EN - "Invalid Alias"
+        DE - "Invalider Alias"
+    }
+
+    fun settingsRoomAliasAddAliasExisting() = translate {
+        EN - "Invalid Alias"
+        DE - "Invalider Alias"
     }
 
     fun settingsUnblockUserError(userId: String) = translate {

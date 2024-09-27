@@ -15,9 +15,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.dp
 import org.koin.core.Koin
 import java.awt.Toolkit
@@ -99,7 +100,16 @@ actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier {
-    return this.then(Modifier.pointerMoveFilter(onEnter = onEnter, onExit = onExit))
+    return this.then(
+        Modifier
+            .onPointerEvent(PointerEventType.Enter) {
+                onEnter()
+            }
+            .onPointerEvent(PointerEventType.Exit) {
+                onExit()
+            }
+    )
+
 }
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {

@@ -46,6 +46,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsJoinRulesViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModelFactory
@@ -74,6 +75,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberSt
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAliasChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomEncryptionEnabledViewModelFactory
@@ -336,6 +338,7 @@ private fun timelineElementsViewModels() = module {
     single<RoomEncryptionEnabledViewModelFactory> { RoomEncryptionEnabledViewModelFactory }
     single<RoomNameChangeStatusViewModelFactory> { RoomNameChangeStatusViewModelFactory }
     single<RoomTopicChangeStatusViewModelFactory> { RoomTopicChangeStatusViewModelFactory }
+    single<RoomAliasChangeStatusViewModelFactory> { RoomAliasChangeStatusViewModelFactory }
     single<HistoryVisibilityChangeStatusViewModelFactory> { HistoryVisibilityChangeStatusViewModelFactory }
     single<TextMessageViewModelFactory> { TextMessageViewModelFactory }
     single<EmoteMessageViewModelFactory> { EmoteMessageViewModelFactory }
@@ -364,6 +367,7 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsTopicViewModelFactory> { RoomSettingsTopicViewModelFactory }
     single<RoomSettingsNotificationsViewModelFactory> { RoomSettingsNotificationsViewModelFactory }
     single<RoomSettingsHistoryVisibilityViewModelFactory> { RoomSettingsHistoryVisibilityViewModelFactory }
+    single<RoomSettingsAliasViewModelFactory> { RoomSettingsAliasViewModelFactory }
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
     single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
 }

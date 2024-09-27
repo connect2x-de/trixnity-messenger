@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setting to ban members from rooms
 - List of banned users in a room
 - Setting to unban banned users from rooms
+- room alias settings and timeline support
 
 ### Changed
 
