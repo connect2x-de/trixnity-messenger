@@ -25,6 +25,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mes
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -81,6 +82,7 @@ interface MainViewModel {
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
     val showRoom: StateFlow<Boolean>
+    val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -193,6 +195,12 @@ open class MainViewModelImpl(
     override val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>> =
         avatarCutterRouter.stack
 
+    private val settingsWizardRouter : SettingsWizardRouter =
+        SettingsWizardRouter(viewModelContext)
+
+    override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
+        settingsWizardRouter.stack
+
     private fun backPressHandler() {
         if (imageRouter.isImageOpen()) {
             imageRouter.closeImage()
@@ -235,6 +243,7 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
+        startLoginWizard()
     }
 
     private fun startSync() {
@@ -404,6 +413,13 @@ open class MainViewModelImpl(
                     }
                 }
             }
+        }
+    }
+
+    private fun startLoginWizard() {
+        log.debug{"Starting login wizard for user ${messengerSettings.value.base.selectedAccount}"}
+        coroutineScope.launch {
+            settingsWizardRouter.showCurrentWizardStep()
         }
     }
 
@@ -638,6 +654,16 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
+    override val settingsWizardRouterStack : Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = SettingsWizardRouter.Config.None,
+                    instance = SettingsWizardRouter.Wrapper.None
+                )
+            )
+        )
+
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun start() {

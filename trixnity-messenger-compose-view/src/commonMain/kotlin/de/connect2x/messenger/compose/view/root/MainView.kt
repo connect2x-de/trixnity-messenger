@@ -48,5 +48,6 @@ class MainViewImpl : MainView {
         VideoOverlaySwitch(mainViewModel)
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
+        SettingsWizardSwitch(mainViewModel)
     }
 }
