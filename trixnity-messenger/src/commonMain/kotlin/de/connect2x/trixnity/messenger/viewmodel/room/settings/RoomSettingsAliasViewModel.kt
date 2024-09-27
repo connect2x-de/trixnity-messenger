@@ -63,6 +63,7 @@ interface RoomSettingsAliasViewModel {
     fun addNewAlias(onlyLocalpart: Boolean = false)
     fun changeMainAlias(alias: RoomAliasId?)
     fun removeAlias(alias: RoomAliasId)
+    fun removeMainAlias(alias: RoomAliasId)
 
 }
 
@@ -411,14 +412,22 @@ class RoomSettingsAliasViewModelImpl(
             }.invokeOnCompletion { _isUpdating.value = false }
         }
     }
+
+    override fun removeMainAlias(alias: RoomAliasId) {
+        coroutineScope.launch {
+            changeMainAlias(null)
+            isUpdating.first { it.not() }
+            removeAlias(alias)
+        }
+    }
 }
 
 class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
-    override val canChangeRoomAlias: StateFlow<Boolean> = MutableStateFlow(false)
+    override val canChangeRoomAlias: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val mainAlias: MutableStateFlow<Nothing?> = MutableStateFlow(null)
     override val domain: String = "example.org"
-    override val moreAliases: StateFlow<Set<String>> = MutableStateFlow(emptySet())
-    override val isUpdating: StateFlow<Boolean> = MutableStateFlow(false)
+    override val moreAliases: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
+    override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
 
     override fun addNewAlias(onlyLocalpart: Boolean) {
@@ -428,5 +437,8 @@ class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     }
 
     override fun removeAlias(alias: RoomAliasId) {
+    }
+
+    override fun removeMainAlias(alias: RoomAliasId) {
     }
 }
