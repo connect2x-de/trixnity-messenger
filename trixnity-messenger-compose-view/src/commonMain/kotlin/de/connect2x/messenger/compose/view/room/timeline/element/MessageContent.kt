@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -201,7 +202,6 @@ private fun MessageTextContent(
         val text = formatMessage(message, mentions, textBasedViewModel)
 
         val richTextState = rememberRichTextState()
-        richTextState.setHtml(text)
         richTextState.config.linkColor =
             if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
@@ -215,6 +215,9 @@ private fun MessageTextContent(
             MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
         } else {
             MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
+        }
+        LaunchedEffect(text) {
+            richTextState.setHtml(text)
         }
     }
 }

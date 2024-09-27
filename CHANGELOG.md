@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix default NotificationHandler using wrong app name and channel ID
 - Fix loading of complete timeline, when event mention is wrongly found.
 - Fix missing initial sync modal
+- Performance improvement: setHtml only once per message
 
 ### Security
 
