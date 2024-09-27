@@ -23,29 +23,27 @@ import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
-import de.connect2x.trixnity.messenger.util.CloseApp
 
 interface ProfileCreationView {
     @Composable
-    fun create(profileCreationViewModel: ProfileCreationViewModel)
+    fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit)
 }
 
 @Composable
-fun ProfileCreation(profileCreationViewModel: ProfileCreationViewModel) {
-    DI.get<ProfileCreationView>().create(profileCreationViewModel)
+fun ProfileCreation(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
+    DI.get<ProfileCreationView>().create(profileCreationViewModel, onFinish)
 }
 
 class ProfileCreationViewImpl : ProfileCreationView {
     @Composable
-    override fun create(profileCreationViewModel: ProfileCreationViewModel) {
+    override fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
         val i18n = DI.get<I18nView>()
-        val closeApp = DI.get<CloseApp>()
         val profileName = profileCreationViewModel.profileName.collectAsStateForTextField().value
         val error = profileCreationViewModel.error.collectAsState().value
         val canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value
 
         MessengerModal(
-            onDismiss = { closeApp() },
+            onDismiss = onFinish,
             title = i18n.createProfileHeader()
         ) {
             MessengerModalContent {
@@ -66,7 +64,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
             MessengerModalButtonRow(
                 button1 = {
                     OutlinedButton(
-                        onClick = { closeApp() },
+                        onClick = { onFinish() },
                         modifier = Modifier.buttonPointerModifier()
                     ) {
                         Text(i18n.commonCancel().capitalize(Locale.current))
@@ -74,7 +72,10 @@ class ProfileCreationViewImpl : ProfileCreationView {
                 },
                 button2 = {
                     Button(
-                        onClick = profileCreationViewModel::createProfile,
+                        onClick = {
+                            profileCreationViewModel.createProfile()
+                            onFinish()
+                        },
                         enabled = canCreateProfile,
                         modifier = Modifier.buttonPointerModifier(),
                     ) {

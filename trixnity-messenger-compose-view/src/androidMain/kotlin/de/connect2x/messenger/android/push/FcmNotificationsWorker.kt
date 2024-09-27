@@ -92,7 +92,6 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
             displayNotification(
                 context,
                 matrixClient,
-                matrixMessenger,
                 notification.event,
                 isDirect,
                 roomName,
@@ -104,7 +103,6 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
     private suspend fun displayNotification(
         context: Context,
         matrixClient: MatrixClient,
-        matrixMessenger: MatrixMessenger,
         event: ClientEvent<*>, // possibly decrypted
         isDirect: Boolean,
         roomName: String,

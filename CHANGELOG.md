@@ -15,13 +15,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Tooltips on the Web version now use the same design as the Android version
+- Instead of closing, profile abortion causes it to return to the previous screen
+- Sync modal shown only on initial sync
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- Android-Tooltips on buttons are shown again
+- Desktop-Tooltips can no longer move in front of the cursor, blocking button input
 - Fix device list loading set to false too early
+- Fix licenses by putting them into configuration
+- Fix default NotificationHandler using wrong app name and channel ID
+- Fix loading of complete timeline, when event mention is wrongly found.
+- Fix missing initial sync modal
 
 ### Security
 

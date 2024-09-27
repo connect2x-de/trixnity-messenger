@@ -43,7 +43,7 @@ class MessengerClientTest {
                             ShowProfileCreation provides showProfileCreation,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles, {})
+                                Profiles(matrixMultiMessenger, existingProfiles)
                             }
                         }
                     },
@@ -55,7 +55,6 @@ class MessengerClientTest {
                             LocalWindowScope provides null,
                             IsDebug provides false,
                             DI provides matrixMessenger.di,
-                            GetLicences provides GetLicencesImpl { "" },
                         ) {
                             MessengerTheme {
                                 Client(rootViewModel)

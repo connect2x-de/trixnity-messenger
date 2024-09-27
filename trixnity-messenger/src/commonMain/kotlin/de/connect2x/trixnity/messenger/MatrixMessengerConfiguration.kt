@@ -42,14 +42,16 @@ data class MatrixMessengerConfiguration(
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *MegaByte*.
      */
-    val imageAttachmentMaxProcessingSize : Int = 50,
+    val imageAttachmentMaxProcessingSize: Int = 50,
 
     var defaultHomeServer: String? = null,
 
     override var sendLogsEmailAddress: String? = null,
 
-    override var privacyInfoUrl: String = "",
-    override var imprintUrl: String = "",
+    override var privacyInfoUrl: String? = null,
+    override var imprintUrl: String? = null,
+    override var licenses: String? = null,
+
     override var pushUrl: String? = null,
 
     /**

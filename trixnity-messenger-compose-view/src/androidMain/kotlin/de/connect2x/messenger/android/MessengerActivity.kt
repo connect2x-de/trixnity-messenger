@@ -28,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -36,8 +35,6 @@ import com.arkivanov.decompose.defaultComponentContext
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.GetLicences
-import de.connect2x.messenger.compose.view.GetLicencesImpl
 import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
@@ -55,7 +52,6 @@ import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -69,10 +65,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-
-@OptIn(ExperimentalResourceApi::class)
 class MessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
     private val matrixMessengerServiceConnection = MatrixMessengerServiceConnection()
@@ -145,7 +138,7 @@ class MessengerActivity : AppCompatActivity() {
                                                 .toDp()
                                         })
                                 ) {
-                                    val lifeCycleState = LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                                    val lifeCycleState = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                                     val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                                     CompositionLocalProvider(
                                         ImeVisible provides WindowInsets.isImeVisible,
@@ -154,9 +147,6 @@ class MessengerActivity : AppCompatActivity() {
                                         LocalWindowScope provides null,
                                         IsDebug provides false,
                                         DI provides matrixMessenger.di,
-                                        GetLicences provides GetLicencesImpl {
-                                            Res.readBytes("files/aboutlibraries.json").decodeToString()
-                                        },
                                     ) {
                                         MessengerTheme {
                                             Client(rootViewModel)
@@ -167,7 +157,7 @@ class MessengerActivity : AppCompatActivity() {
                         }
                     ) { existingProfiles ->
                         val showProfileCreation = remember { mutableStateOf(false) }
-                        val lifeCycleState = LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                        val lifeCycleState = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                         CompositionLocalProvider(
                             ImeVisible provides WindowInsets.isImeVisible,
@@ -179,9 +169,7 @@ class MessengerActivity : AppCompatActivity() {
                             ShowProfileCreation provides showProfileCreation,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles, onCancel = {
-                                    finishAndRemoveTask()
-                                })
+                                Profiles(matrixMultiMessenger, existingProfiles)
                             }
                         }
                     }
