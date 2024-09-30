@@ -17,7 +17,7 @@ val appNameCleaned = appName.replace("[-.\\s]".toRegex(), "").lowercase()
 
 enum class BuildFlavor { PROD, DEV }
 
-val buildFlavor = BuildFlavor.valueOf(System.getenv("BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
+val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
 
 val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
 val licenses by tasks.registering(AboutLibrariesTask::class) {
@@ -58,6 +58,13 @@ val buildConfigGenerator by tasks.registering {
     }
     outputs.dirs(generatedSrc)
     dependsOn(licenses)
+}
+
+tasks.named("prepareKotlinIdeaImport") {
+    val prepareKotlinIdeaImport = this
+    kotlin.sourceSets.all {
+        prepareKotlinIdeaImport.dependsOn(kotlin)
+    }
 }
 
 kotlin {

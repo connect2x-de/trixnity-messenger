@@ -119,6 +119,11 @@ class RoomSettingsViewImpl : RoomSettingsView {
                         val roomTopicViewModel = roomSettingsViewModel.roomSettingsTopicViewModel
                         RoomSettingsTopic(roomTopicViewModel)
                         Spacer(Modifier.size(20.dp))
+                        val roomAliasViewModel = roomSettingsViewModel.roomSettingsAliasViewModel
+                        if (roomAliasViewModel.canChangeRoomAlias.collectAsState().value && !isDirect) {
+                            RoomSettingsAlias(roomAliasViewModel)
+                            Spacer(Modifier.size(20.dp))
+                        }
                         if (joinRule == JoinRulesEventContent.JoinRule.Public) {
                             HorizontalDivider()
                             Spacer(Modifier.size(20.dp))
