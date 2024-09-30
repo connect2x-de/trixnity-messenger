@@ -1,14 +1,22 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddReaction
+import androidx.compose.material.icons.outlined.AddReaction
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,17 +26,56 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.EmojiPopup
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 
+interface MessageReactionsView {
+    @Composable
+    fun create(
+        roomMessageViewModel: RoomMessageViewModel,
+        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        modifier: Modifier
+    )
+}
 
-private val reactionPadding = PaddingValues(8.dp, 0.dp)
+@Composable
+fun MessageReactions(
+    roomMessageViewModel: RoomMessageViewModel,
+    timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+    modifier: Modifier = Modifier
+) {
+    DI.get<MessageReactionsView>().create(roomMessageViewModel, timelineElementHolderViewModel, modifier)
+}
+
+@Composable
+internal fun MessageReactionDisplay(
+    reaction: String,
+) {
+    with(LocalDensity.current) {
+        Text(
+            text = reaction,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            softWrap = false,
+            modifier = Modifier.widthIn(0.dp, LocalTextStyle.current.fontSize.times(10).toDp()),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+private val buttonPadding = PaddingValues(12.dp, 4.dp)
+private val buttonModifier = Modifier.buttonPointerModifier()
+    .defaultMinSize(minWidth = 54.dp, minHeight = 32.dp)
+    .heightIn(max = 40.dp)
 
 @Composable
 internal fun MessageReactionButton(
@@ -39,85 +86,76 @@ internal fun MessageReactionButton(
     onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
 ) {
     if (myReaction != null) {
-        FilledTonalButton(onClick = {
-            onRemoveReaction(myReaction)
-        }, contentPadding = reactionPadding) {
-            Text("$reaction $count")
+        FilledTonalButton(
+            onClick = { onRemoveReaction(myReaction) },
+            contentPadding = buttonPadding,
+            modifier = buttonModifier,
+            colors = ButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
+                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        ) {
+            MessageReactionDisplay(reaction)
+            Spacer(Modifier.width(4.dp))
+            Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     } else {
-        OutlinedButton(onClick = {
-            onAddReaction(reaction)
-        }, contentPadding = reactionPadding) {
-            Text("$reaction $count")
+        OutlinedButton(
+            onClick = { onAddReaction(reaction) },
+            contentPadding = buttonPadding,
+            modifier = buttonModifier,
+        ) {
+            MessageReactionDisplay(reaction)
+            Spacer(Modifier.width(4.dp))
+            Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-internal fun MessageReactionList(
-    reactions: Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>,
-    onOpenEmojiPicker: () -> Unit,
-    onAddReaction: (reaction: String) -> Unit,
-    onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
-    alignment: Alignment.Horizontal = Alignment.Start,
-    modifier: Modifier = Modifier
-) {
-    val i18n = DI.current.get<I18nView>()
-    val reactionList = remember(reactions) {
-        reactions.entries.sortedByDescending { it.value.size }.map { it.key }
-    }
-
-    LazyRow(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(4.dp, alignment)
+internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
+    OutlinedButton(
+        onClick = onClick,
+        contentPadding = buttonPadding,
+        modifier = buttonModifier,
     ) {
-        items(reactionList, key = { "reaction-$it" }) { reaction ->
-            val reactionEvents = reactions[reaction].orEmpty()
-            MessageReactionButton(
-                reaction = reaction,
-                count = reactionEvents.size,
-                myReaction = reactionEvents.firstOrNull { it.isMe },
-                onAddReaction = onAddReaction,
-                onRemoveReaction = onRemoveReaction,
-            )
-        }
-        item(key = "addReaction") {
-            OutlinedButton(
-                onClick = onOpenEmojiPicker,
-                contentPadding = reactionPadding
-            ) {
-                Icon(
-                    Icons.Default.AddReaction,
-                    i18n.reactMessage(),
-                )
-            }
-        }
+        Icon(
+            Icons.Outlined.AddReaction,
+            contentDescription = label,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
-@Composable
-fun MessageReactions(
-    roomMessageViewModel: RoomMessageViewModel,
-    timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-) {
-    val focusRequester = remember { FocusRequester() }
-    val reactionsOpen by remember(timelineElementHolderViewModel) {
-        if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
+class MessageReactionsViewImpl : MessageReactionsView {
+    @OptIn(ExperimentalLayoutApi::class)
+    @Composable
+    override fun create(
+        roomMessageViewModel: RoomMessageViewModel,
+        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        modifier: Modifier
+    ) {
+        if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
+            return
+        }
+
+        val i18n = DI.current.get<I18nView>()
+        val focusRequester = remember { FocusRequester() }
+        val reactionsOpen by remember(timelineElementHolderViewModel) {
             timelineElementHolderViewModel.reactionsOpen
-        } else {
-            MutableStateFlow(false)
-        }
-    }.collectAsState()
+        }.collectAsState()
 
-    val reactions by remember(timelineElementHolderViewModel) {
-        if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
+        val reactions by remember(timelineElementHolderViewModel) {
             timelineElementHolderViewModel.reactions
-        } else {
-            MutableStateFlow(emptyMap())
-        }
-    }.collectAsState()
+        }.collectAsState()
 
-    if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
+        val reactionList = remember(reactions) {
+            reactions.entries.sortedByDescending { it.value.size }.map { it.key }
+        }
+
         EmojiPopup(
             isOpen = reactionsOpen,
             focusRequester = focusRequester,
@@ -130,18 +168,30 @@ fun MessageReactions(
             },
             isByMe = roomMessageViewModel.isByMe,
         )
-    }
 
-    if (reactions.isNotEmpty() && timelineElementHolderViewModel is TimelineElementHolderViewModel) {
-        MessageReactionList(
-            reactions = reactions,
-            onOpenEmojiPicker = {
-                timelineElementHolderViewModel.reactionsOpen.value = true
-            },
-            onAddReaction = timelineElementHolderViewModel::addReaction,
-            onRemoveReaction = timelineElementHolderViewModel::removeReaction,
-            alignment = if (roomMessageViewModel.isByMe) Alignment.End else Alignment.Start,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (reactions.isNotEmpty()) {
+            FlowRow(
+                modifier,
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+            ) {
+                for (reaction in reactionList) {
+                    val reactionEvents = reactions[reaction].orEmpty()
+                    MessageReactionButton(
+                        reaction = reaction,
+                        count = reactionEvents.size,
+                        myReaction = reactionEvents.firstOrNull { it.isMe },
+                        onAddReaction = timelineElementHolderViewModel::addReaction,
+                        onRemoveReaction = timelineElementHolderViewModel::removeReaction,
+                    )
+                }
+                MessageAddReactionButton(
+                    onClick = {
+                        timelineElementHolderViewModel.reactionsOpen.value = true
+                    },
+                    i18n.reactMessage()
+                )
+            }
+        }
     }
 }
