@@ -1,13 +1,22 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
@@ -47,13 +56,25 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                             )
                         )
 
-                        is SettingsWizardRouter.Wrapper.NotificationSettings -> add(
-                            WizardStep(
-                                id = WIZARD_NOTIFICATION,
-                                title = { i18n.commonNotifications() },
-                                content = { Text("Hier die Notification-Settings") },
+                        is SettingsWizardRouter.Wrapper.NotificationSettings -> {
+                            val viewModel = it.viewModel
+                            add(
+                                WizardStep(
+                                    id = WIZARD_NOTIFICATION,
+                                    title = { i18n.commonNotifications() },
+                                    content = {
+                                        val notificationSettings = viewModel.collectAsState().value
+                                        if (notificationSettings != null) {
+                                            Column {
+                                                PlatformNotificationSettings(notificationSettings)
+                                                MiddleSpacer()
+                                                PlatformNotificationAccountSettings(notificationSettings)
+                                            }
+                                        }
+                                    },
+                                )
                             )
-                        )
+                        }
 
                         is SettingsWizardRouter.Wrapper.WizardConfirm -> add(
                             WizardStep(
@@ -63,7 +84,9 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                     Text(i18n.settingsWizardFinishSetup())
                                 },
                                 nextButton = Custom {
-                                    Button(onClick = { showWizard.value = false }) {
+                                    Button(
+                                        modifier = Modifier.buttonPointerModifier(),
+                                        onClick = { showWizard.value = false }) {
                                         Text(i18n.commonConfirm())
                                     }
                                 }
@@ -80,22 +103,25 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                     content = {
                                         val privacy = viewModel.collectAsState().value
                                         if (privacy != null) {
+                                            val publicPresence = privacy.presenceIsPublic.collectAsState().value
+                                            val publicTyping = privacy.typingIsPublic.collectAsState().value
+                                            val publicRead = privacy.readMarkerIsPublic.collectAsState().value
                                             Column {
                                                 Setting(
                                                     text = i18n.privacyPresenceIsPublic(),
                                                     explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
-                                                    value = privacy.presenceIsPublic.collectAsState().value,
+                                                    value = publicPresence,
                                                     toggle = { privacy.togglePresenceIsPublic() }
                                                 )
                                                 Setting(
                                                     text = i18n.privacyTypingIsPublic(),
                                                     explanation = i18n.privacyTypingIsPublicExplanation(),
-                                                    value = privacy.typingIsPublic.collectAsState().value,
+                                                    value = publicTyping,
                                                     toggle = { privacy.toggleTypingIsPublic() })
                                                 Setting(
                                                     text = i18n.privacyReadMarkerIsPublic(),
                                                     explanation = i18n.privacyReadMarkerIsPublicExplanation(),
-                                                    value = privacy.readMarkerIsPublic.collectAsState().value,
+                                                    value = publicRead,
                                                     toggle = { privacy.toggleReadMarkerIsPublic() })
                                             }
                                         }

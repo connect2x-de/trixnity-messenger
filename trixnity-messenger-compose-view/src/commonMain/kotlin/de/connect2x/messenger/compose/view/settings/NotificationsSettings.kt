@@ -26,8 +26,10 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.ErrorText
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
@@ -139,7 +141,7 @@ fun ColumnScope.PlatformNotificationAccountSettings(
         set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) }
     )
 
-    Spacer(Modifier.size(16.dp))
+    MiddleSpacer()
 
     val soundOptions = listOfNotNull(
         if (settings.defaultLevel >= NotificationSettings.DefaultLevel.ROOM)
@@ -181,7 +183,7 @@ fun ColumnScope.PlatformNotificationAccountSettings(
             options = soundOptions,
         )
 
-    Spacer(Modifier.size(16.dp))
+    MiddleSpacer()
 
     val activityOptions = if (settings.defaultLevel > NotificationSettings.DefaultLevel.NONE)
         listOf(

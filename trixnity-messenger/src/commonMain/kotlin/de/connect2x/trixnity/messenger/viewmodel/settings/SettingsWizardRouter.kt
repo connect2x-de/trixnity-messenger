@@ -8,8 +8,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
@@ -18,6 +16,7 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SettingsWizardRouter(
     private val viewModelContext: ViewModelContext,
 ) : ViewModelContext by viewModelContext {
@@ -29,23 +28,36 @@ class SettingsWizardRouter(
         activeAccount.value = messengerSettings.value.base.selectedAccount
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val privacySettings =
         viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>()
             .create(
                 viewModelContext.childContext(key = "SettingsWizard-Privacy"),
                 {},
                 {}).privacySettings.transformLatest { value ->
-                if (value.find { it.account == activeAccount.value } != null) emit(
-                    value
+                val element = value.find { it.account == activeAccount.value }
+                if (element != null) emit(
+                    element
                 )
-            }.mapLatest { it.first { it.account == activeAccount.value } }
+            }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    private val notificationSettings = viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
+        .create(
+            viewModelContext.childContext(key = "SettingsWizard-Notifications")
+        ) {}.notificationSettings.transformLatest { value ->
+            val element = value.find { it.account == activeAccount.value }
+            if (element != null) emit(
+                element
+            )
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(), null
+        )
 
     private val wizardSteps = listOf<Wrapper>(
         WizardExplanation(activeAccount.value ?: UserId("Error")),
         Wrapper.PrivacySettings(privacySettings),
-        Wrapper.NotificationSettings(),
+        Wrapper.NotificationSettings(notificationSettings),
         Wrapper.WizardConfirm
     )
 
@@ -55,7 +67,7 @@ class SettingsWizardRouter(
 
 
     sealed class Wrapper {
-        class NotificationSettings() : Wrapper()
+        class NotificationSettings(val viewModel: StateFlow<NotificationSettingsSingleAccountViewModel?>) : Wrapper()
         class PrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
         class WizardExplanation(val userId: UserId) : Wrapper()
         data object WizardConfirm : Wrapper()
