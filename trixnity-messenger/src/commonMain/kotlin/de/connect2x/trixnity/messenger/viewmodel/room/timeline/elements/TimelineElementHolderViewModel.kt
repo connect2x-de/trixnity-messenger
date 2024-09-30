@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -57,6 +58,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -201,14 +203,27 @@ open class TimelineElementHolderViewModelImpl(
     }
 
     override val timelineElementViewModel = combine(
-        timelineEventFlow.filterNotNull().distinctUntilChanged(),
-        timelineEventFlow.filterNotNull().flatMapLatest {
-            findPreviousVisibleTimelineEvent(it) ?: flowOf(null)
-        }.distinctUntilChanged(),
-    ) { timelineEvent, previousTimelineEvent ->
+        timelineEventFlow
+            .filterNotNull()
+            .distinctUntilChanged(),
+        timelineEventFlow
+            .filterNotNull()
+            .flatMapLatest {
+                findPreviousVisibleTimelineEvent(it) ?: flowOf(null)
+            }
+            .distinctUntilChanged(),
+        timelineEventFlow
+            .filterNotNull()
+            .map { it.content }
+            .debounce {
+                // in case we are still decrypting, wait if the decryption finishes in the first x milliseconds, if not, show to the user; otherwise return the content immediately
+                if (it == null) 400.milliseconds else 0.milliseconds
+            }
+            .distinctUntilChanged(),
+    ) { timelineEvent, previousTimelineEvent, contentResult ->
         if (subViewModelCache.value != null && subViewModelCache.value?.first == keyFn(timelineEvent)) {
-            subViewModelCache.value?.second !!
-        }else {
+            subViewModelCache.value?.second!!
+        } else {
             val sender = matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
                 .map { user ->
                     UserInfoElement(
@@ -232,7 +247,7 @@ open class TimelineElementHolderViewModelImpl(
             }
 
             val event = timelineEvent.event
-            val content = timelineEvent.content?.fold(
+            val content = contentResult?.fold(
                 onSuccess = { it },
                 onFailure = {
                     log.error(it) { "cannot decrypt message event" }

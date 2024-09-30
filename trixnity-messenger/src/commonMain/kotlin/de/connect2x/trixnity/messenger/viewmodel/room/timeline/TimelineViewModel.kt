@@ -237,7 +237,7 @@ class TimelineViewModelImpl(
             log.debug { "try init timeline from $startFrom" }
             val newTimeline: Timeline<TimelineElementWrapper> =
                 matrixClient.room.getTimeline(selectedRoomId) {
-                    computeTimelineElement(it.throttleFirst(1.seconds)) // FIXME remove?
+                    computeTimelineElement(it)
                 }
             newTimeline.init(startFrom)
             log.debug { "finished init timeline from $startFrom" }
@@ -614,8 +614,8 @@ class TimelineViewModelImpl(
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
                 // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                // if performance is an issue, maybe investigate if this can be replaced with a smarter solution
-//                it.timelineElementViewModel.first { viewModel -> viewModel != null }
+                // is needed in the UI for initial position of read marker
+                it.timelineElementViewModel.first { viewModel -> viewModel != null }
             }
         }
         return TimelineElementWrapper(
@@ -686,7 +686,7 @@ class TimelineViewModelImpl(
                         ).also {
                             outboxElementHolderViewModelCache[transactionId] = it
                             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                            // also needed in the UI for computation of the last read element position
+                            // is needed in the UI for initial position of read marker
                             it.timelineElementViewModel.first { viewModel -> viewModel != null }
                         }
                     } else existingViewModel

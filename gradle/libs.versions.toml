@@ -42,7 +42,7 @@ androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-a
 
 # ui
 composeMultiplatform = "1.7.0-beta02" # https://github.com/JetBrains/compose-multiplatform/releases
-richeditor = "1.0.0-rc06" # https://github.com/MohamedRejeb/Compose-Rich-Editor
+richeditor = "1.0.0-rc07" # https://github.com/MohamedRejeb/Compose-Rich-Editor
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
