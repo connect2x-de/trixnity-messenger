@@ -56,6 +56,13 @@ val buildConfigGenerator by tasks.registering {
     dependsOn(licenses)
 }
 
+tasks.named("prepareKotlinIdeaImport") {
+    val prepareKotlinIdeaImport = this
+    kotlin.sourceSets.all {
+        prepareKotlinIdeaImport.dependsOn(kotlin)
+    }
+}
+
 kotlin {
     val kotlinJvmTarget = libs.versions.jvmTarget.get()
     androidTarget()

@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.HistoryVisibilityChangeStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NullTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAliasChangeStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomEncryptionEnabledViewModel
@@ -70,6 +71,7 @@ fun TimelineElementSwitch(
         is RoomAvatarChangeStatusViewModel -> RoomAvatarChange(vm)
         is RoomNameChangeStatusViewModel -> RoomNameChange(vm)
         is RoomTopicChangeStatusViewModel -> RoomTopicChange(vm)
+        is RoomAliasChangeStatusViewModel -> RoomAliasChange(vm)
         is HistoryVisibilityChangeStatusViewModel -> HistoryVisibilityChange(vm)
         is UserVerificationViewModel -> UserVerification(vm)
         is RoomEncryptionEnabledViewModel -> RoomEncryptionEnabled(vm)
