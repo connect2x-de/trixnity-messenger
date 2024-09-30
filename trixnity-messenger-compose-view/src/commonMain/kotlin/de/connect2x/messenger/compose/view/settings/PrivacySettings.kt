@@ -92,8 +92,8 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
             privacySettingViewModel.toggleReadMarkerIsPublic()
         }
         Setting(
-            text = i18n.typingIsPublic(),
-            explanation = i18n.typingIsPublicExplanation(),
+            text = i18n.privacyTypingIsPublic(),
+            explanation = i18n.privacyTypingIsPublicExplanation(),
             value = typingIsPublic
         ) { privacySettingViewModel.toggleTypingIsPublic() }
 

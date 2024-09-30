@@ -277,6 +277,16 @@ abstract class I18nView(
         DE - "Logo"
     }
 
+    fun commonWelcome() = translate {
+        EN - "Welcome"
+        DE - "Willkommen"
+    }
+
+    fun commonConfirm() = translate {
+        EN - "confirm"
+        DE - "Bestätigen"
+    }
+
     fun newNotification() = translate {
         EN - "new notification"
         DE - "neue Nachricht"
@@ -1422,12 +1432,12 @@ abstract class I18nView(
         DE - "Andere Nutzer können sehen, welche Nachrichten sie bereits gelesen haben"
     }
 
-    fun typingIsPublic() = translate {
+    fun privacyTypingIsPublic() = translate {
         EN - "Typing Indicators"
         DE - "Tippindikatoren"
     }
 
-    fun typingIsPublicExplanation() = translate {
+    fun privacyTypingIsPublicExplanation() = translate {
         EN - "Others can see when you type a message"
         DE - "Andere Nutzer können sehen, wenn Sie eine neue Nachricht schreiben"
     }
@@ -2210,6 +2220,21 @@ abstract class I18nView(
     fun roomSettingsEnableEncryptionWarningMessageChat() = translate {
         DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
         EN - "The activation of the encryption of the chat cannot be revoked."
+    }
+
+    fun settingsWizardExplanationMessage() = translate {
+        DE - "Um ihren Messenger nach ihren Vorlieben zu konfigurieren, können sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen könnten später verändert werden"
+        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. All settings can be changed later"
+    }
+
+    fun settingsWizardFinishSetup() = translate {
+        DE - "Ist alles nach ihren Wünschen eingestellt?"
+        EN - "Is everything configured to your liking?"
+    }
+
+    fun settingsWizardFinishSetupTitle() = translate {
+        DE - "Einrichtung abschließen"
+        EN - "Finish setup"
     }
 
 }
