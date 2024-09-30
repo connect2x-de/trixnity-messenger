@@ -9,11 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Setting to ban members from rooms
+- List of banned users in a room
+- Setting to unban banned users from rooms
+- room alias settings and timeline support
+
 ### Changed
 
 - Tooltips on the Web version now use the same design as the Android version
 - Instead of closing, profile abortion causes it to return to the previous screen
 - Sync modal shown only on initial sync
+- Run buildConfigGenerator on idea reload
+- renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 
 ### Deprecated
 

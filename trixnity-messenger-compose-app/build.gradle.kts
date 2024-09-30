@@ -17,7 +17,7 @@ val appNameCleaned = appName.replace("[-.\\s]".toRegex(), "").lowercase()
 
 enum class BuildFlavor { PROD, DEV }
 
-val buildFlavor = BuildFlavor.valueOf(System.getenv("BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
+val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
 
 val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
 val licenses by tasks.registering(AboutLibrariesTask::class) {
@@ -29,11 +29,10 @@ val buildConfigGenerator by tasks.registering {
     val licencesFile = licensesDir.resolve("aboutlibraries.json")
     val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
     inputs.file(licencesFile)
-    val outputFile = generatedSrc.get()
-        .dir("de/connect2x/$appNameCleaned")
-        .file("BuildConfig.kt")
-    outputFile.asFile.ensureParentDirsCreated()
     doLast {
+        val outputFile = generatedSrc.get()
+            .dir("de/connect2x/$appNameCleaned")
+            .file("BuildConfig.kt")
         val licencesString = licencesFile.readText()
         val quotes = "\"\"\""
         val buildConfigString =
@@ -50,10 +49,22 @@ val buildConfigGenerator by tasks.registering {
             
             enum class Flavor { PROD, DEV }
         """.trimIndent()
+        outputFile.asFile.apply {
+            ensureParentDirsCreated()
+            createNewFile()
+            writeText(buildConfigString)
+        }
         outputFile.asFile.writeText(buildConfigString)
     }
     outputs.dirs(generatedSrc)
     dependsOn(licenses)
+}
+
+tasks.named("prepareKotlinIdeaImport") {
+    val prepareKotlinIdeaImport = this
+    kotlin.sourceSets.all {
+        prepareKotlinIdeaImport.dependsOn(kotlin)
+    }
 }
 
 kotlin {

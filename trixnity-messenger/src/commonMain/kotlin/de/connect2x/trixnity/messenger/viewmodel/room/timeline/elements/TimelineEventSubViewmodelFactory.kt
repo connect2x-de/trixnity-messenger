@@ -22,6 +22,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
+import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -231,6 +232,20 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     is TopicEventContent -> {
                         log.trace { "Create room topic change status view model: ${event.id}" }
                         viewModelContext.get<RoomTopicChangeStatusViewModelFactory>().create(
+                            viewModelContext = viewModelContext,
+                            timelineEvent = timelineEvent,
+                            content = content,
+                            formattedDate = formatDate(receivedDateTime),
+                            showDateAbove = showDateAbove,
+                            invitation = invitation,
+                            sender = sender,
+                            isDirectFlow = isDirect,
+                        )
+                    }
+
+                    is CanonicalAliasEventContent -> {
+                        log.trace { "Create room alias change status view model: ${event.id}" }
+                        viewModelContext.get<RoomAliasChangeStatusViewModelFactory>().create(
                             viewModelContext = viewModelContext,
                             timelineEvent = timelineEvent,
                             content = content,
