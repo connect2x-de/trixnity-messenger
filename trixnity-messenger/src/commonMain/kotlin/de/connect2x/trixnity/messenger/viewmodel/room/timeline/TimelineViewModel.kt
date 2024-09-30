@@ -686,8 +686,8 @@ class TimelineViewModelImpl(
                         ).also {
                             outboxElementHolderViewModelCache[transactionId] = it
                             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                            // if performance is an issue, maybe investigate if this can be replaced with a smarter solution
-//                            it.timelineElementViewModel.first { viewModel -> viewModel != null }
+                            // also needed in the UI for computation of the last read element position
+                            it.timelineElementViewModel.first { viewModel -> viewModel != null }
                         }
                     } else existingViewModel
                 }.toList().also {

@@ -17,6 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -255,7 +256,7 @@ open class TimelineElementHolderViewModelImpl(
             }
         }
     }.flatMapLatest { it }
-        .stateIn(coroutineScope, WhileSubscribed(replayExpirationMillis = 5_000), null)
+        .stateIn(coroutineScope, Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
 
     private fun keyFn(timelineEvent: TimelineEvent) =
         timelineEvent.eventId.hashCode() + (timelineEvent.content?.getOrNull()?.hashCode() ?: 0)
