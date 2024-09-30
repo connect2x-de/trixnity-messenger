@@ -207,7 +207,7 @@ interface TimelineViewModel {
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class TimelineViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
@@ -237,7 +237,7 @@ class TimelineViewModelImpl(
             log.debug { "try init timeline from $startFrom" }
             val newTimeline: Timeline<TimelineElementWrapper> =
                 matrixClient.room.getTimeline(selectedRoomId) {
-                    computeTimelineElement(it)
+                    computeTimelineElement(it.throttleFirst(1.seconds)) // FIXME remove?
                 }
             newTimeline.init(startFrom)
             log.debug { "finished init timeline from $startFrom" }
@@ -386,7 +386,7 @@ class TimelineViewModelImpl(
                         computeOutbox(outbox, timelineEventsViewModels.map { it.timelineEvent })
                 log.debug { "finished compute timeline elements" }
                 timelineElements
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(5.seconds), listOf())
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(10.seconds), listOf())
 
         unreadElementFlow =
             combine(
@@ -583,7 +583,7 @@ class TimelineViewModelImpl(
         val eventId = timelineEventFlow.first().eventId
         val key = timelineEventFlow.first().event.unsigned?.transactionId ?: eventId.full
         log.trace { "compute timeline element $eventId" }
-        val existingViewModel = timelineEventHolderViewModelCache[eventId]
+        val existingViewModel = timelineEventHolderViewModelCache[eventId] // FIXME this cache does nothing!
         val viewModel = if (existingViewModel != null) existingViewModel
         else {
             val canLoadMoreBefore = timelineState.map {
@@ -615,7 +615,7 @@ class TimelineViewModelImpl(
                 timelineEventHolderViewModelCache[eventId] = it
                 // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
                 // if performance is an issue, maybe investigate if this can be replaced with a smarter solution
-                it.timelineElementViewModel.first { viewModel -> viewModel != null }
+//                it.timelineElementViewModel.first { viewModel -> viewModel != null }
             }
         }
         return TimelineElementWrapper(
@@ -687,7 +687,7 @@ class TimelineViewModelImpl(
                             outboxElementHolderViewModelCache[transactionId] = it
                             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
                             // if performance is an issue, maybe investigate if this can be replaced with a smarter solution
-                            it.timelineElementViewModel.first { viewModel -> viewModel != null }
+//                            it.timelineElementViewModel.first { viewModel -> viewModel != null }
                         }
                     } else existingViewModel
                 }.toList().also {

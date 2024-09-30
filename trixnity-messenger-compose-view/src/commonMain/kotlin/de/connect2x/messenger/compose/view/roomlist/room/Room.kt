@@ -66,7 +66,7 @@ class RoomListElementViewImpl : RoomListElementView {
                         Invite(roomListElementViewModel)
                     } else {
                         Column(Modifier.align(Alignment.CenterVertically)) {
-                            RoomNameAndTime(roomListElementViewModel, roomListViewModel)
+                            RoomNameAndTime(roomListElementViewModel)
                             LastMessageAndUnreadMessagesCounter(lastMessage, unreadMessages)
                         }
                     }

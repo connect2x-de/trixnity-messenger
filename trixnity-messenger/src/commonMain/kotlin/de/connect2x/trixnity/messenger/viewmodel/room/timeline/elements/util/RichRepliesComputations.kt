@@ -31,7 +31,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
 
@@ -77,13 +76,9 @@ class RichRepliesComputationsImpl(
                                                 avatarUrl,
                                                 avatarSize().toLong(),
                                                 avatarSize().toLong()
-                                            ).fold(
-                                                onSuccess = { it },
-                                                onFailure = {
-                                                    log.error(it) { "Cannot load avatar image for user '${user.name}'." }
-                                                    null
-                                                }
-                                            )?.toByteArray()
+                                            )
+                                                .onFailure { log.error(it) { "Cannot load avatar image for user '${user.name}'." } }
+                                                .getOrNull()
                                         },
                                         userId = it.event.sender
                                     )
