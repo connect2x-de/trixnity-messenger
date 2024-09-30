@@ -29,11 +29,10 @@ val buildConfigGenerator by tasks.registering {
     val licencesFile = licensesDir.resolve("aboutlibraries.json")
     val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
     inputs.file(licencesFile)
-    val outputFile = generatedSrc.get()
-        .dir("de/connect2x/$appNameCleaned")
-        .file("BuildConfig.kt")
-    outputFile.asFile.ensureParentDirsCreated()
     doLast {
+        val outputFile = generatedSrc.get()
+            .dir("de/connect2x/$appNameCleaned")
+            .file("BuildConfig.kt")
         val licencesString = licencesFile.readText()
         val quotes = "\"\"\""
         val buildConfigString =
@@ -50,6 +49,11 @@ val buildConfigGenerator by tasks.registering {
             
             enum class Flavor { PROD, DEV }
         """.trimIndent()
+        outputFile.asFile.apply {
+            ensureParentDirsCreated()
+            createNewFile()
+            writeText(buildConfigString)
+        }
         outputFile.asFile.writeText(buildConfigString)
     }
     outputs.dirs(generatedSrc)
