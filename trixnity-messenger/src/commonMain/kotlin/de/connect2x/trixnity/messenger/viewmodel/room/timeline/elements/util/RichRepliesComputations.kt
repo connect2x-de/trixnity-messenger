@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Referenc
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +32,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
 
@@ -77,13 +77,12 @@ class RichRepliesComputationsImpl(
                                                 avatarUrl,
                                                 avatarSize().toLong(),
                                                 avatarSize().toLong()
-                                            ).fold(
-                                                onSuccess = { it },
-                                                onFailure = {
-                                                    log.error(it) { "Cannot load avatar image for user '${user.name}'." }
-                                                    null
+                                            )
+                                                .onFailure { exc ->
+                                                    if (exc !is CancellationException)
+                                                        log.error(exc) { "Cannot load avatar image for user '${user.name}'." }
                                                 }
-                                            )?.toByteArray()
+                                                .getOrNull()
                                         },
                                         userId = it.event.sender
                                     )
