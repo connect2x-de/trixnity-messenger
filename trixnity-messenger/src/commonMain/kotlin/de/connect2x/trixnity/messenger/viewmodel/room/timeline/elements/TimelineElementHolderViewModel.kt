@@ -15,6 +15,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -135,7 +137,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     suspend fun isReadBy(): String
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
@@ -222,8 +224,9 @@ open class TimelineElementHolderViewModelImpl(
             }
             .distinctUntilChanged(),
     ) { timelineEvent, previousTimelineEvent, contentResult ->
+        log.trace { "compute timelineElementViewModel ($timelineEvent, $previousTimelineEvent, $contentResult)" }
         val subViewModel = subViewModelCache.value
-        if (subViewModel != null && subViewModel.first == keyFn(timelineEvent)) {
+        if (subViewModel != null && subViewModel.first == keyFn(timelineEvent, contentResult?.getOrNull())) {
             subViewModel.second
         } else {
             val sender = matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
@@ -248,9 +251,13 @@ open class TimelineElementHolderViewModelImpl(
                     )
                 }
 
-            val invitation = findInviterId(timelineEvent).flatMapLatest { inviterId ->
-                getInviterDisplayName(inviterId)
-            }
+            val invitation =
+                if (timelineEvent.previousEventId == null) {
+                    findInviterId(timelineEvent).flatMapLatest { inviterId ->
+                        getInviterDisplayName(inviterId)
+                    }
+                } else flowOf(null)
+
 
             val event = timelineEvent.event
             val content = contentResult?.fold(
@@ -273,14 +280,14 @@ open class TimelineElementHolderViewModelImpl(
                 onOpenModal,
                 onOpenMention,
             ).also {
-                subViewModelCache.value = keyFn(timelineEvent) to it
+                subViewModelCache.value = keyFn(timelineEvent, content) to it
             }
         }
     }.flatMapLatest { it }
         .stateIn(coroutineScope, Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
 
-    private fun keyFn(timelineEvent: TimelineEvent) =
-        timelineEvent.eventId.hashCode() + (timelineEvent.content?.getOrNull()?.hashCode() ?: 0)
+    private fun keyFn(timelineEvent: TimelineEvent, content: RoomEventContent?) =
+        timelineEvent.eventId.hashCode() + (content?.hashCode() ?: 0)
 
     private suspend fun findPreviousVisibleTimelineEvent(timelineEvent: TimelineEvent): Flow<TimelineEvent?>? {
         val previousTimelineEventOrNull = matrixClient.room.getPreviousTimelineEvent(timelineEvent)
