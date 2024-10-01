@@ -17,6 +17,7 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.nulls.beNull
@@ -30,6 +31,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,6 +45,7 @@ import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.room.message.MessageBuilder
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -61,6 +64,7 @@ import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class InputAreaViewModelTest : ShouldSpec() {
@@ -106,6 +110,9 @@ class InputAreaViewModelTest : ShouldSpec() {
             roomId = roomId,
             originTimestamp = 0L,
         )
+
+        var formattedBody: String? = null
+        var body: String = ""
 
         beforeTest {
             resetMocks(
@@ -161,6 +168,20 @@ class InputAreaViewModelTest : ShouldSpec() {
             every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
             every { onMessageEditFinishedMock.invoke(any()) } returns Unit
             every { onMessageReplToFinishedMock.invoke(any()) } returns Unit
+
+            everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
+                val roomId = it.arg<RoomId>(0)
+                val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
+                val builder = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId)
+                val message = builder.build(builderFunction)
+
+                if (message is RoomMessageEventContent.TextBased) {
+                    formattedBody = message.formattedBody
+                    body = message.body
+                }
+
+                ""
+            }
 
             everySuspend {
                 mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any())
@@ -720,6 +741,74 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
+        should("convert markdown to HTML") {
+            val markdown = """
+                # The train station and Sony
+               
+                ## Origins
+                
+                There once was an amazing train station. It was so amazing that people in Germany began to say
+                
+                > I only understand train station
+                
+                But then the Playstation arrived and people adopted it *fast* so the Deutsche Bahn gave up and neglected
+                the development of their railway network.
+                
+                ## Story time
+                
+                One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
+                its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.
+                
+                The Playstation overlords didn't like **that** 😠 so they started filing copyright cases on YouTube.
+                This annoyed the following people:
+                
+                - the pirates as they couldn't sail now
+                - the airports as they were overfilled with pirates now
+                
+                So ✨ `the coders` ✨ started greeting the world for which they used magic glyphs Computers could understand
+                for example:
+                
+                ```
+                fun main() {
+                    println("Hello World 👋👋👋")
+                }
+                ```
+                
+                The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
+                The republic of Germany however does not rely on them due to ancient technology for which the people of
+                the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:
+                
+                1. North America
+                2. China
+                3. Baltics
+                
+                The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
+                infrastructure. This way the people of the Tube are able to produce more Europe Transport > America Transport
+                video and ignore the technological issues. 
+                                
+                At this point I forgot what the story was about but I markdown complete now. 
+                Hope you had a good read? It's mostly non-sense
+                Checkout [Tammy](https://gitlab.com/connect2x/tammy) btw :^)
+            """.trimIndent()
+
+            val html = """<body><h1>The train station and Sony<br><br>## Origins<br><br>There once was an amazing train station. It was so amazing that people in Germany began to say<br><br>&gt; I only understand train station<br><br>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected<br>the development of their railway network.<br><br>## Story time<br><br>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to <br>its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.<br><br>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.<br>This annoyed the following people:<br><br>- the pirates as they couldn't sail now<br>- the airports as they were overfilled with pirates now<br><br>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand<br>for example:<br><br><code>&lt;br&gt;fun main() {&lt;br&gt;    println(&quot;Hello World 👋👋👋&quot;)&lt;br&gt;}&lt;br&gt;</code><br><br>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.<br>The republic of Germany however does not rely on them due to ancient technology for which the people of<br>the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:<br><br>1. North America<br>2. China<br>3. Baltics<br><br>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their<br>infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport<br>video and ignore the technological issues. <br>                <br>At this point I forgot what the story was about but I markdown complete now. <br>Hope you had a good read? It's mostly non-sense<br>Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</h1></body>"""
+
+            val cut = inputAreaViewModel(coroutineContext)
+            val job = subscribe(cut)
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.message.value = markdown
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.sendMessage()
+
+            testCoroutineScheduler.advanceUntilIdle()
+
+            body shouldBe markdown
+            formattedBody shouldBe html
+            job.cancel()
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun roomUser(userId: UserId, name: String) = RoomUser(
