@@ -1,12 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper.WizardExplanation
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,11 +65,18 @@ class SettingsWizardRouter(
             userId = activeAccount.value ?: UserId("Unknown")
         ), {})
 
+    val verification = get<VerificationViewModelFactory>().create(
+        viewModelContext.childContext(
+            key = "SettingsWizard-Bootstrap",
+            userId = activeAccount.value ?: UserId("Unknown")
+        ), {}, {}, null, null
+    )
+
     private val wizardSteps = listOf<Wrapper>(
         WizardExplanation(activeAccount.value ?: UserId("Unknown")),
         Wrapper.PrivacySettings(privacySettings),
         Wrapper.NotificationSettings(notificationSettings),
-        Wrapper.WizardSelfVerification(selfVerification),
+        Wrapper.WizardVerification(selfVerification, verification),
         Wrapper.WizardConfirm,
     )
 
@@ -81,7 +89,11 @@ class SettingsWizardRouter(
         class NotificationSettings(val viewModel: StateFlow<NotificationSettingsSingleAccountViewModel?>) : Wrapper()
         class PrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
         class WizardExplanation(val userId: UserId) : Wrapper()
-        class WizardSelfVerification(val viewModel: SelfVerificationViewModel) : Wrapper()
+        class WizardVerification(
+            val selfVerificationViewModel: SelfVerificationViewModel,
+            val verificationViewModel: VerificationViewModel
+        ) : Wrapper()
+
         data object WizardConfirm : Wrapper()
         data object None : Wrapper()
     }

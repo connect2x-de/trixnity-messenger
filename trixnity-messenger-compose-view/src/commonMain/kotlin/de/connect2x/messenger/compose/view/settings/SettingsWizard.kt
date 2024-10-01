@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -15,6 +16,7 @@ import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationStepSwitch
 import de.connect2x.messenger.compose.view.verification.ShowPasspraseMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
@@ -140,11 +142,13 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                             )
                         }
 
-                        is SettingsWizardRouter.Wrapper.WizardSelfVerification -> {
-                            val selfVerification = it.viewModel
+                        is SettingsWizardRouter.Wrapper.WizardVerification -> {
+                            val selfVerification = it.selfVerificationViewModel
+                            val verification = it.verificationViewModel
                             val selected = mutableStateOf<SelfVerificationMethod?>(null)
                             val selectedPassphrase = mutableStateOf<String>("")
                             val selectedRecoveryKey = mutableStateOf<String>("")
+                            val startCrossDevice = mutableStateOf(false)
                             add(
                                 WizardStep(
                                     id = WIZARD_VERIFICATION,
@@ -166,12 +170,13 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                                     selfVerification,
                                                     selectedPassphrase
                                                 )
-
                                                 showKey -> ShowRecoveryKeyMethodContent(
                                                     selfVerification,
                                                     selectedRecoveryKey
                                                 )
-
+                                                startCrossDevice.value -> {
+                                                    Box{DeviceVerificationStepSwitch(verification)}
+                                                }
                                                 else -> ShowSelfVerificationMethodsContent(methods, selected)
                                             }
                                         }
@@ -207,6 +212,9 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                                     else -> {
                                                         val selectedMethod = selected.value
                                                         println("Method is $selectedMethod")
+                                                        if (selected.value is SelfVerificationMethod.CrossSignedDeviceVerification) {
+                                                            startCrossDevice.value = true
+                                                        }
                                                         selected.value?.let { selfVerification.launchVerification(it) }
                                                     }
                                                 }
