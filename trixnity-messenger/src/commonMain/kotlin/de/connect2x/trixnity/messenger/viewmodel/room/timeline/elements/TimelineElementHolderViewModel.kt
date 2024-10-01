@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -221,8 +222,9 @@ open class TimelineElementHolderViewModelImpl(
             }
             .distinctUntilChanged(),
     ) { timelineEvent, previousTimelineEvent, contentResult ->
-        if (subViewModelCache.value != null && subViewModelCache.value?.first == keyFn(timelineEvent)) {
-            subViewModelCache.value?.second!!
+        val subViewModel = subViewModelCache.value
+        if (subViewModel != null && subViewModel.first == keyFn(timelineEvent)) {
+            subViewModel.second
         } else {
             val sender = matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
                 .map { user ->
@@ -236,7 +238,11 @@ open class TimelineElementHolderViewModelImpl(
                                 avatarSize().toLong(),
                                 avatarSize().toLong()
                             )
-                                .onFailure { log.error(it) { "Cannot load avatar image for user '${user.name}'." } }
+                                .onFailure { exc ->
+                                    if (exc !is CancellationException) {
+                                        log.error(exc) { "Cannot load avatar image for user '${user.name}'." }
+                                    }
+                                }
                                 .getOrNull()
                         },
                     )

@@ -275,8 +275,6 @@ class TimelineViewModelImpl(
     override val loadingBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
-    private val timelineEventHolderViewModelCache =
-        mutableMapOf<EventId, TimelineElementHolderViewModel>()
     private val outboxElementHolderViewModelCache =
         mutableMapOf<String, OutboxElementHolderViewModel>()
 
@@ -583,40 +581,30 @@ class TimelineViewModelImpl(
         val eventId = timelineEventFlow.first().eventId
         val key = timelineEventFlow.first().event.unsigned?.transactionId ?: eventId.full
         log.trace { "compute timeline element $eventId" }
-        val existingViewModel = timelineEventHolderViewModelCache[eventId] // FIXME this cache does nothing!
-        val viewModel = if (existingViewModel != null) existingViewModel
-        else {
-            val canLoadMoreBefore = timelineState.map {
-                it.canLoadBefore && it.lastLoadedEventIdBefore == eventId
-            }
-            val canLoadMoreAfter = timelineState.map {
-                it.canLoadAfter && it.lastLoadedEventIdAfter == eventId
-            }
-                // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
-                .debounce(300.milliseconds)
-            get<TimelineElementHolderViewModelFactory>().create(
-                viewModelContext = childContext("timelineElement-$eventId"),
-                key = key,
-                timelineEventFlow = timelineEventFlow,
-                selectedRoomId = selectedRoomId,
-                eventId = eventId,
-                canLoadMoreBefore = canLoadMoreBefore,
-                canLoadMoreAfter = canLoadMoreAfter,
-                isDirect = isDirect,
-                isReadFlow = readEventsFlow.map { readEvents -> readEvents.contains(eventId) },
-                readBy = readByUsersList(eventId),
-                shouldShowUnreadMarkerFlow = unreadElementFlow.map { it == eventId },
-                onMessageEdited = ::onMessageEdited,
-                onMessageRepliedTo = ::onMessageRepliedTo,
-                onMessageReportTo = ::onShowReportMessageModal,
-                onOpenModal = onOpenModal,
-                onOpenMention = onOpenMention,
-            ).also {
-                timelineEventHolderViewModelCache[eventId] = it
-                // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                // is needed in the UI for initial position of read marker
-                it.timelineElementViewModel.first { viewModel -> viewModel != null }
-            }
+        val canLoadMoreBefore = timelineState.map { it.canLoadBefore && it.lastLoadedEventIdBefore == eventId }
+        val canLoadMoreAfter = timelineState.map { it.canLoadAfter && it.lastLoadedEventIdAfter == eventId }
+            .debounce(300.milliseconds) // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
+        val viewModel = get<TimelineElementHolderViewModelFactory>().create(
+            viewModelContext = childContext("timelineElement-$eventId"),
+            key = key,
+            timelineEventFlow = timelineEventFlow,
+            selectedRoomId = selectedRoomId,
+            eventId = eventId,
+            canLoadMoreBefore = canLoadMoreBefore,
+            canLoadMoreAfter = canLoadMoreAfter,
+            isDirect = isDirect,
+            isReadFlow = readEventsFlow.map { readEvents -> readEvents.contains(eventId) },
+            readBy = readByUsersList(eventId),
+            shouldShowUnreadMarkerFlow = unreadElementFlow.map { it == eventId },
+            onMessageEdited = ::onMessageEdited,
+            onMessageRepliedTo = ::onMessageRepliedTo,
+            onMessageReportTo = ::onShowReportMessageModal,
+            onOpenModal = onOpenModal,
+            onOpenMention = onOpenMention,
+        ).also {
+            // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
+            // is needed in the UI for initial position of read marker
+            it.timelineElementViewModel.first { viewModel -> viewModel != null }
         }
         return TimelineElementWrapper(
             key,

@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Referenc
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -77,7 +78,10 @@ class RichRepliesComputationsImpl(
                                                 avatarSize().toLong(),
                                                 avatarSize().toLong()
                                             )
-                                                .onFailure { log.error(it) { "Cannot load avatar image for user '${user.name}'." } }
+                                                .onFailure { exc ->
+                                                    if (exc !is CancellationException)
+                                                        log.error(exc) { "Cannot load avatar image for user '${user.name}'." }
+                                                }
                                                 .getOrNull()
                                         },
                                         userId = it.event.sender
