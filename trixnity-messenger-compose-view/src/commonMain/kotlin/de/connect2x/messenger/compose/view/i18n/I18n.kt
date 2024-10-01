@@ -302,6 +302,11 @@ abstract class I18nView(
         DE - "einklappen"
     }
 
+    fun commonSkip() = translate {
+        EN - "skip"
+        DE - "überspringen"
+    }
+
     fun newNotification() = translate {
         EN - "new notification"
         DE - "neue Nachricht"

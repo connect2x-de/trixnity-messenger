@@ -1,9 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,24 +8,27 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.verification.ShowPasspraseMethodContent
+import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
+import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
+import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 private val WIZARD_EXPLANATION = "SETTINGS_WIZARD_EXPLANATION"
 private val WIZARD_NOTIFICATION = "SETTINGS_WIZARD_NOTIFICATION"
 private val WIZARD_CONFIRM = "SETTINGS_WIZARD_CONFIRM"
 private val WIZARD_PRIVACY = "SETTINGS_WIZARD_PRIVACY"
+private val WIZARD_VERIFICATION = "SETTINGS_WIZARD_VERIFICATION"
 
 private val log = KotlinLogging.logger { }
 
@@ -49,8 +49,10 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                 title = { "${i18n.commonWelcome()} ${it.userId.localpart}" },
                                 content = { Text(i18n.settingsWizardExplanationMessage()) },
                                 additionalButton = {
-                                    Button(onClick = { showWizard.value = false }) {
-                                        Text(i18n.commonClose())
+                                    Button(
+                                        modifier = Modifier.buttonPointerModifier(),
+                                        onClick = { showWizard.value = false }) {
+                                        Text(i18n.commonSkip())
                                     }
                                 }
                             )
@@ -65,7 +67,15 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                     content = {
                                         val notificationSettings = viewModel.collectAsState().value
                                         if (notificationSettings != null) {
+                                            val enabledOnDevice =
+                                                notificationSettings.enabledForThisDevice.collectAsState().value
                                             Column {
+                                                Setting(
+                                                    text = i18n.notificationsSettingsEnabledForThisDevice(),
+                                                    value = enabledOnDevice,
+                                                    toggle = { notificationSettings.toggleEnabledForThisDevice() }
+                                                )
+                                                MiddleSpacer()
                                                 PlatformNotificationSettings(notificationSettings)
                                                 MiddleSpacer()
                                                 PlatformNotificationAccountSettings(notificationSettings)
@@ -129,11 +139,88 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                 )
                             )
                         }
+
+                        is SettingsWizardRouter.Wrapper.WizardSelfVerification -> {
+                            val selfVerification = it.viewModel
+                            val selected = mutableStateOf<SelfVerificationMethod?>(null)
+                            val selectedPassphrase = mutableStateOf<String>("")
+                            val selectedRecoveryKey = mutableStateOf<String>("")
+                            add(
+                                WizardStep(
+                                    id = WIZARD_VERIFICATION,
+                                    title = { "Verification" },
+                                    content = {
+                                        Column {
+                                            val account = selfVerification.userId
+                                            Text(account.toString())
+                                            val showHelp = selfVerification.showVerificationHelp.collectAsState().value
+                                            val methods = selfVerification.selfVerificationMethods.collectAsState()
+                                            val showPassphrase =
+                                                selfVerification.showPassphraseMethod.collectAsState().value != null
+                                            val showKey =
+                                                selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+
+                                            when {
+                                                showHelp -> ShowVerificationHelpContent()
+                                                showPassphrase -> ShowPasspraseMethodContent(
+                                                    selfVerification,
+                                                    selectedPassphrase
+                                                )
+
+                                                showKey -> ShowRecoveryKeyMethodContent(
+                                                    selfVerification,
+                                                    selectedRecoveryKey
+                                                )
+
+                                                else -> ShowSelfVerificationMethodsContent(methods, selected)
+                                            }
+                                        }
+                                    },
+                                    additionalButton = {
+                                        val showHelp = selfVerification.showVerificationHelp.collectAsState().value
+                                        val showPassphrase =
+                                            selfVerification.showPassphraseMethod.collectAsState().value != null
+                                        val showKey =
+                                            selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+                                        val enableButton =
+                                            showHelp
+                                                    || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                                                    || (showKey && selectedRecoveryKey.value.isNotBlank())
+                                                    || selected.value != null
+                                        Button(
+                                            modifier = Modifier.buttonPointerModifier(enableButton),
+                                            enabled = enableButton,
+                                            onClick = {
+                                                when {
+                                                    showHelp -> {
+                                                        selfVerification.waitForAvailableVerificationMethods()
+                                                    }
+
+                                                    showPassphrase -> {
+                                                        selfVerification.verifyWithPassphrase(selectedPassphrase.value)
+                                                    }
+
+                                                    showKey -> {
+                                                        selfVerification.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                                                    }
+
+                                                    else -> {
+                                                        val selectedMethod = selected.value
+                                                        println("Method is $selectedMethod")
+                                                        selected.value?.let { selfVerification.launchVerification(it) }
+                                                    }
+                                                }
+                                            }) {
+                                            Text(i18n.commonNext())
+                                        }
+                                    }
+                                )
+                            )
+                        }
                     }
                 }
             }
         }
         Wizard(steps)
     }
-
 }
