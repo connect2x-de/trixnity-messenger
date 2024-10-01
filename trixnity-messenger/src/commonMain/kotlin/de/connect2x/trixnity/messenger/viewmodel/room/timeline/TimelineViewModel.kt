@@ -212,7 +212,7 @@ interface TimelineViewModel {
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class TimelineViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
@@ -391,7 +391,7 @@ class TimelineViewModelImpl(
                         computeOutbox(outbox, timelineEventsViewModels.map { it.timelineEvent })
                 log.debug { "finished compute timeline elements" }
                 timelineElements
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(5.seconds), listOf())
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(10.seconds), listOf())
 
         unreadElementFlow =
             combine(
@@ -620,7 +620,7 @@ class TimelineViewModelImpl(
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
                 // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                // if performance is an issue, maybe investigate if this can be replaced with a smarter solution
+                // is needed in the UI for initial position of read marker
                 it.timelineElementViewModel.first { viewModel -> viewModel != null }
             }
         }
@@ -692,7 +692,7 @@ class TimelineViewModelImpl(
                         ).also {
                             outboxElementHolderViewModelCache[transactionId] = it
                             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                            // if performance is an issue, maybe investigate if this can be replaced with a smarter solution
+                            // is needed in the UI for initial position of read marker
                             it.timelineElementViewModel.first { viewModel -> viewModel != null }
                         }
                     } else existingViewModel

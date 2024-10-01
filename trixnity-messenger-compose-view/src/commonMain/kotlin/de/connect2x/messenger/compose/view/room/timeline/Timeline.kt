@@ -80,7 +80,6 @@ class TimelineViewImpl : TimelineView {
         val focusManager = LocalFocusManager.current
         val mutableInteractionSource = remember { MutableInteractionSource() }
 
-
         Surface(modifier = Modifier.weight(1.0f, fill = true)) {
             if (timelineElementHolderViewModels.isEmpty()) {
                 Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }

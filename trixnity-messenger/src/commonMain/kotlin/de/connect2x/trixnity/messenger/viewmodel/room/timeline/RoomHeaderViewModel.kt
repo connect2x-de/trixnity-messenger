@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -162,8 +163,10 @@ open class RoomHeaderViewModelImpl(
                     avatarSize().toLong()
                 ).fold(
                     onSuccess = { it },
-                    onFailure = {
-                        log.error(it) { "Cannot load avatar image for room '${roomNameElement}'." }
+                    onFailure = { exc ->
+                        if (exc !is CancellationException) {
+                            log.error(exc) { "Cannot load avatar image for room '${roomNameElement}'." }
+                        }
                         null
                     }
                 )
