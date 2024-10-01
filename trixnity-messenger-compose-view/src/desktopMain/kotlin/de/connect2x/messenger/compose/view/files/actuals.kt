@@ -59,6 +59,11 @@ import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import net.folivo.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
@@ -69,8 +74,9 @@ import org.jetbrains.skia.Image
 import simpleVerticalScrollbar
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
+import java.io.InputStream
+import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -223,26 +229,74 @@ actual fun LoadDialog(
     }
 }
 
+fun ByteBuffer.toByteArrayFlow(): ByteArrayFlow = flow {
+    val buffer = ByteArray(BYTE_ARRAY_FLOW_CHUNK_SIZE.toInt())
+
+    while (remaining() >= buffer.size) {
+        get(buffer)
+        emit(buffer.copyOf())
+    }
+    val remaining = remaining()
+    get(buffer, 0, remaining)
+    emit(buffer.copyOf(remaining))
+}
+
+fun InputStream.toByteArrayFlow(): ByteArrayFlow = flow {
+    val buffer = ByteArray(BYTE_ARRAY_FLOW_CHUNK_SIZE.toInt())
+    var bytesRead: Int
+
+    while (read(buffer).also { bytesRead = it } != -1) {
+        emit(buffer.copyOf(bytesRead))
+    }
+}
+    .flowOn(Dispatchers.IO)
+
+private data class RawFileDescriptor(
+    override val fileName: String,
+    override val fileSize: Int?,
+    override val mimeType: ContentType?,
+    override val content: ByteArrayFlow,
+): FileDescriptor
+
 actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-    return try {
-        val files = clipboard.getData(DataFlavor.javaFileListFlavor) as List<*>
-        if (files.isNotEmpty()) {
-            files[0]?.let { file ->
-                if (file is File) PathFileDescriptor(
-                    file.absolutePath.toPath(),
-                    fileSystem = fileSystem
-                ) else null
-            }
-        } else {
-            log.info { "the selected files list is empty" }
-            null
-        }
-    } catch (exc: UnsupportedFlavorException) {
-        log.info { "the content of the clipboard is no file" }
-        null
+
+    clipboard.availableDataFlavors.forEach { flavor ->
+        log.info { "primary: ${flavor.primaryType}, sub: ${flavor.subType}, repr: ${flavor.representationClass}" }
     }
+
+    if (clipboard.isDataFlavorAvailable(DataFlavor.javaFileListFlavor)) {
+        val files = clipboard.getData(DataFlavor.javaFileListFlavor) as List<*>
+
+        // TODO: find out if multiple files should be supported in a single paste operation
+        return files.firstOrNull()?.let { file ->
+            return PathFileDescriptor((file as File).absolutePath.toPath(), fileSystem = fileSystem)
+        } ?: run {
+            log.info { "the selected files list is empty" }
+            return null
+        }
+    }
+
+    for (flavor in clipboard.availableDataFlavors) {
+        if (flavor.primaryType != "image") continue
+        val data = clipboard.getData(flavor)
+
+        if (flavor.isRepresentationClassInputStream) {
+            val inputStream = data as InputStream
+
+            return RawFileDescriptor("Image from Clipboard", inputStream.available(), ContentType.parse(flavor.mimeType), inputStream.toByteArrayFlow())
+        } else if (flavor.isRepresentationClassByteBuffer) {
+            val byteBuffer = data as ByteBuffer
+
+            return RawFileDescriptor("Image from Clipboard", byteBuffer.remaining(), ContentType.parse(flavor.mimeType), byteBuffer.toByteArrayFlow())
+        }  else {
+            log.warn { "unknown representation class for image: ${flavor.representationClass}" }
+        }
+    }
+
+    log.info { "content in clipboard was not paste-able" }
+    return null
 }
 
 @Composable
