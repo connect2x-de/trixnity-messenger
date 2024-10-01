@@ -81,6 +81,7 @@ class MessageContainerViewImpl : MessageContainerView {
                 MessageReactions(
                     roomMessageViewModel,
                     timelineElementHolderViewModel,
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
         }
