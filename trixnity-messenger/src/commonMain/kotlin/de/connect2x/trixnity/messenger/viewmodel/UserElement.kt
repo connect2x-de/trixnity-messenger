@@ -6,7 +6,6 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
-import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.core.model.UserId
 
 data class UserInfoElement(
@@ -18,9 +17,9 @@ data class UserInfoElement(
 
 suspend fun RoomUser.toUserInfoElement(matrixClient: MatrixClient): UserInfoElement =
     UserInfoElement(
-        name = this.originalName ?: this.name,
+        name = this.name,
         userId = this.userId,
-        initials = Initials.compute(this.originalName ?: this.name),
+        initials = Initials.compute(this.name),
         image = this.avatarUrl?.let {
             matrixClient.media.getMedia(it).getOrNull()
         }
