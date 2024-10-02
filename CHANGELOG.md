@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix missing initial sync modal
 - Performance improvement: setHtml only once per message
 - Fix flickering in the timeline
+- mentions for users with same displayname are now displayed with their mxId
 
 ### Security
 
