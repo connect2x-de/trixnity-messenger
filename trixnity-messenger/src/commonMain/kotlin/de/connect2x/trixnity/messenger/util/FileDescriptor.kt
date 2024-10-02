@@ -9,3 +9,10 @@ interface FileDescriptor {
     val mimeType: ContentType?
     val content: ByteArrayFlow
 }
+
+data class BasicFileDescriptor(
+    override val fileName: String,
+    override val fileSize: Int?,
+    override val mimeType: ContentType?,
+    override val content: ByteArrayFlow
+) : FileDescriptor
