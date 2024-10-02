@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import com.arkivanov.decompose.router.stack.active
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper.WizardExplanation
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
@@ -23,10 +25,12 @@ private val log = KotlinLogging.logger { }
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsWizardRouter(
     private val viewModelContext: ViewModelContext,
-    private val selfVerificationRouter: SelfVerificationRouter
+    val verificationRouter: VerificationRouter,
+    val selfVerificationRouter: SelfVerificationRouter
 ) : ViewModelContext by viewModelContext {
 
     private val activeAccount = MutableStateFlow<UserId?>(null)
+    private val verificationViewModel = MutableStateFlow<VerificationViewModel?>(null)
 
     init {
         val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -59,24 +63,20 @@ class SettingsWizardRouter(
             SharingStarted.WhileSubscribed(), null
         )
 
-    val selfVerification = get<SelfVerificationViewModelFactory>().create(
-        viewModelContext.childContext(
-            key = "SettingsWizard-Verification",
-            userId = activeAccount.value ?: UserId("Unknown")
-        ), {})
+    val selfVerification = MutableStateFlow<SelfVerificationViewModel?>(null)
 
-    val verification = get<VerificationViewModelFactory>().create(
-        viewModelContext.childContext(
-            key = "SettingsWizard-Bootstrap",
-            userId = activeAccount.value ?: UserId("Unknown")
-        ), {}, {}, null, null
-    )
+    fun startVerification() {
+        activeAccount.value?.let { selfVerificationRouter.showSelfVerification(it) }
+        if (selfVerificationRouter.stack.active.instance is SelfVerificationRouter.Wrapper.View) {
+            selfVerification.value = (selfVerificationRouter.stack.active.instance as SelfVerificationRouter.Wrapper.View).viewModel
+        }
+    }
 
     private val wizardSteps = listOf<Wrapper>(
         WizardExplanation(activeAccount.value ?: UserId("Unknown")),
         Wrapper.PrivacySettings(privacySettings),
         Wrapper.NotificationSettings(notificationSettings),
-        Wrapper.WizardVerification(selfVerification, verification),
+        Wrapper.WizardVerification(selfVerification, verificationViewModel, ::startCrossVerification, ::startVerification),
         Wrapper.WizardConfirm,
     )
 
@@ -84,17 +84,29 @@ class SettingsWizardRouter(
         return wizardSteps
     }
 
-
-    sealed class Wrapper {
-        class NotificationSettings(val viewModel: StateFlow<NotificationSettingsSingleAccountViewModel?>) : Wrapper()
-        class PrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
-        class WizardExplanation(val userId: UserId) : Wrapper()
-        class WizardVerification(
-            val selfVerificationViewModel: SelfVerificationViewModel,
-            val verificationViewModel: VerificationViewModel
-        ) : Wrapper()
-
-        data object WizardConfirm : Wrapper()
-        data object None : Wrapper()
+    fun startCrossVerification() {
+        coroutineScope.launch {
+            activeAccount.value?.let { verificationRouter.startDeviceVerification(it) }
+            val active = verificationRouter.stack.value.active
+            if (active.instance is VerificationRouter.Wrapper.Verification) {
+                verificationViewModel.value = (active.instance as VerificationRouter.Wrapper.Verification).viewModel
+            }
+        }
     }
+
+
+sealed class Wrapper {
+    class NotificationSettings(val viewModel: StateFlow<NotificationSettingsSingleAccountViewModel?>) : Wrapper()
+    class PrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
+    class WizardExplanation(val userId: UserId) : Wrapper()
+    class WizardVerification(
+        val selfVerificationViewModel: StateFlow<SelfVerificationViewModel?>,
+        val verificationViewModel: StateFlow<VerificationViewModel?>,
+        val startCrossSigning: () -> Unit,
+        val startVerification: () -> Unit
+    ) : Wrapper()
+
+    data object WizardConfirm : Wrapper()
+    data object None : Wrapper()
+}
 }

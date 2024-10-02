@@ -143,8 +143,9 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                         }
 
                         is SettingsWizardRouter.Wrapper.WizardVerification -> {
-                            val selfVerification = it.selfVerificationViewModel
-                            val verification = it.verificationViewModel
+                            val selfVerificationStateFlow = it.selfVerificationViewModel
+                            val wrapper = it
+                            val verificationFlow = it.verificationViewModel
                             val selected = mutableStateOf<SelfVerificationMethod?>(null)
                             val selectedPassphrase = mutableStateOf<String>("")
                             val selectedRecoveryKey = mutableStateOf<String>("")
@@ -155,70 +156,89 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                                     title = { "Verification" },
                                     content = {
                                         Column {
-                                            val account = selfVerification.userId
-                                            Text(account.toString())
-                                            val showHelp = selfVerification.showVerificationHelp.collectAsState().value
-                                            val methods = selfVerification.selfVerificationMethods.collectAsState()
-                                            val showPassphrase =
-                                                selfVerification.showPassphraseMethod.collectAsState().value != null
-                                            val showKey =
-                                                selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+                                            val selfVerification = selfVerificationStateFlow.collectAsState().value
+                                            if (selfVerification != null) {
+                                                val account = selfVerification.userId
+                                                Text(account.toString())
+                                                val showHelp =
+                                                    selfVerification.showVerificationHelp.collectAsState().value
+                                                val methods = selfVerification.selfVerificationMethods.collectAsState()
+                                                val showPassphrase =
+                                                    selfVerification.showPassphraseMethod.collectAsState().value != null
+                                                val showKey =
+                                                    selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+                                                val verification = verificationFlow.collectAsState().value
 
-                                            when {
-                                                showHelp -> ShowVerificationHelpContent()
-                                                showPassphrase -> ShowPasspraseMethodContent(
-                                                    selfVerification,
-                                                    selectedPassphrase
-                                                )
-                                                showKey -> ShowRecoveryKeyMethodContent(
-                                                    selfVerification,
-                                                    selectedRecoveryKey
-                                                )
-                                                startCrossDevice.value -> {
-                                                    Box{DeviceVerificationStepSwitch(verification)}
+                                                when {
+                                                    showHelp -> ShowVerificationHelpContent()
+                                                    showPassphrase -> ShowPasspraseMethodContent(
+                                                        selfVerification,
+                                                        selectedPassphrase
+                                                    )
+
+                                                    showKey -> ShowRecoveryKeyMethodContent(
+                                                        selfVerification,
+                                                        selectedRecoveryKey
+                                                    )
+
+                                                    startCrossDevice.value -> {
+                                                        if (verification != null) {
+                                                            Box { DeviceVerificationStepSwitch(verification) }
+                                                        }
+                                                    }
+
+                                                    else -> ShowSelfVerificationMethodsContent(methods, selected)
                                                 }
-                                                else -> ShowSelfVerificationMethodsContent(methods, selected)
                                             }
                                         }
                                     },
                                     additionalButton = {
-                                        val showHelp = selfVerification.showVerificationHelp.collectAsState().value
-                                        val showPassphrase =
-                                            selfVerification.showPassphraseMethod.collectAsState().value != null
-                                        val showKey =
-                                            selfVerification.showRecoveryKeyMethod.collectAsState().value != null
-                                        val enableButton =
-                                            showHelp
-                                                    || (showPassphrase && selectedPassphrase.value.isNotBlank())
-                                                    || (showKey && selectedRecoveryKey.value.isNotBlank())
-                                                    || selected.value != null
-                                        Button(
-                                            modifier = Modifier.buttonPointerModifier(enableButton),
-                                            enabled = enableButton,
-                                            onClick = {
-                                                when {
-                                                    showHelp -> {
-                                                        selfVerification.waitForAvailableVerificationMethods()
-                                                    }
-
-                                                    showPassphrase -> {
-                                                        selfVerification.verifyWithPassphrase(selectedPassphrase.value)
-                                                    }
-
-                                                    showKey -> {
-                                                        selfVerification.verifyWithRecoveryKey(selectedRecoveryKey.value)
-                                                    }
-
-                                                    else -> {
-                                                        val selectedMethod = selected.value
-                                                        println("Method is $selectedMethod")
-                                                        if (selected.value is SelfVerificationMethod.CrossSignedDeviceVerification) {
-                                                            startCrossDevice.value = true
+                                        val selfVerification = selfVerificationStateFlow.collectAsState().value
+                                        if (selfVerification != null) {
+                                            val cancelVerification = remember { mutableStateOf(false) }
+                                            val showHelp = selfVerification.showVerificationHelp.collectAsState().value
+                                            val showPassphrase =
+                                                selfVerification.showPassphraseMethod.collectAsState().value != null
+                                            val showKey =
+                                                selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+                                            val enableButton =
+                                                showHelp
+                                                        || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                                                        || (showKey && selectedRecoveryKey.value.isNotBlank())
+                                                        || selected.value != null
+                                            Button(
+                                                modifier = Modifier.buttonPointerModifier(enableButton),
+                                                enabled = enableButton,
+                                                onClick = {
+                                                    when {
+                                                        showHelp -> {
+                                                            selfVerification.waitForAvailableVerificationMethods()
                                                         }
-                                                        selected.value?.let { selfVerification.launchVerification(it) }
+
+                                                        showPassphrase -> {
+                                                            selfVerification.verifyWithPassphrase(selectedPassphrase.value)
+                                                        }
+
+                                                        showKey -> {
+                                                            selfVerification.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                                                        }
+
+
+                                                        else -> {
+                                                            val selectedMethod = selected.value
+                                                            println("Method is $selectedMethod")
+                                                            if (selected.value is SelfVerificationMethod.CrossSignedDeviceVerification) {
+                                                                wrapper.startCrossSigning()
+                                                                startCrossDevice.value = true
+                                                            }
+                                                            selected.value?.let { selfVerification.launchVerification(it) }
+                                                        }
                                                     }
-                                                }
-                                            }) {
+                                                }) {
+                                                Text(i18n.commonNext())
+                                            }
+                                        }
+                                        else Button(onClick = { wrapper.startVerification() }) {
                                             Text(i18n.commonNext())
                                         }
                                     }

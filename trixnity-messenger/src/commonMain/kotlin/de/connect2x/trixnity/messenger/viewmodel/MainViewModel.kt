@@ -196,7 +196,7 @@ open class MainViewModelImpl(
         avatarCutterRouter.stack
 
     private val settingsWizardRouter : SettingsWizardRouter =
-        SettingsWizardRouter(viewModelContext, selfVerificationRouter)
+        SettingsWizardRouter(viewModelContext, verificationRouter, selfVerificationRouter)
 
     override val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper> = settingsWizardRouter.getWizardSteps()
 
