@@ -256,7 +256,7 @@ private data class RawFileDescriptor(
     override val fileSize: Int?,
     override val mimeType: ContentType?,
     override val content: ByteArrayFlow,
-): FileDescriptor
+) : FileDescriptor
 
 actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
     log.debug { "access clipboard" }
@@ -285,12 +285,22 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
         if (flavor.isRepresentationClassInputStream) {
             val inputStream = data as InputStream
 
-            return RawFileDescriptor("Image from Clipboard", inputStream.available(), ContentType.parse(flavor.mimeType), inputStream.toByteArrayFlow())
+            return RawFileDescriptor(
+                "Image from Clipboard",
+                inputStream.available(),
+                ContentType.parse(flavor.mimeType),
+                inputStream.toByteArrayFlow()
+            )
         } else if (flavor.isRepresentationClassByteBuffer) {
             val byteBuffer = data as ByteBuffer
 
-            return RawFileDescriptor("Image from Clipboard", byteBuffer.remaining(), ContentType.parse(flavor.mimeType), byteBuffer.toByteArrayFlow())
-        }  else {
+            return RawFileDescriptor(
+                "Image from Clipboard",
+                byteBuffer.remaining(),
+                ContentType.parse(flavor.mimeType),
+                byteBuffer.toByteArrayFlow()
+            )
+        } else {
             log.warn { "unknown representation class for image: ${flavor.representationClass}" }
         }
     }
