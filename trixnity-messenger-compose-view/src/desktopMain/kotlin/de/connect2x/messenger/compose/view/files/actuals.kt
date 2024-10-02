@@ -51,6 +51,7 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
@@ -65,8 +66,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import net.folivo.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
 import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.utils.byteArrayFlowFromInputStream
+import net.folivo.trixnity.utils.toByteArrayFlow
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -76,7 +80,10 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.io.InputStream
+import java.io.Reader
+import java.net.URI
 import java.nio.ByteBuffer
+import java.nio.file.Paths
 import kotlin.math.max
 import kotlin.math.min
 
@@ -229,79 +236,58 @@ actual fun LoadDialog(
     }
 }
 
-fun ByteBuffer.toByteArrayFlow(): ByteArrayFlow = flow {
-    val buffer = ByteArray(BYTE_ARRAY_FLOW_CHUNK_SIZE.toInt())
+private val uriListContentType = ContentType.parse("text/uri-list")
 
-    while (remaining() >= buffer.size) {
-        get(buffer)
-        emit(buffer.copyOf())
-    }
-    val remaining = remaining()
-    get(buffer, 0, remaining)
-    emit(buffer.copyOf(remaining))
+private interface ClipboardType {
+    data object Image : ClipboardType
+    data object UriList : ClipboardType
 }
-
-fun InputStream.toByteArrayFlow(): ByteArrayFlow = flow {
-    val buffer = ByteArray(BYTE_ARRAY_FLOW_CHUNK_SIZE.toInt())
-    var bytesRead: Int
-
-    while (read(buffer).also { bytesRead = it } != -1) {
-        emit(buffer.copyOf(bytesRead))
-    }
-}
-    .flowOn(Dispatchers.IO)
-
-private data class RawFileDescriptor(
-    override val fileName: String,
-    override val fileSize: Int?,
-    override val mimeType: ContentType?,
-    override val content: ByteArrayFlow,
-) : FileDescriptor
 
 actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
 
     clipboard.availableDataFlavors.forEach { flavor ->
-        log.info { "primary: ${flavor.primaryType}, sub: ${flavor.subType}, repr: ${flavor.representationClass}" }
-    }
+        val contentType = ContentType.parse(flavor.mimeType)
 
-    if (clipboard.isDataFlavorAvailable(DataFlavor.javaFileListFlavor)) {
-        val files = clipboard.getData(DataFlavor.javaFileListFlavor) as List<*>
-
-        // TODO: find out if multiple files should be supported in a single paste operation
-        return files.firstOrNull()?.let { file ->
-            return PathFileDescriptor((file as File).absolutePath.toPath(), fileSystem = fileSystem)
-        } ?: run {
-            log.info { "the selected files list is empty" }
-            return null
-        }
-    }
-
-    for (flavor in clipboard.availableDataFlavors) {
-        if (flavor.primaryType != "image") continue
-        val data = clipboard.getData(flavor)
-
-        if (flavor.isRepresentationClassInputStream) {
-            val inputStream = data as InputStream
-
-            return RawFileDescriptor(
-                "Image from Clipboard",
-                inputStream.available(),
-                ContentType.parse(flavor.mimeType),
-                inputStream.toByteArrayFlow()
-            )
-        } else if (flavor.isRepresentationClassByteBuffer) {
-            val byteBuffer = data as ByteBuffer
-
-            return RawFileDescriptor(
-                "Image from Clipboard",
-                byteBuffer.remaining(),
-                ContentType.parse(flavor.mimeType),
-                byteBuffer.toByteArrayFlow()
-            )
+        val clipboardType = if (contentType.match(ContentType.Image.Any)) {
+            ClipboardType.Image
+        } else if (contentType.match(uriListContentType)) {
+            ClipboardType.UriList
         } else {
-            log.warn { "unknown representation class for image: ${flavor.representationClass}" }
+            log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
+            return@forEach
+        }
+
+        if (clipboardType == ClipboardType.Image && !flavor.isRepresentationClassInputStream) {
+            log.warn { "cannot handle image stored in ${flavor.representationClass}" }
+            return@forEach
+        }
+        if (clipboardType == ClipboardType.UriList && !flavor.isRepresentationClassReader) {
+            log.warn { "cannot handle uri list stored in ${flavor.representationClass}" }
+        }
+
+        when (clipboardType) {
+            ClipboardType.Image -> {
+                val data = clipboard.getData(flavor) as InputStream
+                return BasicFileDescriptor("Image", data.available(), contentType, byteArrayFlowFromInputStream(data))
+            }
+
+            ClipboardType.UriList -> {
+                val data = clipboard.getData(flavor) as Reader
+
+                // TODO: Attach multiple files at once
+                val fileName = data.useLines { lines -> lines.firstOrNull() } ?: run {
+                    log.info { "the selected files list is empty" }
+                    return null
+                }
+                val uri = URI(fileName)
+                if (uri.scheme != "file") {
+                    log.warn { "improperly formatted uri: ${fileName}" }
+                    return null
+                }
+                return PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem)
+            }
         }
     }
 
