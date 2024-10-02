@@ -61,29 +61,19 @@ import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import net.folivo.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromInputStream
-import net.folivo.trixnity.utils.toByteArrayFlow
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
-import okio.Path
 import okio.Path.Companion.toPath
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.jetbrains.skia.Image
 import simpleVerticalScrollbar
 import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
-import java.io.File
 import java.io.InputStream
 import java.io.Reader
 import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.file.Paths
 import kotlin.math.max
 import kotlin.math.min
 
@@ -265,6 +255,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
         }
         if (clipboardType == ClipboardType.UriList && !flavor.isRepresentationClassReader) {
             log.warn { "cannot handle uri list stored in ${flavor.representationClass}" }
+            return@forEach
         }
 
         when (clipboardType) {
@@ -283,7 +274,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
                 }
                 val uri = URI(fileName)
                 if (uri.scheme != "file") {
-                    log.warn { "improperly formatted uri: ${fileName}" }
+                    log.warn { "improperly formatted uri: $fileName" }
                     return null
                 }
                 return PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem)
