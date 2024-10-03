@@ -63,7 +63,7 @@ import io.github.vinceglb.filekit.core.PickerType
 import io.ktor.http.*
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromInputStream
-import net.folivo.trixnity.utils.toByteArrayFlow
+import net.folivo.trixnity.utils.nextString
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -81,6 +81,7 @@ import java.io.Reader
 import java.net.URI
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 
 
 private val log = KotlinLogging.logger {}
@@ -287,9 +288,11 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
             ClipboardType.Image -> {
                 val estimatedSize =
                     clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available() } ?: run { return null }
+                val baseName = Random.nextString(12)
+                val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
 
                 return BasicFileDescriptor(
-                    "Image from Clipboard",
+                    baseName + extStr,
                     estimatedSize,
                     contentType,
                     byteArrayFlowFromInputStream {
