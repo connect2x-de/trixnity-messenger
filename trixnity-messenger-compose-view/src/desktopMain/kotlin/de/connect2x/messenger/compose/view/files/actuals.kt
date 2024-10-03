@@ -61,9 +61,18 @@ import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromInputStream
+import net.folivo.trixnity.utils.byteArrayFlowFromSource
+import net.folivo.trixnity.utils.toByteArray
+import net.folivo.trixnity.utils.toByteArrayFlow
 import net.folivo.trixnity.utils.write
+import okhttp3.Dispatcher
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -71,6 +80,11 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.jetbrains.skia.Image
 import simpleVerticalScrollbar
 import java.awt.Toolkit
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.UnsupportedFlavorException
+import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.net.URI
@@ -233,6 +247,26 @@ private interface ClipboardType {
     data object UriList : ClipboardType
 }
 
+private inline fun <reified T> Clipboard.getDataOrNull(flavor: DataFlavor): T? {
+    try {
+        val rawData = getData(flavor)
+        if (rawData is T) {
+            return rawData
+        } else {
+            log.error { "expected data $rawData to be of type ${T::class.qualifiedName}" }
+            return null
+        }
+    } catch (e: IllegalStateException) {
+        log.error { "tried to get data from clipboard which is no longer available" }
+    } catch (e: UnsupportedFlavorException) {
+        log.error { "tried to get data from clipboard in an unsupported flavor: ${flavor.humanPresentableName}" }
+    } catch (e: IOException) {
+        log.error { "could not read data: ${e.message}" }
+    }
+
+    return null
+}
+
 actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
@@ -260,12 +294,19 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
 
         when (clipboardType) {
             ClipboardType.Image -> {
-                val data = clipboard.getData(flavor) as InputStream
-                return BasicFileDescriptor("Image", data.available(), contentType, byteArrayFlowFromInputStream(data))
+                val data = clipboard.getDataOrNull<InputStream>(flavor) ?: run { return null }
+                val content = data.readBytes()
+
+                return BasicFileDescriptor(
+                    "Image from Clipboard",
+                    content.size,
+                    contentType,
+                    content.toByteArrayFlow()
+                )
             }
 
             ClipboardType.UriList -> {
-                val data = clipboard.getData(flavor) as Reader
+                val data = clipboard.getDataOrNull<Reader>(flavor) ?: run { return null }
 
                 // TODO: Attach multiple files at once
                 val fileName = data.useLines { lines -> lines.firstOrNull() } ?: run {

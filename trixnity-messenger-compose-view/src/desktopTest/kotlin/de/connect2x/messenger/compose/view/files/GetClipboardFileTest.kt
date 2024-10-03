@@ -73,6 +73,8 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
                 assertEquals(fileName, fileDescriptor.fileName)
                 assertEquals(fileContent.size, fileDescriptor.fileSize)
                 assertContentEquals(fileContent, fileDescriptor.content.toByteArray())
+                // Check replay
+                assertContentEquals(fileContent, fileDescriptor.content.toByteArray())
                 assertEquals("text", fileDescriptor.mimeType?.contentType)
                 assertEquals("plain", fileDescriptor.mimeType?.contentSubtype)
             }
@@ -84,6 +86,8 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
 
                 assertNotNull(fileDescriptor)
                 assertEquals(data.size, fileDescriptor.fileSize)
+                assertContentEquals(data, fileDescriptor.content.toByteArray())
+                // check replay
                 assertContentEquals(data, fileDescriptor.content.toByteArray())
                 assertEquals("image", fileDescriptor.mimeType?.contentType)
                 assertEquals("png", fileDescriptor.mimeType?.contentSubtype)
