@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.files
 
 import io.kotest.core.spec.style.ShouldSpec
-import io.ktor.http.*
 import net.folivo.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
@@ -14,7 +13,6 @@ import java.io.InputStream
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 
 abstract class MockTransferable(val flavors: Array<DataFlavor>) : Transferable {

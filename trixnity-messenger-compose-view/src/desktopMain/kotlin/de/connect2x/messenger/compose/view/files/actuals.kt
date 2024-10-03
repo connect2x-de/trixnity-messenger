@@ -61,18 +61,9 @@ import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.launch
-import net.folivo.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
 import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.byteArrayFlowFromInputStream
-import net.folivo.trixnity.utils.byteArrayFlowFromSource
-import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import net.folivo.trixnity.utils.write
-import okhttp3.Dispatcher
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -83,7 +74,6 @@ import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.UnsupportedFlavorException
-import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
