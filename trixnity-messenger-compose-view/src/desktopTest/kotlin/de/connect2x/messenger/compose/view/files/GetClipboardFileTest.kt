@@ -9,7 +9,6 @@ import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.ClipboardOwner
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
-import java.io.InputStream
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -24,10 +23,10 @@ abstract class MockTransferable(val flavors: Array<DataFlavor>) : Transferable {
     abstract override fun getTransferData(flavor: DataFlavor?): Any
 }
 
-class CopyImageTransferable(val inputStream: InputStream) : MockTransferable(
+class CopyImageTransferable(val data: ByteArray) : MockTransferable(
     arrayOf(DataFlavor("image/png;class=java.io.InputStream", "")),
 ) {
-    override fun getTransferData(flavor: DataFlavor?): Any = inputStream
+    override fun getTransferData(flavor: DataFlavor?): Any = data.inputStream()
 }
 
 class CopyFileTransferable(val s: String) : MockTransferable(
@@ -46,7 +45,6 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
     init {
         beforeSpec {
             oldData = clipboard.getContents(this)
-
         }
 
         afterSpec {
@@ -78,7 +76,7 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
             }
             should("work with image/* (images in memory)") {
                 val data = "hello world".toByteArray()
-                val transferable = CopyImageTransferable(data.inputStream())
+                val transferable = CopyImageTransferable(data)
                 clipboard.setContents(transferable, this@GetClipboardFileTest)
                 val fileDescriptor = getClipboardFile(fileSystem)
 

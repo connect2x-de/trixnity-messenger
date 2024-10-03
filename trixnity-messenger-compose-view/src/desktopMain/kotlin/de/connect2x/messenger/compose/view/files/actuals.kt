@@ -62,6 +62,7 @@ import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.ktor.http.*
 import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.utils.byteArrayFlowFromInputStream
 import net.folivo.trixnity.utils.toByteArrayFlow
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
@@ -284,14 +285,16 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
 
         when (clipboardType) {
             ClipboardType.Image -> {
-                val data = clipboard.getDataOrNull<InputStream>(flavor) ?: run { return null }
-                val content = data.readBytes()
+                val estimatedSize =
+                    clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available() } ?: run { return null }
 
                 return BasicFileDescriptor(
                     "Image from Clipboard",
-                    content.size,
+                    estimatedSize,
                     contentType,
-                    content.toByteArrayFlow()
+                    byteArrayFlowFromInputStream {
+                        clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
+                    }
                 )
             }
 
