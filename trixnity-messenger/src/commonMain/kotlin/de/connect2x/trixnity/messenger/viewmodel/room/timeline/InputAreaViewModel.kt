@@ -203,7 +203,7 @@ open class InputAreaViewModelImpl(
             }
         }
         coroutineScope.launch {
-            message.drop(1).collect {
+            message.collect {
                 if (it == "") {
                     userIsNotTyping()
                 } else {
@@ -228,8 +228,8 @@ open class InputAreaViewModelImpl(
 
     override fun selectMention(username: Username) {
         val currentCursorPosition = currentCursorPosition.value
-        val lines = message.value.lines()
         if (currentCursorPosition != null) {
+            val lines = message.value.lines()
             val lineLengthAccumulated = lines
                 .runningFold(0) { acc, line -> acc + line.length }
             val lineInWhichCursorIs = lineLengthAccumulated
@@ -254,21 +254,20 @@ open class InputAreaViewModelImpl(
                 _shouldFocus.value = uuid4().toString()
             }
         } else {
-            lines.lastOrNull()?.let { lastLine ->
-                val matchResult = mentionInLineRegex.find(lastLine)
-                val groups = matchResult?.groupValues?.filterNot { it == lastLine }
-                if (groups?.size == 1 || groups?.size == 2) {
-                    message.value =
-                        lines.drop(1).map { "$it\n" }.joinToString { "" } + lastLine.replaceAfterLast(
-                            "@",
-                            "${username.userId.full} "
-                        )
-                    _shouldFocus.value = uuid4().toString()
-                }
-                Unit
+            val lastMention = message.value.substringAfterLast("@")
+            val matchResult = mentionRegex.matches("@$lastMention")
+
+            if (matchResult) {
+                message.value =
+                    message.value.replaceAfterLast(
+                        "@",
+                        "${username.userId.full} "
+                    )
+                _shouldFocus.value = uuid4().toString()
             }
         }
     }
+
 
     override fun sendMessage() {
         log.debug { "try to send message (enabled: ${isSendEnabled.replayCache.lastOrNull()})" }
@@ -474,12 +473,13 @@ open class InputAreaViewModelImpl(
     private suspend fun typing() {
         if (isTyping.value.not()) {
             isTyping.value = true
+
             try {
                 if (messengerSettings[userId].first()?.base?.typingIsPublic == true) {
                     matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
                 }
             } catch (exc: Exception) {
-                // ignore
+                log.error(exc) { "Something went wrong while setting typing to true" }
             }
         }
         isStillTyping.value = uuid4()
@@ -493,7 +493,7 @@ open class InputAreaViewModelImpl(
             isTyping.value = false
             matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, typing = false)
         } catch (exc: Exception) {
-            // ignore
+            log.error(exc) { "Something went wrong while setting typing to false" }
         }
     }
 }
