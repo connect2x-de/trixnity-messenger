@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,6 +56,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     PrivacySettings(userSettingsViewModel)
                     DevicesSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
+                    SettingsWizardSettings(userSettingsViewModel)
                 }
             }
         }
@@ -108,6 +110,15 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
         { Icon(Icons.Default.Notifications, i18n.commonNotifications()) },
         i18n.commonNotifications().capitalize(Locale.current),
         userSettingsViewModel::showNotificationsSettings,
+    )
+}
+
+@Composable
+fun SettingsWizardSettings(userSettingsViewModel: UserSettingsViewModel) {
+    SettingItem(
+        { Icon(Icons.Default.SettingsSuggest, "REPLACE")},
+        "reset Wizard REPLACE",
+        userSettingsViewModel::showSettingsWizard
     )
 }
 

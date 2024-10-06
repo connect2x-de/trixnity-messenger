@@ -82,7 +82,7 @@ interface MainViewModel {
     val videoRouterStack: Value<ChildStack<VideoRouter.Config, VideoRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
-    val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper>
+    val settingsWizardRouterSteps: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -198,7 +198,7 @@ open class MainViewModelImpl(
     private val settingsWizardRouter : SettingsWizardRouter =
         SettingsWizardRouter(viewModelContext, verificationRouter, selfVerificationRouter)
 
-    override val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper> = settingsWizardRouter.getWizardSteps()
+    override val settingsWizardRouterSteps: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>> = settingsWizardRouter.getWizardSteps()
 
     private fun backPressHandler() {
         if (imageRouter.isImageOpen()) {
@@ -645,8 +645,8 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val settingsWizardRouterSteps: List<SettingsWizardRouter.Wrapper> =
-        mutableListOf()
+    override val settingsWizardRouterSteps: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>> =
+        Pair(MutableStateFlow(false), mutableListOf())
 
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 

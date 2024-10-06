@@ -4,6 +4,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -31,6 +34,10 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
@@ -147,6 +154,7 @@ class RoomListRouter(
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
+                    onShowSettingsWizard = ::onShowSettingsWizard,
                 )
             )
 
@@ -335,6 +343,25 @@ class RoomListRouter(
     private fun onCloseAppearanceSettings() {
         log.debug { "close appearance settings" }
         navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private val selectedAccount =
+        viewModelContext.get<MatrixMessengerSettingsHolder>().map { it.base.selectedAccount }.stateIn(
+            viewModelContext.coroutineScope,
+            SharingStarted.WhileSubscribed(), null
+        )
+
+    private fun onShowSettingsWizard() {
+        val settings = viewModelContext.get<MatrixMessengerSettingsHolder>()
+        viewModelContext.coroutineScope.launch {
+            val account = selectedAccount.first { it != null }
+            log.debug { "Reset settings wizard for account $account" }
+            account?.let {
+                settings.update<MatrixMessengerAccountSettingsBase>(account) {
+                    it.copy(showAccountWizard = true)
+                }
+            }
+        }
     }
 
     private fun onShowBlockedContactsSettings(account: UserId) {

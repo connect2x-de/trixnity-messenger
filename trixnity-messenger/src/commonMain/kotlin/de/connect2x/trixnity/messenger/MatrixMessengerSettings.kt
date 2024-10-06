@@ -46,6 +46,7 @@ data class MatrixMessengerAccountSettingsBase(
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
+    val showAccountWizard : Boolean = true
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(

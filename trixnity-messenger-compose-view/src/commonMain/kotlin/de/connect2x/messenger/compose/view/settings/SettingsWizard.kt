@@ -24,6 +24,7 @@ import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpCont
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 private val WIZARD_EXPLANATION = "SETTINGS_WIZARD_EXPLANATION"
@@ -35,31 +36,34 @@ private val WIZARD_VERIFICATION = "SETTINGS_WIZARD_VERIFICATION"
 private val log = KotlinLogging.logger { }
 
 @Composable
-fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
+fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>>) {
     val di = DI.current
-    val showWizard = remember { mutableStateOf(true) }
+    val showWizard = list.first.collectAsState().value
     val i18n = di.get<I18nView>()
 
-    if (showWizard.value) {
+    if (showWizard) {
         val steps = remember {
             mutableListOf<WizardStep>().apply {
-                list.forEach {
+                list.second.forEach {
                     when (it) {
-                        is SettingsWizardRouter.Wrapper.WizardExplanation -> add(
-                            WizardStep(
-                                id = WIZARD_EXPLANATION,
-                                title = { "${i18n.commonWelcome()} ${it.userId.localpart}" },
-                                content = { Text(i18n.settingsWizardExplanationMessage()) },
-                                additionalButton = {
-                                    Button(
-                                        modifier = Modifier.buttonPointerModifier(),
-                                        onClick = { showWizard.value = false }) {
-                                        Text(i18n.commonSkip())
+                        is SettingsWizardRouter.Wrapper.WizardExplanation -> {
+                            val wrapper = it
+                            log.debug{"Starting Wizard"}
+                            add(
+                                WizardStep(
+                                    id = WIZARD_EXPLANATION,
+                                    title = { "${i18n.commonWelcome()} ${it.userId.collectAsState().value?.localpart}" },
+                                    content = { Text(i18n.settingsWizardExplanationMessage()) },
+                                    additionalButton = {
+                                        Button(
+                                            modifier = Modifier.buttonPointerModifier(),
+                                            onClick = { wrapper.onWizardClose() }) {
+                                            Text(i18n.commonSkip())
+                                        }
                                     }
-                                }
+                                )
                             )
-                        )
-
+                        }
                         is SettingsWizardRouter.Wrapper.NotificationSettings -> {
                             val viewModel = it.viewModel
                             add(
@@ -88,22 +92,25 @@ fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
                             )
                         }
 
-                        is SettingsWizardRouter.Wrapper.WizardConfirm -> add(
-                            WizardStep(
-                                id = WIZARD_CONFIRM,
-                                title = { i18n.settingsWizardFinishSetupTitle() },
-                                content = {
-                                    Text(i18n.settingsWizardFinishSetup())
-                                },
-                                nextButton = Custom {
-                                    Button(
-                                        modifier = Modifier.buttonPointerModifier(),
-                                        onClick = { showWizard.value = false }) {
-                                        Text(i18n.commonConfirm())
+                        is SettingsWizardRouter.Wrapper.WizardConfirm -> {
+                            val wrapper = it
+                            add(
+                                WizardStep(
+                                    id = WIZARD_CONFIRM,
+                                    title = { i18n.settingsWizardFinishSetupTitle() },
+                                    content = {
+                                        Text(i18n.settingsWizardFinishSetup())
+                                    },
+                                    nextButton = Custom {
+                                        Button(
+                                            modifier = Modifier.buttonPointerModifier(),
+                                            onClick = { wrapper.onWizardClose() }) {
+                                            Text(i18n.commonConfirm())
+                                        }
                                     }
-                                }
+                                )
                             )
-                        )
+                        }
 
                         SettingsWizardRouter.Wrapper.None -> {}
                         is SettingsWizardRouter.Wrapper.PrivacySettings -> {
