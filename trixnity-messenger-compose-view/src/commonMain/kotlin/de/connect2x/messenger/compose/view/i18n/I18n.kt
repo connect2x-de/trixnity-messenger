@@ -317,6 +317,16 @@ abstract class I18nView(
         DE - "als Hauptalias entfernen"
     }
 
+    fun mainAlias() = translate {
+        EN - "mainalias"
+        DE - "Hauptalias"
+    }
+
+    fun alias() = translate {
+        EN - "alias"
+        DE - "Alias"
+    }
+
     fun manageAliases() = translate {
         EN - "manage aliases"
         DE - "Aliase verwalten"
@@ -330,6 +340,11 @@ abstract class I18nView(
     fun aliases() = translate {
         EN - "aliases"
         DE - "Aliase"
+    }
+
+    fun showAliases() = translate {
+        EN - "show aliases"
+        DE - "Aliase anzeigen"
     }
 
     fun automated() = translate {

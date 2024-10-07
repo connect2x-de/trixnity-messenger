@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - room alias settings and timeline support
 - enable context menu in web version
 - edge-to-edge support for Android
+- UI: ability to see Aliases without edit permissions
 
 ### Changed
 

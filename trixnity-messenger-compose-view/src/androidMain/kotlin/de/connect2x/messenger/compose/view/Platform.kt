@@ -60,7 +60,7 @@ actual fun Tooltip(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
             PlainTooltip(
-                modifier = modifier.clickable(onClick = onClick ?: { }),
+                modifier = onClick?.let { modifier.clickable(onClick = it) } ?: modifier,
                 caretSize = TooltipDefaults.caretSize,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.onPrimaryContainer,

@@ -120,7 +120,7 @@ class RoomSettingsViewImpl : RoomSettingsView {
                         RoomSettingsTopic(roomTopicViewModel)
                         Spacer(Modifier.size(20.dp))
                         val roomAliasViewModel = roomSettingsViewModel.roomSettingsAliasViewModel
-                        if (roomAliasViewModel.canChangeRoomAlias.collectAsState().value && !isDirect) {
+                        if (!isDirect) {
                             RoomSettingsAlias(roomAliasViewModel)
                             Spacer(Modifier.size(20.dp))
                         }
