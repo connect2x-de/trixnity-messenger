@@ -26,7 +26,7 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
     val downloadSuccessful: StateFlow<Boolean?>
     val downloadError: MutableStateFlow<String?>
     val fileName: String
-    val fileSize: Int?
+    val fileSize: Long?
     val fileMimeType: String?
     fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit)
     fun cancelDownload()
@@ -53,7 +53,7 @@ abstract class AbstractFileBasedMessageViewModel(
     override val downloadError = MutableStateFlow<String?>("")
 
     override val fileName: String = content.fileName ?: content.body
-    override val fileSize: Int? = content.info?.size
+    override val fileSize: Long? = content.info?.size
     override val fileMimeType: String? = content.info?.mimeType
 
     override fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit) {

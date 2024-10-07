@@ -56,7 +56,7 @@ interface AudioMessageViewModelFactory {
 }
 
 interface AudioMessageViewModel : FileBasedMessageViewModel {
-    val duration: Int?
+    val duration: Long?
     fun openAudio()
 }
 
@@ -77,7 +77,7 @@ open class AudioMessageViewModelImpl(
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
 ) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
     MatrixClientViewModelContext by viewModelContext {
-    override val duration: Int? = content.info?.duration
+    override val duration: Long? = content.info?.duration
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =

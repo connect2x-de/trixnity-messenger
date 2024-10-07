@@ -177,7 +177,7 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     override val downloadSuccessful: StateFlow<Boolean> = MutableStateFlow(false)
     override val downloadError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val fileName: String = "image-1234567890123456678901234567890.jpg"
-    override val fileSize: Int = 200
+    override val fileSize: Long = 200
     override val fileMimeType: String = "image/jpg"
 
     override fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit) {

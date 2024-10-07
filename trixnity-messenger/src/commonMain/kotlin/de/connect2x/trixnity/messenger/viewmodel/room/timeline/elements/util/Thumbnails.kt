@@ -28,7 +28,7 @@ interface Thumbnails {
             content.info?.thumbnailUrl,
             content.file,
             content.url,
-            content.info?.size ?: Int.MAX_VALUE,
+            content.info?.size ?: Long.MAX_VALUE,
             thumbnailProgressFlow,
         )
 
@@ -43,7 +43,7 @@ interface Thumbnails {
             content.info?.thumbnailUrl,
             content.file,
             content.url,
-            content.info?.size ?: Int.MAX_VALUE,
+            content.info?.size ?: Long.MAX_VALUE,
             thumbnailProgressFlow,
         )
 
@@ -53,7 +53,7 @@ interface Thumbnails {
         thumbnailUrl: String?,
         file: EncryptedFile?,
         url: String?,
-        sizeInBytes: Int,
+        sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
     ): ByteArray?
 
@@ -69,7 +69,7 @@ class ThumbnailsImpl : Thumbnails {
         thumbnailUrl: String?,
         file: EncryptedFile?,
         url: String?,
-        sizeInBytes: Int,
+        sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
     ): ByteArray? {
         log.debug { "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $url" }
