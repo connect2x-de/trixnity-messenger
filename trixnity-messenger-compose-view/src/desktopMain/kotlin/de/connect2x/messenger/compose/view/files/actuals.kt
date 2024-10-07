@@ -259,6 +259,12 @@ private inline fun <reified T> Clipboard.getDataOrNull(flavor: DataFlavor): T? {
     return null
 }
 
+private fun isPreviewableImage(contentType: ContentType): Boolean {
+    return contentType.match(ContentType.Image.PNG) ||
+            contentType.match(ContentType.Image.JPEG) ||
+            contentType.match(ContentType.Image.GIF)
+}
+
 actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
@@ -266,7 +272,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
     clipboard.availableDataFlavors.forEach { flavor ->
         val contentType = ContentType.parse(flavor.mimeType)
 
-        val clipboardType = if (contentType.match(ContentType.Image.Any)) {
+        val clipboardType = if (isPreviewableImage(contentType)) {
             ClipboardType.Image
         } else if (contentType.match(uriListContentType)) {
             ClipboardType.UriList
