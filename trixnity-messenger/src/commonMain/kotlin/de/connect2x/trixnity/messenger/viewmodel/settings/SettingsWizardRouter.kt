@@ -4,14 +4,11 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.popWhile
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
-import de.connect2x.trixnity.messenger.util.popSuspending
-import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
@@ -148,7 +145,7 @@ class SettingsWizardRouter(
     }
 
     fun possiblyStartWizard() {
-        log.debug{"Start Wizard: ${showWizard.value}"}
+        log.debug { "Start Wizard: ${showWizard.value}" }
         if (showWizard.value) {
             log.debug { "Starting Wizard" }
             navigation.launchPush(coroutineScope, Config.ShowWizard)
