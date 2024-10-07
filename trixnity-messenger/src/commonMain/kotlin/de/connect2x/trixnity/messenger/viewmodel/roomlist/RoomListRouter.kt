@@ -155,7 +155,7 @@ class RoomListRouter(
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
-                    onShowSettingsWizard = onActivateSettingsWizard,
+                    onShowSettingsWizard = ::onResetSettingsWizard,
                 )
             )
 
@@ -366,6 +366,20 @@ class RoomListRouter(
     private fun onCloseAccountsOverview() {
         log.debug { "close accounts overview" }
         navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private fun onResetSettingsWizard () {
+        val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
+        viewModelContext.coroutineScope.launch {
+            val account = messengerSettings.value.base.selectedAccount
+            log.debug { "Reset settings wizard for account $account" }
+            account?.let {
+                messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
+                    it.copy(showAccountWizard = true)
+                }
+            }
+        }
+        onActivateSettingsWizard()
     }
 
     suspend fun moveToBackStack() {

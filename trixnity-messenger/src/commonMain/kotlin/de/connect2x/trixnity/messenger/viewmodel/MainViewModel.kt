@@ -148,7 +148,7 @@ open class MainViewModelImpl(
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
-            onActivateSettingsWizard = ::possiblyStartSettingsWizard
+            onActivateSettingsWizard = ::startSettingsWizard
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
@@ -420,17 +420,15 @@ open class MainViewModelImpl(
     }
 
     private fun possiblyStartSettingsWizard() {
-        log.debug { "Possibly starting Wizard" }
-        coroutineScope.launch {
-            val account = messengerSettings.value.base.selectedAccount
-            log.debug { "Reset settings wizard for account $account" }
-            account?.let {
-                messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
-                    it.copy(showAccountWizard = true)
-                }
-            }
-            settingsWizardRouter.possiblyStartWizard()
+        val selectedAccount = messengerSettings.value.base.selectedAccount
+        log.debug { "Possibly starting Wizard for $selectedAccount" }
+        if (messengerSettings.value.base.accounts[selectedAccount]?.base?.showAccountWizard == true) {
+            startSettingsWizard()
         }
+    }
+
+    private fun startSettingsWizard() {
+        settingsWizardRouter.startWizard()
     }
 
     override fun closeDetailsAndShowList() {

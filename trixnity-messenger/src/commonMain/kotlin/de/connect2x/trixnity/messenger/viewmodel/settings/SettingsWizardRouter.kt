@@ -4,14 +4,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
-import com.arkivanov.decompose.router.stack.popWhile
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
@@ -25,7 +23,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
@@ -58,7 +58,12 @@ class SettingsWizardRouter(
 
     init {
         log.debug { "Initializing Wizard" }
-        activeAccount.value = get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
+        coroutineScope.launch {
+            get<MatrixMessengerSettingsHolder>().collect {
+                activeAccount.value = it.base.selectedAccount
+            }
+
+        }
     }
 
 
@@ -115,7 +120,10 @@ class SettingsWizardRouter(
                     ),
                     WizardSteps.NotificationSettings(viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
                         .create(
-                            viewModelContext.childContext(componentContext, activeAccount.value ?: UserId("Unknown")),
+                            viewModelContext.childContext(
+                                componentContext,
+                                activeAccount.value ?: UserId("Unknown")
+                            ),
                         ) {}.notificationSettings.transformLatest { value ->
                             val element = value.find { it.account == activeAccount.value }
                             if (element != null) emit(
@@ -139,11 +147,8 @@ class SettingsWizardRouter(
 
     private val settings = get<MatrixMessengerSettingsHolder>()
 
-    val showWizard = activeAccount.value?.let { settings[it].map { it?.base?.showAccountWizard == true } }?.stateIn(
-        coroutineScope, SharingStarted.WhileSubscribed(), false
-    ) ?: MutableStateFlow(false)
-
     fun onWizardClose() {
+        log.debug { "Closing Wizard for ${activeAccount.value}" }
         coroutineScope.launch {
             activeAccount.value?.let {
                 settings.update<MatrixMessengerAccountSettingsBase>(it) {
@@ -156,12 +161,9 @@ class SettingsWizardRouter(
         }
     }
 
-    fun possiblyStartWizard() {
-        log.debug { "Start Wizard: ${showWizard.value}" }
-        if (get<MatrixMessengerSettingsHolder>().value.base.accounts[activeAccount.value]?.base?.showAccountWizard == true) {
-            log.debug { "Starting Wizard" }
-            navigation.launchPush(coroutineScope, Config.ShowWizard)
-        }
+    fun startWizard() {
+        log.debug { "Starting Wizard" }
+        navigation.launchPush(coroutineScope, Config.ShowWizard)
     }
 
     sealed class WizardSteps {
