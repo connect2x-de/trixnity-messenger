@@ -2008,7 +2008,7 @@ abstract class I18nView(
     }
 
     fun reportMessageLabel() = translate {
-        EN - "Pleaes enter report reason"
+        EN - "Please enter report reason"
         DE - "Bitte geben Sie den Grund für die Meldung ein"
     }
 
