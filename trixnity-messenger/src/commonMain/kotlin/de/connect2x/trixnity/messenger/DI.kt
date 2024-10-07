@@ -99,6 +99,8 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AdditionalSettingsWizardWrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AdditionalSettingsWizardWrapperImpl
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
@@ -109,6 +111,13 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAcco
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardSteps
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardStepsImpl
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
@@ -156,6 +165,7 @@ import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 
 fun interface HttpUserAgent {
     operator fun invoke(): String
@@ -224,6 +234,8 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Search> { SearchImpl(get(), get()) }
         single<RunInitialSync> { RunInitialSync }
         single<DragAndDropHandler> { DragAndDropHandlerBase() }
+        single<SettingsWizardSteps> { SettingsWizardStepsImpl }
+        single<AdditionalSettingsWizardWrapper> { AdditionalSettingsWizardWrapperImpl() }
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }

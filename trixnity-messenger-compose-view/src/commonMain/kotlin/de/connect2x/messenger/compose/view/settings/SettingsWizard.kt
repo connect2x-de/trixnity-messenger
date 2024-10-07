@@ -28,6 +28,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.W
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerification
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
@@ -39,226 +40,236 @@ private val WIZARD_VERIFICATION = "SETTINGS_WIZARD_VERIFICATION"
 
 private val log = KotlinLogging.logger { }
 
+interface AdditionalSettingsWizardStep {
+    fun <T : Wrapper> create(wrapper: T): WizardStep
+}
+
+class AdditionalSettingsWizardStepImpl() : AdditionalSettingsWizardStep {
+    override fun <T : Wrapper> create(wrapper: T): WizardStep {
+        throw IllegalArgumentException("Creating a SettingsWizard step with ${wrapper::class} is unsupported and requires an implementation")
+    }
+}
+
 @Composable
 fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
     val di = DI.current
     val i18n = di.get<I18nView>()
 
-        val steps = remember {
-            mutableListOf<WizardStep>().apply {
-                list.forEach {
-                    when (it) {
-                        is WizardExplanation -> {
-                            val wrapper = it
-                            log.debug{"Starting Wizard"}
-                            add(
-                                WizardStep(
-                                    id = WIZARD_EXPLANATION,
-                                    title = { "${i18n.commonWelcome()} ${it.userId.collectAsState().value?.localpart}" },
-                                    content = { Text(i18n.settingsWizardExplanationMessage()) },
-                                    additionalButton = {
-                                        Button(
-                                            modifier = Modifier.buttonPointerModifier(),
-                                            onClick = { wrapper.onWizardClose() }) {
-                                            Text(i18n.commonSkip())
-                                        }
+    val steps = remember {
+        mutableListOf<WizardStep>().apply {
+            list.forEach {
+                when (it) {
+                    is WizardExplanation -> {
+                        val wrapper = it
+                        log.debug { "Starting Wizard" }
+                        add(
+                            WizardStep(
+                                id = WIZARD_EXPLANATION,
+                                title = { "${i18n.commonWelcome()} ${it.userId.collectAsState().value?.localpart}" },
+                                content = { Text(i18n.settingsWizardExplanationMessage()) },
+                                additionalButton = {
+                                    Button(
+                                        modifier = Modifier.buttonPointerModifier(),
+                                        onClick = { wrapper.onWizardClose() }) {
+                                        Text(i18n.commonSkip())
                                     }
-                                )
+                                }
                             )
-                        }
-                        is NotificationSettings -> {
-                            val viewModel = it.viewModel
-                            add(
-                                WizardStep(
-                                    id = WIZARD_NOTIFICATION,
-                                    title = { i18n.commonNotifications() },
-                                    content = {
-                                        val notificationSettings = viewModel.collectAsState().value
-                                        if (notificationSettings != null) {
-                                            val enabledOnDevice =
-                                                notificationSettings.enabledForThisDevice.collectAsState().value
-                                            Column {
-                                                Setting(
-                                                    text = i18n.notificationsSettingsEnabledForThisDevice(),
-                                                    value = enabledOnDevice,
-                                                    toggle = { notificationSettings.toggleEnabledForThisDevice() }
-                                                )
-                                                MiddleSpacer()
-                                                PlatformNotificationSettings(notificationSettings)
-                                                MiddleSpacer()
-                                                PlatformNotificationAccountSettings(notificationSettings)
-                                            }
-                                        }
-                                    },
-                                )
-                            )
-                        }
+                        )
+                    }
 
-                        is WizardConfirm -> {
-                            val wrapper = it
-                            add(
-                                WizardStep(
-                                    id = WIZARD_CONFIRM,
-                                    title = { i18n.settingsWizardFinishSetupTitle() },
-                                    content = {
-                                        Text(i18n.settingsWizardFinishSetup())
-                                    },
-                                    nextButton = Custom {
-                                        Button(
-                                            modifier = Modifier.buttonPointerModifier(),
-                                            onClick = { wrapper.onWizardClose() }) {
-                                            Text(i18n.commonConfirm())
-                                        }
-                                    }
-                                )
-                            )
-                        }
-
-                        SettingsWizardRouter.Wrapper.None -> {}
-                        is PrivacySettings -> {
-                            val viewModel = it.viewModel
-                            add(
-                                WizardStep(
-                                    id = WIZARD_PRIVACY,
-                                    title = { i18n.privacyTitle() },
-                                    content = {
-                                        val privacy = viewModel.collectAsState().value
-                                        if (privacy != null) {
-                                            val publicPresence = privacy.presenceIsPublic.collectAsState().value
-                                            val publicTyping = privacy.typingIsPublic.collectAsState().value
-                                            val publicRead = privacy.readMarkerIsPublic.collectAsState().value
-                                            Column {
-                                                Setting(
-                                                    text = i18n.privacyPresenceIsPublic(),
-                                                    explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
-                                                    value = publicPresence,
-                                                    toggle = { privacy.togglePresenceIsPublic() }
-                                                )
-                                                Setting(
-                                                    text = i18n.privacyTypingIsPublic(),
-                                                    explanation = i18n.privacyTypingIsPublicExplanation(),
-                                                    value = publicTyping,
-                                                    toggle = { privacy.toggleTypingIsPublic() })
-                                                Setting(
-                                                    text = i18n.privacyReadMarkerIsPublic(),
-                                                    explanation = i18n.privacyReadMarkerIsPublicExplanation(),
-                                                    value = publicRead,
-                                                    toggle = { privacy.toggleReadMarkerIsPublic() })
-                                            }
-                                        }
-                                    }
-                                )
-                            )
-                        }
-
-                        is WizardVerification -> {
-                            val selfVerificationStateFlow = it.selfVerificationViewModel
-                            val wrapper = it
-                            val verificationFlow = it.verificationViewModel
-                            val selected = mutableStateOf<SelfVerificationMethod?>(null)
-                            val selectedPassphrase = mutableStateOf<String>("")
-                            val selectedRecoveryKey = mutableStateOf<String>("")
-                            val startCrossDevice = mutableStateOf(false)
-                            add(
-                                WizardStep(
-                                    id = WIZARD_VERIFICATION,
-                                    title = { "Verification" },
-                                    content = {
+                    is NotificationSettings -> {
+                        val viewModel = it.viewModel
+                        add(
+                            WizardStep(
+                                id = WIZARD_NOTIFICATION,
+                                title = { i18n.commonNotifications() },
+                                content = {
+                                    val notificationSettings = viewModel.collectAsState().value
+                                    if (notificationSettings != null) {
+                                        val enabledOnDevice =
+                                            notificationSettings.enabledForThisDevice.collectAsState().value
                                         Column {
-                                            val selfVerification = selfVerificationStateFlow.collectAsState().value
-                                            if (selfVerification != null) {
-                                                val account = selfVerification.userId
-                                                Text(account.toString())
-                                                val showHelp =
-                                                    selfVerification.showVerificationHelp.collectAsState().value
-                                                val methods = selfVerification.selfVerificationMethods.collectAsState()
-                                                val showPassphrase =
-                                                    selfVerification.showPassphraseMethod.collectAsState().value != null
-                                                val showKey =
-                                                    selfVerification.showRecoveryKeyMethod.collectAsState().value != null
-                                                val verification = verificationFlow.collectAsState().value
-
-                                                when {
-                                                    showHelp -> ShowVerificationHelpContent()
-                                                    showPassphrase -> ShowPasspraseMethodContent(
-                                                        selfVerification,
-                                                        selectedPassphrase
-                                                    )
-
-                                                    showKey -> ShowRecoveryKeyMethodContent(
-                                                        selfVerification,
-                                                        selectedRecoveryKey
-                                                    )
-
-                                                    startCrossDevice.value -> {
-                                                        if (verification != null) {
-                                                            Box { DeviceVerificationStepSwitch(verification) }
-                                                        }
-                                                    }
-
-                                                    else -> ShowSelfVerificationMethodsContent(methods, selected)
-                                                }
-                                            }
+                                            Setting(
+                                                text = i18n.notificationsSettingsEnabledForThisDevice(),
+                                                value = enabledOnDevice,
+                                                toggle = { notificationSettings.toggleEnabledForThisDevice() }
+                                            )
+                                            MiddleSpacer()
+                                            PlatformNotificationSettings(notificationSettings)
+                                            MiddleSpacer()
+                                            PlatformNotificationAccountSettings(notificationSettings)
                                         }
-                                    },
-                                    additionalButton = {
+                                    }
+                                },
+                            )
+                        )
+                    }
+
+                    is WizardConfirm -> {
+                        val wrapper = it
+                        add(
+                            WizardStep(
+                                id = WIZARD_CONFIRM,
+                                title = { i18n.settingsWizardFinishSetupTitle() },
+                                content = {
+                                    Text(i18n.settingsWizardFinishSetup())
+                                },
+                                nextButton = Custom {
+                                    Button(
+                                        modifier = Modifier.buttonPointerModifier(),
+                                        onClick = { wrapper.onWizardClose() }) {
+                                        Text(i18n.commonConfirm())
+                                    }
+                                }
+                            )
+                        )
+                    }
+
+                    SettingsWizardRouter.Wrapper.None -> {}
+                    is PrivacySettings -> {
+                        val viewModel = it.viewModel
+                        add(
+                            WizardStep(
+                                id = WIZARD_PRIVACY,
+                                title = { i18n.privacyTitle() },
+                                content = {
+                                    val privacy = viewModel.collectAsState().value
+                                    if (privacy != null) {
+                                        val publicPresence = privacy.presenceIsPublic.collectAsState().value
+                                        val publicTyping = privacy.typingIsPublic.collectAsState().value
+                                        val publicRead = privacy.readMarkerIsPublic.collectAsState().value
+                                        Column {
+                                            Setting(
+                                                text = i18n.privacyPresenceIsPublic(),
+                                                explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
+                                                value = publicPresence,
+                                                toggle = { privacy.togglePresenceIsPublic() }
+                                            )
+                                            Setting(
+                                                text = i18n.privacyTypingIsPublic(),
+                                                explanation = i18n.privacyTypingIsPublicExplanation(),
+                                                value = publicTyping,
+                                                toggle = { privacy.toggleTypingIsPublic() })
+                                            Setting(
+                                                text = i18n.privacyReadMarkerIsPublic(),
+                                                explanation = i18n.privacyReadMarkerIsPublicExplanation(),
+                                                value = publicRead,
+                                                toggle = { privacy.toggleReadMarkerIsPublic() })
+                                        }
+                                    }
+                                }
+                            )
+                        )
+                    }
+
+                    is WizardVerification -> {
+                        val selfVerificationStateFlow = it.selfVerificationViewModel
+                        val wrapper = it
+                        val verificationFlow = it.verificationViewModel
+                        val selected = mutableStateOf<SelfVerificationMethod?>(null)
+                        val selectedPassphrase = mutableStateOf<String>("")
+                        val selectedRecoveryKey = mutableStateOf<String>("")
+                        val startCrossDevice = mutableStateOf(false)
+                        add(
+                            WizardStep(
+                                id = WIZARD_VERIFICATION,
+                                title = { "Verification" },
+                                content = {
+                                    Column {
                                         val selfVerification = selfVerificationStateFlow.collectAsState().value
                                         if (selfVerification != null) {
-                                            val cancelVerification = remember { mutableStateOf(false) }
-                                            val showHelp = selfVerification.showVerificationHelp.collectAsState().value
+                                            val account = selfVerification.userId
+                                            Text(account.toString())
+                                            val showHelp =
+                                                selfVerification.showVerificationHelp.collectAsState().value
+                                            val methods = selfVerification.selfVerificationMethods.collectAsState()
                                             val showPassphrase =
                                                 selfVerification.showPassphraseMethod.collectAsState().value != null
                                             val showKey =
                                                 selfVerification.showRecoveryKeyMethod.collectAsState().value != null
-                                            val enableButton =
-                                                showHelp
-                                                        || (showPassphrase && selectedPassphrase.value.isNotBlank())
-                                                        || (showKey && selectedRecoveryKey.value.isNotBlank())
-                                                        || selected.value != null
-                                            Button(
-                                                modifier = Modifier.buttonPointerModifier(enableButton),
-                                                enabled = enableButton,
-                                                onClick = {
-                                                    when {
-                                                        showHelp -> {
-                                                            selfVerification.waitForAvailableVerificationMethods()
-                                                        }
+                                            val verification = verificationFlow.collectAsState().value
 
-                                                        showPassphrase -> {
-                                                            selfVerification.verifyWithPassphrase(selectedPassphrase.value)
-                                                        }
+                                            when {
+                                                showHelp -> ShowVerificationHelpContent()
+                                                showPassphrase -> ShowPasspraseMethodContent(
+                                                    selfVerification,
+                                                    selectedPassphrase
+                                                )
 
-                                                        showKey -> {
-                                                            selfVerification.verifyWithRecoveryKey(selectedRecoveryKey.value)
-                                                        }
+                                                showKey -> ShowRecoveryKeyMethodContent(
+                                                    selfVerification,
+                                                    selectedRecoveryKey
+                                                )
 
-
-                                                        else -> {
-                                                            val selectedMethod = selected.value
-                                                            println("Method is $selectedMethod")
-                                                            if (selected.value is SelfVerificationMethod.CrossSignedDeviceVerification) {
-                                                                wrapper.startCrossSigning()
-                                                                startCrossDevice.value = true
-                                                            }
-                                                            selected.value?.let { selfVerification.launchVerification(it) }
-                                                        }
+                                                startCrossDevice.value -> {
+                                                    if (verification != null) {
+                                                        Box { DeviceVerificationStepSwitch(verification) }
                                                     }
-                                                }) {
-                                                Text(i18n.commonNext())
+                                                }
+
+                                                else -> ShowSelfVerificationMethodsContent(methods, selected)
                                             }
                                         }
-                                        else Button(onClick = { wrapper.startVerification() }) {
+                                    }
+                                },
+                                additionalButton = {
+                                    val selfVerification = selfVerificationStateFlow.collectAsState().value
+                                    if (selfVerification != null) {
+                                        val cancelVerification = remember { mutableStateOf(false) }
+                                        val showHelp = selfVerification.showVerificationHelp.collectAsState().value
+                                        val showPassphrase =
+                                            selfVerification.showPassphraseMethod.collectAsState().value != null
+                                        val showKey =
+                                            selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+                                        val enableButton =
+                                            showHelp
+                                                    || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                                                    || (showKey && selectedRecoveryKey.value.isNotBlank())
+                                                    || selected.value != null
+                                        Button(
+                                            modifier = Modifier.buttonPointerModifier(enableButton),
+                                            enabled = enableButton,
+                                            onClick = {
+                                                when {
+                                                    showHelp -> {
+                                                        selfVerification.waitForAvailableVerificationMethods()
+                                                    }
+
+                                                    showPassphrase -> {
+                                                        selfVerification.verifyWithPassphrase(selectedPassphrase.value)
+                                                    }
+
+                                                    showKey -> {
+                                                        selfVerification.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                                                    }
+
+
+                                                    else -> {
+                                                        val selectedMethod = selected.value
+                                                        println("Method is $selectedMethod")
+                                                        if (selected.value is SelfVerificationMethod.CrossSignedDeviceVerification) {
+                                                            wrapper.startCrossSigning()
+                                                            startCrossDevice.value = true
+                                                        }
+                                                        selected.value?.let { selfVerification.launchVerification(it) }
+                                                    }
+                                                }
+                                            }) {
                                             Text(i18n.commonNext())
                                         }
+                                    } else Button(onClick = { wrapper.startVerification() }) {
+                                        Text(i18n.commonNext())
                                     }
-                                )
+                                }
                             )
-                        }
-
-                        else -> {}
+                        )
                     }
+
+                    else -> {}
                 }
             }
         }
-        Wizard(steps)
+    }
+    Wizard(steps)
 }
