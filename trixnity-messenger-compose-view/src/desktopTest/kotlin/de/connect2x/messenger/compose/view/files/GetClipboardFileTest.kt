@@ -1,6 +1,10 @@
 package de.connect2x.messenger.compose.view.files
 
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.equals.shouldBeEqual
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import net.folivo.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
@@ -65,14 +69,15 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
                 clipboard.setContents(transferable, this@GetClipboardFileTest)
                 val fileDescriptor = getClipboardFile(fileSystem)
 
-                assertNotNull(fileDescriptor)
-                assertEquals(fileName, fileDescriptor.fileName)
-                assertEquals(fileContent.size, fileDescriptor.fileSize)
-                assertContentEquals(fileContent, fileDescriptor.content.toByteArray())
+                fileDescriptor shouldNotBe null
+                fileDescriptor?.fileName shouldBe fileName
+                fileDescriptor?.fileSize shouldBe fileContent.size
+                fileDescriptor?.content?.toByteArray() contentEquals fileContent
                 // Check replay
-                assertContentEquals(fileContent, fileDescriptor.content.toByteArray())
-                assertEquals("text", fileDescriptor.mimeType?.contentType)
-                assertEquals("plain", fileDescriptor.mimeType?.contentSubtype)
+                fileDescriptor?.content?.toByteArray() contentEquals fileContent
+
+                fileDescriptor?.mimeType?.contentType shouldBe "text"
+                fileDescriptor?.mimeType?.contentSubtype shouldBe "plain"
             }
             should("work with image/* (images in memory)") {
                 val data = "hello world".toByteArray()
@@ -81,12 +86,14 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
                 val fileDescriptor = getClipboardFile(fileSystem)
 
                 assertNotNull(fileDescriptor)
-                assertEquals(data.size, fileDescriptor.fileSize)
-                assertContentEquals(data, fileDescriptor.content.toByteArray())
+                fileDescriptor shouldNotBe null
+                fileDescriptor.fileSize shouldBe data.size
+                fileDescriptor.content.toByteArray() contentEquals data
                 // check replay
-                assertContentEquals(data, fileDescriptor.content.toByteArray())
-                assertEquals("image", fileDescriptor.mimeType?.contentType)
-                assertEquals("png", fileDescriptor.mimeType?.contentSubtype)
+                fileDescriptor.content.toByteArray() contentEquals data
+
+                fileDescriptor.mimeType?.contentType shouldBe "image"
+                fileDescriptor.mimeType?.contentSubtype shouldBe "png"
             }
         }
     }
