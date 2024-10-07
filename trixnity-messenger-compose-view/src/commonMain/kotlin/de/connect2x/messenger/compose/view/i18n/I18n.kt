@@ -2342,6 +2342,11 @@ abstract class I18nView(
         EN - "Finish setup"
     }
 
+    fun settingsWizardReset() = translate {
+        DE - "Setup zurücksetzen"
+        EN - "reset setup"
+    }
+
 }
 
 fun i18nViewModule() = module {

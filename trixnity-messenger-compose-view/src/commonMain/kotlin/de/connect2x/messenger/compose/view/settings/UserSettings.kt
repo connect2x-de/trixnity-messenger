@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -115,11 +116,14 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
 
 @Composable
 fun SettingsWizardSettings(userSettingsViewModel: UserSettingsViewModel) {
-    SettingItem(
-        { Icon(Icons.Default.SettingsSuggest, "REPLACE")},
-        "reset Wizard REPLACE",
-        userSettingsViewModel::showSettingsWizard
-    )
+    val i18n = DI.get<I18nView>()
+    if (userSettingsViewModel.shouldShowSettingsWizardReset.collectAsState().value) {
+        SettingItem(
+            { Icon(Icons.Default.SettingsSuggest, i18n.settingsWizardReset()) },
+            i18n.settingsWizardReset().capitalize(Locale.current),
+            userSettingsViewModel::showSettingsWizard
+        )
+    }
 }
 
 @Composable

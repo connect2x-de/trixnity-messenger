@@ -1,7 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import org.koin.core.component.get
 
 
 interface UserSettingsViewModelFactory {
@@ -38,6 +44,7 @@ interface UserSettingsViewModel {
     fun showPrivacySettings()
     fun showAppearanceSettings()
     fun showSettingsWizard()
+    val shouldShowSettingsWizardReset : StateFlow<Boolean>
 }
 
 open class UserSettingsViewModelImpl(
@@ -86,4 +93,7 @@ open class UserSettingsViewModelImpl(
     override fun showSettingsWizard() {
         onShowSettingsWizard()
     }
+
+    override val shouldShowSettingsWizardReset: StateFlow<Boolean> = get<MatrixMessengerSettingsHolder>().map { it.base.selectedAccount != null }.stateIn(coroutineScope,
+        SharingStarted.WhileSubscribed(), false)
 }

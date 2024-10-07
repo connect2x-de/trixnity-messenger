@@ -23,9 +23,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
@@ -87,16 +85,6 @@ class SettingsWizardRouter(
             }
         }
     }
-
-    private val privacySettings = viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
-        viewModelContext.childContext(key = "SettingsWizard-Privacy"),
-        {},
-        {}).privacySettings.transformLatest { value ->
-        val element = value.find { it.account == activeAccount.value }
-        if (element != null) emit(
-            element
-        )
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private fun createChild(config: Config, componentContext: ComponentContext): Wrapper = when (config) {
         is Config.None -> {
