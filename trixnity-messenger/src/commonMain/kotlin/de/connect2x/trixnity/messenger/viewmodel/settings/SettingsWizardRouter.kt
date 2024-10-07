@@ -9,7 +9,9 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
+import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
@@ -81,6 +83,16 @@ class SettingsWizardRouter(
         }
     }
 
+    private val privacySettings = viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
+        viewModelContext.childContext(key = "SettingsWizard-Privacy"),
+        {},
+        {}).privacySettings.transformLatest { value ->
+        val element = value.find { it.account == activeAccount.value }
+        if (element != null) emit(
+            element
+        )
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
     private fun createChild(config: Config, componentContext: ComponentContext): Wrapper = when (config) {
         is Config.None -> {
             Wrapper.None
@@ -92,7 +104,7 @@ class SettingsWizardRouter(
                     WizardExplanation(get<MatrixMessengerSettingsHolder>().map { it.base.selectedAccount }
                         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null), ::onWizardClose),
                     PrivacySettings(viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
-                        viewModelContext.childContext(key = "SettingsWizard-Privacy"),
+                        viewModelContext.childContext(componentContext, activeAccount.value ?: UserId("Unknown")),
                         {},
                         {}).privacySettings.transformLatest { value ->
                         val element = value.find { it.account == activeAccount.value }
@@ -103,7 +115,7 @@ class SettingsWizardRouter(
                     ),
                     WizardSteps.NotificationSettings(viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
                         .create(
-                            viewModelContext.childContext(key = "SettingsWizard-Notifications")
+                            viewModelContext.childContext(componentContext, activeAccount.value ?: UserId("Unknown")),
                         ) {}.notificationSettings.transformLatest { value ->
                             val element = value.find { it.account == activeAccount.value }
                             if (element != null) emit(
@@ -138,7 +150,7 @@ class SettingsWizardRouter(
                     it.copy(showAccountWizard = false)
                 }
             }
-            navigation.popWhile {
+            navigation.popWhileSuspending {
                 it !is Config.None
             }
         }
@@ -146,7 +158,7 @@ class SettingsWizardRouter(
 
     fun possiblyStartWizard() {
         log.debug { "Start Wizard: ${showWizard.value}" }
-        if (showWizard.value) {
+        if (get<MatrixMessengerSettingsHolder>().value.base.accounts[activeAccount.value]?.base?.showAccountWizard == true) {
             log.debug { "Starting Wizard" }
             navigation.launchPush(coroutineScope, Config.ShowWizard)
         }
