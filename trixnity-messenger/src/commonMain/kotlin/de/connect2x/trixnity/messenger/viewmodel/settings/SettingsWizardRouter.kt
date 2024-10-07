@@ -42,16 +42,16 @@ interface SettingsWizardSteps {
 data object SettingsWizardStepsImpl : SettingsWizardSteps {
     override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
         WizardExplanation::class, PrivacySettings::class,
-        WizardSteps.NotificationSettings::class, WizardConfirm::class
+        WizardSteps.NotificationSettings::class, WizardConfirm::class,
     )
 }
 
 interface AdditionalSettingsWizardWrapper {
-    fun <T : KClass<out Wrapper>> create(classType: T)
+    fun <T : KClass<out Wrapper>> create(classType: T): Wrapper
 }
 
 class AdditionalSettingsWizardWrapperImpl() : AdditionalSettingsWizardWrapper {
-    override fun <T : KClass<out Wrapper>> create(classType: T) {
+    override fun <T : KClass<out Wrapper>> create(classType: T): Wrapper {
         throw IllegalArgumentException("Creating a SettingsWizard Wrapper with $classType is unsupported and requires an implementation")
     }
 }
@@ -165,7 +165,7 @@ class SettingsWizardRouter(
                         )
 
                         WizardConfirm::class -> this.add(WizardConfirm(::onWizardClose))
-                        else -> get<AdditionalSettingsWizardWrapper>().create(it)
+                        else -> this.add(get<AdditionalSettingsWizardWrapper>().create(it))
                     }
                 }
             })

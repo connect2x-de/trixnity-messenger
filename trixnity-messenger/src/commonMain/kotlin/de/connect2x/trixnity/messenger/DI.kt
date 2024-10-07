@@ -16,12 +16,12 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
-import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
+import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
@@ -111,11 +111,6 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAcco
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardSteps
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardStepsImpl
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
@@ -165,7 +160,6 @@ import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.module
-import kotlin.reflect.KClass
 
 fun interface HttpUserAgent {
     operator fun invoke(): String
