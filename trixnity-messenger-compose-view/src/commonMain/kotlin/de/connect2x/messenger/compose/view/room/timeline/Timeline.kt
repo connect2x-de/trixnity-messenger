@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -79,7 +78,6 @@ class TimelineViewImpl : TimelineView {
         val draggedFile = timelineViewModel.draggedFile.collectAsState().value
 
         val focusManager = LocalFocusManager.current
-        val mutableInteractionSource = remember { MutableInteractionSource() }
 
         Surface(modifier = Modifier.weight(1.0f, fill = true)) {
             if (timelineElementHolderViewModels.isEmpty()) {
