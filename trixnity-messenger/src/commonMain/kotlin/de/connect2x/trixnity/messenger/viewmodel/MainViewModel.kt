@@ -82,7 +82,7 @@ interface MainViewModel {
     val videoRouterStack: Value<ChildStack<VideoRouter.Config, VideoRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
-    val settingsWizardRouterSteps: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>>
+    val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -195,10 +195,11 @@ open class MainViewModelImpl(
     override val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>> =
         avatarCutterRouter.stack
 
-    private val settingsWizardRouter : SettingsWizardRouter =
+    private val settingsWizardRouter: SettingsWizardRouter =
         SettingsWizardRouter(viewModelContext, verificationRouter, selfVerificationRouter)
 
-    override val settingsWizardRouterSteps: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>> = settingsWizardRouter.getWizardSteps()
+    override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
+        settingsWizardRouter.stack
 
     private fun backPressHandler() {
         if (imageRouter.isImageOpen()) {
@@ -242,6 +243,7 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
+        possiblyStartSettingsWizard()
     }
 
     private fun startSync() {
@@ -412,6 +414,11 @@ open class MainViewModelImpl(
                 }
             }
         }
+    }
+
+    private fun possiblyStartSettingsWizard() {
+        log.debug { "Possibly starting Wizard" }
+        settingsWizardRouter.possiblyStartWizard()
     }
 
     override fun closeDetailsAndShowList() {
@@ -645,8 +652,15 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val settingsWizardRouterSteps: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>> =
-        Pair(MutableStateFlow(false), mutableListOf())
+    override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = SettingsWizardRouter.Config.None,
+                    instance = SettingsWizardRouter.Wrapper.None
+                )
+            )
+        )
 
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 

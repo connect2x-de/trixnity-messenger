@@ -23,8 +23,12 @@ import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMeth
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.NotificationSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerification
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 private val WIZARD_EXPLANATION = "SETTINGS_WIZARD_EXPLANATION"
@@ -36,17 +40,15 @@ private val WIZARD_VERIFICATION = "SETTINGS_WIZARD_VERIFICATION"
 private val log = KotlinLogging.logger { }
 
 @Composable
-fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrapper>>) {
+fun SettingsWizard(list: List<SettingsWizardRouter.Wrapper>) {
     val di = DI.current
-    val showWizard = list.first.collectAsState().value
     val i18n = di.get<I18nView>()
 
-    if (showWizard) {
         val steps = remember {
             mutableListOf<WizardStep>().apply {
-                list.second.forEach {
+                list.forEach {
                     when (it) {
-                        is SettingsWizardRouter.Wrapper.WizardExplanation -> {
+                        is WizardExplanation -> {
                             val wrapper = it
                             log.debug{"Starting Wizard"}
                             add(
@@ -64,7 +66,7 @@ fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrap
                                 )
                             )
                         }
-                        is SettingsWizardRouter.Wrapper.NotificationSettings -> {
+                        is NotificationSettings -> {
                             val viewModel = it.viewModel
                             add(
                                 WizardStep(
@@ -92,7 +94,7 @@ fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrap
                             )
                         }
 
-                        is SettingsWizardRouter.Wrapper.WizardConfirm -> {
+                        is WizardConfirm -> {
                             val wrapper = it
                             add(
                                 WizardStep(
@@ -113,7 +115,7 @@ fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrap
                         }
 
                         SettingsWizardRouter.Wrapper.None -> {}
-                        is SettingsWizardRouter.Wrapper.PrivacySettings -> {
+                        is PrivacySettings -> {
                             val viewModel = it.viewModel
                             add(
                                 WizardStep(
@@ -149,7 +151,7 @@ fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrap
                             )
                         }
 
-                        is SettingsWizardRouter.Wrapper.WizardVerification -> {
+                        is WizardVerification -> {
                             val selfVerificationStateFlow = it.selfVerificationViewModel
                             val wrapper = it
                             val verificationFlow = it.verificationViewModel
@@ -252,10 +254,11 @@ fun SettingsWizard(list: Pair<StateFlow<Boolean>, List<SettingsWizardRouter.Wrap
                                 )
                             )
                         }
+
+                        else -> {}
                     }
                 }
             }
         }
         Wizard(steps)
-    }
 }
