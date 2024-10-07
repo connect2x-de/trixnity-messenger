@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setting to unban banned users from rooms
 - room alias settings and timeline support
 - enable context menu in web version
+- edge-to-edge support for Android
 
 ### Changed
 

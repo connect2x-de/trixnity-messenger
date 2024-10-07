@@ -7,18 +7,15 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -27,7 +24,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -76,6 +72,8 @@ class MessengerActivity : AppCompatActivity() {
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMessengerServiceConnection.bind(applicationContext)
@@ -128,17 +126,10 @@ class MessengerActivity : AppCompatActivity() {
                                 Box(
                                     Modifier
                                         .fillMaxSize()
-                                        .navigationBarsPadding()
-                                        .statusBarsPadding()
-                                        .padding(bottom = with(LocalDensity.current) {
-                                            (WindowInsets.ime.getBottom(this) - WindowInsets.navigationBars.getBottom(
-                                                this
-                                            ))
-                                                .coerceAtLeast(0)
-                                                .toDp()
-                                        })
+                                        .safeDrawingPadding()
                                 ) {
-                                    val lifeCycleState = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                                    val lifeCycleState =
+                                        androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                                     val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                                     CompositionLocalProvider(
                                         ImeVisible provides WindowInsets.isImeVisible,
@@ -157,7 +148,8 @@ class MessengerActivity : AppCompatActivity() {
                         }
                     ) { existingProfiles ->
                         val showProfileCreation = remember { mutableStateOf(false) }
-                        val lifeCycleState = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                        val lifeCycleState =
+                            androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                         CompositionLocalProvider(
                             ImeVisible provides WindowInsets.isImeVisible,
