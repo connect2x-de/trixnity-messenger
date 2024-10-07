@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -22,26 +20,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.AccountSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModel
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.seconds
 
 interface SyncOverlayView {
     @Composable
@@ -59,11 +49,6 @@ class SyncOverlayViewImpl : SyncOverlayView {
 
         val i18n = DI.get<I18nView>()
         val accountSyncStates by syncViewModel.accountSyncStates.collectAsState()
-        val showAbortButton = remember { mutableStateOf(false) }
-        LaunchedEffect(Unit) {
-            delay(5.seconds)
-            showAbortButton.value = true
-        }
 
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiaryContainer).clickable { }) {
             Box(Modifier.align(Alignment.Center).padding(20.dp)) {
@@ -109,21 +94,6 @@ class SyncOverlayViewImpl : SyncOverlayView {
                                         }
                                     }
 
-                                    AccountSync.SYNC -> {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                userId.full,
-                                                style = MaterialTheme.typography.titleSmall,
-                                                modifier = Modifier.weight(1.0f, fill = true),
-                                            )
-                                            Spacer(Modifier.size(20.dp))
-                                            CircularProgressIndicator(
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                                modifier = Modifier.padding(horizontal = 20.dp),
-                                            )
-                                        }
-                                    }
-
                                     AccountSync.DONE -> {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(
@@ -140,19 +110,6 @@ class SyncOverlayViewImpl : SyncOverlayView {
                                         }
                                     }
                                 }
-                            }
-                        }
-                        if (showAbortButton.value) {
-                            Spacer(Modifier.size(20.dp))
-                            Button(
-                                onClick = syncViewModel::cancel,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                                    contentColor = MaterialTheme.colorScheme.primary,
-                                ),
-                                modifier = Modifier.buttonPointerModifier(),
-                            ) {
-                                Text(i18n.commonCancel().capitalize(Locale.current))
                             }
                         }
                     }

@@ -1,16 +1,16 @@
 [versions]
 kotlinJvmTarget = "11"
-trixnity = "4.7.1" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlin = "2.0.10" # https://github.com/JetBrains/kotlin/releases
 
 jvmTarget = "17"
-androidCompileSDK = "34"
+androidCompileSDK = "35"
 androidMinimalSDK = "28"
-androidTargetSDK = "34"
+androidTargetSDK = "35"
 messenger = "1.0.0"
 messengerVersionCode = "1"
 appName = "Messenger"
 
+trixnity = "4.7.2" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-22169726" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -42,8 +42,8 @@ activity = "1.9.2" # https://developer.android.com/jetpack/androidx/releases/act
 androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-api
 
 # ui
-composeMultiplatform = "1.7.0-beta02" # https://github.com/JetBrains/compose-multiplatform/releases
-richeditor = "1.0.0-rc06" # https://github.com/MohamedRejeb/Compose-Rich-Editor
+composeMultiplatform = "1.7.0-rc01" # https://github.com/JetBrains/compose-multiplatform/releases
+richeditor = "1.0.0-rc07" # https://github.com/MohamedRejeb/Compose-Rich-Editor
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
@@ -123,7 +123,7 @@ firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx"
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
-androidx-test-monitor = {module = "androidx.test:monitor", version.ref = "androidTestMonitor"}
+androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidTestMonitor" }
 
 [bundles]
 kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]

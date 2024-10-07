@@ -140,10 +140,11 @@ open class DevicesSettingsViewModelImpl(
 
                                 log.trace { "device list for account $userId: $result" }
                                 result
-                            }.also {
-                                log.trace { "mapping of devices to DeviceInfo List finished -> inLoading == false" }
-                                isLoading.value = false
-                                initialLoad.value = false
+                                    .also {
+                                        log.trace { "mapping of devices to DeviceInfo List finished -> inLoading == false" }
+                                        isLoading.value = false
+                                        initialLoad.value = false
+                                    }
                             }
                         }.stateIn(
                             this,

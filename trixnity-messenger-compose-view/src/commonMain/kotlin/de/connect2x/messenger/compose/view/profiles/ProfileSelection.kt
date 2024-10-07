@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -17,8 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -37,24 +34,23 @@ val ShowProfileCreation =
 // FIXME
 interface ProfileSelectionView {
     @Composable
-    fun create(profileManager: ProfileManager, onCancel: () -> Unit)
+    fun create(profileManager: ProfileManager)
 }
 
 @Composable
-fun ProfileSelection(profileManager: ProfileManager, onCancel: () -> Unit) {
-    DI.get<ProfileSelectionView>().create(profileManager, onCancel)
+fun ProfileSelection(profileManager: ProfileManager) {
+    DI.get<ProfileSelectionView>().create(profileManager)
 }
 
 class ProfileSelectionViewImpl : ProfileSelectionView {
     @Composable
-    override fun create(profileManager: ProfileManager, onCancel: () -> Unit) {
+    override fun create(profileManager: ProfileManager) {
         val i18n = DI.get<I18nView>()
         val coroutineScope = rememberCoroutineScope()
         val profiles = profileManager.profiles.collectAsState().value
         val showProfileCreation = ShowProfileCreation.current
 
         MessengerModal(
-            onDismiss = onCancel,
             title = i18n.selectProfileHeader(),
         ) {
             MessengerModalContent {
@@ -65,7 +61,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
                         leadingContent = {
                             Icon(
                                 Icons.Default.AccountCircle,
-                                "Login",
+                                i18n.login(),
                                 Modifier.fillMaxHeight(),
                             )
                         },
@@ -80,14 +76,6 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
             }
             MessengerModalButtonRow(
                 button1 = {
-                    OutlinedButton(
-                        onClick = onCancel,
-                        modifier = Modifier.buttonPointerModifier()
-                    ) {
-                        Text(i18n.commonCancel().capitalize(Locale.current))
-                    }
-                },
-                button2 = {
                     Button(
                         onClick = {
                             showProfileCreation.value = true

@@ -156,6 +156,7 @@ class TimelineViewModelTest : ShouldSpec() {
             every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
 
             every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns dummyEvent
+            every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
 
             every {
                 userServiceMock.getAll(roomId)

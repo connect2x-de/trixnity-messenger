@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 import de.connect2x.trixnity.messenger.viewmodel.EventInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.toEventInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import kotlinx.coroutines.CoroutineScope
@@ -68,10 +67,7 @@ fun mentionsStateFlow(
                 is Mention.Event -> parseRoom(mention.roomId ?: roomId, matrixClient)
                     .flatMapLatest { roomInfo ->
                         if (roomInfo == null) flowOf(null)
-                        else matrixClient.room.getTimelineEvent(roomInfo.roomId, mention.eventId)
-                            .map { event ->
-                                event?.let { MessageMention.Event(it.toEventInfoElement(), roomInfo) }
-                            }
+                        else flowOf(MessageMention.Event(EventInfoElement(mention.eventId), roomInfo))
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
             }
         }

@@ -265,7 +265,7 @@ open class OutboxElementHolderViewModelImpl(
                     is Unknown,
                     is VerificationRequest -> createNullTimelineElementViewModel()
                 } else createNullTimelineElementViewModel()
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        }.stateIn(coroutineScope, SharingStarted.Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
 
     private fun createNullTimelineElementViewModel() =
         NullTimelineElementViewModel(

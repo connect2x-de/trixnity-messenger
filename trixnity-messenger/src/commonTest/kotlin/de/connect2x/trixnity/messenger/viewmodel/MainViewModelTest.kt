@@ -528,7 +528,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("do a small sync when initial sync is done") {
+        should("skip initial sync when initial sync is alreaddy done") {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
@@ -539,24 +539,16 @@ class MainViewModelTest : ShouldSpec() {
 
             val cut = mainViewModel()
 
-            // initial state is: InitialSyncConfig.Undefined, but is switched so quickly, we cannot assert it here
-
             eventually(300.milliseconds) {
-                val configuration = cut.initialSyncStack.value.active.configuration
-                configuration.shouldBeTypeOf<InitialSyncRouter.Config.Sync>()
-            }
-
-            eventually(700.milliseconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
-                verifySuspend { matrixClientMock.startSync() }
             }
-
         }
 
         should("perform initial sync whe not yet done") {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
-            initialSyncDone returns MutableStateFlow(false)
+            val initialSyncDoneFlow = MutableStateFlow(false)
+            initialSyncDone returns initialSyncDoneFlow
             everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls {
                 delay(500.milliseconds)
                 true
@@ -571,6 +563,7 @@ class MainViewModelTest : ShouldSpec() {
                 configuration.shouldBeTypeOf<InitialSyncRouter.Config.Sync>()
             }
 
+            initialSyncDoneFlow.value = true
             eventually(2.seconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 verifySuspend { matrixClientMock.startSync() }

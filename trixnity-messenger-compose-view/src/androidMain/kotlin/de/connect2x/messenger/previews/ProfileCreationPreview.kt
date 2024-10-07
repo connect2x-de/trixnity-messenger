@@ -12,12 +12,15 @@ import kotlinx.coroutines.flow.StateFlow
 @Composable
 private fun PasswordLoginPreview() {
     InitMessengerPreview {
-        ProfileCreation(object : ProfileCreationViewModel {
-            override val canCreateProfile: StateFlow<Boolean> = MutableStateFlow(true)
-            override val error: StateFlow<String?> = MutableStateFlow(null)
-            override val profileName: MutableStateFlow<String> = MutableStateFlow("my profile")
-            override fun createProfile() {
-            }
-        })
+        ProfileCreation(
+            object : ProfileCreationViewModel {
+                override val canCreateProfile: StateFlow<Boolean> = MutableStateFlow(true)
+                override val error: StateFlow<String?> = MutableStateFlow(null)
+                override val profileName: MutableStateFlow<String> = MutableStateFlow("my profile")
+                override fun createProfile() {
+                }
+            },
+            onFinish = {}
+        )
     }
 }

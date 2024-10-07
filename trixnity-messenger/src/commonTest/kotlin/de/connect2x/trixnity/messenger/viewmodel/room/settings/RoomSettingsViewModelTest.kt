@@ -280,6 +280,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                                     ): MemberListViewModel = object : MemberListViewModel {
                                         override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
                                             MutableStateFlow(listOf())
+                                        override val membershipCounts: StateFlow<Map<Membership, Int>> = MutableStateFlow(emptyMap())
                                         override val showLoadingSpinner: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val error: StateFlow<String?> = MutableStateFlow(null)
 

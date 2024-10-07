@@ -14,12 +14,15 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import io.kotest.assertions.nondeterministic.continually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
-import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.instanceOf
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,7 +61,7 @@ import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class TimelineElementViewModelTest : ShouldSpec() {
@@ -80,8 +83,6 @@ class TimelineElementViewModelTest : ShouldSpec() {
     private lateinit var roomUserMeMocker: BlockingAnsweringScope<Flow<RoomUser?>>
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             resetMocks(matrixClientMock, roomServiceMock, userServiceMock, downloadManagerMock)
             every { matrixClientMock.di } returns koinApplication {
@@ -107,14 +108,13 @@ class TimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("display a text message") {
+            val content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
             val cut = timelineElementViewModel(
                 timelineEventFlow = MutableStateFlow(
-                    timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Hello World")))
+                    timelineEvent(messageEvent(content), Result.success(content))
                 ),
                 eventId = EventId("bla"),
-                coroutineContext = coroutineContext,
             )
-            testCoroutineScheduler.advanceUntilIdle()
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
@@ -127,15 +127,14 @@ class TimelineElementViewModelTest : ShouldSpec() {
         should("react to username changes") {
             val roomUserMutableStateFlow = MutableStateFlow(roomUser(me, "Me"))
             roomUserMeMocker returns roomUserMutableStateFlow
+            val content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
             val cut = timelineElementViewModel(
                 timelineEventFlow = MutableStateFlow(
-                    timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Hello World")))
+                    timelineEvent(messageEvent(content), Result.success(content))
                 ),
                 eventId = EventId("bla"),
-                coroutineContext = coroutineContext,
             )
             roomUserMutableStateFlow.value = roomUser(me, "Me changed")
-            testCoroutineScheduler.advanceUntilIdle()
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
@@ -150,11 +149,10 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 timelineElementViewModel(
                     timelineEventFlow = timelineEventFlow,
                     eventId = EventId("bla"),
-                    coroutineContext = coroutineContext
                 )
+            val content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
             timelineEventFlow.value =
-                timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Hello World")))
-            testCoroutineScheduler.advanceUntilIdle()
+                timelineEvent(messageEvent(content), Result.success(content))
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
@@ -179,8 +177,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val cut =
                 timelineElementViewModel(
                     timelineEventFlow = timelineEventFlow,
-                    eventId = EventId("bla"),
-                    coroutineContext = coroutineContext
+                    eventId = EventId("bla")
                 )
             timelineEventFlow.value = timelineEvent(
                 messageEvent(
@@ -193,8 +190,6 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 ),
                 content = Result.success(RoomMessageEventContent.TextBased.Text(body = "Hello World"))
             )
-            testCoroutineScheduler.advanceUntilIdle()
-
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
@@ -210,12 +205,10 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 timelineElementViewModel(
                     timelineEventFlow = timelineEventFlow,
                     eventId = EventId("bla"),
-                    coroutineContext = coroutineContext
                 )
-            timelineEventFlow.value = timelineEvent(
-                messageEvent(RedactedEventContent(eventType = ""))
-            )
-            testCoroutineScheduler.advanceUntilIdle()
+            val redactedEventContent = RedactedEventContent(eventType = "")
+            timelineEventFlow.value =
+                timelineEvent(messageEvent(redactedEventContent), Result.success(redactedEventContent))
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             viewModel should beInstanceOf<RedactedMessageViewModel>()
@@ -243,10 +236,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 timelineElementViewModel(
                     timelineEventFlow = timelineEventFlow,
                     eventId = EventId("bla"),
-                    coroutineContext = coroutineContext
                 )
             val subscriberJob = launch { cut.timelineElementViewModel.collect() }
-            testCoroutineScheduler.advanceUntilIdle()
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is EncryptedMessageViewModel)
@@ -265,37 +256,60 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     content = Result.success(UnknownEventContent(JsonObject(mapOf()), "body"))
                 )
 
-            testCoroutineScheduler.advanceUntilIdle()
-            val viewModelNew = cut.timelineElementViewModel.first { it != null }
-            viewModelNew.shouldBeInstanceOf<NullTimelineElementViewModel>()
+            cut.timelineElementViewModel.first { it != null && it is NullTimelineElementViewModel }
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
         should("return special null view model for events that replace another event") {
+            val content = RoomMessageEventContent.TextBased.Text(
+                body = "I am replacing something else",
+                relatesTo = RelatesTo.Replace(eventId = EventId("I am replaced"))
+            )
             val timelineEventFlow = MutableStateFlow(
-                timelineEvent(
-                    messageEvent(
-                        RoomMessageEventContent.TextBased.Text(
-                            body = "I am replacing something else",
-                            relatesTo = RelatesTo.Replace(eventId = EventId("I am replaced"))
-                        )
-                    )
-                )
+                timelineEvent(messageEvent(content), Result.success(content))
             )
             val cut =
                 timelineElementViewModel(
                     timelineEventFlow = timelineEventFlow,
                     eventId = EventId("bla"),
-                    coroutineContext = coroutineContext
                 )
-            testCoroutineScheduler.advanceUntilIdle()
 
-            testCoroutineScheduler.advanceUntilIdle()
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is NullTimelineElementViewModel)
 
+            cancelNeverEndingCoroutines()
+        }
+
+        should("wait for 400 milliseconds when message cannot be decrypted (content == `null`)") {
+            val cut = timelineElementViewModel(
+                timelineEventFlow = MutableStateFlow(
+                    timelineEvent(
+                        messageEvent(
+                            MegolmEncryptedMessageEventContent(
+                                ciphertext = "",
+                                senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
+                                deviceId = "",
+                                sessionId = ""
+                            )
+                        ),
+                        content = null, // not yet decrypted
+                    )
+                ),
+                eventId = EventId("bla"),
+            )
+            val subscriberJob = launch { cut.timelineElementViewModel.collect() }
+
+            continually(300.milliseconds) {
+                cut.timelineElementViewModel.value should beNull()
+            }
+            eventually(600.milliseconds) {
+                cut.timelineElementViewModel.value shouldNot beNull()
+                cut.timelineElementViewModel.value shouldBe instanceOf<EncryptedMessageViewModel>()
+            }
+
+            subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
     }
@@ -306,7 +320,6 @@ class TimelineElementViewModelTest : ShouldSpec() {
         canLoadMoreBefore: StateFlow<Boolean> = MutableStateFlow(false),
         canLoadMoreAfter: StateFlow<Boolean> = MutableStateFlow(false),
         isDirect: StateFlow<Boolean> = MutableStateFlow(false),
-        coroutineContext: CoroutineContext,
     ): TimelineElementHolderViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return TimelineElementHolderViewModelImpl(
@@ -320,7 +333,6 @@ class TimelineElementViewModelTest : ShouldSpec() {
                                 })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             key = eventId.full,
             selectedRoomId = roomId,
@@ -343,12 +355,18 @@ class TimelineElementViewModelTest : ShouldSpec() {
     private fun timelineEvent(
         event: RoomEvent<*>,
         content: Result<RoomEventContent>? = null,
-        previousEvent: TimelineEvent? = null
+        previousEvent: TimelineEvent = TimelineEvent(
+            event = messageEvent(RoomMessageEventContent.TextBased.Text("")),
+            content = null,
+            previousEventId = null,
+            nextEventId = event.id,
+            gap = null
+        ),
     ): TimelineEvent {
         val timelineEvent = TimelineEvent(
             event = event,
             content = content,
-            previousEventId = previousEvent?.eventId,
+            previousEventId = previousEvent.eventId,
             nextEventId = null,
             gap = null,
         )
@@ -358,8 +376,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 isTimelineEvent(timelineEvent),
                 any(),
             )
-        } returns
-                previousEvent?.let { MutableStateFlow(it) }
+        } returns MutableStateFlow(previousEvent)
 
         return timelineEvent
     }
