@@ -77,7 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Images uploaded on android and desktop are rotated correctly
-- allow to check login before creating a MatrixClient
+- Allow to check login before creating a MatrixClient
+- PDF file preview support
 
 ### Removed
 

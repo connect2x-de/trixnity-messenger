@@ -35,10 +35,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModel
 import kotlinx.coroutines.delay
+
 
 interface VideoOverlayView {
     @Composable
@@ -55,7 +57,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
     override fun create(videoViewModel: VideoViewModel) {
         val i18n = DI.get<I18nView>()
         val video = videoViewModel.video.collectAsState()
-        val progressElement = videoViewModel.progress.collectAsState()
+        val progress = videoViewModel.progress.collectAsState()
         val isFocused = IsFocused.current
 
         // we need focus in the box to capture key events
@@ -69,9 +71,10 @@ class VideoOverlayViewImpl : VideoOverlayView {
                     .focusable()
                     // performance when image is rendered with no alpha channel
                     .background(color = if (video.value == null) MaterialTheme.colorScheme.background else Color.Black)
+                    .blockPointerInput()
                     .onKeyEvent {
                         if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                            videoViewModel.closeVideo()
+                            videoViewModel.closeMedia()
                             true
                         } else {
                             false
@@ -90,12 +93,12 @@ class VideoOverlayViewImpl : VideoOverlayView {
                         }
                     }
                 }
-                progressElement.value?.let {
+                progress.value?.let {
                     if (video.value == null) {
-                        DownloadProgress(it, videoViewModel::cancelVideoDownload)
+                        DownloadProgress(it, videoViewModel::cancelMediaDownload)
                     }
                 }
-                if (video.value == null && progressElement.value == null) {
+                if (video.value == null && progress.value == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.VideoLabel, i18n.commonVideo(), Modifier.size(96.dp))
                         Text(i18n.videoCouldNotBeLoaded())
@@ -105,7 +108,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                 // TODO does not work
                 //  see https://github.com/JetBrains/compose-jb/issues/1087 as a workaround, we need to render buttons in Swing
                 IconButton(
-                    { videoViewModel.closeVideo() },
+                    { videoViewModel.closeMedia() },
                     Modifier
                         .align(Alignment.TopEnd)
                         .padding(20.dp)

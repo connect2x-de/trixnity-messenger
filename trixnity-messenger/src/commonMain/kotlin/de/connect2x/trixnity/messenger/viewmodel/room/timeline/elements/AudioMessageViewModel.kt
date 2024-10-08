@@ -75,7 +75,7 @@ open class AudioMessageViewModelImpl(
     invitation: Flow<String?>,
     private val onOpenModal: OpenModalCallback,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
-) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
+) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
     MatrixClientViewModelContext by viewModelContext {
     override val duration: Long? = content.info?.duration
     override val invitation: StateFlow<String?> =
