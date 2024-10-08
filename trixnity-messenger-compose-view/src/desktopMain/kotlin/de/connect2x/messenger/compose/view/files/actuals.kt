@@ -293,7 +293,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
         when (clipboardType) {
             ClipboardType.Image -> {
                 val estimatedSize =
-                    clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available() } ?: run { return null }
+                    clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available().toLong() } ?: run { return null }
                 val baseName = Random.nextString(12)
                 val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
 
