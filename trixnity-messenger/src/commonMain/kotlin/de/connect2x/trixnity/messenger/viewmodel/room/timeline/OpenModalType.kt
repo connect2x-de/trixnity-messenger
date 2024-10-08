@@ -3,9 +3,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 
+
 enum class OpenModalType {
-    IMAGE,
     VIDEO,
+    IMAGE,
+    PDF,
+    TEXT,
+    MARKDOWN,
 }
 
 typealias OpenModalCallback = (
@@ -22,4 +26,3 @@ typealias OpenModalUserCallback = (
     fileName: String,
     userId: UserId,
 ) -> Unit
-

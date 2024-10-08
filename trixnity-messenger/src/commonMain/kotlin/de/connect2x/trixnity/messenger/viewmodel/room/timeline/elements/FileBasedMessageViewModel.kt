@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Deferred
@@ -37,6 +38,7 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
 abstract class AbstractFileBasedMessageViewModel(
     private val viewModelContext: MatrixClientViewModelContext,
     private val content: RoomMessageEventContent.FileBased,
+    private val onOpenModal: OpenModalCallback,
 ) : FileBasedMessageViewModel {
 
     private val downloadManager = viewModelContext.get<DownloadManager>()

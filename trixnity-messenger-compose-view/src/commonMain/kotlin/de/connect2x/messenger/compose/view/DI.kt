@@ -24,6 +24,8 @@ import de.connect2x.messenger.compose.view.connecting.StoreFailureView
 import de.connect2x.messenger.compose.view.connecting.StoreFailureViewImpl
 import de.connect2x.messenger.compose.view.files.ImageOverlayView
 import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
+import de.connect2x.messenger.compose.view.files.PdfOverlayView
+import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
 import de.connect2x.messenger.compose.view.files.VideoOverlayView
 import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
@@ -290,6 +292,7 @@ fun connectingViewModule() = module {
 fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
+    single<PdfOverlayView> { PdfOverlayViewImpl() }
 }
 
 fun profileViewModule() = module {

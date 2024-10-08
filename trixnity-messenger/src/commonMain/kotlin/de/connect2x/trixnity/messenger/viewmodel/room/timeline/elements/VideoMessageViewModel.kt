@@ -43,24 +43,22 @@ interface VideoMessageViewModelFactory {
         invitation: Flow<String?>,
         onOpenModal: OpenModalCallback,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
-    ): VideoMessageViewModel {
-        return VideoMessageViewModelImpl(
-            viewModelContext,
-            timelineEvent,
-            content,
-            formattedDate,
-            showDateAbove,
-            formattedTime,
-            isByMe,
-            showChatBubbleEdge,
-            showBigGap,
-            showSender,
-            sender,
-            invitation,
-            onOpenModal,
-            mediaUploadProgress
-        )
-    }
+    ): VideoMessageViewModel = VideoMessageViewModelImpl(
+        viewModelContext,
+        timelineEvent,
+        content,
+        formattedDate,
+        showDateAbove,
+        formattedTime,
+        isByMe,
+        showChatBubbleEdge,
+        showBigGap,
+        showSender,
+        sender,
+        invitation,
+        onOpenModal,
+        mediaUploadProgress,
+    )
 
     companion object : VideoMessageViewModelFactory
 }
@@ -92,7 +90,7 @@ open class VideoMessageViewModelImpl(
     invitation: Flow<String?>,
     private val onOpenModal: OpenModalCallback,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
-) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
+) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
