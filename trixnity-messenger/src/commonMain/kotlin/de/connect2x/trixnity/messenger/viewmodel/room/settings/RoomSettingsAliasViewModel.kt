@@ -7,7 +7,9 @@ import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
@@ -32,6 +34,7 @@ interface RoomSettingsAliasViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
+        isDirect: StateFlow<Boolean>,
         removeAliasError: MutableStateFlow<String?>,
         updateError: MutableStateFlow<String?>,
         newAliasError: MutableStateFlow<String?>,
@@ -39,6 +42,7 @@ interface RoomSettingsAliasViewModelFactory {
         return RoomSettingsAliasViewModelImpl(
             viewModelContext,
             selectedRoomId,
+            isDirect,
             removeAliasError,
             updateError,
             newAliasError
@@ -50,6 +54,7 @@ interface RoomSettingsAliasViewModelFactory {
 
 interface RoomSettingsAliasViewModel {
     val canChangeRoomAlias: StateFlow<Boolean>
+    val showRoomAliasSettings: StateFlow<Boolean>
 
     val mainAlias: StateFlow<String?>
     val moreAliases: StateFlow<Set<String>>
@@ -70,6 +75,7 @@ interface RoomSettingsAliasViewModel {
 class RoomSettingsAliasViewModelImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
+    private val isDirect: StateFlow<Boolean>,
     private val removeAliasError: MutableStateFlow<String?>,
     private val updateError: MutableStateFlow<String?>,
     private val newAliasError: MutableStateFlow<String?>
@@ -94,6 +100,11 @@ class RoomSettingsAliasViewModelImpl(
     override val canChangeRoomAlias: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<CanonicalAliasEventContent>(selectedRoomId)
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
+    override val showRoomAliasSettings: StateFlow<Boolean> =
+        combine(isDirect, canChangeRoomAlias, allAliases) { isDirect, canChangeRoomAlias, allAliases ->
+            !isDirect && (canChangeRoomAlias || allAliases.isNotEmpty())
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     private val _isUpdating = MutableStateFlow(false)
     override val isUpdating: StateFlow<Boolean> = _isUpdating.asStateFlow()
@@ -424,6 +435,7 @@ class RoomSettingsAliasViewModelImpl(
 
 class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     override val canChangeRoomAlias: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showRoomAliasSettings: StateFlow<Boolean> = MutableStateFlow(false)
     override val mainAlias: MutableStateFlow<Nothing?> = MutableStateFlow(null)
     override val domain: String = "example.org"
     override val moreAliases: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
