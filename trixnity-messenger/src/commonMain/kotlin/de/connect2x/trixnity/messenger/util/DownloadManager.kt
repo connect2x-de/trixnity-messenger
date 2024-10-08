@@ -93,7 +93,7 @@ class DownloadManagerImpl(
 
 data class Download(
     val fileName: String,
-    val fileSize: Int?,
+    val fileSize: Long?,
     val progress: StateFlow<FileTransferProgressElement?>,
     val success: StateFlow<Boolean>
 )

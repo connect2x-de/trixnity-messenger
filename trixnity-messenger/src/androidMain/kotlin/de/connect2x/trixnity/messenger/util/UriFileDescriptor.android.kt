@@ -21,7 +21,7 @@ class UriFileDescriptor(
     private val computedFileInfo = getComputeFileInfo(fileUri)
 
     override val fileName: String = computedFileInfo?.fileName ?: i18n.commonUnknown()
-    override val fileSize: Int? = computedFileInfo?.fileSize
+    override val fileSize: Long? = computedFileInfo?.fileSize
     override val mimeType: ContentType? =
         ContentType.fromFilePath(computedFileInfo?.fileName ?: i18n.commonUnknown()).firstOrNull()
     override val content: ByteArrayFlow =
@@ -33,7 +33,7 @@ class UriFileDescriptor(
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
             if (cursor.moveToFirst()) {
-                return@use ComputedFileInfo(cursor.getString(nameIndex), cursor.getLong(sizeIndex).toInt())
+                return@use ComputedFileInfo(cursor.getString(nameIndex), cursor.getLong(sizeIndex))
             } else {
                 return@use null
             }
@@ -41,4 +41,4 @@ class UriFileDescriptor(
     }.getOrNull()
 }
 
-data class ComputedFileInfo(val fileName: String, val fileSize: Int?)
+data class ComputedFileInfo(val fileName: String, val fileSize: Long?)

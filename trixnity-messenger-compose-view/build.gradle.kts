@@ -63,6 +63,7 @@ kotlin {
                 implementation(libs.qrcode)
                 implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
+                implementation(libs.pdfbox)
             }
         }
         androidMain {

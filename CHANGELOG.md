@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix flickering in the timeline
 - mentions for users with same displayname are now displayed with their mxId
 - Fix focus loss when typing space while reporting a message
+- Fix crash when downloading and uploading files larger than INT_MAX (2.1GB)
 
 ### Security
 
@@ -77,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Images uploaded on android and desktop are rotated correctly
-- allow to check login before creating a MatrixClient
+- Allow to check login before creating a MatrixClient
+- PDF file preview support
 
 ### Removed
 
