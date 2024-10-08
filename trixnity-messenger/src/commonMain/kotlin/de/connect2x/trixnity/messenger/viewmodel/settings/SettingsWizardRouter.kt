@@ -10,12 +10,15 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerification
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerificationAlreadyVerified
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
@@ -25,10 +28,18 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import net.folivo.trixnity.client.key
+import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.reflect.KClass
@@ -42,7 +53,7 @@ interface SettingsWizardSteps {
 data object SettingsWizardStepsImpl : SettingsWizardSteps {
     override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
         WizardExplanation::class, PrivacySettings::class,
-        WizardSteps.NotificationSettings::class, WizardConfirm::class,
+        WizardSteps.NotificationSettings::class, WizardVerification::class, WizardConfirm::class,
     )
 }
 
@@ -92,6 +103,13 @@ class SettingsWizardRouter(
 
 
     val selfVerificationViewModel = MutableStateFlow<SelfVerificationViewModel?>(null)
+
+    private val isVerified =
+        combine(activeAccount, matrixClients) { account, clients -> clients[account] }.map {
+            it?.key?.getTrustLevel(it.userId, it.deviceId)
+                ?.map { it.isVerified }
+        }.filterNotNull().flatMapLatest { it }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     fun startVerification() {
         activeAccount.value?.let { selfVerificationRouter.showSelfVerification(it) }
@@ -155,14 +173,20 @@ class SettingsWizardRouter(
                         )
                         )
 
-                        WizardVerification::class -> this.add(
-                            WizardVerification(
-                                selfVerificationViewModel,
-                                verificationViewModel,
-                                ::startCrossVerification,
-                                ::startVerification
-                            )
-                        )
+                        WizardVerification::class -> {
+                            if (!isVerified.value) {
+                                this.add(
+                                    WizardVerification(
+                                        selfVerificationViewModel,
+                                        verificationViewModel,
+                                        ::startCrossVerification,
+                                        ::startVerification
+                                    )
+                                )
+                            } else {
+                                this.add(WizardVerificationAlreadyVerified)
+                            }
+                        }
 
                         WizardConfirm::class -> this.add(WizardConfirm(::onWizardClose))
                         else -> this.add(get<AdditionalSettingsWizardWrapper>().create(it))
@@ -207,6 +231,7 @@ class SettingsWizardRouter(
             val startVerification: () -> Unit
         ) : Wrapper()
 
+        data object WizardVerificationAlreadyVerified : Wrapper()
         data class WizardConfirm(val onWizardClose: () -> Unit) : Wrapper()
     }
 

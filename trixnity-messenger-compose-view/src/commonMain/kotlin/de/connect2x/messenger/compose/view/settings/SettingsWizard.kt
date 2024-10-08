@@ -22,6 +22,7 @@ import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodCon
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.NotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
@@ -261,6 +262,18 @@ fun SettingsWizard(list: List<Wrapper>) {
                                         Text(i18n.commonNext())
                                     }
                                 }
+                            )
+                        )
+                    }
+
+                    is SettingsWizardRouter.WizardSteps.WizardVerificationAlreadyVerified -> {
+                        add(
+                            WizardStep(
+                                id = WIZARD_VERIFICATION,
+                                title = { "Already Verified REPLACE" },
+                                content = {
+                                    Text("You're already verified REPLACE")
+                                },
                             )
                         )
                     }
