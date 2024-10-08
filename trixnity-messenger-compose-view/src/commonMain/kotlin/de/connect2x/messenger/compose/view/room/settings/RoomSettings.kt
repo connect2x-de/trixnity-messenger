@@ -69,7 +69,6 @@ class RoomSettingsViewImpl : RoomSettingsView {
         val error = roomSettingsViewModel.error.collectAsState().value
         val leaveRoomWarningOpen = roomSettingsViewModel.leaveRoomWarningOpen.collectAsState().value
         val scroll = rememberScrollState()
-        val isDirect = roomSettingsViewModel.isDirect.collectAsState().value
         val joinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
 
         Box(
