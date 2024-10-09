@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.files.MediaConstants.MAX_SIZE_IMAGE_PREVIEW_BYTES
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
@@ -44,24 +45,22 @@ interface ImageMessageViewModelFactory {
         invitation: Flow<String?>,
         onOpenModal: OpenModalCallback,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-    ): ImageMessageViewModel {
-        return ImageMessageViewModelImpl(
-            viewModelContext,
-            timelineEvent,
-            content,
-            formattedDate,
-            showDateAbove,
-            formattedTime,
-            isByMe,
-            showChatBubbleEdge,
-            showBigGap,
-            showSender,
-            sender,
-            invitation,
-            onOpenModal,
-            mediaUploadProgress,
-        )
-    }
+    ): ImageMessageViewModel = ImageMessageViewModelImpl(
+        viewModelContext,
+        timelineEvent,
+        content,
+        formattedDate,
+        showDateAbove,
+        formattedTime,
+        isByMe,
+        showChatBubbleEdge,
+        showBigGap,
+        showSender,
+        sender,
+        invitation,
+        onOpenModal,
+        mediaUploadProgress,
+    )
 
     companion object : ImageMessageViewModelFactory
 }
@@ -93,7 +92,7 @@ class ImageMessageViewModelImpl(
     invitation: Flow<String?>,
     private val onOpenModal: OpenModalCallback,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
+) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -127,7 +126,9 @@ class ImageMessageViewModelImpl(
         SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
     override fun openImage() {
-        url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName) }
+        if ((fileSize ?: 0) > MAX_SIZE_IMAGE_PREVIEW_BYTES) {
+            openSaveFileDialog()
+        } else url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName) }
     }
 
     override fun cancelThumbnailDownload() {
@@ -177,7 +178,7 @@ class PreviewImageMessageViewModel : ImageMessageViewModel {
     override val downloadSuccessful: StateFlow<Boolean> = MutableStateFlow(false)
     override val downloadError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val fileName: String = "image-1234567890123456678901234567890.jpg"
-    override val fileSize: Int = 200
+    override val fileSize: Long = 200
     override val fileMimeType: String = "image/jpg"
 
     override fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit) {

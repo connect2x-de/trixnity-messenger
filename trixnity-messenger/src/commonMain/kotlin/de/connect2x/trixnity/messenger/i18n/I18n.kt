@@ -1058,6 +1058,26 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "* Nachricht konnte nicht entschlüsselt werden"
     }
 
+    fun mediaCouldNotBeRead() = translate {
+        EN - "File could not be read"
+        DE - "Datei konnte nicht gelesen werden"
+    }
+
+    fun mediaCouldNotBeDecrypted() = translate {
+        EN - "File could not be decrypted"
+        DE - "Datei konnte nicht entschlüsselt werden"
+    }
+
+    fun mediaCanNotBePreviewed() = translate {
+        EN - "File can not be previewed."
+        DE - "Datei kann nicht angezeigt werden."
+    }
+
+    fun mediaTooLargeForPreview() = translate {
+        EN - "File is too large for previewing. Try downloading it instead."
+        DE - "Datei ist zu groß für die Vorschau. Versuchen Sie es stattdessen herunterzuladen."
+    }
+
     fun updateNotificationSettingsError(error: String) = translate {
         EN - "There was an error updating the notification settings: $error"
         DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: $error"

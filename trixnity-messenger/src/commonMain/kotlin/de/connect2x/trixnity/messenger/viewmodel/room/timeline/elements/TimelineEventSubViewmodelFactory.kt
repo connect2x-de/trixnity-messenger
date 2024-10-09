@@ -450,7 +450,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showSender = showSender,
                     sender = sender,
                     invitation = invitation,
-                    mediaUploadProgress = MutableStateFlow(null)
+                    mediaUploadProgress = MutableStateFlow(null),
+                    onOpenModal = onOpenModal,
                 )
             }
 

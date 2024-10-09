@@ -12,7 +12,7 @@ class PathFileDescriptor(
 ) : FileDescriptor {
 
     override val fileName = path.name
-    override val fileSize = fileSystem.metadataOrNull(path)?.size?.toInt()
+    override val fileSize = fileSystem.metadataOrNull(path)?.size
     override val mimeType = ContentType.fromFilePath(fileName).firstOrNull()
     override val content = byteArrayFlowFromSource { fileSystem.source(path) }
 }

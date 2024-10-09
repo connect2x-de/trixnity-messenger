@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Deferred
@@ -26,7 +27,7 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
     val downloadSuccessful: StateFlow<Boolean?>
     val downloadError: MutableStateFlow<String?>
     val fileName: String
-    val fileSize: Int?
+    val fileSize: Long?
     val fileMimeType: String?
     fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit)
     fun cancelDownload()
@@ -37,6 +38,7 @@ interface FileBasedMessageViewModel : RoomMessageViewModel {
 abstract class AbstractFileBasedMessageViewModel(
     private val viewModelContext: MatrixClientViewModelContext,
     private val content: RoomMessageEventContent.FileBased,
+    private val onOpenModal: OpenModalCallback,
 ) : FileBasedMessageViewModel {
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
@@ -53,7 +55,7 @@ abstract class AbstractFileBasedMessageViewModel(
     override val downloadError = MutableStateFlow<String?>("")
 
     override val fileName: String = content.fileName ?: content.body
-    override val fileSize: Int? = content.info?.size
+    override val fileSize: Long? = content.info?.size
     override val fileMimeType: String? = content.info?.mimeType
 
     override fun downloadFile(onFile: suspend (ByteArrayFlow) -> Unit) {

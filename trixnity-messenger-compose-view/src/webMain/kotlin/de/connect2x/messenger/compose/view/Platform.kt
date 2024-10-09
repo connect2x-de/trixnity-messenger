@@ -13,8 +13,11 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -94,7 +97,18 @@ actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
         )
     )
 
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this // FIXME
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier {
+    return this.then(
+        Modifier
+            .onPointerEvent(PointerEventType.Enter) {
+                onEnter()
+            }
+            .onPointerEvent(PointerEventType.Exit) {
+                onExit()
+            }
+    )
+}
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     window.navigator.clipboard.writeText(value).await()
