@@ -281,7 +281,6 @@ open class VerificationViewModelImpl(
                 log.debug { "active verification step: ${verificationState::class}" }
                 when (verificationState) {
                     is ActiveVerificationState.OwnRequest -> {
-                        log.debug{"I'm asking"}
                         navigation.replaceCurrentSuspending(Wait)
                     }
 
