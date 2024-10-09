@@ -284,7 +284,7 @@ abstract class I18nView(
 
     fun commonConfirm() = translate {
         EN - "confirm"
-        DE - "Bestätigen"
+        DE - "bestätigen"
     }
 
     fun commonOptionalReason() = translate {

@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -16,7 +15,6 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.W
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerification
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerificationAlreadyVerified
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -31,15 +29,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.reflect.KClass
@@ -50,6 +45,9 @@ interface SettingsWizardSteps {
     val steps: List<KClass<out Wrapper>>
 }
 
+/**
+ * The class types of the Steps that are shown in the Wizard
+ */
 data object SettingsWizardStepsImpl : SettingsWizardSteps {
     override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
         WizardExplanation::class, PrivacySettings::class,
@@ -57,6 +55,10 @@ data object SettingsWizardStepsImpl : SettingsWizardSteps {
     )
 }
 
+/**
+ * Implement this interface in a class and change the DI to use the class
+ * when searching for non-default Wizard steps to easily add new steps
+ */
 interface AdditionalSettingsWizardWrapper {
     fun <T : KClass<out Wrapper>> create(classType: T): Wrapper
 }
@@ -97,7 +99,6 @@ class SettingsWizardRouter(
             get<MatrixMessengerSettingsHolder>().collect {
                 activeAccount.value = it.base.selectedAccount
             }
-
         }
     }
 
@@ -109,13 +110,15 @@ class SettingsWizardRouter(
             it?.key?.getTrustLevel(it.userId, it.deviceId)
                 ?.map { it.isVerified }
         }.filterNotNull().flatMapLatest { it }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     fun startVerification() {
         activeAccount.value?.let { selfVerificationRouter.showSelfVerification(it) }
-        if (selfVerificationRouter.stack.active.instance is SelfVerificationRouter.Wrapper.View) {
-            selfVerificationViewModel.value =
-                (selfVerificationRouter.stack.active.instance as SelfVerificationRouter.Wrapper.View).viewModel
+        coroutineScope.launch {
+            selfVerificationRouter.stack.subscribe {
+                if (it.active.instance is SelfVerificationRouter.Wrapper.View) selfVerificationViewModel.value =
+                    (it.active.instance as SelfVerificationRouter.Wrapper.View).viewModel
+            }
         }
     }
 
@@ -136,56 +139,59 @@ class SettingsWizardRouter(
         }
 
         is Config.ShowWizard -> {
+            log.debug { "Building Settings Wizard" }
             Wrapper.ShowWizard(mutableListOf<Wrapper>().apply {
                 stepClasses.forEach {
                     when (it) {
                         WizardExplanation::class -> this.add(WizardExplanation(activeAccount, ::onWizardClose))
-                        PrivacySettings::class -> this.add(PrivacySettings(viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>()
-                            .create(
-                                viewModelContext.childContext(
-                                    componentContext,
-                                    activeAccount.value ?: UserId("Unknown")
-                                ),
-                                {},
-                                {}).privacySettings.transformLatest { value ->
-                                val element = value.find { it.account == activeAccount.value }
-                                if (element != null) emit(
-                                    element
+                        PrivacySettings::class -> {
+                            val account = activeAccount.value
+                            if (account != null) {
+                                this.add(PrivacySettings(viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>()
+                                    .create(viewModelContext.childContext(
+                                        componentContext, account,
+                                    ), {}, {}).privacySettings.transformLatest { value ->
+                                        val element = value.find { it.account == account }
+                                        if (element != null) emit(
+                                            element
+                                        )
+                                    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
                                 )
-                            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-                        )
-                        )
+                                )
+                            } else log.error { "Can't create Privacy-step for settings Wizard because user is null" }
+                        }
 
-                        WizardSteps.NotificationSettings::class -> this.add(WizardSteps.NotificationSettings(
-                            viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
-                                .create(
-                                    viewModelContext.childContext(
-                                        componentContext, activeAccount.value ?: UserId("Unknown")
-                                    ),
-                                ) {}.notificationSettings.transformLatest { value ->
-                                    val element = value.find { it.account == activeAccount.value }
-                                    if (element != null) emit(
-                                        element
+                        WizardSteps.NotificationSettings::class -> {
+                            val account = activeAccount.value
+                            if (account != null) {
+                                this.add(WizardSteps.NotificationSettings(
+                                    viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>().create(
+                                        viewModelContext.childContext(
+                                            componentContext, account
+                                        ),
+                                    ) {}.notificationSettings.transformLatest { value ->
+                                        val element = value.find { it.account == account }
+                                        if (element != null) emit(
+                                            element
+                                        )
+                                    }.stateIn(
+                                        coroutineScope, SharingStarted.WhileSubscribed(), null
                                     )
-                                }.stateIn(
-                                    coroutineScope, SharingStarted.WhileSubscribed(), null
                                 )
-                        )
-                        )
+                                )
+                            } else log.error { "Can't create Notification-step for settings Wizard because user is null" }
+                        }
 
                         WizardVerification::class -> {
-                            if (!isVerified.value) {
-                                this.add(
-                                    WizardVerification(
-                                        selfVerificationViewModel,
-                                        verificationViewModel,
-                                        ::startCrossVerification,
-                                        ::startVerification
-                                    )
+                            this.add(
+                                WizardVerification(
+                                    isVerified,
+                                    selfVerificationViewModel,
+                                    verificationViewModel,
+                                    ::startCrossVerification,
+                                    ::startVerification
                                 )
-                            } else {
-                                this.add(WizardVerificationAlreadyVerified)
-                            }
+                            )
                         }
 
                         WizardConfirm::class -> this.add(WizardConfirm(::onWizardClose))
@@ -200,7 +206,7 @@ class SettingsWizardRouter(
     private val settings = get<MatrixMessengerSettingsHolder>()
 
     fun onWizardClose() {
-        log.debug { "Closing Wizard for ${activeAccount.value}" }
+        log.debug { "Closing Settings Wizard for ${activeAccount.value}" }
         coroutineScope.launch {
             activeAccount.value?.let {
                 settings.update<MatrixMessengerAccountSettingsBase>(it) {
@@ -225,13 +231,13 @@ class SettingsWizardRouter(
         data class PrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
         data class WizardExplanation(val userId: StateFlow<UserId?>, val onWizardClose: () -> Unit) : Wrapper()
         data class WizardVerification(
+            val isVerified: StateFlow<Boolean>,
             val selfVerificationViewModel: StateFlow<SelfVerificationViewModel?>,
             val verificationViewModel: StateFlow<VerificationViewModel?>,
             val startCrossSigning: () -> Unit,
             val startVerification: () -> Unit
         ) : Wrapper()
 
-        data object WizardVerificationAlreadyVerified : Wrapper()
         data class WizardConfirm(val onWizardClose: () -> Unit) : Wrapper()
     }
 

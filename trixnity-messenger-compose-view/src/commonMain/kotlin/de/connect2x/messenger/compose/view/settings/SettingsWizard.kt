@@ -2,27 +2,36 @@ package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationStepSwitch
 import de.connect2x.messenger.compose.view.verification.ShowPasspraseMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.NotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
@@ -50,6 +59,7 @@ class AdditionalSettingsWizardStepImpl() : AdditionalSettingsWizardStep {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsWizard(list: List<Wrapper>) {
     val di = DI.current
@@ -167,6 +177,7 @@ fun SettingsWizard(list: List<Wrapper>) {
                         val selfVerificationStateFlow = it.selfVerificationViewModel
                         val wrapper = it
                         val verificationFlow = it.verificationViewModel
+                        val isVerified = it.isVerified
                         val selected = mutableStateOf<SelfVerificationMethod?>(null)
                         val selectedPassphrase = mutableStateOf<String>("")
                         val selectedRecoveryKey = mutableStateOf<String>("")
@@ -177,8 +188,9 @@ fun SettingsWizard(list: List<Wrapper>) {
                                 title = { "Verification" },
                                 content = {
                                     Column {
+                                        val isVerified = isVerified.collectAsState().value
                                         val selfVerification = selfVerificationStateFlow.collectAsState().value
-                                        if (selfVerification != null) {
+                                        if (selfVerification != null && !isVerified) {
                                             val account = selfVerification.userId
                                             Text(account.toString())
                                             val showHelp =
@@ -210,13 +222,31 @@ fun SettingsWizard(list: List<Wrapper>) {
 
                                                 else -> ShowSelfVerificationMethodsContent(methods, selected)
                                             }
+                                        } else if (isVerified) {
+                                            Column {
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    modifier = Modifier.align(Alignment.CenterHorizontally).size(50.dp),
+                                                    contentDescription = i18n.commonSuccess(),
+                                                    tint = MaterialTheme.messengerColors.success
+                                                )
+                                                SmallSpacer()
+                                                Text(i18n.verificationVerifiedDevice())
+
+                                            }
+                                        } else {
+                                            val verificationStarted = remember { mutableStateOf(false) }
+                                            if (!verificationStarted.value) {
+                                                wrapper.startVerification()
+                                                verificationStarted.value = true
+                                            }
                                         }
                                     }
                                 },
                                 additionalButton = {
                                     val selfVerification = selfVerificationStateFlow.collectAsState().value
-                                    if (selfVerification != null) {
-                                        val cancelVerification = remember { mutableStateOf(false) }
+                                    val isVerified = isVerified.collectAsState().value
+                                    if (selfVerification != null && !isVerified) {
                                         val showHelp = selfVerification.showVerificationHelp.collectAsState().value
                                         val showPassphrase =
                                             selfVerification.showPassphraseMethod.collectAsState().value != null
@@ -258,22 +288,8 @@ fun SettingsWizard(list: List<Wrapper>) {
                                             }) {
                                             Text(i18n.commonNext())
                                         }
-                                    } else Button(onClick = { wrapper.startVerification() }) {
-                                        Text(i18n.commonNext())
                                     }
                                 }
-                            )
-                        )
-                    }
-
-                    is SettingsWizardRouter.WizardSteps.WizardVerificationAlreadyVerified -> {
-                        add(
-                            WizardStep(
-                                id = WIZARD_VERIFICATION,
-                                title = { "Already Verified REPLACE" },
-                                content = {
-                                    Text("You're already verified REPLACE")
-                                },
                             )
                         )
                     }
