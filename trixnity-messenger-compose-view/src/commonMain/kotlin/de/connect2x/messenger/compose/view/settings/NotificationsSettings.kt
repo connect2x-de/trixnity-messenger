@@ -97,17 +97,19 @@ fun NotificationSettingsSingleAccount(
 
 @Composable
 internal expect fun ColumnScope.PlatformNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
+    viewModel: NotificationSettingsSingleAccountViewModel,
+    enabled : Boolean = true
 )
 
 @Composable
 fun ColumnScope.PlatformNotificationAccountSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
+    viewModel: NotificationSettingsSingleAccountViewModel,
+    enabled : Boolean = true
 ) {
     val i18n = DI.get<I18nView>()
     val settings by viewModel.accountSettings.collectAsState()
     val isUpdating by viewModel.accountSettingsIsUpdating.collectAsState()
-    val canChangeSettings = !isUpdating
+    val canChangeSettings = !isUpdating && enabled
 
     RadioSetting(
         text = i18n.notificationsSettingsAccountDefaultLevel(
@@ -138,7 +140,7 @@ fun ColumnScope.PlatformNotificationAccountSettings(
             ),
         ),
         value = settings.defaultLevel,
-        set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) }
+        set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) },
     )
 
     MiddleSpacer()

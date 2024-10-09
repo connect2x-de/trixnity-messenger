@@ -110,9 +110,9 @@ private fun wizardStepNotification(wrapper: WizardNotificationSettings, i18n: I1
                         value = enabledOnDevice,
                         toggle = { notificationSettings.toggleEnabledForThisDevice() })
                     MiddleSpacer()
-                    PlatformNotificationSettings(notificationSettings)
+                    PlatformNotificationSettings(notificationSettings, enabledOnDevice)
                     MiddleSpacer()
-                    PlatformNotificationAccountSettings(notificationSettings)
+                    PlatformNotificationAccountSettings(notificationSettings, enabledOnDevice)
                 }
             }
         },
