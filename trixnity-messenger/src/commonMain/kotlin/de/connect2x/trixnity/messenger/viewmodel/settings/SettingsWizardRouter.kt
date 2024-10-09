@@ -10,10 +10,10 @@ import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.PrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardExplanation
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardNotificationSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardPrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.WizardSteps.WizardVerification
 import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -50,8 +50,8 @@ interface SettingsWizardSteps {
  */
 data object SettingsWizardStepsImpl : SettingsWizardSteps {
     override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
-        WizardExplanation::class, PrivacySettings::class,
-        WizardSteps.NotificationSettings::class, WizardVerification::class, WizardConfirm::class,
+        WizardExplanation::class, WizardPrivacySettings::class,
+        WizardNotificationSettings::class, WizardVerification::class, WizardConfirm::class,
     )
 }
 
@@ -144,10 +144,10 @@ class SettingsWizardRouter(
                 stepClasses.forEach {
                     when (it) {
                         WizardExplanation::class -> this.add(WizardExplanation(activeAccount, ::onWizardClose))
-                        PrivacySettings::class -> {
+                        WizardPrivacySettings::class -> {
                             val account = activeAccount.value
                             if (account != null) {
-                                this.add(PrivacySettings(viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>()
+                                this.add(WizardPrivacySettings(viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>()
                                     .create(viewModelContext.childContext(
                                         componentContext, account,
                                     ), {}, {}).privacySettings.transformLatest { value ->
@@ -161,23 +161,24 @@ class SettingsWizardRouter(
                             } else log.error { "Can't create Privacy-step for settings Wizard because user is null" }
                         }
 
-                        WizardSteps.NotificationSettings::class -> {
+                        WizardNotificationSettings::class -> {
                             val account = activeAccount.value
                             if (account != null) {
-                                this.add(WizardSteps.NotificationSettings(
-                                    viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>().create(
-                                        viewModelContext.childContext(
-                                            componentContext, account
-                                        ),
-                                    ) {}.notificationSettings.transformLatest { value ->
-                                        val element = value.find { it.account == account }
-                                        if (element != null) emit(
-                                            element
+                                this.add(
+                                    WizardNotificationSettings(
+                                        viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>().create(
+                                            viewModelContext.childContext(
+                                                componentContext, account
+                                            ),
+                                        ) {}.notificationSettings.transformLatest { value ->
+                                            val element = value.find { it.account == account }
+                                            if (element != null) emit(
+                                                element
+                                            )
+                                        }.stateIn(
+                                            coroutineScope, SharingStarted.WhileSubscribed(), null
                                         )
-                                    }.stateIn(
-                                        coroutineScope, SharingStarted.WhileSubscribed(), null
                                     )
-                                )
                                 )
                             } else log.error { "Can't create Notification-step for settings Wizard because user is null" }
                         }
@@ -225,10 +226,10 @@ class SettingsWizardRouter(
     }
 
     sealed class WizardSteps {
-        data class NotificationSettings(val viewModel: StateFlow<NotificationSettingsSingleAccountViewModel?>) :
+        data class WizardNotificationSettings(val viewModel: StateFlow<NotificationSettingsSingleAccountViewModel?>) :
             Wrapper()
 
-        data class PrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
+        data class WizardPrivacySettings(val viewModel: StateFlow<PrivacySettingsSingleAccountViewModel?>) : Wrapper()
         data class WizardExplanation(val userId: StateFlow<UserId?>, val onWizardClose: () -> Unit) : Wrapper()
         data class WizardVerification(
             val isVerified: StateFlow<Boolean>,
