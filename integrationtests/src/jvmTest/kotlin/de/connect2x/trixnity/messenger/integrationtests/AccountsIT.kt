@@ -15,6 +15,8 @@ import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.assertions.retry
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -36,6 +38,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
@@ -143,7 +146,12 @@ class AccountsIT {
         messenger.root.stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
 
         settings.value.base.accounts[userId] shouldBe null
-        filesSystem.exists(accountPath) shouldBe false
         messenger.di.get<MatrixClients>().value[userId] shouldBe null
+
+        retry(3, timeout = 500.milliseconds, delay = 100.milliseconds) {
+            withClue("The account directory (`$accountPath`) should be deleted after logout") {
+                filesSystem.exists(accountPath) shouldBe false
+            }
+        }
     }
 }
