@@ -1534,12 +1534,12 @@ abstract class I18nView(
 
     fun privacyReadMarkerIsPublicExplanation() = translate {
         EN - "Others can see which messages you have read"
-        DE - "Andere Nutzer können sehen, welche Nachrichten sie bereits gelesen haben"
+        DE - "Andere Nutzer können sehen, welche Nachrichten Sie bereits gelesen haben"
     }
 
     fun privacyTypingIsPublic() = translate {
         EN - "Typing Indicators"
-        DE - "Tippindikatoren"
+        DE - "Tipp-Indikatoren"
     }
 
     fun privacyTypingIsPublicExplanation() = translate {
@@ -2338,8 +2338,8 @@ abstract class I18nView(
     }
 
     fun settingsWizardExplanationMessage() = translate {
-        DE - "Um ihren Messenger nach ihren Vorlieben zu konfigurieren, können sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen könnten später verändert werden"
-        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. All settings can be changed later"
+        DE - "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
+        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
     }
 
     fun settingsWizardFinishSetup() = translate {
@@ -2354,7 +2354,7 @@ abstract class I18nView(
 
     fun settingsWizardReset() = translate {
         DE - "Setup zurücksetzen"
-        EN - "reset setup"
+        EN - "Reset setup"
     }
 
 }
