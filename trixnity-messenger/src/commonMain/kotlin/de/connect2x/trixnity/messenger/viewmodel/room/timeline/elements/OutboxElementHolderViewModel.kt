@@ -241,7 +241,8 @@ open class OutboxElementHolderViewModelImpl(
                             showSender = MutableStateFlow(false),
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             invitation = MutableStateFlow(null),
-                            mediaUploadProgress = outboxMessage.mediaUploadProgress
+                            mediaUploadProgress = outboxMessage.mediaUploadProgress,
+                            onOpenModal = onOpenModal,
                         )
                     }
 
@@ -265,7 +266,7 @@ open class OutboxElementHolderViewModelImpl(
                     is Unknown,
                     is VerificationRequest -> createNullTimelineElementViewModel()
                 } else createNullTimelineElementViewModel()
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        }.stateIn(coroutineScope, SharingStarted.Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
 
     private fun createNullTimelineElementViewModel() =
         NullTimelineElementViewModel(

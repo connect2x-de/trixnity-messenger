@@ -323,12 +323,12 @@ abstract class I18nView(
     }
 
     fun makeMainAlias() = translate {
-        EN - "set as mainalias"
+        EN - "set as main alias"
         DE - "als Hauptalias setzen"
     }
 
     fun unmakeMainAlias() = translate {
-        EN - "remove as mainalias"
+        EN - "remove as main alias"
         DE - "als Hauptalias entfernen"
     }
 
@@ -1870,6 +1870,16 @@ abstract class I18nView(
     fun syncOverlayInitialSyncInfo(appName: String) = translate {
         EN - "This might take a while. It is only necessary the first time $appName is started on this device."
         DE - "Dieser Vorgang kann einige Zeit dauern und ist nur beim ersten Start von $appName auf diesem Gerät notwendig."
+    }
+
+    fun fileOverlayPreviewNotSupported() = translate {
+        EN - "File preview not supported"
+        DE - "Datei-Vorschau nicht verfügbar"
+    }
+
+    fun fileOverlayPdfPageDescriptor(pageId: Int) = translate {
+        EN - "PDF page number: $pageId"
+        DE - "PDF-Seiten-Nummer $pageId"
     }
 
     fun invitationAccept() = translate {

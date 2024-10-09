@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import MediaViewModelFactory
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -34,6 +35,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountVi
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
@@ -300,6 +302,8 @@ private fun connectingViewModels() = module {
 private fun filesViewModels() = module {
     single<ImageViewModelFactory> { ImageViewModelFactory }
     single<VideoViewModelFactory> { VideoViewModelFactory }
+    single<PdfDocumentViewModelFactory> { PdfDocumentViewModelFactory }
+    single<MediaViewModelFactory> { MediaViewModelFactory }
 }
 
 private fun syncViewModels() = module {

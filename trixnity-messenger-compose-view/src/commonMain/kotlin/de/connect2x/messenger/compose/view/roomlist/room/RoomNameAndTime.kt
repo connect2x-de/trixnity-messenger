@@ -24,14 +24,12 @@ import de.connect2x.messenger.compose.view.common.fade
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 @Composable
-fun RoomName(roomName: String?, onRoomClick: (() -> Unit)? = null) {
+fun RoomName(roomName: String?) {
     Tooltip(
         { TooltipText(roomName ?: " ") },
         delayMillis = 1_000,
-        onClick = onRoomClick
     ) {
         Text(
             text = roomName ?: " ",
@@ -60,7 +58,7 @@ fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifi
 }
 
 @Composable
-fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel, roomListViewModel: RoomListViewModel) {
+fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
     Row(
         modifier = Modifier.placeholder(
@@ -74,9 +72,7 @@ fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel, roomList
         Box(
             Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()
         ) {
-            RoomName(
-                roomName = roomName,
-                onRoomClick = { roomListViewModel.selectRoom(roomListElementViewModel.roomId) })
+            RoomName(roomName = roomName)
         }
         Spacer(Modifier.size(10.dp))
         RoomTime(roomListElementViewModel)

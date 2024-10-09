@@ -64,7 +64,7 @@ class MessageContainerViewImpl : MessageContainerView {
                         start = padding,
                         end = 0.dp,
                         top = topPadding,
-                        bottom = 0.dp
+                        bottom = 0.dp,
                     )
                         .align(Alignment.CenterEnd),
                     verticalAlignment = Alignment.CenterVertically,
@@ -83,7 +83,7 @@ class MessageContainerViewImpl : MessageContainerView {
                         start = 0.dp,
                         end = padding,
                         top = topPadding,
-                        bottom = 0.dp
+                        bottom = 0.dp,
                     ),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

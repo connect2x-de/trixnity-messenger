@@ -14,8 +14,7 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.getOrNull
-import de.connect2x.trixnity.messenger.viewmodel.files.ImageRouter
-import de.connect2x.trixnity.messenger.viewmodel.files.VideoRouter
+import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
@@ -78,8 +77,7 @@ interface MainViewModel {
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
     val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>>
     val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>>
-    val imageRouterStack: Value<ChildStack<ImageRouter.Config, ImageRouter.Wrapper>>
-    val videoRouterStack: Value<ChildStack<VideoRouter.Config, VideoRouter.Wrapper>>
+    val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
     val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>>
@@ -176,12 +174,8 @@ open class MainViewModelImpl(
         }
     }
 
-    private val imageRouter: ImageRouter = ImageRouter(viewModelContext = viewModelContext)
-    override val imageRouterStack: Value<ChildStack<ImageRouter.Config, ImageRouter.Wrapper>> = imageRouter.stack
-
-    private val videoRouter: VideoRouter = VideoRouter(viewModelContext = viewModelContext)
-    override val videoRouterStack: Value<ChildStack<VideoRouter.Config, VideoRouter.Wrapper>> =
-        videoRouter.stack
+    private val mediaRouter: MediaRouter = MediaRouter(viewModelContext = viewModelContext)
+    override val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>> = mediaRouter.stack
 
     private val verificationRouter: VerificationRouter =
         VerificationRouter(
@@ -203,8 +197,8 @@ open class MainViewModelImpl(
         settingsWizardRouter.stack
 
     private fun backPressHandler() {
-        if (imageRouter.isImageOpen()) {
-            imageRouter.closeImage()
+        if (mediaRouter.isMediaOpen()) {
+            mediaRouter.closeMedia()
         } else if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {
@@ -222,8 +216,7 @@ open class MainViewModelImpl(
                 log.debug { "since all account have been removed, close all navigation" }
                 roomRouter.closeRoom()
                 roomListRouter.close()
-                imageRouter.closeImage()
-                videoRouter.closeVideo()
+                mediaRouter.closeMedia()
                 avatarCutterRouter.close()
                 initialSyncRouter.close()
                 verificationRouter.closeVerification()
@@ -514,28 +507,54 @@ open class MainViewModelImpl(
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
-        userId: UserId
+        userId: UserId,
     ) {
         when (type) {
             OpenModalType.IMAGE -> coroutineScope.launch {
-                imageRouter.openImage(
+                mediaRouter.openImage(
                     mxcUrl,
                     encryptedFile,
                     fileName,
-                    userId
+                    userId,
                 )
             }
 
             OpenModalType.VIDEO -> coroutineScope.launch {
-                videoRouter.openVideo(
+                mediaRouter.openVideo(
                     mxcUrl,
                     encryptedFile,
                     fileName,
-                    userId
+                    userId,
+                )
+            }
+
+            OpenModalType.PDF -> coroutineScope.launch {
+                mediaRouter.openPdf(
+                    mxcUrl,
+                    encryptedFile,
+                    fileName,
+                    userId,
+                )
+            }
+
+            OpenModalType.TEXT -> coroutineScope.launch {
+                mediaRouter.openText(
+                    mxcUrl,
+                    encryptedFile,
+                    fileName,
+                    userId,
+                )
+            }
+
+            OpenModalType.MARKDOWN -> coroutineScope.launch {
+                mediaRouter.openMarkdown(
+                    mxcUrl,
+                    encryptedFile,
+                    fileName,
+                    userId,
                 )
             }
         }
-
     }
 
     override fun openMention(userId: UserId, messageMention: MessageMention) {
@@ -629,21 +648,12 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val imageRouterStack: Value<ChildStack<ImageRouter.Config, ImageRouter.Wrapper>> =
+    override val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = ImageRouter.Config.None,
-                    instance = ImageRouter.Wrapper.None,
-                )
-            )
-        )
-    override val videoRouterStack: Value<ChildStack<VideoRouter.Config, VideoRouter.Wrapper>> =
-        MutableValue(
-            ChildStack(
-                active = Child.Created(
-                    configuration = VideoRouter.Config.None,
-                    instance = VideoRouter.Wrapper.None,
+                    configuration = MediaRouter.Config.None,
+                    instance = MediaRouter.Wrapper.None,
                 )
             )
         )

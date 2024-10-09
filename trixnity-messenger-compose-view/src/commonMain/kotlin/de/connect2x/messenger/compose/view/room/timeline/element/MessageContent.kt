@@ -202,22 +202,27 @@ private fun MessageTextContent(
         val text = formatMessage(message, mentions, textBasedViewModel)
 
         val richTextState = rememberRichTextState()
+        LaunchedEffect(text) {
+            richTextState.setHtml(text)
+        }
         richTextState.config.linkColor =
             if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
 
-        if (mentions.any { it.second != null }) {
-            val baseUriHandler = LocalUriHandler.current
-            val uriHandler by remember {
-                mentionsUriHandler(baseUriHandler, textBasedViewModel, mentions.map { it.second })
-            }
+        if (richTextState.toText().isNotBlank()) {
+            if (mentions.any { it.second != null }) {
+                val baseUriHandler = LocalUriHandler.current
+                val uriHandler by remember {
+                    mentionsUriHandler(baseUriHandler, textBasedViewModel, mentions.map { it.second })
+                }
 
-            MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
+                MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
+            } else {
+                MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
+            }
         } else {
-            MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
-        }
-        LaunchedEffect(text) {
-            richTextState.setHtml(text)
+            // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
+            Text(text, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -627,9 +632,7 @@ private fun MessageFile(
             Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = {
-                            fileMessageViewModel.openSaveFileDialog()
-                        },
+                        onTap = { fileMessageViewModel.openFile() },
                         onLongPress = onLongPress,
                     )
                 }
