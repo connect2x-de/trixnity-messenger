@@ -91,6 +91,9 @@ class MatrixClientsImpl(
                             MatrixClient.LoginState.LOGGED_OUT_SOFT, // TODO soft logout
                             MatrixClient.LoginState.LOGGED_OUT -> {
                                 remove(userId)
+                                    .onFailure {
+                                        log.error(it) { "Failed to remove UserID: $userId, after remote logout" }
+                                    }
                             }
 
                             MatrixClient.LoginState.LOGGED_IN, null -> {}
@@ -231,11 +234,15 @@ class MatrixClientsImpl(
         log.info { "logout (userId=$userId)" }
         return matrixClients.value[userId]?.let { matrixClient ->
             withContext(NonCancellable) {
-                matrixClient.logout()
-                    .onFailure {
-                        log.error(it) { "could not logout $userId" }
-                    }
-                remove(userId)
+                // If we fail to log out, we do not want to just blindly remove the userID,
+                // because that likely fails as well. Callers know better how to handle the situation.
+                // (see trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/viewmodel/connecting/RemoveMatrixAccountViewModel.kt)
+                // If we succeed to log out, we try to remove the userid and transparently bubble the
+                // result.
+                matrixClient.logout().fold(
+                    onSuccess = { remove(userId) },
+                    onFailure = { Result.failure(it) }
+                )
             }
         } ?: Result.success(Unit)
     }

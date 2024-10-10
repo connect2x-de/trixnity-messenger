@@ -44,8 +44,7 @@ class MainViewImpl : MainView {
             }
         }
         SelfVerificationSwitch(mainViewModel)
-        ImageOverlaySwitch(mainViewModel)
-        VideoOverlaySwitch(mainViewModel)
+        MediaOverlaySwitch(mainViewModel)
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
     }

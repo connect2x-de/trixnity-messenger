@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -33,6 +32,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -78,7 +78,6 @@ class TimelineViewImpl : TimelineView {
         val draggedFile = timelineViewModel.draggedFile.collectAsState().value
 
         val focusManager = LocalFocusManager.current
-        val mutableInteractionSource = remember { MutableInteractionSource() }
 
         Surface(modifier = Modifier.weight(1.0f, fill = true)) {
             if (timelineElementHolderViewModels.isEmpty()) {
@@ -139,13 +138,11 @@ class TimelineViewImpl : TimelineView {
 
                 BoxWithConstraints(
                     Modifier
-                        .clickable(
-                            mutableInteractionSource,
-                            null,
-                            true,
-                            null,
-                            null
-                        ) { focusManager.clearFocus(true) }
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = {
+                                focusManager.clearFocus(true)
+                            })
+                        }
                 ) {
                     if (error != null) {
                         ErrorDialog(

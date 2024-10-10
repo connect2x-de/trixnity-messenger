@@ -3,6 +3,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.files.MediaConstants.MAX_SIZE_DOCUMENT_PREVIEW_BYTES
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +18,7 @@ import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
+
 
 interface FileMessageViewModelFactory {
     fun create(
@@ -30,30 +34,31 @@ interface FileMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
-    ): FileMessageViewModel {
-        return FileMessageViewModelImpl(
-            viewModelContext,
-            timelineEvent,
-            content,
-            formattedDate,
-            showDateAbove,
-            formattedTime,
-            isByMe,
-            showChatBubbleEdge,
-            showBigGap,
-            showSender,
-            sender,
-            invitation,
-            mediaUploadProgress
-        )
-    }
+        mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
+        onOpenModal: OpenModalCallback,
+    ): FileMessageViewModel = FileMessageViewModelImpl(
+        viewModelContext,
+        timelineEvent,
+        content,
+        formattedDate,
+        showDateAbove,
+        formattedTime,
+        isByMe,
+        showChatBubbleEdge,
+        showBigGap,
+        showSender,
+        sender,
+        invitation,
+        mediaUploadProgress,
+        onOpenModal,
+    )
 
     companion object : FileMessageViewModelFactory
 }
 
 interface FileMessageViewModel : FileBasedMessageViewModel {
     val formattedSize: String
+    fun openFile()
 }
 
 open class FileMessageViewModelImpl(
@@ -69,8 +74,9 @@ open class FileMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
-) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content),
+    mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
+    private val onOpenModal: OpenModalCallback,
+) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -81,6 +87,18 @@ open class FileMessageViewModelImpl(
 
     override val formattedSize: String = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
     private val thumbnails = get<Thumbnails>()
-    override val uploadProgress: StateFlow<FileTransferProgressElement?> = thumbnails.mapProgressToProgressElement(mediaUploadProgress)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val uploadProgress: StateFlow<FileTransferProgressElement?> =
+        thumbnails.mapProgressToProgressElement(mediaUploadProgress)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override fun openFile() {
+        if ((fileSize ?: 0) > MAX_SIZE_DOCUMENT_PREVIEW_BYTES) {
+            openSaveFileDialog()
+        } else when (fileMimeType) {
+            "application/pdf" -> url?.let { onOpenModal(OpenModalType.PDF, it, encryptedFile, fileName) }
+            "text/markdown" -> url?.let { onOpenModal(OpenModalType.MARKDOWN, it, encryptedFile, fileName) }
+            "text/plain" -> url?.let { onOpenModal(OpenModalType.TEXT, it, encryptedFile, fileName) }
+            else -> openSaveFileDialog()
+        }
+    }
 }

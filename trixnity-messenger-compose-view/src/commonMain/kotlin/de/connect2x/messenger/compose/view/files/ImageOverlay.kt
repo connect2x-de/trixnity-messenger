@@ -47,6 +47,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModel
 import kotlinx.coroutines.delay
 
+
 interface ImageOverlayView {
     @Composable
     fun create(imageViewModel: ImageViewModel)
@@ -62,7 +63,7 @@ class ImageOverlayViewImpl : ImageOverlayView {
     override fun create(imageViewModel: ImageViewModel) {
         val i18n = DI.get<I18nView>()
         val image = imageViewModel.image.collectAsState()
-        val progressElement = imageViewModel.progress.collectAsState()
+        val progress = imageViewModel.progress.collectAsState()
         val scale = remember { mutableStateOf(1f) }
         val move = remember { mutableStateOf(Offset(0f, 0f)) }
         val xMin = remember { mutableStateOf(0f) }
@@ -117,7 +118,7 @@ class ImageOverlayViewImpl : ImageOverlayView {
                         )
                     }).then(Modifier.onKeyEvent {
                         if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                            imageViewModel.closeImage()
+                            imageViewModel.closeMedia()
                             true
                         } else {
                             false
@@ -139,12 +140,12 @@ class ImageOverlayViewImpl : ImageOverlayView {
                         )
                     }
                 }
-                progressElement.value?.let {
+                progress.value?.let {
                     if (image.value == null) {
-                        DownloadProgress(it, imageViewModel::cancelLoadImage)
+                        DownloadProgress(it, imageViewModel::cancelMediaDownload)
                     }
                 }
-                if (image.value == null && progressElement.value == null) {
+                if (image.value == null && progress.value == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.Image, i18n.commonImage(), Modifier.size(96.dp))
                         Text(i18n.imageCouldNotBeLoaded())
@@ -152,7 +153,7 @@ class ImageOverlayViewImpl : ImageOverlayView {
                 }
             }
             IconButton(
-                { imageViewModel.closeImage() },
+                { imageViewModel.closeMedia() },
                 Modifier
                     .align(Alignment.TopEnd)
                     .padding(20.dp)

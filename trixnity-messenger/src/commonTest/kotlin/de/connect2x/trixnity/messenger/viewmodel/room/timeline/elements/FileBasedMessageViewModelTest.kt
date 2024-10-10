@@ -9,6 +9,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -187,7 +189,9 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showBigGap = false,
             showSender = MutableStateFlow(false),
             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
-            uploadProgress = MutableStateFlow(null)
+            uploadProgress = MutableStateFlow(null),
+            onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
+            },
         )
         return fileBasedMessageViewModelInstance
     }
@@ -205,10 +209,10 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         override val showBigGap: Boolean,
         override val showSender: StateFlow<Boolean>,
         override val sender: StateFlow<UserInfoElement>,
-        override val uploadProgress: StateFlow<FileTransferProgressElement?>,
+        override val uploadProgress: StateFlow<FileTransferProgressElement?>, onOpenModal: OpenModalCallback,
     ) : AbstractFileBasedMessageViewModel(
         viewModelContext,
-        RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile)
+        RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile), onOpenModal
     ), ViewModelContext by viewModelContext {
         override val invitation: StateFlow<String?> =
             invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
