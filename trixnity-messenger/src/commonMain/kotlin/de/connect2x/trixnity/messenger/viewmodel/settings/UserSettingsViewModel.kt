@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -19,7 +20,7 @@ interface UserSettingsViewModelFactory {
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
-        onShowSettingsWizard: () -> Unit,
+        onShowSettingsWizard: (userId: UserId) -> Unit,
     ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
@@ -43,8 +44,7 @@ interface UserSettingsViewModel {
     fun showNotificationsSettings()
     fun showPrivacySettings()
     fun showAppearanceSettings()
-    fun showSettingsWizard()
-    val shouldShowSettingsWizardReset : StateFlow<Boolean>
+    fun showSettingsWizard(userId: UserId)
 }
 
 open class UserSettingsViewModelImpl(
@@ -55,7 +55,7 @@ open class UserSettingsViewModelImpl(
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
-    private val onShowSettingsWizard: () -> Unit,
+    private val onShowSettingsWizard: (userId : UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -90,10 +90,7 @@ open class UserSettingsViewModelImpl(
         onShowAppearanceSettings()
     }
 
-    override fun showSettingsWizard() {
-        onShowSettingsWizard()
+    override fun showSettingsWizard(userId: UserId) {
+        onShowSettingsWizard(userId)
     }
-
-    override val shouldShowSettingsWizardReset: StateFlow<Boolean> = get<MatrixMessengerSettingsHolder>().map { it.base.selectedAccount != null }.stateIn(coroutineScope,
-        SharingStarted.WhileSubscribed(), false)
 }

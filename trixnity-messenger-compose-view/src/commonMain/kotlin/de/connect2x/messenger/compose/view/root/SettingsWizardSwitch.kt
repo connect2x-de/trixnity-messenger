@@ -12,7 +12,7 @@ fun SettingsWizardSwitch(mainViewModel: MainViewModel) {
     Box {
         Children(mainViewModel.settingsWizardRouterStack) {
             when (it.instance) {
-                is SettingsWizardRouter.Wrapper.ShowWizard -> SettingsWizard((it.instance as SettingsWizardRouter.Wrapper.ShowWizard).steps)
+                is SettingsWizardRouter.Wrapper.ShowWizard -> SettingsWizard(it.instance as SettingsWizardRouter.Wrapper.ShowWizard)
                 else -> Box{}
             }
         }

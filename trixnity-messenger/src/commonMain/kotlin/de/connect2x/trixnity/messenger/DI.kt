@@ -100,6 +100,8 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AdditionalSettingsWizardWrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AdditionalSettingsWizardWrapperImpl
@@ -232,6 +234,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<DragAndDropHandler> { DragAndDropHandlerBase() }
         single<SettingsWizardSteps> { SettingsWizardStepsImpl }
         single<AdditionalSettingsWizardWrapper> { AdditionalSettingsWizardWrapperImpl() }
+        single<AccountBootstrappingViewModelFactory> { AccountBootstrappingViewModelFactory }
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }

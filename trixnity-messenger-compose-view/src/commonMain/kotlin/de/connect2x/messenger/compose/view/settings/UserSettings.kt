@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 
@@ -117,11 +118,12 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
 @Composable
 fun SettingsWizardSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    if (userSettingsViewModel.shouldShowSettingsWizardReset.collectAsState().value) {
+    val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
+    if (account != null) {
         SettingItem(
             { Icon(Icons.Default.SettingsSuggest, i18n.settingsWizardReset()) },
             i18n.settingsWizardReset().capitalize(Locale.current),
-            userSettingsViewModel::showSettingsWizard
+            { userSettingsViewModel.showSettingsWizard(account) }
         )
     }
 }

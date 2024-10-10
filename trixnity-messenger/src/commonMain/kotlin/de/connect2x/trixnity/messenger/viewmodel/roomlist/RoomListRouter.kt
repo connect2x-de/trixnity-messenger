@@ -52,7 +52,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onActivateSettingsWizard : () -> Unit
+    private val onActivateSettingsWizard : (userId : UserId) -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -364,18 +364,13 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onResetSettingsWizard () {
+    private fun onResetSettingsWizard (userId: UserId) {
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
-            val account = messengerSettings.value.base.selectedAccount
-            log.debug { "Reset settings wizard for account $account" }
-            account?.let {
-                messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
-                    it.copy(showAccountWizard = true)
-                }
-            }
+            log.debug { "Reset settings wizard for account $userId" }
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(showAccountWizard = true)}
         }
-        onActivateSettingsWizard()
+        onActivateSettingsWizard(userId)
     }
 
     suspend fun moveToBackStack() {

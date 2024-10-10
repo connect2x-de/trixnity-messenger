@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -191,7 +192,7 @@ open class MainViewModelImpl(
         avatarCutterRouter.stack
 
     private val settingsWizardRouter: SettingsWizardRouter =
-        SettingsWizardRouter(viewModelContext, verificationRouter, selfVerificationRouter)
+        SettingsWizardRouter(viewModelContext)
 
     override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
         settingsWizardRouter.stack
@@ -411,15 +412,21 @@ open class MainViewModelImpl(
     }
 
     private fun possiblyStartSettingsWizard() {
-        val selectedAccount = messengerSettings.value.base.selectedAccount
-        log.debug { "Possibly starting Wizard for $selectedAccount" }
-        if (messengerSettings.value.base.accounts[selectedAccount]?.base?.showAccountWizard == true) {
-            startSettingsWizard()
+        coroutineScope.launch {
+            matrixClients.scopedCollectLatest { clients ->
+                clients.forEach {
+                    if (messengerSettings.value.base.accounts[it.key]?.base?.showAccountWizard == true) {
+                        startSettingsWizard(it.key)
+                    }
+                }
+            }
+
+
         }
     }
 
-    private fun startSettingsWizard() {
-        settingsWizardRouter.startWizard()
+    private fun startSettingsWizard(userId: UserId) {
+        settingsWizardRouter.startWizard(userId)
     }
 
     override fun closeDetailsAndShowList() {
