@@ -316,12 +316,11 @@ open class InputAreaViewModelImpl(
                     currentText.replaceRange(range, newValue)
                 }.let {
                     if (useMarkdown.value) {
-                        val src = it.replace("\n", "<br>")
                         val flavour = CommonMarkFlavourDescriptor()
-                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
-                        val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
+                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
+                        val html = HtmlGenerator(it, parsedTree, flavour).generateHtml()
 
-                        html.removePrefix("<body><p>").removeSuffix("</p></body>")
+                        html.removePrefix("<body>").removeSuffix("</body>")
                     } else it
                 }
 

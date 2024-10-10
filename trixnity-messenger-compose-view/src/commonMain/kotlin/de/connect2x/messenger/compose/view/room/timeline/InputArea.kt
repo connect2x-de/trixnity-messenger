@@ -88,7 +88,6 @@ import kotlinx.coroutines.delay
 import okio.FileSystem
 import kotlin.time.Duration.Companion.milliseconds
 
-
 interface InputAreaView {
     @Composable
     fun create(inputAreaViewModel: InputAreaViewModel)
@@ -335,7 +334,12 @@ fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
         if (textFieldValue.value.text != message) {
             textFieldValue.value = textFieldValue.value.copy(
                 text = message,
-                selection = TextRange(message.indexOf(' ', textFieldValue.value.selection.start))
+                selection = TextRange(
+                    message
+                        .indexOf(' ', textFieldValue.value.selection.start)
+                        .takeIf { it != -1 }
+                        ?: textFieldValue.value.selection.start
+                )
             )
         }
 
