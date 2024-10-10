@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sync modal shown only on initial sync
 - Run buildConfigGenerator on idea reload
 - renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
+- Upgrade Docker build image and dependencies
 
 ### Deprecated
 
