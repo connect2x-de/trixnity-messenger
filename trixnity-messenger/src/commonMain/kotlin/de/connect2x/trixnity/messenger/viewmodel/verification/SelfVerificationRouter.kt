@@ -51,6 +51,14 @@ class SelfVerificationRouter(
                                 selfVerificationConfig.userId,
                             ),
                             onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
+                            onResetRecovery = {
+                                viewModelContext.coroutineScope.launch {
+                                    closeSelfVerification(selfVerificationConfig.userId)
+                                    showBootstrap(
+                                        selfVerificationConfig.userId
+                                    )
+                                }
+                            }
                         )
                 )
             }
