@@ -1,5 +1,6 @@
 import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
     kotlin("multiplatform")
@@ -14,33 +15,56 @@ val version = libs.versions.messenger.get()
 val appName = libs.versions.appName.get()
 val appNameCleaned = appName.replace("[-.\\s]".toRegex(), "").lowercase()
 
-val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
-
 enum class BuildFlavor { PROD, DEV }
 
-val buildFlavor = BuildFlavor.valueOf(System.getenv("BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
+val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
 
-val buildConfigGenerator by tasks.registering(Sync::class) {
-    from(
-        resources.text.fromString(
+val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
+val licenses by tasks.registering(AboutLibrariesTask::class) {
+    resultDirectory = licensesDir
+    dependsOn("collectDependencies")
+}
+
+val buildConfigGenerator by tasks.registering {
+    val licencesFile = licensesDir.resolve("aboutlibraries.json")
+    val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
+    inputs.file(licencesFile)
+    doLast {
+        val outputFile = generatedSrc.get()
+            .dir("de/connect2x/$appNameCleaned")
+            .file("BuildConfig.kt")
+        val licencesString = licencesFile.readText()
+        val quotes = "\"\"\""
+        val buildConfigString =
             """
             package de.connect2x.$appNameCleaned
             
             object BuildConfig {
                 const val version = "$version"
                 val flavor = Flavor.valueOf("$buildFlavor")
-                val appName = "$appName"
-                val appNameCleaned = "$appNameCleaned"
+                const val appName = "$appName"
+                const val appNameCleaned = "$appNameCleaned"
+                val licenses = $quotes$licencesString$quotes
             }
             
             enum class Flavor { PROD, DEV }
         """.trimIndent()
-        )
-    ) {
-        rename { "BuildConfig.kt" }
-        into("de/connect2x/$appNameCleaned")
+        outputFile.asFile.apply {
+            ensureParentDirsCreated()
+            createNewFile()
+            writeText(buildConfigString)
+        }
+        outputFile.asFile.writeText(buildConfigString)
     }
-    into(generatedSrc)
+    outputs.dirs(generatedSrc)
+    dependsOn(licenses)
+}
+
+tasks.named("prepareKotlinIdeaImport") {
+    val prepareKotlinIdeaImport = this
+    kotlin.sourceSets.all {
+        prepareKotlinIdeaImport.dependsOn(kotlin)
+    }
 }
 
 kotlin {
@@ -73,7 +97,7 @@ kotlin {
                 implementation(project(":trixnity-messenger-compose-view"))
                 implementation(compose.components.resources)
             }
-            kotlin.srcDir(buildConfigGenerator.map { it.destinationDir })
+            kotlin.srcDir(buildConfigGenerator.map { it.outputs })
         }
         val desktopMain by getting {
             dependencies {
@@ -175,12 +199,3 @@ android {
         }
     }
 }
-
-// aboutlibraries.json ########################################
-val licenses by tasks.registering(AboutLibrariesTask::class) {
-    resultDirectory = layout.projectDirectory.dir("src").dir("commonMain").dir("composeResources").dir("files").asFile
-    dependsOn("collectDependencies")
-}
-
-tasks.findByName("copyNonXmlValueResourcesForCommonMain")
-    ?.dependsOn(licenses)

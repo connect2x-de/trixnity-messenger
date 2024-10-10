@@ -26,7 +26,7 @@ class InitialSyncWorker(
 
     private val notificationHandler: NotificationHandler = NotificationHandler.create(
         name = AndroidI18n.notificationInitialSyncTitle(),
-        id = CHANNEL_ID_INITIAL_SYNC,
+        id = INITIAL_SYNC_CHANNEL_ID,
         contextGetter = { applicationContext },
         activationIntent = { context, notification ->
             SysNotifyIntent(

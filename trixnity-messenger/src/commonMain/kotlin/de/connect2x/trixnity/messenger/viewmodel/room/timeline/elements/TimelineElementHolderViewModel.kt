@@ -11,24 +11,28 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -51,12 +55,13 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -132,7 +137,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     suspend fun isReadBy(): String
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
@@ -185,6 +190,8 @@ open class TimelineElementHolderViewModelImpl(
 
     private val _replyToInProgress = MutableStateFlow(false)
 
+    private val subViewModelCache = MutableStateFlow<Pair<Int, Flow<BaseTimelineElementViewModel>>?>(null)
+
     override val highlight: StateFlow<Boolean> =
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
             editInProgress || replyToInProgress
@@ -199,72 +206,88 @@ open class TimelineElementHolderViewModelImpl(
     }
 
     override val timelineElementViewModel = combine(
-        timelineEventFlow.filterNotNull(),
-        timelineEventFlow.flatMapLatest {
-            it?.let { timelineEvent ->
-                findPreviousVisibleTimelineEvent(timelineEvent)
-            } ?: flowOf(null)
-        },
-    ) { timelineEvent, previousTimelineEvent ->
-        val sender = timelineEventFlow.flatMapLatest {
-            it?.let { timelineEvent ->
-                matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
-                    .map { user ->
-                        UserInfoElement(
-                            name = user?.name ?: timelineEvent.event.sender.full,
-                            initials = user?.name?.let(initials::compute),
-                            userId = user?.userId ?: timelineEvent.event.sender,
-                            image = user?.avatarUrl?.let { avatarUrl ->
-                                matrixClient.media.getThumbnail(
-                                    avatarUrl,
-                                    avatarSize().toLong(),
-                                    avatarSize().toLong()
-                                ).fold(
-                                    onSuccess = { it },
-                                    onFailure = {
-                                        log.error(it) { "Cannot load avatar image for user '${user.name}'." }
-                                        null
+        timelineEventFlow
+            .filterNotNull()
+            .distinctUntilChanged(),
+        timelineEventFlow
+            .filterNotNull()
+            .flatMapLatest {
+                findPreviousVisibleTimelineEvent(it) ?: flowOf(null)
+            }
+            .distinctUntilChanged(),
+        timelineEventFlow
+            .filterNotNull()
+            .map { it.content }
+            .debounce {
+                // in case we are still decrypting, wait if the decryption finishes in the first x milliseconds, if not, show to the user; otherwise return the content immediately
+                if (it == null) 400.milliseconds else 0.milliseconds
+            }
+            .distinctUntilChanged(),
+    ) { timelineEvent, previousTimelineEvent, contentResult ->
+        log.trace { "compute timelineElementViewModel ($timelineEvent, $previousTimelineEvent, $contentResult)" }
+        val subViewModel = subViewModelCache.value
+        if (subViewModel != null && subViewModel.first == keyFn(timelineEvent, contentResult?.getOrNull())) {
+            subViewModel.second
+        } else {
+            val sender = matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
+                .map { user ->
+                    UserInfoElement(
+                        name = user?.name ?: timelineEvent.event.sender.full,
+                        initials = user?.name?.let(initials::compute),
+                        userId = user?.userId ?: timelineEvent.event.sender,
+                        image = user?.avatarUrl?.let { avatarUrl ->
+                            matrixClient.media.getThumbnail(
+                                avatarUrl,
+                                avatarSize().toLong(),
+                                avatarSize().toLong()
+                            )
+                                .onFailure { exc ->
+                                    if (exc !is CancellationException) {
+                                        log.error(exc) { "Cannot load avatar image for user '${user.name}'." }
                                     }
-                                )?.toByteArray()
-                            },
-                        )
-                    }
-            } ?: flowOf(UserInfoElement(i18n.commonUnknown(), timelineEvent.event.sender))
-        }
-
-        val invitation = timelineEventFlow
-            .mapNotNull { it ->
-                if (it != null && it.previousEventId == null) it else null
-            }
-            .flatMapLatest { firstTimelineEvent ->
-                findInviterId(firstTimelineEvent).flatMapLatest { inviterId ->
-                    getInviterDisplayName(inviterId)
+                                }
+                                .getOrNull()
+                        },
+                    )
                 }
-            }
 
-        val event = timelineEvent.event
-        val content = timelineEvent.content?.fold(
-            onSuccess = { it },
-            onFailure = {
-                log.error(it) { "cannot decrypt message event" }
-                event.content
-            }
-        ) ?: event.content
+            val invitation =
+                if (timelineEvent.previousEventId == null) {
+                    findInviterId(timelineEvent).flatMapLatest { inviterId ->
+                        getInviterDisplayName(inviterId)
+                    }
+                } else flowOf(null)
 
-        timelineSubViewmodelFactory.createEventSubViewmodel(
-            this,
-            timelineEventFlow,
-            selectedRoomId,
-            content,
-            previousTimelineEvent,
-            sender,
-            invitation,
-            isDirect,
-            onOpenModal,
-            onOpenMention,
-        )
+
+            val event = timelineEvent.event
+            val content = contentResult?.fold(
+                onSuccess = { it },
+                onFailure = {
+                    log.error(it) { "cannot decrypt message event" }
+                    event.content
+                }
+            ) ?: event.content
+
+            timelineSubViewmodelFactory.createEventSubViewmodel(
+                this,
+                timelineEventFlow,
+                selectedRoomId,
+                content,
+                previousTimelineEvent,
+                sender,
+                invitation,
+                isDirect,
+                onOpenModal,
+                onOpenMention,
+            ).also {
+                subViewModelCache.value = keyFn(timelineEvent, content) to it
+            }
+        }
     }.flatMapLatest { it }
-        .stateIn(coroutineScope, WhileSubscribed(), null)
+        .stateIn(coroutineScope, Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
+
+    private fun keyFn(timelineEvent: TimelineEvent, content: RoomEventContent?) =
+        timelineEvent.eventId.hashCode() + (content?.hashCode() ?: 0)
 
     private suspend fun findPreviousVisibleTimelineEvent(timelineEvent: TimelineEvent): Flow<TimelineEvent?>? {
         val previousTimelineEventOrNull = matrixClient.room.getPreviousTimelineEvent(timelineEvent)

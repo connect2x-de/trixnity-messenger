@@ -18,7 +18,6 @@ interface ProfilesView {
     fun create(
         matrixMultiMessenger: MatrixMultiMessenger,
         existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-        onCancel: () -> Unit,
     )
 }
 
@@ -26,9 +25,8 @@ interface ProfilesView {
 fun Profiles(
     matrixMultiMessenger: MatrixMultiMessenger,
     existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-    onCancel: () -> Unit,
 ) {
-    DI.get<ProfilesView>().create(matrixMultiMessenger, existingProfiles, onCancel)
+    DI.get<ProfilesView>().create(matrixMultiMessenger, existingProfiles)
 }
 
 class ProfilesViewImpl : ProfilesView {
@@ -36,15 +34,13 @@ class ProfilesViewImpl : ProfilesView {
     override fun create(
         matrixMultiMessenger: MatrixMultiMessenger,
         existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-        onCancel: () -> Unit,
     ) {
         if (existingProfiles.isEmpty()) {
             createAndUseDefaultUserProfile(matrixMultiMessenger)
         } else {
             createOrSelectManualUserProfile(
                 matrixMultiMessenger,
-                existingProfiles,
-                onCancel,
+                existingProfiles
             )
         }
     }
@@ -54,16 +50,17 @@ class ProfilesViewImpl : ProfilesView {
 fun createOrSelectManualUserProfile(
     matrixMultiMessenger: MatrixMultiMessenger,
     existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-    onCancel: () -> Unit,
 ) {
     val di = DI.current
     val coroutineScope = rememberCoroutineScope()
     val profileCreationViewModel = remember { ProfileCreationViewModelImpl(di, coroutineScope) }
     val showProfileCreation = ShowProfileCreation.current
     if (existingProfiles.isEmpty() || showProfileCreation.value) {
-        ProfileCreation(profileCreationViewModel)
+        ProfileCreation(profileCreationViewModel) {
+            showProfileCreation.value = false
+        }
     } else {
-        ProfileSelection(matrixMultiMessenger, onCancel = onCancel)
+        ProfileSelection(matrixMultiMessenger)
     }
 }
 

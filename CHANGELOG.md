@@ -10,8 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Markdown support for sending messages
+- Setting to ban members from rooms
+- List of banned users in a room
+- Setting to unban banned users from rooms
+- room alias settings and timeline support
+- enable context menu in web version
+- edge-to-edge support for Android
 
 ### Changed
+
+- Tooltips on the Web version now use the same design as the Android version
+- Instead of closing, profile abortion causes it to return to the previous screen
+- Sync modal shown only on initial sync
+- Run buildConfigGenerator on idea reload
+- renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 
 ### Deprecated
 
@@ -19,7 +31,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Android-Tooltips on buttons are shown again
+- Desktop-Tooltips can no longer move in front of the cursor, blocking button input
+- Fix device list loading set to false too early
+- Fix licenses by putting them into configuration
+- Fix default NotificationHandler using wrong app name and channel ID
+- Fix loading of complete timeline, when event mention is wrongly found.
+- Fix missing initial sync modal
+- Performance improvement: setHtml only once per message
+- Fix flickering in the timeline
+- mentions for users with same displayname are now displayed with their mxId
+
 ### Security
+
+## 2.2.2
+
+### Fixed
+
+- Missing configuration in loginWith
 
 ## 2.2.0
 

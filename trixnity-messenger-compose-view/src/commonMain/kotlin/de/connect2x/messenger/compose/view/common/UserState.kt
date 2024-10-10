@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.icons.BanIcon
+import de.connect2x.messenger.compose.view.common.icons.BanIconType
 import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
@@ -23,11 +25,19 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.key.UserTrustLevel
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 @Composable
-fun RowScope.UserState(userTrustLevelFlow: StateFlow<UserTrustLevel?>, isUserBlockedFlow: StateFlow<Boolean>) {
+fun RowScope.UserState(
+    userTrustLevelFlow: StateFlow<UserTrustLevel?>,
+    isUserBlockedFlow: StateFlow<Boolean>,
+    membershipFlow: StateFlow<Membership?>? = null,
+    unbannableFlow: StateFlow<Boolean>? = null
+) {
     val userTrustLevel = userTrustLevelFlow.collectAsState().value
     val isUserBlocked = isUserBlockedFlow.collectAsState().value
+    val membership = membershipFlow?.collectAsState()?.value
+    val unbannable = unbannableFlow?.collectAsState()?.value ?: false
     val i18n = DI.get<I18nView>()
 
     if (isUserBlocked) {
@@ -40,6 +50,8 @@ fun RowScope.UserState(userTrustLevelFlow: StateFlow<UserTrustLevel?>, isUserBlo
             )
         }
         Spacer(Modifier.size(5.dp))
+    } else if (membership == Membership.BAN) {
+        BanIcon(if (unbannable) BanIconType.Unbannable else BanIconType.NotUnbannable, 16.dp)
     } else {
         when (userTrustLevel) {
             is UserTrustLevel.CrossSigned ->

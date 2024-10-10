@@ -7,18 +7,15 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -27,8 +24,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -36,8 +31,6 @@ import com.arkivanov.decompose.defaultComponentContext
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.GetLicences
-import de.connect2x.messenger.compose.view.GetLicencesImpl
 import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
@@ -55,7 +48,6 @@ import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -69,10 +61,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-
-@OptIn(ExperimentalResourceApi::class)
 class MessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
     private val matrixMessengerServiceConnection = MatrixMessengerServiceConnection()
@@ -83,6 +72,8 @@ class MessengerActivity : AppCompatActivity() {
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMessengerServiceConnection.bind(applicationContext)
@@ -135,17 +126,10 @@ class MessengerActivity : AppCompatActivity() {
                                 Box(
                                     Modifier
                                         .fillMaxSize()
-                                        .navigationBarsPadding()
-                                        .statusBarsPadding()
-                                        .padding(bottom = with(LocalDensity.current) {
-                                            (WindowInsets.ime.getBottom(this) - WindowInsets.navigationBars.getBottom(
-                                                this
-                                            ))
-                                                .coerceAtLeast(0)
-                                                .toDp()
-                                        })
+                                        .safeDrawingPadding()
                                 ) {
-                                    val lifeCycleState = LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                                    val lifeCycleState =
+                                        androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                                     val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                                     CompositionLocalProvider(
                                         ImeVisible provides WindowInsets.isImeVisible,
@@ -154,9 +138,6 @@ class MessengerActivity : AppCompatActivity() {
                                         LocalWindowScope provides null,
                                         IsDebug provides false,
                                         DI provides matrixMessenger.di,
-                                        GetLicences provides GetLicencesImpl {
-                                            Res.readBytes("files/aboutlibraries.json").decodeToString()
-                                        },
                                     ) {
                                         MessengerTheme {
                                             Client(rootViewModel)
@@ -167,7 +148,8 @@ class MessengerActivity : AppCompatActivity() {
                         }
                     ) { existingProfiles ->
                         val showProfileCreation = remember { mutableStateOf(false) }
-                        val lifeCycleState = LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                        val lifeCycleState =
+                            androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                         CompositionLocalProvider(
                             ImeVisible provides WindowInsets.isImeVisible,
@@ -179,9 +161,7 @@ class MessengerActivity : AppCompatActivity() {
                             ShowProfileCreation provides showProfileCreation,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles, onCancel = {
-                                    finishAndRemoveTask()
-                                })
+                                Profiles(matrixMultiMessenger, existingProfiles)
                             }
                         }
                     }

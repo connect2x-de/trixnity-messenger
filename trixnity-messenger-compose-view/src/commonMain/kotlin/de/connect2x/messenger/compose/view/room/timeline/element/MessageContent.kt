@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -201,20 +202,27 @@ private fun MessageTextContent(
         val text = formatMessage(message, mentions, textBasedViewModel)
 
         val richTextState = rememberRichTextState()
-        richTextState.setHtml(text)
+        LaunchedEffect(text) {
+            richTextState.setHtml(text)
+        }
         richTextState.config.linkColor =
             if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
 
-        if (mentions.any { it.second != null }) {
-            val baseUriHandler = LocalUriHandler.current
-            val uriHandler by remember {
-                mentionsUriHandler(baseUriHandler, textBasedViewModel, mentions.map { it.second })
-            }
+        if (richTextState.toText().isNotBlank()) {
+            if (mentions.any { it.second != null }) {
+                val baseUriHandler = LocalUriHandler.current
+                val uriHandler by remember {
+                    mentionsUriHandler(baseUriHandler, textBasedViewModel, mentions.map { it.second })
+                }
 
-            MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
+                MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
+            } else {
+                MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
+            }
         } else {
-            MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
+            // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
+            Text(text, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

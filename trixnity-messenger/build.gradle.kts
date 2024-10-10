@@ -140,6 +140,8 @@ kotlin {
             dependsOn(jvmAndNativeTest)
             dependencies {
                 implementation(libs.kotest.junit.runner)
+                implementation(libs.slf4j.api)
+                implementation(libs.logback.classic)
 //                implementation(libs.ktor.client.java)
             }
         }

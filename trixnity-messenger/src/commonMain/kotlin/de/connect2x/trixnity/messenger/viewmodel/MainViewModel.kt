@@ -71,6 +71,7 @@ interface MainViewModelFactory {
 interface MainViewModel {
     val selectedRoomId: MutableStateFlow<RoomId?>
     val isBackButtonVisible: MutableStateFlow<Boolean>
+    val showRoom: StateFlow<Boolean>
     val isSinglePane: MutableStateFlow<Boolean>
     val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>>
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
@@ -80,7 +81,7 @@ interface MainViewModel {
     val videoRouterStack: Value<ChildStack<VideoRouter.Config, VideoRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
-    val showRoom: StateFlow<Boolean>
+
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
