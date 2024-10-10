@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Instead of closing, profile abortion causes it to return to the previous screen
 - Sync modal shown only on initial sync
 - Run buildConfigGenerator on idea reload
-- renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
+- Renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
+- Made MediaOverlaySwitch public
 
 ### Deprecated
 
