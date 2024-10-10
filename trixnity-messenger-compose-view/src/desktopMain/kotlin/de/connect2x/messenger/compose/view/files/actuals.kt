@@ -38,9 +38,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.input.mouse.MouseScrollUnit
-import androidx.compose.ui.input.mouse.mouseScrollFilter
-import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -100,40 +99,41 @@ actual fun mouseEventsForImageOverlay(
 ): Modifier {
     val scaleFactorX = maxBoundsImage.x / maxWidth
     val scaleFactorY = maxBoundsImage.y / maxHeight
-    return Modifier.mouseScrollFilter { event, _ ->
-        val newScale = when (val delta = event.delta) {
-            is MouseScrollUnit.Line -> scale.value - (0.1f * delta.value)
-            is MouseScrollUnit.Page -> scale.value - (0.1f * delta.value)
-        }
-        scale.value = newScale.coerceIn(1f, 10f)
-        val width = if (scaleFactorX * scale.value > 1) maxWidth else 0f
-        val height = if (scaleFactorY * scale.value > 1) maxHeight else 0f
-        xMin.value = width * (scale.value - 1) / 2
-        yMin.value = height * (scale.value - 1) / 2
-
-        true
-    }.then(Modifier.pointerMoveFilter(onMove = { position: Offset ->
-        if (oldPosition == null) {
-            oldPosition = position
-        }// to get the same amount of distance
-        // when scaled, we have to move more pixels
-        oldPosition?.let { // to get the same amount of distance
+    return Modifier
+        .onPointerEvent(PointerEventType.Scroll) {
+            val event = it.changes.first()
+            val scrollDelta = event.scrollDelta
+            val newScale = scale.value - (0.1f * scrollDelta.y)
+            scale.value = newScale.coerceIn(1f, 10f)
+            val width = if (scaleFactorX * scale.value > 1) maxWidth else 0f
+            val height = if (scaleFactorY * scale.value > 1) maxHeight else 0f
+            xMin.value = width * (scale.value - 1) / 2
+            yMin.value = height * (scale.value - 1) / 2
+            event.consume()
+        }.onPointerEvent(PointerEventType.Move) {
+            val event = it.changes.first()
+            val position = event.position
+            if (oldPosition == null) {
+                oldPosition = position
+            }// to get the same amount of distance
             // when scaled, we have to move more pixels
-            val deltaX = it.x - position.x
-            val deltaY = it.y - position.y
-            val newMoveX =
-                move.value.x + (deltaX * scaleFactorX.coerceAtMost(1f) * scale.value) // when scaled, we have to move more pixels
-            val newMoveY =
-                move.value.y + (deltaY * scaleFactorY.coerceAtMost(1f) * scale.value) // to get the same amount of distance
-            move.value = Offset(
-                newMoveX.coerceIn(-xMin.value, xMin.value),
-                newMoveY.coerceIn(-yMin.value, yMin.value)
-            )// to get the same amount of distance
-            // when scaled, we have to move more pixels
-            oldPosition = position
+            oldPosition?.let { // to get the same amount of distance
+                // when scaled, we have to move more pixels
+                val deltaX = it.x - position.x
+                val deltaY = it.y - position.y
+                val newMoveX =
+                    move.value.x + (deltaX * scaleFactorX.coerceAtMost(1f) * scale.value) // when scaled, we have to move more pixels
+                val newMoveY =
+                    move.value.y + (deltaY * scaleFactorY.coerceAtMost(1f) * scale.value) // to get the same amount of distance
+                move.value = Offset(
+                    newMoveX.coerceIn(-xMin.value, xMin.value),
+                    newMoveY.coerceIn(-yMin.value, yMin.value)
+                )// to get the same amount of distance
+                // when scaled, we have to move more pixels
+                oldPosition = position
+            }
+            event.consume()
         }
-        true
-    }))
 }
 
 /**
