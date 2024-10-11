@@ -19,6 +19,7 @@ fun startMessenger(
 ) = runBlocking(Dispatchers.Default) {
     log.info { "Starting $appName client (version=${version})" }
     log.info { "command line args: ${args.joinToString { it }}" }
+    log.info { "JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.vendor")})" }
 
     val lifecycle = LifecycleRegistry()
     val matrixMultiMessenger = MatrixMultiMessenger.create(

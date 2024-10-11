@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix focus loss when typing space while reporting a message
 - Fix crash when downloading and uploading files larger than INT_MAX (2.1GB)
 - Fix flaky integration test `remove account when logged out and show login`
+- Allow pasting images from clipboard (in memory)
 
 ### Security
 
