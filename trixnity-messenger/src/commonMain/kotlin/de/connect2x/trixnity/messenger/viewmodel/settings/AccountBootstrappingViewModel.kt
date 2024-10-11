@@ -87,16 +87,13 @@ class AccountBootstrappingViewModelImpl(
     private val isVerified =
         matrixClients.map { it[account] }.filterNotNull()
             .map { it.key.getTrustLevel(account, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val selfVerificationViewModel = get<SelfVerificationViewModelFactory>().create(viewModelContext) {}
     private val verificationViewModel = get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
 
     fun startVerification(selfVerificationMethod: SelfVerificationMethod) {
         selfVerificationViewModel.launchVerification(selfVerificationMethod)
-    }
-
-    fun startCrossVerification() {
     }
 
     override fun closeWizard() {
@@ -116,7 +113,6 @@ class AccountBootstrappingViewModelImpl(
                         isVerified,
                         selfVerificationViewModel,
                         verificationViewModel,
-                        ::startCrossVerification,
                         ::startVerification
                     )
                 )
@@ -133,10 +129,9 @@ class AccountBootstrappingViewModelImpl(
         data class WizardPrivacySettings(val viewModel: PrivacySettingsSingleAccountViewModel) : Wrapper()
         data class WizardExplanation(val userId: UserId) : Wrapper()
         data class WizardVerification(
-            val isVerified: StateFlow<Boolean>,
+            val isVerified: StateFlow<Boolean?>,
             val selfVerificationViewModel: SelfVerificationViewModel,
             val verificationViewModel: VerificationViewModel,
-            val startCrossSigning: () -> Unit,
             val startVerification: (selfVerificationMethod: SelfVerificationMethod) -> Unit
         ) : Wrapper()
 

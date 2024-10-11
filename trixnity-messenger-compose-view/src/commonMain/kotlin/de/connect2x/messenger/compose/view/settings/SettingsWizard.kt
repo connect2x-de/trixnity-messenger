@@ -20,8 +20,10 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
+import de.connect2x.messenger.compose.view.common.WizardNextButton
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -67,19 +69,15 @@ fun SettingsWizard(showWizardWrapper: Wrapper.ShowWizard) {
         mutableListOf<WizardStep>().apply {
             list.forEach {
                 when (it) {
-                    is WizardExplanation -> add(
-                        wizardStepExplanation(
-                            it, i18n
-                        ) { showWizardWrapper.viewModel.closeWizard() }
-                    )
+                    is WizardExplanation -> add(wizardStepExplanation(
+                        it, i18n
+                    ) { showWizardWrapper.viewModel.closeWizard() })
 
                     is WizardNotificationSettings -> add(wizardStepNotification(it, i18n))
 
-                    is WizardConfirm -> add(
-                        wizardStepConfirmation(
-                            it, i18n
-                        ) { showWizardWrapper.viewModel.closeWizard() }
-                    )
+                    is WizardConfirm -> add(wizardStepConfirmation(
+                        i18n
+                    ) { showWizardWrapper.viewModel.closeWizard() })
 
                     is WizardPrivacySettings -> add(wizardStepPrivacy(it, i18n))
 
@@ -126,8 +124,7 @@ private fun wizardStepNotification(wrapper: WizardNotificationSettings, i18n: I1
     )
 }
 
-private fun wizardStepConfirmation(wrapper: WizardConfirm, i18n: I18nView, closeWizard: () -> Unit): WizardStep {
-    val wrapper = wrapper
+private fun wizardStepConfirmation(i18n: I18nView, closeWizard: () -> Unit): WizardStep {
     return WizardStep(id = WIZARD_CONFIRM, title = { i18n.settingsWizardFinishSetupTitle() }, content = {
         Text(i18n.settingsWizardFinishSetup())
     }, nextButton = Custom {
@@ -172,7 +169,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
     return WizardStep(id = WIZARD_VERIFICATION, title = { "Verification" }, content = {
         Column {
             val isVerified = isVerified.collectAsState().value
-            if (!isVerified) {
+            if (isVerified == false) {
                 val account = selfVerification.userId
                 Text(account.toString())
                 val showHelp = selfVerification.showVerificationHelp.collectAsState().value
@@ -196,7 +193,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
 
                     else -> ShowSelfVerificationMethodsContent(methods, selected)
                 }
-            } else if (isVerified) {
+            } else if (isVerified == true) {
                 Column {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
@@ -208,7 +205,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
                     Text(i18n.verificationVerifiedDevice())
 
                 }
-            } else {
+            } else if (isVerified == false) {
                 val verificationStarted = remember { mutableStateOf(false) }
                 if (!verificationStarted.value) {
                     selected.value?.let { wrapper.startVerification(it) }
@@ -218,7 +215,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
         }
     }, additionalButton = {
         val isVerified = isVerified.collectAsState().value
-        if (!isVerified) {
+        if (isVerified == false) {
             val showHelp = selfVerification.showVerificationHelp.collectAsState().value
             val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null
             val showKey = selfVerification.showRecoveryKeyMethod.collectAsState().value != null
@@ -242,16 +239,18 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
                     else -> {
                         val selectedMethod = selected.value
                         println("Method is $selectedMethod")
-                        if (selected.value is SelfVerificationMethod.CrossSignedDeviceVerification) {
-                            wrapper.startCrossSigning()
-                            startCrossDevice.value = true
-                        }
-                        selected.value?.let { selfVerification.launchVerification(it) }
+                        selected.value?.let { wrapper.startVerification(it) }
                     }
                 }
             }) {
                 Text(i18n.commonNext())
             }
         }
-    })
+    }, switchButtonOrder = false,
+        nextButton = Custom {
+            Button(onClick = {}) {
+                Text(i18n.commonSkip())
+            }
+        }
+    )
 }

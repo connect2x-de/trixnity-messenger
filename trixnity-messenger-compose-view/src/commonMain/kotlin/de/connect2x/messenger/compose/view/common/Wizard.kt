@@ -44,6 +44,10 @@ interface WizardNextButton {
     data class Standard(val enabled: @Composable () -> Boolean = { true }) : WizardNextButton
     data object None : WizardNextButton
     data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNextButton
+    data class CustomNextStep(
+        val onClick: @Composable RowScope.() -> Unit,
+        val enabled: @Composable () -> Boolean = { true }
+    ) : WizardNextButton
 }
 
 @Immutable
@@ -53,6 +57,7 @@ data class WizardStep(
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
     val nextButton: WizardNextButton = WizardNextButton.Standard(),
+    val switchButtonOrder: Boolean = false
 )
 
 @Composable
@@ -168,11 +173,19 @@ private fun WizardButtons(
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
         if (previousStep != null) {
             if (additionalButton != null) {
-                MessengerModalButtonRow(
-                    button1 = { additionalButton { stepId -> currentStep.value = stepId } },
-                    button2 = { BackButton(currentStep, previousStep) },
-                    button3 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
+                if (wizardStep.switchButtonOrder) {
+                    MessengerModalButtonRow(
+                        button1 = { NextButton(wizardStep, nextStep, currentStep) },
+                        button2 = { BackButton(currentStep, previousStep) },
+                        button3 = { additionalButton { stepId -> currentStep.value = stepId } },
+                    )
+                } else {
+                    MessengerModalButtonRow(
+                        button1 = { additionalButton { stepId -> currentStep.value = stepId } },
+                        button2 = { BackButton(currentStep, previousStep) },
+                        button3 = { NextButton(wizardStep, nextStep, currentStep) },
+                    )
+                }
             } else {
                 MessengerModalButtonRow(
                     button1 = { BackButton(currentStep, previousStep) },
@@ -181,10 +194,17 @@ private fun WizardButtons(
             }
         } else {
             if (additionalButton != null) {
-                MessengerModalButtonRow(
-                    button1 = { additionalButton { stepId -> currentStep.value = stepId } },
-                    button2 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
+                if (wizardStep.switchButtonOrder) {
+                    MessengerModalButtonRow(
+                        button1 = { NextButton(wizardStep, nextStep, currentStep) },
+                        button2 = { additionalButton { stepId -> currentStep.value = stepId } },
+                    )
+                } else {
+                    MessengerModalButtonRow(
+                        button1 = { additionalButton { stepId -> currentStep.value = stepId } },
+                        button2 = { NextButton(wizardStep, nextStep, currentStep) },
+                    )
+                }
             } else {
                 MessengerModalButtonRow(
                     button1 = { NextButton(wizardStep, nextStep, currentStep) },
@@ -210,6 +230,10 @@ private fun RowScope.NextButton(
         is WizardNextButton.Custom -> {
             nextButton.button(this@NextButton)
         }
+
+        is WizardNextButton.CustomNextStep -> {
+            nextStep?.let { CustomNextStepButtonImpl(currentStep, nextStep, nextButton.enabled, nextButton.onClick) }
+        }
     }
 }
 
@@ -233,5 +257,20 @@ private fun BackButton(currentStep: MutableState<StepId>, previousStep: StepId) 
         modifier = Modifier.buttonPointerModifier(),
     ) {
         Text(i18n.commonBack())
+    }
+}
+
+@Composable
+private fun CustomNextStepButtonImpl(
+    currentStep: MutableState<StepId>,
+    nextStep: StepId,
+    enabled: @Composable (() -> Boolean),
+    onClick: RowScope.() -> Unit
+) {
+    Button(onClick = {
+        onClick()
+        currentStep.value = nextStep
+    }, enabled = enabled()) {
+
     }
 }
