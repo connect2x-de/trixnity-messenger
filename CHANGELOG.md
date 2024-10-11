@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - enable context menu in web version
 - edge-to-edge support for Android
 - Emoji reactions on messages
+- UI: ability to see Aliases without edit permissions
 
 ### Changed
 

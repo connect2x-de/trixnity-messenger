@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,7 +50,8 @@ fun TooltipIconButton(
     Box(
         modifier
             .minimumInteractiveComponentSize()
-            .size(40.dp),
+            .size(40.dp)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Tooltip(

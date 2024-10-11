@@ -568,9 +568,10 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
+            isDirect = MutableStateFlow(false),
             removeAliasError = removeError,
             updateError = updateError,
-            newAliasError = addError
+            newAliasError = addError,
         )
     }
 }
