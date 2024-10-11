@@ -8,15 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.stack.Children
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
-import de.connect2x.messenger.compose.view.files.ImageOverlay
-import de.connect2x.messenger.compose.view.files.PdfOverlay
-import de.connect2x.messenger.compose.view.files.VideoOverlay
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
 
 private val MAX_WIDTH = 1600.dp
 
@@ -52,18 +47,5 @@ class MainViewImpl : MainView {
         MediaOverlaySwitch(mainViewModel)
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
-    }
-}
-
-@Composable
-private fun MediaOverlaySwitch(mainViewModel: MainViewModel) {
-    Children(stack = mainViewModel.mediaRouterStack) {
-        when (val child = it.instance) {
-            is MediaRouter.Wrapper.Image -> ImageOverlay(child.viewModel)
-            is MediaRouter.Wrapper.Video -> VideoOverlay(child.viewModel)
-            is MediaRouter.Wrapper.Pdf -> PdfOverlay(child.viewModel)
-            // TODO Text and Markdown
-            else -> Box {}
-        }.let {}
     }
 }

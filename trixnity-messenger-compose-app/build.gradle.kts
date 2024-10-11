@@ -54,7 +54,6 @@ val buildConfigGenerator by tasks.registering {
             createNewFile()
             writeText(buildConfigString)
         }
-        outputFile.asFile.writeText(buildConfigString)
     }
     outputs.dirs(generatedSrc)
     dependsOn(licenses)
