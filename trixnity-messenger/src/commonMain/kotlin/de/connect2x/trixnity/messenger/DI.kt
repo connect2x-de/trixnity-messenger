@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import MediaViewModelFactory
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -16,12 +17,12 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
-import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
+import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
@@ -34,6 +35,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountVi
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
@@ -294,6 +296,8 @@ private fun connectingViewModels() = module {
 private fun filesViewModels() = module {
     single<ImageViewModelFactory> { ImageViewModelFactory }
     single<VideoViewModelFactory> { VideoViewModelFactory }
+    single<PdfDocumentViewModelFactory> { PdfDocumentViewModelFactory }
+    single<MediaViewModelFactory> { MediaViewModelFactory }
 }
 
 private fun syncViewModels() = module {

@@ -124,6 +124,8 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             every { roomServiceMock.getPreviousTimelineEvent(any(), any()) } returns
                     dummyEvent
             every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
+            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+                    MutableStateFlow(emptyMap())
 
             every { userServiceMock.getById(eq(roomId), any()) } returns
                     MutableStateFlow(null)

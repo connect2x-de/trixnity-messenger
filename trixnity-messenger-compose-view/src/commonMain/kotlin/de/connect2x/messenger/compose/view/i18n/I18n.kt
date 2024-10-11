@@ -308,12 +308,12 @@ abstract class I18nView(
     }
 
     fun makeMainAlias() = translate {
-        EN - "set as mainalias"
+        EN - "set as main alias"
         DE - "als Hauptalias setzen"
     }
 
     fun unmakeMainAlias() = translate {
-        EN - "remove as mainalias"
+        EN - "remove as main alias"
         DE - "als Hauptalias entfernen"
     }
 
@@ -1872,6 +1872,16 @@ abstract class I18nView(
         DE - "Dieser Vorgang kann einige Zeit dauern und ist nur beim ersten Start von $appName auf diesem Gerät notwendig."
     }
 
+    fun fileOverlayPreviewNotSupported() = translate {
+        EN - "File preview not supported"
+        DE - "Datei-Vorschau nicht verfügbar"
+    }
+
+    fun fileOverlayPdfPageDescriptor(pageId: Int) = translate {
+        EN - "PDF page number: $pageId"
+        DE - "PDF-Seiten-Nummer $pageId"
+    }
+
     fun invitationAccept() = translate {
         EN - "accept the invitation"
         DE - "Einladung annehmen"
@@ -2012,6 +2022,11 @@ abstract class I18nView(
         DE - "Antworten"
     }
 
+    fun reactMessage() = translate {
+        EN - "React"
+        DE - "Reagieren"
+    }
+
     fun reportMessage() = translate {
         EN - "Report"
         DE - "Bericht"
@@ -2023,7 +2038,7 @@ abstract class I18nView(
     }
 
     fun reportMessageLabel() = translate {
-        EN - "Pleaes enter report reason"
+        EN - "Please enter report reason"
         DE - "Bitte geben Sie den Grund für die Meldung ein"
     }
 
@@ -2326,7 +2341,6 @@ abstract class I18nView(
         DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
         EN - "The activation of the encryption of the chat cannot be revoked."
     }
-
 }
 
 fun i18nViewModule() = module {

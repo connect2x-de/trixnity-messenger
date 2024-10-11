@@ -9,7 +9,7 @@ import web.file.File
 class JsFileDescriptor(val file: File) : FileDescriptor {
 
     override val fileName: String = file.name
-    override val fileSize: Int = file.size.toInt()
+    override val fileSize: Long = file.size.toLong()
     override val mimeType: ContentType? = ContentType.fromFilePath(file.name).firstOrNull()
     override val content: ByteArrayFlow = byteArrayFlowFromReadableStream { file.stream() }
 }

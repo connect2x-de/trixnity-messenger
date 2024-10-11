@@ -1,7 +1,9 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -58,17 +60,16 @@ class MessageContainerViewImpl : MessageContainerView {
         ) {
             val padding =
                 (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
-            if (roomMessageViewModel.isByMe) {
-                Row(
-                    modifier = Modifier.padding(
-                        start = padding,
-                        end = 0.dp,
-                        top = topPadding,
-                        bottom = 0.dp
-                    )
-                        .align(Alignment.CenterEnd),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+            Column(
+                modifier = Modifier.run {
+                    if (roomMessageViewModel.isByMe) padding(start = padding, top = topPadding)
+                        .align(Alignment.CenterEnd)
+                    else padding(end = padding, top = topPadding)
+                },
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = if (roomMessageViewModel.isByMe) Alignment.End else Alignment.Start,
+            ) {
+                Row {
                     if (redactionInProgress) {
                         RedactionInProgress()
                     }
@@ -77,26 +78,12 @@ class MessageContainerViewImpl : MessageContainerView {
                         timelineElementHolderViewModel,
                     )
                 }
-            } else {
-                Row(
-                    modifier = Modifier.padding(
-                        start = 0.dp,
-                        end = padding,
-                        top = topPadding,
-                        bottom = 0.dp
-                    ),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MessageBubble(
-                        roomMessageViewModel,
-                        timelineElementHolderViewModel,
-                    )
-                    if (redactionInProgress) {
-                        RedactionInProgress()
-                    }
-                }
+                MessageReactions(
+                    roomMessageViewModel,
+                    timelineElementHolderViewModel,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
             }
-
         }
     }
 }

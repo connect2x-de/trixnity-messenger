@@ -241,7 +241,8 @@ open class OutboxElementHolderViewModelImpl(
                             showSender = MutableStateFlow(false),
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             invitation = MutableStateFlow(null),
-                            mediaUploadProgress = outboxMessage.mediaUploadProgress
+                            mediaUploadProgress = outboxMessage.mediaUploadProgress,
+                            onOpenModal = onOpenModal,
                         )
                     }
 

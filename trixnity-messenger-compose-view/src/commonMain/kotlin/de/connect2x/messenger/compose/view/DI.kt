@@ -24,6 +24,8 @@ import de.connect2x.messenger.compose.view.connecting.StoreFailureView
 import de.connect2x.messenger.compose.view.connecting.StoreFailureViewImpl
 import de.connect2x.messenger.compose.view.files.ImageOverlayView
 import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
+import de.connect2x.messenger.compose.view.files.PdfOverlayView
+import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
 import de.connect2x.messenger.compose.view.files.VideoOverlayView
 import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
@@ -115,6 +117,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationView
@@ -290,6 +294,7 @@ fun connectingViewModule() = module {
 fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
+    single<PdfOverlayView> { PdfOverlayViewImpl() }
 }
 
 fun profileViewModule() = module {
@@ -358,6 +363,7 @@ fun timelineViewModule() = module {
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
     single<MessageContainerView> { MessageContainerViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
+    single<MessageReactionsView> { MessageReactionsViewImpl() }
     single<MessageBubbleContentView> { MessageBubbleContentViewImpl() }
     single<GetContextMenuActionsView> { GetContextMenuActionsViewImpl() }
     single<MessageAndDateView> { MessageAndDateViewImpl() }

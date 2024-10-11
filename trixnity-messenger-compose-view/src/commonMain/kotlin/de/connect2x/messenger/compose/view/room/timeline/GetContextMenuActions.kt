@@ -14,6 +14,7 @@ import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHold
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.DOWNLOAD
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.EDIT
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REDACT
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REACT
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPLY
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPORT
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.RETRY_SEND
@@ -29,6 +30,7 @@ enum class BaseTimelineElementHolderContextMenuActionType {
     DOWNLOAD,
     EDIT,
     REDACT,
+    REACT,
     REPLY,
     REPORT,
     RETRY_SEND,
@@ -133,13 +135,24 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                                     action = baseTimelineElementHolderViewModel::redact
                                 )
                             )
-                            if (canBeRepliedTo.value) add(
-                                BaseTimelineElementHolderContextMenuAction(
-                                    type = REPLY,
-                                    label = i18n.replyMessage(),
-                                    action = baseTimelineElementHolderViewModel::replyTo
+                            if (canBeRepliedTo.value) {
+                                add(
+                                    BaseTimelineElementHolderContextMenuAction(
+                                        type = REPLY,
+                                        label = i18n.replyMessage(),
+                                        action = baseTimelineElementHolderViewModel::replyTo
+                                    )
                                 )
-                            )
+                                add(
+                                    BaseTimelineElementHolderContextMenuAction(
+                                        type = REACT,
+                                        label = i18n.reactMessage(),
+                                        action = {
+                                            baseTimelineElementHolderViewModel.reactionsOpen.value = true
+                                        }
+                                    )
+                                )
+                            }
 
                             if (canBeReportedTo.value) add(
                                 BaseTimelineElementHolderContextMenuAction(

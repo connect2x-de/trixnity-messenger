@@ -632,9 +632,7 @@ private fun MessageFile(
             Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = {
-                            fileMessageViewModel.openSaveFileDialog()
-                        },
+                        onTap = { fileMessageViewModel.openFile() },
                         onLongPress = onLongPress,
                     )
                 }
