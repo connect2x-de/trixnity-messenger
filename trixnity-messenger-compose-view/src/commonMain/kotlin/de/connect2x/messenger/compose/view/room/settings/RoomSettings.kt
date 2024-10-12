@@ -69,7 +69,6 @@ class RoomSettingsViewImpl : RoomSettingsView {
         val error = roomSettingsViewModel.error.collectAsState().value
         val leaveRoomWarningOpen = roomSettingsViewModel.leaveRoomWarningOpen.collectAsState().value
         val scroll = rememberScrollState()
-        val isDirect = roomSettingsViewModel.isDirect.collectAsState().value
         val joinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
 
         Box(
@@ -120,7 +119,8 @@ class RoomSettingsViewImpl : RoomSettingsView {
                         RoomSettingsTopic(roomTopicViewModel)
                         Spacer(Modifier.size(20.dp))
                         val roomAliasViewModel = roomSettingsViewModel.roomSettingsAliasViewModel
-                        if (roomAliasViewModel.canChangeRoomAlias.collectAsState().value && !isDirect) {
+                        val showRoomAliasSettings = roomAliasViewModel.showRoomAliasSettings.collectAsState().value
+                        if (showRoomAliasSettings) {
                             RoomSettingsAlias(roomAliasViewModel)
                             Spacer(Modifier.size(20.dp))
                         }

@@ -17,6 +17,7 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPopWhile
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
@@ -32,6 +33,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
@@ -86,9 +88,12 @@ import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.Timeline
 import net.folivo.trixnity.client.room.getAccountData
+import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.originTimestamp
+import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.verification
@@ -605,6 +610,7 @@ class TimelineViewModelImpl(
                 isDirect = isDirect,
                 isReadFlow = readEventsFlow.map { readEvents -> readEvents.contains(eventId) },
                 readBy = readByUsersList(eventId),
+                reactions = reactionMap(eventId),
                 shouldShowUnreadMarkerFlow = unreadElementFlow.map { it == eventId },
                 onMessageEdited = ::onMessageEdited,
                 onMessageRepliedTo = ::onMessageRepliedTo,
@@ -961,6 +967,31 @@ class TimelineViewModelImpl(
                         readBy.size <= 10 && readBy.size < roomUsersSize
                     }.lastOrNull()?.take(11)?.sorted() ?: emptyList()
             } ?: emptyList()
+    }
+
+    private fun reactionMap(eventId: EventId): Flow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> {
+        return combine(
+            matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId),
+            roomUsers
+        ) { reactions, roomUsers ->
+            reactions.reactions.mapValues { (_, events) ->
+                events.mapNotNull { event ->
+                    roomUsers[event.sender]?.let { sender ->
+                        TimelineElementHolderViewModel.ReactionEvent(
+                            eventId = event.eventId,
+                            sender = UserInfoElement(
+                                name = sender.originalName ?: sender.name,
+                                userId = sender.userId,
+                                initials = Initials.compute(sender.originalName ?: sender.name),
+                                image = null
+                            ),
+                            isMe = event.sender == matrixClient.userId,
+                            timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
+                        )
+                    }
+                }.toSet()
+            }
+        }
     }
 
     private fun onVerifyUser() {

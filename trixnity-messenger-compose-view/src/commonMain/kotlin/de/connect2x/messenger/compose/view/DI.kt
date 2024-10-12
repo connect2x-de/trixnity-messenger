@@ -117,6 +117,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationView
@@ -363,6 +365,7 @@ fun timelineViewModule() = module {
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
     single<MessageContainerView> { MessageContainerViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
+    single<MessageReactionsView> { MessageReactionsViewImpl() }
     single<MessageBubbleContentView> { MessageBubbleContentViewImpl() }
     single<GetContextMenuActionsView> { GetContextMenuActionsViewImpl() }
     single<MessageAndDateView> { MessageAndDateViewImpl() }

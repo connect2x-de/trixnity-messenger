@@ -332,6 +332,16 @@ abstract class I18nView(
         DE - "als Hauptalias entfernen"
     }
 
+    fun mainAlias() = translate {
+        EN - "mainalias"
+        DE - "Hauptalias"
+    }
+
+    fun alias() = translate {
+        EN - "alias"
+        DE - "Alias"
+    }
+
     fun manageAliases() = translate {
         EN - "manage aliases"
         DE - "Aliase verwalten"
@@ -345,6 +355,11 @@ abstract class I18nView(
     fun aliases() = translate {
         EN - "aliases"
         DE - "Aliase"
+    }
+
+    fun showAliases() = translate {
+        EN - "show aliases"
+        DE - "Aliase anzeigen"
     }
 
     fun automated() = translate {
@@ -2022,6 +2037,11 @@ abstract class I18nView(
         DE - "Antworten"
     }
 
+    fun reactMessage() = translate {
+        EN - "React"
+        DE - "Reagieren"
+    }
+
     fun reportMessage() = translate {
         EN - "Report"
         DE - "Bericht"
@@ -2033,7 +2053,7 @@ abstract class I18nView(
     }
 
     fun reportMessageLabel() = translate {
-        EN - "Pleaes enter report reason"
+        EN - "Please enter report reason"
         DE - "Bitte geben Sie den Grund für die Meldung ein"
     }
 
