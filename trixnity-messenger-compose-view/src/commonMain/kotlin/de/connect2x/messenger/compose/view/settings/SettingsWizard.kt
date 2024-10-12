@@ -171,7 +171,9 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
                 val account = selfVerification.userId
+                val needsBootstrap = wrapper.needsBootstrap.collectAsState().value
                 Text(account.toString())
+                Text(needsBootstrap.toString())
                 val showHelp = selfVerification.showVerificationHelp.collectAsState().value
                 val methods = selfVerification.selfVerificationMethods.collectAsState()
                 val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null

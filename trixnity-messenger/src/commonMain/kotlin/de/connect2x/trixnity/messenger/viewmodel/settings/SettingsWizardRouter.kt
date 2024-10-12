@@ -59,7 +59,7 @@ class SettingsWizardRouter(
         log.debug { "Closing Settings Wizard for $userId" }
         coroutineScope.launch {
             settings.update<MatrixMessengerAccountSettingsBase>(userId) {
-                it.copy(showAccountWizard = false)
+                it.copy(accountBootstrappingFinished = true)
             }
             navigation.popWhileSuspending { it is Config.ShowWizard && it.userId == userId }
         }

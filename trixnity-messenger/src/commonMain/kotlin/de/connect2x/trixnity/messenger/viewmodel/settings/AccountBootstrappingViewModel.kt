@@ -15,14 +15,18 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationVi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.key
+import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
+import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.reflect.KClass
@@ -77,6 +81,18 @@ class AccountBootstrappingViewModelImpl(
 ) :
     ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
     private val account = viewModelContext.userId
+    private val bootstrapNecessary = MutableStateFlow(true)
+
+    init {
+        coroutineScope.launch {
+            matrixClients.map { it[account] }.filterNotNull()
+                .map { it.verification.getSelfVerificationMethods() == VerificationService.SelfVerificationMethods.NoCrossSigningEnabled }
+                .collect {
+                    bootstrapNecessary.value = it
+                }
+
+        }
+    }
 
     val privacySettingsViewModel = get<PrivacySettingsSingleAccountViewModelFactory>().create(viewModelContext) {}
     val notificationSettingsViewModel =
@@ -111,6 +127,7 @@ class AccountBootstrappingViewModelImpl(
                 WizardVerification::class -> add(
                     WizardVerification(
                         isVerified,
+                        bootstrapNecessary,
                         selfVerificationViewModel,
                         verificationViewModel,
                         ::startVerification
@@ -130,6 +147,7 @@ class AccountBootstrappingViewModelImpl(
         data class WizardExplanation(val userId: UserId) : Wrapper()
         data class WizardVerification(
             val isVerified: StateFlow<Boolean?>,
+            val needsBootstrap: StateFlow<Boolean>,
             val selfVerificationViewModel: SelfVerificationViewModel,
             val verificationViewModel: VerificationViewModel,
             val startVerification: (selfVerificationMethod: SelfVerificationMethod) -> Unit

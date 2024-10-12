@@ -368,7 +368,7 @@ class RoomListRouter(
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
             log.debug { "Reset settings wizard for account $userId" }
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(showAccountWizard = true)}
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(accountBootstrappingFinished = false)}
         }
         onActivateSettingsWizard(userId)
     }
