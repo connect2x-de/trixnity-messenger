@@ -246,11 +246,13 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
                 Text(i18n.commonNext())
             }
         }
-    }, switchButtonOrder = false,
-        nextButton = Custom {
-            Button(onClick = {}) {
+    }, switchButtonOrder = { isVerified.collectAsState().value == false },
+        nextButton = Standard(content = {
+            if (isVerified.collectAsState().value == true) {
+                Text(i18n.commonNext())
+            } else {
                 Text(i18n.commonSkip())
             }
-        }
+        })
     )
 }

@@ -41,13 +41,13 @@ import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 typealias StepId = String
 
 interface WizardNextButton {
-    data class Standard(val enabled: @Composable () -> Boolean = { true }) : WizardNextButton
+    data class Standard(
+        val enabled: @Composable () -> Boolean = { true },
+        val content: (@Composable () -> Unit)? = null
+    ) : WizardNextButton
+
     data object None : WizardNextButton
     data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNextButton
-    data class CustomNextStep(
-        val onClick: @Composable RowScope.() -> Unit,
-        val enabled: @Composable () -> Boolean = { true }
-    ) : WizardNextButton
 }
 
 @Immutable
@@ -57,7 +57,7 @@ data class WizardStep(
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
     val nextButton: WizardNextButton = WizardNextButton.Standard(),
-    val switchButtonOrder: Boolean = false
+    val switchButtonOrder: @Composable () -> Boolean = { false }
 )
 
 @Composable
@@ -173,7 +173,7 @@ private fun WizardButtons(
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
         if (previousStep != null) {
             if (additionalButton != null) {
-                if (wizardStep.switchButtonOrder) {
+                if (wizardStep.switchButtonOrder()) {
                     MessengerModalButtonRow(
                         button1 = { NextButton(wizardStep, nextStep, currentStep) },
                         button2 = { BackButton(currentStep, previousStep) },
@@ -194,7 +194,7 @@ private fun WizardButtons(
             }
         } else {
             if (additionalButton != null) {
-                if (wizardStep.switchButtonOrder) {
+                if (wizardStep.switchButtonOrder()) {
                     MessengerModalButtonRow(
                         button1 = { NextButton(wizardStep, nextStep, currentStep) },
                         button2 = { additionalButton { stepId -> currentStep.value = stepId } },
@@ -222,7 +222,7 @@ private fun RowScope.NextButton(
 ) {
     when (val nextButton = wizardStep.nextButton) {
         is WizardNextButton.Standard -> {
-            nextStep?.let { NextButtonImpl(currentStep, nextStep, nextButton.enabled) }
+            nextStep?.let { NextButtonImpl(currentStep, nextStep, nextButton) }
         }
 
         is WizardNextButton.None -> {}
@@ -231,21 +231,23 @@ private fun RowScope.NextButton(
             nextButton.button(this@NextButton)
         }
 
-        is WizardNextButton.CustomNextStep -> {
-            nextStep?.let { CustomNextStepButtonImpl(currentStep, nextStep, nextButton.enabled, nextButton.onClick) }
-        }
+//        is WizardNextButton.CustomNextStep -> {
+//            nextStep?.let { CustomNextStepButtonImpl(currentStep, nextStep, nextButton.enabled, nextButton.onClick) }
+//        }
     }
 }
 
 @Composable
-private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, enabled: @Composable () -> Boolean) {
+private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, nextButton: WizardNextButton.Standard) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = { currentStep.value = nextStep },
         modifier = Modifier.buttonPointerModifier(),
-        enabled = enabled(),
+        enabled = nextButton.enabled(),
     ) {
-        Text(i18n.commonNext())
+        if (nextButton.content != null) {
+            nextButton.content()
+        } else Text(i18n.commonNext())
     }
 }
 
@@ -260,17 +262,17 @@ private fun BackButton(currentStep: MutableState<StepId>, previousStep: StepId) 
     }
 }
 
-@Composable
-private fun CustomNextStepButtonImpl(
-    currentStep: MutableState<StepId>,
-    nextStep: StepId,
-    enabled: @Composable (() -> Boolean),
-    onClick: RowScope.() -> Unit
-) {
-    Button(onClick = {
-        onClick()
-        currentStep.value = nextStep
-    }, enabled = enabled()) {
-
-    }
-}
+//@Composable
+//private fun CustomNextStepButtonImpl(
+//    currentStep: MutableState<StepId>,
+//    nextStep: StepId,
+//    enabled: @Composable (() -> Boolean),
+//    onClick: RowScope.() -> Unit
+//) {
+//    Button(onClick = {
+//        onClick()
+//        currentStep.value = nextStep
+//    }, enabled = enabled()) {
+//
+//    }
+//}
