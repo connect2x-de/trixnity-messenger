@@ -169,8 +169,8 @@ import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.messenger.compose.view.settings.AccountsOverviewView
 import de.connect2x.messenger.compose.view.settings.AccountsOverviewViewImpl
-import de.connect2x.messenger.compose.view.settings.AdditionalSettingsWizardStep
-import de.connect2x.messenger.compose.view.settings.AdditionalSettingsWizardStepImpl
+import de.connect2x.messenger.compose.view.settings.AdditionalAccountBootstrappingWizardStep
+import de.connect2x.messenger.compose.view.settings.AdditionalAccountBootstrappingWizardStepImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintView
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintViewImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoLicensesView
@@ -411,7 +411,7 @@ fun settingsViewModule() = module {
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<ProfileSettingsView> { ProfileSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
-    single<AdditionalSettingsWizardStep> { AdditionalSettingsWizardStepImpl() }
+    single<AdditionalAccountBootstrappingWizardStep> { AdditionalAccountBootstrappingWizardStepImpl() }
 }
 
 fun verificationViewModule() = module {

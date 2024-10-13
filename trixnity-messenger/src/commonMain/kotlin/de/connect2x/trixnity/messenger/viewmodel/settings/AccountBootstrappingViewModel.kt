@@ -8,7 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingVi
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardPrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardVerification
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
@@ -31,14 +31,14 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.reflect.KClass
 
-interface SettingsWizardSteps {
+interface AccountBootstrappingSteps {
     val steps: List<KClass<out Wrapper>>
 }
 
 /**
  * The class types of the Steps that are shown in the Wizard
  */
-data object SettingsWizardStepsImpl : SettingsWizardSteps {
+data object AccountBootstrappingStepsImpl : AccountBootstrappingSteps {
     override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
         WizardExplanation::class, WizardPrivacySettings::class,
         WizardNotificationSettings::class, WizardVerification::class, WizardConfirm::class,
@@ -49,13 +49,13 @@ data object SettingsWizardStepsImpl : SettingsWizardSteps {
  * Implement this interface in a class and change the DI to use the class
  * when searching for non-default Wizard steps to easily add new steps
  */
-interface AdditionalSettingsWizardWrapper {
+interface AdditionalAccountBootstrappingWrapper {
     fun <T : KClass<out Wrapper>> create(classType: T): Wrapper
 }
 
-class AdditionalSettingsWizardWrapperImpl() : AdditionalSettingsWizardWrapper {
+class AdditionalAccountBootstrappingWrapperImpl() : AdditionalAccountBootstrappingWrapper {
     override fun <T : KClass<out Wrapper>> create(classType: T): Wrapper {
-        throw IllegalArgumentException("Creating a SettingsWizard Wrapper with $classType is unsupported and requires an implementation")
+        throw IllegalArgumentException("Creating an AccountBootstrapping Wrapper with $classType is unsupported and requires an implementation")
     }
 }
 
@@ -118,7 +118,7 @@ class AccountBootstrappingViewModelImpl(
 
 
     override val steps = mutableListOf<Wrapper>().apply {
-        get<SettingsWizardSteps>().steps.forEach {
+        get<AccountBootstrappingSteps>().steps.forEach {
             when (it) {
                 WizardExplanation::class -> add(WizardExplanation(account))
                 WizardConfirm::class -> add(WizardConfirm)
@@ -134,7 +134,7 @@ class AccountBootstrappingViewModelImpl(
                     )
                 )
 
-                else -> add(get<AdditionalSettingsWizardWrapper>().create(it))
+                else -> add(get<AdditionalAccountBootstrappingWrapper>().create(it))
             }
         }
     }

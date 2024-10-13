@@ -9,7 +9,7 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -21,7 +21,7 @@ private val log = KotlinLogging.logger { }
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SettingsWizardRouter(
+class AccountBootstrappingRouter(
     private val viewModelContext: ViewModelContext,
 ) : ViewModelContext by viewModelContext {
 
@@ -31,7 +31,7 @@ class SettingsWizardRouter(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = Config.None,
-        key = "SettingsWizardRouter,",
+        key = "AccountBootstrappingRouter",
         childFactory = ::createChild
     )
 
@@ -40,13 +40,13 @@ class SettingsWizardRouter(
             Wrapper.None
         }
 
-        is Config.ShowWizard -> {
-            log.debug { "Building Settings Wizard" }
-            Wrapper.ShowWizard(
+        is Config.ShowBootstrap -> {
+            log.debug { "Building Account Bootstrapping for ${config.userId}" }
+            Wrapper.ShowBootstrap(
                 get<AccountBootstrappingViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext, userId = config.userId
-                    ), ::onWizardClose
+                    ), ::onBootstrapClose
                 )
             )
         }
@@ -55,31 +55,31 @@ class SettingsWizardRouter(
 
     private val settings = get<MatrixMessengerSettingsHolder>()
 
-    fun onWizardClose(userId: UserId) {
-        log.debug { "Closing Settings Wizard for $userId" }
+    fun onBootstrapClose(userId: UserId) {
+        log.debug { "Closing AccountBootstrapping for $userId" }
         coroutineScope.launch {
             settings.update<MatrixMessengerAccountSettingsBase>(userId) {
-                it.copy(accountBootstrappingFinished = true)
+                it.copy(deviceBootstrappingFinished = true)
             }
-            navigation.popWhileSuspending { it is Config.ShowWizard && it.userId == userId }
+            navigation.popWhileSuspending { it is Config.ShowBootstrap && it.userId == userId }
         }
     }
 
-    fun startWizard(userId: UserId) {
-        log.debug { "Starting Wizard" }
-        navigation.launchPush(coroutineScope, Config.ShowWizard(userId))
+    fun startBootstrap(userId: UserId) {
+        log.debug { "Starting Bootstrapping for $userId" }
+        navigation.launchPush(coroutineScope, Config.ShowBootstrap(userId))
     }
 
 
     sealed class Wrapper {
-        data class ShowWizard(val viewModel: AccountBootstrappingViewModel) : Wrapper()
+        data class ShowBootstrap(val viewModel: AccountBootstrappingViewModel) : Wrapper()
         data object None : Wrapper()
     }
 
     @Serializable
     sealed class Config {
         @Serializable
-        data class ShowWizard(val userId: UserId) : Config()
+        data class ShowBootstrap(val userId: UserId) : Config()
 
         @Serializable
         data object None : Config()

@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -20,10 +21,8 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
-import de.connect2x.messenger.compose.view.common.WizardNextButton
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -39,45 +38,45 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingVi
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardPrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardVerification
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
-private val WIZARD_EXPLANATION = "SETTINGS_WIZARD_EXPLANATION"
-private val WIZARD_NOTIFICATION = "SETTINGS_WIZARD_NOTIFICATION"
-private val WIZARD_CONFIRM = "SETTINGS_WIZARD_CONFIRM"
-private val WIZARD_PRIVACY = "SETTINGS_WIZARD_PRIVACY"
-private val WIZARD_VERIFICATION = "SETTINGS_WIZARD_VERIFICATION"
+private val WIZARD_EXPLANATION = "ACCOUNT_BOOTSTRAP_WIZARD_EXPLANATION"
+private val WIZARD_NOTIFICATION = "ACCOUNT_BOOTSTRAP_WIZARD_NOTIFICATION"
+private val WIZARD_CONFIRM = "ACCOUNT_BOOTSTRAP_WIZARD_CONFIRM"
+private val WIZARD_PRIVACY = "ACCOUNT_BOOTSTRAP_WIZARD_PRIVACY"
+private val WIZARD_VERIFICATION = "ACCOUNT_BOOTSTRAP_WIZARD_VERIFICATION"
 
-interface AdditionalSettingsWizardStep {
+interface AdditionalAccountBootstrappingWizardStep {
     fun <T : Wrapper> create(wrapper: T): WizardStep
 }
 
-class AdditionalSettingsWizardStepImpl() : AdditionalSettingsWizardStep {
+class AdditionalAccountBootstrappingWizardStepImpl() : AdditionalAccountBootstrappingWizardStep {
     override fun <T : Wrapper> create(wrapper: T): WizardStep {
-        throw IllegalArgumentException("Creating a SettingsWizard step with ${wrapper::class} is unsupported and requires an implementation")
+        throw IllegalArgumentException("Creating an AccountBootstrappingWizard step with ${wrapper::class} is unsupported and requires an implementation")
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsWizard(showWizardWrapper: Wrapper.ShowWizard) {
+fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
     val di = DI.current
     val i18n = di.get<I18nView>()
 
-    val list = showWizardWrapper.viewModel.steps
+    val list = showBootstrapWrapper.viewModel.steps
     val steps = remember {
         mutableListOf<WizardStep>().apply {
             list.forEach {
                 when (it) {
                     is WizardExplanation -> add(wizardStepExplanation(
                         it, i18n
-                    ) { showWizardWrapper.viewModel.closeWizard() })
+                    ) { showBootstrapWrapper.viewModel.closeWizard() })
 
                     is WizardNotificationSettings -> add(wizardStepNotification(it, i18n))
 
                     is WizardConfirm -> add(wizardStepConfirmation(
                         i18n
-                    ) { showWizardWrapper.viewModel.closeWizard() })
+                    ) { showBootstrapWrapper.viewModel.closeWizard() })
 
                     is WizardPrivacySettings -> add(wizardStepPrivacy(it, i18n))
 
@@ -85,7 +84,7 @@ fun SettingsWizard(showWizardWrapper: Wrapper.ShowWizard) {
 
                     Wrapper.None -> {}
 
-                    else -> add(di.get<AdditionalSettingsWizardStep>().create(it))
+                    else -> add(di.get<AdditionalAccountBootstrappingWizardStep>().create(it))
                 }
             }
         }
@@ -146,14 +145,14 @@ private fun wizardStepPrivacy(wrapper: WizardPrivacySettings, i18n: I18nView): W
                 explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
                 value = publicPresence,
                 toggle = { privacySettings.togglePresenceIsPublic() })
-            Setting(text = i18n.privacyTypingIsPublic(),
-                explanation = i18n.privacyTypingIsPublicExplanation(),
-                value = publicTyping,
-                toggle = { privacySettings.toggleTypingIsPublic() })
             Setting(text = i18n.privacyReadMarkerIsPublic(),
                 explanation = i18n.privacyReadMarkerIsPublicExplanation(),
                 value = publicRead,
                 toggle = { privacySettings.toggleReadMarkerIsPublic() })
+            Setting(text = i18n.privacyTypingIsPublic(),
+                explanation = i18n.privacyTypingIsPublicExplanation(),
+                value = publicTyping,
+                toggle = { privacySettings.toggleTypingIsPublic() })
         }
     })
 }
@@ -166,7 +165,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
     val selectedPassphrase = mutableStateOf<String>("")
     val selectedRecoveryKey = mutableStateOf<String>("")
     val startCrossDevice = mutableStateOf(false)
-    return WizardStep(id = WIZARD_VERIFICATION, title = { "Verification" }, content = {
+    return WizardStep(id = WIZARD_VERIFICATION, title = { i18n.deviceVerification() }, content = {
         Column {
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
@@ -196,7 +195,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
                     else -> ShowSelfVerificationMethodsContent(methods, selected)
                 }
             } else if (isVerified == true) {
-                Column {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         modifier = Modifier.align(Alignment.CenterHorizontally).size(50.dp),
@@ -204,7 +203,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
                         tint = MaterialTheme.messengerColors.success
                     )
                     SmallSpacer()
-                    Text(i18n.verificationVerifiedDevice())
+                    Text(i18n.verificationSucessThisDevice())
 
                 }
             } else if (isVerified == false) {
@@ -239,8 +238,6 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
 
 
                     else -> {
-                        val selectedMethod = selected.value
-                        println("Method is $selectedMethod")
                         selected.value?.let { wrapper.startVerification(it) }
                     }
                 }

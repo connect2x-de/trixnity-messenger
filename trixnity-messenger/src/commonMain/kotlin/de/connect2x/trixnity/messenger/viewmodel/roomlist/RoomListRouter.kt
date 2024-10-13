@@ -151,7 +151,7 @@ class RoomListRouter(
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
-                    onShowSettingsWizard = ::onResetSettingsWizard,
+                    onShowSettingsWizard = ::onShowSettingsWizard,
                 )
             )
 
@@ -364,11 +364,11 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onResetSettingsWizard (userId: UserId) {
+    private fun onShowSettingsWizard (userId: UserId) {
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
             log.debug { "Reset settings wizard for account $userId" }
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(accountBootstrappingFinished = false)}
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(deviceBootstrappingFinished = false)}
         }
         onActivateSettingsWizard(userId)
     }

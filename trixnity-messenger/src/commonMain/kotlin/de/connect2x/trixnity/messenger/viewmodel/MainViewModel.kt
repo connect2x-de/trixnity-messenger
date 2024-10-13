@@ -24,7 +24,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Mes
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.SettingsWizardRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -80,7 +80,7 @@ interface MainViewModel {
     val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
-    val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>>
+    val accountBootstrappingRouterStack: Value<ChildStack<AccountBootstrappingRouter.Config, AccountBootstrappingRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -144,7 +144,7 @@ open class MainViewModelImpl(
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
-            onActivateSettingsWizard = ::startSettingsWizard
+            onActivateSettingsWizard = ::startAccountBootstrapping
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
@@ -190,11 +190,11 @@ open class MainViewModelImpl(
     override val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>> =
         avatarCutterRouter.stack
 
-    private val settingsWizardRouter: SettingsWizardRouter =
-        SettingsWizardRouter(viewModelContext)
+    private val accountBootstrappingRouter: AccountBootstrappingRouter =
+        AccountBootstrappingRouter(viewModelContext)
 
-    override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
-        settingsWizardRouter.stack
+    override val accountBootstrappingRouterStack: Value<ChildStack<AccountBootstrappingRouter.Config, AccountBootstrappingRouter.Wrapper>> =
+        accountBootstrappingRouter.stack
 
     private fun backPressHandler() {
         if (mediaRouter.isMediaOpen()) {
@@ -237,7 +237,7 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
-        possiblyStartSettingsWizard()
+        possiblyStartAccountBootstrapping()
     }
 
     private fun startSync() {
@@ -410,12 +410,12 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun possiblyStartSettingsWizard() {
+    private fun possiblyStartAccountBootstrapping() {
         coroutineScope.launch {
             matrixClients.scopedCollectLatest { clients ->
                 clients.forEach {
-                    if (messengerSettings.value.base.accounts[it.key]?.base?.accountBootstrappingFinished == false) {
-                        startSettingsWizard(it.key)
+                    if (messengerSettings.value.base.accounts[it.key]?.base?.deviceBootstrappingFinished == false) {
+                        startAccountBootstrapping(it.key)
                     }
                 }
             }
@@ -424,8 +424,8 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun startSettingsWizard(userId: UserId) {
-        settingsWizardRouter.startWizard(userId)
+    private fun startAccountBootstrapping(userId: UserId) {
+        accountBootstrappingRouter.startBootstrap(userId)
     }
 
     override fun closeDetailsAndShowList() {
@@ -437,7 +437,7 @@ open class MainViewModelImpl(
 
     private fun onAccountSelected() {
         closeRoom()
-        possiblyStartSettingsWizard()
+        possiblyStartAccountBootstrapping()
     }
 
     private fun closeRoom() {
@@ -681,12 +681,12 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val settingsWizardRouterStack: Value<ChildStack<SettingsWizardRouter.Config, SettingsWizardRouter.Wrapper>> =
+    override val accountBootstrappingRouterStack: Value<ChildStack<AccountBootstrappingRouter.Config, AccountBootstrappingRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = SettingsWizardRouter.Config.None,
-                    instance = SettingsWizardRouter.Wrapper.None
+                    configuration = AccountBootstrappingRouter.Config.None,
+                    instance = AccountBootstrappingRouter.Wrapper.None
                 )
             )
         )
