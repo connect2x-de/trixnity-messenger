@@ -189,7 +189,6 @@ private fun WizardButtons(
         if (additionalButton == null) {
             buttonList.remove(WizardButtons.AdditionalButton)
         }
-        println("Wizard Steps after cutting: $buttonList")
         MessengerModalButtonRow(
             button1 = getCorrespondingButton(buttonList[0], wizardStep, nextStep, currentStep, previousStep),
             button2 = if (buttonList.size > 1)

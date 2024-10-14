@@ -40,8 +40,8 @@ interface AccountBootstrappingSteps {
  */
 data object AccountBootstrappingStepsImpl : AccountBootstrappingSteps {
     override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
-        WizardExplanation::class, WizardPrivacySettings::class,
-        WizardNotificationSettings::class, WizardVerification::class, WizardConfirm::class,
+        WizardExplanation::class, WizardVerification::class, WizardPrivacySettings::class,
+        WizardNotificationSettings::class, WizardConfirm::class,
     )
 }
 
