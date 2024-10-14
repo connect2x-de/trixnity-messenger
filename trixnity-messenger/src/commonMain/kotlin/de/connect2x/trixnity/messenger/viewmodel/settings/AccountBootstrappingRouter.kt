@@ -66,7 +66,7 @@ class AccountBootstrappingRouter(
     }
 
     fun startBootstrap(userId: UserId) {
-        log.debug { "Starting Bootstrapping for $userId" }
+        log.debug { "Starting Account Bootstrapping for $userId" }
         navigation.launchPush(coroutineScope, Config.ShowBootstrap(userId))
     }
 
