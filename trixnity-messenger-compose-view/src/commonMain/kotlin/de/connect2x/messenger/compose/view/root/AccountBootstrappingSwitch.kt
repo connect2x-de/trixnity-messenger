@@ -8,7 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter
 
 @Composable
-fun SettingsWizardSwitch(mainViewModel: MainViewModel) {
+fun AccountBootstrappingSwitch(mainViewModel: MainViewModel) {
     Box {
         Children(mainViewModel.accountBootstrappingRouterStack) {
             when (it.instance) {

@@ -96,7 +96,7 @@ fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
 private fun wizardStepExplanation(wrapper: WizardExplanation, i18n: I18nView, closeWizard: () -> Unit): WizardStep {
     return WizardStep(id = WIZARD_EXPLANATION,
         title = { "${i18n.commonWelcome()} ${wrapper.userId.localpart}" },
-        content = { Text(i18n.settingsWizardExplanationMessage()) },
+        content = { Text(i18n.accountBootstrappingWizardExplanationMessage()) },
         additionalButton = {
             Button(modifier = Modifier.buttonPointerModifier(), onClick = { closeWizard() }) {
                 Text(i18n.commonSkip())
@@ -125,8 +125,8 @@ private fun wizardStepNotification(wrapper: WizardNotificationSettings, i18n: I1
 }
 
 private fun wizardStepConfirmation(i18n: I18nView, closeWizard: () -> Unit): WizardStep {
-    return WizardStep(id = WIZARD_CONFIRM, title = { i18n.settingsWizardFinishSetupTitle() }, content = {
-        Text(i18n.settingsWizardFinishSetup())
+    return WizardStep(id = WIZARD_CONFIRM, title = { i18n.accountBootstrappingWizardFinishSetupTitle() }, content = {
+        Text(i18n.accountBootstrappingWizardFinishSetup())
     }, nextButton = Custom {
         Button(modifier = Modifier.buttonPointerModifier(), onClick = { closeWizard() }) {
             Text(i18n.commonConfirm())

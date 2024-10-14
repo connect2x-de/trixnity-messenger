@@ -1,14 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.UserId
-import org.koin.core.component.get
 
 
 interface UserSettingsViewModelFactory {
@@ -20,7 +14,7 @@ interface UserSettingsViewModelFactory {
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
-        onShowSettingsWizard: (userId: UserId) -> Unit,
+        onShowAccountBootstrapping: (userId: UserId) -> Unit,
     ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
@@ -30,7 +24,7 @@ interface UserSettingsViewModelFactory {
             onShowNotificationsSettings,
             onShowPrivacySettings,
             onShowAppearanceSettings,
-            onShowSettingsWizard,
+            onShowAccountBootstrapping,
         )
     }
 
@@ -44,7 +38,7 @@ interface UserSettingsViewModel {
     fun showNotificationsSettings()
     fun showPrivacySettings()
     fun showAppearanceSettings()
-    fun showSettingsWizard(userId: UserId)
+    fun showAccountBootstrapping(userId: UserId)
 }
 
 open class UserSettingsViewModelImpl(
@@ -55,7 +49,7 @@ open class UserSettingsViewModelImpl(
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
-    private val onShowSettingsWizard: (userId : UserId) -> Unit,
+    private val onShowAccountBootstrapping: (userId : UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -90,7 +84,7 @@ open class UserSettingsViewModelImpl(
         onShowAppearanceSettings()
     }
 
-    override fun showSettingsWizard(userId: UserId) {
-        onShowSettingsWizard(userId)
+    override fun showAccountBootstrapping(userId: UserId) {
+        onShowAccountBootstrapping(userId)
     }
 }

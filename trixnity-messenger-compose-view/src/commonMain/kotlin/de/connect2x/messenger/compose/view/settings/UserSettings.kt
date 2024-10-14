@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -58,7 +57,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     PrivacySettings(userSettingsViewModel)
                     DevicesSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
-                    SettingsWizardSettings(userSettingsViewModel)
+                    AccountBootstrappingSettings(userSettingsViewModel)
                 }
             }
         }
@@ -116,14 +115,14 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun SettingsWizardSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun AccountBootstrappingSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
     if (account != null) {
         SettingItem(
-            { Icon(Icons.Default.SettingsSuggest, i18n.settingsWizardReset()) },
-            i18n.settingsWizardReset().capitalize(Locale.current),
-            { userSettingsViewModel.showSettingsWizard(account) }
+            { Icon(Icons.Default.SettingsSuggest, i18n.accountBootstrappingWizardReset()) },
+            i18n.accountBootstrappingWizardReset().capitalize(Locale.current),
+            { userSettingsViewModel.showAccountBootstrapping(account) }
         )
     }
 }
