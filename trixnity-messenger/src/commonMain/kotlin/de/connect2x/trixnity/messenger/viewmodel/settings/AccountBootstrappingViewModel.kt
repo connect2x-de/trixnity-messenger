@@ -3,30 +3,26 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardConfirm
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardExplanation
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardPrivacySettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardVerification
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.reflect.KClass
@@ -81,22 +77,13 @@ class AccountBootstrappingViewModelImpl(
 ) :
     ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
     private val account = viewModelContext.userId
-    private val bootstrapNecessary = MutableStateFlow(true)
 
-    init {
-        coroutineScope.launch {
-            matrixClients.map { it[account] }.filterNotNull()
-                .map { it.verification.getSelfVerificationMethods() == VerificationService.SelfVerificationMethods.NoCrossSigningEnabled }
-                .collect {
-                    bootstrapNecessary.value = it
-                }
-
-        }
+    private val privacySettingsViewModel by lazy {
+        get<PrivacySettingsSingleAccountViewModelFactory>().create(viewModelContext) {}
     }
-
-    val privacySettingsViewModel = get<PrivacySettingsSingleAccountViewModelFactory>().create(viewModelContext) {}
-    val notificationSettingsViewModel =
+    private val notificationSettingsViewModel by lazy {
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
+    }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -105,8 +92,13 @@ class AccountBootstrappingViewModelImpl(
             .map { it.key.getTrustLevel(account, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private val selfVerificationViewModel = get<SelfVerificationViewModelFactory>().create(viewModelContext) {}
-    private val verificationViewModel = get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
+    private val selfVerificationViewModel by lazy {
+        get<SelfVerificationViewModelFactory>().create(viewModelContext) {}
+    }
+    private val verificationViewModel by lazy {
+        get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
+    }
+
 
     fun startVerification(selfVerificationMethod: SelfVerificationMethod) {
         selfVerificationViewModel.launchVerification(selfVerificationMethod)
@@ -127,7 +119,6 @@ class AccountBootstrappingViewModelImpl(
                 WizardVerification::class -> add(
                     WizardVerification(
                         isVerified,
-                        bootstrapNecessary,
                         selfVerificationViewModel,
                         verificationViewModel,
                         ::startVerification
@@ -147,7 +138,6 @@ class AccountBootstrappingViewModelImpl(
         data class WizardExplanation(val userId: UserId) : Wrapper()
         data class WizardVerification(
             val isVerified: StateFlow<Boolean?>,
-            val needsBootstrap: StateFlow<Boolean>,
             val selfVerificationViewModel: SelfVerificationViewModel,
             val verificationViewModel: VerificationViewModel,
             val startVerification: (selfVerificationMethod: SelfVerificationMethod) -> Unit
