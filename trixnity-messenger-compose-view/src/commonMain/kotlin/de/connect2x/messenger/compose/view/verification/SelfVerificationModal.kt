@@ -106,7 +106,6 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
             CloseModalButton(
                 selfVerificationViewModel::close,
                 i18n.redoSelfVerificationContinueWithoutVerification(),
-                softWrap = false
             )
         },
         back = {
@@ -162,7 +161,6 @@ fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerifica
             CloseModalButton(
                 selfVerificationViewModel::close,
                 i18n.redoSelfVerificationContinueWithoutVerification(),
-                softWrap = false
             )
         }
     )
@@ -274,7 +272,6 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
             CloseModalButton(
                 selfVerificationViewModel::close,
                 i18n.redoSelfVerificationContinueWithoutVerification(),
-                softWrap = false
             )
         },
     )

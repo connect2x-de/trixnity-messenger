@@ -159,7 +159,7 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
 }
 
 @Composable
-fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null, softWrap: Boolean = true) {
+fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = { closeModalAction() },
