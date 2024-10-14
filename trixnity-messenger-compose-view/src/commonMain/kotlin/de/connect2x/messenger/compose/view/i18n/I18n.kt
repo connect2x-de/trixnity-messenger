@@ -2368,7 +2368,7 @@ abstract class I18nView(
     }
 
     fun accountBootstrappingWizardFinishSetup() = translate {
-        DE - "Ist alles nach ihren Wünschen eingestellt?"
+        DE - "Ist alles nach Ihren Wünschen eingestellt?"
         EN - "Is everything configured to your liking?"
     }
 
