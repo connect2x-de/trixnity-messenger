@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -106,12 +107,51 @@ fun ColumnScope.MessengerModalButtonRow(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+        /**
+         * This composable with layout buttons at the end of the modal (to the right).
+         * The miscellaneous action is separated from the others and the next and back action
+         * are grouped, so that they always appear on the same row:
+         * | _______ misc __ back _ next | or on smaller devices
+         * | _________ misc |
+         * | __ back _ next |
+         * @param next a button to go to the next action
+         * @param back a button to go to the previous action
+         * @param misc a miscellaneous third action which does not fit into the typical next or back action
+         */
+fun ColumnScope.MessengerModalThreeButtonRow(
+    next: @Composable RowScope.() -> Unit,
+    back: (@Composable RowScope.() -> Unit)? = null,
+    misc: (@Composable RowScope.() -> Unit)? = null,
+) {
+    Spacer(Modifier.size(20.dp))
+    Column(Modifier.fillMaxWidth().weight(1.0f, fill = false), horizontalAlignment = Alignment.End) {
+        FlowRow(horizontalArrangement = Arrangement.End) {
+            if (misc != null) {
+                misc()
+            }
+            Row {
+                if (misc != null) {
+                    Spacer(Modifier.width(20.dp))
+                }
+                if (back != null) {
+                    back()
+                    Spacer(Modifier.width(10.dp))
+                }
+                next()
+            }
+        }
+    }
+}
+
 @Composable
 fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = nextAction,
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+            .width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
         Text(text ?: i18n.commonNext().capitalize(Locale.current))
@@ -119,11 +159,12 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
 }
 
 @Composable
-fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null) {
+fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null, softWrap: Boolean = true) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = { closeModalAction() },
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+            .width(IntrinsicSize.Max), // avoid wrapping button text if possible
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.error,
             contentColor = Color.White

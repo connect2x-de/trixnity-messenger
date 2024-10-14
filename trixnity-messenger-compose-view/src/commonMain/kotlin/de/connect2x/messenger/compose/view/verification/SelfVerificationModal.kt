@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.common.MessengerModalThreeButtonRow
 import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.PasswordField
@@ -98,8 +100,16 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
         }
     }
 
-    MessengerModalButtonRow(
-        {
+    MessengerModalThreeButtonRow(
+        next = { NextButton { selfVerificationViewModel.waitForAvailableVerificationMethods() } },
+        misc = {
+            CloseModalButton(
+                selfVerificationViewModel::close,
+                i18n.redoSelfVerificationContinueWithoutVerification(),
+                softWrap = false
+            )
+        },
+        back = {
             OutlinedButton(
                 onClick = selfVerificationViewModel::resetRecoveryWarning,
                 modifier = Modifier.buttonPointerModifier(),
@@ -109,14 +119,8 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
             ) {
                 Text(i18n.selfVerificationResetRecoveryKey().capitalize(Locale.current))
             }
-        },
-        {
-            CloseModalButton(
-                selfVerificationViewModel::close,
-                i18n.redoSelfVerificationContinueWithoutVerification(),
-            )
-        },
-        { NextButton { selfVerificationViewModel.waitForAvailableVerificationMethods() } })
+        })
+
 }
 
 @Composable
@@ -142,23 +146,27 @@ fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerifica
         }
     }
 
-    MessengerModalButtonRow(
-        {
-            BackButton { selfVerificationViewModel.backToHelp() }
-        },
-        {
-            CloseModalButton(
-                selfVerificationViewModel::close,
-                i18n.redoSelfVerificationContinueWithoutVerification(),
-            )
-        },
-        {
+    MessengerModalThreeButtonRow(
+        next = {
             NextButton(
                 text = i18n.resetProceed(),
                 enabled = checked,
                 nextAction = selfVerificationViewModel::resetRecovery,
             )
-        })
+        },
+        back = {
+            BackButton { selfVerificationViewModel.backToHelp() }
+        },
+
+        misc = {
+            CloseModalButton(
+                selfVerificationViewModel::close,
+                i18n.redoSelfVerificationContinueWithoutVerification(),
+                softWrap = false
+            )
+        }
+    )
+
 }
 
 @Composable
@@ -251,23 +259,24 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
         }
     }
 
-    MessengerModalButtonRow(
-        {
+    MessengerModalThreeButtonRow(
+        next = {
+            NextButton(enabled = selectedVerificationMethod.value != null) {
+                selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
+            }
+        },
+        back = {
             BackButton(
                 selfVerificationViewModel::backToHelp
             )
         },
-        {
+        misc = {
             CloseModalButton(
                 selfVerificationViewModel::close,
                 i18n.redoSelfVerificationContinueWithoutVerification(),
+                softWrap = false
             )
         },
-        {
-            NextButton(enabled = selectedVerificationMethod.value != null) {
-                selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
-            }
-        }
     )
 }
 

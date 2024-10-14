@@ -16,6 +16,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
+import de.connect2x.messenger.compose.view.common.MessengerModalThreeButtonRow
 import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
@@ -59,19 +60,20 @@ class RedoSelfVerificationModalViewImpl : RedoSelfVerificationModalView {
             RunningText(i18n.redoSelfVerificationDoIt())
             RunningText(i18n.redoSelfVerificationDoItLater())
             Spacer(Modifier.size(20.dp))
-            MessengerModalButtonRow(
-                {
+            MessengerModalThreeButtonRow(
+                misc = {
                     CloseModalButton(
                         redoSelfVerificationViewModel::close,
                         i18n.redoSelfVerificationContinueWithoutVerification(),
                     )
                 },
-                {
+                next = {
                     NextButton(
                         text = i18n.redoSelfVerificationRedo(),
                         nextAction = redoSelfVerificationViewModel::startSelfVerification,
                     )
-                })
+                }
+            )
         }
     }
 }
