@@ -251,19 +251,21 @@ fun MessageRichText(uriHandler: UriHandler, state: RichTextState, isByMe: Boolea
 private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = redactedMessageViewModel.formattedMessage.collectAsState().value
-    Row(Modifier.padding(10.dp)) {
-        Icon(
-            Icons.Outlined.Delete, i18n.commonDeleted(),
-            Modifier.align(Alignment.CenterVertically)
-                .size(MaterialTheme.typography.bodySmall.dp)
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(
-            "$formattedMessage${redactedMessageViewModel.redactedAtDateTime?.let { " ($it)" } ?: ""}",
-            Modifier.alignByBaseline(),
-            style = MaterialTheme.typography.bodySmall,
-            fontStyle = FontStyle.Italic,
-        )
+    if (redactedMessageViewModel.redactsSupportedEvent) {
+        Row(Modifier.padding(10.dp)) {
+            Icon(
+                Icons.Outlined.Delete, i18n.commonDeleted(),
+                Modifier.align(Alignment.CenterVertically)
+                    .size(MaterialTheme.typography.bodySmall.dp)
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                "$formattedMessage${redactedMessageViewModel.redactedAtDateTime?.let { " ($it)" } ?: ""}",
+                Modifier.alignByBaseline(),
+                style = MaterialTheme.typography.bodySmall,
+                fontStyle = FontStyle.Italic,
+            )
+        }
     }
 }
 

@@ -24,6 +24,8 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
+import net.folivo.trixnity.core.model.events.UnknownEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
 
 private val log = KotlinLogging.logger { }
@@ -69,6 +71,7 @@ interface RedactedMessageViewModelFactory {
 interface RedactedMessageViewModel : RoomMessageViewModel {
     val formattedMessage: StateFlow<String>
     val redactedAtDateTime: String?
+    val redactsSupportedEvent: Boolean
 }
 
 open class RedactedMessageViewModelImpl(
@@ -112,6 +115,8 @@ open class RedactedMessageViewModelImpl(
             val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.of(timezone()))
             "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
         }
+
+    override val redactsSupportedEvent = false
 }
 
 class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
@@ -126,4 +131,5 @@ class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = false
     override val redactedAtDateTime: String = "25.12.21, 13:18"
+    override val redactsSupportedEvent: Boolean = true
 }
