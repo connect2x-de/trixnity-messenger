@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -60,6 +61,8 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ClickableText
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.files.SaveDialog
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
@@ -324,9 +327,9 @@ private fun OutboxMessageImage(
     ) {
         image.value?.let { imageBitmapFromBytes(it) }?.let {
             MessageImage(it, imageMessageViewModel, onLongPress)
-        }
+        } ?: MessageImageFallback(imageMessageViewModel, onLongPress)
         uploadProgress.value?.let {
-            Spacer(Modifier.size(20.dp))
+            MiddleSpacer()
             Box(Modifier.padding(all = 20.dp)) {
                 DownloadProgress(it, color = Color.Black, cancel = { outboxElementHolderViewModel.abortSend() })
             }
@@ -346,7 +349,7 @@ private fun InboxMessageImage(
     BoxWithConstraints(Modifier.padding(top = 10.dp)) {
         image.value?.let { imageBitmapFromBytes(it) }?.let {
             MessageImage(it, imageMessageViewModel, onLongPress)
-        }
+        } ?: MessageImageFallback(imageMessageViewModel, onLongPress)
         uploadProgress.value?.let {
             if (image.value == null) {
                 val height =
@@ -363,29 +366,6 @@ private fun InboxMessageImage(
                 Box(Modifier.height(height).width(width)) {
                     DownloadProgress(it, imageMessageViewModel::cancelThumbnailDownload)
                 }
-            }
-        }
-        if (image.value == null && uploadProgress.value == null) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(start = 30.dp)
-            ) {
-                Icon(
-                    Icons.Default.Image,
-                    i18n.commonImage(),
-                    Modifier
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = {
-                                    imageMessageViewModel.openImage()
-                                },
-                                onLongPress = onLongPress,
-                            )
-                        }
-                        .size(64.dp)
-                        .buttonPointerModifier()
-                )
-                FileName(imageMessageViewModel.fileName)
             }
         }
     }
@@ -427,7 +407,36 @@ private fun MessageImage(
 }
 
 @Composable
-private fun MessageVideo(
+private fun MessageImageFallback(
+    imageMessageViewModel: ImageMessageViewModel,
+    onLongPress: (Offset) -> Unit
+) {
+    val i18n = DI.get<I18nView>()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(start = 30.dp)
+    ) {
+        Icon(
+            Icons.Default.Image,
+            i18n.commonImage(),
+            Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            imageMessageViewModel.openImage()
+                        },
+                        onLongPress = onLongPress,
+                    )
+                }
+                .size(64.dp)
+                .buttonPointerModifier()
+        )
+        FileName(imageMessageViewModel.fileName)
+    }
+}
+
+@Composable
+fun MessageVideo(
     videoMessageViewModel: VideoMessageViewModel,
     onLongPress: (Offset) -> Unit,
     baseTimelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
@@ -449,57 +458,44 @@ private fun MessageVideo(
 
     BoxWithConstraints(Modifier.padding(top = 10.dp)) {
         Row {
-            thumbnail.value?.let { imageBitmapFromBytes(it) }?.let {
-                Image(
-                    it,
-                    "",
-                    Modifier
-                        .heightIn(50.dp, videoMessageViewModel.getMaxHeight().dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = {
-                                    videoMessageViewModel.openVideo()
-                                },
-                                onLongPress = onLongPress,
-                            )
-                        }
-                        .buttonPointerModifier(),
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-            if (thumbnail.value == null) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(start = 30.dp),
-                ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                thumbnail.value?.let { imageBitmapFromBytes(it) }?.let {
+                    Image(
+                        it,
+                        "",
+                        Modifier
+                            .heightIn(64.dp, videoMessageViewModel.getHeight(400f).dp)
+                            .widthIn(64.dp, 400.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .openVideoOnTouch(videoMessageViewModel, onLongPress)
+                            .buttonPointerModifier(),
+                        contentScale = ContentScale.FillBounds
+                    )
+                } ?: run {
                     Icon(
                         Icons.Default.VideoFile,
                         i18n.commonVideo(),
                         Modifier
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = {
-                                        videoMessageViewModel.openVideo()
-                                    },
-                                    onLongPress = onLongPress,
-                                )
-                            }
                             .size(64.dp)
-                            .buttonPointerModifier()
+                            .openVideoOnTouch(videoMessageViewModel, onLongPress)
+                            .buttonPointerModifier(),
+                        tint = Color.DarkGray,
                     )
-                    FileName(videoMessageViewModel.fileName)
-                    if (uploadProgress != null) {
-                        Box(
-                            Modifier
-                                .padding(horizontal = 10.dp),
-                        ) {
-                            DownloadProgress(
-                                uploadProgress,
-                                { if (baseTimelineElementHolderViewModel is OutboxElementHolderViewModel) baseTimelineElementHolderViewModel.abortSend() else Unit }
-                            )
-                        }
+                }
+                FileName(videoMessageViewModel.fileName)
+                SmallSpacer()
+                if (uploadProgress != null) {
+                    Box(
+                        Modifier
+                            .padding(horizontal = 10.dp),
+                    ) {
+                        DownloadProgress(
+                            uploadProgress,
+                            { if (baseTimelineElementHolderViewModel is OutboxElementHolderViewModel) baseTimelineElementHolderViewModel.abortSend() else Unit }
+                        )
                     }
                 }
             }
@@ -513,16 +509,23 @@ private fun MessageVideo(
                 )
             }
         }
-        if (thumbnail.value != null && uploadProgress == null) {
-            Icon(
-                Icons.Default.VideoFile, i18n.commonVideo(),
-                Modifier
-                    .size(48.dp)
-                    .align(Alignment.Center),
-                tint = Color.DarkGray,
-            )
-        }
     }
+}
+
+@Composable
+private fun Modifier.openVideoOnTouch(
+    videoMessageViewModel: VideoMessageViewModel,
+    onLongPress: (Offset) -> Unit
+): Modifier {
+    val uploadProgress = videoMessageViewModel.uploadProgress.collectAsState().value
+    return this.then(pointerInput(Unit) {
+        detectTapGestures(
+            onTap = {
+                if (uploadProgress != null && uploadProgress.percent >= 1.0f) videoMessageViewModel.openVideo()
+            },
+            onLongPress = onLongPress,
+        )
+    })
 }
 
 @Composable

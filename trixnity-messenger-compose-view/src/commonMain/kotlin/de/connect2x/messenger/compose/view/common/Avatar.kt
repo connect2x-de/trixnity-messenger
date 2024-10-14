@@ -67,8 +67,7 @@ fun Avatar(
             }
             overlay?.invoke(this)
         }
-    }
-    if (image == null) {
+    }?: run {
         Box {
             AvatarWithInitials(initials, size)
             overlay?.invoke(this)
