@@ -45,7 +45,7 @@ import de.connect2x.messenger.compose.view.common.Paragraphs
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardImage
-import de.connect2x.messenger.compose.view.common.WizardNextButton
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.copyToClipboard
 import de.connect2x.messenger.compose.view.get
@@ -101,10 +101,12 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                     }
                 }
             },
-            nextButton = WizardNextButton.Standard(enabled = {
-                val recoveryKey = bootstrapViewModel.recoveryKey.collectAsState().value
-                recoveryKey != null
-            })
+            nextButton = {
+                WizardNavigationButton.Standard(enabled = {
+                    val recoveryKey = bootstrapViewModel.recoveryKey.collectAsState().value
+                    recoveryKey != null
+                })
+            }
         ),
 
         WizardStep(
@@ -203,7 +205,7 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
             additionalButton = {
                 CloseMessengerButton(bootstrapViewModel::closeMessenger)
             },
-            nextButton = WizardNextButton.Standard() // FIXME only enabled when recovery key confirmed (move to viewModel?)
+            nextButton = { WizardNavigationButton.Standard() } // FIXME only enabled when recovery key confirmed (move to viewModel?)
         ),
 
         WizardStep(
@@ -212,12 +214,14 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
             content = {
                 // TODO content?
             },
-            nextButton = WizardNextButton.Custom {
-                Button(
-                    onClick = { bootstrapViewModel.close() },
-                    modifier = Modifier.buttonPointerModifier(),
-                ) {
-                    Text(i18n.commonNext())
+            nextButton = {
+                WizardNavigationButton.Custom {
+                    Button(
+                        onClick = { bootstrapViewModel.close() },
+                        modifier = Modifier.buttonPointerModifier(),
+                    ) {
+                        Text(i18n.commonNext())
+                    }
                 }
             }
         )

@@ -41,14 +41,14 @@ import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
 typealias StepId = String
 
-interface WizardNextButton {
+sealed interface WizardNavigationButton {
     data class Standard(
         val enabled: @Composable () -> Boolean = { true },
         val content: (@Composable () -> Unit)? = null
-    ) : WizardNextButton
+    ) : WizardNavigationButton
 
-    data object None : WizardNextButton
-    data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNextButton
+    data object None : WizardNavigationButton
+    data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNavigationButton
 }
 
 sealed interface WizardButtons {
@@ -63,7 +63,8 @@ data class WizardStep(
     val title: @Composable () -> String,
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
-    val nextButton: WizardNextButton = WizardNextButton.Standard(),
+    val nextButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
+    val backButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
     val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
         Triple(
             WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton
@@ -193,12 +194,12 @@ private fun WizardButtons(
             button1 = getCorrespondingButton(buttonList[0], wizardStep, nextStep, currentStep, previousStep),
             button2 = if (buttonList.size > 1)
                 getCorrespondingButton(
-                buttonList[1],
-                wizardStep,
-                nextStep,
-                currentStep,
-                previousStep
-            ) else null,
+                    buttonList[1],
+                    wizardStep,
+                    nextStep,
+                    currentStep,
+                    previousStep
+                ) else null,
             button3 =
             if (buttonList.size > 2) getCorrespondingButton(
                 buttonList[2],
@@ -218,21 +219,25 @@ private fun RowScope.NextButton(
     nextStep: StepId?,
     currentStep: MutableState<StepId>,
 ) {
-    when (val nextButton = wizardStep.nextButton) {
-        is WizardNextButton.Standard -> {
+    when (val nextButton = wizardStep.nextButton()) {
+        is WizardNavigationButton.Standard -> {
             nextStep?.let { NextButtonImpl(currentStep, nextStep, nextButton) }
         }
 
-        is WizardNextButton.None -> {}
+        is WizardNavigationButton.None -> {}
 
-        is WizardNextButton.Custom -> {
+        is WizardNavigationButton.Custom -> {
             nextButton.button(this@NextButton)
         }
     }
 }
 
 @Composable
-private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, nextButton: WizardNextButton.Standard) {
+private fun NextButtonImpl(
+    currentStep: MutableState<StepId>,
+    nextStep: StepId,
+    nextButton: WizardNavigationButton.Standard
+) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = { currentStep.value = nextStep },
@@ -246,15 +251,38 @@ private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, 
 }
 
 @Composable
-private fun BackButton(currentStep: MutableState<StepId>, previousStep: StepId) {
+private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: StepId) {
+    return when (val backButton = wizardStep.backButton()) {
+        is WizardNavigationButton.Standard -> {
+            BackButtonImpl(currentStep, previousStep, backButton)
+        }
+
+        is WizardNavigationButton.None -> {}
+
+        is WizardNavigationButton.Custom -> {
+            backButton.button(this@BackButton)
+        }
+    }
+}
+
+@Composable
+private fun BackButtonImpl(
+    currentStep: MutableState<StepId>,
+    previousStep: StepId,
+    backButton: WizardNavigationButton.Standard
+) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = { currentStep.value = previousStep },
         modifier = Modifier.buttonPointerModifier(),
+        enabled = backButton.enabled(),
     ) {
-        Text(i18n.commonBack())
+        if (backButton.content != null) {
+            backButton.content()
+        } else Text(i18n.commonBack())
     }
 }
+
 
 @Composable
 private fun getCorrespondingButton(
@@ -273,7 +301,7 @@ private fun getCorrespondingButton(
 
         WizardButtons.BackButton -> {
             {
-                previousStep?.let { BackButton(currentStep, previousStep) }
+                previousStep?.let { BackButton(wizardStep, currentStep, previousStep) }
             }
         }
 

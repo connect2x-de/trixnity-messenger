@@ -24,7 +24,7 @@ import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardButtons
-import de.connect2x.messenger.compose.view.common.WizardNextButton.*
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -127,9 +127,11 @@ private fun wizardStepNotification(wrapper: WizardNotificationSettings, i18n: I1
 private fun wizardStepConfirmation(i18n: I18nView, closeWizard: () -> Unit): WizardStep {
     return WizardStep(id = WIZARD_CONFIRM, title = { i18n.accountBootstrappingWizardFinishSetupTitle() }, content = {
         Text(i18n.accountBootstrappingWizardFinishSetup())
-    }, nextButton = Custom {
-        Button(modifier = Modifier.buttonPointerModifier(), onClick = { closeWizard() }) {
-            Text(i18n.commonConfirm())
+    }, nextButton = {
+        Custom {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { closeWizard() }) {
+                Text(i18n.commonConfirm())
+            }
         }
     })
 }
@@ -244,20 +246,31 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
         }
     }, buttonOrder = {
         if (isVerified.collectAsState().value == true) Triple(
-            WizardButtons.AdditionalButton,
-            WizardButtons.BackButton,
-            WizardButtons.NextButton
+            WizardButtons.AdditionalButton, WizardButtons.BackButton, WizardButtons.NextButton
         ) else Triple(
-            WizardButtons.NextButton,
-            WizardButtons.BackButton,
-            WizardButtons.AdditionalButton
+            WizardButtons.NextButton, WizardButtons.BackButton, WizardButtons.AdditionalButton
         )
-    }, nextButton = Standard(content = {
-        if (isVerified.collectAsState().value == true) {
-            Text(i18n.commonNext())
-        } else {
-            Text(i18n.commonSkip())
+    }, nextButton = {
+        Standard(content = {
+            if (isVerified.collectAsState().value == true) {
+                Text(i18n.commonNext())
+            } else {
+                Text(i18n.commonSkip())
+            }
+        })
+    }, backButton = {
+        val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null
+        val showKey = selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+
+        if (showPassphrase || showKey) {
+            Custom(button = {
+                Button(onClick = {
+                    selfVerification.backToChoose()
+                }) {
+                    Text(i18n.commonBack())
+                }
+            })
         }
+        else Standard()
     })
-    )
 }
