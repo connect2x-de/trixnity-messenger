@@ -23,6 +23,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
+import de.connect2x.messenger.compose.view.common.WizardButtons
 import de.connect2x.messenger.compose.view.common.WizardNextButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -169,10 +170,6 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
         Column {
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
-                val account = selfVerification.userId
-                val needsBootstrap = wrapper.needsBootstrap.collectAsState().value
-                Text(account.toString())
-                Text(needsBootstrap.toString())
                 val showHelp = selfVerification.showVerificationHelp.collectAsState().value
                 val methods = selfVerification.selfVerificationMethods.collectAsState()
                 val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null
@@ -245,13 +242,22 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
                 Text(i18n.commonNext())
             }
         }
-    }, switchButtonOrder = { isVerified.collectAsState().value == false },
-        nextButton = Standard(content = {
-            if (isVerified.collectAsState().value == true) {
-                Text(i18n.commonNext())
-            } else {
-                Text(i18n.commonSkip())
-            }
-        })
+    }, buttonOrder = {
+        if (isVerified.collectAsState().value == true) Triple(
+            WizardButtons.AdditionalButton,
+            WizardButtons.BackButton,
+            WizardButtons.NextButton
+        ) else Triple(
+            WizardButtons.NextButton,
+            WizardButtons.BackButton,
+            WizardButtons.AdditionalButton
+        )
+    }, nextButton = Standard(content = {
+        if (isVerified.collectAsState().value == true) {
+            Text(i18n.commonNext())
+        } else {
+            Text(i18n.commonSkip())
+        }
+    })
     )
 }

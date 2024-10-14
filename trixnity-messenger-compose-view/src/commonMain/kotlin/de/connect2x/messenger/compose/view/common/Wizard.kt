@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.max
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
@@ -50,6 +51,12 @@ interface WizardNextButton {
     data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNextButton
 }
 
+sealed interface WizardButtons {
+    data object NextButton : WizardButtons
+    data object AdditionalButton : WizardButtons
+    data object BackButton : WizardButtons
+}
+
 @Immutable
 data class WizardStep(
     val id: StepId,
@@ -57,7 +64,11 @@ data class WizardStep(
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
     val nextButton: WizardNextButton = WizardNextButton.Standard(),
-    val switchButtonOrder: @Composable () -> Boolean = { false }
+    val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
+        Triple(
+            WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton
+        )
+    }
 )
 
 @Composable
@@ -171,46 +182,34 @@ private fun WizardButtons(
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     val additionalButton = wizardStep.additionalButton
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
-        if (previousStep != null) {
-            if (additionalButton != null) {
-                if (wizardStep.switchButtonOrder()) {
-                    MessengerModalButtonRow(
-                        button1 = { NextButton(wizardStep, nextStep, currentStep) },
-                        button2 = { BackButton(currentStep, previousStep) },
-                        button3 = { additionalButton { stepId -> currentStep.value = stepId } },
-                    )
-                } else {
-                    MessengerModalButtonRow(
-                        button1 = { additionalButton { stepId -> currentStep.value = stepId } },
-                        button2 = { BackButton(currentStep, previousStep) },
-                        button3 = { NextButton(wizardStep, nextStep, currentStep) },
-                    )
-                }
-            } else {
-                MessengerModalButtonRow(
-                    button1 = { BackButton(currentStep, previousStep) },
-                    button2 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
-            }
-        } else {
-            if (additionalButton != null) {
-                if (wizardStep.switchButtonOrder()) {
-                    MessengerModalButtonRow(
-                        button1 = { NextButton(wizardStep, nextStep, currentStep) },
-                        button2 = { additionalButton { stepId -> currentStep.value = stepId } },
-                    )
-                } else {
-                    MessengerModalButtonRow(
-                        button1 = { additionalButton { stepId -> currentStep.value = stepId } },
-                        button2 = { NextButton(wizardStep, nextStep, currentStep) },
-                    )
-                }
-            } else {
-                MessengerModalButtonRow(
-                    button1 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
-            }
+        val buttonList = wizardStep.buttonOrder().toList().toMutableList()
+        if (previousStep == null) {
+            buttonList.remove(WizardButtons.BackButton)
         }
+        if (additionalButton == null) {
+            buttonList.remove(WizardButtons.AdditionalButton)
+        }
+        println("Wizard Steps after cutting: $buttonList")
+        MessengerModalButtonRow(
+            button1 = getCorrespondingButton(buttonList[0], wizardStep, nextStep, currentStep, previousStep),
+            button2 = if (buttonList.size > 1)
+                getCorrespondingButton(
+                buttonList[1],
+                wizardStep,
+                nextStep,
+                currentStep,
+                previousStep
+            ) else null,
+            button3 =
+            if (buttonList.size > 2) getCorrespondingButton(
+                buttonList[2],
+                wizardStep,
+                nextStep,
+                currentStep,
+                previousStep
+            ) else null
+
+        )
     }
 }
 
@@ -230,10 +229,6 @@ private fun RowScope.NextButton(
         is WizardNextButton.Custom -> {
             nextButton.button(this@NextButton)
         }
-
-//        is WizardNextButton.CustomNextStep -> {
-//            nextStep?.let { CustomNextStepButtonImpl(currentStep, nextStep, nextButton.enabled, nextButton.onClick) }
-//        }
     }
 }
 
@@ -262,17 +257,31 @@ private fun BackButton(currentStep: MutableState<StepId>, previousStep: StepId) 
     }
 }
 
-//@Composable
-//private fun CustomNextStepButtonImpl(
-//    currentStep: MutableState<StepId>,
-//    nextStep: StepId,
-//    enabled: @Composable (() -> Boolean),
-//    onClick: RowScope.() -> Unit
-//) {
-//    Button(onClick = {
-//        onClick()
-//        currentStep.value = nextStep
-//    }, enabled = enabled()) {
-//
-//    }
-//}
+@Composable
+private fun getCorrespondingButton(
+    wizardButton: WizardButtons,
+    wizardStep: WizardStep,
+    nextStep: StepId?,
+    currentStep: MutableState<StepId>,
+    previousStep: StepId?
+): @Composable (RowScope.() -> Unit) {
+    return when (wizardButton) {
+        NextButton -> {
+            {
+                NextButton(wizardStep, nextStep, currentStep)
+            }
+        }
+
+        WizardButtons.BackButton -> {
+            {
+                previousStep?.let { BackButton(currentStep, previousStep) }
+            }
+        }
+
+        WizardButtons.AdditionalButton -> {
+            {
+                wizardStep.additionalButton?.let { it { stepId -> currentStep.value = stepId } }
+            }
+        }
+    }
+}
