@@ -144,7 +144,7 @@ open class MainViewModelImpl(
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
-            onActivateAccountBootstrapping = ::startAccountBootstrapping
+            onStartAccountBootstrapping = ::startAccountBootstrapping
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack

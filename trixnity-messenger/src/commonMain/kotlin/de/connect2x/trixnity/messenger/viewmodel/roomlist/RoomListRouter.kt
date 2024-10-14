@@ -52,7 +52,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onActivateAccountBootstrapping : (userId : UserId) -> Unit
+    private val onStartAccountBootstrapping : (userId : UserId) -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -370,7 +370,7 @@ class RoomListRouter(
             log.debug { "Reset settings wizard for account $userId" }
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(deviceBootstrappingFinished = false)}
         }
-        onActivateAccountBootstrapping(userId)
+        onStartAccountBootstrapping(userId)
     }
 
     suspend fun moveToBackStack() {
