@@ -1704,7 +1704,7 @@ abstract class I18nView(
 
     fun selfVerificationResetRecoveryWarningTitle(userId: UserId) = translate {
         EN - "Reset recovery keys (account: $userId)"
-        DE - "Wiederherstellungsschlüssel zurücksetzen (Konto: $userId)"
+        DE - "Generalschlüssel zurücksetzen (Konto: $userId)"
     }
 
     fun selfVerificationHelpOtherDevice() = translate {
@@ -1864,7 +1864,7 @@ abstract class I18nView(
 
     fun resetWarningIsPermanent() = translate {
         EN - "Resetting the recovery keys is permanent and cannot be undone."
-        DE - "Das Zurücksetzen der Wiederherstellungsschlüssel ist dauerhaft und kann nicht rückgängig gemacht werden."
+        DE - "Das Zurücksetzen der Generalschlüssel ist dauerhaft und kann nicht rückgängig gemacht werden."
     }
 
     fun resetWarningLostAccessAndReVerify() = translate {
