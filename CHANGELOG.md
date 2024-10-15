@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - edge-to-edge support for Android
 - Emoji reactions on messages
 - UI: ability to see Aliases without edit permissions
+- Show images in Web version
+- Allow resetting recovery keys
 
 ### Changed
 
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run buildConfigGenerator on idea reload
 - Renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 - Made MediaOverlaySwitch public
+- Upgrade Docker build image and dependencies
 
 ### Deprecated
 
@@ -48,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash when downloading and uploading files larger than INT_MAX (2.1GB)
 - Fix flaky integration test `remove account when logged out and show login`
 - Allow pasting images from clipboard (in memory)
+- Correctly detect locales with region codes ("de-DE", "de-AT", "en-US")
+- Require checkbox to advance when setting up recovery keys
+- Create new chats in Web
 
 ### Security
 

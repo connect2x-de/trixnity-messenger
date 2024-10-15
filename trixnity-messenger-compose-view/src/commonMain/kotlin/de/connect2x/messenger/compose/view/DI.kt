@@ -65,6 +65,8 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsView
+import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyView
@@ -339,7 +341,7 @@ fun searchViewModule() = module {
 
 fun roomViewModule() = module {
     single<RoomListElementView> { RoomListElementViewImpl() }
-    single<de.connect2x.messenger.compose.view.room.settings.SearchUsersView> { de.connect2x.messenger.compose.view.room.settings.SearchUsersViewImpl() }
+    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl()  }
 }
 
 fun roomSettingsViewModule() = module {

@@ -143,8 +143,8 @@ open class VideoMessageViewModelImpl(
 
 class PreviewVideoMessageViewModel : VideoMessageViewModel {
     override val thumbnail: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
-    override val width: Int = 300
-    override val height: Int = 200
+    override val width: Int = 900
+    override val height: Int = 600
     override val duration: Long = 950
     override val uploadProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow(FileTransferProgressElement(0.3f, "145kB / 550kB"))
@@ -156,16 +156,12 @@ class PreviewVideoMessageViewModel : VideoMessageViewModel {
     }
 
     override fun getMaxHeight(): Int {
-        return 200
+        return 600
     }
 
-    override fun getHeight(maxWidth: Float): Int {
-        return 200
-    }
-
-    override fun getWidth(maxWidth: Float, possibleHeight: Float): Int {
-        return 300
-    }
+    override fun getHeight(maxWidth: Float) = SizeComputations.getHeight(height, getMaxHeight(), width, maxWidth)
+    override fun getWidth(maxWidth: Float, possibleHeight: Float) =
+        SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
     override fun cancelThumbnailDownload() {
     }

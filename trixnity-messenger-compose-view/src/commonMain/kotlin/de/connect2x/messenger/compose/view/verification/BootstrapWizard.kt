@@ -117,7 +117,7 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                 val recoveryKeyPart1 = bootstrapViewModel.recoveryKeyPart1.collectAsState().value
                 val recoveryKeyPart2 = bootstrapViewModel.recoveryKeyPart2.collectAsState().value
                 val copiedToClipBoard = remember { mutableStateOf(false) }
-                val confirmRecoveryKey = remember { mutableStateOf(false) }
+                val recoveryKeyCopied = bootstrapViewModel.recoveryKeyCopied.collectAsState().value
                 Paragraphs {
                     Text(text = i18n.bootstrapRecoveryKeyHandling())
                     Text(i18n.bootstrapRecoveryKeyWarning())
@@ -191,12 +191,12 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                     }
                     Spacer(Modifier.size(40.dp))
                     Row(
-                        Modifier.clickable { confirmRecoveryKey.value = confirmRecoveryKey.value.not() },
+                        Modifier.fillMaxWidth().clickable { bootstrapViewModel.confirmRecoveryKeyCopied() },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Checkbox(
-                            checked = confirmRecoveryKey.value,
-                            { confirmRecoveryKey.value = confirmRecoveryKey.value.not() })
+                            checked = recoveryKeyCopied,
+                            { bootstrapViewModel.confirmRecoveryKeyCopied() })
                         Spacer(Modifier.size(10.dp))
                         Text(i18n.bootstrapRecoveryKeySafe())
                     }
@@ -205,7 +205,11 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
             additionalButton = {
                 CloseMessengerButton(bootstrapViewModel::closeMessenger)
             },
-            nextButton = { WizardNavigationButton.Standard() } // FIXME only enabled when recovery key confirmed (move to viewModel?)
+            nextButton = {
+                WizardNavigationButton.Standard {
+                    bootstrapViewModel.recoveryKeyCopied.collectAsState().value
+                }
+            }
         ),
 
         WizardStep(

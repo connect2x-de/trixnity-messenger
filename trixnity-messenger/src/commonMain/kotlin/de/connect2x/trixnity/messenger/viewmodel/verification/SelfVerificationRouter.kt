@@ -51,6 +51,14 @@ class SelfVerificationRouter(
                                 selfVerificationConfig.userId,
                             ),
                             onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
+                            onResetRecovery = {
+                                closeSelfVerification(selfVerificationConfig.userId)
+                                viewModelContext.coroutineScope.launch {
+                                    showBootstrap(
+                                        selfVerificationConfig.userId
+                                    )
+                                }
+                            }
                         )
                 )
             }
@@ -87,8 +95,12 @@ class SelfVerificationRouter(
     /** @see startSelfVerificationsQueue() **/
     fun showSelfVerification(userId: UserId) {
         log.debug { "add account to self verification queue: $userId" }
-        // do sequentially (for different accounts), so here just fill the list
-        selfVerifications.value += userId
+        if (bootstrapStarted.value) {
+            log.debug { "bootstrapping has started, not showing self verification for: $userId" }
+        } else {
+            // do sequentially (for different accounts), so here just fill the list
+            selfVerifications.value += userId
+        }
     }
 
     private fun continueWithoutVerification() {

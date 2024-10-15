@@ -1717,6 +1717,11 @@ abstract class I18nView(
         DE - "Dieses Gerät freischalten (Konto: $userId)"
     }
 
+    fun selfVerificationResetRecoveryWarningTitle(userId: UserId) = translate {
+        EN - "Reset recovery keys (account: $userId)"
+        DE - "Generalschlüssel zurücksetzen (Konto: $userId)"
+    }
+
     fun selfVerificationHelpOtherDevice() = translate {
         EN - "Your account has already been setup with another device."
         DE - "Ihr Konto wurde bereits über ein anderes Gerät eingerichtet."
@@ -1807,6 +1812,11 @@ abstract class I18nView(
         DE - "Generalschlüssel ist nicht korrekt"
     }
 
+    fun selfVerificationResetRecoveryKey() = translate {
+        EN - "Reset recovery key"
+        DE - "Generalschlüssel zurücksetzen"
+    }
+
     fun verificationWait() = translate {
         EN - "Wait for input on other device."
         DE - "Warte auf Eingabe an anderem Gerät."
@@ -1870,6 +1880,31 @@ abstract class I18nView(
     fun userVerification() = translate {
         EN - "user verification"
         DE - "Vertrauensprüfung"
+    }
+
+    fun resetWarningIsPermanent() = translate {
+        EN - "Resetting the recovery keys is permanent and cannot be undone."
+        DE - "Das Zurücksetzen der Generalschlüssel ist dauerhaft und kann nicht rückgängig gemacht werden."
+    }
+
+    fun resetWarningLostAccessAndReVerify() = translate {
+        EN - "You will be unable to access old encrypted messages and need to re-verify with your contacts."
+        DE - "Sie können nicht auf alte verschlüsselte Nachrichten zugreifen und müssen sich bei Ihren Kontakten erneut verifizieren."
+    }
+
+    fun resetWarningAcknowledge() = translate {
+        EN - "I am aware of the consequences this action will have."
+        DE - "Ich bin mir der Konsequenzen dieser Handlung bewusst."
+    }
+
+    fun resetProceed() = translate {
+        EN - "Proceed with reset"
+        DE - "Mit dem Zurücksetzen fortfahren"
+    }
+
+    fun resetWarningLastResort() = translate {
+        EN - "The reset should be your last resort, please double check and make sure that there is no other option."
+        DE - "Das Zurücksetzen sollte Ihre letzte Option sein. Bitte überprüfen Sie es sorgfältig und stellen Sie sicher, dass es keine andere Möglichkeit gibt."
     }
 
     fun syncOverlayTitle() = translate {
