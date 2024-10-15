@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Missing configuration in loginWith
+- Require checkbox to advance when setting up recovery keys
 
 ## 2.2.0
 
