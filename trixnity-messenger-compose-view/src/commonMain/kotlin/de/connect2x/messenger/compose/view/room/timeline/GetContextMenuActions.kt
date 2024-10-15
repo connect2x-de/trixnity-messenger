@@ -109,7 +109,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
         val canAbortSend = timelineElementHolderViewModel.canAbortSendFlow.collectAsState()
         val canDebug = IsDebug.current
 
-        return remember(this, canBeEdited, canBeRedacted, canBeReportedTo, canRetrySend, canAbortSend, canDebug, canDownload) {
+        return remember(this) {
             derivedStateOf {
                 buildList {
                     if (canDownload.value) add(
