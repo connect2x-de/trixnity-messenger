@@ -63,11 +63,11 @@ class AccountBootstrappingWizardStepListImpl : AccountBootstrappingWizardStepLis
 
 
 interface AdditionalAccountBootstrappingWizardStep {
-    fun <T : AccountBootstrappingViewModel> create(viewModel: T, step: AccountBootstrappingWizardStep): WizardStep
+    fun <T : Any> create(viewModel: T, step: AccountBootstrappingWizardStep): WizardStep
 }
 
 class AdditionalAccountBootstrappingWizardStepImpl() : AdditionalAccountBootstrappingWizardStep {
-    override fun <T : AccountBootstrappingViewModel> create(
+    override fun <T : Any> create(
         viewModel: T,
         step: AccountBootstrappingWizardStep
     ): WizardStep {
