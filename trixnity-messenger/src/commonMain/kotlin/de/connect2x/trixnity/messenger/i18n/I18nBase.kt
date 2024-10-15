@@ -2,10 +2,8 @@ package de.connect2x.trixnity.messenger.i18n
 
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
-import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
+import de.connect2x.trixnity.messenger.viewmodel.util.currentTimezone
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.datetime.TimeZone
 
 private val log = KotlinLogging.logger { }
 
@@ -18,7 +16,7 @@ abstract class I18nBase(
     val currentLang: Language
         get() = getLang(languages, settings, getSystemLang)
 
-    val currentTimezone = timezoneOf(timezone())
+    val currentTimezone = currentTimezone()
 
     suspend fun setCurrentLang(language: Language) {
         setLang(language, settings)

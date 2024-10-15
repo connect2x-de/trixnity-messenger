@@ -39,8 +39,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
-import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
+import de.connect2x.trixnity.messenger.viewmodel.util.currentTimezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -430,7 +429,7 @@ class TimelineViewModelImpl(
                     visibleTimelineEvent?.first()?.event?.originTimestamp?.let { timestamp ->
                         formatDate(
                             Instant.fromEpochMilliseconds(timestamp)
-                                .toLocalDateTime(timezoneOf(timezone()))
+                                .toLocalDateTime(currentTimezone())
                         )
                     }
                 } else {
@@ -657,9 +656,9 @@ class TimelineViewModelImpl(
                                     val lastDate =
                                         lastTimelineEvent?.event?.originTimestamp?.let { millis ->
                                             Instant.fromEpochMilliseconds(millis)
-                                                .toLocalDateTime(timezoneOf(timezone()))
+                                                .toLocalDateTime(currentTimezone())
                                         }
-                                    val today = clock.now().toLocalDateTime(timezoneOf(timezone()))
+                                    val today = clock.now().toLocalDateTime(currentTimezone())
                                     val lastMessageFromAtLeastYesterday =
                                         lastDate != null && lastDate.isDifferentDay(today)
                                     lastDate == null || lastMessageFromAtLeastYesterday

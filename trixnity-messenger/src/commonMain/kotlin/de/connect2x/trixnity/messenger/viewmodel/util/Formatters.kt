@@ -30,8 +30,8 @@ fun formatSize(sizeInByte: Long, maxSizeInByte: Long = sizeInByte): String {
 }
 
 fun formatTimestamp(timestamp: Instant, clock: Clock): String {
-    val now = clock.now().toLocalDateTime(timezoneOf(timezone()))
-    val localDateTime = timestamp.toLocalDateTime(timezoneOf(timezone()))
+    val now = clock.now().toLocalDateTime(currentTimezone())
+    val localDateTime = timestamp.toLocalDateTime(currentTimezone())
     return if (localDateTime.dayOfYear == now.dayOfYear && localDateTime.year == now.year) {
         formatTime(localDateTime)
     } else {

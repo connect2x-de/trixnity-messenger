@@ -3,8 +3,7 @@ package de.connect2x.trixnity.messenger.export
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
-import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
+import de.connect2x.trixnity.messenger.viewmodel.util.currentTimezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -139,7 +138,7 @@ class ExportRoomImpl(
                             ?.let { baseName ->
                                 val timestamp = exportTimestampFormat.format(
                                     Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                                        .toLocalDateTime(timezoneOf(timezone()))
+                                        .toLocalDateTime(currentTimezone())
                                 )
                                 val prefix = "$timestamp $baseName - "
                                 val remainingLength = 255 - prefix.length

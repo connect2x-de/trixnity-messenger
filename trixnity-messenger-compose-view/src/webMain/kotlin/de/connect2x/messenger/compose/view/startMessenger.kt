@@ -72,6 +72,7 @@ suspend fun startMessenger(
             println(e.message)
             println("-------")
             println(e.stackTraceToString())
+            throw e
         }
     }
 }
