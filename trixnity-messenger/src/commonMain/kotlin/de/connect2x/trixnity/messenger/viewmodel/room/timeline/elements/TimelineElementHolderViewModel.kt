@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
+import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -614,7 +615,7 @@ object TimelineElementHolderViewModelHelper {
     fun localDateTimeOf(event: RoomEvent<*>): LocalDateTime {
         val timestamp = event.originTimestamp
         requireNotNull(timestamp) // should not happen as only RoomEvents and StateEvents are possible
-        return Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(TimeZone.of(timezone()))
+        return Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(timezoneOf(timezone()))
     }
 
     fun isPreviousBySomeoneElseOrOtherDay(

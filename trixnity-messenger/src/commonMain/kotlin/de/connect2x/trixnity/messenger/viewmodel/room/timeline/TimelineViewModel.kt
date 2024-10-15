@@ -40,6 +40,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
+import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -81,7 +82,6 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.flattenValues
@@ -430,7 +430,7 @@ class TimelineViewModelImpl(
                     visibleTimelineEvent?.first()?.event?.originTimestamp?.let { timestamp ->
                         formatDate(
                             Instant.fromEpochMilliseconds(timestamp)
-                                .toLocalDateTime(TimeZone.of(timezone()))
+                                .toLocalDateTime(timezoneOf(timezone()))
                         )
                     }
                 } else {
@@ -657,9 +657,9 @@ class TimelineViewModelImpl(
                                     val lastDate =
                                         lastTimelineEvent?.event?.originTimestamp?.let { millis ->
                                             Instant.fromEpochMilliseconds(millis)
-                                                .toLocalDateTime(TimeZone.of(timezone()))
+                                                .toLocalDateTime(timezoneOf(timezone()))
                                         }
-                                    val today = clock.now().toLocalDateTime(TimeZone.of(timezone()))
+                                    val today = clock.now().toLocalDateTime(timezoneOf(timezone()))
                                     val lastMessageFromAtLeastYesterday =
                                         lastDate != null && lastDate.isDifferentDay(today)
                                     lastDate == null || lastMessageFromAtLeastYesterday

@@ -31,10 +31,12 @@ suspend fun startMessenger(
     logLevel = Level.DEBUG
     val windowIsFocused = MutableStateFlow(false)
     window.onfocus = {
+        log.debug { "window is focused" }
         windowIsFocused.value = true
         Unit
     }
     window.onblur = {
+        log.debug { "window is blurred" }
         windowIsFocused.value = false
         Unit
     }
@@ -43,23 +45,33 @@ suspend fun startMessenger(
 
     log.info { "Created MatrixMultiMessenger" }
     matrixMultiMessenger.singleMode { matrixMessenger ->
-        val rootViewModel = matrixMessenger.createRoot()
-        val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
-        onWasmReady {
-            CanvasBasedWindow(config.appName) {
-                CompositionLocalProvider(
-                    ImeVisible provides false,
-                    Platform provides PlatformType.WEB,
-                    IsFocused provides windowIsFocused.collectAsState(false).value,
+        try {
+            val rootViewModel = matrixMessenger.createRoot()
+            val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
+            onWasmReady {
+                CanvasBasedWindow(config.appName) {
+                    CompositionLocalProvider(
+                        ImeVisible provides false,
+                        Platform provides PlatformType.WEB,
+                        IsFocused provides windowIsFocused.collectAsState(false).value,
 //                LocalWindowScope provides this@Window, // FIXME
-                    IsDebug provides false, // FIXME
-                    DI provides matrixMessenger.di,
-                ) {
-                    MessengerTheme {
-                        Client(rootViewModel)
+                        IsDebug provides false, // FIXME
+                        DI provides matrixMessenger.di,
+                    ) {
+                        MessengerTheme {
+                            Client(rootViewModel)
+                        }
+                        Notifications(
+                            matrixMessenger,
+                        )
                     }
                 }
             }
+        } catch (e: Throwable) {
+            // in JS sometimes the original stacktrace gets scrambled by coroutines, so this method at least should give a better clou on where to look
+            println(e.message)
+            println("-------")
+            println(e.stackTraceToString())
         }
     }
 }

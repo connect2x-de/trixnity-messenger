@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.export
 
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
+import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.originTimestamp
@@ -34,7 +34,7 @@ class PlainTextFileBasedExportRoomSinkConverter(
             ?: return null
         val sender = timelineEvent.sender.full
         val timestamp = exportTimestampMessageFormat.format(
-            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(TimeZone.of(timezone()))
+            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timezoneOf(timezone()))
         )
         return """
             $timestamp $sender:

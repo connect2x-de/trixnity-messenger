@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import kotlinx.datetime.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -27,8 +30,8 @@ fun formatSize(sizeInByte: Long, maxSizeInByte: Long = sizeInByte): String {
 }
 
 fun formatTimestamp(timestamp: Instant, clock: Clock): String {
-    val now = clock.now().toLocalDateTime(TimeZone.of(timezone()))
-    val localDateTime = timestamp.toLocalDateTime(TimeZone.of(timezone()))
+    val now = clock.now().toLocalDateTime(timezoneOf(timezone()))
+    val localDateTime = timestamp.toLocalDateTime(timezoneOf(timezone()))
     return if (localDateTime.dayOfYear == now.dayOfYear && localDateTime.year == now.year) {
         formatTime(localDateTime)
     } else {

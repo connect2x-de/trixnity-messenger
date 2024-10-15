@@ -6,17 +6,15 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.timezone
+import de.connect2x.trixnity.messenger.viewmodel.util.timezoneOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.unsigned
@@ -109,7 +107,7 @@ open class RedactedMessageViewModelImpl(
 
     override val redactedAtDateTime: String? =
         timelineEvent?.unsigned?.redactedBecause?.originTimestampOrNull?.let {
-            val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.of(timezone()))
+            val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(timezoneOf(timezone()))
             "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
         }
 }
