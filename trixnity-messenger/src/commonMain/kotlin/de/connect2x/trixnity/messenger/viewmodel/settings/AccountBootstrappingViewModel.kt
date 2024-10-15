@@ -3,12 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardConfirm
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardExplanation
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardNotificationSettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardPrivacySettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardVerification
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
@@ -22,38 +16,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-import kotlin.reflect.KClass
 
-interface AccountBootstrappingSteps {
-    val steps: List<KClass<out Wrapper>>
-}
-
-/**
- * The class types of the Steps that are shown in the Wizard
- */
-data object AccountBootstrappingStepsImpl : AccountBootstrappingSteps {
-    override val steps: List<KClass<out Wrapper>> = listOf<KClass<out Wrapper>>(
-        WizardExplanation::class, WizardVerification::class, WizardPrivacySettings::class,
-        WizardNotificationSettings::class, WizardConfirm::class,
-    )
-}
-
-/**
- * Implement this interface in a class and change the DI to use the class
- * when searching for non-default Wizard steps to easily add new steps
- */
-interface AdditionalAccountBootstrappingWrapper {
-    fun <T : KClass<out Wrapper>> create(classType: T): Wrapper
-}
-
-class AdditionalAccountBootstrappingWrapperImpl() : AdditionalAccountBootstrappingWrapper {
-    override fun <T : KClass<out Wrapper>> create(classType: T): Wrapper {
-        throw IllegalArgumentException("Creating an AccountBootstrapping Wrapper with $classType is unsupported and requires an implementation")
-    }
-}
 
 interface AccountBootstrappingViewModelFactory {
     fun create(
@@ -67,8 +32,14 @@ interface AccountBootstrappingViewModelFactory {
 }
 
 interface AccountBootstrappingViewModel {
-    val steps: List<Wrapper>
     fun closeWizard()
+    val userId : UserId
+    val privacySettingsViewModel : PrivacySettingsSingleAccountViewModel
+    val notificationSettingsViewModel : NotificationSettingsSingleAccountViewModel
+    val verificationViewModel : VerificationViewModel
+    val selfVerificationViewModel : SelfVerificationViewModel
+    val isVerified : StateFlow<Boolean?>
+
 }
 
 class AccountBootstrappingViewModelImpl(
@@ -76,73 +47,30 @@ class AccountBootstrappingViewModelImpl(
     val onWizardClose: (UserId) -> Unit
 ) :
     ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
-    private val account = viewModelContext.userId
+    override val userId = viewModelContext.userId
 
-    private val privacySettingsViewModel by lazy {
+    override val privacySettingsViewModel by lazy {
         get<PrivacySettingsSingleAccountViewModelFactory>().create(viewModelContext) {}
     }
-    private val notificationSettingsViewModel by lazy {
+    override val notificationSettingsViewModel by lazy {
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val isVerified =
-        matrixClients.map { it[account] }.filterNotNull()
-            .map { it.key.getTrustLevel(account, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
+    override val isVerified =
+        matrixClients.map { it[userId] }.filterNotNull()
+            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private val selfVerificationViewModel by lazy {
+    override val selfVerificationViewModel by lazy {
         get<SelfVerificationViewModelFactory>().create(viewModelContext) {}
     }
-    private val verificationViewModel by lazy {
+    override val verificationViewModel by lazy {
         get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
     }
 
-
-    fun startVerification(selfVerificationMethod: SelfVerificationMethod) {
-        selfVerificationViewModel.launchVerification(selfVerificationMethod)
-    }
-
     override fun closeWizard() {
-        this.onWizardClose(account)
-    }
-
-
-    override val steps = mutableListOf<Wrapper>().apply {
-        get<AccountBootstrappingSteps>().steps.forEach {
-            when (it) {
-                WizardExplanation::class -> add(WizardExplanation(account))
-                WizardConfirm::class -> add(WizardConfirm)
-                WizardPrivacySettings::class -> add(WizardPrivacySettings(privacySettingsViewModel))
-                WizardNotificationSettings::class -> add(WizardNotificationSettings(notificationSettingsViewModel))
-                WizardVerification::class -> add(
-                    WizardVerification(
-                        isVerified,
-                        selfVerificationViewModel,
-                        verificationViewModel,
-                        ::startVerification
-                    )
-                )
-
-                else -> add(get<AdditionalAccountBootstrappingWrapper>().create(it))
-            }
-        }
-    }
-
-    sealed class WizardSteps {
-        data class WizardNotificationSettings(val viewModel: NotificationSettingsSingleAccountViewModel) :
-            Wrapper()
-
-        data class WizardPrivacySettings(val viewModel: PrivacySettingsSingleAccountViewModel) : Wrapper()
-        data class WizardExplanation(val userId: UserId) : Wrapper()
-        data class WizardVerification(
-            val isVerified: StateFlow<Boolean?>,
-            val selfVerificationViewModel: SelfVerificationViewModel,
-            val verificationViewModel: VerificationViewModel,
-            val startVerification: (selfVerificationMethod: SelfVerificationMethod) -> Unit
-        ) : Wrapper()
-
-        data object WizardConfirm : Wrapper()
+        this.onWizardClose(userId)
     }
 }

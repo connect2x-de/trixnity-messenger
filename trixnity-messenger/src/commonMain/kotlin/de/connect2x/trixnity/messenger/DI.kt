@@ -35,8 +35,8 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountVi
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
@@ -102,8 +102,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFacto
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AdditionalAccountBootstrappingWrapper
-import de.connect2x.trixnity.messenger.viewmodel.settings.AdditionalAccountBootstrappingWrapperImpl
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
@@ -114,8 +112,6 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAcco
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingSteps
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingStepsImpl
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
@@ -231,8 +227,6 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Search> { SearchImpl(get(), get()) }
         single<RunInitialSync> { RunInitialSync }
         single<DragAndDropHandler> { DragAndDropHandlerBase() }
-        single<AccountBootstrappingSteps> { AccountBootstrappingStepsImpl }
-        single<AdditionalAccountBootstrappingWrapper> { AdditionalAccountBootstrappingWrapperImpl() }
         single<AccountBootstrappingViewModelFactory> { AccountBootstrappingViewModelFactory }
 
         single<RootViewModelFactory> { RootViewModelFactory }

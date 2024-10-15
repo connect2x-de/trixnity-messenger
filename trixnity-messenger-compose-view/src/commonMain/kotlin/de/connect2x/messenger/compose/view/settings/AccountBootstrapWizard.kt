@@ -34,12 +34,8 @@ import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodCon
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardConfirm
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardExplanation
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardNotificationSettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardPrivacySettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelImpl.WizardSteps.WizardVerification
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 private val WIZARD_EXPLANATION = "ACCOUNT_BOOTSTRAP_WIZARD_EXPLANATION"
@@ -48,13 +44,39 @@ private val WIZARD_CONFIRM = "ACCOUNT_BOOTSTRAP_WIZARD_CONFIRM"
 private val WIZARD_PRIVACY = "ACCOUNT_BOOTSTRAP_WIZARD_PRIVACY"
 private val WIZARD_VERIFICATION = "ACCOUNT_BOOTSTRAP_WIZARD_VERIFICATION"
 
+open class AccountBootstrappingWizardStep {
+    data object ExplanationStep : AccountBootstrappingWizardStep()
+    data object VerificationStep : AccountBootstrappingWizardStep()
+    data object PrivacySettingsStep : AccountBootstrappingWizardStep()
+    data object NotificationSettingsStep : AccountBootstrappingWizardStep()
+    data object ConfirmationStep : AccountBootstrappingWizardStep()
+}
+
+interface AccountBootstrappingWizardSteps {
+    val steps: List<AccountBootstrappingWizardStep>
+}
+
+class AccountBootstrappingWizardStepsImpl : AccountBootstrappingWizardSteps {
+    override val steps = listOf(
+        AccountBootstrappingWizardStep.ExplanationStep,
+        AccountBootstrappingWizardStep.VerificationStep,
+        AccountBootstrappingWizardStep.PrivacySettingsStep,
+        AccountBootstrappingWizardStep.NotificationSettingsStep,
+        AccountBootstrappingWizardStep.ConfirmationStep
+    )
+}
+
+
 interface AdditionalAccountBootstrappingWizardStep {
-    fun <T : Wrapper> create(wrapper: T): WizardStep
+    fun <T : AccountBootstrappingViewModel> create(viewModel: T, step: AccountBootstrappingWizardStep): WizardStep
 }
 
 class AdditionalAccountBootstrappingWizardStepImpl() : AdditionalAccountBootstrappingWizardStep {
-    override fun <T : Wrapper> create(wrapper: T): WizardStep {
-        throw IllegalArgumentException("Creating an AccountBootstrappingWizard step with ${wrapper::class} is unsupported and requires an implementation")
+    override fun <T : AccountBootstrappingViewModel> create(
+        viewModel: T,
+        step: AccountBootstrappingWizardStep
+    ): WizardStep {
+        throw IllegalArgumentException("Creating an AccountBootstrappingWizard step with ${step::class} is unsupported and requires an implementation")
     }
 }
 
@@ -64,28 +86,23 @@ fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
     val di = DI.current
     val i18n = di.get<I18nView>()
 
-    val list = showBootstrapWrapper.viewModel.steps
+    val viewModel = showBootstrapWrapper.viewModel
+    val list = di.get<AccountBootstrappingWizardSteps>().steps
     val steps = remember {
         mutableListOf<WizardStep>().apply {
             list.forEach {
                 when (it) {
-                    is WizardExplanation -> add(wizardStepExplanation(
-                        it, i18n
-                    ) { showBootstrapWrapper.viewModel.closeWizard() })
+                    is AccountBootstrappingWizardStep.ExplanationStep -> add(wizardStepExplanation(viewModel, i18n))
 
-                    is WizardNotificationSettings -> add(wizardStepNotification(it, i18n))
+                    is AccountBootstrappingWizardStep.NotificationSettingsStep -> add(wizardStepNotification(viewModel, i18n))
 
-                    is WizardConfirm -> add(wizardStepConfirmation(
-                        i18n
-                    ) { showBootstrapWrapper.viewModel.closeWizard() })
+                    is AccountBootstrappingWizardStep.ConfirmationStep -> add(wizardStepConfirmation(viewModel, i18n))
 
-                    is WizardPrivacySettings -> add(wizardStepPrivacy(it, i18n))
+                    is AccountBootstrappingWizardStep.PrivacySettingsStep -> add(wizardStepPrivacy(viewModel, i18n))
 
-                    is WizardVerification -> add(wizardStepVerification(it, i18n))
+                    is AccountBootstrappingWizardStep.VerificationStep -> add(wizardStepVerification(viewModel, i18n))
 
-                    Wrapper.None -> {}
-
-                    else -> add(di.get<AdditionalAccountBootstrappingWizardStep>().create(it))
+                    else -> add(di.get<AdditionalAccountBootstrappingWizardStep>().create(viewModel, it))
                 }
             }
         }
@@ -93,77 +110,78 @@ fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
     Wizard(steps)
 }
 
-private fun wizardStepExplanation(wrapper: WizardExplanation, i18n: I18nView, closeWizard: () -> Unit): WizardStep {
+private fun wizardStepExplanation(viewModel: AccountBootstrappingViewModel, i18n: I18nView): WizardStep {
+
     return WizardStep(id = WIZARD_EXPLANATION,
-        title = { "${i18n.commonWelcome()} ${wrapper.userId.localpart}" },
+        title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
         content = { Text(i18n.accountBootstrappingWizardExplanationMessage()) },
         additionalButton = {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { closeWizard() }) {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeWizard() }) {
                 Text(i18n.commonSkip())
             }
         })
 }
 
-private fun wizardStepNotification(wrapper: WizardNotificationSettings, i18n: I18nView): WizardStep {
-    val notificationSettings = wrapper.viewModel
+private fun wizardStepNotification(viewModel: AccountBootstrappingViewModel, i18n: I18nView): WizardStep {
+    val notificationSettingsViewModel = viewModel.notificationSettingsViewModel
     return WizardStep(
         id = WIZARD_NOTIFICATION,
         title = { i18n.commonNotifications() },
         content = {
-            val enabledOnDevice = notificationSettings.enabledForThisDevice.collectAsState().value
+            val enabledOnDevice = notificationSettingsViewModel.enabledForThisDevice.collectAsState().value
             Column {
                 Setting(text = i18n.notificationsSettingsEnabledForThisDevice(),
                     value = enabledOnDevice,
-                    toggle = { notificationSettings.toggleEnabledForThisDevice() })
+                    toggle = { notificationSettingsViewModel.toggleEnabledForThisDevice() })
                 MiddleSpacer()
-                PlatformNotificationSettings(notificationSettings, enabledOnDevice)
+                PlatformNotificationSettings(notificationSettingsViewModel, enabledOnDevice)
                 MiddleSpacer()
-                PlatformNotificationAccountSettings(notificationSettings, enabledOnDevice)
+                PlatformNotificationAccountSettings(notificationSettingsViewModel, enabledOnDevice)
             }
         },
     )
 }
 
-private fun wizardStepConfirmation(i18n: I18nView, closeWizard: () -> Unit): WizardStep {
+private fun wizardStepConfirmation(viewModel: AccountBootstrappingViewModel, i18n: I18nView): WizardStep {
     return WizardStep(id = WIZARD_CONFIRM, title = { i18n.accountBootstrappingWizardFinishSetupTitle() }, content = {
         Text(i18n.accountBootstrappingWizardFinishSetup())
     }, nextButton = {
         Custom {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { closeWizard() }) {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeWizard() }) {
                 Text(i18n.commonConfirm())
             }
         }
     })
 }
 
-private fun wizardStepPrivacy(wrapper: WizardPrivacySettings, i18n: I18nView): WizardStep {
-    val privacySettings = wrapper.viewModel
+private fun wizardStepPrivacy(viewModel: AccountBootstrappingViewModel, i18n: I18nView): WizardStep {
+    val privacySettingsViewModel = viewModel.privacySettingsViewModel
     return WizardStep(id = WIZARD_PRIVACY, title = { i18n.privacyTitle() }, content = {
         val di = DI.current
-        val publicPresence = privacySettings.presenceIsPublic.collectAsState().value
-        val publicTyping = privacySettings.typingIsPublic.collectAsState().value
-        val publicRead = privacySettings.readMarkerIsPublic.collectAsState().value
+        val publicPresence = privacySettingsViewModel.presenceIsPublic.collectAsState().value
+        val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
+        val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
         Column {
             Setting(text = i18n.privacyPresenceIsPublic(),
                 explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
                 value = publicPresence,
-                toggle = { privacySettings.togglePresenceIsPublic() })
+                toggle = { privacySettingsViewModel.togglePresenceIsPublic() })
             Setting(text = i18n.privacyReadMarkerIsPublic(),
                 explanation = i18n.privacyReadMarkerIsPublicExplanation(),
                 value = publicRead,
-                toggle = { privacySettings.toggleReadMarkerIsPublic() })
+                toggle = { privacySettingsViewModel.toggleReadMarkerIsPublic() })
             Setting(text = i18n.privacyTypingIsPublic(),
                 explanation = i18n.privacyTypingIsPublicExplanation(),
                 value = publicTyping,
-                toggle = { privacySettings.toggleTypingIsPublic() })
+                toggle = { privacySettingsViewModel.toggleTypingIsPublic() })
         }
     })
 }
 
-private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView): WizardStep {
-    val selfVerification = wrapper.selfVerificationViewModel
-    val verification = wrapper.verificationViewModel
-    val isVerified = wrapper.isVerified
+private fun wizardStepVerification(viewModel: AccountBootstrappingViewModel, i18n: I18nView): WizardStep {
+    val verificationViewModel = viewModel.verificationViewModel
+    val selfVerificationViewModel = viewModel.selfVerificationViewModel
+    val isVerified = viewModel.isVerified
     val selected = mutableStateOf<SelfVerificationMethod?>(null)
     val selectedPassphrase = mutableStateOf<String>("")
     val selectedRecoveryKey = mutableStateOf<String>("")
@@ -172,23 +190,23 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
         Column {
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
-                val showHelp = selfVerification.showVerificationHelp.collectAsState().value
-                val methods = selfVerification.selfVerificationMethods.collectAsState()
-                val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null
-                val showKey = selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+                val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
+                val methods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
+                val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+                val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
 
                 when {
                     showHelp -> ShowVerificationHelpContent()
                     showPassphrase -> ShowPasspraseMethodContent(
-                        selfVerification, selectedPassphrase
+                        selfVerificationViewModel, selectedPassphrase
                     )
 
                     showKey -> ShowRecoveryKeyMethodContent(
-                        selfVerification, selectedRecoveryKey
+                        selfVerificationViewModel, selectedRecoveryKey
                     )
 
                     startCrossDevice.value -> {
-                        Box { DeviceVerificationStepSwitch(verification) }
+                        Box { DeviceVerificationStepSwitch(verificationViewModel) }
                     }
 
                     else -> ShowSelfVerificationMethodsContent(methods, selected)
@@ -208,7 +226,7 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
             } else if (isVerified == false) {
                 val verificationStarted = remember { mutableStateOf(false) }
                 if (!verificationStarted.value) {
-                    selected.value?.let { wrapper.startVerification(it) }
+                    selected.value?.let { selfVerificationViewModel.launchVerification(it) }
                     verificationStarted.value = true
                 }
             }
@@ -216,28 +234,28 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
     }, additionalButton = {
         val isVerified = isVerified.collectAsState().value
         if (isVerified == false) {
-            val showHelp = selfVerification.showVerificationHelp.collectAsState().value
-            val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null
-            val showKey = selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+            val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
+            val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+            val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
             val enableButton =
                 showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank()) || (showKey && selectedRecoveryKey.value.isNotBlank()) || selected.value != null
             Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
                 when {
                     showHelp -> {
-                        selfVerification.waitForAvailableVerificationMethods()
+                        selfVerificationViewModel.waitForAvailableVerificationMethods()
                     }
 
                     showPassphrase -> {
-                        selfVerification.verifyWithPassphrase(selectedPassphrase.value)
+                        selfVerificationViewModel.verifyWithPassphrase(selectedPassphrase.value)
                     }
 
                     showKey -> {
-                        selfVerification.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                        selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
                     }
 
 
                     else -> {
-                        selected.value?.let { wrapper.startVerification(it) }
+                        selected.value?.let { selfVerificationViewModel.launchVerification(it) }
                     }
                 }
             }) {
@@ -259,18 +277,17 @@ private fun wizardStepVerification(wrapper: WizardVerification, i18n: I18nView):
             }
         })
     }, backButton = {
-        val showPassphrase = selfVerification.showPassphraseMethod.collectAsState().value != null
-        val showKey = selfVerification.showRecoveryKeyMethod.collectAsState().value != null
+        val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+        val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
 
         if (showPassphrase || showKey) {
             Custom(button = {
                 Button(onClick = {
-                    selfVerification.backToChoose()
+                    selfVerificationViewModel.backToChoose()
                 }) {
                     Text(i18n.commonBack())
                 }
             })
-        }
-        else Standard()
+        } else Standard()
     })
 }
