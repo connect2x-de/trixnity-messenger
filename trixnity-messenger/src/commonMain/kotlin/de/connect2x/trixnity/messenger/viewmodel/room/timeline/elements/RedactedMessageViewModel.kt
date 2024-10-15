@@ -71,7 +71,6 @@ interface RedactedMessageViewModelFactory {
 interface RedactedMessageViewModel : RoomMessageViewModel {
     val formattedMessage: StateFlow<String>
     val redactedAtDateTime: String?
-    val redactsSupportedEvent: Boolean
 }
 
 open class RedactedMessageViewModelImpl(
@@ -116,7 +115,6 @@ open class RedactedMessageViewModelImpl(
             "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
         }
 
-    override val redactsSupportedEvent = false
 }
 
 class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
@@ -131,5 +129,4 @@ class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
     override val formattedDate: String = "23.12.21"
     override val showDateAbove: Boolean = false
     override val redactedAtDateTime: String = "25.12.21, 13:18"
-    override val redactsSupportedEvent: Boolean = true
 }

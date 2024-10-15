@@ -251,7 +251,6 @@ fun MessageRichText(uriHandler: UriHandler, state: RichTextState, isByMe: Boolea
 private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = redactedMessageViewModel.formattedMessage.collectAsState().value
-    if (redactedMessageViewModel.redactsSupportedEvent) {
         Row(Modifier.padding(10.dp)) {
             Icon(
                 Icons.Outlined.Delete, i18n.commonDeleted(),
@@ -266,7 +265,6 @@ private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) 
                 fontStyle = FontStyle.Italic,
             )
         }
-    }
 }
 
 @Composable

@@ -125,5 +125,4 @@ fun MessageDateText(
             Spacer(Modifier.defaultMinSize(minWidth = 45.dp))
         }
     }
-    else Text("Redacted")
 }
