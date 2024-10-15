@@ -9,28 +9,38 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.BackButton
 import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.common.MessengerModalThreeButtonRow
 import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.PasswordField
@@ -55,15 +65,18 @@ class SelfVerificationModalViewImpl : SelfVerificationModalView {
     override fun create(selfVerificationViewModel: SelfVerificationViewModel) {
         val i18n = DI.get<I18nView>()
         val showVerificationHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
+        val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
         val showPassphraseMethod = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
         val showRecoveryKeyMethod = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
 
         MessengerModal(
             selfVerificationViewModel::close,
-            i18n.selfVerificationTitle(selfVerificationViewModel.userId),
+            if (showResetRecoveryWarning) i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId)
+            else i18n.selfVerificationTitle(selfVerificationViewModel.userId),
         ) {
             when {
                 showVerificationHelp -> ShowVerificationHelp(selfVerificationViewModel)
+                showResetRecoveryWarning -> ShowResetRecoveryWarning(selfVerificationViewModel)
                 showPassphraseMethod -> ShowPassphraseMethod(selfVerificationViewModel)
                 showRecoveryKeyMethod -> ShowRecoveryKeyMethod(selfVerificationViewModel)
                 else -> ShowSelfVerificationMethods(selfVerificationViewModel)
@@ -87,14 +100,71 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
         }
     }
 
-    MessengerModalButtonRow(
-        {
+    MessengerModalThreeButtonRow(
+        next = { NextButton { selfVerificationViewModel.waitForAvailableVerificationMethods() } },
+        misc = {
             CloseModalButton(
                 selfVerificationViewModel::close,
                 i18n.redoSelfVerificationContinueWithoutVerification(),
             )
         },
-        { NextButton { selfVerificationViewModel.waitForAvailableVerificationMethods() } })
+        back = {
+            OutlinedButton(
+                onClick = selfVerificationViewModel::resetRecoveryWarning,
+                modifier = Modifier.buttonPointerModifier(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(i18n.selfVerificationResetRecoveryKey().capitalize(Locale.current))
+            }
+        })
+
+}
+
+@Composable
+fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerificationViewModel) {
+    val i18n = DI.get<I18nView>()
+
+    var checked by remember { mutableStateOf(false) }
+
+    MessengerModalContent {
+        Text(text = "${i18n.resetWarningIsPermanent()} ${i18n.resetWarningLostAccessAndReVerify()} ${i18n.resetWarningLastResort()}")
+
+        Spacer(Modifier.size(10.dp))
+
+        Row(
+            Modifier.fillMaxWidth().clickable { checked = !checked },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(
+                checked = checked,
+                onCheckedChange = { checked = it })
+            Spacer(Modifier.size(10.dp))
+            Text(i18n.resetWarningAcknowledge())
+        }
+    }
+
+    MessengerModalThreeButtonRow(
+        next = {
+            NextButton(
+                text = i18n.resetProceed(),
+                enabled = checked,
+                nextAction = selfVerificationViewModel::resetRecovery,
+            )
+        },
+        back = {
+            BackButton { selfVerificationViewModel.backToHelp() }
+        },
+
+        misc = {
+            CloseModalButton(
+                selfVerificationViewModel::close,
+                i18n.redoSelfVerificationContinueWithoutVerification(),
+            )
+        }
+    )
+
 }
 
 @Composable
@@ -187,18 +257,23 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
         }
     }
 
-    MessengerModalButtonRow(
-        {
+    MessengerModalThreeButtonRow(
+        next = {
+            NextButton(enabled = selectedVerificationMethod.value != null) {
+                selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
+            }
+        },
+        back = {
+            BackButton(
+                selfVerificationViewModel::backToHelp
+            )
+        },
+        misc = {
             CloseModalButton(
                 selfVerificationViewModel::close,
                 i18n.redoSelfVerificationContinueWithoutVerification(),
             )
         },
-        {
-            NextButton(enabled = selectedVerificationMethod.value != null) {
-                selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
-            }
-        }
     )
 }
 

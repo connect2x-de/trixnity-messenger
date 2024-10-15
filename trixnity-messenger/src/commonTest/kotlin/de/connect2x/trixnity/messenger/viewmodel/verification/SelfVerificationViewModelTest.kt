@@ -58,6 +58,8 @@ class SelfVerificationViewModelTest : ShouldSpec() {
 
     private val onCloseSelfVerificationMock = mock<Function0<Unit>>()
 
+    private val onResetRecoveryMock = mock<Function0<Unit>>()
+
     init {
         coroutineTestScope = true
 
@@ -68,7 +70,8 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 keySecretService,
                 keyTrustService,
                 verifyAccountMock,
-                onCloseSelfVerificationMock
+                onCloseSelfVerificationMock,
+                onResetRecoveryMock
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -89,6 +92,28 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             cut.showRecoveryKeyMethod.value shouldBe null
             cut.recoveryKeyWrong.value shouldBe false
             cut.error.value shouldBe null
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("show reset recovery warning") {
+            val cut = selfVerificationViewModel(coroutineContext)
+            cut.resetRecoveryWarning()
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.showVerificationHelp.value shouldBe false
+            cut.showResetRecoveryWarning.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("reset recovery") {
+            every { onResetRecoveryMock.invoke() } returns Unit
+            val cut = selfVerificationViewModel(coroutineContext)
+            cut.resetRecovery()
+            testCoroutineScheduler.advanceUntilIdle()
+
+            verify { onResetRecoveryMock.invoke() }
 
             cancelNeverEndingCoroutines()
         }
@@ -367,6 +392,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext
             ),
             onCloseSelfVerification = onCloseSelfVerificationMock,
+            onResetRecovery = onResetRecoveryMock,
         )
     }
 

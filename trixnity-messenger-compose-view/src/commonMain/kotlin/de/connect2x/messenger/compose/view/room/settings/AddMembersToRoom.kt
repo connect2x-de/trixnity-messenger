@@ -78,7 +78,7 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                         ErrorDialog(error.value.orEmpty(), { addMembersViewModel.errorDismiss() }, errorCause = errorCause)
                     }
                     UsersInGroup(addMembersViewModel)
-                    SearchUsers(
+                    SearchUsersSettings(
                         addMembersViewModel.potentialMembersViewModel,
                         addMembersViewModel::onUserClick
                     )
