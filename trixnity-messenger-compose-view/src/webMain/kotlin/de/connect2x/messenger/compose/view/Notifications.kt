@@ -18,7 +18,10 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
@@ -49,6 +52,23 @@ fun Notifications(
         name = "${config.appName} Notifications",
         id = "${config.packageName}.${config.appName}.notification",
     )
+
+    LaunchedEffect(Unit) {
+        matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+            .map { it.base.accounts }
+            .distinctUntilChanged()
+            .conflate()
+            .collect { settings ->
+                val anyNotificationsEnabled =
+                    settings.any { (_, settings) -> settings.base.notificationsEnabled }
+                withContext(Dispatchers.Main) {
+                    if (anyNotificationsEnabled) {
+                        log.debug { "Notifications are enabled for active messenger, requesting permissions" }
+                        notificationHandler.requestPermissions()
+                    }
+                }
+            }
+    }
 
     val windowIsFocused = IsFocused.current
     LaunchedEffect(windowIsFocused) {
@@ -112,7 +132,7 @@ private suspend fun displayNotification(
 ): Notification? {
     event.roomIdOrNull?.let { roomId ->
         val message = when {
-            currentSettings.platformNotifications.notificationsShowText.not() -> "(${i18n.newNotification()})"
+            currentSettings.platformNotifications.notificationsShowText.not() -> "(${i18n.newMessage()})"
             content is MemberEventContent && content.membership == Membership.INVITE -> roomName
             content is RoomMessageEventContent -> content.body
             else -> null

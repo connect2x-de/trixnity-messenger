@@ -120,7 +120,7 @@ private suspend fun displayNotification(
 ): Notification? {
     event.roomIdOrNull?.let { roomId ->
         val message = when {
-            currentSettings.platformNotifications.notificationsShowText.not() -> "(${i18n.newNotification()})"
+            currentSettings.platformNotifications.notificationsShowText.not() -> "(${i18n.newMessage()})"
             content is MemberEventContent && content.membership == Membership.INVITE -> roomName
             content is RoomMessageEventContent -> content.body
             else -> null

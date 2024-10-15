@@ -292,8 +292,8 @@ abstract class I18nView(
         DE - "einklappen"
     }
 
-    fun newNotification() = translate {
-        EN - "new notification"
+    fun newMessage() = translate {
+        EN - "new message"
         DE - "neue Nachricht"
     }
 
