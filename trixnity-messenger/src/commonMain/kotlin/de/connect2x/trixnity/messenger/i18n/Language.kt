@@ -11,7 +11,9 @@ object DefaultLanguages : Languages {
     val EN = Language("en")
 
     override fun langOf(lang: String): Language? {
-        return when (lang) {
+        val languageCode = lang.substringBefore('-').lowercase()
+
+        return when (languageCode) {
             DE.code -> DE
             EN.code -> EN
             else -> null
