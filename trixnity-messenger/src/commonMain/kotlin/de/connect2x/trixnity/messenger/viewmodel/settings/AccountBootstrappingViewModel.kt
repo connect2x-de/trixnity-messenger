@@ -64,7 +64,7 @@ class AccountBootstrappingViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val selfVerificationViewModel by lazy {
-        get<SelfVerificationViewModelFactory>().create(viewModelContext) {}
+        get<SelfVerificationViewModelFactory>().create(viewModelContext, {}, {})
     }
     override val verificationViewModel by lazy {
         get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)

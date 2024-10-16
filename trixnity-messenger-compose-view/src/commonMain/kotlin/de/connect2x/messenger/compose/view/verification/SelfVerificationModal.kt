@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +17,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,15 +90,7 @@ class SelfVerificationModalViewImpl : SelfVerificationModalView {
 fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
     MessengerModalContent {
-        Text(text = i18n.selfVerificationHelpOtherDevice())
-        Text(text = i18n.selfVerificationHelpVerifyThis())
-        Spacer(Modifier.size(20.dp))
-
-        MoreInfo(i18n.selfVerificationHelpReasonTitle()) {
-            RunningText(text = i18n.selfVerificationHelpReason1())
-            RunningText(text = i18n.selfVerificationHelpReason2())
-            RunningText(text = i18n.selfVerificationHelpReason3())
-        }
+        ShowVerificationHelpContent()
     }
 
     MessengerModalThreeButtonRow(
@@ -120,6 +113,20 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
             }
         })
 
+}
+
+@Composable
+fun ColumnScope.ShowVerificationHelpContent() {
+    val i18n = DI.get<I18nView>()
+    Text(text = i18n.selfVerificationHelpOtherDevice())
+    Text(text = i18n.selfVerificationHelpVerifyThis())
+    Spacer(Modifier.size(20.dp))
+
+    MoreInfo(i18n.selfVerificationHelpReasonTitle()) {
+        RunningText(text = i18n.selfVerificationHelpReason1())
+        RunningText(text = i18n.selfVerificationHelpReason2())
+        RunningText(text = i18n.selfVerificationHelpReason3())
+    }
 }
 
 @Composable
@@ -174,87 +181,7 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
     val selectedVerificationMethod = remember { mutableStateOf<SelfVerificationMethod?>(null) }
 
     MessengerModalContent {
-        Text(i18n.selfVerificationMethodsTitle())
-        Spacer(Modifier.size(10.dp))
-
-        selfVerificationMethods.value.forEachIndexed { index, method ->
-            when (method) {
-                is SelfVerificationMethod.CrossSignedDeviceVerification -> {
-                    Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { selectedVerificationMethod.value = method }
-                        ) {
-                            RadioButton(
-                                selected = selectedVerificationMethod.value == method,
-                                onClick = { selectedVerificationMethod.value = method },
-                            )
-                            Text(
-                                text = i18n.selfVerificationMethodsOtherDevice(),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(vertical = 10.dp)
-                            )
-                        }
-                        Column(Modifier.padding(start = 48.dp)) {
-                            Text(
-                                text = i18n.selfVerificationMethodsOtherDeviceInfo(),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                }
-
-                is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                    Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { selectedVerificationMethod.value = method }
-                        ) {
-                            RadioButton(
-                                selected = selectedVerificationMethod.value == method,
-                                onClick = { selectedVerificationMethod.value = method }
-                            )
-                            Text(
-                                i18n.selfVerificationMethodsRecoveryKey(),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(vertical = 10.dp)
-                            )
-                        }
-                        Column(Modifier.padding(start = 48.dp)) {
-                            Text(
-                                text = i18n.selfVerificationMethodsRecoveryKeyInfo(),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }
-
-                is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
-                    Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { selectedVerificationMethod.value = method }
-                        ) {
-                            RadioButton(
-                                selected = selectedVerificationMethod.value == method,
-                                onClick = { selectedVerificationMethod.value = method }
-                            )
-                            Text(
-                                i18n.selfVerificationMethodsRecoveryPassphrase(),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(vertical = 10.dp)
-                            )
-                        }
-                        Column(Modifier.padding(start = 48.dp)) {
-                            Text(
-                                text = i18n.selfVerificationMethodsRecoveryPassphraseInfo(),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }
-
-                else -> Box {}
-            }
-        }
+        ShowSelfVerificationMethodsContent(selfVerificationMethods, selectedVerificationMethod)
     }
 
     MessengerModalThreeButtonRow(
@@ -278,39 +205,103 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
 }
 
 @Composable
+fun ColumnScope.ShowSelfVerificationMethodsContent(
+    selfVerificationMethods: State<Set<SelfVerificationMethod>>,
+    selectedVerificationMethod: MutableState<SelfVerificationMethod?>
+) {
+    val i18n = DI.get<I18nView>()
+    Text(i18n.selfVerificationMethodsTitle())
+    Spacer(Modifier.size(10.dp))
+
+    selfVerificationMethods.value.forEachIndexed { index, method ->
+        when (method) {
+            is SelfVerificationMethod.CrossSignedDeviceVerification -> {
+                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { selectedVerificationMethod.value = method }
+                    ) {
+                        RadioButton(
+                            selected = selectedVerificationMethod.value == method,
+                            onClick = { selectedVerificationMethod.value = method },
+                        )
+                        Text(
+                            text = i18n.selfVerificationMethodsOtherDevice(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                    Column(Modifier.padding(start = 48.dp)) {
+                        Text(
+                            text = i18n.selfVerificationMethodsOtherDeviceInfo(),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+
+            is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
+                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { selectedVerificationMethod.value = method }
+                    ) {
+                        RadioButton(
+                            selected = selectedVerificationMethod.value == method,
+                            onClick = { selectedVerificationMethod.value = method }
+                        )
+                        Text(
+                            i18n.selfVerificationMethodsRecoveryKey(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                    Column(Modifier.padding(start = 48.dp)) {
+                        Text(
+                            text = i18n.selfVerificationMethodsRecoveryKeyInfo(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
+                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { selectedVerificationMethod.value = method }
+                    ) {
+                        RadioButton(
+                            selected = selectedVerificationMethod.value == method,
+                            onClick = { selectedVerificationMethod.value = method }
+                        )
+                        Text(
+                            i18n.selfVerificationMethodsRecoveryPassphrase(),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                    Column(Modifier.padding(start = 48.dp)) {
+                        Text(
+                            text = i18n.selfVerificationMethodsRecoveryPassphraseInfo(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            else -> Box {}
+        }
+    }
+}
+
+@Composable
 fun ColumnScope.ShowPassphraseMethod(
     selfVerificationViewModel: SelfVerificationViewModel,
 ) {
     val i18n = DI.get<I18nView>()
-    val passphraseWrong = selfVerificationViewModel.passphraseWrong.collectAsState()
-    val error = selfVerificationViewModel.error.collectAsState()
     val passphrase = remember { mutableStateOf("") }
 
     MessengerModalContent {
-        Text(i18n.selfVerificationMethodsRecoveryPassphraseTitle())
-        Text(buildAnnotatedString {
-            pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
-            append("${i18n.bootstrapRecoveryKeyAttention()}:")
-            pop()
-            append(i18n.selfVerificationMethodsRecoveryPassphraseWarning())
-        })
-        Spacer(Modifier.size(10.dp))
-        PasswordField(
-            password = passphrase,
-            onPasswordChange = { passphrase.value = it },
-            label = { Text(i18n.commonRecoveryPassphrase()) },
-        )
-        if (passphraseWrong.value) {
-            Box(Modifier.fillMaxWidth()) {
-                Text(
-                    text = i18n.selfVerificationMethodsRecoveryPassphraseWrong(),
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        error.value?.let { Spacer(Modifier.size(20.dp)); ErrorView(it) }
+        ShowPassphraseMethodContent(selfVerificationViewModel, passphrase)
     }
 
     MessengerModalButtonRow(
@@ -324,39 +315,48 @@ fun ColumnScope.ShowPassphraseMethod(
 }
 
 @Composable
+fun ColumnScope.ShowPassphraseMethodContent(
+    selfVerificationViewModel: SelfVerificationViewModel,
+    passphrase: MutableState<String>
+) {
+    val passphraseWrong = selfVerificationViewModel.passphraseWrong.collectAsState()
+    val error = selfVerificationViewModel.error.collectAsState()
+    val i18n = DI.get<I18nView>()
+    Text(i18n.selfVerificationMethodsRecoveryPassphraseTitle())
+    Text(buildAnnotatedString {
+        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+        append("${i18n.bootstrapRecoveryKeyAttention()}:")
+        pop()
+        append(i18n.selfVerificationMethodsRecoveryPassphraseWarning())
+    })
+    Spacer(Modifier.size(10.dp))
+    PasswordField(
+        password = passphrase,
+        onPasswordChange = { passphrase.value = it },
+        label = { Text(i18n.commonRecoveryPassphrase()) },
+    )
+    if (passphraseWrong.value) {
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                text = i18n.selfVerificationMethodsRecoveryPassphraseWrong(),
+                modifier = Modifier.align(Alignment.CenterEnd),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+    error.value?.let { Spacer(Modifier.size(20.dp)); ErrorView(it) }
+}
+
+@Composable
 fun ColumnScope.ShowRecoveryKeyMethod(
     selfVerificationViewModel: SelfVerificationViewModel
 ) {
     val i18n = DI.get<I18nView>()
-    val recoveryKeyWrong = selfVerificationViewModel.recoveryKeyWrong.collectAsState()
-    val error = selfVerificationViewModel.error.collectAsState()
     val recoveryKey = remember { mutableStateOf("") }
 
     MessengerModalContent {
-        Text(i18n.selfVerificationMethodsRecoveryKeyTitle())
-        Spacer(Modifier.size(10.dp))
-
-        Row(Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = recoveryKey.value,
-                onValueChange = { recoveryKey.value = it },
-                modifier = Modifier.weight(1.0f, fill = true),
-                isError = recoveryKeyWrong.value,
-                placeholder = { Text("#### ".repeat(11) + "####", color = Color.LightGray) },
-                label = { Text(i18n.commonRecoveryKey()) })
-        }
-        if (recoveryKeyWrong.value) {
-            Box(Modifier.fillMaxWidth()) {
-                Text(
-                    text = i18n.selfVerificationMethodsRecoveryKeyWrong(),
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-
-        error.value?.let { Spacer(Modifier.size(20.dp)); ErrorView(it) }
+        ShowRecoveryKeyMethodContent(selfVerificationViewModel, recoveryKey)
     }
 
     MessengerModalButtonRow(
@@ -367,4 +367,38 @@ fun ColumnScope.ShowRecoveryKeyMethod(
             }
         }
     )
+}
+
+@Composable
+fun ColumnScope.ShowRecoveryKeyMethodContent(
+    selfVerificationViewModel: SelfVerificationViewModel,
+    recoveryKey: MutableState<String>
+) {
+    val i18n = DI.get<I18nView>()
+    val recoveryKeyWrong = selfVerificationViewModel.recoveryKeyWrong.collectAsState()
+    val error = selfVerificationViewModel.error.collectAsState()
+    Text(i18n.selfVerificationMethodsRecoveryKeyTitle())
+    Spacer(Modifier.size(10.dp))
+
+    Row(Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = recoveryKey.value,
+            onValueChange = { recoveryKey.value = it },
+            modifier = Modifier.weight(1.0f, fill = true),
+            isError = recoveryKeyWrong.value,
+            placeholder = { Text("#### ".repeat(11) + "####", color = Color.LightGray) },
+            label = { Text(i18n.commonRecoveryKey()) })
+    }
+    if (recoveryKeyWrong.value) {
+        Box(Modifier.fillMaxWidth()) {
+            Text(
+                text = i18n.selfVerificationMethodsRecoveryKeyWrong(),
+                modifier = Modifier.align(Alignment.CenterEnd),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+
+    error.value?.let { Spacer(Modifier.size(20.dp)); ErrorView(it) }
 }

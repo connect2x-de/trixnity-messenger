@@ -29,7 +29,7 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationStepSwitch
-import de.connect2x.messenger.compose.view.verification.ShowPasspraseMethodContent
+import de.connect2x.messenger.compose.view.verification.ShowPassphraseMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
@@ -212,7 +212,7 @@ private fun wizardStepVerification(
 
                 when {
                     showHelp -> ShowVerificationHelpContent()
-                    showPassphrase -> ShowPasspraseMethodContent(
+                    showPassphrase -> ShowPassphraseMethodContent(
                         selfVerificationViewModel, selectedPassphrase
                     )
 
