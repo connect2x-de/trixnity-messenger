@@ -84,6 +84,7 @@ kotlin {
                 implementation(libs.uuid)
                 implementation(libs.korge)
                 implementation(libs.kim)
+                implementation(libs.markdown)
             }
         }
         commonTest {
@@ -106,7 +107,6 @@ kotlin {
             dependencies {
                 implementation(libs.bundles.jna)
             }
-
         }
         androidMain {
             dependsOn(jvmAndNativeMain)
