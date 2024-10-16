@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correctly detect locales with region codes ("de-DE", "de-AT", "en-US")
 - Require checkbox to advance when setting up recovery keys
 - Create new chats in Web
+- Fix message actions on mobile not updating when messages are sent
 
 ### Security
 
