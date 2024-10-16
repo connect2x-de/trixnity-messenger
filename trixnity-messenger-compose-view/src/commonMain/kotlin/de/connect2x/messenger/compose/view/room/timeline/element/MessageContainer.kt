@@ -22,6 +22,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,11 +79,13 @@ class MessageContainerViewImpl : MessageContainerView {
                         timelineElementHolderViewModel,
                     )
                 }
-                MessageReactions(
-                    roomMessageViewModel,
-                    timelineElementHolderViewModel,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+                if (roomMessageViewModel !is RedactedMessageViewModel) {
+                    MessageReactions(
+                        roomMessageViewModel,
+                        timelineElementHolderViewModel,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
         }
     }
