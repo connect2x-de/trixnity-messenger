@@ -1,6 +1,8 @@
 package de.connect2x.messenger.previews
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModal
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModal
@@ -39,6 +41,19 @@ private fun SelfVerificationPreviewWithRecoveryKey() {
                 aesHmacSha2RecoveryKey = aesHmacSha2RecoveryKey(),
             )
         )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFFF)
+@Composable
+private fun SelfVerificationPreviewOnResetWarning() {
+    val model = remember { SelfVerificationViewModelPreview() }
+    LaunchedEffect(model) {
+        model.resetRecoveryWarning()
+    }
+
+    InitMessengerPreview {
+        SelfVerificationModal(model)
     }
 }
 
@@ -96,8 +111,16 @@ private class SelfVerificationViewModelPreview(
     override val showPassphraseMethod = MutableStateFlow(aesHmacSha2RecoveryKeyWithPbkdf2Passphrase)
     override val showRecoveryKeyMethod = MutableStateFlow(aesHmacSha2RecoveryKey)
     override val showVerificationHelp: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val showResetRecoveryWarning: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val userId = demoUserId
     override fun backToChoose() {}
+    override fun backToHelp() {}
+    override fun resetRecoveryWarning() {
+        showVerificationHelp.value = false
+        showResetRecoveryWarning.value = true
+    }
+
+    override fun resetRecovery() {}
     override fun close() {}
     override fun closeMessenger() {}
     override fun launchVerification(selfVerificationMethod: SelfVerificationMethod) {}

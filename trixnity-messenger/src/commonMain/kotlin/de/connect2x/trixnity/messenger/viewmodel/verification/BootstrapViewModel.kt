@@ -38,11 +38,13 @@ interface BootstrapViewModel {
     val recoveryKey: StateFlow<String?>
     val recoveryKeyPart1: StateFlow<String?>
     val recoveryKeyPart2: StateFlow<String?>
+    val recoveryKeyCopied: StateFlow<Boolean>
 
     val error: StateFlow<String?>
     val isBootstrapRunning: StateFlow<Boolean>
 
     fun bootstrap()
+    fun confirmRecoveryKeyCopied()
     fun close()
     fun closeMessenger()
 }
@@ -59,6 +61,7 @@ open class BootstrapViewModelImpl(
     override val recoveryKeyPart2 = recoveryKey.map {
         it?.split(" ")?.drop(6)?.joinToString(" ")
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val recoveryKeyCopied = MutableStateFlow(false)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isBootstrapRunning = MutableStateFlow(false)
@@ -90,6 +93,10 @@ open class BootstrapViewModelImpl(
                 }
             }.invokeOnCompletion { isBootstrapRunning.value = false }
         }
+    }
+
+    override fun confirmRecoveryKeyCopied() {
+        recoveryKeyCopied.value = true
     }
 
     override fun close() {
