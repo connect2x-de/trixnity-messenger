@@ -122,15 +122,14 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val isDirect: StateFlow<Boolean>
     val isRead: StateFlow<Boolean>
 
-    val reactionsOpen: MutableStateFlow<Boolean>
-    val canBeReactedTo: StateFlow<Boolean>
-
     val isReplaced: StateFlow<Boolean>
     val canBeEdited: StateFlow<Boolean>
     val canBeRedacted: StateFlow<Boolean>
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
     val canBeRepliedTo: StateFlow<Boolean>
+    val reactionsOpen: MutableStateFlow<Boolean>
+    val canBeReactedTo: StateFlow<Boolean>
     val highlight: StateFlow<Boolean>
     val canBeReported: StateFlow<Boolean>
     val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
@@ -192,11 +191,6 @@ open class TimelineElementHolderViewModelImpl(
         timelineEventFlow.map { it?.isReplaced == true }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val reactionsOpen = MutableStateFlow(false)
-    override val canBeReactedTo: StateFlow<Boolean> = timelineEventFlow.map {
-        it?.content?.getOrNull() is RedactedEventContent
-    }.stateIn(coroutineScope, WhileSubscribed(), false)
-
     private val _editInProgress = MutableStateFlow(false)
     private val _redactionInProgress = MutableStateFlow(false)
     override val redactionInProgress: StateFlow<Boolean> = _redactionInProgress.asStateFlow()
@@ -205,6 +199,12 @@ open class TimelineElementHolderViewModelImpl(
     override val canBeRepliedTo: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override val reactionsOpen = MutableStateFlow(false)
+    override val canBeReactedTo: StateFlow<Boolean> =
+        combine(timelineEventFlow, canBeRepliedTo) { timelineEvent, canBeRepliedTo ->
+            timelineEvent?.content?.getOrNull() !is RedactedEventContent && canBeRepliedTo
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canBeReported: StateFlow<Boolean> =
         matrixClient.user.getById(selectedRoomId, userId = matrixClient.userId)
@@ -512,7 +512,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> = MutableStateFlow(emptyMap())
+    override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> =
+        MutableStateFlow(emptyMap())
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun edit() {
     }
@@ -561,7 +562,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> = MutableStateFlow(emptyMap())
+    override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> =
+        MutableStateFlow(emptyMap())
+
     override fun edit() {
     }
 
