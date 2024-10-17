@@ -6,6 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
@@ -35,7 +37,9 @@ class ProfilesViewImpl : ProfilesView {
         matrixMultiMessenger: MatrixMultiMessenger,
         existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
     ) {
-        if (existingProfiles.isEmpty()) {
+        val multiProfile = DI.get<MatrixMessengerBaseConfiguration>().multiProfile
+
+        if (existingProfiles.isEmpty() || !multiProfile) {
             createAndUseDefaultUserProfile(matrixMultiMessenger)
         } else {
             createOrSelectManualUserProfile(

@@ -14,6 +14,7 @@ data class MatrixMultiMessengerConfiguration(
     override var imprintUrl: String? = null,
     override var licenses: String? = null,
     override var pushUrl: String? = null,
+    override var multiProfile: Boolean = true,
     /**
      * Consider using [messengerConfiguration], as it can be called multiple times.
      */

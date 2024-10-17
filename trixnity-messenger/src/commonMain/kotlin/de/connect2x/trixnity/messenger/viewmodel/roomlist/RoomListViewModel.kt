@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.ProfileManager
@@ -535,7 +536,8 @@ class RoomListViewModelImpl(
         }
     }
 
-    override val closeProfileNeeded: Boolean = profileManager != null
+    private val multiProfile = get<MatrixMessengerBaseConfiguration>().multiProfile
+    override val closeProfileNeeded: Boolean = multiProfile
 
     override fun closeProfile() {
         log.debug { "close profile" }

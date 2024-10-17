@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
+- Hide multi profile mode in trixnity messenger
 
 ### Deprecated
 
