@@ -1,6 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddReaction
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -32,8 +37,10 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.EmojiPopup
+import de.connect2x.messenger.compose.view.common.ReactorListPopup
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -131,7 +138,7 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
 }
 
 class MessageReactionsViewImpl : MessageReactionsView {
-    @OptIn(ExperimentalLayoutApi::class)
+    @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable
     override fun create(
         roomMessageViewModel: RoomMessageViewModel,
@@ -147,6 +154,8 @@ class MessageReactionsViewImpl : MessageReactionsView {
         val reactionsOpen by remember(timelineElementHolderViewModel) {
             timelineElementHolderViewModel.reactionsOpen
         }.collectAsState()
+
+        val reactorListOpen = timelineElementHolderViewModel.reactorListOpen.collectAsState().value
 
         val reactions by remember(timelineElementHolderViewModel) {
             timelineElementHolderViewModel.reactions
@@ -167,6 +176,16 @@ class MessageReactionsViewImpl : MessageReactionsView {
                 timelineElementHolderViewModel.addReaction(it)
             },
             isByMe = roomMessageViewModel.isByMe,
+        )
+
+        ReactorListPopup(
+            isOpen = reactorListOpen,
+            focusRequester = focusRequester,
+            onDismiss = {
+                timelineElementHolderViewModel.reactorListOpen.value = false
+            },
+            isByMe = roomMessageViewModel.isByMe,
+            reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
         )
 
         if (reactions.isNotEmpty()) {
@@ -191,7 +210,11 @@ class MessageReactionsViewImpl : MessageReactionsView {
                     },
                     i18n.reactMessage()
                 )
+                Button(onClick = { timelineElementHolderViewModel.reactorListOpen.value = true }) {
+                    Text("Show")
+                }
             }
         }
     }
 }
+

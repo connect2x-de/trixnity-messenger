@@ -122,6 +122,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val isRead: StateFlow<Boolean>
 
     val reactionsOpen: MutableStateFlow<Boolean>
+    val reactorListOpen: MutableStateFlow<Boolean>
 
     val isReplaced: StateFlow<Boolean>
     val canBeEdited: StateFlow<Boolean>
@@ -191,6 +192,7 @@ open class TimelineElementHolderViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val reactionsOpen = MutableStateFlow(false)
+    override val reactorListOpen = MutableStateFlow(false)
 
     private val _editInProgress = MutableStateFlow(false)
     private val _redactionInProgress = MutableStateFlow(false)
@@ -498,6 +500,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val isDirect: StateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val reactorListOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -545,6 +548,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isDirect: StateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val reactorListOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
