@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
@@ -15,8 +16,8 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang) :
-    I18nBase(languages, settings, getSystemLang) {
+abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang, timeZone: TimeZone) :
+    I18nBase(languages, settings, getSystemLang, timeZone) {
 
     // ---- translations -----
     fun commonUnknown() = translate {

@@ -27,7 +27,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
         platformGetSystemLangModule(),
         module {
             single<Languages> { DefaultLanguages }
-            single<I18n> { object : I18n(get(), get(), get()) {} }
+            single<I18n> { object : I18n(get(), get(), get(), get()) {} }
         },
         composeViewModule(),
         module {

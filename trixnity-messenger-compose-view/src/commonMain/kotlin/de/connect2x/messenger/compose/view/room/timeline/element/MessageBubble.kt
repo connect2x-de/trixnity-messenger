@@ -144,11 +144,11 @@ fun ShowBottomSheet(
     showBottomSheet: MutableState<Boolean>,
     roomMessageViewModel: RoomMessageViewModel,
 ) {
+    val bottomSheetState = rememberModalBottomSheetState(false)
     val coroutineScope = rememberCoroutineScope()
     val isFileBased = roomMessageViewModel is FileBasedMessageViewModel
     val hasMessageActions = messageActions.isNotEmpty()
     if (Platform.current.isMobile && (hasMessageActions || isFileBased)) {
-        val bottomSheetState = rememberModalBottomSheetState(false)
         if (showBottomSheet.value)
             ModalBottomSheet(
                 sheetState = bottomSheetState,

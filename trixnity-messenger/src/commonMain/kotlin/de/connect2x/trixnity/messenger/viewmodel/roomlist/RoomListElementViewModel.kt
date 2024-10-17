@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -105,6 +106,7 @@ open class RoomListElementViewModelImpl(
     private val roomNameCalculations = get<RoomName>()
     private val initials = get<Initials>()
     private val clock = get<Clock>()
+    private val timeZone = get<TimeZone>()
     private val relevantTimelineEvents = get<RelevantTimelineEvents>()
     private val userBlocking = get<UserBlocking>()
 
@@ -210,11 +212,11 @@ open class RoomListElementViewModelImpl(
     override val time: StateFlow<String?> =
         lastTimelineEventAndMessage.map { (lastTimelineEvent) ->
             lastTimelineEvent?.let {
-                formatTimestamp(Instant.fromEpochMilliseconds(it.event.originTimestamp), clock)
+                formatTimestamp(Instant.fromEpochMilliseconds(it.event.originTimestamp), clock, timeZone)
             }
                 ?: matrixClient.room.getState<CreateEventContent>(roomId).first()
                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
-                    ?.let { formatTimestamp(it, clock) }
+                    ?.let { formatTimestamp(it, clock, timeZone) }
                 ?: ""
         }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val unreadMessages: StateFlow<String?> =

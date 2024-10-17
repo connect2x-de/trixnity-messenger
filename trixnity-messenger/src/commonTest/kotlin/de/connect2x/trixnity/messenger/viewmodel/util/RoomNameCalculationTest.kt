@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.store.RoomUser
@@ -50,7 +51,12 @@ class RoomNameCalculationTest : ShouldSpec() {
     init {
         beforeTest {
             resetMocks(matrixClientMock, userServiceMock, roomInviterMock)
-            i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
+            i18n = object : I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
 
             every { matrixClientMock.di } returns koinApplication {
                 modules(

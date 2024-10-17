@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -15,16 +14,18 @@ data class PlainTextFileBasedExportRoomProperties(
 ) : FileBasedExportRoomProperties
 
 class PlainTextFileBasedExportRoomSinkConverterFactory(
-    private val timelineEventContentToString: TimelineEventContentToString
+    private val timelineEventContentToString: TimelineEventContentToString,
+    private val timeZone: TimeZone,
 ) : FileBasedExportRoomSinkConverterFactory {
     override fun create(roomId: RoomId, properties: FileBasedExportRoomProperties): FileBasedExportRoomSinkConverter? =
         if (properties is PlainTextFileBasedExportRoomProperties)
-            PlainTextFileBasedExportRoomSinkConverter(timelineEventContentToString)
+            PlainTextFileBasedExportRoomSinkConverter(timelineEventContentToString, timeZone)
         else null
 }
 
 class PlainTextFileBasedExportRoomSinkConverter(
-    private val timelineEventContentToString: TimelineEventContentToString
+    private val timelineEventContentToString: TimelineEventContentToString,
+    private val timeZone: TimeZone,
 ) : FileBasedExportRoomSinkConverter {
     override val extension: String = "txt"
     private val indent = "    "
@@ -34,7 +35,7 @@ class PlainTextFileBasedExportRoomSinkConverter(
             ?: return null
         val sender = timelineEvent.sender.full
         val timestamp = exportTimestampMessageFormat.format(
-            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(TimeZone.of(timezone()))
+            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
         )
         return """
             $timestamp $sender:

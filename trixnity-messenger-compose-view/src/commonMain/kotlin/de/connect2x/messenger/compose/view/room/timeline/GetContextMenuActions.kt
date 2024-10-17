@@ -82,7 +82,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
             val canBeReactedToFlow: StateFlow<Boolean> = MutableStateFlow(false),
         )
 
-        val timelineElementHolderViewModel = remember {
+        val timelineElementHolderViewModel = remember(this) {
             when (this) {
                 is TimelineElementHolderViewModel -> CanFlows(
                     canBeEditedFlow = canBeEdited,
@@ -98,7 +98,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                 )
             }
         }
-        val canDownload = remember {
+        val canDownload = remember(timelineElementViewModel) {
             timelineElementViewModel.map { elementViewModel ->
                 elementViewModel is FileBasedMessageViewModel
             }
@@ -112,7 +112,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
         val canBeReactedTo = timelineElementHolderViewModel.canBeReactedToFlow.collectAsState()
         val canDebug = IsDebug.current
 
-        return remember {
+        return remember(this) {
             derivedStateOf {
                 buildList {
                     if (canDownload.value) add(

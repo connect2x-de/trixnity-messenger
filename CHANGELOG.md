@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: ability to see Aliases without edit permissions
 - Show images in Web version
 - Allow resetting recovery keys
+- Show notifications in Web version
 
 ### Changed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
+- Hide multi profile mode in trixnity messenger
 
 ### Deprecated
 
@@ -54,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correctly detect locales with region codes ("de-DE", "de-AT", "en-US")
 - Require checkbox to advance when setting up recovery keys
 - Create new chats in Web
+- Fix message actions on mobile not updating when messages are sent
+- Web production code does not crash on unknown timezone
 
 ### Security
 

@@ -22,6 +22,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
+import org.koin.core.component.get
 
 interface RedactedMessageViewModelFactory {
     fun create(
@@ -83,6 +84,8 @@ open class RedactedMessageViewModelImpl(
     redactedBy: UserId?,
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
     override val showReactions: StateFlow<Boolean> = MutableStateFlow(false)
+    private val timeZone = get<TimeZone>()
+
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
@@ -105,7 +108,7 @@ open class RedactedMessageViewModelImpl(
 
     override val redactedAtDateTime: String? =
         timelineEvent?.unsigned?.redactedBecause?.originTimestampOrNull?.let {
-            val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.of(timezone()))
+            val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(timeZone)
             "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
         }
 }
