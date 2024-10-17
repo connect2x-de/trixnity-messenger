@@ -22,6 +22,11 @@ data class MatrixMultiMessengerConfiguration(
      * Inject and override modules.
      */
     var modules: List<Module> = createDefaultTrixnityMultiMessengerModules(),
+
+    /**
+     * Simultaneously use multiple profiles
+     */
+    var multiProfile: Boolean = true,
 ) : MatrixMessengerBaseConfiguration {
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {

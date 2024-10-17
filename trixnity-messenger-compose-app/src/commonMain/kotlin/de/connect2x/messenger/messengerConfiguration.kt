@@ -30,6 +30,7 @@ fun messengerConfiguration(): MatrixMultiMessengerConfiguration.() -> Unit = {
             single<I18n> { object : I18n(get(), get(), get(), get()) {} }
         },
     )
+    multiProfile = false
 
     // MatrixMultiMessengerConfiguration flavors
     when (BuildConfig.flavor) {
