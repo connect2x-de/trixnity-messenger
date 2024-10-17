@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Markdown support for sending messages
 - Setting to ban members from rooms
 - List of banned users in a room
 - Setting to unban banned users from rooms
@@ -54,7 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correctly detect locales with region codes ("de-DE", "de-AT", "en-US")
 - Require checkbox to advance when setting up recovery keys
 - Create new chats in Web
-- web production code does not crash on unknown timezone
+- Fix message actions on mobile not updating when messages are sent
+- Web production code does not crash on unknown timezone
 
 ### Security
 
