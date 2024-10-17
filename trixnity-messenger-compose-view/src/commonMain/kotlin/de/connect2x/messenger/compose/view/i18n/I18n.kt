@@ -8,14 +8,16 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
-    getSystemLang: GetSystemLang
-) : I18nBase(lang, messengerSettings, getSystemLang) {
+    getSystemLang: GetSystemLang,
+    timeZone: TimeZone,
+) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
 
     fun commonInactive() = translate {
         EN - "inactive"
@@ -292,8 +294,8 @@ abstract class I18nView(
         DE - "einklappen"
     }
 
-    fun newNotification() = translate {
-        EN - "new notification"
+    fun newMessage() = translate {
+        EN - "new message"
         DE - "neue Nachricht"
     }
 
@@ -2379,5 +2381,5 @@ abstract class I18nView(
 }
 
 fun i18nViewModule() = module {
-    single<I18nView> { object : I18nView(get(), get(), get()) {} }
+    single<I18nView> { object : I18nView(get(), get(), get(), get()) {} }
 }

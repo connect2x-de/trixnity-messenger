@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: ability to see Aliases without edit permissions
 - Show images in Web version
 - Allow resetting recovery keys
+- Show notifications in Web version
 
 ### Changed
 
@@ -55,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Require checkbox to advance when setting up recovery keys
 - Create new chats in Web
 - Fix message actions on mobile not updating when messages are sent
+- Web production code does not crash on unknown timezone
 
 ### Security
 

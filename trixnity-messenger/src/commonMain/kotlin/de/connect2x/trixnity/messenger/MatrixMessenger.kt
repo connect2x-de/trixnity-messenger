@@ -55,6 +55,7 @@ class MatrixMessengerImpl private constructor(
             coroutineContext: CoroutineContext = Dispatchers.Default,
             configuration: MatrixMessengerConfiguration.() -> Unit,
         ): MatrixMessengerImpl {
+            log.debug { "create MatrixMessengerImpl" }
             val config = MatrixMessengerConfiguration().apply(configuration)
             val exceptionHandler = CoroutineExceptionHandler { exceptionCoroutineContext, throwable ->
                 log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
@@ -63,7 +64,7 @@ class MatrixMessengerImpl private constructor(
                 CoroutineScope(coroutineContext + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
             val di = koinApplication {
                 modules(module {
-                    single { coroutineScope }
+                    single<CoroutineScope> { coroutineScope }
                     single { config }.bind<MatrixMessengerBaseConfiguration>()
                 })
                 modules(config.modules)
@@ -73,21 +74,24 @@ class MatrixMessengerImpl private constructor(
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
             }
+            log.debug { "created MatrixMessengerImpl" }
             return MatrixMessengerImpl(di)
         }
     }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val notificationCount = di.get<MatrixClients>().map { it.values }.flatMapLatest { matrixClients ->
-        combine(
-            matrixClients.map { matrixClient ->
-                matrixClient.room.getAll().flattenValues().map { rooms -> rooms.sumOf { it.unreadMessageCount } }
+    override val notificationCount by lazy {
+        di.get<MatrixClients>().map { it.values }.flatMapLatest { matrixClients ->
+            combine(
+                matrixClients.map { matrixClient ->
+                    matrixClient.room.getAll().flattenValues().map { rooms -> rooms.sumOf { it.unreadMessageCount } }
+                }
+            ) {
+                it.sum()
             }
-        ) {
-            it.sum()
-        }
-    }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0L)
+        }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0L)
+    }
 
     override suspend fun stop() {
         di.get<CoroutineScope>().apply {
@@ -100,8 +104,10 @@ class MatrixMessengerImpl private constructor(
 
 fun MatrixMessenger.createRoot(
     componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
-): RootViewModel =
-    di.get<RootViewModelFactory>().create(
+): RootViewModel {
+    log.debug { "create RootViewModel" }
+    return di.get<RootViewModelFactory>().create(
         componentContext = componentContext,
         di = di,
     )
+}

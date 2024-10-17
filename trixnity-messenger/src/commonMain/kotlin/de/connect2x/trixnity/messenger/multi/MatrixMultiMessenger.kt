@@ -13,6 +13,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import org.koin.core.Koin
 import org.koin.dsl.bind
@@ -55,7 +56,7 @@ class MatrixMultiMessengerImpl private constructor(
             val di = koinApplication {
                 modules(
                     module {
-                        single { coroutineScope }
+                        single<CoroutineScope> { coroutineScope }
                         single { config }.bind<MatrixMessengerBaseConfiguration>()
                     },
                 )

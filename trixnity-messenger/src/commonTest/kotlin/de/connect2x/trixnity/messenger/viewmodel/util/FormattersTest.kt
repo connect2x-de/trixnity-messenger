@@ -1,15 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import dev.mokkery.matcher.*
-
-import dev.mokkery.answering.*
-
-import dev.mokkery.*
-
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
 
 class FormattersTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
@@ -23,11 +21,11 @@ class FormattersTest : ShouldSpec() {
         }
 
         should("show the time when date is today") {
-            formatTimestamp(Instant.parse("2022-03-10T03:12:00.000Z"), clock) shouldBe "04:12" // UTC -> CET
+            formatTimestamp(Instant.parse("2022-03-10T03:12:00.000Z"), clock, TimeZone.of("CET")) shouldBe "04:12" // UTC -> CET
         }
 
         should("show the date if the date is at least from yesterday") {
-            formatTimestamp(Instant.parse("2022-03-09T22:12:00.000Z"), clock) shouldBe "09.03.22"
+            formatTimestamp(Instant.parse("2022-03-09T22:12:00.000Z"), clock, TimeZone.of("CET")) shouldBe "09.03.22"
         }
     }
 }
