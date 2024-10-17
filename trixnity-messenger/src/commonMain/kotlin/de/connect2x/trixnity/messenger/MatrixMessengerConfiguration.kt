@@ -53,7 +53,6 @@ data class MatrixMessengerConfiguration(
     override var licenses: String? = null,
 
     override var pushUrl: String? = null,
-    override var multiProfile: Boolean = true,
 
     /**
      * Inject and override modules.

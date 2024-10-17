@@ -14,7 +14,6 @@ data class MatrixMultiMessengerConfiguration(
     override var imprintUrl: String? = null,
     override var licenses: String? = null,
     override var pushUrl: String? = null,
-    override var multiProfile: Boolean = true,
     /**
      * Consider using [messengerConfiguration], as it can be called multiple times.
      */
@@ -23,6 +22,11 @@ data class MatrixMultiMessengerConfiguration(
      * Inject and override modules.
      */
     var modules: List<Module> = createDefaultTrixnityMultiMessengerModules(),
+
+    /**
+     * Simultaneously use multiple profiles
+     */
+    var multiProfile: Boolean = true,
 ) : MatrixMessengerBaseConfiguration {
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {

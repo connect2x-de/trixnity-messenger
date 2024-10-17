@@ -11,7 +11,6 @@ interface MatrixMessengerBaseConfiguration {
     var imprintUrl: String?
     var licenses: String?
     var pushUrl: String?
-    var multiProfile: Boolean
 
     fun copyTo(other: MatrixMessengerBaseConfiguration) {
         other.appName = appName
@@ -23,6 +22,5 @@ interface MatrixMessengerBaseConfiguration {
         other.imprintUrl = imprintUrl
         other.licenses = licenses
         other.pushUrl = pushUrl
-        other.multiProfile = multiProfile
     }
 }
