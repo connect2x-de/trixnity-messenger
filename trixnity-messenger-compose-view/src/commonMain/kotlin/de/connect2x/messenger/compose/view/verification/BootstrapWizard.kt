@@ -206,9 +206,10 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                 CloseMessengerButton(bootstrapViewModel::closeMessenger)
             },
             nextButton = {
-                WizardNavigationButton.Standard {
-                    bootstrapViewModel.recoveryKeyCopied.collectAsState().value
-                }
+                WizardNavigationButton.Standard(
+                    enabled = {
+                        bootstrapViewModel.recoveryKeyCopied.collectAsState().value
+                    })
             }
         ),
 
@@ -224,7 +225,7 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                         onClick = { bootstrapViewModel.close() },
                         modifier = Modifier.buttonPointerModifier(),
                     ) {
-                        Text(i18n.commonNext())
+                        Text(i18n.commonConfirm())
                     }
                 }
             }

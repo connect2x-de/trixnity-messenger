@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -177,11 +179,10 @@ fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerifica
 @Composable
 fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
-    val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
     val selectedVerificationMethod = remember { mutableStateOf<SelfVerificationMethod?>(null) }
 
     MessengerModalContent {
-        ShowSelfVerificationMethodsContent(selfVerificationMethods, selectedVerificationMethod)
+        ShowSelfVerificationMethodsContent(selfVerificationViewModel, selectedVerificationMethod)
     }
 
     MessengerModalThreeButtonRow(
@@ -206,10 +207,11 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
 
 @Composable
 fun ColumnScope.ShowSelfVerificationMethodsContent(
-    selfVerificationMethods: State<Set<SelfVerificationMethod>>,
+    selfVerificationViewModel: SelfVerificationViewModel,
     selectedVerificationMethod: MutableState<SelfVerificationMethod?>
 ) {
     val i18n = DI.get<I18nView>()
+    val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
     Text(i18n.selfVerificationMethodsTitle())
     Spacer(Modifier.size(10.dp))
 
@@ -241,7 +243,8 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
             }
 
             is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
+                Row {
+                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp).weight(0.9f)) {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable { selectedVerificationMethod.value = method }
                     ) {
@@ -260,6 +263,14 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                             text = i18n.selfVerificationMethodsRecoveryKeyInfo(),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                    }
+
+                }
+                    OutlinedButton(
+                        modifier = Modifier.weight(0.7f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        onClick = { selfVerificationViewModel.resetRecoveryWarning() }) {
+                        Text(i18n.selfVerificationResetRecoveryKey().capitalize(Locale.current))
                     }
                 }
             }

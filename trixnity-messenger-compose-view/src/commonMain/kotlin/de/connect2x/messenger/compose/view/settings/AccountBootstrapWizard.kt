@@ -206,7 +206,6 @@ private fun wizardStepVerification(
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
                 val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-                val methods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
                 val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
                 val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
 
@@ -224,7 +223,7 @@ private fun wizardStepVerification(
                         Box { DeviceVerificationStepSwitch(verificationViewModel) }
                     }
 
-                    else -> ShowSelfVerificationMethodsContent(methods, selected)
+                    else -> ShowSelfVerificationMethodsContent(selfVerificationViewModel, selected)
                 }
             } else if (isVerified == true) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -237,12 +236,6 @@ private fun wizardStepVerification(
                     SmallSpacer()
                     Text(i18n.verificationSucessThisDevice())
 
-                }
-            } else if (isVerified == false) {
-                val verificationStarted = remember { mutableStateOf(false) }
-                if (!verificationStarted.value) {
-                    selected.value?.let { selfVerificationViewModel.launchVerification(it) }
-                    verificationStarted.value = true
                 }
             }
         }
@@ -288,7 +281,7 @@ private fun wizardStepVerification(
             if (isVerified.collectAsState().value == true) {
                 Text(i18n.commonNext())
             } else {
-                Text(i18n.commonSkip())
+                Text(i18n.redoSelfVerificationContinueWithoutVerification())
             }
         })
     }, backButton = {
