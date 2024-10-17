@@ -536,8 +536,7 @@ class RoomListViewModelImpl(
         }
     }
 
-    private val multiProfile = get<MatrixMultiMessengerConfiguration>().multiProfile
-    override val closeProfileNeeded: Boolean = multiProfile
+    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile ?: false
 
     override fun closeProfile() {
         log.debug { "close profile" }
