@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.viewmodel.util.currentTimezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
@@ -20,6 +20,7 @@ class FileBasedExportRoomSinkFactory(
     private val converterFactories: List<FileBasedExportRoomSinkConverterFactory>,
     private val writerFactory: FileBasedExportRoomSinkWriterFactory,
     private val clock: Clock,
+    private val timeZone: TimeZone,
 ) : ExportRoomSinkFactory {
     override fun create(roomId: RoomId, properties: ExportRoomSinkProperties): ExportRoomSink? {
         if (properties !is FileBasedExportRoomProperties) return null
@@ -30,7 +31,7 @@ class FileBasedExportRoomSinkFactory(
             }
         val roomIdAsUnPaddedBase64 = roomId.full.encodeToByteArray().toByteString().base64Url()
         val currentTimestamp = exportTimestampFormat.format(
-            clock.now().toLocalDateTime(currentTimezone())
+            clock.now().toLocalDateTime(timeZone)
         )
         val fileName = "$currentTimestamp ${roomIdAsUnPaddedBase64}.${converter.extension}"
 

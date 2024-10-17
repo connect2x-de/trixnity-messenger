@@ -39,7 +39,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
-import de.connect2x.trixnity.messenger.viewmodel.util.currentTimezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -81,6 +80,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.flattenValues
@@ -234,6 +234,7 @@ class TimelineViewModelImpl(
 
     private val config = get<MatrixMessengerConfiguration>()
     private val outerScope = get<CoroutineScope>()
+    private val timeZone = get<TimeZone>()
 
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
     private val timeline: SharedFlow<Timeline<TimelineElementWrapper>> =
@@ -428,8 +429,7 @@ class TimelineViewModelImpl(
                         }
                     visibleTimelineEvent?.first()?.event?.originTimestamp?.let { timestamp ->
                         formatDate(
-                            Instant.fromEpochMilliseconds(timestamp)
-                                .toLocalDateTime(currentTimezone())
+                            Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(timeZone)
                         )
                     }
                 } else {
@@ -655,10 +655,9 @@ class TimelineViewModelImpl(
                                 .map { lastTimelineEvent ->
                                     val lastDate =
                                         lastTimelineEvent?.event?.originTimestamp?.let { millis ->
-                                            Instant.fromEpochMilliseconds(millis)
-                                                .toLocalDateTime(currentTimezone())
+                                            Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
                                         }
-                                    val today = clock.now().toLocalDateTime(currentTimezone())
+                                    val today = clock.now().toLocalDateTime(timeZone)
                                     val lastMessageFromAtLeastYesterday =
                                         lastDate != null && lastDate.isDifferentDay(today)
                                     lastDate == null || lastMessageFromAtLeastYesterday

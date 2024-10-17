@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.UserTrustLevel
@@ -119,7 +120,12 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
         beforeTest {
 
-            i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
+            i18n = object : I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
             resetMocks(
                 matrixClientMock,
                 roomServiceMock,

@@ -7,7 +7,7 @@ import org.koin.dsl.module
 
 fun exportModule(): Module = module {
     single<ExportRoom> { ExportRoomImpl(getAll()) }
-    single<ExportRoomSinkFactory> { FileBasedExportRoomSinkFactory(getAll(), get(), get()) }
+    single<ExportRoomSinkFactory> { FileBasedExportRoomSinkFactory(getAll(), get(), get(), get()) }
     singleOf(::PlainTextFileBasedExportRoomSinkConverterFactory).bind<FileBasedExportRoomSinkConverterFactory>()
     singleOf(::CSVFileBasedExportRoomSinkConverterFactory).bind<FileBasedExportRoomSinkConverterFactory>()
     includes(platformFileBasedExportRoomSinkWriter())

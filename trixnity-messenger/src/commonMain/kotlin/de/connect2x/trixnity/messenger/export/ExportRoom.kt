@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.export
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
-import de.connect2x.trixnity.messenger.viewmodel.util.currentTimezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
@@ -70,6 +70,7 @@ interface ExportRoom {
         progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress()),
         decryptionTimeout: Duration = 5.seconds,
         buffer: Int = 20,
+        timeZone: TimeZone,
     ): ExportRoomResult
 }
 
@@ -85,6 +86,7 @@ class ExportRoomImpl(
         progress: MutableStateFlow<ExportRoomProgress>,
         decryptionTimeout: Duration,
         buffer: Int,
+        timeZone: TimeZone,
     ): ExportRoomResult = coroutineScope {
         log.info { "export of $roomId started" }
         progress.value = ExportRoomProgress()
@@ -138,7 +140,7 @@ class ExportRoomImpl(
                             ?.let { baseName ->
                                 val timestamp = exportTimestampFormat.format(
                                     Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                                        .toLocalDateTime(currentTimezone())
+                                        .toLocalDateTime(timeZone)
                                 )
                                 val prefix = "$timestamp $baseName - "
                                 val remainingLength = 255 - prefix.length

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
@@ -164,7 +165,7 @@ class ExportRoomTest : ShouldSpec() {
         should("export timeline") {
             val cut = cut()
 
-            cut(roomId, fakeProperties, matrixClientMock) shouldBe ExportRoomResult.Success()
+            cut(roomId, fakeProperties, matrixClientMock, timeZone = TimeZone.of("CET")) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)
@@ -183,7 +184,7 @@ class ExportRoomTest : ShouldSpec() {
         should("export timeline in chunks") {
             val cut = cut()
 
-            cut(roomId, fakeProperties, matrixClientMock, buffer = 15) shouldBe ExportRoomResult.Success()
+            cut(roomId, fakeProperties, matrixClientMock, buffer = 15, timeZone = TimeZone.of("CET")) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)
@@ -203,7 +204,7 @@ class ExportRoomTest : ShouldSpec() {
             val cut = cut()
 
             val progress = MutableStateFlow(ExportRoomProgress())
-            cut(roomId, fakeProperties, matrixClientMock, progress = progress) shouldBe ExportRoomResult.Success()
+            cut(roomId, fakeProperties, matrixClientMock, progress = progress, timeZone = TimeZone.of("CET")) shouldBe ExportRoomResult.Success()
 
             progress.value shouldBe ExportRoomProgress(20, 20)
         }
@@ -216,6 +217,7 @@ class ExportRoomTest : ShouldSpec() {
                 matrixClientMock,
                 rangeStartCondition = { it.eventId == EventId("5") },
                 rangeEndCondition = { it.eventId == EventId("15") },
+                timeZone = TimeZone.of("CET"),
             ) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
@@ -239,7 +241,7 @@ class ExportRoomTest : ShouldSpec() {
         should("add errors to result") {
             val cut = cut()
 
-            cut(roomIdWithErrors, fakeProperties, matrixClientMock) shouldBe
+            cut(roomIdWithErrors, fakeProperties, matrixClientMock, timeZone = TimeZone.of("CET")) shouldBe
                     ExportRoomResult.Success(
                         missingMedia = listOf(
                             ExportRoomResult.Success.MissingMedia(
