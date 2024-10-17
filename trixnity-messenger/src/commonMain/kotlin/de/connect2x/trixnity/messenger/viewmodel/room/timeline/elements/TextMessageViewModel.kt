@@ -125,6 +125,6 @@ class PreviewTextMessageViewModel1() : TextMessageViewModel {
     override val showDateAbove: Boolean = true
     override val referencedMessage: MutableStateFlow<ReferencedMessage?> = MutableStateFlow(null)
     override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention>> = mapOf()
-    override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention>>? = mapOf()
+    override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention>> = mapOf()
     override fun openMention(messageMention: MessageMention) {}
 }

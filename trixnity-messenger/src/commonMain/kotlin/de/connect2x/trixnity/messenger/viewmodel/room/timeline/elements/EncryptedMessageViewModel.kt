@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 
 private val log = KotlinLogging.logger { }
