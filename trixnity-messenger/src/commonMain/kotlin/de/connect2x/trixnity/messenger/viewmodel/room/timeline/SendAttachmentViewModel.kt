@@ -27,6 +27,7 @@ import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import okio.Buffer
 import org.koin.core.component.get
+import kotlin.math.min
 
 
 private val log = KotlinLogging.logger { }
@@ -86,14 +87,22 @@ class SendAttachmentViewModelImpl(
     }
 
     init {
+        val maxSizeMB = run {
+            val maxServerUploadSize = matrixClient.serverData.value
+                ?.mediaConfig?.maxUploadSize?.div(1_000_000)?.toInt()
+                ?: Int.MAX_VALUE
+            val maxConfigAttachmentSize = messengerConfiguration.attachmentMaxSize
+            min(maxServerUploadSize, maxConfigAttachmentSize)
+        }
+
         backHandler.register(backCallback)
         coroutineScope.launch {
             if (checkFileSizeExceedsLimit(
                     fileSize = file.fileSize,
-                    maxSizeMB = messengerConfiguration.attachmentMaxSize
+                    maxSizeMB = maxSizeMB
                 )
             ) {
-                _error.value = i18n.attachmentSizeMaxSizeError(messengerConfiguration.attachmentMaxSize)
+                _error.value = i18n.attachmentSizeMaxSizeError(maxSizeMB)
             }
             _sendEnabled.value = _error.value == null
             _fileContent.value = if (isImage == true && !checkFileSizeExceedsLimit(

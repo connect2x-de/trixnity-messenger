@@ -44,6 +44,11 @@ data class MatrixMessengerConfiguration(
      */
     val imageAttachmentMaxProcessingSize: Int = 50,
 
+    /**
+     * The maximum size of avatars that can be uploaded in *MegaByte*
+     */
+    var avatarMaxSize: Int = 10,
+
     var defaultHomeServer: String? = null,
 
     override var sendLogsEmailAddress: String? = null,
