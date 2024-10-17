@@ -214,6 +214,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         viewModelContext,
         RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile), onOpenModal
     ), ViewModelContext by viewModelContext {
+        override val showReactions: StateFlow<Boolean> = MutableStateFlow(false)
         override val invitation: StateFlow<String?> =
             invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }

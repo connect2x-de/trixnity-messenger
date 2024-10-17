@@ -83,7 +83,7 @@ open class TextMessageViewModelImpl(
     roomId: RoomId,
     private val onOpenMention: OpenMentionCallback
 ) : TextMessageViewModel, MatrixClientViewModelContext by viewModelContext {
-
+    override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
@@ -109,6 +109,7 @@ open class TextMessageViewModelImpl(
 }
 
 class PreviewTextMessageViewModel1() : TextMessageViewModel {
+    override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
     override val message: String = "Hello World!"
     override val formattedBody: String = "Hello <b>World!</b>"
     override val fallbackMessage: String = "Hello World!"

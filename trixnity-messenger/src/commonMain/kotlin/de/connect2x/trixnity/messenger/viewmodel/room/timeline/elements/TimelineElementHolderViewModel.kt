@@ -56,6 +56,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -122,6 +123,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val isRead: StateFlow<Boolean>
 
     val reactionsOpen: MutableStateFlow<Boolean>
+    val canBeReactedTo: StateFlow<Boolean>
 
     val isReplaced: StateFlow<Boolean>
     val canBeEdited: StateFlow<Boolean>
@@ -191,6 +193,9 @@ open class TimelineElementHolderViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val reactionsOpen = MutableStateFlow(false)
+    override val canBeReactedTo: StateFlow<Boolean> = timelineEventFlow.map {
+        it?.content?.getOrNull() is RedactedEventContent
+    }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     private val _editInProgress = MutableStateFlow(false)
     private val _redactionInProgress = MutableStateFlow(false)
@@ -472,6 +477,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val key: String = eventId.full
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         MutableStateFlow(object : TextBasedViewModel {
+            override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
             override val fallbackMessage: String = "Hello everyone!"
             override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
                 MutableStateFlow(null)
@@ -498,6 +504,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val isDirect: StateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val canBeReactedTo: StateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -545,6 +552,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isDirect: StateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val canBeReactedTo: StateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -585,6 +593,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
         scope.launch {
             delay(3.seconds)
             timelineElementViewModel.value = object : TextBasedViewModel {
+                override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
                 override val fallbackMessage: String = "I have good news."
                 override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
                     MutableStateFlow(null)

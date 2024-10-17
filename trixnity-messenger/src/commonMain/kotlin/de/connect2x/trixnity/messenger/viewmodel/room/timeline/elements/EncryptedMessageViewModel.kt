@@ -64,6 +64,7 @@ open class EncryptedMessageViewModelImpl(
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
 ) : MatrixClientViewModelContext by viewModelContext, EncryptedMessageViewModel {
+    override val showReactions: StateFlow<Boolean> = MutableStateFlow(false)
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =

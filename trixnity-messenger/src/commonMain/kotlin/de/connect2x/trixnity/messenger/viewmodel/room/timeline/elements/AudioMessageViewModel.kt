@@ -77,6 +77,7 @@ open class AudioMessageViewModelImpl(
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
 ) : AudioMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
     MatrixClientViewModelContext by viewModelContext {
+    override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
     override val duration: Long? = content.info?.duration
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)

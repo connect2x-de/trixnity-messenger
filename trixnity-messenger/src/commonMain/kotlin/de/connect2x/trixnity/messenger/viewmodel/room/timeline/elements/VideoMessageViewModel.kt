@@ -92,6 +92,7 @@ open class VideoMessageViewModelImpl(
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
 ) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
     MatrixClientViewModelContext by viewModelContext {
+    override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =
@@ -142,6 +143,7 @@ open class VideoMessageViewModelImpl(
 }
 
 class PreviewVideoMessageViewModel : VideoMessageViewModel {
+    override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
     override val thumbnail: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
     override val width: Int = 900
     override val height: Int = 600

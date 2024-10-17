@@ -54,6 +54,7 @@ class MessageContainerViewImpl : MessageContainerView {
                 timelineElementHolderViewModel.redactionInProgress
             else MutableStateFlow(false)
         }.collectAsState()
+        val showReactions = roomMessageViewModel.showReactions.collectAsState().value
         val topPadding = if (roomMessageViewModel.showBigGap) 10.dp else 3.dp
 
         BoxWithConstraints(
@@ -79,7 +80,7 @@ class MessageContainerViewImpl : MessageContainerView {
                         timelineElementHolderViewModel,
                     )
                 }
-                if (roomMessageViewModel !is RedactedMessageViewModel) {
+                if (showReactions) {
                     MessageReactions(
                         roomMessageViewModel,
                         timelineElementHolderViewModel,

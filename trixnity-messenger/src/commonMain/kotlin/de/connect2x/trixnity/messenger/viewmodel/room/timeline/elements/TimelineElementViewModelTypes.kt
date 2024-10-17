@@ -35,6 +35,7 @@ interface RoomMessageViewModel : TimelineElementWithTimestampViewModel {
     val showBigGap: Boolean
     val showSender: StateFlow<Boolean>
     val sender: StateFlow<UserInfoElement>
+    val showReactions: StateFlow<Boolean>
 }
 
 interface TextBasedViewModel : RoomMessageViewModel {
