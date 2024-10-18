@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: ability to see Aliases without edit permissions
 - Show images in Web version
 - Allow resetting recovery keys
+- Ability to see who reacted to a message
 
 ### Changed
 
