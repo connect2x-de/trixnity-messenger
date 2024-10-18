@@ -27,6 +27,10 @@ import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 
@@ -35,8 +39,9 @@ fun ReactorList(
     focusRequester: FocusRequester,
     reactors: Map<String, List<UserInfoElement>>,
 ) {
+    val i18n = DI.get<I18nView>()
     val reactions = reactors.toList()
-    val reactionCounts = listOf("All" to reactors.values.flatten().size) + reactions.map { it.first to it.second.size }
+    val reactionCounts = listOf(i18n.commonAll() to reactors.values.flatten().size) + reactions.map { it.first to it.second.size }
     var selectedReaction by remember {
         mutableStateOf(0)
     }
@@ -79,15 +84,10 @@ fun ReactorList(
 
 @Composable
 fun ReactorListElement(user: UserInfoElement, reaction: String?) {
-    val image = user.image?.collectAsState(ByteArray(0))?.value
-    val initials = user.initials ?: Initials.compute(user.name)
-
     Row(
         Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Avatar(image, initials)
-        Spacer(Modifier.size(5.dp))
         Text(
             modifier = Modifier.fillMaxWidth().weight(1.0f, false),
             text = user.name,
