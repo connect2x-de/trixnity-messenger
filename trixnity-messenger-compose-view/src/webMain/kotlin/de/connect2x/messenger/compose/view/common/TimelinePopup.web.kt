@@ -12,13 +12,12 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 
 @Composable
-actual fun EmojiPopup(
+actual fun TimelinePopup(
     isOpen: Boolean,
-    focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    onSelect: (String) -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
+    content: @Composable () -> Unit
 ) {
     if (isOpen) {
         Popup(
@@ -34,7 +33,7 @@ actual fun EmojiPopup(
                 tonalElevation = 4.dp,
                 shape = MaterialTheme.shapes.medium
             ) {
-                EmojiSelector(onSelect, focusRequester)
+                content()
             }
         }
     }

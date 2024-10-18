@@ -6,11 +6,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 
 @Composable
-expect fun EmojiPopup(
+fun EmojiPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
     isByMe: Boolean,
-)
+) {
+    TimelinePopup(isOpen, onDismiss, modifier, isByMe) {
+        EmojiSelector(onSelect, focusRequester)
+    }
+}

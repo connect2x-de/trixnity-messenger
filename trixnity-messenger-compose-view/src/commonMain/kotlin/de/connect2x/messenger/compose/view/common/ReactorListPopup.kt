@@ -6,11 +6,15 @@ import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @Composable
-expect fun ReactorListPopup(
+fun ReactorListPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     isByMe: Boolean,
     reactors: Map<String, List<UserInfoElement>>,
-)
+) {
+    TimelinePopup(isOpen, onDismiss, modifier, isByMe) {
+        ReactorList(focusRequester, reactors)
+    }
+}

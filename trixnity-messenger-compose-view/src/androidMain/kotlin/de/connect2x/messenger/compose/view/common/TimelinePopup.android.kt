@@ -6,22 +6,20 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-actual fun ReactorListPopup(
+actual fun TimelinePopup(
     isOpen: Boolean,
-    focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
-    reactors: Map<String, List<UserInfoElement>>,
-    ) {
+    content: @Composable () -> Unit
+) {
     val sheetState = rememberModalBottomSheetState()
     if (isOpen) {
         ModalBottomSheet(onDismiss, modifier, sheetState) {
-            ReactorList(focusRequester, reactors)
+            content()
         }
     }
 }
