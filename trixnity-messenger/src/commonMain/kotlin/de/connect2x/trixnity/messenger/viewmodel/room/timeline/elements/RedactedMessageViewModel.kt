@@ -82,7 +82,6 @@ open class RedactedMessageViewModelImpl(
     invitation: Flow<String?>,
     redactedBy: UserId?,
 ) : RedactedMessageViewModel, MatrixClientViewModelContext by viewModelContext {
-    override val showReactions: StateFlow<Boolean> = MutableStateFlow(false)
     private val timeZone = get<TimeZone>()
 
     override val invitation: StateFlow<String?> =
@@ -113,7 +112,6 @@ open class RedactedMessageViewModelImpl(
 }
 
 class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
-    override val showReactions: StateFlow<Boolean> = MutableStateFlow(false)
     override val formattedMessage: StateFlow<String> = MutableStateFlow("deleted by Martin")
     override val isByMe: Boolean = false
     override val showChatBubbleEdge: Boolean = false

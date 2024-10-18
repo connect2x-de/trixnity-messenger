@@ -89,7 +89,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                     canBeRedactedFlow = canBeRedacted,
                     canBeRepliedToFlow = canBeRepliedTo,
                     canBeReportedFlow = canBeReported,
-                    canBeReactedToFlow = this.canBeReactedTo
+                    canBeReactedToFlow = canBeReactedTo
                 )
 
                 is OutboxElementHolderViewModel -> CanFlows(

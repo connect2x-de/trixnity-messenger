@@ -60,7 +60,6 @@ class LocationMessageViewModelImpl(
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
 ) : LocationMessageViewModel, MatrixClientViewModelContext by viewModelContext {
-    override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val sender: StateFlow<UserInfoElement> =

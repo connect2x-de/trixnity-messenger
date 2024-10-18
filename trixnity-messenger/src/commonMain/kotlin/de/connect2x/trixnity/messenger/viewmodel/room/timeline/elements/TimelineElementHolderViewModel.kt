@@ -58,6 +58,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -316,7 +317,13 @@ open class TimelineElementHolderViewModelImpl(
     private fun keyFn(timelineEvent: TimelineEvent, content: RoomEventContent?) =
         timelineEvent.eventId.hashCode() + (content?.hashCode() ?: 0)
 
-    override val reactions = _reactions.stateIn(coroutineScope, WhileSubscribed(), emptyMap())
+    override val reactions =
+        combine(timelineEventFlow, _reactions) { timelineEvent, reactions ->
+            when (timelineEvent?.content?.getOrNull()) {
+                is RedactedEventContent, is EncryptionEventContent -> emptyMap()
+                else -> reactions
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), emptyMap())
 
     private suspend fun findPreviousVisibleTimelineEvent(timelineEvent: TimelineEvent): Flow<TimelineEvent?>? {
         val previousTimelineEventOrNull = matrixClient.room.getPreviousTimelineEvent(timelineEvent)
@@ -481,7 +488,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val key: String = eventId.full
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         MutableStateFlow(object : TextBasedViewModel {
-            override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
             override val fallbackMessage: String = "Hello everyone!"
             override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
                 MutableStateFlow(null)
@@ -600,7 +606,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
         scope.launch {
             delay(3.seconds)
             timelineElementViewModel.value = object : TextBasedViewModel {
-                override val showReactions: StateFlow<Boolean> = MutableStateFlow(true)
                 override val fallbackMessage: String = "I have good news."
                 override val referencedMessage: MutableStateFlow<ReferencedMessage?> =
                     MutableStateFlow(null)
