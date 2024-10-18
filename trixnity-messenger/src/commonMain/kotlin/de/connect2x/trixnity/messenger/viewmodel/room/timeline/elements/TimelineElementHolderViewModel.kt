@@ -57,6 +57,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
+import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -121,14 +122,15 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val isDirect: StateFlow<Boolean>
     val isRead: StateFlow<Boolean>
 
+    val reactionsOpen: MutableStateFlow<Boolean>
+    val canBeReactedTo: StateFlow<Boolean>
+
     val isReplaced: StateFlow<Boolean>
     val canBeEdited: StateFlow<Boolean>
     val canBeRedacted: StateFlow<Boolean>
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
     val canBeRepliedTo: StateFlow<Boolean>
-    val reactionsOpen: MutableStateFlow<Boolean>
-    val canBeReactedTo: StateFlow<Boolean>
     val highlight: StateFlow<Boolean>
     val canBeReported: StateFlow<Boolean>
     val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
@@ -190,6 +192,15 @@ open class TimelineElementHolderViewModelImpl(
         timelineEventFlow.map { it?.isReplaced == true }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
+    override val reactionsOpen = MutableStateFlow(false)
+    override val canBeReactedTo: StateFlow<Boolean> =
+        combine(
+            timelineEventFlow,
+            matrixClient.user.canSendEvent<ReactionEventContent>(selectedRoomId)
+        ) { timelineEvent, canSendReactEvent ->
+            timelineEvent?.content?.getOrNull() !is RedactedEventContent && canSendReactEvent
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
+
     private val _editInProgress = MutableStateFlow(false)
     private val _redactionInProgress = MutableStateFlow(false)
     override val redactionInProgress: StateFlow<Boolean> = _redactionInProgress.asStateFlow()
@@ -198,12 +209,6 @@ open class TimelineElementHolderViewModelImpl(
     override val canBeRepliedTo: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
-
-    override val reactionsOpen = MutableStateFlow(false)
-    override val canBeReactedTo: StateFlow<Boolean> =
-        combine(timelineEventFlow, canBeRepliedTo) { timelineEvent, canBeRepliedTo ->
-            timelineEvent?.content?.getOrNull() !is RedactedEventContent && canBeRepliedTo
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canBeReported: StateFlow<Boolean> =
         matrixClient.user.getById(selectedRoomId, userId = matrixClient.userId)
