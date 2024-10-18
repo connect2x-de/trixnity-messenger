@@ -46,7 +46,6 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlinx.datetime.Instant
-import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 
