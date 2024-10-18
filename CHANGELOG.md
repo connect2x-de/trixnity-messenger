@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Create new chats in Web
 - Fix message actions on mobile not updating when messages are sent
 - Web production code does not crash on unknown timezone
+- Do not scroll to bottom on reactions
 
 ### Security
 
