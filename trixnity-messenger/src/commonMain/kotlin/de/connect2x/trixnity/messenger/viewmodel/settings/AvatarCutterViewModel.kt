@@ -35,7 +35,7 @@ interface AvatarCutterViewModel {
     val error: StateFlow<String?>
     val file: FileDescriptor
     val avatarCutterHeading: String
-    val maxAvatarSize: Int
+    val maxAvatarSize: Long
     fun cancel()
     fun accept()
 }
@@ -61,7 +61,7 @@ open class AvatarCutterViewModelImpl(
         cancel()
     }
 
-    override val maxAvatarSize: Int = messengerConfiguration.avatarMaxSize
+    override val maxAvatarSize: Long = messengerConfiguration.avatarMaxSize
 
     init {
         backHandler.register(backCallback)

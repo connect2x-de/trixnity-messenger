@@ -87,10 +87,9 @@ class SendAttachmentViewModelImpl(
     }
 
     init {
-        val maxSizeMB = run {
+        val maxSize = run {
             val maxServerUploadSize = matrixClient.serverData.value
-                ?.mediaConfig?.maxUploadSize?.div(1_000_000)?.toInt()
-                ?: Int.MAX_VALUE
+                ?.mediaConfig?.maxUploadSize ?: Long.MAX_VALUE
             val maxConfigAttachmentSize = messengerConfiguration.attachmentMaxSize
             min(maxServerUploadSize, maxConfigAttachmentSize)
         }
@@ -99,10 +98,10 @@ class SendAttachmentViewModelImpl(
         coroutineScope.launch {
             if (checkFileSizeExceedsLimit(
                     fileSize = file.fileSize,
-                    maxSizeMB = maxSizeMB
+                    maxSizeBytes = maxSize
                 )
             ) {
-                _error.value = i18n.attachmentSizeMaxSizeError(maxSizeMB)
+                _error.value = i18n.attachmentSizeMaxSizeError(maxSize)
             }
             _sendEnabled.value = _error.value == null
             _fileContent.value = if (isImage == true && !checkFileSizeExceedsLimit(

@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.util.gb
+import de.connect2x.trixnity.messenger.util.mb
 import org.koin.core.module.Module
 
 private val colors =
@@ -35,19 +37,19 @@ data class MatrixMessengerConfiguration(
     val timelineAutoLoadBefore: Boolean = true,
 
     /**
-     * The maximum size of attachments that can be sent in *MegaByte*.
+     * The maximum size of attachments that can be sent in *Bytes*.
      */
-    var attachmentMaxSize: Int = 1_000,
+    var attachmentMaxSize: Long = 1.gb(),
 
     /**
-     * The maximum size of image attachments that are processed to change their rotation before upload in *MegaByte*.
+     * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
      */
-    val imageAttachmentMaxProcessingSize: Int = 50,
+    val imageAttachmentMaxProcessingSize: Long = 50.mb(),
 
     /**
-     * The maximum size of avatars that can be uploaded in *MegaByte*
+     * The maximum size of avatars that can be uploaded in *Bytes*
      */
-    var avatarMaxSize: Int = 10,
+    var avatarMaxSize: Long = 10.mb(),
 
     var defaultHomeServer: String? = null,
 

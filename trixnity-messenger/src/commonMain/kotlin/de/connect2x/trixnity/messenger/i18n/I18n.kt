@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.mb
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
@@ -902,9 +903,10 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
     }
 
-    fun attachmentSizeMaxSizeError(attachmentMaxSizeInMegaByte: Int) = translate {
-        EN - "The attachment exceeds the maximum allowed attachment size of $attachmentMaxSizeInMegaByte MB."
-        DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $attachmentMaxSizeInMegaByte MB."
+    fun attachmentSizeMaxSizeError(attachmentMaxSize: Long) = translate {
+        val sizeInMB = attachmentMaxSize / 1.mb()
+        EN - "The attachment exceeds the maximum allowed attachment size of $sizeInMB MB."
+        DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $sizeInMB MB."
     }
 
     fun profileCreationDuplicate() = translate {
