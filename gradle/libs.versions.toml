@@ -11,7 +11,7 @@ messengerVersionCode = "1"
 appName = "Messenger"
 
 trixnity = "4.8.0-DEV-24234526" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "1.4.0-DEV-22169726" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.1" # https://github.com/Kotlin/kotlinx.serialization/releases
@@ -69,6 +69,7 @@ trixnity-client-exposed = { module = "net.folivo:trixnity-client-repository-expo
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
 sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
+sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }

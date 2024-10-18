@@ -61,7 +61,7 @@ private fun createKoinApplication(): KoinApplication {
         modules(
             composeViewModule(),
             module {
-                single<I18nView> { object : I18nView(DefaultLanguages, get(), get()) {} }
+                single<I18nView> { object : I18nView(DefaultLanguages, get(), get(), get()) {} }
                 single<MatrixMessengerConfiguration> {
                     MatrixMessengerConfiguration()
                 }

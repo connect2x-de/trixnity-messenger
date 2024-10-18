@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -102,6 +103,7 @@ class ExportRoomViewModelImpl(
     private val exportRoom = get<ExportRoom>()
     private val i18n = get<I18n>()
     private val roomNameComputation = get<RoomName>()
+    private val timeZone = get<TimeZone>()
 
     private val job: MutableStateFlow<Job?> = MutableStateFlow(null)
     override val roomName: StateFlow<String> = roomNameComputation.getRoomName(roomId, matrixClient)
@@ -152,7 +154,8 @@ class ExportRoomViewModelImpl(
                     rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.firstEvent(),
                     rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.lastEvent(),
                     matrixClient = matrixClient,
-                    progress = progress
+                    progress = progress,
+                    timeZone = timeZone,
                 )
                 when (result) {
                     ExportRoomResult.RoomNotFound -> {

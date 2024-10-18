@@ -315,6 +315,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
 
             ClipboardType.AwtImage -> {
                 clipboard.getDataOrNull<java.awt.Image>(flavor)?.let { img ->
+                    // TODO: revisit this when we have ImageMagick
                     // this might not be the most efficient way, but works for images in memory on MacOS...
                     val image = BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB)
                     image.createGraphics().apply {
@@ -328,11 +329,10 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
                     outputStream.close()
 
                     val baseName = Random.nextString(12)
-                    val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
                     return BasicFileDescriptor(
-                        baseName + extStr,
+                        "$baseName.png",
                         byteArray.size.toLong(),
-                        contentType,
+                        ContentType.Image.PNG,
                         byteArray.toByteArrayFlow(),
                     )
                 }

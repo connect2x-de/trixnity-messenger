@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import dev.mokkery.matcher.*
-
-import dev.mokkery.answering.*
-
 import de.connect2x.trixnity.messenger.CreateMediaStore
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -28,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.InMemoryMediaStore
@@ -56,6 +53,7 @@ fun createTestDefaultTrixnityMessengerModules(
     matrixClients: StateFlow<Map<UserId, MatrixClient>>? = null,
     settings: MatrixMessengerSettingsHolder = createTestMatrixMessengerSettingsHolder(),
 ) = createDefaultTrixnityMessengerModules() + module {
+    single<TimeZone> { TimeZone.of("CET") }
     single<CoroutineScope> {
         CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, throwable ->
             throwable.printStackTrace()
