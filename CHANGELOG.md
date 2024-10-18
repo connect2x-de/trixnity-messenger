@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed reaction functionality for deleted (redacted) messages 
+
+
 ### Fixed
 
 - Android-Tooltips on buttons are shown again
