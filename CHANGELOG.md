@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `app_name` from compose-view
+
 ### Fixed
 
 - Android-Tooltips on buttons are shown again
