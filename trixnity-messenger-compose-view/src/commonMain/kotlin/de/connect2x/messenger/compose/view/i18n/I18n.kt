@@ -287,6 +287,11 @@ abstract class I18nView(
         DE - "ausklappen"
     }
 
+    fun commonAll() = translate {
+        EN - "All"
+        DE - "Alle"
+    }
+
     fun commonCollapse() = translate {
         EN - "collapse"
         DE - "einklappen"

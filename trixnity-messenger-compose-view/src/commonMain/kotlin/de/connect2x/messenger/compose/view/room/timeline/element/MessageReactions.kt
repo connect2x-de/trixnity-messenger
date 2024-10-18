@@ -1,10 +1,8 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddReaction
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -40,7 +37,6 @@ import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.common.ReactorListPopup
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -91,12 +87,13 @@ internal fun MessageReactionButton(
     myReaction: TimelineElementHolderViewModel.ReactionEvent?,
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
+    modifier: Modifier = buttonModifier,
 ) {
     if (myReaction != null) {
         FilledTonalButton(
             onClick = { onRemoveReaction(myReaction) },
             contentPadding = buttonPadding,
-            modifier = buttonModifier,
+            modifier = modifier,
             colors = ButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
@@ -112,7 +109,7 @@ internal fun MessageReactionButton(
         OutlinedButton(
             onClick = { onAddReaction(reaction) },
             contentPadding = buttonPadding,
-            modifier = buttonModifier,
+            modifier = modifier,
         ) {
             MessageReactionDisplay(reaction)
             Spacer(Modifier.width(4.dp))
@@ -202,6 +199,13 @@ class MessageReactionsViewImpl : MessageReactionsView {
                         myReaction = reactionEvents.firstOrNull { it.isMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,
                         onRemoveReaction = timelineElementHolderViewModel::removeReaction,
+                        buttonModifier.combinedClickable(
+                            onClick = {},
+                            onLongClick = {
+                                // todo: doesn't work not sure why
+                                timelineElementHolderViewModel.reactorListOpen.value = true
+                            },
+                        )
                     )
                 }
                 MessageAddReactionButton(
@@ -210,11 +214,13 @@ class MessageReactionsViewImpl : MessageReactionsView {
                     },
                     i18n.reactMessage()
                 )
-                Button(onClick = { timelineElementHolderViewModel.reactorListOpen.value = true }) {
+                // todo: remove when got onPress working
+                OutlinedButton(onClick = {
+                    timelineElementHolderViewModel.reactorListOpen.value = true
+                }, buttonModifier) {
                     Text("Show")
                 }
             }
         }
     }
 }
-
