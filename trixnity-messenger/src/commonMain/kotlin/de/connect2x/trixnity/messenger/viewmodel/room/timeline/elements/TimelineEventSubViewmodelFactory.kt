@@ -107,14 +107,16 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     )
 
                     is RedactedEventContent -> {
-                        log.trace { "Create redacted text message view model: ${event.id}" }
-                        val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
                         if (content.eventType !in setOf<String>("m.room.encrypted", "m.room.message")) {
-                            log.debug{"Creating NullTimelineElementViewModel for Event Type ${content.eventType} $content ${event.content}."}
+                            log.debug {
+                                "Creating NullTimelineElementViewModel for event ${event.id} " +
+                                        "with event type ${content.eventType} since it isn't supposed to have a redacted message."
+                            }
                             return@map timelineElementHolderViewModelHelper
                                 .createNullTimelineElementViewModel(viewModelContext, invitation)
                         }
-
+                        log.trace { "Create redacted text message view model: ${event.id}" }
+                        val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
                         viewModelContext.get<RedactedMessageViewModelFactory>().create(
                             viewModelContext = viewModelContext,
                             timelineEvent = timelineEvent,

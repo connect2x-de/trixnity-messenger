@@ -21,8 +21,6 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
 import org.koin.core.component.get
 
@@ -114,7 +112,6 @@ open class RedactedMessageViewModelImpl(
             val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(timeZone)
             "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
         }
-
 }
 
 class PreviewRedactedMessageViewModel() : RedactedMessageViewModel {
