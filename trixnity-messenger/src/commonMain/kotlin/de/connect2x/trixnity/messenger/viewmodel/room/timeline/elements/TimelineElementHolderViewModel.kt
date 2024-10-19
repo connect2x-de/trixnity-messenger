@@ -318,10 +318,12 @@ open class TimelineElementHolderViewModelImpl(
         timelineEvent.eventId.hashCode() + (content?.hashCode() ?: 0)
 
     override val reactions =
-        combine(timelineEventFlow, _reactions) { timelineEvent, reactions ->
-            when (timelineEvent?.content?.getOrNull()) {
-                is RedactedEventContent, is EncryptionEventContent -> emptyMap()
-                else -> reactions
+        _reactions.flatMapLatest { reactions ->
+            timelineEventFlow.map { timelineEvent ->
+                when (timelineEvent?.content?.getOrNull()) {
+                    is RedactedEventContent, is EncryptionEventContent -> emptyMap()
+                    else -> reactions
+                }
             }
         }.stateIn(coroutineScope, WhileSubscribed(), emptyMap())
 
