@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationStepSwitch
 import de.connect2x.messenger.compose.view.verification.ShowPassphraseMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
+import de.connect2x.messenger.compose.view.verification.ShowResetRecoveryWarningContent
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -89,13 +90,31 @@ fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
                 when (it) {
                     is AccountBootstrappingWizardStep.ExplanationStep -> add(wizardStepExplanation(viewModel, it, i18n))
 
-                    is AccountBootstrappingWizardStep.NotificationSettingsStep -> add(wizardStepNotification(viewModel, it, i18n))
+                    is AccountBootstrappingWizardStep.NotificationSettingsStep -> add(
+                        wizardStepNotification(
+                            viewModel,
+                            it,
+                            i18n
+                        )
+                    )
 
-                    is AccountBootstrappingWizardStep.ConfirmationStep -> add(wizardStepConfirmation(viewModel, it, i18n))
+                    is AccountBootstrappingWizardStep.ConfirmationStep -> add(
+                        wizardStepConfirmation(
+                            viewModel,
+                            it,
+                            i18n
+                        )
+                    )
 
                     is AccountBootstrappingWizardStep.PrivacySettingsStep -> add(wizardStepPrivacy(viewModel, it, i18n))
 
-                    is AccountBootstrappingWizardStep.VerificationStep -> add(wizardStepVerification(viewModel, it, i18n))
+                    is AccountBootstrappingWizardStep.VerificationStep -> add(
+                        wizardStepVerification(
+                            viewModel,
+                            it,
+                            i18n
+                        )
+                    )
 
                     else -> add(di.get<AdditionalAccountBootstrappingWizardStep>().create(viewModel, it))
                 }
@@ -197,9 +216,11 @@ private fun wizardStepVerification(
     val verificationViewModel = viewModel.verificationViewModel
     val selfVerificationViewModel = viewModel.selfVerificationViewModel
     val isVerified = viewModel.isVerified
-    val selected = mutableStateOf<SelfVerificationMethod?>(null)
+    val selectedMethod = mutableStateOf<SelfVerificationMethod?>(null)
     val selectedPassphrase = mutableStateOf<String>("")
     val selectedRecoveryKey = mutableStateOf<String>("")
+    val checkedRecoveryResetWarning = mutableStateOf<Boolean>(false)
+    val selectedRecoveryKeyReset = mutableStateOf(false)
     val startCrossDevice = mutableStateOf(false)
     return WizardStep(id = step.stepId, title = { i18n.deviceVerification() }, content = {
         Column {
@@ -208,6 +229,7 @@ private fun wizardStepVerification(
                 val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
                 val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
                 val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                val showResetRecoveryKeyWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
 
                 when {
                     showHelp -> ShowVerificationHelpContent()
@@ -222,8 +244,11 @@ private fun wizardStepVerification(
                     startCrossDevice.value -> {
                         Box { DeviceVerificationStepSwitch(verificationViewModel) }
                     }
+                    showResetRecoveryKeyWarning -> {
+                        ShowResetRecoveryWarningContent(checkedRecoveryResetWarning)
+                    }
 
-                    else -> ShowSelfVerificationMethodsContent(selfVerificationViewModel, selected)
+                    else -> ShowSelfVerificationMethodsContent(selfVerificationViewModel, selectedMethod, selectedRecoveryKeyReset)
                 }
             } else if (isVerified == true) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -246,7 +271,9 @@ private fun wizardStepVerification(
             val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
             val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
             val enableButton =
-                showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank()) || (showKey && selectedRecoveryKey.value.isNotBlank()) || selected.value != null
+                showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                        || (showKey && selectedRecoveryKey.value.isNotBlank())
+                        || selectedMethod.value != null || selectedRecoveryKeyReset.value == true
             Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
                 when {
                     showHelp -> {
@@ -261,9 +288,12 @@ private fun wizardStepVerification(
                         selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
                     }
 
+                    selectedRecoveryKeyReset.value -> {
+                        selfVerificationViewModel.resetRecoveryWarning()
+                    }
 
                     else -> {
-                        selected.value?.let { selfVerificationViewModel.launchVerification(it) }
+                        selectedMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
                     }
                 }
             }) {
@@ -287,8 +317,9 @@ private fun wizardStepVerification(
     }, backButton = {
         val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
         val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+        val showResetRecoveryKeyWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
 
-        if (showPassphrase || showKey) {
+        if (showPassphrase || showKey || showResetRecoveryKeyWarning) {
             Custom(button = {
                 Button(onClick = {
                     selfVerificationViewModel.backToChoose()
@@ -296,6 +327,7 @@ private fun wizardStepVerification(
                     Text(i18n.commonBack())
                 }
             })
-        } else Standard()
+        }
+        else Standard()
     })
 }

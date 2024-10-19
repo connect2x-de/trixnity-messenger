@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +36,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -48,10 +52,12 @@ import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
+import net.folivo.trixnity.core.model.UserId
 
 interface SelfVerificationModalView {
     @Composable
@@ -103,17 +109,7 @@ fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerification
                 i18n.redoSelfVerificationContinueWithoutVerification(),
             )
         },
-        back = {
-            OutlinedButton(
-                onClick = selfVerificationViewModel::resetRecoveryWarning,
-                modifier = Modifier.buttonPointerModifier(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Text(i18n.selfVerificationResetRecoveryKey().capitalize(Locale.current))
-            }
-        })
+)
 
 }
 
@@ -135,30 +131,17 @@ fun ColumnScope.ShowVerificationHelpContent() {
 fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
 
-    var checked by remember { mutableStateOf(false) }
+    val checked = remember { mutableStateOf(false) }
 
     MessengerModalContent {
-        Text(text = "${i18n.resetWarningIsPermanent()} ${i18n.resetWarningLostAccessAndReVerify()} ${i18n.resetWarningLastResort()}")
-
-        Spacer(Modifier.size(10.dp))
-
-        Row(
-            Modifier.fillMaxWidth().clickable { checked = !checked },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = { checked = it })
-            Spacer(Modifier.size(10.dp))
-            Text(i18n.resetWarningAcknowledge())
-        }
+        ShowResetRecoveryWarningContent(checked)
     }
 
     MessengerModalThreeButtonRow(
         next = {
             NextButton(
                 text = i18n.resetProceed(),
-                enabled = checked,
+                enabled = checked.value,
                 nextAction = selfVerificationViewModel::resetRecovery,
             )
         },
@@ -177,18 +160,46 @@ fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerifica
 }
 
 @Composable
+fun ColumnScope.ShowResetRecoveryWarningContent(checked: MutableState<Boolean>) {
+    val i18n = DI.get<I18nView>()
+    Text(text = "${i18n.resetWarningIsPermanent()} ${i18n.resetWarningLostAccessAndReVerify()} ${i18n.resetWarningLastResort()}")
+
+    Spacer(Modifier.size(10.dp))
+
+    Row(
+        Modifier.fillMaxWidth().clickable { checked.value = !checked.value },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = checked.value,
+            onCheckedChange = { checked.value = it })
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.resetWarningAcknowledge())
+    }
+}
+
+@Composable
 fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
     val selectedVerificationMethod = remember { mutableStateOf<SelfVerificationMethod?>(null) }
+    val selectedResetRecoveryKey = remember { mutableStateOf(false) }
 
     MessengerModalContent {
-        ShowSelfVerificationMethodsContent(selfVerificationViewModel, selectedVerificationMethod)
+        ShowSelfVerificationMethodsContent(
+            selfVerificationViewModel,
+            selectedVerificationMethod,
+            selectedResetRecoveryKey
+        )
     }
 
     MessengerModalThreeButtonRow(
         next = {
-            NextButton(enabled = selectedVerificationMethod.value != null) {
-                selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
+            NextButton(enabled = selectedVerificationMethod.value != null || selectedResetRecoveryKey.value == true) {
+                if (selectedVerificationMethod.value != null) {
+                    selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
+                } else {
+                    selfVerificationViewModel.resetRecoveryWarning()
+                }
             }
         },
         back = {
@@ -208,10 +219,12 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
 @Composable
 fun ColumnScope.ShowSelfVerificationMethodsContent(
     selfVerificationViewModel: SelfVerificationViewModel,
-    selectedVerificationMethod: MutableState<SelfVerificationMethod?>
+    selectedVerificationMethod: MutableState<SelfVerificationMethod?>,
+    selectedResetRecoveryKey: MutableState<Boolean>
 ) {
     val i18n = DI.get<I18nView>()
     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
+    val hasRecoveryResetOption = selfVerificationViewModel.hasResetRecoveryOption.collectAsState().value
     Text(i18n.selfVerificationMethodsTitle())
     Spacer(Modifier.size(10.dp))
 
@@ -221,11 +234,17 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                 Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedVerificationMethod.value = method }
+                        modifier = Modifier.clickable {
+                            selectedResetRecoveryKey.value = false
+                            selectedVerificationMethod.value = method
+                        }
                     ) {
                         RadioButton(
                             selected = selectedVerificationMethod.value == method,
-                            onClick = { selectedVerificationMethod.value = method },
+                            onClick = {
+                                selectedResetRecoveryKey.value = false
+                                selectedVerificationMethod.value = method
+                            },
                         )
                         Text(
                             text = i18n.selfVerificationMethodsOtherDevice(),
@@ -243,14 +262,19 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
             }
 
             is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                Row {
-                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp).weight(0.9f)) {
+                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedVerificationMethod.value = method }
+                        modifier = Modifier.clickable {
+                            selectedResetRecoveryKey.value = false
+                            selectedVerificationMethod.value = method
+                        }
                     ) {
                         RadioButton(
                             selected = selectedVerificationMethod.value == method,
-                            onClick = { selectedVerificationMethod.value = method }
+                            onClick = {
+                                selectedResetRecoveryKey.value = false
+                                selectedVerificationMethod.value = method
+                            }
                         )
                         Text(
                             i18n.selfVerificationMethodsRecoveryKey(),
@@ -266,13 +290,6 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                     }
 
                 }
-                    OutlinedButton(
-                        modifier = Modifier.weight(0.7f),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        onClick = { selfVerificationViewModel.resetRecoveryWarning() }) {
-                        Text(i18n.selfVerificationResetRecoveryKey().capitalize(Locale.current))
-                    }
-                }
             }
 
             is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
@@ -282,7 +299,10 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                     ) {
                         RadioButton(
                             selected = selectedVerificationMethod.value == method,
-                            onClick = { selectedVerificationMethod.value = method }
+                            onClick = {
+                                selectedResetRecoveryKey.value = false
+                                selectedVerificationMethod.value = method
+                            }
                         )
                         Text(
                             i18n.selfVerificationMethodsRecoveryPassphrase(),
@@ -300,6 +320,45 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
             }
 
             else -> Box {}
+        }
+    }
+    if (hasRecoveryResetOption) {
+        Column(Modifier.padding(top = 20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    selectedVerificationMethod.value = null
+                    selectedResetRecoveryKey.value = true
+                }
+            ) {
+                RadioButton(
+                    selected = selectedResetRecoveryKey.value == true,
+                    onClick = {
+                        selectedVerificationMethod.value = null
+                        selectedResetRecoveryKey.value = true
+                    }
+                )
+                Icon(Icons.Default.Warning, i18n.commonWarning())
+                SmallSpacer()
+                Text(
+                    i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Column(Modifier.padding(start = 48.dp)) {
+                Text(
+                    text = buildAnnotatedString {
+                        append("${i18n.selfVerificationResetRecoveryKey()}. ")
+                        pushStyle(SpanStyle(fontWeight = Bold))
+                        append("${i18n.commonWarning().capitalize(Locale.current)}: ")
+                        append(i18n.selfVerificationResetRecoveryKeyDescription())
+                        pop()
+                    },
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
         }
     }
 }

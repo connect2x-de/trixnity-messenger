@@ -1817,6 +1817,11 @@ abstract class I18nView(
         DE - "Generalschlüssel zurücksetzen"
     }
 
+    fun selfVerificationResetRecoveryKeyDescription() = translate {
+        EN - "This will lead to you losing access to all past messages."
+        DE - "Durch diesen Schritt verlieren Sie Zugriff auf alle ihre vergangenen Nachrichten."
+    }
+
     fun verificationWait() = translate {
         EN - "Wait for input on other device."
         DE - "Warte auf Eingabe an anderem Gerät."
