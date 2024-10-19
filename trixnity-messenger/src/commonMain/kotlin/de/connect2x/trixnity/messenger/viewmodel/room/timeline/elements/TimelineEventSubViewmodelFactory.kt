@@ -108,7 +108,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
 
                     is RedactedEventContent -> {
                         if (content.eventType !in setOf<String>("m.room.encrypted", "m.room.message")) {
-                            log.debug {
+                            log.trace {
                                 "Creating NullTimelineElementViewModel for event ${event.id} " +
                                         "with event type ${content.eventType} since it isn't supposed to have a redacted message."
                             }

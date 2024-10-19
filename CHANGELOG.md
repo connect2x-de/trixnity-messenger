@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
 - Hide multi profile mode in trixnity messenger
+- not shown redaction messages now also include not supported events in unencrypted rooms
 
 ### Deprecated
 
