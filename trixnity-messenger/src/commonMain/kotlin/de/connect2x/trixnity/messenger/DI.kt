@@ -35,8 +35,8 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountVi
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
@@ -153,6 +153,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
 import io.ktor.client.*
 import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
@@ -178,6 +179,7 @@ fun interface DebugName {
 fun createDefaultTrixnityMessengerModules() = listOf(
     module {
         single<Clock> { Clock.System }
+        single<TimeZone> { TimeZone.currentSystemDefault() }
 
         single<HttpClientFactory> {
             val userAgent = getOrNull<HttpUserAgent>()?.invoke()
@@ -211,7 +213,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
         single<Languages> { DefaultLanguages }
-        single<I18n> { object : I18n(get(), get(), get()) {} }
+        single<I18n> { object : I18n(get(), get(), get(), get()) {} }
         single<RoomName> { RoomNameImpl(get(), get()) }
         single<RoomTopic> { RoomTopicImpl() }
         single<RoomInviter> { RoomInviterImpl() }

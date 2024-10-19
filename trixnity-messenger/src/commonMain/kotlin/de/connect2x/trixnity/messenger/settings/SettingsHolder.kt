@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.settings
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -9,6 +10,8 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
+
+private val log = KotlinLogging.logger {}
 
 interface SettingsHolder<S : Settings<S>> : StateFlow<S> {
     suspend fun init()
@@ -34,6 +37,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
     private val updateMutex = Mutex()
     override suspend fun update(updater: MutableSettings<S>.(S) -> Unit) =
         updateMutex.withLock {
+            log.debug { "update settings" }
             val currentSettings = value
             val newSettings = MutableSettingsImpl(currentSettings)
             with(newSettings) {
@@ -44,6 +48,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
         }
 
     override suspend fun init() {
+        log.debug { "init SettingsHolder" }
         val settingsString = storage.read()
         val settingsContent =
             if (settingsString == null) emptyMap()

@@ -8,7 +8,7 @@ import de.connect2x.messenger.compose.view.search.SearchUsersLocally
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel
 
-interface SearchUsersView {
+interface SearchUsersSettingsView {
     @Composable
     fun create(
         potentialMembersViewModel: PotentialMembersViewModel,
@@ -17,14 +17,14 @@ interface SearchUsersView {
 }
 
 @Composable
-fun SearchUsers(
+fun SearchUsersSettings(
     potentialMembersViewModel: PotentialMembersViewModel,
     onUserClick: suspend (Search.SearchUserElement) -> Unit,
 ) {
-    DI.get<SearchUsersView>().create(potentialMembersViewModel, onUserClick)
+    DI.get<SearchUsersSettingsView>().create(potentialMembersViewModel, onUserClick)
 }
 
-class SearchUsersViewImpl : SearchUsersView {
+class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
     @Composable
     override fun create(
         potentialMembersViewModel: PotentialMembersViewModel,

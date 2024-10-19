@@ -71,12 +71,13 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         onOpenModal: OpenModalCallback,
         onOpenMention: OpenMentionCallback,
     ): Flow<BaseTimelineElementViewModel> {
+        val timelineElementHolderViewModelHelper = TimelineElementHolderViewModelHelper(viewModelContext.get())
         return timelineEventFlow
             .filterNotNull()
             .map { timelineEvent ->
                 val event = timelineEvent.event
-                val isByMe = TimelineElementHolderViewModelHelper.isByMe(viewModelContext, timelineEvent)
-                val (isPreviousBySomeoneElse, isPreviousOfOtherDay) = TimelineElementHolderViewModelHelper
+                val isByMe = timelineElementHolderViewModelHelper.isByMe(viewModelContext, timelineEvent)
+                val (isPreviousBySomeoneElse, isPreviousOfOtherDay) = timelineElementHolderViewModelHelper
                     .isPreviousBySomeoneElseOrOtherDay(previousRoomEvent, event)
                 val showChatBubbleEdge = isPreviousBySomeoneElse || isPreviousOfOtherDay
                 val showSender = isDirect.map {
@@ -84,8 +85,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     // we can safely stateIn here since viewModels are cached
                 }
                 val showDateAbove: Boolean = isPreviousOfOtherDay
-                val receivedDateTime = TimelineElementHolderViewModelHelper.localDateTimeOf(event)
-                if (timelineEvent.isReplacing) return@map TimelineElementHolderViewModelHelper
+                val receivedDateTime = timelineElementHolderViewModelHelper.localDateTimeOf(event)
+                if (timelineEvent.isReplacing) return@map timelineElementHolderViewModelHelper
                     .createNullTimelineElementViewModel(viewModelContext, invitation)
                 else when (content) {
                     is RoomMessageEventContent -> createRoomMessageEventSubViewmodel(
@@ -110,7 +111,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                         val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
                         if (content.eventType !in setOf<String>("m.room.encrypted", "m.room.message")) {
                             log.debug{"Creating NullTimelineElementViewModel for Event Type ${content.eventType} $content ${event.content}."}
-                            return@map TimelineElementHolderViewModelHelper
+                            return@map timelineElementHolderViewModelHelper
                                 .createNullTimelineElementViewModel(viewModelContext, invitation)
                         }
 
@@ -264,7 +265,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
 
                     else -> {
                         log.error { "Unable to resolve sub viewmodel for event: ${event.id}" }
-                        TimelineElementHolderViewModelHelper.createNullTimelineElementViewModel(
+                        timelineElementHolderViewModelHelper.createNullTimelineElementViewModel(
                             viewModelContext,
                             invitation
                         )

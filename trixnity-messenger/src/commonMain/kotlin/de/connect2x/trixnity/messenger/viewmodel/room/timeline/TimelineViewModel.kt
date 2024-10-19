@@ -39,7 +39,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -102,6 +101,7 @@ import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKW
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import org.koin.core.component.get
 import kotlin.collections.component1
@@ -235,6 +235,7 @@ class TimelineViewModelImpl(
 
     private val config = get<MatrixMessengerConfiguration>()
     private val outerScope = get<CoroutineScope>()
+    private val timeZone = get<TimeZone>()
 
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
     private val timeline: SharedFlow<Timeline<TimelineElementWrapper>> =
@@ -429,8 +430,7 @@ class TimelineViewModelImpl(
                         }
                     visibleTimelineEvent?.first()?.event?.originTimestamp?.let { timestamp ->
                         formatDate(
-                            Instant.fromEpochMilliseconds(timestamp)
-                                .toLocalDateTime(TimeZone.of(timezone()))
+                            Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(timeZone)
                         )
                     }
                 } else {
@@ -532,7 +532,10 @@ class TimelineViewModelImpl(
             matrixClient.room.getOutbox().flattenValues()
                 .scan(emptySet<String>()) { transactionIdsOld, outboxNew ->
                     val transactionIdsNew =
-                        outboxNew.filter { it.roomId == selectedRoomId }.map { it.transactionId }
+                        outboxNew
+                            .filter { it.roomId == selectedRoomId }
+                            .filter { it.content !is ReactionEventContent }
+                            .map { it.transactionId }
                             .toSet()
                     val diff = (transactionIdsNew - transactionIdsOld).toSet()
                     if (diff.isNotEmpty()) {
@@ -656,10 +659,9 @@ class TimelineViewModelImpl(
                                 .map { lastTimelineEvent ->
                                     val lastDate =
                                         lastTimelineEvent?.event?.originTimestamp?.let { millis ->
-                                            Instant.fromEpochMilliseconds(millis)
-                                                .toLocalDateTime(TimeZone.of(timezone()))
+                                            Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
                                         }
-                                    val today = clock.now().toLocalDateTime(TimeZone.of(timezone()))
+                                    val today = clock.now().toLocalDateTime(timeZone)
                                     val lastMessageFromAtLeastYesterday =
                                         lastDate != null && lastDate.isDifferentDay(today)
                                     lastDate == null || lastMessageFromAtLeastYesterday

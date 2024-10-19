@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -34,6 +35,7 @@ interface AvatarCutterViewModel {
     val error: StateFlow<String?>
     val file: FileDescriptor
     val avatarCutterHeading: String
+    val maxAvatarSize: Long
     fun cancel()
     fun accept()
 }
@@ -46,6 +48,8 @@ open class AvatarCutterViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {
 
     private val i18n = get<I18n>()
+    private val messengerConfiguration = get<MatrixMessengerConfiguration>()
+
     override val upload = MutableStateFlow(false)
     override val error = MutableStateFlow<String?>(null)
 
@@ -56,6 +60,8 @@ open class AvatarCutterViewModelImpl(
     private val backCallback = BackCallback {
         cancel()
     }
+
+    override val maxAvatarSize: Long = messengerConfiguration.avatarMaxSize
 
     init {
         backHandler.register(backCallback)

@@ -5,8 +5,10 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.mb
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
@@ -15,8 +17,8 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang) :
-    I18nBase(languages, settings, getSystemLang) {
+abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang, timeZone: TimeZone) :
+    I18nBase(languages, settings, getSystemLang, timeZone) {
 
     // ---- translations -----
     fun commonUnknown() = translate {
@@ -902,9 +904,10 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
     }
 
-    fun attachmentSizeMaxSizeError(attachmentMaxSizeInMegaByte: Int) = translate {
-        EN - "The attachment exceeds the maximum allowed attachment size of $attachmentMaxSizeInMegaByte MB."
-        DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $attachmentMaxSizeInMegaByte MB."
+    fun attachmentSizeMaxSizeError(attachmentMaxSize: Long) = translate {
+        val sizeInMB = attachmentMaxSize / 1.mb()
+        EN - "The attachment exceeds the maximum allowed attachment size of $sizeInMB MB."
+        DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $sizeInMB MB."
     }
 
     fun profileCreationDuplicate() = translate {

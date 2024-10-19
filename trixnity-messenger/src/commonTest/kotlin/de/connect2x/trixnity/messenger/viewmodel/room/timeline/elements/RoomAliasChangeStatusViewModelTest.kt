@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.EventId
@@ -53,7 +54,12 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
 
     init {
         beforeTest {
-            i18n = object : I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), GetSystemLang { "en" }) {}
+            i18n = object : I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
             resetMocks(matrixClientMock)
         }
 
@@ -204,7 +210,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.addedAlias(user.name, alias4.full), i18n.addedAlias(user.name, alias5.full))
+                cut.roomAliasChangeMessage.value shouldBe listOf(
+                    i18n.addedAlias(user.name, alias4.full),
+                    i18n.addedAlias(user.name, alias5.full)
+                )
             }
 
             subscriberJob.cancel()
@@ -249,7 +258,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias4.full), i18n.removedAlias(user.name, alias5.full))
+                cut.roomAliasChangeMessage.value shouldBe listOf(
+                    i18n.removedAlias(user.name, alias4.full),
+                    i18n.removedAlias(user.name, alias5.full)
+                )
             }
 
             subscriberJob.cancel()

@@ -28,8 +28,9 @@ interface SelfVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onCloseSelfVerification: () -> Unit,
+        onResetRecovery: () -> Unit,
     ): SelfVerificationViewModel {
-        return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerification)
+        return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerification, onResetRecovery)
     }
 
     companion object : SelfVerificationViewModelFactory
@@ -38,6 +39,7 @@ interface SelfVerificationViewModelFactory {
 interface SelfVerificationViewModel {
     val userId: UserId
     val showVerificationHelp: MutableStateFlow<Boolean>
+    val showResetRecoveryWarning: MutableStateFlow<Boolean>
     val selfVerificationMethods: MutableStateFlow<Set<SelfVerificationMethod>>
     val showPassphraseMethod: MutableStateFlow<AesHmacSha2RecoveryKeyWithPbkdf2Passphrase?>
     val showRecoveryKeyMethod: MutableStateFlow<AesHmacSha2RecoveryKey?>
@@ -50,6 +52,9 @@ interface SelfVerificationViewModel {
     fun verifyWithRecoveryKey(recoveryKey: String)
     fun verifyWithPassphrase(passphrase: String)
     fun backToChoose()
+    fun backToHelp()
+    fun resetRecoveryWarning()
+    fun resetRecovery()
     fun closeMessenger()
     fun close()
 }
@@ -57,11 +62,13 @@ interface SelfVerificationViewModel {
 open class SelfVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onCloseSelfVerification: () -> Unit,
+    private val onResetRecovery: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SelfVerificationViewModel {
 
     private val verifyAccount = get<VerifyAccount>()
 
     override val showVerificationHelp = MutableStateFlow(true)
+    override val showResetRecoveryWarning = MutableStateFlow(false)
     override val selfVerificationMethods = MutableStateFlow<Set<SelfVerificationMethod>>(emptySet())
     override val showPassphraseMethod = MutableStateFlow<AesHmacSha2RecoveryKeyWithPbkdf2Passphrase?>(null)
     override val showRecoveryKeyMethod = MutableStateFlow<AesHmacSha2RecoveryKey?>(null)
@@ -184,10 +191,30 @@ open class SelfVerificationViewModelImpl(
         }
     }
 
-    override fun backToChoose() {
+    private fun resetMethods() {
         showPassphraseMethod.value = null
         showRecoveryKeyMethod.value = null
+    }
+
+    override fun backToChoose() {
+        resetMethods()
         waitForAvailableVerificationMethods()
+    }
+
+    override fun backToHelp() {
+        resetMethods()
+        showResetRecoveryWarning.value = false
+        showVerificationHelp.value = true
+    }
+
+    override fun resetRecoveryWarning() {
+        resetMethods()
+        showVerificationHelp.value = false
+        showResetRecoveryWarning.value = true
+    }
+
+    override fun resetRecovery() {
+        onResetRecovery()
     }
 
     override fun closeMessenger() {
