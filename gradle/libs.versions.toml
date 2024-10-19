@@ -10,7 +10,7 @@ messenger = "1.0.0"
 messengerVersionCode = "1"
 appName = "Messenger"
 
-trixnity = "4.7.4-DEV-24215744" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.8.0-DEV-24234526" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases

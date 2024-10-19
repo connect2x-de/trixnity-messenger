@@ -68,9 +68,8 @@ class AvatarCutterViewImpl : AvatarCutterView {
         val upload = avatarCutterViewModel.upload.collectAsState().value
         val error = avatarCutterViewModel.error.collectAsState().value
         var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-        val maxAllowedSize = 10
 
-        if (!checkFileSizeExceedsLimit(avatarCutterViewModel.file.fileSize, maxAllowedSize)) {
+        if (!checkFileSizeExceedsLimit(avatarCutterViewModel.file.fileSize, avatarCutterViewModel.maxAvatarSize)) {
             LaunchedEffect(true) {
                 val byteArray = avatarCutterViewModel.file.content.toByteArray()
                 bitmap = imageBitmapFromBytes(byteArray)
@@ -157,7 +156,7 @@ class AvatarCutterViewImpl : AvatarCutterView {
             }
         } else {
             // TODO: show error dialog
-            log.warn { "Size is greater $maxAllowedSize MB" }
+            log.warn { "Size is greater ${avatarCutterViewModel.maxAvatarSize} MB" }
         }
     }
 }

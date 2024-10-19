@@ -101,6 +101,7 @@ import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKW
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import org.koin.core.component.get
 import kotlin.collections.component1
@@ -531,7 +532,10 @@ class TimelineViewModelImpl(
             matrixClient.room.getOutbox().flattenValues()
                 .scan(emptySet<String>()) { transactionIdsOld, outboxNew ->
                     val transactionIdsNew =
-                        outboxNew.filter { it.roomId == selectedRoomId }.map { it.transactionId }
+                        outboxNew
+                            .filter { it.roomId == selectedRoomId }
+                            .filter { it.content !is ReactionEventContent }
+                            .map { it.transactionId }
                             .toSet()
                     val diff = (transactionIdsNew - transactionIdsOld).toSet()
                     if (diff.isNotEmpty()) {

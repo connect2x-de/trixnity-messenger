@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show images in Web version
 - Allow resetting recovery keys
 - Show notifications in Web version
+- Respect homeserver media upload limit
 
 ### Changed
 
@@ -37,8 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Removed reaction functionality for deleted (redacted) messages 
-
+- `app_name` from compose-view
+- reaction functionality for deleted (redacted) messages
 
 ### Fixed
 
