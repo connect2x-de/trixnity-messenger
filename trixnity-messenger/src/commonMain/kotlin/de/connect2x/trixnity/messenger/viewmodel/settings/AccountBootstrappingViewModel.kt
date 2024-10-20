@@ -4,10 +4,13 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
+import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,13 +22,15 @@ import net.folivo.trixnity.client.key
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
+private val log = KotlinLogging.logger { }
 
 interface AccountBootstrappingViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onWizardClose: (userId: UserId) -> Unit
+        onWizardClose: (userId: UserId) -> Unit,
+        onStartVerification: (userId: UserId) -> Unit
     ): AccountBootstrappingViewModel {
-        return AccountBootstrappingViewModelImpl(viewModelContext, onWizardClose)
+        return AccountBootstrappingViewModelImpl(viewModelContext, onWizardClose, onStartVerification)
     }
 
     companion object : AccountBootstrappingViewModelFactory
@@ -33,18 +38,21 @@ interface AccountBootstrappingViewModelFactory {
 
 interface AccountBootstrappingViewModel {
     fun closeWizard()
-    val userId : UserId
-    val privacySettingsViewModel : PrivacySettingsSingleAccountViewModel
-    val notificationSettingsViewModel : NotificationSettingsSingleAccountViewModel
-    val verificationViewModel : VerificationViewModel
-    val selfVerificationViewModel : SelfVerificationViewModel
-    val isVerified : StateFlow<Boolean?>
+    fun startBootstrap()
+    val userId: UserId
+    val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
+    val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
+    val verificationViewModel: VerificationViewModel
+    val selfVerificationViewModel: SelfVerificationViewModel
+    val bootstrapViewModel: BootstrapViewModel
+    val isVerified: StateFlow<Boolean?>
 
 }
 
 class AccountBootstrappingViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    val onWizardClose: (UserId) -> Unit
+    val onWizardClose: (UserId) -> Unit,
+    val onStartBootstrap: (UserId) -> Unit
 ) :
     ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
     override val userId = viewModelContext.userId
@@ -56,6 +64,14 @@ class AccountBootstrappingViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
+    override val bootstrapViewModel by lazy {
+        get<BootstrapViewModelFactory>().create(viewModelContext, {})
+    }
+
+    override fun startBootstrap() {
+        log.debug { "Start Verification bootstrap from AccountBootstrapping" }
+        onStartBootstrap(userId)
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val isVerified =
@@ -64,7 +80,7 @@ class AccountBootstrappingViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val selfVerificationViewModel by lazy {
-        get<SelfVerificationViewModelFactory>().create(viewModelContext, {}, {})
+        get<SelfVerificationViewModelFactory>().create(viewModelContext, {}, ::startBootstrap)
     }
     override val verificationViewModel by lazy {
         get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)

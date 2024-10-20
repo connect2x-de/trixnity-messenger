@@ -229,7 +229,8 @@ private fun wizardStepVerification(
                 val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
                 val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
                 val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-                val showResetRecoveryKeyWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+                val showResetRecoveryKeyWarning =
+                    selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
 
                 when {
                     showHelp -> ShowVerificationHelpContent()
@@ -244,11 +245,16 @@ private fun wizardStepVerification(
                     startCrossDevice.value -> {
                         Box { DeviceVerificationStepSwitch(verificationViewModel) }
                     }
+
                     showResetRecoveryKeyWarning -> {
                         ShowResetRecoveryWarningContent(checkedRecoveryResetWarning)
                     }
 
-                    else -> ShowSelfVerificationMethodsContent(selfVerificationViewModel, selectedMethod, selectedRecoveryKeyReset)
+                    else -> ShowSelfVerificationMethodsContent(
+                        selfVerificationViewModel,
+                        selectedMethod,
+                        selectedRecoveryKeyReset
+                    )
                 }
             } else if (isVerified == true) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -270,10 +276,12 @@ private fun wizardStepVerification(
             val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
             val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
             val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+            val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
             val enableButton =
                 showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
                         || (showKey && selectedRecoveryKey.value.isNotBlank())
-                        || selectedMethod.value != null || selectedRecoveryKeyReset.value == true
+                        || selectedMethod.value != null || (selectedRecoveryKeyReset.value == true && !showResetRecoveryWarning)
+                        || (showResetRecoveryWarning && checkedRecoveryResetWarning.value)
             Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
                 when {
                     showHelp -> {
@@ -286,6 +294,12 @@ private fun wizardStepVerification(
 
                     showKey -> {
                         selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                    }
+
+                    showResetRecoveryWarning -> {
+                        if (checkedRecoveryResetWarning.value) {
+                            selfVerificationViewModel.resetRecovery()
+                        }
                     }
 
                     selectedRecoveryKeyReset.value -> {
@@ -327,7 +341,6 @@ private fun wizardStepVerification(
                     Text(i18n.commonBack())
                 }
             })
-        }
-        else Standard()
+        } else Standard()
     })
 }

@@ -1653,8 +1653,8 @@ abstract class I18nView(
     }
 
     fun bootstrapFinished() = translate {
-        EN - "Your account is now set up."
-        DE - "Ihr Konto ist nun eingerichtet."
+        EN - "Your recovery key is now set up."
+        DE - "Ihr Generalschlüssel ist nun eingerichtet."
     }
 
     fun deviceVerificationTitle() = translate {
