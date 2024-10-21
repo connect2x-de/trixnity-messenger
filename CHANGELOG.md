@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Wizard for account bootstrapping after initial login
+- Markdown support for sending messages
 - Setting to ban members from rooms
 - List of banned users in a room
 - Setting to unban banned users from rooms
@@ -20,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: ability to see Aliases without edit permissions
 - Show images in Web version
 - Allow resetting recovery keys
+- Show notifications in Web version
+- Respect homeserver media upload limit
 
 ### Changed
 
@@ -30,10 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
+- Hide multi profile mode in trixnity messenger
 
 ### Deprecated
 
 ### Removed
+
+- `app_name` from compose-view
 
 ### Fixed
 
@@ -54,6 +60,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correctly detect locales with region codes ("de-DE", "de-AT", "en-US")
 - Require checkbox to advance when setting up recovery keys
 - Create new chats in Web
+- Fix message actions on mobile not updating when messages are sent
+- Web production code does not crash on unknown timezone
+- Do not scroll to bottom on reactions
 
 ### Security
 
