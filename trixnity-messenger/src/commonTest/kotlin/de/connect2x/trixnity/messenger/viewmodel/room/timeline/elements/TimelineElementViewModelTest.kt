@@ -197,7 +197,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("replace any message with its redacted counterpart") {
+        should("replace any message that is either a room-message or encrypted with its redacted counterpart") {
             val timelineEventFlow = MutableStateFlow(
                 timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Saying things I do not want to say")))
             )
@@ -206,7 +206,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     timelineEventFlow = timelineEventFlow,
                     eventId = EventId("bla"),
                 )
-            val redactedEventContent = RedactedEventContent(eventType = "")
+            val redactedEventContent = RedactedEventContent(eventType = "m.room.message")
             timelineEventFlow.value =
                 timelineEvent(messageEvent(redactedEventContent), Result.success(redactedEventContent))
 
@@ -278,6 +278,27 @@ class TimelineElementViewModelTest : ShouldSpec() {
 
             val viewModel = cut.timelineElementViewModel.first { it != null }
             require(viewModel is NullTimelineElementViewModel)
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("return special null view model for redaction events that are not room messages or encrypted") {
+            val timelineEventFlow = MutableStateFlow(
+                timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "Saying things I do not want to say")))
+            )
+            val cut =
+                timelineElementViewModel(
+                    timelineEventFlow = timelineEventFlow,
+                    eventId = EventId("bla"),
+                )
+            val redactedEventContent = RedactedEventContent(eventType = "not a message or encrypted")
+            timelineEventFlow.value =
+                timelineEvent(messageEvent(redactedEventContent), Result.success(redactedEventContent))
+
+            val viewModel = cut.timelineElementViewModel.first { it != null }
+            viewModel should beInstanceOf<NullTimelineElementViewModel>()
+
+
 
             cancelNeverEndingCoroutines()
         }
