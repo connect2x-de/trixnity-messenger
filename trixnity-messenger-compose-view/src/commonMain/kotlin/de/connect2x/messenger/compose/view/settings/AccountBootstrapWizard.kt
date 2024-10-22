@@ -347,6 +347,12 @@ private fun wizardStepVerification(
                     Text(i18n.commonBack())
                 }
             })
-        } else Standard()
+        } else {
+            if (startCrossDevice.value) {
+                startCrossDevice.value = false
+                viewModel.closeCrossDeviceVerification()
+            }
+            Standard()
+        }
     })
 }

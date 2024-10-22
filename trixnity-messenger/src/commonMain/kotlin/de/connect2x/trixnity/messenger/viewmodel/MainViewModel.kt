@@ -194,7 +194,9 @@ open class MainViewModelImpl(
         AccountBootstrappingRouter(
             viewModelContext,
             onStartCrossDeviceVerification = ::startDeviceVerification,
-            onStartVerificationBootstrap = ::showBootstrap )
+            onStartVerificationBootstrap = ::showBootstrap,
+            onCloseCrossDeviceVerification = verificationRouter::closeVerification
+            )
 
     override val accountBootstrappingRouterStack: Value<ChildStack<AccountBootstrappingRouter.Config, AccountBootstrappingRouter.Wrapper>> =
         accountBootstrappingRouter.stack

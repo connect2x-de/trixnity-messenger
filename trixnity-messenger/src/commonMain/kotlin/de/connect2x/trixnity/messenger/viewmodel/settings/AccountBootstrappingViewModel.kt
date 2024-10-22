@@ -29,10 +29,11 @@ interface AccountBootstrappingViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
         onStartVerificationBootstrap: (userId: UserId) -> Unit,
-        onStartCrossDeviceVerification: (userId: UserId) -> Unit
+        onStartCrossDeviceVerification: (userId: UserId) -> Unit,
+        onCloseCrossDeviceVerification: () -> Unit
     ): AccountBootstrappingViewModel {
         return AccountBootstrappingViewModelImpl(
-            viewModelContext, onWizardClose, onStartVerificationBootstrap, onStartCrossDeviceVerification
+            viewModelContext, onWizardClose, onStartVerificationBootstrap, onStartCrossDeviceVerification, onCloseCrossDeviceVerification
         )
     }
 
@@ -43,6 +44,7 @@ interface AccountBootstrappingViewModel {
     fun closeWizard()
     fun startBootstrap()
     fun startCrossDeviceVerification()
+    fun closeCrossDeviceVerification()
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
@@ -57,7 +59,8 @@ class AccountBootstrappingViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
     val onStartVerificationBootstrap: (UserId) -> Unit,
-    val onStartCrossDeviceVerification: (UserId) -> Unit
+    val onStartCrossDeviceVerification: (UserId) -> Unit,
+    val onCloseCrossDeviceVerification: () -> Unit
 ) :
     ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
     override val userId = viewModelContext.userId
@@ -81,6 +84,11 @@ class AccountBootstrappingViewModelImpl(
     override fun startCrossDeviceVerification() {
         log.debug { "Start Cross Device Verification from AccountBootstrapping" }
         onStartCrossDeviceVerification(userId)
+    }
+
+    override fun closeCrossDeviceVerification() {
+        log.debug { "Close Device Verification from AccountBootstrapping" }
+        onCloseCrossDeviceVerification()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
