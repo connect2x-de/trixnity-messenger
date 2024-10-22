@@ -103,7 +103,8 @@ class TimelineViewModelReadByTest : ShouldSpec() {
                 roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), eqNull())
             } returns Result.success(Unit)
 
-            every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
+            every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
             every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
 
