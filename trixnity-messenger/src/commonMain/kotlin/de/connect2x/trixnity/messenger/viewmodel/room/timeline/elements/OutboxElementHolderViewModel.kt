@@ -295,13 +295,13 @@ open class OutboxElementHolderViewModelImpl(
 
     override fun abortSend() {
         coroutineScope.launch {
-            matrixClient.room.cancelSendMessage(transactionId)
+            matrixClient.room.cancelSendMessage(roomId = selectedRoomId, transactionId = transactionId)
         }
     }
 
     override fun retrySend() {
         coroutineScope.launch {
-            matrixClient.room.retrySendMessage(transactionId)
+            matrixClient.room.retrySendMessage(roomId = selectedRoomId, transactionId = transactionId)
         }
     }
 }
