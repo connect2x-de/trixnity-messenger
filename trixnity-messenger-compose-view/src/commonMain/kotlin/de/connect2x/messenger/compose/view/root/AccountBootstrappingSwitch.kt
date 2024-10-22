@@ -14,7 +14,6 @@ fun AccountBootstrappingSwitch(mainViewModel: MainViewModel) {
         Children(mainViewModel.accountBootstrappingRouterStack) {
             when (it.instance) {
                 is AccountBootstrappingRouter.Wrapper.ShowBootstrap -> AccountBootstrappingWizard(it.instance as AccountBootstrappingRouter.Wrapper.ShowBootstrap)
-                is AccountBootstrappingRouter.Wrapper.ShowAccountBootstrap -> BootstrapWizard((it.instance as AccountBootstrappingRouter.Wrapper.ShowAccountBootstrap).viewModel)
                 else -> Box {}
             }
         }

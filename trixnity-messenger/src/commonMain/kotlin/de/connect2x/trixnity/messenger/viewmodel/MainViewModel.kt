@@ -191,10 +191,24 @@ open class MainViewModelImpl(
         avatarCutterRouter.stack
 
     private val accountBootstrappingRouter: AccountBootstrappingRouter =
-        AccountBootstrappingRouter(viewModelContext)
+        AccountBootstrappingRouter(
+            viewModelContext,
+            onStartCrossDeviceVerification = ::startDeviceVerification,
+            onStartVerificationBootstrap = ::showBootstrap )
 
     override val accountBootstrappingRouterStack: Value<ChildStack<AccountBootstrappingRouter.Config, AccountBootstrappingRouter.Wrapper>> =
         accountBootstrappingRouter.stack
+
+    private fun showBootstrap(userId: UserId) {
+        coroutineScope.launch{
+            selfVerificationRouter.showBootstrap(userId)
+        }
+    }
+    private fun startDeviceVerification(userId: UserId) {
+        coroutineScope.launch{
+            verificationRouter.startDeviceVerification(userId)
+        }
+    }
 
     private fun backPressHandler() {
         if (mediaRouter.isMediaOpen()) {

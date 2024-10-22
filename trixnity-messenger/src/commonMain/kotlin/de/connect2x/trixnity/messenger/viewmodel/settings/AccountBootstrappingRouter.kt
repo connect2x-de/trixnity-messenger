@@ -26,6 +26,8 @@ private val log = KotlinLogging.logger { }
 @OptIn(ExperimentalCoroutinesApi::class)
 class AccountBootstrappingRouter(
     private val viewModelContext: ViewModelContext,
+    private val onStartCrossDeviceVerification : (userId: UserId) -> Unit,
+    private val onStartVerificationBootstrap: (userId: UserId) -> Unit
 ) : ViewModelContext by viewModelContext {
 
 
@@ -49,16 +51,8 @@ class AccountBootstrappingRouter(
                 get<AccountBootstrappingViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext, userId = config.userId
-                    ), ::onBootstrapClose, ::onVerificationBootstrapStart
+                    ), ::onBootstrapClose, onStartVerificationBootstrap, onStartCrossDeviceVerification
                 )
-            )
-        }
-
-        is Config.ShowVerificationBootstrap -> {
-            Wrapper.ShowAccountBootstrap(
-                get<BootstrapViewModelFactory>().create(
-                    viewModelContext.childContext(componentContext, userId = config.userId)
-                ) { onVerificationBootstrapClose(config.userId) }
             )
         }
     }
@@ -76,15 +70,6 @@ class AccountBootstrappingRouter(
         }
     }
 
-    private fun onVerificationBootstrapClose(userId: UserId) {
-        log.debug { "Remove Verification Bootstrap from AccountBootstrapping" }
-        navigation.launchPopWhile(coroutineScope, { it is Config.ShowVerificationBootstrap && it.userId == userId })
-    }
-
-    private fun onVerificationBootstrapStart(userId: UserId) {
-        log.debug { "Remove Verification Bootstrap from AccountBootstrapping" }
-        navigation.launchPush(coroutineScope, Config.ShowVerificationBootstrap(userId))
-    }
 
     fun startBootstrap(userId: UserId) {
         log.debug { "Starting Account Bootstrapping for $userId" }
@@ -94,7 +79,6 @@ class AccountBootstrappingRouter(
 
     sealed class Wrapper {
         data class ShowBootstrap(val viewModel: AccountBootstrappingViewModel) : Wrapper()
-        data class ShowAccountBootstrap(val viewModel: BootstrapViewModel) : Wrapper()
         data object None : Wrapper()
     }
 
@@ -102,10 +86,6 @@ class AccountBootstrappingRouter(
     sealed class Config {
         @Serializable
         data class ShowBootstrap(val userId: UserId) : Config()
-
-        @Serializable
-        data class ShowVerificationBootstrap(val userId: UserId) : Config()
-
         @Serializable
         data object None : Config()
     }

@@ -28,9 +28,12 @@ interface AccountBootstrappingViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
-        onStartVerification: (userId: UserId) -> Unit
+        onStartVerificationBootstrap: (userId: UserId) -> Unit,
+        onStartCrossDeviceVerification: (userId: UserId) -> Unit
     ): AccountBootstrappingViewModel {
-        return AccountBootstrappingViewModelImpl(viewModelContext, onWizardClose, onStartVerification)
+        return AccountBootstrappingViewModelImpl(
+            viewModelContext, onWizardClose, onStartVerificationBootstrap, onStartCrossDeviceVerification
+        )
     }
 
     companion object : AccountBootstrappingViewModelFactory
@@ -39,6 +42,7 @@ interface AccountBootstrappingViewModelFactory {
 interface AccountBootstrappingViewModel {
     fun closeWizard()
     fun startBootstrap()
+    fun startCrossDeviceVerification()
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
@@ -52,7 +56,8 @@ interface AccountBootstrappingViewModel {
 class AccountBootstrappingViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
-    val onStartBootstrap: (UserId) -> Unit
+    val onStartVerificationBootstrap: (UserId) -> Unit,
+    val onStartCrossDeviceVerification: (UserId) -> Unit
 ) :
     ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
     override val userId = viewModelContext.userId
@@ -70,7 +75,12 @@ class AccountBootstrappingViewModelImpl(
 
     override fun startBootstrap() {
         log.debug { "Start Verification bootstrap from AccountBootstrapping" }
-        onStartBootstrap(userId)
+        onStartVerificationBootstrap(userId)
+    }
+
+    override fun startCrossDeviceVerification() {
+        log.debug { "Start Cross Device Verification from AccountBootstrapping" }
+        onStartCrossDeviceVerification(userId)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

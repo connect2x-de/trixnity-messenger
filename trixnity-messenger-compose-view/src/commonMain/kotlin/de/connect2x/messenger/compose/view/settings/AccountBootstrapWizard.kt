@@ -284,7 +284,8 @@ private fun wizardStepVerification(
                     showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
                             || (showKey && selectedRecoveryKey.value.isNotBlank())
                             || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
-                            || (showResetRecoveryWarning && checkedRecoveryResetWarning.value)
+                            || (showResetRecoveryWarning && checkedRecoveryResetWarning.value
+                            || selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod)
                 Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
                     when {
                         showHelp -> {
@@ -313,6 +314,7 @@ private fun wizardStepVerification(
                             if ((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
                                         is SelfVerificationMethod.CrossSignedDeviceVerification
                             ) {
+                                startCrossDevice.value = true
                                 viewModel.startCrossDeviceVerification()
                             }
                             selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
