@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix message actions on mobile not updating when messages are sent
 - Web production code does not crash on unknown timezone
 - Do not scroll to bottom on reactions
+- Fix crash on android when deleting events that are still in the outbox
 
 ### Security
 

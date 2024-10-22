@@ -154,7 +154,8 @@ class RoomViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "")
             } returns flowOf(null)
-            every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
+            every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
 
             every {
                 roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
