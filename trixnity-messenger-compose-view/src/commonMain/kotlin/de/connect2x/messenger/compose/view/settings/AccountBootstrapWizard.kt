@@ -29,6 +29,7 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationStepSwitch
+import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries
 import de.connect2x.messenger.compose.view.verification.ShowPassphraseMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
 import de.connect2x.messenger.compose.view.verification.ShowResetRecoveryWarningContent
@@ -216,11 +217,10 @@ private fun wizardStepVerification(
     val verificationViewModel = viewModel.verificationViewModel
     val selfVerificationViewModel = viewModel.selfVerificationViewModel
     val isVerified = viewModel.isVerified
-    val selectedMethod = mutableStateOf<SelfVerificationMethod?>(null)
+    val selectedMethod = mutableStateOf<SelfVerificationMethodsListEntries?>(null)
     val selectedPassphrase = mutableStateOf<String>("")
     val selectedRecoveryKey = mutableStateOf<String>("")
     val checkedRecoveryResetWarning = mutableStateOf<Boolean>(false)
-    val selectedRecoveryKeyReset = mutableStateOf(false)
     val startCrossDevice = mutableStateOf(false)
     return WizardStep(id = step.stepId, title = { i18n.deviceVerification() }, content = {
         Column {
@@ -243,7 +243,7 @@ private fun wizardStepVerification(
                     )
 
                     startCrossDevice.value -> {
-                        Box { DeviceVerificationStepSwitch(verificationViewModel) }
+                        Box { DeviceVerificationStepSwitch(verificationViewModel, false) }
                     }
 
                     showResetRecoveryKeyWarning -> {
@@ -253,7 +253,6 @@ private fun wizardStepVerification(
                     else -> ShowSelfVerificationMethodsContent(
                         selfVerificationViewModel,
                         selectedMethod,
-                        selectedRecoveryKeyReset
                     )
                 }
             } else if (isVerified == true) {
@@ -265,78 +264,83 @@ private fun wizardStepVerification(
                         tint = MaterialTheme.messengerColors.success
                     )
                     SmallSpacer()
-                    Text(i18n.verificationSucessThisDevice())
+                    Text(i18n.verificationSuccessThisDevice())
 
                 }
             }
         }
-    }, additionalButton = {
+    }, nextButton = {
         val isVerified = isVerified.collectAsState().value
-        if (isVerified == false) {
-            val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-            val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
-            val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-            val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
-            val enableButton =
-                showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
-                        || (showKey && selectedRecoveryKey.value.isNotBlank())
-                        || selectedMethod.value != null || (selectedRecoveryKeyReset.value == true && !showResetRecoveryWarning)
-                        || (showResetRecoveryWarning && checkedRecoveryResetWarning.value)
-            Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
-                when {
-                    showHelp -> {
-                        selfVerificationViewModel.waitForAvailableVerificationMethods()
-                    }
+        val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
 
-                    showPassphrase -> {
-                        selfVerificationViewModel.verifyWithPassphrase(selectedPassphrase.value)
-                    }
+        if (isVerified == true || (!showHelp && selectedMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification)) {
+            Standard()
+        } else {
+            Custom {
+                val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+                val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+                val enableButton =
+                    showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                            || (showKey && selectedRecoveryKey.value.isNotBlank())
+                            || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
+                            || (showResetRecoveryWarning && checkedRecoveryResetWarning.value)
+                Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
+                    when {
+                        showHelp -> {
+                            selfVerificationViewModel.waitForAvailableVerificationMethods()
+                        }
 
-                    showKey -> {
-                        selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
-                    }
+                        showPassphrase -> {
+                            selfVerificationViewModel.verifyWithPassphrase(selectedPassphrase.value)
+                        }
 
-                    showResetRecoveryWarning -> {
-                        if (checkedRecoveryResetWarning.value) {
-                            selfVerificationViewModel.resetRecovery()
+                        showKey -> {
+                            selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                        }
+
+                        showResetRecoveryWarning -> {
+                            if (checkedRecoveryResetWarning.value) {
+                                selfVerificationViewModel.resetRecovery()
+                            }
+                        }
+
+                        selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> {
+                            selfVerificationViewModel.resetRecoveryWarning()
+                        }
+
+                        selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod -> {
+                            if ((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
+                                        is SelfVerificationMethod.CrossSignedDeviceVerification
+                            ) {
+                                viewModel.startCrossDeviceVerification()
+                            }
+                            selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
                         }
                     }
-
-                    selectedRecoveryKeyReset.value -> {
-                        selfVerificationViewModel.resetRecoveryWarning()
-                    }
-
-                    else -> {
-                        selectedMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
-                    }
+                }) {
+                    Text(i18n.commonNext())
                 }
-            }) {
-                Text(i18n.commonNext())
             }
         }
-    }, buttonOrder = {
-        if (isVerified.collectAsState().value == true) Triple(
-            WizardButtons.AdditionalButton, WizardButtons.BackButton, WizardButtons.NextButton
-        ) else Triple(
-            WizardButtons.NextButton, WizardButtons.BackButton, WizardButtons.AdditionalButton
-        )
-    }, nextButton = {
-        Standard(content = {
-            if (isVerified.collectAsState().value == true) {
-                Text(i18n.commonNext())
-            } else {
-                Text(i18n.redoSelfVerificationContinueWithoutVerification())
-            }
-        })
     }, backButton = {
         val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
         val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
         val showResetRecoveryKeyWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+        val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
 
         if (showPassphrase || showKey || showResetRecoveryKeyWarning) {
             Custom(button = {
                 Button(onClick = {
                     selfVerificationViewModel.backToChoose()
+                }) {
+                    Text(i18n.commonBack())
+                }
+            })
+        } else if (!showHelp) {
+            Custom(button = {
+                Button(onClick = {
+                    selfVerificationViewModel.backToHelp()
                 }) {
                     Text(i18n.commonBack())
                 }

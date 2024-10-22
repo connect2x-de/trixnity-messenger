@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Button to skip verification is now part of the list of available verification methods
 - Tooltips on the Web version now use the same design as the Android version
 - Instead of closing, profile abortion causes it to return to the previous screen
 - Sync modal shown only on initial sync

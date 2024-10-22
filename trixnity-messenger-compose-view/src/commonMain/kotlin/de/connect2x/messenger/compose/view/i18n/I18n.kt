@@ -1859,7 +1859,7 @@ abstract class I18nView(
         DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschaltet werden."
     }
 
-    fun verificationSucessThisDevice() = translate {
+    fun verificationSuccessThisDevice() = translate {
         EN - "This device was verified successfully."
         DE - "Dieses Gerät konnte erfolgreich freigeschaltet werden."
     }

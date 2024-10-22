@@ -11,24 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.BackButton
 import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.ErrorView
@@ -55,9 +47,9 @@ import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.core.model.UserId
 
 interface SelfVerificationModalView {
     @Composable
@@ -79,8 +71,7 @@ class SelfVerificationModalViewImpl : SelfVerificationModalView {
         val showRecoveryKeyMethod = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
 
         MessengerModal(
-            selfVerificationViewModel::close,
-            if (showResetRecoveryWarning) i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId)
+            title = if (showResetRecoveryWarning) i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId)
             else i18n.selfVerificationTitle(selfVerificationViewModel.userId),
         ) {
             when {
@@ -96,20 +87,13 @@ class SelfVerificationModalViewImpl : SelfVerificationModalView {
 
 @Composable
 fun ColumnScope.ShowVerificationHelp(selfVerificationViewModel: SelfVerificationViewModel) {
-    val i18n = DI.get<I18nView>()
     MessengerModalContent {
         ShowVerificationHelpContent()
     }
 
     MessengerModalThreeButtonRow(
         next = { NextButton { selfVerificationViewModel.waitForAvailableVerificationMethods() } },
-        misc = {
-            CloseModalButton(
-                selfVerificationViewModel::close,
-                i18n.redoSelfVerificationContinueWithoutVerification(),
-            )
-        },
-)
+    )
 
 }
 
@@ -148,13 +132,6 @@ fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerifica
         back = {
             BackButton { selfVerificationViewModel.backToHelp() }
         },
-
-        misc = {
-            CloseModalButton(
-                selfVerificationViewModel::close,
-                i18n.redoSelfVerificationContinueWithoutVerification(),
-            )
-        }
     )
 
 }
@@ -178,27 +155,31 @@ fun ColumnScope.ShowResetRecoveryWarningContent(checked: MutableState<Boolean>) 
     }
 }
 
+open class SelfVerificationMethodsListEntries {
+    data class SelectSelfVerificationMethod(val method: SelfVerificationMethod) : SelfVerificationMethodsListEntries()
+    data object SelectResetRecoveryKey : SelfVerificationMethodsListEntries()
+    data object SelectProceedWithoutVerification : SelfVerificationMethodsListEntries()
+}
+
 @Composable
 fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerificationViewModel) {
     val i18n = DI.get<I18nView>()
-    val selectedVerificationMethod = remember { mutableStateOf<SelfVerificationMethod?>(null) }
-    val selectedResetRecoveryKey = remember { mutableStateOf(false) }
+    val selectedMethod = remember { mutableStateOf<SelfVerificationMethodsListEntries?>(null) }
 
     MessengerModalContent {
         ShowSelfVerificationMethodsContent(
             selfVerificationViewModel,
-            selectedVerificationMethod,
-            selectedResetRecoveryKey
+            selectedMethod
         )
     }
 
     MessengerModalThreeButtonRow(
         next = {
-            NextButton(enabled = selectedVerificationMethod.value != null || selectedResetRecoveryKey.value == true) {
-                if (selectedVerificationMethod.value != null) {
-                    selectedVerificationMethod.value?.let { selfVerificationViewModel.launchVerification(it) }
-                } else {
-                    selfVerificationViewModel.resetRecoveryWarning()
+            NextButton(enabled = selectedMethod.value != null) {
+                when (val selected = selectedMethod.value) {
+                    is SelectSelfVerificationMethod -> selfVerificationViewModel.launchVerification(selected.method)
+                    is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> selfVerificationViewModel.resetRecoveryWarning()
+                    is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification -> selfVerificationViewModel.close()
                 }
             }
         },
@@ -207,20 +188,13 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
                 selfVerificationViewModel::backToHelp
             )
         },
-        misc = {
-            CloseModalButton(
-                selfVerificationViewModel::close,
-                i18n.redoSelfVerificationContinueWithoutVerification(),
-            )
-        },
     )
 }
 
 @Composable
 fun ColumnScope.ShowSelfVerificationMethodsContent(
     selfVerificationViewModel: SelfVerificationViewModel,
-    selectedVerificationMethod: MutableState<SelfVerificationMethod?>,
-    selectedResetRecoveryKey: MutableState<Boolean>
+    selectedVerificationMethod: MutableState<SelfVerificationMethodsListEntries?>,
 ) {
     val i18n = DI.get<I18nView>()
     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
@@ -235,15 +209,14 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable {
-                            selectedResetRecoveryKey.value = false
-                            selectedVerificationMethod.value = method
+                            selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
                         }
                     ) {
                         RadioButton(
-                            selected = selectedVerificationMethod.value == method,
+                            selected = selectedVerificationMethod.value is SelectSelfVerificationMethod
+                                    && (selectedVerificationMethod.value as SelectSelfVerificationMethod).method == method,
                             onClick = {
-                                selectedResetRecoveryKey.value = false
-                                selectedVerificationMethod.value = method
+                                selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
                             },
                         )
                         Text(
@@ -265,15 +238,14 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                 Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable {
-                            selectedResetRecoveryKey.value = false
-                            selectedVerificationMethod.value = method
+                            selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
                         }
                     ) {
                         RadioButton(
-                            selected = selectedVerificationMethod.value == method,
+                            selected = selectedVerificationMethod.value is SelectSelfVerificationMethod
+                                    && (selectedVerificationMethod.value as SelectSelfVerificationMethod).method == method,
                             onClick = {
-                                selectedResetRecoveryKey.value = false
-                                selectedVerificationMethod.value = method
+                                selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
                             }
                         )
                         Text(
@@ -295,13 +267,13 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
             is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
                 Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { selectedVerificationMethod.value = method }
+                        modifier = Modifier.clickable { selectedVerificationMethod.value = SelectSelfVerificationMethod(method) }
                     ) {
                         RadioButton(
-                            selected = selectedVerificationMethod.value == method,
+                            selected = selectedVerificationMethod.value is SelectSelfVerificationMethod
+                                    && (selectedVerificationMethod.value as SelectSelfVerificationMethod).method == method,
                             onClick = {
-                                selectedResetRecoveryKey.value = false
-                                selectedVerificationMethod.value = method
+                                selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
                             }
                         )
                         Text(
@@ -326,15 +298,13 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
         Column(Modifier.padding(top = 20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
-                    selectedVerificationMethod.value = null
-                    selectedResetRecoveryKey.value = true
+                    selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
                 }
             ) {
                 RadioButton(
-                    selected = selectedResetRecoveryKey.value == true,
+                    selected = selectedVerificationMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey,
                     onClick = {
-                        selectedVerificationMethod.value = null
-                        selectedResetRecoveryKey.value = true
+                        selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
                     }
                 )
                 Icon(Icons.Default.Warning, i18n.commonWarning())
@@ -359,6 +329,34 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
                 )
             }
 
+        }
+    }
+    Column(Modifier.padding(top = 20.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
+                selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+            }
+        ) {
+            RadioButton(
+                selected = selectedVerificationMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification,
+                onClick = {
+                    selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+                }
+            )
+            Icon(Icons.Default.Warning, i18n.commonWarning())
+            SmallSpacer()
+            Text(
+                i18n.redoSelfVerificationContinueWithoutVerification(),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(vertical = 10.dp),
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        Column(Modifier.padding(start = 48.dp)) {
+            Text(
+                text = i18n.redoSelfVerificationDoItLater(),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
