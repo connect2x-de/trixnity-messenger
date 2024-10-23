@@ -1865,18 +1865,23 @@ abstract class I18nView(
     }
 
     fun verificationRejected(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein."
+        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein. ${verificationTryAgain()}"
     }
 
     fun verificationTimeout(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten."
+        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten. ${verificationTryAgain()}"
     }
 
     fun verificationCancelled(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} has been cancelled."
-        DE - "${type.capitalize(Locale.current)} wurde abgebrochen."
+        EN - "${type.capitalize(Locale.current)} has been cancelled. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} wurde abgebrochen. ${verificationTryAgain()}"
+    }
+
+    fun verificationTryAgain() = translate {
+        EN - "Please try again or choose a different verification method."
+        DE - "Bitte versuchen Sie es erneut oder wählen sie eine andere Verifikationsmethode."
     }
 
     fun deviceVerification() = translate {

@@ -12,7 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 @Composable
 fun BoxScope.DeviceVerificationStepSwitch(
     viewModel: VerificationViewModel,
-    showSuccessScreen: Boolean = true
+    isEmbedded: Boolean = false
 ) {
     Children(
         stack = viewModel.stack,
@@ -24,11 +24,11 @@ fun BoxScope.DeviceVerificationStepSwitch(
             is Wrapper.SelectVerificationMethod -> SelectVerificationMethod(child.viewModel)
             is Wrapper.AcceptSasStart -> AcceptSasStart(child.viewModel)
             is Wrapper.CompareEmojisOrNumbers -> CompareEmojisOrNumbers(child.viewModel)
-            is Wrapper.Success -> if (showSuccessScreen) DeviceVerificationSuccess(child.viewModel) else child.viewModel.ok()
+            is Wrapper.Success -> if (!isEmbedded) DeviceVerificationSuccess(child.viewModel) else child.viewModel.ok()
 
-            is Wrapper.Rejected -> VerificationRejected(child.viewModel)
-            is Wrapper.Timeout -> VerificationTimeout(child.viewModel)
-            is Wrapper.Cancelled -> VerificationCancelled(child.viewModel)
+            is Wrapper.Rejected -> VerificationRejected(child.viewModel, isEmbedded = isEmbedded)
+            is Wrapper.Timeout -> VerificationTimeout(child.viewModel, isEmbedded = isEmbedded)
+            is Wrapper.Cancelled -> VerificationCancelled(child.viewModel, isEmbedded = isEmbedded)
             is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
             is Wrapper.None -> Box {}
         }.let {}

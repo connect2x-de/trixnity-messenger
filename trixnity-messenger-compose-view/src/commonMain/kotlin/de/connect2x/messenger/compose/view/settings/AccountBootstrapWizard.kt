@@ -20,10 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
-import de.connect2x.messenger.compose.view.common.WizardButtons
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -243,7 +243,7 @@ private fun wizardStepVerification(
                     )
 
                     startCrossDevice.value -> {
-                        Box { DeviceVerificationStepSwitch(verificationViewModel, false) }
+                        Box { DeviceVerificationStepSwitch(verificationViewModel, true) }
                     }
 
                     showResetRecoveryKeyWarning -> {
@@ -267,6 +267,8 @@ private fun wizardStepVerification(
                     Text(i18n.verificationSuccessThisDevice())
 
                 }
+            } else {
+                LoadingSpinner(Modifier.align(Alignment.CenterHorizontally))
             }
         }
     }, nextButton = {
@@ -315,9 +317,9 @@ private fun wizardStepVerification(
                         }
 
                         selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod -> {
-                            if ((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
-                                        is SelfVerificationMethod.CrossSignedDeviceVerification
-                            ) {
+                            val selectedVerificationMethod =
+                                (selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
+                            if (selectedVerificationMethod is SelfVerificationMethod.CrossSignedDeviceVerification) {
                                 startCrossDevice.value = true
                                 viewModel.startCrossDeviceVerification()
                             }
