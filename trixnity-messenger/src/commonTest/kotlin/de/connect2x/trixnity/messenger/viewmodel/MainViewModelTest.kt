@@ -43,6 +43,7 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
@@ -233,7 +234,11 @@ class MainViewModelTest : ShouldSpec() {
             everySuspend { matrixClientMock2.startSync() } returns Unit
             everySuspend { matrixClientMock2.cancelSync(any()) } returns Unit
             every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) { it.copy(deviceBootstrappingFinished = true) }
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+                it.copy(
+                    deviceBootstrappingFinished = true
+                )
+            }
 
         }
 
@@ -533,7 +538,38 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("skip initial sync when initial sync is alreaddy done") {
+        should("not show self verification when at least one account isn't bootstrapped") {
+            selfVerificationMethods returns MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(
+                            UserId(""),
+                            setOf(),
+                        ) { _, _ -> Result.failure(RuntimeException()) },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key()
+                        )
+                    )
+                )
+            )
+            everySuspend {
+                matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            } returns Result.success(Unit)
+
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+                it.copy(
+                    deviceBootstrappingFinished = false
+                )
+            }
+            val cut = mainViewModel()
+
+            continually(2.seconds) { cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>() }
+        }
+
+        should("skip initial sync when initial sync is already done") {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
