@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
 - Hide multi profile mode in trixnity messenger
+- not shown redaction messages now also include not supported events in unencrypted rooms
 
 ### Deprecated
 
@@ -64,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix message actions on mobile not updating when messages are sent
 - Web production code does not crash on unknown timezone
 - Do not scroll to bottom on reactions
+- Fix crash on android when deleting events that are still in the outbox
 
 ### Security
 

@@ -349,7 +349,7 @@ class MessageEventBuilder {
     }
 
     fun redacted(): RedactedEventContent {
-        val result = RedactedEventContent(eventType = "something")
+        val result = RedactedEventContent(eventType = "m.room.encrypted")
         content = result
         return result
     }

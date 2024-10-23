@@ -54,7 +54,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = TextBased.Text(body = "Hello World")
+                    content = TextBased.Text(body = "Hello World"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 )
             )
 
@@ -69,7 +70,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = FileBased.Image(body = "", url = "mxc://localhost/123456")
+                    content = FileBased.Image(body = "", url = "mxc://localhost/123456"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 )
             )
 
@@ -84,7 +86,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = FileBased.Video(body = "", url = "mxc://localhost/123456")
+                    content = FileBased.Video(body = "", url = "mxc://localhost/123456"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 )
             )
 
@@ -99,7 +102,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = FileBased.File(body = "", url = "mxc://localhost/123456")
+                    content = FileBased.File(body = "", url = "mxc://localhost/123456"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 )
             )
 
@@ -114,7 +118,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 RoomOutboxMessage(
                     transactionId = "1",
                     roomId = RoomId(""),
-                    content = Unknown("m.dino", "I love unicorns.", JsonObject(mapOf()))
+                    content = Unknown("m.dino", "I love unicorns.", JsonObject(mapOf())),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 )
             )
 

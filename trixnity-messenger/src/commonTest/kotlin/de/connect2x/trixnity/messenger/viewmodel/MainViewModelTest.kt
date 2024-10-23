@@ -190,7 +190,7 @@ class MainViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
             } returns flowOf(null)
-            every { roomServiceMock.getOutbox() } returns flowOf(mapOf())
+            every { roomServiceMock.getOutbox() } returns flowOf(listOf())
             every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
             every { userServiceMock.getById(any(), any()) } returns flowOf(null)
             every { userServiceMock.getAllReceipts(any()) } returns flowOf(mapOf())
