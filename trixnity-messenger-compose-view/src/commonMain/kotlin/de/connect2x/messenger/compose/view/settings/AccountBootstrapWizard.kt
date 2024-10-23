@@ -284,7 +284,8 @@ private fun wizardStepVerification(
                 val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
                 val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
                 val enableButton =
-                    !startCrossDevice.value && (showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                    !startCrossDevice.value
+                            && (showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
                             || (showKey && selectedRecoveryKey.value.isNotBlank())
                             || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
                             || (showResetRecoveryWarning && checkedRecoveryResetWarning.value
