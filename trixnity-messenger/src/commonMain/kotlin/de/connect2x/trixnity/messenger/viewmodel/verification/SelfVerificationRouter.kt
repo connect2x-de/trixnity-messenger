@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
@@ -13,6 +14,10 @@ import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
@@ -22,10 +27,22 @@ private val log = KotlinLogging.logger { }
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
-) {
+) : ViewModelContext by viewModelContext {
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
         MutableStateFlow(setOf<UserId>()) // in case of multiple self verifications, we need to do one after another
+
+
+    private val isAnyAccountUnbootstrapped = MutableStateFlow(false)
+
+    init {
+        coroutineScope.launch {
+            get<MatrixMessengerSettingsHolder>().collectLatest {
+                isAnyAccountUnbootstrapped.value =
+                    it.base.accounts.any { it.value.base.deviceBootstrappingFinished == false }
+            }
+        }
+    }
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -95,7 +112,9 @@ class SelfVerificationRouter(
     /** @see startSelfVerificationsQueue() **/
     fun showSelfVerification(userId: UserId) {
         log.debug { "add account to self verification queue: $userId" }
-        if (bootstrapStarted.value) {
+        if (isAnyAccountUnbootstrapped.value) {
+            log.debug { "At least one account isn't bootstrapped, not showing self verification for $userId" }
+        } else if (bootstrapStarted.value) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
         } else {
             // do sequentially (for different accounts), so here just fill the list
