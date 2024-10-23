@@ -24,9 +24,7 @@ fun BoxScope.DeviceVerificationStepSwitch(
             is Wrapper.SelectVerificationMethod -> SelectVerificationMethod(child.viewModel)
             is Wrapper.AcceptSasStart -> AcceptSasStart(child.viewModel)
             is Wrapper.CompareEmojisOrNumbers -> CompareEmojisOrNumbers(child.viewModel)
-            is Wrapper.Success -> if (showSuccessScreen) DeviceVerificationSuccess(child.viewModel) else {
-                Box {}
-            }
+            is Wrapper.Success -> if (showSuccessScreen) DeviceVerificationSuccess(child.viewModel) else child.viewModel.ok()
 
             is Wrapper.Rejected -> VerificationRejected(child.viewModel)
             is Wrapper.Timeout -> VerificationTimeout(child.viewModel)

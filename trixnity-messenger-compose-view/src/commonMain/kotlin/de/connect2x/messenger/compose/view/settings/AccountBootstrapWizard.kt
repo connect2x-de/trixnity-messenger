@@ -274,6 +274,9 @@ private fun wizardStepVerification(
         val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
 
         if (isVerified == true || (!showHelp && selectedMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification)) {
+            if (startCrossDevice.value) {
+                viewModel.closeCrossDeviceVerification()
+            }
             Standard()
         } else {
             Custom {
@@ -281,11 +284,11 @@ private fun wizardStepVerification(
                 val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
                 val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
                 val enableButton =
-                    showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                    !startCrossDevice.value && (showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
                             || (showKey && selectedRecoveryKey.value.isNotBlank())
                             || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
                             || (showResetRecoveryWarning && checkedRecoveryResetWarning.value
-                            || selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod)
+                            || selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod))
                 Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
                     when {
                         showHelp -> {
