@@ -746,7 +746,7 @@ class TimelineViewModelImpl(
     }
 
     private fun onMessageReplyToFinished(eventId: EventId) {
-        timelineElements.value.firstOrNull { it.key == eventId.full }?.viewModel?.endEdit()
+        timelineElements.value.firstOrNull { it.key == eventId.full }?.viewModel?.endReplyTo()
             ?: log.warn { "try to end reply to timeline event that is not present (${eventId})" }
     }
 
