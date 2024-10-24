@@ -729,7 +729,8 @@ class TimelineViewModelImpl(
     }
 
     private fun onMessageEdited(eventId: EventId) {
-        timelineElements.value.filterNot { it.key == eventId.full }
+        timelineElements.value
+            .filterNot { it.viewModel.eventId.full == eventId.full }
             .forEach { it.viewModel.endEdit() }
         inputAreaViewModel.editMessage(eventId)
     }
@@ -740,7 +741,8 @@ class TimelineViewModelImpl(
     }
 
     private fun onMessageRepliedTo(eventId: EventId) {
-        timelineElements.value.filterNot { it.key == eventId.full }
+        timelineElements.value
+            .filterNot { it.viewModel.eventId.full == eventId.full }
             .forEach { it.viewModel.endReplyTo() }
         inputAreaViewModel.replyToMessage(eventId)
     }
