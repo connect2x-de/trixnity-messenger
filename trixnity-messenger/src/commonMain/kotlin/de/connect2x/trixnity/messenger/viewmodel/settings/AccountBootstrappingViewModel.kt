@@ -41,8 +41,8 @@ interface AccountBootstrappingViewModelFactory {
 }
 
 interface AccountBootstrappingViewModel {
-    fun closeWizard()
-    fun startBootstrap()
+    fun closeAccountBootstrap()
+    fun startVerificationBootstrap()
     fun startCrossDeviceVerification()
     fun closeCrossDeviceVerification()
     val userId: UserId
@@ -76,7 +76,7 @@ class AccountBootstrappingViewModelImpl(
         get<BootstrapViewModelFactory>().create(viewModelContext, {})
     }
 
-    override fun startBootstrap() {
+    override fun startVerificationBootstrap() {
         log.debug { "Start Verification bootstrap from AccountBootstrapping" }
         onStartVerificationBootstrap(userId)
     }
@@ -98,13 +98,13 @@ class AccountBootstrappingViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val selfVerificationViewModel by lazy {
-        get<SelfVerificationViewModelFactory>().create(viewModelContext, {}, ::startBootstrap)
+        get<SelfVerificationViewModelFactory>().create(viewModelContext, {}, ::startVerificationBootstrap)
     }
     override val verificationViewModel by lazy {
         get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
     }
 
-    override fun closeWizard() {
+    override fun closeAccountBootstrap() {
         this.onWizardClose(userId)
     }
 }

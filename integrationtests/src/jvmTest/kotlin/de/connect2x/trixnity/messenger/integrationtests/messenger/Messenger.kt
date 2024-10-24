@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
@@ -62,6 +63,7 @@ suspend fun MatrixMessengerWithRoot.login(
     val main = stack.waitFor(RootRouter.Wrapper.Main::class)
     log.info { " +- main view" }
     val mainViewModel = main.viewModel
+    mainViewModel.accountBootstrappingRouterStack.waitFor(AccountBootstrappingRouter.Wrapper.ShowBootstrap::class).viewModel.closeAccountBootstrap()
     val verification = mainViewModel.selfVerificationStack.toFlow().first { childStack ->
         log.debug { " active: ${childStack.active.instance}" }
         childStack.active.instance is SelfVerificationRouter.Wrapper.Bootstrap ||

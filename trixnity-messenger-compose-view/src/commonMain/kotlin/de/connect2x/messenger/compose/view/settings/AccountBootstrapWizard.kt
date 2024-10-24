@@ -135,7 +135,7 @@ private fun wizardStepExplanation(
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
         content = { Text(i18n.accountBootstrappingWizardExplanationMessage()) },
         additionalButton = {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeWizard() }) {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountBootstrap() }) {
                 Text(i18n.commonSkip())
             }
         })
@@ -174,7 +174,7 @@ private fun wizardStepConfirmation(
         Text(i18n.accountBootstrappingWizardFinishSetup())
     }, nextButton = {
         Custom {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeWizard() }) {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountBootstrap() }) {
                 Text(i18n.commonConfirm())
             }
         }
