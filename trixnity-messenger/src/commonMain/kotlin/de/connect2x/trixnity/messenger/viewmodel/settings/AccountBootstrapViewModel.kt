@@ -4,8 +4,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapCrosssigningViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapCrosssigningViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
@@ -29,40 +29,37 @@ interface AccountBootstrappingViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
         onStartVerificationBootstrap: (userId: UserId) -> Unit,
-        onStartCrossDeviceVerification: (userId: UserId) -> Unit,
         onCloseCrossDeviceVerification: () -> Unit
-    ): AccountBootstrappingViewModel {
-        return AccountBootstrappingViewModelImpl(
-            viewModelContext, onWizardClose, onStartVerificationBootstrap, onStartCrossDeviceVerification, onCloseCrossDeviceVerification
+    ): AccountBootstrapViewModel {
+        return AccountBootstrapViewModelImpl(
+            viewModelContext, onWizardClose, onStartVerificationBootstrap, onCloseCrossDeviceVerification
         )
     }
 
     companion object : AccountBootstrappingViewModelFactory
 }
 
-interface AccountBootstrappingViewModel {
+interface AccountBootstrapViewModel {
     fun closeAccountBootstrap()
     fun startVerificationBootstrap()
-    fun startCrossDeviceVerification()
     fun closeCrossDeviceVerification()
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
     val verificationViewModel: VerificationViewModel
     val selfVerificationViewModel: SelfVerificationViewModel
-    val bootstrapViewModel: BootstrapViewModel
+    val bootstrapCrosssigningViewModel: BootstrapCrosssigningViewModel
     val isVerified: StateFlow<Boolean?>
 
 }
 
-class AccountBootstrappingViewModelImpl(
+class AccountBootstrapViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
     val onStartVerificationBootstrap: (UserId) -> Unit,
-    val onStartCrossDeviceVerification: (UserId) -> Unit,
     val onCloseCrossDeviceVerification: () -> Unit
 ) :
-    ViewModelContext by viewModelContext, AccountBootstrappingViewModel {
+    ViewModelContext by viewModelContext, AccountBootstrapViewModel {
     override val userId = viewModelContext.userId
 
     override val privacySettingsViewModel by lazy {
@@ -72,18 +69,13 @@ class AccountBootstrappingViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
-    override val bootstrapViewModel by lazy {
-        get<BootstrapViewModelFactory>().create(viewModelContext, {})
+    override val bootstrapCrosssigningViewModel by lazy {
+        get<BootstrapCrosssigningViewModelFactory>().create(viewModelContext, {})
     }
 
     override fun startVerificationBootstrap() {
         log.debug { "Start Verification bootstrap from AccountBootstrapping" }
         onStartVerificationBootstrap(userId)
-    }
-
-    override fun startCrossDeviceVerification() {
-        log.debug { "Start Cross Device Verification from AccountBootstrapping" }
-        onStartCrossDeviceVerification(userId)
     }
 
     override fun closeCrossDeviceVerification() {

@@ -36,8 +36,8 @@ import de.connect2x.messenger.compose.view.verification.ShowResetRecoveryWarning
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 
@@ -79,11 +79,11 @@ class AdditionalAccountBootstrappingWizardStepImpl() : AdditionalAccountBootstra
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
+fun AccountBootstrappingWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountBootstrap) {
     val di = DI.current
     val i18n = di.get<I18nView>()
 
-    val viewModel = showBootstrapWrapper.viewModel
+    val viewModel = showAccountBootstrapWrapper.viewModel
     val list = di.get<AccountBootstrappingWizardStepList>().steps
     val steps = remember {
         mutableListOf<WizardStep>().apply {
@@ -126,7 +126,7 @@ fun AccountBootstrappingWizard(showBootstrapWrapper: Wrapper.ShowBootstrap) {
 }
 
 private fun wizardStepExplanation(
-    viewModel: AccountBootstrappingViewModel,
+    viewModel: AccountBootstrapViewModel,
     step: AccountBootstrappingWizardStep,
     i18n: I18nView
 ): WizardStep {
@@ -142,7 +142,7 @@ private fun wizardStepExplanation(
 }
 
 private fun wizardStepNotification(
-    viewModel: AccountBootstrappingViewModel,
+    viewModel: AccountBootstrapViewModel,
     step: AccountBootstrappingWizardStep,
     i18n: I18nView
 ): WizardStep {
@@ -166,7 +166,7 @@ private fun wizardStepNotification(
 }
 
 private fun wizardStepConfirmation(
-    viewModel: AccountBootstrappingViewModel,
+    viewModel: AccountBootstrapViewModel,
     step: AccountBootstrappingWizardStep,
     i18n: I18nView
 ): WizardStep {
@@ -182,7 +182,7 @@ private fun wizardStepConfirmation(
 }
 
 private fun wizardStepPrivacy(
-    viewModel: AccountBootstrappingViewModel,
+    viewModel: AccountBootstrapViewModel,
     step: AccountBootstrappingWizardStep,
     i18n: I18nView
 ): WizardStep {
@@ -210,7 +210,7 @@ private fun wizardStepPrivacy(
 }
 
 private fun wizardStepVerification(
-    viewModel: AccountBootstrappingViewModel,
+    viewModel: AccountBootstrapViewModel,
     step: AccountBootstrappingWizardStep,
     i18n: I18nView
 ): WizardStep {
@@ -321,7 +321,6 @@ private fun wizardStepVerification(
                                 (selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
                             if (selectedVerificationMethod is SelfVerificationMethod.CrossSignedDeviceVerification) {
                                 startCrossDevice.value = true
-                                viewModel.startCrossDeviceVerification()
                             }
                             selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
                         }

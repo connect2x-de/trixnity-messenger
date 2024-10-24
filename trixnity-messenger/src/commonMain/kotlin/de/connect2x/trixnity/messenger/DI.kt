@@ -137,7 +137,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserPresenceImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerificationsImpl
-import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapCrosssigningViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
@@ -392,7 +392,7 @@ private fun timelineViewModels() = module {
 
 private fun verificationViewModels() = module {
     single<AcceptSasStartViewModelFactory> { AcceptSasStartViewModelFactory }
-    single<BootstrapViewModelFactory> { BootstrapViewModelFactory }
+    single<BootstrapCrosssigningViewModelFactory> { BootstrapCrosssigningViewModelFactory }
     single<RedoSelfVerificationViewModelFactory> { RedoSelfVerificationViewModelFactory }
     single<SelectVerificationMethodViewModelFactory> { SelectVerificationMethodViewModelFactory }
     single<SelfVerificationViewModelFactory> { SelfVerificationViewModelFactory }
