@@ -24,11 +24,8 @@
     </appender>
 
     <logger name="Exposed" level="INFO"/>
-    <logger name="de.connect2x.trixnity.messenger" level="DEBUG"/>
-    <logger name="de.connect2x.messenger.compose.view.files" level="DEBUG"/>
-    <logger name="net.folivo.trixnity.clientserverapi.client.SyncApiClient" level="DEBUG"/>
+    <logger name="de.connect2x" level="DEBUG"/>
     <logger name="net.folivo.trixnity" level="DEBUG"/>
-    <logger name="de.connect2x.trixnity.messenger.viewmodel" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
