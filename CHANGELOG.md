@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.3.0
+
+### Added
+
 - Markdown support for sending messages
 - Setting to ban members from rooms
 - List of banned users in a room
@@ -67,8 +81,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix replied message remains highlighted after sending
 - Fix answering or editing own messages now correctly highlights it
 - Desktop: notifications are shown when app is minimized
-
-### Security
 
 ## 2.2.2
 
