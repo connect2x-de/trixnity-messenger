@@ -64,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Web production code does not crash on unknown timezone
 - Do not scroll to bottom on reactions
 - Fix crash on android when deleting events that are still in the outbox
+- Fix replied message remains highlighted after sending
+- Fix answering or editing own messages now correctly highlights it
 
 ### Security
 
