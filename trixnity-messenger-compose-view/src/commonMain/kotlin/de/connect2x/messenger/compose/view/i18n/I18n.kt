@@ -2064,6 +2064,11 @@ abstract class I18nView(
         DE - "Reagieren"
     }
 
+    fun infoMessage() = translate {
+        EN - "Info"
+        DE - "Info"
+    }
+
     fun reportMessage() = translate {
         EN - "Report"
         DE - "Bericht"
