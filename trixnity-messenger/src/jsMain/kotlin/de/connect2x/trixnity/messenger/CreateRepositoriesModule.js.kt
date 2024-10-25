@@ -21,7 +21,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 createInternal(userId)
 
             private suspend fun createInternal(userId: UserId): Module =
-                createIndexedDBRepositoriesModule(rootPath.forAccountDatabase(userId).toString())
+                createIndexedDBRepositoriesModule(rootPath.forAccountMedia(userId).toString())
         }
     }
 }
