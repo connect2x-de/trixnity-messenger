@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Wizard for account bootstrapping after initial login
+
+### Changed
+
+- Button to skip verification is now part of the list of available verification methods
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.3.0
+
+### Added
+
 - Markdown support for sending messages
 - Setting to ban members from rooms
 - List of banned users in a room
@@ -26,7 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Button to skip verification is now part of the list of available verification methods
 - Tooltips on the Web version now use the same design as the Android version
 - Instead of closing, profile abortion causes it to return to the previous screen
 - Sync modal shown only on initial sync
@@ -66,8 +82,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Web production code does not crash on unknown timezone
 - Do not scroll to bottom on reactions
 - Fix crash on android when deleting events that are still in the outbox
-
-### Security
+- Fix replied message remains highlighted after sending
+- Fix answering or editing own messages now correctly highlights it
+- Desktop: notifications are shown when app is minimized
 
 ## 2.2.2
 

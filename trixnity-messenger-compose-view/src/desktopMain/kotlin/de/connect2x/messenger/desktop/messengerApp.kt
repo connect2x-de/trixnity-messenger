@@ -20,7 +20,6 @@ import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
@@ -71,8 +70,6 @@ fun CoroutineScope.messengerApp(
         var windowIsFocused by remember { mutableStateOf(false) }
         val notifications = mutableStateListOf<Notification>()
 
-        LifecycleController(lifecycle, windowState)
-
         Window(
             onCloseRequest = ::exitApplication,
             icon = MessengerTrayIcon(0),
@@ -87,14 +84,14 @@ fun CoroutineScope.messengerApp(
                         override fun windowGainedFocus(e: WindowEvent?) {
                             log.debug { "window is focused" }
                             windowIsFocused = true
-                            lifecycle.pause()
+                            lifecycle.resume()
                             notifications.clear()
                         }
 
                         override fun windowLostFocus(e: WindowEvent?) {
                             log.debug { "window has lost focus" }
                             windowIsFocused = false
-                            lifecycle.resume()
+                            lifecycle.pause()
                         }
                     })
 
