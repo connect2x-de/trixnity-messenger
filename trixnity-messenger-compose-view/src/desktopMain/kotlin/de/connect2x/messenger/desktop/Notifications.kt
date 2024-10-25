@@ -68,10 +68,11 @@ private suspend fun whenSyncIsRunning(
     val settings = matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
     matrixMessenger.di.get<MatrixClients>().scopedCollectLatest { matrixClients ->
         matrixClients.forEach { (userId, matrixClient) ->
+            log.info { "notifications (whenSyncIsRunning): $userId" }
             launch {
                 matrixClient.notification.getNotifications().collect { notification ->
                     val currentSettings = settings[userId].first() ?: return@collect
-                    log.debug { "windowIsFocused: $windowIsFocused" }
+                    log.debug { "windowIsFocused: $windowIsFocused, currentSettings.base.notificationsEnabled: ${currentSettings.base.notificationsEnabled}" }
                     if (windowIsFocused.not() && currentSettings.base.notificationsEnabled) {
                         log.debug { "received notification for event ${notification.event.idOrNull}" }
                         if (currentSettings.platformNotifications.notificationsPlaySound &&

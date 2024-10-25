@@ -33,6 +33,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -148,9 +149,12 @@ class TimelineViewModelTest : ShouldSpec() {
                 roomsApiClientMock.setReceipt(any(), any(), any(), any(), eqNull())
             } returns Result.success(Unit)
 
-            every { roomServiceMock.getOutbox() } returns outboxMessagesFlow
-                .map { it.associate { it.transactionId to MutableStateFlow(it) } }
-                .stateIn(coroutineScope)
+            every { roomServiceMock.getOutbox() } returns outboxMessagesFlow.map {
+                it.map { MutableStateFlow(it) }
+            }.stateIn(coroutineScope)
+            every { roomServiceMock.getOutbox(roomId = any()) } returns outboxMessagesFlow.map {
+                it.filter { it.roomId == roomId }.map { MutableStateFlow(it) }
+            }.stateIn(coroutineScope)
             every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
             every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
@@ -456,16 +460,19 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "1",
                         roomId = RoomId("not this room", "localhost"),
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
                     ),
                     RoomOutboxMessage(
                         transactionId = "2",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Right")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Right"),
+                        createdAt = Instant.fromEpochMilliseconds(1)
                     ),
                     RoomOutboxMessage(
                         transactionId = "3",
                         roomId = RoomId("totally not this room", "localhost"),
-                        content = RoomMessageEventContent.TextBased.Text(body = "from outer space")
+                        content = RoomMessageEventContent.TextBased.Text(body = "from outer space"),
+                        createdAt = Instant.fromEpochMilliseconds(2)
                     )
                 )
             val timelineMock = timeline(roomServiceMock, roomId) {
@@ -511,7 +518,8 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
                     )
                 )
             timeline(roomServiceMock, roomId) {}
@@ -530,7 +538,8 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
                     )
                 )
             val timelineMock = timeline(roomServiceMock, roomId) {
@@ -556,7 +565,8 @@ class TimelineViewModelTest : ShouldSpec() {
                     RoomOutboxMessage(
                         transactionId = "1",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
                     )
                 )
             val timelineMock = timeline(roomServiceMock, roomId) {
@@ -775,11 +785,13 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
                     ),
                     RoomOutboxMessage(
                         transactionId = "2",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "World"),
+                        createdAt = Instant.fromEpochMilliseconds(1)
                     ),
                 )
 
@@ -809,11 +821,13 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
                     ),
                     RoomOutboxMessage(
                         transactionId = "2",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "World")
+                        content = RoomMessageEventContent.TextBased.Text(body = "World"),
+                        createdAt = Instant.fromEpochMilliseconds(1)
                     ),
                 )
 
@@ -840,6 +854,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     transactionId = "transactionId-1",
                     roomId = roomId,
                     content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 ),
             )
             cut.timelineElementHolderViewModels waitForSize 1
@@ -876,6 +891,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     transactionId = "transactionId-1",
                     roomId = roomId,
                     content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 ),
             )
             cut.timelineElementHolderViewModels waitForSize 2
@@ -885,11 +901,13 @@ class TimelineViewModelTest : ShouldSpec() {
                     transactionId = "transactionId-1",
                     roomId = roomId,
                     content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
+                    createdAt = Instant.fromEpochMilliseconds(0)
                 ),
                 RoomOutboxMessage(
                     transactionId = "transactionId-2",
                     roomId = roomId,
-                    content = RoomMessageEventContent.TextBased.Text(body = "My second message.")
+                    content = RoomMessageEventContent.TextBased.Text(body = "My second message."),
+                    createdAt = Instant.fromEpochMilliseconds(1)
                 )
             )
             cut.timelineElementHolderViewModels waitForSize 3

@@ -153,7 +153,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                         )
                     )
             every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
-            every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
             every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
                     MutableStateFlow(emptyMap())
 

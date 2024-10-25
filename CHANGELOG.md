@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.3.0
+
+### Added
+
 - Markdown support for sending messages
 - Setting to ban members from rooms
 - List of banned users in a room
@@ -33,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
 - Hide multi profile mode in trixnity messenger
+- not shown redaction messages now also include not supported events in unencrypted rooms
 
 ### Deprecated
 
@@ -62,8 +77,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Create new chats in Web
 - Fix message actions on mobile not updating when messages are sent
 - Web production code does not crash on unknown timezone
-
-### Security
+- Do not scroll to bottom on reactions
+- Fix crash on android when deleting events that are still in the outbox
+- Fix replied message remains highlighted after sending
+- Fix answering or editing own messages now correctly highlights it
+- Desktop: notifications are shown when app is minimized
 
 ## 2.2.2
 
