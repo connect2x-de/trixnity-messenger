@@ -10,7 +10,7 @@ messenger = "1.0.0"
 messengerVersionCode = "1"
 appName = "Messenger"
 
-trixnity = "4.8.0" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.8.1" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -43,7 +43,7 @@ activity = "1.9.2" # https://developer.android.com/jetpack/androidx/releases/act
 androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-api
 
 # ui
-composeMultiplatform = "1.7.0-rc01" # https://github.com/JetBrains/compose-multiplatform/releases
+composeMultiplatform = "1.7.0" # https://github.com/JetBrains/compose-multiplatform/releases
 richeditor = "1.0.0-rc07" # https://github.com/MohamedRejeb/Compose-Rich-Editor
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
