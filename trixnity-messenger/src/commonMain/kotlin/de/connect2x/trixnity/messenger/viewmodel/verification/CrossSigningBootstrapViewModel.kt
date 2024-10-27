@@ -21,18 +21,18 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
-interface BootstrapCrosssigningViewModelFactory {
+interface CrossSigningBootstrapViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onClose: () -> Unit,
-    ): BootstrapCrosssigningViewModel = BootstrapCrosssigningViewModelImpl(
+    ): CrossSigningBootstrapViewModel = CrossSigningBootstrapViewModelImpl(
         viewModelContext, onClose
     )
 
-    companion object : BootstrapCrosssigningViewModelFactory
+    companion object : CrossSigningBootstrapViewModelFactory
 }
 
-interface BootstrapCrosssigningViewModel {
+interface CrossSigningBootstrapViewModel {
     val userId: UserId
 
     val recoveryKey: StateFlow<String?>
@@ -43,16 +43,16 @@ interface BootstrapCrosssigningViewModel {
     val error: StateFlow<String?>
     val isBootstrapRunning: StateFlow<Boolean>
 
-    fun startBootstrapCrosssigning()
+    fun startCrossSigningBootstrap()
     fun confirmRecoveryKeyCopied()
     fun close()
     fun closeMessenger()
 }
 
-open class BootstrapCrosssigningViewModelImpl(
+open class CrossSigningBootstrapViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onClose: () -> Unit,
-) : MatrixClientViewModelContext by viewModelContext, BootstrapCrosssigningViewModel {
+) : MatrixClientViewModelContext by viewModelContext, CrossSigningBootstrapViewModel {
 
     override val recoveryKey = MutableStateFlow<String?>(null)
     override val recoveryKeyPart1 = recoveryKey.map {
@@ -67,7 +67,7 @@ open class BootstrapCrosssigningViewModelImpl(
     override val isBootstrapRunning = MutableStateFlow(false)
     private val authorizeUia = get<AuthorizeUia>()
 
-    override fun startBootstrapCrosssigning() {
+    override fun startCrossSigningBootstrap() {
         if (isBootstrapRunning.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 error.value = null

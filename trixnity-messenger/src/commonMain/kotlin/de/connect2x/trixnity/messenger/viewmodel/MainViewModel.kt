@@ -23,8 +23,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -80,7 +80,7 @@ interface MainViewModel {
     val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
-    val accountBootstrapRouterStack: Value<ChildStack<AccountBootstrapRouter.Config, AccountBootstrapRouter.Wrapper>>
+    val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -144,7 +144,7 @@ open class MainViewModelImpl(
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
-            onStartAccountBootstrapping = ::startAccountBootstrapping
+            onStartAccountSetup = ::startAccountSetup
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
@@ -190,19 +190,19 @@ open class MainViewModelImpl(
     override val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>> =
         avatarCutterRouter.stack
 
-    private val accountBootstrapRouter: AccountBootstrapRouter =
-        AccountBootstrapRouter(
+    private val accountSetupRouter: AccountSetupRouter =
+        AccountSetupRouter(
             viewModelContext,
-            onStartVerificationBootstrap = ::showBootstrapCrosssigning,
+            onStartCrossSigningBootstrap = ::showCrossSigningBootstrap,
             onCloseCrossDeviceVerification = verificationRouter::closeVerification
-            )
+        )
 
-    override val accountBootstrapRouterStack: Value<ChildStack<AccountBootstrapRouter.Config, AccountBootstrapRouter.Wrapper>> =
-        accountBootstrapRouter.stack
+    override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
+        accountSetupRouter.stack
 
-    private fun showBootstrapCrosssigning(userId: UserId) {
-        coroutineScope.launch{
-            selfVerificationRouter.showBootstrapCrosssigning(userId)
+    private fun showCrossSigningBootstrap(userId: UserId) {
+        coroutineScope.launch {
+            selfVerificationRouter.showCrossSigningBootstrap(userId)
         }
     }
 
@@ -247,7 +247,7 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
-        possiblyStartAccountBootstrapping()
+        possiblyStartAccountSetup()
     }
 
     private fun startSync() {
@@ -325,7 +325,7 @@ open class MainViewModelImpl(
 
                                     is VerificationService.SelfVerificationMethods.NoCrossSigningEnabled -> {
                                         log.debug { "start bootstrapping $userId" }
-                                        selfVerificationRouter.showBootstrapCrosssigning(userId)
+                                        selfVerificationRouter.showCrossSigningBootstrap(userId)
                                     }
 
                                     is VerificationService.SelfVerificationMethods.AlreadyCrossSigned -> {
@@ -420,22 +420,20 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun possiblyStartAccountBootstrapping() {
+    private fun possiblyStartAccountSetup() {
         coroutineScope.launch {
             matrixClients.scopedCollectLatest { clients ->
                 clients.forEach {
-                    if (messengerSettings.value.base.accounts[it.key]?.base?.deviceBootstrappingFinished == false) {
-                        startAccountBootstrapping(it.key)
+                    if (messengerSettings.value.base.accounts[it.key]?.base?.accountSetupFinished == false) {
+                        startAccountSetup(it.key)
                     }
                 }
             }
-
-
         }
     }
 
-    private fun startAccountBootstrapping(userId: UserId) {
-        accountBootstrapRouter.startBootstrap(userId)
+    private fun startAccountSetup(userId: UserId) {
+        accountSetupRouter.startSetup(userId)
     }
 
     override fun closeDetailsAndShowList() {
@@ -447,7 +445,7 @@ open class MainViewModelImpl(
 
     private fun onAccountSelected() {
         closeRoom()
-        possiblyStartAccountBootstrapping()
+        possiblyStartAccountSetup()
     }
 
     private fun closeRoom() {
@@ -691,12 +689,12 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val accountBootstrapRouterStack: Value<ChildStack<AccountBootstrapRouter.Config, AccountBootstrapRouter.Wrapper>> =
+    override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = AccountBootstrapRouter.Config.None,
-                    instance = AccountBootstrapRouter.Wrapper.None
+                    configuration = AccountSetupRouter.Config.None,
+                    instance = AccountSetupRouter.Wrapper.None
                 )
             )
         )

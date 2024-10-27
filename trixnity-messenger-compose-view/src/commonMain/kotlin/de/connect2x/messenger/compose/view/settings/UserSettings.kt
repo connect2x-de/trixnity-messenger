@@ -57,7 +57,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     PrivacySettings(userSettingsViewModel)
                     DevicesSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
-                    AccountBootstrappingSettings(userSettingsViewModel)
+                    AccountSetupSettings(userSettingsViewModel)
                 }
             }
         }
@@ -115,14 +115,14 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun AccountBootstrappingSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
     if (account != null) {
         SettingItem(
-            { Icon(Icons.Default.SettingsSuggest, i18n.accountBootstrappingWizardReset()) },
-            i18n.accountBootstrappingWizardReset().capitalize(Locale.current),
-            { userSettingsViewModel.showAccountBootstrapping(account) }
+            { Icon(Icons.Default.SettingsSuggest, i18n.accountSetupWizardReset()) },
+            i18n.accountSetupWizardReset().capitalize(Locale.current),
+            { userSettingsViewModel.showAccountSetup(account) }
         )
     }
 }

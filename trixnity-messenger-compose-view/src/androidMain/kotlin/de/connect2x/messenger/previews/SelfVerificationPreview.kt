@@ -10,7 +10,6 @@ import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.key.KeySecretService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeySignatureTrustLevel
@@ -102,7 +101,6 @@ private class SelfVerificationViewModelPreview(
     override val error: MutableStateFlow<String?> = MutableStateFlow("")
     override val passphraseWrong: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val recoveryKeyWrong: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val hasResetRecoveryOption: StateFlow<Boolean> = MutableStateFlow(true)
     override val selfVerificationMethods: MutableStateFlow<Set<SelfVerificationMethod>> = MutableStateFlow(
         setOf(
             aesHmacSha2RecoveryKey,
