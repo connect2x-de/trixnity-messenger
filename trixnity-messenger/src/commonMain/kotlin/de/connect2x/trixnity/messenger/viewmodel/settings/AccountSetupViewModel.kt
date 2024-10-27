@@ -41,14 +41,12 @@ interface AccountSetupViewModelFactory {
 
 interface AccountSetupViewModel {
     fun closeAccountSetup()
-    fun startCrossSigningBootstrap()
     fun closeCrossDeviceVerification()
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
     val verificationViewModel: VerificationViewModel
     val selfVerificationViewModel: SelfVerificationViewModel
-    val crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel
     val isVerified: StateFlow<Boolean?>
 
 }
@@ -69,11 +67,7 @@ class AccountSetupViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
-    override val crossSigningBootstrapViewModel by lazy {
-        get<CrossSigningBootstrapViewModelFactory>().create(viewModelContext, {})
-    }
-
-    override fun startCrossSigningBootstrap() {
+    private fun startCrossSigningBootstrap() {
         log.debug { "Start cross signing bootstrap from AccountBootstrapping" }
         onStartCrossSigningBootstrap(userId)
     }
