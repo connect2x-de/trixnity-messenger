@@ -10,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -338,7 +339,7 @@ private fun wizardStepVerification(
 
         if (showPassphrase || showKey || showResetRecoveryKeyWarning) {
             Custom(button = {
-                Button(onClick = {
+                OutlinedButton(onClick = {
                     selfVerificationViewModel.backToChoose()
                 }) {
                     Text(i18n.commonBack())
@@ -346,7 +347,7 @@ private fun wizardStepVerification(
             })
         } else if (!showHelp) {
             Custom(button = {
-                Button(onClick = {
+                OutlinedButton(onClick = {
                     selfVerificationViewModel.backToHelp()
                 }) {
                     Text(i18n.commonBack())
