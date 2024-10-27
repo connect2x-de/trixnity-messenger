@@ -29,7 +29,6 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
-import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings

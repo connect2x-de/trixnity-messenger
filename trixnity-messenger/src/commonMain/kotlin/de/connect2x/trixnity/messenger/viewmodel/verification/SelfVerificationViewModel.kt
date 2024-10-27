@@ -8,11 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
@@ -50,7 +46,6 @@ interface SelfVerificationViewModel {
     val recoveryKeyWrong: MutableStateFlow<Boolean>
     val passphraseWrong: MutableStateFlow<Boolean>
     val error: MutableStateFlow<String?>
-    val hasResetRecoveryOption: StateFlow<Boolean>
 
     fun waitForAvailableVerificationMethods()
     fun launchVerification(selfVerificationMethod: SelfVerificationMethod)
@@ -77,9 +72,6 @@ open class SelfVerificationViewModelImpl(
     override val selfVerificationMethods = MutableStateFlow<Set<SelfVerificationMethod>>(emptySet())
     override val showPassphraseMethod = MutableStateFlow<AesHmacSha2RecoveryKeyWithPbkdf2Passphrase?>(null)
     override val showRecoveryKeyMethod = MutableStateFlow<AesHmacSha2RecoveryKey?>(null)
-    override val hasResetRecoveryOption =
-        selfVerificationMethods.map { it.find { it is AesHmacSha2RecoveryKey } != null }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val recoveryKeyWrong = MutableStateFlow(false)
     override val passphraseWrong = MutableStateFlow(false)

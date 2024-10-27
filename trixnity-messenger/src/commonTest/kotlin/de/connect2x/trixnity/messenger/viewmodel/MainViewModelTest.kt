@@ -7,9 +7,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
-import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DownloadManager
@@ -236,7 +234,7 @@ class MainViewModelTest : ShouldSpec() {
             every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
                 it.copy(
-                    deviceBootstrappingFinished = true
+                    accountSetupFinished = true
                 )
             }
 
@@ -456,7 +454,6 @@ class MainViewModelTest : ShouldSpec() {
                 matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
-
             val cut = mainViewModel()
 
 
@@ -561,7 +558,7 @@ class MainViewModelTest : ShouldSpec() {
 
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
                 it.copy(
-                    deviceBootstrappingFinished = false
+                    accountSetupFinished = false
                 )
             }
             val cut = mainViewModel()

@@ -36,62 +36,62 @@ import de.connect2x.messenger.compose.view.verification.ShowResetRecoveryWarning
 import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
 import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 
-open class AccountBootstrappingWizardStep(val stepId: String) {
-    data object ExplanationStep : AccountBootstrappingWizardStep("ACCOUNT_BOOTSTRAP_WIZARD_EXPLANATION")
-    data object VerificationStep : AccountBootstrappingWizardStep("ACCOUNT_BOOTSTRAP_WIZARD_VERIFICATION")
-    data object PrivacySettingsStep : AccountBootstrappingWizardStep("ACCOUNT_BOOTSTRAP_WIZARD_PRIVACY")
-    data object NotificationSettingsStep : AccountBootstrappingWizardStep("ACCOUNT_BOOTSTRAP_WIZARD_NOTIFICATION")
-    data object ConfirmationStep : AccountBootstrappingWizardStep("ACCOUNT_BOOTSTRAP_WIZARD_CONFIRM")
+open class AccountSetupWizardStep(val stepId: String) {
+    data object ExplanationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_EXPLANATION")
+    data object VerificationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_VERIFICATION")
+    data object PrivacySettingsStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_PRIVACY")
+    data object NotificationSettingsStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_NOTIFICATION")
+    data object ConfirmationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_CONFIRM")
 }
 
-interface AccountBootstrappingWizardStepList {
-    val steps: List<AccountBootstrappingWizardStep>
+interface AccountSetupWizardStepList {
+    val steps: List<AccountSetupWizardStep>
 }
 
-class AccountBootstrappingWizardStepListImpl : AccountBootstrappingWizardStepList {
+class AccountSetupWizardStepListImpl : AccountSetupWizardStepList {
     override val steps = listOf(
-        AccountBootstrappingWizardStep.ExplanationStep,
-        AccountBootstrappingWizardStep.VerificationStep,
-        AccountBootstrappingWizardStep.PrivacySettingsStep,
-        AccountBootstrappingWizardStep.NotificationSettingsStep,
-        AccountBootstrappingWizardStep.ConfirmationStep
+        AccountSetupWizardStep.ExplanationStep,
+        AccountSetupWizardStep.VerificationStep,
+        AccountSetupWizardStep.PrivacySettingsStep,
+        AccountSetupWizardStep.NotificationSettingsStep,
+        AccountSetupWizardStep.ConfirmationStep
     )
 }
 
 
-interface AdditionalAccountBootstrappingWizardStep {
-    fun <T : Any> create(viewModel: T, step: AccountBootstrappingWizardStep): WizardStep
+interface AdditionalAccountSetupWizardStep {
+    fun <T : Any> create(viewModel: T, step: AccountSetupWizardStep): WizardStep
 }
 
-class AdditionalAccountBootstrappingWizardStepImpl() : AdditionalAccountBootstrappingWizardStep {
+class AdditionalAccountSetupWizardStepImpl() : AdditionalAccountSetupWizardStep {
     override fun <T : Any> create(
         viewModel: T,
-        step: AccountBootstrappingWizardStep
+        step: AccountSetupWizardStep
     ): WizardStep {
-        throw IllegalArgumentException("Creating an AccountBootstrappingWizard step with ${step::class} is unsupported and requires an implementation")
+        throw IllegalArgumentException("Creating an AccountSetupWizard step with ${step::class} is unsupported and requires an implementation")
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountBootstrappingWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountBootstrap) {
+fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
     val di = DI.current
     val i18n = di.get<I18nView>()
 
     val viewModel = showAccountBootstrapWrapper.viewModel
-    val list = di.get<AccountBootstrappingWizardStepList>().steps
+    val list = di.get<AccountSetupWizardStepList>().steps
     val steps = remember {
         mutableListOf<WizardStep>().apply {
             list.forEach {
                 when (it) {
-                    is AccountBootstrappingWizardStep.ExplanationStep -> add(wizardStepExplanation(viewModel, it, i18n))
+                    is AccountSetupWizardStep.ExplanationStep -> add(wizardStepExplanation(viewModel, it, i18n))
 
-                    is AccountBootstrappingWizardStep.NotificationSettingsStep -> add(
+                    is AccountSetupWizardStep.NotificationSettingsStep -> add(
                         wizardStepNotification(
                             viewModel,
                             it,
@@ -99,7 +99,7 @@ fun AccountBootstrappingWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountB
                         )
                     )
 
-                    is AccountBootstrappingWizardStep.ConfirmationStep -> add(
+                    is AccountSetupWizardStep.ConfirmationStep -> add(
                         wizardStepConfirmation(
                             viewModel,
                             it,
@@ -107,9 +107,9 @@ fun AccountBootstrappingWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountB
                         )
                     )
 
-                    is AccountBootstrappingWizardStep.PrivacySettingsStep -> add(wizardStepPrivacy(viewModel, it, i18n))
+                    is AccountSetupWizardStep.PrivacySettingsStep -> add(wizardStepPrivacy(viewModel, it, i18n))
 
-                    is AccountBootstrappingWizardStep.VerificationStep -> add(
+                    is AccountSetupWizardStep.VerificationStep -> add(
                         wizardStepVerification(
                             viewModel,
                             it,
@@ -117,7 +117,7 @@ fun AccountBootstrappingWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountB
                         )
                     )
 
-                    else -> add(di.get<AdditionalAccountBootstrappingWizardStep>().create(viewModel, it))
+                    else -> add(di.get<AdditionalAccountSetupWizardStep>().create(viewModel, it))
                 }
             }
         }
@@ -126,24 +126,24 @@ fun AccountBootstrappingWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountB
 }
 
 private fun wizardStepExplanation(
-    viewModel: AccountBootstrapViewModel,
-    step: AccountBootstrappingWizardStep,
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
 
     return WizardStep(id = step.stepId,
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
-        content = { Text(i18n.accountBootstrappingWizardExplanationMessage()) },
+        content = { Text(i18n.accountSetupWizardExplanationMessage()) },
         additionalButton = {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountBootstrap() }) {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountSetup() }) {
                 Text(i18n.commonSkip())
             }
         })
 }
 
 private fun wizardStepNotification(
-    viewModel: AccountBootstrapViewModel,
-    step: AccountBootstrappingWizardStep,
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
     val notificationSettingsViewModel = viewModel.notificationSettingsViewModel
@@ -166,15 +166,15 @@ private fun wizardStepNotification(
 }
 
 private fun wizardStepConfirmation(
-    viewModel: AccountBootstrapViewModel,
-    step: AccountBootstrappingWizardStep,
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
-    return WizardStep(id = step.stepId, title = { i18n.accountBootstrappingWizardFinishSetupTitle() }, content = {
-        Text(i18n.accountBootstrappingWizardFinishSetup())
+    return WizardStep(id = step.stepId, title = { i18n.accountSetupWizardFinishSetupTitle() }, content = {
+        Text(i18n.accountSetupWizardFinishSetup())
     }, nextButton = {
         Custom {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountBootstrap() }) {
+            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountSetup() }) {
                 Text(i18n.commonConfirm())
             }
         }
@@ -182,8 +182,8 @@ private fun wizardStepConfirmation(
 }
 
 private fun wizardStepPrivacy(
-    viewModel: AccountBootstrapViewModel,
-    step: AccountBootstrappingWizardStep,
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
     val privacySettingsViewModel = viewModel.privacySettingsViewModel
@@ -210,8 +210,8 @@ private fun wizardStepPrivacy(
 }
 
 private fun wizardStepVerification(
-    viewModel: AccountBootstrapViewModel,
-    step: AccountBootstrappingWizardStep,
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
     val verificationViewModel = viewModel.verificationViewModel

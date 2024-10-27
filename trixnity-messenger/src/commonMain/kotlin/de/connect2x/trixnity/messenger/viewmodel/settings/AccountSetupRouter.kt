@@ -9,7 +9,7 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -21,10 +21,10 @@ private val log = KotlinLogging.logger { }
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AccountBootstrapRouter(
+class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
     private val onCloseCrossDeviceVerification : () -> Unit,
-    private val onStartVerificationBootstrap: (userId: UserId) -> Unit
+    private val onStartCrossSigningBootstrap: (userId: UserId) -> Unit
 ) : ViewModelContext by viewModelContext {
 
 
@@ -33,7 +33,7 @@ class AccountBootstrapRouter(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = Config.None,
-        key = "AccountBootstrapRouter",
+        key = "AccountSetupRouter",
         childFactory = ::createChild
     )
 
@@ -42,13 +42,13 @@ class AccountBootstrapRouter(
             Wrapper.None
         }
 
-        is Config.ShowAccountBootstrap -> {
-            log.debug { "Building Account Bootstrapping for ${config.userId}" }
-            Wrapper.ShowAccountBootstrap(
-                get<AccountBootstrappingViewModelFactory>().create(
+        is Config.ShowAccountSetup -> {
+            log.debug { "Building Account setup for ${config.userId}" }
+            Wrapper.ShowAccountSetup(
+                get<AccountSetupViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext, userId = config.userId
-                    ), ::onBootstrapClose, onStartVerificationBootstrap, onCloseCrossDeviceVerification
+                    ), ::onSetupClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification
                 )
             )
         }
@@ -57,32 +57,32 @@ class AccountBootstrapRouter(
 
     private val settings = get<MatrixMessengerSettingsHolder>()
 
-    fun onBootstrapClose(userId: UserId) {
-        log.debug { "Closing AccountBootstrapping for $userId" }
+    fun onSetupClose(userId: UserId) {
+        log.debug { "Closing Account setup for $userId" }
         coroutineScope.launch {
             settings.update<MatrixMessengerAccountSettingsBase>(userId) {
-                it.copy(deviceBootstrappingFinished = true)
+                it.copy(accountSetupFinished = true)
             }
-            navigation.popWhileSuspending { it is Config.ShowAccountBootstrap && it.userId == userId }
+            navigation.popWhileSuspending { it is Config.ShowAccountSetup && it.userId == userId }
         }
     }
 
 
-    fun startBootstrap(userId: UserId) {
-        log.debug { "Starting Account Bootstrapping for $userId" }
-        navigation.launchPush(coroutineScope, Config.ShowAccountBootstrap(userId))
+    fun startSetup(userId: UserId) {
+        log.debug { "Starting Account setup for $userId" }
+        navigation.launchPush(coroutineScope, Config.ShowAccountSetup(userId))
     }
 
 
     sealed class Wrapper {
-        data class ShowAccountBootstrap(val viewModel: AccountBootstrapViewModel) : Wrapper()
+        data class ShowAccountSetup(val viewModel: AccountSetupViewModel) : Wrapper()
         data object None : Wrapper()
     }
 
     @Serializable
     sealed class Config {
         @Serializable
-        data class ShowAccountBootstrap(val userId: UserId) : Config()
+        data class ShowAccountSetup(val userId: UserId) : Config()
         @Serializable
         data object None : Config()
     }

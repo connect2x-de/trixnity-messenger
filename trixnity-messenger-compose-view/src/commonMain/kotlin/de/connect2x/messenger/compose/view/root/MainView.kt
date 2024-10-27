@@ -46,7 +46,7 @@ class MainViewImpl : MainView {
         MediaOverlaySwitch(mainViewModel)
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
-        AccountBootstrappingSwitch(mainViewModel)
+        AccountSetupSwitch(mainViewModel)
         SelfVerificationSwitch(mainViewModel)
     }
 }

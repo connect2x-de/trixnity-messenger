@@ -52,7 +52,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onStartAccountBootstrapping : (userId : UserId) -> Unit
+    private val onStartAccountSetup : (userId : UserId) -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -151,7 +151,7 @@ class RoomListRouter(
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
-                    onShowAccountBootstrapping = ::onShowAccountBootstrapping,
+                    onShowAccountSetup = ::onShowAccountSetup,
                 )
             )
 
@@ -342,8 +342,6 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-
-
     private fun onShowBlockedContactsSettings(account: UserId) {
         log.debug { "show blocked contacts settings for account $account" }
         navigation.launchPush(viewModelContext.coroutineScope, Config.BlockedContactsSettings(account))
@@ -364,13 +362,13 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowAccountBootstrapping (userId: UserId) {
+    private fun onShowAccountSetup (userId: UserId) {
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
-            log.debug { "Reset settings wizard for account $userId" }
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(deviceBootstrappingFinished = false)}
+            log.debug { "Reset account setup for account $userId" }
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(accountSetupFinished = false)}
         }
-        onStartAccountBootstrapping(userId)
+        onStartAccountSetup(userId)
     }
 
     suspend fun moveToBackStack() {

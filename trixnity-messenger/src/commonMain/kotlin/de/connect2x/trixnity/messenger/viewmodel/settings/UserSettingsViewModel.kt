@@ -14,7 +14,7 @@ interface UserSettingsViewModelFactory {
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
-        onShowAccountBootstrapping: (userId: UserId) -> Unit,
+        onShowAccountSetup: (userId: UserId) -> Unit,
     ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
@@ -24,7 +24,7 @@ interface UserSettingsViewModelFactory {
             onShowNotificationsSettings,
             onShowPrivacySettings,
             onShowAppearanceSettings,
-            onShowAccountBootstrapping,
+            onShowAccountSetup,
         )
     }
 
@@ -38,7 +38,7 @@ interface UserSettingsViewModel {
     fun showNotificationsSettings()
     fun showPrivacySettings()
     fun showAppearanceSettings()
-    fun showAccountBootstrapping(userId: UserId)
+    fun showAccountSetup(userId: UserId)
 }
 
 open class UserSettingsViewModelImpl(
@@ -49,7 +49,7 @@ open class UserSettingsViewModelImpl(
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
-    private val onShowAccountBootstrapping: (userId : UserId) -> Unit,
+    private val onShowAccountSetup: (userId : UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -84,7 +84,7 @@ open class UserSettingsViewModelImpl(
         onShowAppearanceSettings()
     }
 
-    override fun showAccountBootstrapping(userId: UserId) {
-        onShowAccountBootstrapping(userId)
+    override fun showAccountSetup(userId: UserId) {
+        onShowAccountSetup(userId)
     }
 }

@@ -50,7 +50,7 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.copyToClipboard
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapCrosssigningViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.vault
@@ -61,15 +61,15 @@ const val RECOVERY_KEY = "RECOVERY_KEY"
 const val FINISHED = "FINISHED"
 
 @Composable
-fun BootstrapCrosssigningWizard(bootstrapCrosssigningViewModel: BootstrapCrosssigningViewModel) {
+fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
     val i18n = DI.get<I18nView>()
     val wizardSteps = listOf(
         WizardStep(
             id = RECOVERY_KEY_EXPLANATION,
             title = { i18n.bootstrapRecoveryKeyExplanationTitle() },
             content = { boxWithConstraintsScope ->
-                val isBootstrapRunning = bootstrapCrosssigningViewModel.isBootstrapRunning.collectAsState().value
-                val error = bootstrapCrosssigningViewModel.error.collectAsState().value
+                val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
+                val error = crossSigningBootstrapViewModel.error.collectAsState().value
                 Paragraphs {
                     Text(i18n.bootstrapRecoveryKeyExplanation1())
                     Text(i18n.bootstrapRecoveryKeyExplanation2())
@@ -90,11 +90,11 @@ fun BootstrapCrosssigningWizard(bootstrapCrosssigningViewModel: BootstrapCrosssi
                 }
             },
             additionalButton = {
-                val isBootstrapRunning = bootstrapCrosssigningViewModel.isBootstrapRunning.collectAsState().value
-                val recoveryKey = bootstrapCrosssigningViewModel.recoveryKey.collectAsState().value
+                val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
+                val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
                 if (isBootstrapRunning.not() && recoveryKey == null) {
                     Button(
-                        { bootstrapCrosssigningViewModel.startBootstrapCrosssigning() },
+                        { crossSigningBootstrapViewModel.startCrossSigningBootstrap() },
                         Modifier.buttonPointerModifier()
                     ) {
                         Text(i18n.bootstrapRecoveryKeyCreateVault())
@@ -103,7 +103,7 @@ fun BootstrapCrosssigningWizard(bootstrapCrosssigningViewModel: BootstrapCrosssi
             },
             nextButton = {
                 WizardNavigationButton.Standard(enabled = {
-                    val recoveryKey = bootstrapCrosssigningViewModel.recoveryKey.collectAsState().value
+                    val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
                     recoveryKey != null
                 })
             }
@@ -113,11 +113,11 @@ fun BootstrapCrosssigningWizard(bootstrapCrosssigningViewModel: BootstrapCrosssi
             id = RECOVERY_KEY,
             title = { i18n.bootstrapRecoveryKeyTitle() },
             content = {
-                val recoveryKey = bootstrapCrosssigningViewModel.recoveryKey.collectAsState().value
-                val recoveryKeyPart1 = bootstrapCrosssigningViewModel.recoveryKeyPart1.collectAsState().value
-                val recoveryKeyPart2 = bootstrapCrosssigningViewModel.recoveryKeyPart2.collectAsState().value
+                val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
+                val recoveryKeyPart1 = crossSigningBootstrapViewModel.recoveryKeyPart1.collectAsState().value
+                val recoveryKeyPart2 = crossSigningBootstrapViewModel.recoveryKeyPart2.collectAsState().value
                 val copiedToClipBoard = remember { mutableStateOf(false) }
-                val recoveryKeyCopied = bootstrapCrosssigningViewModel.recoveryKeyCopied.collectAsState().value
+                val recoveryKeyCopied = crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
                 Paragraphs {
                     Text(text = i18n.bootstrapRecoveryKeyHandling())
                     Text(i18n.bootstrapRecoveryKeyWarning())
@@ -191,24 +191,24 @@ fun BootstrapCrosssigningWizard(bootstrapCrosssigningViewModel: BootstrapCrosssi
                     }
                     Spacer(Modifier.size(40.dp))
                     Row(
-                        Modifier.fillMaxWidth().clickable { bootstrapCrosssigningViewModel.confirmRecoveryKeyCopied() },
+                        Modifier.fillMaxWidth().clickable { crossSigningBootstrapViewModel.confirmRecoveryKeyCopied() },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Checkbox(
                             checked = recoveryKeyCopied,
-                            { bootstrapCrosssigningViewModel.confirmRecoveryKeyCopied() })
+                            { crossSigningBootstrapViewModel.confirmRecoveryKeyCopied() })
                         Spacer(Modifier.size(10.dp))
                         Text(i18n.bootstrapRecoveryKeySafe())
                     }
                 }
             },
             additionalButton = {
-                CloseMessengerButton(bootstrapCrosssigningViewModel::closeMessenger)
+                CloseMessengerButton(crossSigningBootstrapViewModel::closeMessenger)
             },
             nextButton = {
                 WizardNavigationButton.Standard(
                     enabled = {
-                        bootstrapCrosssigningViewModel.recoveryKeyCopied.collectAsState().value
+                        crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
                     })
             }
         ),
@@ -222,7 +222,7 @@ fun BootstrapCrosssigningWizard(bootstrapCrosssigningViewModel: BootstrapCrosssi
             nextButton = {
                 WizardNavigationButton.Custom {
                     Button(
-                        onClick = { bootstrapCrosssigningViewModel.close() },
+                        onClick = { crossSigningBootstrapViewModel.close() },
                         modifier = Modifier.buttonPointerModifier(),
                     ) {
                         Text(i18n.commonConfirm())

@@ -15,7 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrapRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
@@ -63,10 +63,10 @@ suspend fun MatrixMessengerWithRoot.login(
     val main = stack.waitFor(RootRouter.Wrapper.Main::class)
     log.info { " +- main view" }
     val mainViewModel = main.viewModel
-    mainViewModel.accountBootstrapRouterStack.waitFor(AccountBootstrapRouter.Wrapper.ShowAccountBootstrap::class).viewModel.closeAccountBootstrap()
+    mainViewModel.accountSetupRouterStack.waitFor(AccountSetupRouter.Wrapper.ShowAccountSetup::class).viewModel.closeAccountSetup()
     val verification = mainViewModel.selfVerificationStack.toFlow().first { childStack ->
         log.debug { " active: ${childStack.active.instance}" }
-        childStack.active.instance is SelfVerificationRouter.Wrapper.BootstrapCrosssigning ||
+        childStack.active.instance is SelfVerificationRouter.Wrapper.CrossSigningBootstrap ||
                 childStack.active.instance is SelfVerificationRouter.Wrapper.View
     }.active.instance
     if (verification is SelfVerificationRouter.Wrapper.View) {
@@ -397,17 +397,17 @@ private suspend fun MatrixMessengerWithRoot.bootstrap(
     password: String,
 ): String? {
     log.info { "  +- bootstrap" }
-    val bootstrapCrosssigningViewModel =
-        (verification as SelfVerificationRouter.Wrapper.BootstrapCrosssigning).viewModel
-    bootstrapCrosssigningViewModel.startBootstrapCrosssigning()
+    val crossSigningBootstrapViewModel =
+        (verification as SelfVerificationRouter.Wrapper.CrossSigningBootstrap).viewModel
+    crossSigningBootstrapViewModel.startCrossSigningBootstrap()
 
     authorizeUia(username, password)
 
-    bootstrapCrosssigningViewModel.isBootstrapRunning.first { it.not() }
-    val createdRecoveryKey = bootstrapCrosssigningViewModel.recoveryKey.first { it != null }
+    crossSigningBootstrapViewModel.isBootstrapRunning.first { it.not() }
+    val createdRecoveryKey = crossSigningBootstrapViewModel.recoveryKey.first { it != null }
     log.info { "user '$username' with password '$password' has recovery key '$createdRecoveryKey'" }
 
-    bootstrapCrosssigningViewModel.close()
+    crossSigningBootstrapViewModel.close()
     log.info { "   - bootstrap finished" }
     return createdRecoveryKey
 }

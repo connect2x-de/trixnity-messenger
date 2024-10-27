@@ -2409,22 +2409,22 @@ abstract class I18nView(
         EN - "The activation of the encryption of the chat cannot be revoked."
     }
 
-    fun accountBootstrappingWizardExplanationMessage() = translate {
+    fun accountSetupWizardExplanationMessage() = translate {
         DE - "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
         EN - "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
     }
 
-    fun accountBootstrappingWizardFinishSetup() = translate {
+    fun accountSetupWizardFinishSetup() = translate {
         DE - "Ist alles nach Ihren Wünschen eingestellt?"
         EN - "Is everything configured to your liking?"
     }
 
-    fun accountBootstrappingWizardFinishSetupTitle() = translate {
+    fun accountSetupWizardFinishSetupTitle() = translate {
         DE - "Einrichtung abschließen"
         EN - "Finish setup"
     }
 
-    fun accountBootstrappingWizardReset() = translate {
+    fun accountSetupWizardReset() = translate {
         DE - "Setup zurücksetzen"
         EN - "Reset setup"
     }

@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
@@ -198,7 +197,6 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
 ) {
     val i18n = DI.get<I18nView>()
     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
-    val hasRecoveryResetOption = selfVerificationViewModel.hasResetRecoveryOption.collectAsState().value
     Text(i18n.selfVerificationMethodsTitle())
     Spacer(Modifier.size(10.dp))
 
@@ -296,42 +294,40 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
             else -> Box {}
         }
     }
-    if (hasRecoveryResetOption) {
-        Column(Modifier.padding(top = 20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
+    Column(Modifier.padding(top = 20.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
+                selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+            }
+        ) {
+            RadioButton(
+                selected = selectedVerificationMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey,
+                onClick = {
                     selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
                 }
-            ) {
-                RadioButton(
-                    selected = selectedVerificationMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey,
-                    onClick = {
-                        selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                    }
-                )
-                Icon(Icons.Default.Warning, i18n.commonWarning())
-                SmallSpacer()
-                Text(
-                    i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(vertical = 10.dp),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            Column(Modifier.padding(start = 48.dp)) {
-                Text(
-                    text = buildAnnotatedString {
-                        append("${i18n.selfVerificationResetRecoveryKey()}. ")
-                        pushStyle(SpanStyle(fontWeight = Bold))
-                        append("${i18n.commonWarning().capitalize(Locale.current)}: ")
-                        append(i18n.selfVerificationResetRecoveryKeyDescription())
-                        pop()
-                    },
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
+            )
+            Icon(Icons.Default.Warning, i18n.commonWarning())
+            SmallSpacer()
+            Text(
+                i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(vertical = 10.dp),
+                color = MaterialTheme.colorScheme.error,
+            )
         }
+        Column(Modifier.padding(start = 48.dp)) {
+            Text(
+                text = buildAnnotatedString {
+                    append("${i18n.selfVerificationResetRecoveryKey()}. ")
+                    pushStyle(SpanStyle(fontWeight = Bold))
+                    append("${i18n.commonWarning().capitalize(Locale.current)}: ")
+                    append(i18n.selfVerificationResetRecoveryKeyDescription())
+                    pop()
+                },
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
     }
     Column(Modifier.padding(top = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically,
@@ -396,7 +392,7 @@ fun ColumnScope.ShowPassphraseMethodContent(
     val i18n = DI.get<I18nView>()
     Text(i18n.selfVerificationMethodsRecoveryPassphraseTitle())
     Text(buildAnnotatedString {
-        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+        pushStyle(SpanStyle(fontWeight = Bold))
         append("${i18n.bootstrapRecoveryKeyAttention()}:")
         pop()
         append(i18n.selfVerificationMethodsRecoveryPassphraseWarning())

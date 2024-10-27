@@ -100,7 +100,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountBootstrappingViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
@@ -137,7 +137,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserPresenceImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerificationsImpl
-import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapCrosssigningViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
@@ -229,7 +229,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Search> { SearchImpl(get(), get()) }
         single<RunInitialSync> { RunInitialSync }
         single<DragAndDropHandler> { DragAndDropHandlerBase() }
-        single<AccountBootstrappingViewModelFactory> { AccountBootstrappingViewModelFactory }
+        single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
 
         single<RootViewModelFactory> { RootViewModelFactory }
         single<MainViewModelFactory> { MainViewModelFactory }
@@ -392,7 +392,7 @@ private fun timelineViewModels() = module {
 
 private fun verificationViewModels() = module {
     single<AcceptSasStartViewModelFactory> { AcceptSasStartViewModelFactory }
-    single<BootstrapCrosssigningViewModelFactory> { BootstrapCrosssigningViewModelFactory }
+    single<CrossSigningBootstrapViewModelFactory> { CrossSigningBootstrapViewModelFactory }
     single<RedoSelfVerificationViewModelFactory> { RedoSelfVerificationViewModelFactory }
     single<SelectVerificationMethodViewModelFactory> { SelectVerificationMethodViewModelFactory }
     single<SelfVerificationViewModelFactory> { SelfVerificationViewModelFactory }
