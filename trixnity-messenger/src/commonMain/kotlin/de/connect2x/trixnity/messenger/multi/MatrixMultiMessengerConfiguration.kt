@@ -6,7 +6,7 @@ import org.koin.core.module.Module
 
 data class MatrixMultiMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
-    override var packageName: String = "de.connect2x",
+    override var appId: String = "de.connect2x",
     override var urlProtocol: String = "trixnity",
     override var urlHost: String = "localhost",
     override var sendLogsEmailAddress: String? = null,

@@ -8,7 +8,8 @@ androidMinimalSDK = "28"
 androidTargetSDK = "35"
 messenger = "1.0.0"
 messengerVersionCode = "1"
-appName = "Messenger"
+appName = "Trixnity Messenger"
+appId = "de.connect2x.messenger"
 
 trixnity = "4.8.0" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages

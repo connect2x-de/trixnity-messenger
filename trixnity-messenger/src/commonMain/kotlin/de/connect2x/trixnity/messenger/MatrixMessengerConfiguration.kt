@@ -17,7 +17,7 @@ private val colors =
 
 data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
-    override var packageName: String = "de.connect2x",
+    override var appId: String = "de.connect2x.trixnitymessenger",
 
     var encryptLocalData: Boolean = true,
 
