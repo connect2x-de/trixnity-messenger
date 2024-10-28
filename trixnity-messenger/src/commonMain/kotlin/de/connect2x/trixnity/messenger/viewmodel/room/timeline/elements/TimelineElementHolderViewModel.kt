@@ -133,7 +133,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val canBeReported: StateFlow<Boolean>
     val canGetInfo: StateFlow<Boolean>
     val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
-    val readers: StateFlow<List<String>>
     fun edit()
     fun endEdit()
     fun redact()
@@ -142,6 +141,9 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun reportTo()
     fun addReaction(reaction: String)
     fun removeReaction(reaction: ReactionEvent)
+
+    /** returns no Flow! -> for current value, recompute every time needed (Flow computation would be expensive) */
+    suspend fun isReadBy(): List<String>
 
     data class ReactionEvent(
         val eventId: EventId,
@@ -162,7 +164,7 @@ open class TimelineElementHolderViewModelImpl(
     canLoadMoreAfter: Flow<Boolean>,
     override val isDirect: StateFlow<Boolean>,
     isReadFlow: Flow<Boolean>,
-    val readBy: Flow<List<String>>,
+    private val readBy: Flow<List<String>>,
     _reactions: Flow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>>,
     shouldShowUnreadMarkerFlow: Flow<Boolean>,
     private val onMessageEdited: (EventId) -> Unit,
@@ -221,6 +223,9 @@ open class TimelineElementHolderViewModelImpl(
         combine(_editInProgress, _replyToInProgress) { editInProgress, replyToInProgress ->
             editInProgress || replyToInProgress
         }.stateIn(coroutineScope, WhileSubscribed(), false)
+
+    // since this is a rather expensive operation do not compute as a flow
+    override suspend fun isReadBy(): List<String> = readBy.first()
 
     override val timelineElementViewModel = combine(
         timelineEventFlow
@@ -307,7 +312,6 @@ open class TimelineElementHolderViewModelImpl(
         timelineEvent.eventId.hashCode() + (content?.hashCode() ?: 0)
 
     override val reactions = _reactions.stateIn(coroutineScope, WhileSubscribed(), emptyMap())
-    override val readers = readBy.stateIn(coroutineScope, WhileSubscribed(), emptyList())
 
     private suspend fun findPreviousVisibleTimelineEvent(timelineEvent: TimelineEvent): Flow<TimelineEvent?>? {
         val previousTimelineEventOrNull = matrixClient.room.getPreviousTimelineEvent(timelineEvent)
@@ -508,7 +512,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canGetInfo: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> = MutableStateFlow(emptyMap())
-    override val readers: StateFlow<List<String>> = MutableStateFlow(listOf("Bob", "Alice"))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun edit() {
     }
@@ -533,6 +536,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {
     }
+
+    override suspend fun isReadBy(): List<String> = listOf("Bob", "Alice")
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -557,7 +562,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canGetInfo: StateFlow<Boolean> = MutableStateFlow(true)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> = MutableStateFlow(emptyMap())
-    override val readers: StateFlow<List<String>> = MutableStateFlow(listOf("Bob", "Alice"))
+
     override fun edit() {
     }
 
@@ -581,6 +586,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
 
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {
     }
+
+    override suspend fun isReadBy(): List<String> = listOf("Bob", "Alice")
 
     init {
         val scope = CoroutineScope(Dispatchers.Default)
