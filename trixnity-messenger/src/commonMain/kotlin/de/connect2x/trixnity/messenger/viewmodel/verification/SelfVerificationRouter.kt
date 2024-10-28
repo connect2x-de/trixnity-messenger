@@ -96,9 +96,9 @@ class SelfVerificationRouter(
     val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
     /** @see startSelfVerificationsQueue() **/
-    fun showSelfVerification(userId: UserId) {
+    fun showSelfVerification(userId: UserId, isFromSetup: Boolean = false) {
         log.debug { "add account to self verification queue: $userId" }
-        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished }) {
+        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished && !isFromSetup}) {
             log.debug { "At least one account isn't bootstrapped, not showing self verification for $userId" }
         } else if (bootstrapStarted.value) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }

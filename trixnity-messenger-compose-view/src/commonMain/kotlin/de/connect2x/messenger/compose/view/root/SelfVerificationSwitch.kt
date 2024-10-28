@@ -6,6 +6,7 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import de.connect2x.messenger.compose.view.verification.CrossSigningBootstrapWizard
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModal
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModal
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizard
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 
@@ -13,7 +14,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRo
 fun SelfVerificationSwitch(mainViewModel: MainViewModel) {
     Children(stack = mainViewModel.selfVerificationStack) {
         when (val child = it.instance) {
-            is SelfVerificationRouter.Wrapper.View -> SelfVerificationModal(child.viewModel)
+            is SelfVerificationRouter.Wrapper.View -> SelfVerificationWizard(child.viewModel)
             is SelfVerificationRouter.Wrapper.RedoSelfVerification -> RedoSelfVerificationModal(child.viewModel)
             is SelfVerificationRouter.Wrapper.CrossSigningBootstrap -> CrossSigningBootstrapWizard(child.viewModel)
             is SelfVerificationRouter.Wrapper.None -> Box {}

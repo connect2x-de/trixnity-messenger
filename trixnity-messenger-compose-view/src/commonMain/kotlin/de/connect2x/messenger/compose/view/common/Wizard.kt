@@ -185,7 +185,7 @@ private fun WizardButtons(
     val additionalButton = wizardStep.additionalButton
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
         val buttonList = wizardStep.buttonOrder().toList().toMutableList()
-        if (previousStep == null) {
+        if (previousStep == null && wizardStep.backButton() !is WizardNavigationButton.Custom) {
             buttonList.remove(WizardButtons.BackButton)
         }
         if (additionalButton == null) {

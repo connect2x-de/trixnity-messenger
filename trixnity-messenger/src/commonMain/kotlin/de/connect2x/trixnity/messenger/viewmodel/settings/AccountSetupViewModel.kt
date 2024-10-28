@@ -27,10 +27,11 @@ interface AccountSetupViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
         onStartCrossSigningBootstrap: (userId: UserId) -> Unit,
-        onCloseCrossDeviceVerification: () -> Unit
+        onCloseCrossDeviceVerification: () -> Unit,
+        onStartVerification: (UserId, Boolean) -> Unit
     ): AccountSetupViewModel {
         return AccountSetupViewModelImpl(
-            viewModelContext, onWizardClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification
+            viewModelContext, onWizardClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification, onStartVerification
         )
     }
 
@@ -40,20 +41,21 @@ interface AccountSetupViewModelFactory {
 interface AccountSetupViewModel {
     fun closeAccountSetup()
     fun closeCrossDeviceVerification()
+    fun startVerification()
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
     val verificationViewModel: VerificationViewModel
     val selfVerificationViewModel: SelfVerificationViewModel
     val isVerified: StateFlow<Boolean?>
-
 }
 
 class AccountSetupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
     val onStartCrossSigningBootstrap: (UserId) -> Unit,
-    val onCloseCrossDeviceVerification: () -> Unit
+    val onCloseCrossDeviceVerification: () -> Unit,
+    val onStartVerification: (UserId, Boolean) -> Unit
 ) :
     ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
@@ -73,6 +75,10 @@ class AccountSetupViewModelImpl(
     override fun closeCrossDeviceVerification() {
         log.debug { "Close device Verification from AccountBootstrapping" }
         onCloseCrossDeviceVerification()
+    }
+
+    override fun startVerification() {
+        onStartVerification(userId, true)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

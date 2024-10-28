@@ -237,6 +237,8 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModa
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModalView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModalViewImpl
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -417,6 +419,7 @@ fun settingsViewModule() = module {
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
+    single<SelfVerificationWizardView> { SelfVerificationWizardViewImpl() }
 }
 
 fun verificationViewModule() = module {

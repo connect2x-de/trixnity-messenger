@@ -194,7 +194,8 @@ open class MainViewModelImpl(
         AccountSetupRouter(
             viewModelContext,
             onStartCrossSigningBootstrap = ::showCrossSigningBootstrap,
-            onCloseCrossDeviceVerification = verificationRouter::closeVerification
+            onCloseCrossDeviceVerification = verificationRouter::closeVerification,
+            onStartVerification = selfVerificationRouter::showSelfVerification
         )
 
     override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =

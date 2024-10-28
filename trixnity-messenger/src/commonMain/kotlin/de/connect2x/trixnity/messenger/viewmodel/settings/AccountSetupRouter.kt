@@ -24,7 +24,8 @@ private val log = KotlinLogging.logger { }
 class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
     private val onCloseCrossDeviceVerification : () -> Unit,
-    private val onStartCrossSigningBootstrap: (userId: UserId) -> Unit
+    private val onStartCrossSigningBootstrap: (userId: UserId) -> Unit,
+    private val onStartVerification: (UserId, Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
 
 
@@ -48,7 +49,7 @@ class AccountSetupRouter(
                 get<AccountSetupViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext, userId = config.userId
-                    ), ::onSetupClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification
+                    ), ::onSetupClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification, onStartVerification
                 )
             )
         }

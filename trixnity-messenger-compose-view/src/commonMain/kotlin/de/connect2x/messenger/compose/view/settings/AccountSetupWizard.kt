@@ -25,6 +25,7 @@ import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -215,150 +216,41 @@ private fun wizardStepVerification(
     step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
-    val verificationViewModel = viewModel.verificationViewModel
-    val selfVerificationViewModel = viewModel.selfVerificationViewModel
+
     val isVerified = viewModel.isVerified
-    val selectedMethod = mutableStateOf<SelfVerificationMethodsListEntries?>(null)
-    val selectedPassphrase = mutableStateOf<String>("")
-    val selectedRecoveryKey = mutableStateOf<String>("")
-    val checkedRecoveryResetWarning = mutableStateOf<Boolean>(false)
-    val startCrossDevice = mutableStateOf(false)
-    return WizardStep(id = step.stepId, title = { i18n.deviceVerification() }, content = {
-        Column {
+    return WizardStep(
+        id = step.stepId, title = { i18n.deviceVerification() },
+        content = {
+            Column {
+                val isVerified = isVerified.collectAsState().value
+                if (isVerified == false) {
+                    Text("Needs Verification REPLACE")
+                } else if (isVerified == true) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            modifier = Modifier.align(Alignment.CenterHorizontally).size(50.dp),
+                            contentDescription = i18n.commonSuccess(),
+                            tint = MaterialTheme.messengerColors.success
+                        )
+                        SmallSpacer()
+                        Text("${i18n.verificationSuccessThisDevice()} REPLACE")
+
+                    }
+                } else {
+                    LoadingSpinner(Modifier.align(Alignment.CenterHorizontally))
+                }
+            }
+        },
+        nextButton = {
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
-                val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-                val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
-                val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-                val showResetRecoveryKeyWarning =
-                    selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
-
-                when {
-                    showHelp -> ShowVerificationHelpContent()
-                    showPassphrase -> ShowPassphraseMethodContent(
-                        selfVerificationViewModel, selectedPassphrase
-                    )
-
-                    showKey -> ShowRecoveryKeyMethodContent(
-                        selfVerificationViewModel, selectedRecoveryKey
-                    )
-
-                    startCrossDevice.value -> {
-                        Box { DeviceVerificationStepSwitch(verificationViewModel, true) }
+                Custom {
+                    Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.startVerification() }) {
+                        Text("Start Verification REPLACE")
                     }
-
-                    showResetRecoveryKeyWarning -> {
-                        ShowResetRecoveryWarningContent(checkedRecoveryResetWarning)
-                    }
-
-                    else -> ShowSelfVerificationMethodsContent(
-                        selfVerificationViewModel,
-                        selectedMethod,
-                    )
                 }
-            } else if (isVerified == true) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        modifier = Modifier.align(Alignment.CenterHorizontally).size(50.dp),
-                        contentDescription = i18n.commonSuccess(),
-                        tint = MaterialTheme.messengerColors.success
-                    )
-                    SmallSpacer()
-                    Text(i18n.verificationSuccessThisDevice())
-
-                }
-            } else {
-                LoadingSpinner(Modifier.align(Alignment.CenterHorizontally))
-            }
-        }
-    }, nextButton = {
-        val isVerified = isVerified.collectAsState().value
-        val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-
-        if (isVerified == true || (!showHelp && selectedMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification)) {
-            if (startCrossDevice.value) {
-                viewModel.closeCrossDeviceVerification()
-            }
-            Standard()
-        } else {
-            Custom {
-                val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
-                val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-                val showResetRecoveryWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
-                val enableButton =
-                    !startCrossDevice.value
-                            && (showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
-                            || (showKey && selectedRecoveryKey.value.isNotBlank())
-                            || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
-                            || (showResetRecoveryWarning && checkedRecoveryResetWarning.value
-                            || selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod))
-                Button(modifier = Modifier.buttonPointerModifier(enableButton), enabled = enableButton, onClick = {
-                    when {
-                        showHelp -> {
-                            selfVerificationViewModel.waitForAvailableVerificationMethods()
-                        }
-
-                        showPassphrase -> {
-                            selfVerificationViewModel.verifyWithPassphrase(selectedPassphrase.value)
-                        }
-
-                        showKey -> {
-                            selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
-                        }
-
-                        showResetRecoveryWarning -> {
-                            if (checkedRecoveryResetWarning.value) {
-                                selfVerificationViewModel.resetRecovery()
-                            }
-                        }
-
-                        selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> {
-                            selfVerificationViewModel.resetRecoveryWarning()
-                        }
-
-                        selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod -> {
-                            val selectedVerificationMethod =
-                                (selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
-                            if (selectedVerificationMethod is SelfVerificationMethod.CrossSignedDeviceVerification) {
-                                startCrossDevice.value = true
-                            }
-                            selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
-                        }
-                    }
-                }) {
-                    Text(i18n.commonNext())
-                }
-            }
-        }
-    }, backButton = {
-        val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
-        val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-        val showResetRecoveryKeyWarning = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
-        val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-
-        if (showPassphrase || showKey || showResetRecoveryKeyWarning) {
-            Custom(button = {
-                OutlinedButton(onClick = {
-                    selfVerificationViewModel.backToChoose()
-                }) {
-                    Text(i18n.commonBack())
-                }
-            })
-        } else if (!showHelp) {
-            Custom(button = {
-                OutlinedButton(onClick = {
-                    selfVerificationViewModel.backToHelp()
-                }) {
-                    Text(i18n.commonBack())
-                }
-            })
-        } else {
-            if (startCrossDevice.value) {
-                startCrossDevice.value = false
-                viewModel.closeCrossDeviceVerification()
-            }
-            Standard()
-        }
-    })
+            } else Standard()
+        },
+    )
 }
