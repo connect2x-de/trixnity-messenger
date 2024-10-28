@@ -19,6 +19,7 @@ import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
@@ -293,6 +294,10 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         onOpenModal: OpenModalCallback,
     ): TimelineElementWithTimestampViewModel {
         val richRepliesComputations = viewModelContext.get<RichRepliesComputations>()
+
+        val unencryptedContent = event.content as? MessageEventContent
+        val unencryptedRelatesTo = unencryptedContent?.relatesTo
+
         return when (content) {
             is TextBased.Notice -> {
                 log.trace { "Create notice message view model: ${event.id}" }
@@ -303,7 +308,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
+                        unencryptedRelatesTo ?: content.relatesTo,
                         selectedRoomId
                     ),
                     message = content.bodyWithoutFallback,
@@ -331,7 +336,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
+                        unencryptedRelatesTo ?: content.relatesTo,
                         selectedRoomId
                     ),
                     message = content.bodyWithoutFallback,
@@ -360,7 +365,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
+                        unencryptedRelatesTo ?: content.relatesTo,
                         selectedRoomId
                     ),
                     message = content.bodyWithoutFallback,
@@ -502,7 +507,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
+                        unencryptedRelatesTo ?: content.relatesTo,
                         selectedRoomId
                     ),
                     message = content.bodyWithoutFallback,

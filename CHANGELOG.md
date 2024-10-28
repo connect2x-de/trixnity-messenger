@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Editing a reply now keeps it as reply
+
 ### Security
 
 ## 2.3.0
