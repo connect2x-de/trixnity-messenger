@@ -1,46 +1,29 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
-import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.*
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationStepSwitch
-import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries
-import de.connect2x.messenger.compose.view.verification.ShowPassphraseMethodContent
-import de.connect2x.messenger.compose.view.verification.ShowRecoveryKeyMethodContent
-import de.connect2x.messenger.compose.view.verification.ShowResetRecoveryWarningContent
-import de.connect2x.messenger.compose.view.verification.ShowSelfVerificationMethodsContent
-import de.connect2x.messenger.compose.view.verification.ShowVerificationHelpContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 
 open class AccountSetupWizardStep(val stepId: String) {
@@ -133,14 +116,16 @@ private fun wizardStepExplanation(
     i18n: I18nView
 ): WizardStep {
 
-    return WizardStep(id = step.stepId,
+    return WizardStep(
+        id = step.stepId,
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
         content = { Text(i18n.accountSetupWizardExplanationMessage()) },
         additionalButton = {
             Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountSetup() }) {
                 Text(i18n.commonSkip())
             }
-        })
+        },
+    )
 }
 
 private fun wizardStepNotification(
@@ -216,41 +201,42 @@ private fun wizardStepVerification(
     step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
-
     val isVerified = viewModel.isVerified
     return WizardStep(
-        id = step.stepId, title = { i18n.deviceVerification() },
+        id = step.stepId,
+        title = { i18n.deviceVerification() },
         content = {
-            Column {
-                val isVerified = isVerified.collectAsState().value
-                if (isVerified == false) {
-                    Text("Needs Verification REPLACE")
-                } else if (isVerified == true) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            modifier = Modifier.align(Alignment.CenterHorizontally).size(50.dp),
-                            contentDescription = i18n.commonSuccess(),
-                            tint = MaterialTheme.messengerColors.success
-                        )
-                        SmallSpacer()
-                        Text("${i18n.verificationSuccessThisDevice()} REPLACE")
-
-                    }
-                } else {
-                    LoadingSpinner(Modifier.align(Alignment.CenterHorizontally))
+            val isVerified = isVerified.collectAsState().value
+            if (isVerified == false) {
+                Column {
+                    Text(i18n.redoSelfVerificationWarning1())
+                    Text(i18n.redoSelfVerificationWarning2())
+                    Text(i18n.redoSelfVerificationWarning3())
+                }
+            } else if (isVerified == true) {
+                Column {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        modifier = Modifier.size(50.dp).align(Alignment.CenterHorizontally),
+                        contentDescription = i18n.commonSuccess()
+                    )
+                    Text(i18n.verificationSuccessThisDevice())
                 }
             }
         },
         nextButton = {
+            Standard()
+        },
+        additionalButton = {
             val isVerified = isVerified.collectAsState().value
             if (isVerified == false) {
-                Custom {
-                    Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.startVerification() }) {
-                        Text("Start Verification REPLACE")
-                    }
+                Button(onClick = { viewModel.startVerification() }) {
+                    Text(i18n.redoSelfVerificationRedo())
                 }
-            } else Standard()
+            } else null
         },
+        onStepEnter = {
+            viewModel.startVerification()
+        }
     )
 }

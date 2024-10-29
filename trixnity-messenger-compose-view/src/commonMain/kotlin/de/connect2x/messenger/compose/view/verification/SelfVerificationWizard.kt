@@ -20,23 +20,24 @@ import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
 interface SelfVerificationWizardView {
     @Composable
-    fun create(selfVerificationViewModel: SelfVerificationViewModel)
+    fun create(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean)
 }
 
 @Composable
-fun SelfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
-    DI.get<SelfVerificationWizardView>().create(selfVerificationViewModel)
+fun SelfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean = true) {
+    DI.get<SelfVerificationWizardView>().create(selfVerificationViewModel, showHelpScreen)
 }
 
 class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
     @Composable
-    override fun create(selfVerificationViewModel: SelfVerificationViewModel) {
-        selfVerificationWizard(selfVerificationViewModel)
+    override fun create(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean) {
+        selfVerificationWizard(selfVerificationViewModel, showHelpScreen)
     }
 
     @Composable
     private fun selfVerificationWizard(
         selfVerificationViewModel: SelfVerificationViewModel,
+        showHelpScreen: Boolean
     ) {
         val i18n = DI.get<I18nView>()
         val selfVerificationViewModel = selfVerificationViewModel
@@ -55,7 +56,11 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
 
                     when {
-                        showHelp -> ShowVerificationHelpContent()
+                        showHelp -> {
+                            if (!showHelpScreen) selfVerificationViewModel.waitForAvailableVerificationMethods()
+                            ShowVerificationHelpContent()
+                        }
+
                         showPassphrase -> ShowPassphraseMethodContent(
                             selfVerificationViewModel, selectedPassphrase
                         )
@@ -63,10 +68,6 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         showKey -> ShowRecoveryKeyMethodContent(
                             selfVerificationViewModel, selectedRecoveryKey
                         )
-
-                        /* startCrossDevice.value -> {
-                             Box { DeviceVerificationStepSwitch(verificationViewModel, true) }
-                         }*/
 
                         showResetRecoveryKeyWarning -> {
                             ShowResetRecoveryWarningContent(checkedRecoveryResetWarning)
@@ -159,7 +160,8 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                 } else if (!showHelp) {
                     Custom(button = {
                         OutlinedButton(onClick = {
-                            selfVerificationViewModel.backToHelp()
+                            if (showHelpScreen) selfVerificationViewModel.backToHelp()
+                            else selfVerificationViewModel.close()
                         }) {
                             Text(i18n.commonBack())
                         }

@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import de.connect2x.messenger.compose.view.verification.CrossSigningBootstrapWizard
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModal
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModal
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizard
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
