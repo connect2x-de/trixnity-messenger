@@ -89,6 +89,7 @@ class MatrixClientsImpl(
                     matrixClientLoginStates.forEach { (userId, loginState) ->
                         when (loginState) {
                             MatrixClient.LoginState.LOGGED_OUT_SOFT, // TODO soft logout
+                            MatrixClient.LoginState.LOCKED, // TODO locked
                             MatrixClient.LoginState.LOGGED_OUT -> {
                                 remove(userId)
                                     .onFailure {
