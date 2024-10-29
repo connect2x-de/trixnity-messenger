@@ -20,9 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Wrong indexedDb database name
-
 ### Security
+
+## 2.3.1
+
+### Changed
+
+- Upgrade Trixnity
+
+### Fixed
+
+- Wrong indexedDb database name
 
 ## 2.3.0
 
