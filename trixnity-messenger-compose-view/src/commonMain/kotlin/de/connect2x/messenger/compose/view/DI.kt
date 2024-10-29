@@ -233,6 +233,8 @@ import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalView
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalViewImpl
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalView
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModalView
@@ -420,6 +422,7 @@ fun settingsViewModule() = module {
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
     single<SelfVerificationWizardView> { SelfVerificationWizardViewImpl() }
+    single<DeviceVerificationWizardView> { DeviceVerificationWizardViewImpl() }
 }
 
 fun verificationViewModule() = module {
