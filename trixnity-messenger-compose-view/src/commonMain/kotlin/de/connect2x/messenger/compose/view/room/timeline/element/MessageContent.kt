@@ -212,7 +212,7 @@ private fun MessageTextContent(
             if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
 
-        if (richTextState.toText().isNotBlank()) {
+        if (richTextState.toHtml().isNotBlank()) {
             if (mentions.any { it.second != null }) {
                 val baseUriHandler = LocalUriHandler.current
                 val uriHandler by remember {
