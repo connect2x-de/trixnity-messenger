@@ -21,7 +21,7 @@ data class MatrixMessengerConfiguration(
 
     var encryptLocalData: Boolean = true,
 
-    override var urlProtocol: String = "trixnity",
+    override var urlProtocol: String = appId,
     override var urlHost: String = "localhost",
     var ssoRedirectPath: String = "sso",
 
