@@ -113,6 +113,7 @@ kotlin {
             dependencies {
                 implementation(libs.androidx.activity)
                 implementation(libs.androidx.security.crypto)
+                implementation(libs.androidx.browser)
             }
         }
         nativeMain {

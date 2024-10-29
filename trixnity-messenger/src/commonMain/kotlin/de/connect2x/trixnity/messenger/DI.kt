@@ -158,6 +158,7 @@ import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
 fun interface HttpUserAgent {
@@ -257,6 +258,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformNotificationSettingsSingleAccountViewModelFactoryModule(),
 
     // platform-specific implementations
+    platformModule(),
     platformPathsModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
@@ -402,3 +404,5 @@ private fun verificationViewModels() = module {
     single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
+
+expect fun platformModule(): Module

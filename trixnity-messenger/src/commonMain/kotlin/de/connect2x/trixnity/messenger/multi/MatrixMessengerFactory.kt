@@ -13,7 +13,7 @@ fun interface MatrixMessengerFactory {
 fun matrixMessengerFactoryModule(): Module = module {
     single<MatrixMessengerFactory> {
         val configuration = get<MatrixMultiMessengerConfiguration>().messengerWithBase
-        val copyMultiMessengerSingletons = get<CopyMultiMessengerSingletons>()
+        val copyMultiMessengerSingletons = getAll<CopyMultiMessengerSingletons>()
         val rootPath = get<RootPath>().path
         MatrixMessengerFactory { profileId ->
             MatrixMessengerImpl {
@@ -22,7 +22,7 @@ fun matrixMessengerFactoryModule(): Module = module {
                     single<RootPath> {
                         RootPath(rootPath.resolve(profileId))
                     }
-                    copyMultiMessengerSingletons.copy(from = this@single, to = this)
+                    copyMultiMessengerSingletons.forEach { it.copy(from = this@single, to = this) }
                 }
             }
         }

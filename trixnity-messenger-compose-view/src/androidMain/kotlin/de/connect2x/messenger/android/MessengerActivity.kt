@@ -47,6 +47,7 @@ import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
+import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -73,7 +74,7 @@ class MessengerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMessengerServiceConnection.bind(applicationContext)
@@ -84,6 +85,7 @@ class MessengerActivity : AppCompatActivity() {
 
         scope.launch {
             val matrixMultiMessenger = matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first()
+            matrixMultiMessenger.defaultActivityGetter { this@MessengerActivity }
             launch {
                 matrixMultiMessenger.activeMatrixMessenger.filterNotNull().collectLatest { matrixMessenger ->
                     matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
