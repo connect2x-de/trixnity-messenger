@@ -366,6 +366,22 @@ class TimelineViewModelImpl(
         )
     }
 
+    private val showDateAboveFlow: Flow<Boolean> =
+        timelineEvents.flatMapLatest { it.lastOrNull() ?: flowOf(null) }
+            .distinctUntilChanged()
+            .map { lastTimelineEvent ->
+                val lastDate =
+                    lastTimelineEvent?.event?.originTimestamp?.let { millis ->
+                        Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
+                    }
+                val today = clock.now().toLocalDateTime(timeZone)
+                val lastMessageFromAtLeastYesterday =
+                    lastDate != null && lastDate.isDifferentDay(today)
+                lastDate == null || lastMessageFromAtLeastYesterday
+            }.distinctUntilChanged()
+
+    private val lastTimelineEventFromUs = timelineEvents.map { it.lastOrNull()?.first()?.sender == matrixClient.userId }
+
     init {
         coroutineScope.launch {
             matrixClient.user.getReceiptsById(selectedRoomId, matrixClient.userId)
@@ -633,22 +649,6 @@ class TimelineViewModelImpl(
             viewModel
         )
     }
-
-    private val showDateAboveFlow: Flow<Boolean> =
-            timelineEvents.flatMapLatest { it.lastOrNull() ?: flowOf(null) }
-                .distinctUntilChanged()
-                .map { lastTimelineEvent ->
-                    val lastDate =
-                        lastTimelineEvent?.event?.originTimestamp?.let { millis ->
-                            Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
-                        }
-                    val today = clock.now().toLocalDateTime(timeZone)
-                    val lastMessageFromAtLeastYesterday =
-                        lastDate != null && lastDate.isDifferentDay(today)
-                    lastDate == null || lastMessageFromAtLeastYesterday
-                }.distinctUntilChanged()
-
-    private val lastTimelineEventFromUs = timelineEvents.map { it.lastOrNull()?.first()?.sender == matrixClient.userId }
 
     private suspend fun computeShowChatBubbleEdgeFlow(transactionId: String): Flow<Boolean> {
         val firstOutboxEvent = matrixClient.room.getOutbox(roomId = selectedRoomId).mapNotNull {
