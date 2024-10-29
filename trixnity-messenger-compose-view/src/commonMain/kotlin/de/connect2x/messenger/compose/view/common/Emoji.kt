@@ -163,4 +163,6 @@ private val emojis = listOf(
     "\ud83d\ude40", // Weary Cat Face
     "\ud83d\ude3f", // Crying Cat Face
     "\ud83d\ude3e", // Pouting Cat Face
+    "\ud83d\ude80", // Rocket
+    "\ud83d\udd25", // Fire
 )

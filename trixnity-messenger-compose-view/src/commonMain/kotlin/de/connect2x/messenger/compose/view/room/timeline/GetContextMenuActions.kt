@@ -81,6 +81,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
             val canRetrySendFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canAbortSendFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canBeReportedFlow: StateFlow<Boolean> = MutableStateFlow(false),
+            val canBeReactedToFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canGetInfoFlow: StateFlow<Boolean> = MutableStateFlow(false),
         )
 
@@ -91,6 +92,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                     canBeRedactedFlow = canBeRedacted,
                     canBeRepliedToFlow = canBeRepliedTo,
                     canBeReportedFlow = canBeReported,
+                    canBeReactedToFlow = canBeReactedTo,
                     canGetInfoFlow = canGetInfo,
                 )
 
@@ -111,6 +113,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
         val canBeReportedTo = timelineElementHolderViewModel.canBeReportedFlow.collectAsState()
         val canRetrySend = timelineElementHolderViewModel.canRetrySendFlow.collectAsState()
         val canAbortSend = timelineElementHolderViewModel.canAbortSendFlow.collectAsState()
+        val canBeReactedTo = timelineElementHolderViewModel.canBeReactedToFlow.collectAsState()
         val canGetInfo = timelineElementHolderViewModel.canGetInfoFlow.collectAsState()
         val canDebug = IsDebug.current
 
@@ -140,24 +143,24 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                                     action = baseTimelineElementHolderViewModel::redact
                                 )
                             )
-                            if (canBeRepliedTo.value) {
-                                add(
-                                    BaseTimelineElementHolderContextMenuAction(
-                                        type = REPLY,
-                                        label = i18n.replyMessage(),
-                                        action = baseTimelineElementHolderViewModel::replyTo
-                                    )
+                            if (canBeRepliedTo.value) add(
+                                BaseTimelineElementHolderContextMenuAction(
+                                    type = REPLY,
+                                    label = i18n.replyMessage(),
+                                    action = baseTimelineElementHolderViewModel::replyTo
                                 )
-                                add(
-                                    BaseTimelineElementHolderContextMenuAction(
-                                        type = REACT,
-                                        label = i18n.reactMessage(),
-                                        action = {
-                                            baseTimelineElementHolderViewModel.reactionsOpen.value = true
-                                        }
-                                    )
+                            )
+
+                            if (canBeReactedTo.value) add(
+                                BaseTimelineElementHolderContextMenuAction(
+                                    type = REACT,
+                                    label = i18n.reactMessage(),
+                                    action = {
+                                        baseTimelineElementHolderViewModel.reactionsOpen.value = true
+                                    }
                                 )
-                            }
+                            )
+
                             if (canGetInfo.value) {
                                 add(
                                     BaseTimelineElementHolderContextMenuAction(
