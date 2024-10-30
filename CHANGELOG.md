@@ -30,15 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change keychain handling to include an appId
 - Show Read-by information in context menu
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Editing a reply now keeps it as reply
-
-### Security
 
 ## 2.3.2
 
