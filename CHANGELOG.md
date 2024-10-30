@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce appId in configurations
+
 ### Changed
 
+- Change keychain handling to include an appId
 - Upgrade Trixnity
 - Show Read-by information in context menu
 

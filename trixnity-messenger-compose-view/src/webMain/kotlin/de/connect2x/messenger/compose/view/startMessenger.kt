@@ -23,11 +23,9 @@ private val log = KotlinLogging.logger {}
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class)
 suspend fun startMessenger(
-    appName: String,
-    version: String,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
-    log.info { "Starting $appName client (version=${version})" }
+    log.info { "Starting client" }
     logLevel = Level.DEBUG
     val windowIsFocused = MutableStateFlow(false)
     window.onfocus = {

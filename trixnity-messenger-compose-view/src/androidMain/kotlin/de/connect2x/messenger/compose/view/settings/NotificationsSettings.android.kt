@@ -20,7 +20,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
 import net.folivo.trixnity.core.model.UserId
 
-private fun pushChannelId(userId: UserId, config: MatrixMessengerConfiguration) = "${config.packageName}.push.${
+private fun pushChannelId(userId: UserId, config: MatrixMessengerConfiguration) = "${config.appId}.push.${
     userId.full.replace("[@.]".toRegex(), "_")
 }"
 
