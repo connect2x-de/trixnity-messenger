@@ -9,12 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+# 2.3.3
+
+### Added
+
 - Introduce appId in configurations
 
 ### Changed
 
 - Change keychain handling to include an appId
-- Upgrade Trixnity
 - Show Read-by information in context menu
 
 ### Deprecated
@@ -24,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Editing a reply now keeps it as reply
-- Wrong indexedDb database name
 
 ### Security
 
