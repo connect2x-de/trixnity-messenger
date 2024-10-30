@@ -126,6 +126,9 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val reactionsOpen: MutableStateFlow<Boolean>
     val canBeReactedTo: StateFlow<Boolean>
 
+    val infoOpen: MutableStateFlow<Boolean>
+    val canGetInfo: StateFlow<Boolean>
+
     val isReplaced: StateFlow<Boolean>
     val canBeEdited: StateFlow<Boolean>
     val canBeRedacted: StateFlow<Boolean>
@@ -145,7 +148,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun removeReaction(reaction: ReactionEvent)
 
     /** returns no Flow! -> for current value, recompute every time needed (Flow computation would be expensive) */
-    suspend fun isReadBy(): String
+    suspend fun isReadBy(): List<String>
 
     data class ReactionEvent(
         val eventId: EventId,
@@ -216,6 +219,14 @@ open class TimelineElementHolderViewModelImpl(
             .map { it?.membership == Membership.JOIN }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
+    override val infoOpen = MutableStateFlow(false)
+    override val canGetInfo: StateFlow<Boolean> = timelineEventFlow
+        .filterNotNull()
+        .map {
+            it.event.sender == matrixClient.userId
+        }
+        .stateIn(coroutineScope, WhileSubscribed(), false)
+
     private val _replyToInProgress = MutableStateFlow(false)
 
     private val subViewModelCache = MutableStateFlow<Pair<Int, Flow<BaseTimelineElementViewModel>>?>(null)
@@ -226,12 +237,7 @@ open class TimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     // since this is a rather expensive operation do not compute as a flow
-    override suspend fun isReadBy(): String {
-        val read = readBy.map { it.joinToString(limit = 10) }.first()
-        return if (read.isNotBlank()) {
-            i18n.timelineElementReadBy(read)
-        } else ""
-    }
+    override suspend fun isReadBy(): List<String> = readBy.first()
 
     override val timelineElementViewModel = combine(
         timelineEventFlow
@@ -515,6 +521,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeReactedTo: StateFlow<Boolean> = MutableStateFlow(false)
+    override val infoOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val canGetInfo: StateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -549,7 +557,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {
     }
 
-    override suspend fun isReadBy(): String = "Bob, Alice"
+    override suspend fun isReadBy(): List<String> = listOf("Bob", "Alice")
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -564,6 +572,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeReactedTo: StateFlow<Boolean> = MutableStateFlow(false)
+    override val infoOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val canGetInfo: StateFlow<Boolean> = MutableStateFlow(true)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -599,7 +609,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {
     }
 
-    override suspend fun isReadBy(): String = "Bob, Alice"
+    override suspend fun isReadBy(): List<String> = listOf("Bob", "Alice")
 
     init {
         val scope = CoroutineScope(Dispatchers.Default)

@@ -55,15 +55,11 @@ class ReadMarkerViewImpl : ReadMarkerView {
                 else Modifier
             ) {
                 if (isRead.value) {
-                    Tooltip(tooltip = {
-                        TooltipText { timelineElementHolderViewModel.isReadBy() }
-                    }) {
-                        Icon(
-                            Icons.Default.Check,
-                            i18n.messageBubbleRead(),
-                            Modifier.fillMaxSize(),
-                        )
-                    }
+                    Icon(
+                        Icons.Default.Check,
+                        i18n.messageBubbleRead(),
+                        Modifier.fillMaxSize(),
+                    )
                 }
             }
         }

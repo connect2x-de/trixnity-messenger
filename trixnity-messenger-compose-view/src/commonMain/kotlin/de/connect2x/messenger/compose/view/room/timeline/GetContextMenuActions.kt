@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHold
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPLY
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPORT
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.RETRY_SEND
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.INFO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileBasedMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -36,6 +37,7 @@ enum class BaseTimelineElementHolderContextMenuActionType {
     RETRY_SEND,
     ABORT_SEND,
     DEBUG,
+    INFO,
 }
 
 class BaseTimelineElementHolderContextMenuAction(
@@ -80,6 +82,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
             val canAbortSendFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canBeReportedFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canBeReactedToFlow: StateFlow<Boolean> = MutableStateFlow(false),
+            val canGetInfoFlow: StateFlow<Boolean> = MutableStateFlow(false),
         )
 
         val timelineElementHolderViewModel = remember(this) {
@@ -89,7 +92,8 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                     canBeRedactedFlow = canBeRedacted,
                     canBeRepliedToFlow = canBeRepliedTo,
                     canBeReportedFlow = canBeReported,
-                    canBeReactedToFlow = canBeReactedTo
+                    canBeReactedToFlow = canBeReactedTo,
+                    canGetInfoFlow = canGetInfo,
                 )
 
                 is OutboxElementHolderViewModel -> CanFlows(
@@ -110,6 +114,7 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
         val canRetrySend = timelineElementHolderViewModel.canRetrySendFlow.collectAsState()
         val canAbortSend = timelineElementHolderViewModel.canAbortSendFlow.collectAsState()
         val canBeReactedTo = timelineElementHolderViewModel.canBeReactedToFlow.collectAsState()
+        val canGetInfo = timelineElementHolderViewModel.canGetInfoFlow.collectAsState()
         val canDebug = IsDebug.current
 
         return remember(this) {
@@ -155,6 +160,18 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                                     }
                                 )
                             )
+
+                            if (canGetInfo.value) {
+                                add(
+                                    BaseTimelineElementHolderContextMenuAction(
+                                        type = INFO,
+                                        label = i18n.infoMessage(),
+                                        action = {
+                                            baseTimelineElementHolderViewModel.infoOpen.value = true
+                                        },
+                                    )
+                                )
+                            }
 
                             if (canBeReportedTo.value) add(
                                 BaseTimelineElementHolderContextMenuAction(
