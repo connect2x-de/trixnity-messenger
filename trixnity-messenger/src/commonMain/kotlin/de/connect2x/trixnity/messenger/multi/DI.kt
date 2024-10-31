@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
-import de.connect2x.trixnity.messenger.util.platformMinimiseAppModule
+import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
@@ -19,7 +19,7 @@ fun createDefaultTrixnityMultiMessengerModules() = listOf(
     matrixMessengerFactoryModule(),
     platformUrlHandlerModule(),
     platformCloseAppModule(),
-    platformMinimiseAppModule(),
+    platformMinimizeAppModule(),
     platformSendLogToDevsModule(),
     platformDeleteProfileDataModule()
 )

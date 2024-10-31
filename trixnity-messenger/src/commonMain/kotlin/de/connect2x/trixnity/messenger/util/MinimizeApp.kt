@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.util
 
 import org.koin.core.module.Module
 
-fun interface MinimiseApp {
+fun interface MinimizeApp {
     operator fun invoke()
 }
 
-expect fun platformMinimiseAppModule(): Module
+expect fun platformMinimizeAppModule(): Module
