@@ -6,9 +6,9 @@ import org.koin.dsl.module
 
 actual fun platformMinimiseAppModule(): Module = module {
     single<MinimiseApp> {
-        val context = get<Context>()
+        val activityGetter = get<ActivityGetter>()
         MinimiseApp {
-            context.findActivity()?.moveTaskToBack(true)
+            activityGetter()?.moveTaskToBack(true)
         }
     }
 }
