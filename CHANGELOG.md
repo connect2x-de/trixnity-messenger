@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replace MacOS Keychain handling with new API (a deprecated API was used before).
+
 ### Deprecated
 
 ### Removed
