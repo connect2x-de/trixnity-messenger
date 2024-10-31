@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -56,12 +57,23 @@ class ReadMarkerViewImpl : ReadMarkerView {
             ) {
                 if (isRead.value) {
                     Icon(
-                        Icons.Default.Check,
+                        Icons.Default.RemoveRedEye,
                         i18n.messageBubbleRead(),
                         Modifier.fillMaxSize(),
                     )
+
+                } else {
+                    Tooltip(tooltip = {
+                        TooltipText { i18n.commonSent() }
+                    }) {
+                        Icon(
+                            Icons.Default.Check,
+                            i18n.messageBubbleRead(),
+                            Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
-        }
+        } else Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp))
     }
 }

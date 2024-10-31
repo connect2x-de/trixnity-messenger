@@ -294,6 +294,11 @@ abstract class I18nView(
         DE - "einklappen"
     }
 
+    fun commonSent() = translate {
+        EN - "sent"
+        DE - "gesendet"
+    }
+
     fun newMessage() = translate {
         EN - "new message"
         DE - "neue Nachricht"

@@ -35,7 +35,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,6 +101,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBase
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 
 private val log = KotlinLogging.logger {}
@@ -205,14 +210,18 @@ private fun MessageTextContent(
         val text = formatMessage(message, mentions, textBasedViewModel)
 
         val richTextState = rememberRichTextState()
+        val isRendered = remember { mutableStateOf(false) }
         LaunchedEffect(text) {
+            isRendered.value = false
+            println(text)
             richTextState.setHtml(text)
+            isRendered.value = true
         }
         richTextState.config.linkColor =
             if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
 
-        if (richTextState.toText().isNotBlank()) {
+        if (richTextState.toText().isNotBlank() && isRendered.value) {
             if (mentions.any { it.second != null }) {
                 val baseUriHandler = LocalUriHandler.current
                 val uriHandler by remember {
