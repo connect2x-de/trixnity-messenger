@@ -585,8 +585,8 @@ abstract class I18nView(
     }
 
     fun addMatrixClientAnotherMatrixClient() = translate {
-        EN - "Creation of another Matrix account"
-        DE - "Einrichtung eines weiteren Matrix Kontos"
+        EN - "Adding another Matrix account"
+        DE - "Hinzufügen eines weiteren Matrix Kontos"
     }
 
     fun addMatrixClientServerMatrix() = translate {
@@ -2071,7 +2071,7 @@ abstract class I18nView(
 
     fun reportMessage() = translate {
         EN - "Report"
-        DE - "Bericht"
+        DE - "Melden"
     }
 
     fun reportMessageHeader() = translate {
