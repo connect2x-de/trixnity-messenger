@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed misleading i18n content
--
+- Fixed double padding in wizard
 
 ### Security
 
