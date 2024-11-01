@@ -34,10 +34,8 @@ class MessengerClientTest {
                     nonActiveMessenger = { existingProfiles ->
                         val showProfileCreation = remember { mutableStateOf(false) }
                         CompositionLocalProvider(
-                            ImeVisible provides false,
                             Platform provides platformType(),
                             IsFocused provides true,
-                            LocalWindowScope provides null,
                             IsDebug provides false,
                             DI provides matrixMultiMessenger.di,
                             ShowProfileCreation provides showProfileCreation,
@@ -49,10 +47,8 @@ class MessengerClientTest {
                     },
                     activeMessenger = { matrixMessenger, rootViewModel ->
                         CompositionLocalProvider(
-                            ImeVisible provides false,
                             Platform provides platformType(),
                             IsFocused provides false,
-                            LocalWindowScope provides null,
                             IsDebug provides false,
                             DI provides matrixMessenger.di,
                         ) {
