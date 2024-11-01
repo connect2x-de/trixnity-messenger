@@ -68,8 +68,7 @@ fun Wizard(wizardSteps: List<WizardStep>) {
         ) {
             BoxWithConstraints(
                 Modifier
-                    .fillMaxSize()
-                    .padding(MaterialTheme.messengerDpConstants.large),
+                    .fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 // this is necessary to have a scroll position saved on every step, but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)

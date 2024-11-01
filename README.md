@@ -18,7 +18,8 @@ contact us at [contact@connect2x.de](mailto:contact@connect2x.de).
 
 ## UI
 
-If you are just interested in the UI and white labelling it, have a look at this [Readme](trixnity-messenger-compose-view/README.md).
+If you are just interested in the UI and white labelling it, have a look at
+this [Readme](trixnity-messenger-compose-view/README.md).
 
 ## MVVM
 
@@ -265,6 +266,14 @@ To support URL handling, you need to get `UrlHandler` from the DI:
 ```kotlin
 val urlHandler = matrixMessenger.defaultUrlHandler // helper extension
 // call functions on urlHandler depending on the platform (only on Android, iOS, JVM)
+```
+
+On Android you need to call the following in your Activity to put the Activity into your DI:
+
+```kotlin
+matrixMultiMessenger.defaultActivityGetter { this@Activity }
+// OR
+matrixMessenger.defaultActivityGetter { this@Activity }
 ```
 
 ## Export room

@@ -8,7 +8,8 @@ androidMinimalSDK = "28"
 androidTargetSDK = "35"
 messenger = "1.0.0"
 messengerVersionCode = "1"
-appName = "Messenger"
+appName = "Trixnity Messenger"
+appId = "de.connect2x.messenger"
 
 trixnity = "4.9.1" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
@@ -44,6 +45,7 @@ androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-a
 
 # ui
 composeMultiplatform = "1.7.0" # https://github.com/JetBrains/compose-multiplatform/releases
+androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
 richeditor = "1.0.0-rc07" # https://github.com/MohamedRejeb/Compose-Rich-Editor
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
@@ -115,6 +117,7 @@ compose-richeditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose"
 mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "cmpFilePicker" }
 qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrCodeKotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
 gms-google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }

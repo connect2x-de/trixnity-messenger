@@ -1,8 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -11,13 +10,13 @@ private val log = KotlinLogging.logger { }
 
 actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
-        val context = get<Context>()
-        UriCaller { uri, external ->
+        val activityGetter = get<ActivityGetter>()
+        UriCaller { uri, _ ->
             log.info { "call uri: $uri" }
-            if (!external) log.debug { "does not support internal uri calling yet" }
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
-                setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
+            val customTabsIntent = CustomTabsIntent.Builder().apply {
+                setShowTitle(true)
+            }.build()
+            activityGetter()?.let { customTabsIntent.launchUrl(it, Uri.parse(uri)) }
         }
     }
 }
