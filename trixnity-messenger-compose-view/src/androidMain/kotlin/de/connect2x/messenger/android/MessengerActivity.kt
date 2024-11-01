@@ -11,10 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -24,17 +21,14 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arkivanov.decompose.defaultComponentContext
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
-import de.connect2x.messenger.compose.view.LocalWindowScope
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.R
@@ -70,7 +64,6 @@ class MessengerActivity : AppCompatActivity() {
         log.error(exception) { "Exception in MessengerActivity coroutine" }
     })
 
-    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -117,8 +110,6 @@ class MessengerActivity : AppCompatActivity() {
             }
             withContext(Dispatchers.Main) {
                 setContent {
-                    // decorFitsSystemWindows == true seems to speed up the animation of the IME
-                    WindowCompat.setDecorFitsSystemWindows(window, true)
                     WithProfileSelection(
                         matrixMultiMessenger = matrixMultiMessenger,
                         componentContext = defaultComponentContext(),
@@ -134,10 +125,8 @@ class MessengerActivity : AppCompatActivity() {
                                         androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                                     val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                                     CompositionLocalProvider(
-                                        ImeVisible provides WindowInsets.isImeVisible,
                                         Platform provides PlatformType.ANDROID,
                                         IsFocused provides isFocused,
-                                        LocalWindowScope provides null,
                                         IsDebug provides false,
                                         DI provides matrixMessenger.di,
                                     ) {
@@ -153,17 +142,23 @@ class MessengerActivity : AppCompatActivity() {
                         val lifeCycleState =
                             androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
-                        CompositionLocalProvider(
-                            ImeVisible provides WindowInsets.isImeVisible,
-                            Platform provides PlatformType.ANDROID,
-                            IsFocused provides isFocused,
-                            LocalWindowScope provides null,
-                            IsDebug provides false,
-                            DI provides matrixMultiMessenger.di,
-                            ShowProfileCreation provides showProfileCreation,
-                        ) {
-                            MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles)
+                        Surface {
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .safeDrawingPadding()
+                            ) {
+                                CompositionLocalProvider(
+                                    Platform provides PlatformType.ANDROID,
+                                    IsFocused provides isFocused,
+                                    IsDebug provides false,
+                                    DI provides matrixMultiMessenger.di,
+                                    ShowProfileCreation provides showProfileCreation,
+                                ) {
+                                    MessengerTheme {
+                                        Profiles(matrixMultiMessenger, existingProfiles)
+                                    }
+                                }
                             }
                         }
                     }

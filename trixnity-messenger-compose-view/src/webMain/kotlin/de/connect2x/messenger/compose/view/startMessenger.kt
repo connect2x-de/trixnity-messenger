@@ -49,10 +49,8 @@ suspend fun startMessenger(
             onWasmReady {
                 CanvasBasedWindow(config.appName) {
                     CompositionLocalProvider(
-                        ImeVisible provides false,
                         Platform provides PlatformType.WEB,
                         IsFocused provides windowIsFocused.collectAsState(false).value,
-//                LocalWindowScope provides this@Window, // FIXME
                         IsDebug provides false, // FIXME
                         DI provides matrixMessenger.di,
                     ) {

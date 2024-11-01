@@ -25,10 +25,8 @@ import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
-import de.connect2x.messenger.compose.view.LocalWindowScope
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.profiles.Profiles
@@ -130,10 +128,8 @@ fun CoroutineScope.messengerApp(
                     }
 
                     CompositionLocalProvider(
-                        ImeVisible provides false,
                         Platform provides PlatformType.DESKTOP,
                         IsFocused provides windowIsFocused,
-                        LocalWindowScope provides this@Window,
                         IsDebug provides isDebug,
                         DI provides matrixMessenger.di,
                     ) {
@@ -150,10 +146,8 @@ fun CoroutineScope.messengerApp(
                 nonActiveMessenger = { existingProfiles ->
                     val showProfileCreation = remember { mutableStateOf(false) }
                     CompositionLocalProvider(
-                        ImeVisible provides false,
                         Platform provides PlatformType.DESKTOP,
                         IsFocused provides windowIsFocused,
-                        LocalWindowScope provides this@Window,
                         IsDebug provides isDebug,
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,

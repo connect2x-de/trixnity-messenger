@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed misleading i18n content
+- Fixed double padding in wizard
+- Fixed wrong padding on Android 10 keyboard usage
+
 ### Security
 
 # 2.3.3
