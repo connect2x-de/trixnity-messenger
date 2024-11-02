@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.RemoveRedEye
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -14,8 +14,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.dp
@@ -57,21 +55,17 @@ class ReadMarkerViewImpl : ReadMarkerView {
             ) {
                 if (isRead.value) {
                     Icon(
-                        Icons.Default.RemoveRedEye,
+                        Icons.Outlined.Visibility,
                         i18n.messageBubbleRead(),
                         Modifier.fillMaxSize(),
                     )
 
                 } else {
-                    Tooltip(tooltip = {
-                        TooltipText { i18n.commonSent() }
-                    }) {
-                        Icon(
-                            Icons.Default.Check,
-                            i18n.messageBubbleRead(),
-                            Modifier.fillMaxSize(),
-                        )
-                    }
+                    Icon(
+                        Icons.Outlined.CheckCircle,
+                        i18n.messageBubbleRead(),
+                        Modifier.fillMaxSize(),
+                    )
                 }
             }
         } else Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp))

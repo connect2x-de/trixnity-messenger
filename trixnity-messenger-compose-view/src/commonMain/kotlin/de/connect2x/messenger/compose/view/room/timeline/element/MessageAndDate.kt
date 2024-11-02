@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -13,7 +12,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -62,7 +60,6 @@ class MessageAndDateViewImpl : MessageAndDateView {
             val message = elements[0].measure(constraints)
             val date = elements.getOrNull(1)?.measure(constraints)
 
-            println("Measurement height of message is ${message.height}, width is ${message.width}. Date height is ${date?.height}, width is ${date?.width}")
             date?.let {
                 if (message.width + spacing + date.width < constraints.maxWidth) {
                     // add extra padding to bottom that is missing otherwise
@@ -71,7 +68,6 @@ class MessageAndDateViewImpl : MessageAndDateView {
                         width = message.width + spacing + date.width,
                         height = height,
                     ) {
-                        println("Width is ${this.coordinates?.size?.width} (${message.width + spacing + date.width})")
                         message.place(0, 0)
                         date.place(message.width + spacing, height - date.height)
                     }
@@ -102,7 +98,6 @@ fun MessageDateText(
     val i18n = DI.get<I18nView>()
     if (roomMessageViewModel !is RedactedMessageViewModel) {
         roomMessageViewModel.formattedTime?.let {
-            println("Formatted date is:${roomMessageViewModel.formattedTime}:")
             Row(
                 modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp),
                 verticalAlignment = Alignment.Bottom,
