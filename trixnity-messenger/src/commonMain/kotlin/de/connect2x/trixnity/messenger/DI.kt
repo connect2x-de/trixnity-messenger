@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
+import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
@@ -271,6 +272,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformGetDefaultDisplayNameModule(),
     platformIsNetworkAvailableModule(),
     platformCloseAppModule(),
+    platformMinimizeAppModule(),
     platformUrlHandlerModule(),
     platformUriCallerModule(),
     platformDeleteProfileDataModule(),
