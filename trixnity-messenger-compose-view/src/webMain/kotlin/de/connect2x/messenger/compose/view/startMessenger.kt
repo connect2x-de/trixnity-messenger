@@ -23,11 +23,9 @@ private val log = KotlinLogging.logger {}
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class)
 suspend fun startMessenger(
-    appName: String,
-    version: String,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
-    log.info { "Starting $appName client (version=${version})" }
+    log.info { "Starting client" }
     logLevel = Level.DEBUG
     val windowIsFocused = MutableStateFlow(false)
     window.onfocus = {
@@ -51,10 +49,8 @@ suspend fun startMessenger(
             onWasmReady {
                 CanvasBasedWindow(config.appName) {
                     CompositionLocalProvider(
-                        ImeVisible provides false,
                         Platform provides PlatformType.WEB,
                         IsFocused provides windowIsFocused.collectAsState(false).value,
-//                LocalWindowScope provides this@Window, // FIXME
                         IsDebug provides false, // FIXME
                         DI provides matrixMessenger.di,
                     ) {

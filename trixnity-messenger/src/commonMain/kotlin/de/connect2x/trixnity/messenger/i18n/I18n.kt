@@ -869,9 +869,10 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun timelineLeaveRoomErrorOffline() = settingsRoomLeaveRoomErrorOffline()
     fun timelineLeaveRoomError(groupOrChat: String) = settingsRoomLeaveRoomError(groupOrChat)
-    fun timelineElementReadBy(usernames: String) = translate {
-        EN - "read by $usernames"
-        DE - "gelesen von $usernames"
+
+    fun timelineElementReadBy() = translate {
+        EN - "Read by"
+        DE - "Gelesen von"
     }
 
     fun timelineElementRedactError() = translate {

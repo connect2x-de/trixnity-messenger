@@ -10,18 +10,16 @@ import org.koin.core.scope.Scope
  * to make sure that these settings are copied to each of your [de.connect2x.trixnity.messenger.MatrixMessenger]s
  * for the SDK to work properly.
  */
-interface CopyMultiMessengerSingletons {
+fun interface CopyMultiMessengerSingletons {
     fun copy(from: Scope, to: Module)
 }
 
-class CopyMultiMessengerSingletonsImpl : CopyMultiMessengerSingletons {
-    override fun copy(from: Scope, to: Module) {
-        to.single<MatrixMultiMessengerConfiguration> { from.get() }
-        to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
-        to.single<ProfileManager> {from.get() }
-        to.single<SendLogToDevs> { from.get() }
-        val urlHandler = from.getOrNull<UrlHandler>()
-        if (urlHandler != null) to.single<UrlHandler> { urlHandler }
-    }
+val DefaultCopyMultiMessengerSingletons = CopyMultiMessengerSingletons { from: Scope, to: Module ->
+    to.single<MatrixMultiMessengerConfiguration> { from.get() }
+    to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
+    to.single<ProfileManager> { from.get() }
+    to.single<SendLogToDevs> { from.get() }
+    val urlHandler = from.getOrNull<UrlHandler>()
+    if (urlHandler != null) to.single<UrlHandler> { urlHandler }
 }
 

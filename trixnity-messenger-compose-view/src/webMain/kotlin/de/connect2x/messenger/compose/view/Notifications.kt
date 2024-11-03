@@ -50,7 +50,7 @@ fun Notifications(
     val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
     val notificationHandler = NotificationHandler.create(
         name = "${config.appName} Notifications",
-        id = "${config.packageName}.${config.appName}.notification",
+        id = "${config.appId}.notification",
     )
 
     LaunchedEffect(Unit) {

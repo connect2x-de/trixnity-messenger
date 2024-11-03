@@ -11,6 +11,6 @@ internal fun NotificationHandle.toForegroundInfo(): ForegroundInfo {
 }
 
 internal fun pushChannelId(userId: UserId, config: MatrixMultiMessengerConfiguration) =
-    "${config.packageName}.push.${
+    "${config.appId}.push.${
         userId.full.replace("[@.]".toRegex(), "_")
     }"

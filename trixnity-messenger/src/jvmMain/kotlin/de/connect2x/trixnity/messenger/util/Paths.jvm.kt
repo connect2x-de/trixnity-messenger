@@ -10,29 +10,29 @@ actual fun platformPathsModule(): Module = module {
     single { FileSystem.SYSTEM }
     single<RootPath> {
         val config = get<MatrixMessengerBaseConfiguration>()
-        val path = getAppPath(config.appName)
+        val path = getAppPath(config.appId)
         FileSystem.SYSTEM.createDirectories(path)
         RootPath(path)
     }
 }
 
-fun getAppPath(appName: String) =
+fun getAppPath(appId: String) =
     System.getenv("TRIXNITY_MESSENGER_ROOT_PATH")?.toPath()
         ?: when (getOs()) {
             OS.MAC_OS -> {
                 System.getenv("HOME").toPath()
                     .resolve("Library")
                     .resolve("Application Support")
-                    .resolve(appName)
+                    .resolve(appId)
             }
 
             OS.WINDOWS -> {
                 System.getenv("LOCALAPPDATA").toPath()
-                    .resolve(appName)
+                    .resolve(appId)
             }
 
             OS.LINUX -> {
                 System.getenv("HOME").toPath()
-                    .resolve(".$appName")
+                    .resolve(".$appId")
             }
         }

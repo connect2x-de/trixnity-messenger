@@ -28,7 +28,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("2.3.2")
+    version = withVersionSuffix("2.3.4")
 
     repositories {
         mavenCentral()

@@ -78,6 +78,11 @@ class MessageContainerViewImpl : MessageContainerView {
                         timelineElementHolderViewModel,
                     )
                 }
+                MessageInfo(
+                    roomMessageViewModel,
+                    timelineElementHolderViewModel,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
                 MessageReactions(
                     roomMessageViewModel,
                     timelineElementHolderViewModel,

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Back button minimises App on Android
+
 ### Changed
 
 ### Deprecated
@@ -18,8 +20,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Do not display empty html tags
+- Fixed misleading i18n content
+- Fixed double padding in wizard
+- Fixed wrong padding on Android 10 keyboard usage
 
 ### Security
+
+# 2.3.3
+
+### Added
+
+- Introduce appId in configurations
+
+### Changed
+
+- Change keychain handling to include an appId
+- Show Read-by information in context menu
+- Replace MacOS Keychain handling with new API (a deprecated API was used before).
+
+### Fixed
+
+- Editing a reply now keeps it as reply
+
+## 2.3.2
+
+### Changed
+
+- Open in App Browser for SSO.
 
 ## 2.3.1
 
