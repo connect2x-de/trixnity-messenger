@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed verification modal navigation buttons not being shown on Android
 - Do not display empty html tags
 - Fixed misleading i18n content
 - Fixed double padding in wizard
