@@ -291,12 +291,6 @@ class TimelineViewModelImpl(
     private val timelineElementRules = get<TimelineElementRules>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
-    private val roomUsers =
-        matrixClient.user.getAll(selectedRoomId)
-            .flattenNotNull()
-            .filterNotNull()
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
-
     private val roomUsersReceipts =
         matrixClient.user.getAllReceipts(selectedRoomId)
             .flattenNotNull()
@@ -946,7 +940,7 @@ class TimelineViewModelImpl(
                 .filterNot { (userId, _) -> userId == matrixClient.userId }
                 .forEach { (userId, receipts) ->
                     receipts.receipts[Read]?.eventId?.also { lastReadMessage ->
-                        roomUsers.first()[userId]?.name?.also { name ->
+                        matrixClient.user.getById(selectedRoomId, userId).first()?.name?.also { name ->
                             messagesReadBy[lastReadMessage] =
                                 messagesReadBy.getOrElse(lastReadMessage) { emptyList() }.plus(name)
                         }
@@ -954,7 +948,7 @@ class TimelineViewModelImpl(
                 }
 
             val collectReadByUsers =
-                collectReadByUsers(messagesReadBy, roomUsers.first().size, eventId)
+                collectReadByUsers(messagesReadBy, eventId)
             log.debug { "collected read by users for $eventId: $collectReadByUsers" }
             collectReadByUsers
         }
@@ -962,7 +956,6 @@ class TimelineViewModelImpl(
 
     private suspend fun collectReadByUsers(
         messagesReadBy: Map<EventId, List<String>>,
-        roomUsersSize: Int,
         eventId: EventId,
     ): List<String> {
         return matrixClient.room.getById(selectedRoomId)
@@ -973,20 +966,22 @@ class TimelineViewModelImpl(
                     .scan(listOf<String>()) { readBy, currentEvent ->
                         readBy + (currentEvent.first().eventId.let { eventId -> messagesReadBy[eventId] }
                             ?: emptyList())
-                    }.takeWhileInclusive { readBy ->
-                        readBy.size <= 10 && readBy.size < roomUsersSize
-                    }.lastOrNull()?.take(11)?.sorted() ?: emptyList()
+                    }
+                    .takeWhileInclusive { readBy ->
+                        readBy.size <= 10
+                    }
+                    .lastOrNull()
+                    ?.take(11)
+                    ?.sorted()
+                    ?: emptyList()
             } ?: emptyList()
     }
 
     private fun reactionMap(eventId: EventId): Flow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> {
-        return combine(
-            matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId),
-            roomUsers
-        ) { reactions, roomUsers ->
+        return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId).map { reactions ->
             reactions.reactions.mapValues { (_, events) ->
                 events.mapNotNull { event ->
-                    roomUsers[event.sender]?.let { sender ->
+                    matrixClient.user.getById(selectedRoomId, event.sender).first()?.let { sender ->
                         TimelineElementHolderViewModel.ReactionEvent(
                             eventId = event.eventId,
                             sender = UserInfoElement(

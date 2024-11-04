@@ -8,6 +8,9 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
+import korlibs.io.async.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +70,7 @@ fun roomUsers(
 
 class RoomUserBuilder(
     private val userService: UserService,
-    private val roomId: RoomId
+    private val roomId: RoomId,
 ) {
     data class RoomUserWithReceipts(
         val user: RoomUser,
@@ -77,11 +80,19 @@ class RoomUserBuilder(
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
     init {
+        val scope = CoroutineScope(Dispatchers.Default)
         every { userService.getAll(roomId) } returns users.map {
             it.associate { (user, _) ->
                 user.userId to flowOf(
                     user
                 )
+            }
+        }
+        scope.launch {
+            users.collect { userList ->
+                userList.forEach {roomUser ->
+                    every { userService.getById(roomId, roomUser.user.userId) } returns flowOf(roomUser.user)
+                }
             }
         }
         every { userService.getAllReceipts(roomId) } returns users.map {

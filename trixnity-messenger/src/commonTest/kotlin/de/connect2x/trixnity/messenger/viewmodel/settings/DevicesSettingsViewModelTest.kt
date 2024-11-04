@@ -58,6 +58,7 @@ import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeyStore
+import net.folivo.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import net.folivo.trixnity.client.store.repository.InMemoryCrossSigningKeysRepository
 import net.folivo.trixnity.client.store.repository.InMemoryDeviceKeysRepository
 import net.folivo.trixnity.client.store.repository.InMemoryKeyChainLinkRepository
@@ -578,6 +579,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             tm = NoOpRepositoryTransactionManager,
             config = MatrixClientConfiguration(),
             storeScope = scope,
+            statisticCollector = ObservableCacheStatisticCollector(),
         ),
         clock = clock,
     )
