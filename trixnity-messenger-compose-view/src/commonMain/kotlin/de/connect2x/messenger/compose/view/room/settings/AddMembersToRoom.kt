@@ -80,7 +80,7 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                     UsersInGroup(addMembersViewModel)
                     SearchUsersSettings(
                         addMembersViewModel.potentialMembersViewModel,
-                        addMembersViewModel::onUserClick
+                        onUserClick = addMembersViewModel::onUserClick
                     )
                 }
                 if (canAddMembers.value) {

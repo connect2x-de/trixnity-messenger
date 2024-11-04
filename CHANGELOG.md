@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show Search Results when creating Room on small screen sizes
+
 ### Security
 
 ## 2.3.5

@@ -12,6 +12,7 @@ interface SearchUsersView {
     @Composable
     fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
+        shouldScroll: Boolean,
         onUserClick: suspend (Search.SearchUserElement) -> Unit,
     )
 }
@@ -19,19 +20,21 @@ interface SearchUsersView {
 @Composable
 fun SearchUsers(
     createNewRoomViewModel: CreateNewRoomViewModel,
+    shouldScroll: Boolean = true,
     onUserClick: suspend (Search.SearchUserElement) -> Unit,
 ) {
-    DI.get<SearchUsersView>().create(createNewRoomViewModel, onUserClick)
+    DI.get<SearchUsersView>().create(createNewRoomViewModel, shouldScroll, onUserClick)
 }
 
 class SearchUsersViewImpl : SearchUsersView {
     @Composable
     override fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
+        shouldScroll: Boolean,
         onUserClick: suspend (Search.SearchUserElement) -> Unit,
     ) {
         Column {
-            SearchUsersLocally(createNewRoomViewModel.searchHandler, onUserClick)
+            SearchUsersLocally(createNewRoomViewModel.searchHandler, shouldScroll, onUserClick)
         }
     }
 }
