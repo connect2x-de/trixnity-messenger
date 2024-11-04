@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- avoid unnecessary caching of all users for reactions and readBy markers
+
 ### Security
 
 ## 2.3.4
