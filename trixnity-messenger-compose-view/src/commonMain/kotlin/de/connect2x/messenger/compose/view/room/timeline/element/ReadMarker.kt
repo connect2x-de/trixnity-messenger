@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -55,14 +55,14 @@ class ReadMarkerViewImpl : ReadMarkerView {
             ) {
                 if (isRead.value) {
                     Icon(
-                        Icons.Outlined.Visibility,
+                        Icons.Filled.DoneAll,
                         i18n.messageBubbleRead(),
                         Modifier.fillMaxSize(),
                     )
 
                 } else {
                     Icon(
-                        Icons.Outlined.CheckCircle,
+                        Icons.Filled.Done,
                         i18n.messageBubbleRead(),
                         Modifier.fillMaxSize(),
                     )
