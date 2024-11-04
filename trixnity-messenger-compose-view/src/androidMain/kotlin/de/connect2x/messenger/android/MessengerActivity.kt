@@ -7,20 +7,14 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arkivanov.decompose.defaultComponentContext
@@ -66,7 +60,7 @@ class MessengerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        //enableEdgeToEdge() // TODO for better UX
 
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
@@ -115,25 +109,17 @@ class MessengerActivity : AppCompatActivity() {
                         componentContext = defaultComponentContext(),
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
-                            Surface {
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .safeDrawingPadding()
-                                ) {
-                                    val lifeCycleState =
-                                        androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
-                                    val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
-                                    CompositionLocalProvider(
-                                        Platform provides PlatformType.ANDROID,
-                                        IsFocused provides isFocused,
-                                        IsDebug provides false,
-                                        DI provides matrixMessenger.di,
-                                    ) {
-                                        MessengerTheme {
-                                            Client(rootViewModel)
-                                        }
-                                    }
+                            val lifeCycleState =
+                                androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                            val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
+                            CompositionLocalProvider(
+                                Platform provides PlatformType.ANDROID,
+                                IsFocused provides isFocused,
+                                IsDebug provides false,
+                                DI provides matrixMessenger.di,
+                            ) {
+                                MessengerTheme {
+                                    Client(rootViewModel)
                                 }
                             }
                         }
@@ -142,23 +128,15 @@ class MessengerActivity : AppCompatActivity() {
                         val lifeCycleState =
                             androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
-                        Surface {
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .safeDrawingPadding()
-                            ) {
-                                CompositionLocalProvider(
-                                    Platform provides PlatformType.ANDROID,
-                                    IsFocused provides isFocused,
-                                    IsDebug provides false,
-                                    DI provides matrixMultiMessenger.di,
-                                    ShowProfileCreation provides showProfileCreation,
-                                ) {
-                                    MessengerTheme {
-                                        Profiles(matrixMultiMessenger, existingProfiles)
-                                    }
-                                }
+                        CompositionLocalProvider(
+                            Platform provides PlatformType.ANDROID,
+                            IsFocused provides isFocused,
+                            IsDebug provides false,
+                            DI provides matrixMultiMessenger.di,
+                            ShowProfileCreation provides showProfileCreation,
+                        ) {
+                            MessengerTheme {
+                                Profiles(matrixMultiMessenger, existingProfiles)
                             }
                         }
                     }
