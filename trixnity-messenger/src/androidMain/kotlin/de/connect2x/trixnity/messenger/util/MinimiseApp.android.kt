@@ -3,11 +3,11 @@ package de.connect2x.trixnity.messenger.util
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-actual fun platformCloseAppModule(): Module = module {
-    single<CloseApp> {
+actual fun platformMinimizeAppModule(): Module = module {
+    single<MinimizeApp> {
         val activityGetter = get<ActivityGetter>()
-        CloseApp {
-            activityGetter()?.finishAndRemoveTask()
+        MinimizeApp {
+            activityGetter()?.moveTaskToBack(true)
         }
     }
 }

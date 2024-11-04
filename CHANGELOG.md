@@ -23,6 +23,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 2.3.4
+
+### Added
+
+- Back button minimises App on Android
+
+### Fixed
+
+- Fixed verification modal navigation buttons not being shown on Android
+- Do not display empty html tags
+- Fixed misleading i18n content
+- Fixed double padding in wizard
+- Fixed wrong padding on Android 10 keyboard usage
+
+# 2.3.3
+
+### Added
+
+- Introduce appId in configurations
+
+### Changed
+
+- Change keychain handling to include an appId
+- Show Read-by information in context menu
+- Replace MacOS Keychain handling with new API (a deprecated API was used before).
+
+### Fixed
+
+- Editing a reply now keeps it as reply
+
+## 2.3.2
+
+### Changed
+
+- Open in App Browser for SSO.
+
+## 2.3.1
+
+### Changed
+
+- Upgrade Trixnity
+
+### Fixed
+
+- Wrong indexedDb database name
+
 ## 2.3.0
 
 ### Added
@@ -58,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `app_name` from compose-view
+- reaction functionality for deleted (redacted) messages
 
 ### Fixed
 

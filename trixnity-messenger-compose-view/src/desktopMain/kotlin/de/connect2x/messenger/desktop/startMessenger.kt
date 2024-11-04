@@ -12,12 +12,10 @@ import kotlinx.coroutines.runBlocking
 private val log = KotlinLogging.logger {}
 
 fun startMessenger(
-    appName: String,
-    version: String,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
     args: Array<String>,
 ) = runBlocking(Dispatchers.Default) {
-    log.info { "Starting $appName client (version=${version})" }
+    log.info { "Starting client" }
     log.info { "command line args: ${args.joinToString { it }}" }
     log.info { "JVM version: ${System.getProperty("java.version")} (${System.getProperty("java.vendor")})" }
 

@@ -13,12 +13,12 @@ import org.koin.dsl.module
 
 fun messengerConfiguration(): MatrixMultiMessengerConfiguration.() -> Unit = {
     appName = BuildConfig.appName
-    packageName = "de.connect2x.${BuildConfig.appNameCleaned}"
+    appId = BuildConfig.appId
     privacyInfoUrl = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     imprintUrl = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
-    urlProtocol = BuildConfig.appNameCleaned
+    urlProtocol = BuildConfig.appId
     modules += listOf(
         composeViewModule(),
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!

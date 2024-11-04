@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
+import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
@@ -159,6 +160,7 @@ import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.store.isEncrypted
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
 fun interface HttpUserAgent {
@@ -259,6 +261,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformNotificationSettingsSingleAccountViewModelFactoryModule(),
 
     // platform-specific implementations
+    platformModule(),
     platformPathsModule(),
     platformCreateRepositoriesModuleModule(),
     platformCreateMediaStoreModule(),
@@ -271,6 +274,7 @@ fun createDefaultTrixnityMessengerModules() = listOf(
     platformGetDefaultDisplayNameModule(),
     platformIsNetworkAvailableModule(),
     platformCloseAppModule(),
+    platformMinimizeAppModule(),
     platformUrlHandlerModule(),
     platformUriCallerModule(),
     platformDeleteProfileDataModule(),
@@ -404,3 +408,5 @@ private fun verificationViewModels() = module {
     single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
+
+expect fun platformModule(): Module

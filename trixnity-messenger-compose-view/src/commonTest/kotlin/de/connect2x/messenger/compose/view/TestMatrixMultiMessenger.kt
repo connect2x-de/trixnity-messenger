@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import de.connect2x.trixnity.messenger.util.SecretByteArray
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
@@ -27,6 +28,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
         platformGetSystemLangModule(),
         module {
             single<Languages> { DefaultLanguages }
+            single<TimeZone> { TimeZone.currentSystemDefault() }
             single<I18n> { object : I18n(get(), get(), get(), get()) {} }
         },
         composeViewModule(),

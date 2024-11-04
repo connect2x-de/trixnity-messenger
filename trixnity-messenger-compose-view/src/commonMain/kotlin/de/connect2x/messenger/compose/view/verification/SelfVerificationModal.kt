@@ -103,7 +103,6 @@ fun ColumnScope.ShowVerificationHelpContent() {
     Text(text = i18n.selfVerificationHelpOtherDevice())
     Text(text = i18n.selfVerificationHelpVerifyThis())
     Spacer(Modifier.size(20.dp))
-
     MoreInfo(i18n.selfVerificationHelpReasonTitle()) {
         RunningText(text = i18n.selfVerificationHelpReason1())
         RunningText(text = i18n.selfVerificationHelpReason2())
@@ -130,10 +129,12 @@ fun ColumnScope.ShowResetRecoveryWarning(selfVerificationViewModel: SelfVerifica
             )
         },
         back = {
-            BackButton { selfVerificationViewModel.backToHelp() }
-        },
-    )
+            BackButton(
+                selfVerificationViewModel::backToHelp
 
+            )
+
+        })
 }
 
 @Composable
@@ -154,6 +155,7 @@ fun ColumnScope.ShowResetRecoveryWarningContent(checked: MutableState<Boolean>) 
         Text(i18n.resetWarningAcknowledge())
     }
 }
+
 
 open class SelfVerificationMethodsListEntries {
     data class SelectSelfVerificationMethod(val method: SelfVerificationMethod) : SelfVerificationMethodsListEntries()
@@ -189,7 +191,6 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
         },
     )
 }
-
 @Composable
 fun ColumnScope.ShowSelfVerificationMethodsContent(
     selfVerificationViewModel: SelfVerificationViewModel,

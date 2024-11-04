@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.firebase.messaging.FirebaseMessaging
 import de.connect2x.messenger.android.NotificationHandlerProvider
-import de.connect2x.messenger.compose.view.cleanName
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -66,7 +65,7 @@ private fun setPushersRequest(fcmToken: String, userId: UserId, deviceId: String
     val config = di.get<MatrixMultiMessengerConfiguration>()
     return SetPushers.Request(
         appDisplayName = "${config.appName} (Android)",
-        appId = "${config.packageName}.${config.appName.cleanName()}.android",
+        appId = config.appId,
         data = PusherData(
             url = config.pushUrl,
             format = "event_id_only",
