@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Back button minimises App on Android
-
 ### Changed
 
 ### Deprecated
@@ -19,13 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 2.3.4
+
+### Added
+
+- Back button minimises App on Android
+
+### Fixed
+
 - Fixed verification modal navigation buttons not being shown on Android
 - Do not display empty html tags
 - Fixed misleading i18n content
 - Fixed double padding in wizard
 - Fixed wrong padding on Android 10 keyboard usage
-
-### Security
 
 # 2.3.3
 
