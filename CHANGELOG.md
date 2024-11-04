@@ -15,13 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+### Fixed
+
+### Security
+
+## 2.3.5
+
+### Removed
+
 - Removed edge-to-edge support until we support it in the UI.
 
 ### Fixed
 
 - avoid unnecessary caching of all users for reactions and readBy markers
-
-### Security
 
 ## 2.3.4
 
