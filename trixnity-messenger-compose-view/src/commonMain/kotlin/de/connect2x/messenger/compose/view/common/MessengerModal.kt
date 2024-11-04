@@ -125,7 +125,7 @@ fun ColumnScope.MessengerModalThreeButtonRow(
     back: (@Composable RowScope.() -> Unit)? = null,
     misc: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    Spacer(Modifier.size(20.dp))
+    MiddleSpacer()
     Column(Modifier.fillMaxWidth().weight(1.0f, fill = false), horizontalAlignment = Alignment.End) {
         FlowRow(horizontalArrangement = Arrangement.End) {
             if (misc != null) {
@@ -133,11 +133,11 @@ fun ColumnScope.MessengerModalThreeButtonRow(
             }
             Row {
                 if (misc != null) {
-                    Spacer(Modifier.width(20.dp))
+                    SmallSpacer()
                 }
                 if (back != null) {
                     back()
-                    Spacer(Modifier.width(10.dp))
+                    SmallSpacer()
                 }
                 next()
             }

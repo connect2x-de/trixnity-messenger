@@ -40,18 +40,19 @@ import kotlinx.coroutines.flow.map
 
 interface UserSearchResultListView {
     @Composable
-    fun create(userSearchHandler: UserSearchHandler, userClickReaction: suspend (SearchUserElement) -> Unit,)
+    fun create(userSearchHandler: UserSearchHandler, shouldScroll: Boolean, userClickReaction: suspend (SearchUserElement) -> Unit,)
 }
 
 @Composable
-fun UserSearchResultList(userSearchHandler: UserSearchHandler, userClickReaction: suspend (SearchUserElement) -> Unit,) {
-    DI.get<UserSearchResultListView>().create(userSearchHandler, userClickReaction)
+fun UserSearchResultList(userSearchHandler: UserSearchHandler, shouldScroll: Boolean, userClickReaction: suspend (SearchUserElement) -> Unit,) {
+    DI.get<UserSearchResultListView>().create(userSearchHandler, shouldScroll, userClickReaction)
 }
 
 class UserSearchResultListViewImpl : UserSearchResultListView {
     @Composable
     override fun create(
         userSearchHandler: UserSearchHandler,
+        shouldScroll: Boolean,
         userClickReaction: suspend (SearchUserElement) -> Unit, ) {
         val i18n = DI.get<I18nView>()
         val users = userSearchHandler.foundUsers.collectAsState().value
@@ -60,12 +61,16 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
 
         val clickedUser = remember { mutableStateOf<SearchUserElement?>(null) }
         val scroll = rememberScrollState()
+        val modifier = remember(shouldScroll) {
+            if (shouldScroll) { Modifier.verticalScroll(scroll) } else { Modifier }
+        }
+
 
         if (waitForResults) {
             LoadingSpinner()
         } else {
             Box {
-                Column(Modifier.verticalScroll(scroll)) {
+                Column(modifier) {
                     if (users.isEmpty()) {
                         Box(
                             Modifier.fillMaxSize().padding(horizontal = 10.dp),
@@ -117,10 +122,12 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
                     }
                 }
-                VerticalScrollbar(
-                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    scroll,
-                )
+                if (shouldScroll) {
+                    VerticalScrollbar(
+                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        scroll,
+                    )
+                }
             }
         }
         LaunchedEffect(clickedUser.value) {

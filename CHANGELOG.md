@@ -17,7 +17,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show Search Results when creating Room on small screen sizes
+
 ### Security
+
+## 2.3.5
+
+### Removed
+
+- Removed edge-to-edge support until we support it in the UI.
+
+### Fixed
+
+- avoid unnecessary caching of all users for reactions and readBy markers
+
+## 2.3.4
+
+### Added
+
+- Back button minimises App on Android
+
+### Fixed
+
+- Fixed verification modal navigation buttons not being shown on Android
+- Do not display empty html tags
+- Fixed misleading i18n content
+- Fixed double padding in wizard
+- Fixed wrong padding on Android 10 keyboard usage
 
 # 2.3.3
 

@@ -67,7 +67,7 @@ fun roomUsers(
 
 class RoomUserBuilder(
     private val userService: UserService,
-    private val roomId: RoomId
+    private val roomId: RoomId,
 ) {
     data class RoomUserWithReceipts(
         val user: RoomUser,
@@ -94,6 +94,7 @@ class RoomUserBuilder(
     }
 
     operator fun RoomUserWithReceipts.unaryPlus() {
+        every { userService.getById(roomId, this@unaryPlus.user.userId) } returns flowOf(this.user)
         users.update { it + this }
     }
 

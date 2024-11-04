@@ -88,17 +88,25 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             )
                         })
                         Spacer(Modifier.height(15.dp))
-                        MoreOptions(roomOptionsString) {
-                            CreateGroupOptions(createNewGroupViewModel)
-                        }
-                        Spacer(Modifier.height(15.dp))
-                        OptionalRoomNameInput(createNewGroupViewModel, optionalRoomName)
-                        Spacer(Modifier.height(15.dp))
-                        OptionalRoomTopicInput(createNewGroupViewModel, optionalRoomTopic)
-                        UsersInGroup(createNewGroupViewModel)
-                        SearchUsers(
-                            createNewGroupViewModel.createNewRoomViewModel,
-                            createNewGroupViewModel::onUserClick,
+                        LimitedSizeStickyHeaderColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            header = {
+                                MoreOptions(roomOptionsString) {
+                                    CreateGroupOptions(createNewGroupViewModel)
+                                }
+                                Spacer(Modifier.height(15.dp))
+                                OptionalRoomNameInput(createNewGroupViewModel, optionalRoomName)
+                                Spacer(Modifier.height(15.dp))
+                                OptionalRoomTopicInput(createNewGroupViewModel, optionalRoomTopic)
+                                UsersInGroup(createNewGroupViewModel)
+                            },
+                            body = { shouldScroll ->
+                                SearchUsers(
+                                    createNewGroupViewModel.createNewRoomViewModel,
+                                    shouldScroll = shouldScroll,
+                                    createNewGroupViewModel::onUserClick,
+                                )
+                            }
                         )
                     }
                 }
