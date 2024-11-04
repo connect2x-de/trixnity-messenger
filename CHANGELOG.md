@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed edge-to-edge support until we support it in the UI.
+
 ### Fixed
 
 ### Security

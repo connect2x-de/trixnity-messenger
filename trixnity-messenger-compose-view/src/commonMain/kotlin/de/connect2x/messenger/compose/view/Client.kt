@@ -2,7 +2,7 @@ package de.connect2x.messenger.compose.view
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
@@ -49,11 +49,13 @@ fun Client(rootViewModel: RootViewModel) {
 class ClientViewImpl : ClientView {
     @Composable
     override fun create(rootViewModel: RootViewModel) {
-        Surface(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+        ) {
             RootSwitch(rootViewModel.stack)
-            Box(modifier = Modifier.fillMaxSize()) {
-                UiaSwitch(rootViewModel.uiaStack)
-            }
+            UiaSwitch(rootViewModel.uiaStack)
         }
     }
 }
