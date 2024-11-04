@@ -978,25 +978,32 @@ class TimelineViewModelImpl(
     }
 
     private fun reactionMap(eventId: EventId): Flow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> {
-        return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId).map { reactions ->
-            reactions.reactions.mapValues { (_, events) ->
-                events.mapNotNull { event ->
-                    matrixClient.user.getById(selectedRoomId, event.sender).first()?.let { sender ->
-                        TimelineElementHolderViewModel.ReactionEvent(
-                            eventId = event.eventId,
-                            sender = UserInfoElement(
-                                name = sender.originalName ?: sender.name,
-                                userId = sender.userId,
-                                initials = Initials.compute(sender.originalName ?: sender.name),
-                                image = null
-                            ),
-                            isMe = event.sender == matrixClient.userId,
-                            timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
-                        )
+        return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId)
+            .flatMapLatest { reactions ->
+                combine(reactions.reactions.flatMap { (_, timelineEvents) ->
+                    timelineEvents.map {timelineEvent ->
+                        matrixClient.user.getById(selectedRoomId, timelineEvent.sender)
                     }
-                }.toSet()
+                }) { users ->
+                    reactions.reactions.mapValues { (_, events) ->
+                        events.mapNotNull { event ->
+                            users.find { it?.userId == event.sender }?.let { sender ->
+                                TimelineElementHolderViewModel.ReactionEvent(
+                                    eventId = event.eventId,
+                                    sender = UserInfoElement(
+                                        name = sender.originalName ?: sender.name,
+                                        userId = sender.userId,
+                                        initials = Initials.compute(sender.originalName ?: sender.name),
+                                        image = null
+                                    ),
+                                    isMe = event.sender == matrixClient.userId,
+                                    timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
+                                )
+                            }
+                        }.toSet()
+                    }
+                }
             }
-        }
     }
 
     private fun onVerifyUser() {
