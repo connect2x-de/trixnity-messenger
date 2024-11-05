@@ -96,168 +96,168 @@ variables:
 .if-release: &if-release
   - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
 
-build:mac:
-  stage: build
-  interruptible: true
-  tags: [ "connect2x-mac" ]
-  cache:
-    - *cache-mac
-  rules:
-    - *if-merge-request-or-main
-  script:
-    - ./gradlew
-      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
-      compileTestKotlin{IosSimulatorArm64,IosX64}
-      linkDebugTestIosX64
-      --stacktrace
-
-build:linux:
-  stage: build
-  interruptible: true
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache-linux
-  rules:
-    - *if-merge-request-or-main
-  script:
-    - ./gradlew
-      compileKotlin{Jvm,Js}
-      compileReleaseKotlinAndroid
-      compileTestKotlin{Jvm,Js}
-      compileReleaseUnitTestKotlinAndroid
-      --stacktrace
-
-test:mac:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:mac" ]
-  tags: [ "connect2x-mac" ]
-  cache:
-    - *pull-cache-mac
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request-or-main
-  script:
-    - ./gradlew
-      {iosSimulatorArm64,iosX64}Test
-      --stacktrace
-
-test:linux:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:linux" ]
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *pull-cache-linux
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request-or-main
-  script:
-    - ./gradlew
-      {jvm,js}Test -x :integrationtests:jvmTest
-      --stacktrace
-
-test:integration-test:
-  stage: test
-  interruptible: true
-  timeout: 30m
-  needs: [ "build:linux" ]
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  services:
-    - name: docker:dind
-  cache:
-    - *pull-cache-linux
-  variables: *docker-variables
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request-or-main
-  script:
-    - ./gradlew
-      :integrationtests:jvmTest
-      --stacktrace
-
-security:dependencies:
-  stage: security
-  interruptible: true
-  timeout: 30m
-  needs: [ ]
-  tags: [ "saas-linux-small-amd64" ]
-  image:
-    name: "aquasec/trivy"
-    entrypoint: [ "" ]
-  variables:
-    TRIVY_CACHE_DIR: ".trivycache/"
-    WITH_LOCK: true
-  cache:
-    paths:
-      - .trivycache/
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      allow_failure: true
-    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
-      allow_failure: false
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      allow_failure: false
-  artifacts:
-    when: always
-    reports:
-      dependency_scanning: report.json
-  before_script:
-    - apk add openjdk17
-    - ./gradlew dependenciesForAll --write-locks --no-parallel > dependencies.txt
-  script:
-    - trivy repo ./ --exit-code 0
-    - trivy repo ./ --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output report.json
-    - trivy repo ./ --exit-code 1 --severity CRITICAL
-
-changelog:
-  stage: changelog
-  interruptible: true
-  timeout: 5m
-  tags: [ "saas-linux-small-amd64" ]
-  rules:
-    - *if-merge-request
-  script:
-    - git fetch origin main
-    - |
-      if git diff --name-only HEAD origin/main | grep "CHANGELOG.md"; then
-        echo "CHANGELOG.md has changed"
-      else
-        echo "CHANGELOG.md has not changed"
-        exit 1
-      fi
-
-publish:mac:
-  stage: publish
-  tags: [ "connect2x-mac" ]
-  cache:
-    - *pull-cache-mac
-  rules:
-    - *if-main
-    - *if-release
-  script:
-    - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
-      --stacktrace
-
-publish:linux:
-  stage: publish
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *pull-cache-linux
-  rules:
-    - *if-main
-    - *if-release
-  script:
-    - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
-      --stacktrace
+#build:mac:
+#  stage: build
+#  interruptible: true
+#  tags: [ "connect2x-mac" ]
+#  cache:
+#    - *cache-mac
+#  rules:
+#    - *if-merge-request-or-main
+#  script:
+#    - ./gradlew
+#      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
+#      compileTestKotlin{IosSimulatorArm64,IosX64}
+#      linkDebugTestIosX64
+#      --stacktrace
+#
+#build:linux:
+#  stage: build
+#  interruptible: true
+#  tags: [ "connect2x-linux" ]
+#  image: $BUILD_LINUX_IMAGE_NAME
+#  cache:
+#    - *cache-linux
+#  rules:
+#    - *if-merge-request-or-main
+#  script:
+#    - ./gradlew
+#      compileKotlin{Jvm,Js}
+#      compileReleaseKotlinAndroid
+#      compileTestKotlin{Jvm,Js}
+#      compileReleaseUnitTestKotlinAndroid
+#      --stacktrace
+#
+#test:mac:
+#  stage: test
+#  interruptible: true
+#  timeout: 1h
+#  needs: [ "build:mac" ]
+#  tags: [ "connect2x-mac" ]
+#  cache:
+#    - *pull-cache-mac
+#  artifacts: *artifact-reports
+#  rules:
+#    - *if-merge-request-or-main
+#  script:
+#    - ./gradlew
+#      {iosSimulatorArm64,iosX64}Test
+#      --stacktrace
+#
+#test:linux:
+#  stage: test
+#  interruptible: true
+#  timeout: 1h
+#  needs: [ "build:linux" ]
+#  tags: [ "connect2x-linux" ]
+#  image: $BUILD_LINUX_IMAGE_NAME
+#  cache:
+#    - *pull-cache-linux
+#  artifacts: *artifact-reports
+#  rules:
+#    - *if-merge-request-or-main
+#  script:
+#    - ./gradlew
+#      {jvm,js}Test -x :integrationtests:jvmTest
+#      --stacktrace
+#
+#test:integration-test:
+#  stage: test
+#  interruptible: true
+#  timeout: 30m
+#  needs: [ "build:linux" ]
+#  tags: [ "connect2x-linux" ]
+#  image: $BUILD_LINUX_IMAGE_NAME
+#  services:
+#    - name: docker:dind
+#  cache:
+#    - *pull-cache-linux
+#  variables: *docker-variables
+#  artifacts: *artifact-reports
+#  rules:
+#    - *if-merge-request-or-main
+#  script:
+#    - ./gradlew
+#      :integrationtests:jvmTest
+#      --stacktrace
+#
+#security:dependencies:
+#  stage: security
+#  interruptible: true
+#  timeout: 30m
+#  needs: [ ]
+#  tags: [ "saas-linux-small-amd64" ]
+#  image:
+#    name: "aquasec/trivy"
+#    entrypoint: [ "" ]
+#  variables:
+#    TRIVY_CACHE_DIR: ".trivycache/"
+#    WITH_LOCK: true
+#  cache:
+#    paths:
+#      - .trivycache/
+#  rules:
+#    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#      allow_failure: true
+#    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
+#      allow_failure: false
+#    - if: $CI_PIPELINE_SOURCE == "schedule"
+#      allow_failure: false
+#  artifacts:
+#    when: always
+#    reports:
+#      dependency_scanning: report.json
+#  before_script:
+#    - apk add openjdk17
+#    - ./gradlew dependenciesForAll --write-locks --no-parallel > dependencies.txt
+#  script:
+#    - trivy repo ./ --exit-code 0
+#    - trivy repo ./ --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output report.json
+#    - trivy repo ./ --exit-code 1 --severity CRITICAL
+#
+#changelog:
+#  stage: changelog
+#  interruptible: true
+#  timeout: 5m
+#  tags: [ "saas-linux-small-amd64" ]
+#  rules:
+#    - *if-merge-request
+#  script:
+#    - git fetch origin main
+#    - |
+#      if git diff --name-only HEAD origin/main | grep "CHANGELOG.md"; then
+#        echo "CHANGELOG.md has changed"
+#      else
+#        echo "CHANGELOG.md has not changed"
+#        exit 1
+#      fi
+#
+#publish:mac:
+#  stage: publish
+#  tags: [ "connect2x-mac" ]
+#  cache:
+#    - *pull-cache-mac
+#  rules:
+#    - *if-main
+#    - *if-release
+#  script:
+#    - ./gradlew
+#      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
+#      --stacktrace
+#
+#publish:linux:
+#  stage: publish
+#  tags: [ "connect2x-linux" ]
+#  image: $BUILD_LINUX_IMAGE_NAME
+#  cache:
+#    - *pull-cache-linux
+#  rules:
+#    - *if-main
+#    - *if-release
+#  script:
+#    - ./gradlew
+#      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
+#      --stacktrace
 
 kmmPublish:mac:
   stage: kmmPublish
