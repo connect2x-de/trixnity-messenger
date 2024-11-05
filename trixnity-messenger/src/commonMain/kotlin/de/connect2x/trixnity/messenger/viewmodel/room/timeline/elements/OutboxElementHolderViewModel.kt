@@ -5,6 +5,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
@@ -87,6 +90,7 @@ open class OutboxElementHolderViewModelImpl(
             showChatBubbleEdgeFlow
         ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
             val content = outboxMessage?.content
+            val creationTime = outboxMessage?.createdAt?.toLocalDateTime(viewModelContext.get())
             if (content is RoomMessageEventContent)
                 when (content) {
                     is TextBased.Notice -> {
@@ -104,8 +108,8 @@ open class OutboxElementHolderViewModelImpl(
                             formattedBody = content.formattedBody,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -131,8 +135,8 @@ open class OutboxElementHolderViewModelImpl(
                             formattedBody = content.formattedBody,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -158,8 +162,8 @@ open class OutboxElementHolderViewModelImpl(
                             formattedBody = content.formattedBody,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -175,9 +179,9 @@ open class OutboxElementHolderViewModelImpl(
                             viewModelContext = this,
                             timelineEvent = null,
                             content = content,
-                            formattedDate = "",
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
                             showDateAbove = showDateAbove,
-                            formattedTime = null,
+                            formattedTime = creationTime?.let { formatTime(it) },
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
@@ -196,8 +200,8 @@ open class OutboxElementHolderViewModelImpl(
                             content = content,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -215,8 +219,8 @@ open class OutboxElementHolderViewModelImpl(
                             content = content,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -232,9 +236,9 @@ open class OutboxElementHolderViewModelImpl(
                             viewModelContext = this,
                             timelineEvent = null,
                             content = content,
-                            formattedDate = "",
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
                             showDateAbove = showDateAbove,
-                            formattedTime = null,
+                            formattedTime = creationTime?.let { formatTime(it) },
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
@@ -251,9 +255,9 @@ open class OutboxElementHolderViewModelImpl(
                             viewModelContext = this,
                             timelineEvent = null,
                             content = content,
-                            formattedDate = "",
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
                             showDateAbove = showDateAbove,
-                            formattedTime = null,
+                            formattedTime = creationTime?.let { formatTime(it) },
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,

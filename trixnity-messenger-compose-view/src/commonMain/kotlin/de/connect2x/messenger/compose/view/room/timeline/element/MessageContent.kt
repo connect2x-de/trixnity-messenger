@@ -35,6 +35,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -225,7 +226,7 @@ private fun MessageTextContent(
             }
         } else {
             // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
-            Text(text, style = MaterialTheme.typography.bodyMedium)
+            Text(textBasedViewModel.message, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
