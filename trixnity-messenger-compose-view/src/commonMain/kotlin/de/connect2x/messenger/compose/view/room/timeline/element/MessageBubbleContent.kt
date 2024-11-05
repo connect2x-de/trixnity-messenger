@@ -100,7 +100,12 @@ fun MessageBubbleContent(
 
 class MessageBubbleContentViewImpl : MessageBubbleContentView {
     @Composable
-    override fun create(roomMessageViewModel: RoomMessageViewModel, timelineElementHolderViewModel: BaseTimelineElementHolderViewModel, messageActions: List<BaseTimelineElementHolderContextMenuAction>, showBottomSheet: MutableState<Boolean>) {
+    override fun create(
+        roomMessageViewModel: RoomMessageViewModel,
+        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        messageActions: List<BaseTimelineElementHolderContextMenuAction>,
+        showBottomSheet: MutableState<Boolean>
+    ) {
         val hoverMessage = remember { mutableStateOf(false) }
         val sendError = remember {
             if (timelineElementHolderViewModel is OutboxElementHolderViewModel)
@@ -122,9 +127,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
         val messageBackground =
             when {
                 sendError != null -> MaterialTheme.colorScheme.errorContainer
-                roomMessageViewModel.isByMe -> MaterialTheme.colorScheme.primary.copy(
-                    alpha = if (timelineElementHolderViewModel is OutboxElementHolderViewModel) 0.8f else 1f
-                )
+                roomMessageViewModel.isByMe -> MaterialTheme.colorScheme.primary
 
                 else -> MaterialTheme.colorScheme.secondary
             }
