@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.3.6
+
+### Added
+
 - Cross symbol for sent messages
 
 ### Changed
@@ -18,18 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove alpha channel in outbox messages.
 - Unify calculation of last relevant event in room list.
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Show Search Results when creating Room on small screen sizes
 - Fixed bad contrast due to missing root Surface.
 - Fixed editing a message bumps room up.
 - Fixed Android notifications.
-
-### Security
 
 ## 2.3.5
 
