@@ -273,6 +273,5 @@ kmmPublish:mac:
   script:
     - ./gradlew
       kmmBridgePublish updatePackageSwift
-      -PspmBuildTargets=ios_simulator_arm64 # FIXME only for testing
-      --stacktrace
+      -PspmBuildTargets=ios_simulator_arm64 --stacktrace # FIXME only for testing
     - cat Package.swift
