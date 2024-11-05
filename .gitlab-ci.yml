@@ -7,11 +7,12 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 
 stages:
-  - changelog
-  - build
-  - test
-  - security
-  - publish
+#  - changelog
+#  - build
+#  - test
+#  - security
+#  - publish
+  - kmmPublish
 
 variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -257,3 +258,21 @@ publish:linux:
     - ./gradlew
       publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
       --stacktrace
+
+kmmPublish:mac:
+  stage: kmmPublish
+  tags: [ "connect2x-mac" ]
+  cache:
+    - *pull-cache-mac
+  rules:
+    #    - *if-main
+    #    - *if-release
+    - *if-merge-request-or-main # FIXME only to test in CI
+  timeout: 1h
+  #  needs: [ "test:integration-test" ] FIXME
+  script:
+    - ./gradlew
+      kmmBridgePublish updatePackageSwift
+      -PspmBuildTargets=ios_simulator_arm64 # FIXME only for testing
+      --stacktrace
+    - cat Package.swift
