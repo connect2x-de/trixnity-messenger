@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.platformModule
+import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.util.SharedFileHandlerImpl
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
@@ -23,6 +25,7 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
             single<CopyMultiMessengerSingletons>(named("DefaultCopyMultiMessengerSingletons")) {
                 DefaultCopyMultiMessengerSingletons
             }
+            single<SharedFileHandler> { SharedFileHandlerImpl() }
         }
     },
     ::platformModule,

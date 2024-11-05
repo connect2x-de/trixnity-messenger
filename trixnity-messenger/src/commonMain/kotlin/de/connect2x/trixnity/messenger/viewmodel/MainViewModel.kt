@@ -26,6 +26,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewMod
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
+import de.connect2x.trixnity.messenger.viewmodel.sharing.SharingRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -82,6 +83,7 @@ interface MainViewModel {
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
     val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
+    val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -122,6 +124,10 @@ open class MainViewModelImpl(
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         selfVerificationRouter.stack
+
+    internal val sharingRouter = SharingRouter(viewModelContext)
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
+        sharingRouter.stack
 
 
     private val backCallback = BackCallback {
@@ -643,6 +649,15 @@ class PreviewMainViewModel : MainViewModel {
                 active = Child.Created(
                     configuration = SelfVerificationRouter.Config.None,
                     instance = SelfVerificationRouter.Wrapper.None
+                )
+            )
+        )
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = SharingRouter.Config.None,
+                    instance = SharingRouter.Wrapper.None
                 )
             )
         )

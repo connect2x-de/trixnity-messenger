@@ -2444,6 +2444,16 @@ abstract class I18nView(
         EN - "Reset setup"
     }
 
+    fun shareFilesTitle(count: Int) = translate {
+        EN - "Sharing $count files"
+        DE - "Teile $count Dateien"
+    }
+
+    fun shareFilesCancel() = translate {
+        EN - "Cancel"
+        DE - "Abbrechen"
+    }
+
 }
 
 fun i18nViewModule() = module {

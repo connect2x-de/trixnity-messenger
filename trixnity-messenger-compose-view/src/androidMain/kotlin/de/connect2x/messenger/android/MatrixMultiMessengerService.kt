@@ -8,8 +8,12 @@ import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
+import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -91,16 +95,40 @@ class MatrixMessengerServiceConnection : ServiceConnection {
     private val _matrixMultiMessenger = MutableStateFlow<MatrixMultiMessenger?>(null)
     val matrixMultiMessenger = _matrixMultiMessenger.asStateFlow()
 
-    override fun onServiceConnected(className: ComponentName, service: IBinder) {
-        val binder = service as MatrixMultiMessengerService.LocalBinder
+    // If we get the share files intent before the service connection is established, cache them
+    private var sharedFiles : List<SharedFile>? = null
+
+    fun onShareFiles(context: Context, sharedFiles: List<SharedFile>?) {
+        this.sharedFiles = sharedFiles
+        _matrixMultiMessenger.value?.activeMatrixMessenger?.value?.let { useCachedFiles(context, it) }
+    }
+
+    private fun useCachedFiles(context: Context, messenger: MatrixMessenger) {
+        sharedFiles?.let { files ->
+            val i18n = messenger.di.get<I18n>()
+            messenger.di.get<SharedFileHandler>().onShare(
+                files.map {
+                    it.toFileDescriptor(context, i18n)
+                }
+            )
+        }
+        sharedFiles = null
+    }
+
+    override fun onServiceConnected(className: ComponentName, rawBinder: IBinder) {
+        val binder = rawBinder as MatrixMultiMessengerService.LocalBinder
         log.info { "bind service" }
         coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
             log.error(exception) { "Exception in MatrixMessengerServiceConnection coroutine" }
         })
         coroutineScope.launch {
-            binder.getService().matrixMultiMessenger.collect {
+            val service = binder.getService()
+            service.matrixMultiMessenger.collect {
                 log.debug { "matrixMultiMessenger found" }
                 _matrixMultiMessenger.value = it
+                it?.activeMatrixMessenger?.filterNotNull()?.scopedCollectLatest {
+                    useCachedFiles(service, it)
+                }
             }
         }.invokeOnCompletion { _matrixMultiMessenger.value = null }
     }

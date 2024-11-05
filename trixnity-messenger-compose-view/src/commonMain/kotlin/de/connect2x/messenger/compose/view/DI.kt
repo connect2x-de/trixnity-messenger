@@ -26,6 +26,8 @@ import de.connect2x.messenger.compose.view.files.ImageOverlayView
 import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
 import de.connect2x.messenger.compose.view.files.PdfOverlayView
 import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
+import de.connect2x.messenger.compose.view.files.ShareFilesView
+import de.connect2x.messenger.compose.view.files.ShareFilesViewImpl
 import de.connect2x.messenger.compose.view.files.VideoOverlayView
 import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
@@ -416,6 +418,7 @@ fun settingsViewModule() = module {
     single<AppInfoImprintView> { AppInfoImprintViewImpl() }
     single<AppInfoLicensesView> { AppInfoLicensesViewImpl() }
     single<AvatarCutterView> { AvatarCutterViewImpl() }
+    single<ShareFilesView> { ShareFilesViewImpl() }
     single<BlockedContactsSettingsView> { BlockedContactsSettingsViewImpl() }
     single<DevicesSettingsView> { DevicesSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
