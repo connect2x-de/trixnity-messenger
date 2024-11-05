@@ -113,7 +113,7 @@ private fun ShareFileCard(file: FileDescriptor) {
                     },
                     null,
                     modifier = Modifier.align(Alignment.Center),
-                    tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.38f),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                 )
             }
             Column(
