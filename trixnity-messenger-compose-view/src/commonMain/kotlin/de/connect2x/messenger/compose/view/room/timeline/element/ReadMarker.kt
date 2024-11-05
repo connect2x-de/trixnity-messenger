@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -45,27 +46,27 @@ class ReadMarkerViewImpl : ReadMarkerView {
     ) {
         val i18n = DI.get<I18nView>()
         if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
-            val isRead = timelineElementHolderViewModel.isRead.collectAsState()
+            val isRead by timelineElementHolderViewModel.isRead.collectAsState()
             val isByMe = roomMessageViewModel.isByMe
-            Box(
-                if (isByMe) Modifier
-                    .size(MaterialTheme.typography.labelSmall.dp)
-                    .padding(start = 2.dp)
-                else Modifier
-            ) {
-                if (isRead.value) {
-                    Icon(
-                        Icons.Filled.DoneAll,
-                        i18n.messageBubbleRead(),
-                        Modifier.fillMaxSize(),
-                    )
-
-                } else {
-                    Icon(
-                        Icons.Filled.Done,
-                        i18n.messageBubbleRead(),
-                        Modifier.fillMaxSize(),
-                    )
+            if (isByMe) {
+                Box(
+                    Modifier
+                        .size(MaterialTheme.typography.labelSmall.dp)
+                        .padding(start = 2.dp)
+                ) {
+                    if (isRead) {
+                        Icon(
+                            Icons.Filled.DoneAll,
+                            i18n.messageBubbleRead(),
+                            Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.Done,
+                            i18n.messageBubbleRead(),
+                            Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
         } else Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp))
