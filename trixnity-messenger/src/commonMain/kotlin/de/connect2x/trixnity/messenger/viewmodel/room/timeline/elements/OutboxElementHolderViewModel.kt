@@ -83,7 +83,6 @@ open class OutboxElementHolderViewModelImpl(
     private val richRepliesComputations = get<RichRepliesComputations>()
     private val i18n = get<I18n>()
 
-
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         combine(
             outboxMessageFlow,

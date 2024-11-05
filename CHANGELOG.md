@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Cross symbol for sent messages
 
 ### Changed
+- Reduce flickering by showing creation time and date on outbox messages
+- Change symbol for red messages to a double cross
 
 ### Deprecated
 
