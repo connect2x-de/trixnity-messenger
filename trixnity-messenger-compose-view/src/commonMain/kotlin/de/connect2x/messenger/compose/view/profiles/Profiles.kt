@@ -1,8 +1,8 @@
 package de.connect2x.messenger.compose.view.profiles
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -41,7 +41,7 @@ class ProfilesViewImpl : ProfilesView {
         existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
     ) {
         val multiProfile = DI.get<MatrixMultiMessengerConfiguration>().multiProfile
-        Box(
+        Surface(
             Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
