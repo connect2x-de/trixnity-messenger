@@ -197,7 +197,7 @@ skie {
         group {
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)
-            DefaultArgumentInterop.Enabled(false)
+            DefaultArgumentInterop.Enabled(true)
         }
         group("de.connect2x.trixnity.messenger.settings") {
             isEnabled = false
