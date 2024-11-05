@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduce flickering by showing creation time and date on outbox messages
 - Change symbol for red messages to a double cross
 - Remove alpha channel in outbox messages.
+- Unify calculation of last relevant event in room list.
 
 ### Deprecated
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show Search Results when creating Room on small screen sizes
 - Fixed bad contrast due to missing root Surface.
+- Fixed editing a message bumps room up.
 
 ### Security
 
