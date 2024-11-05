@@ -1,6 +1,5 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline
+package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.JsonObject
