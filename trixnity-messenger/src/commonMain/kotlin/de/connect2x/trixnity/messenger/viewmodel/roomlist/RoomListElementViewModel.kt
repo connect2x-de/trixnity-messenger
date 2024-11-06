@@ -198,7 +198,7 @@ open class RoomListElementViewModelImpl(
                         if (isDirect && isByMe.not()) message
                         else "${sender}: $message"
                     }
-                } else flowOf(null)
+                } else flowOf("")
             }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
     override val lastMessage: StateFlow<String?> =

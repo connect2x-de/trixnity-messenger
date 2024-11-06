@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Don't show placeholder, when lastRelevantEventId not known.
+
 ### Security
 
 ## 2.3.6
