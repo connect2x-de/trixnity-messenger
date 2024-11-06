@@ -279,5 +279,6 @@ kmmPublish:mac:
     - git clone https://write_to_repo:"$SPM_PROJECT_ACCESS_TOKEN"@gitlab.com/connect2x/trixnity-messenger/spm
     - cp Package.swift spm/Package.swift
     - cd spm
+    - git push origin
     - cat ../version.txt | xargs git tag
-    - cat ../version.txt | xargs git push origin tag
+    - cat ../version.txt | xargs git push origin --atomic main tag
