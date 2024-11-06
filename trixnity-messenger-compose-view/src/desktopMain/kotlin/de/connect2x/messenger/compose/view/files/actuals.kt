@@ -50,10 +50,13 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.FileKit
@@ -77,10 +80,12 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.net.URI
+import java.net.URLEncoder
 import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.min
@@ -242,6 +247,7 @@ private interface ClipboardType {
     data object Image : ClipboardType
     data object AwtImage : ClipboardType
     data object UriList : ClipboardType
+    data object FileList : ClipboardType
 }
 
 private inline fun <reified T> Clipboard.getDataOrNull(flavor: DataFlavor): T? {
@@ -276,16 +282,19 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
 
     clipboard.availableDataFlavors.forEach { flavor ->
         val contentType = ContentType.parse(flavor.mimeType)
+        log.debug { "content type of clipboard is $contentType" }
 
         val clipboardType = when {
             isPreviewableImage(contentType) -> ClipboardType.Image
             flavor.representationClass == java.awt.Image::class.java -> ClipboardType.AwtImage
             contentType.match(uriListContentType) -> ClipboardType.UriList
+            flavor.isFlavorJavaFileListType -> ClipboardType.FileList
             else -> {
                 log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
                 return@forEach
             }
         }
+        log.debug { "Clipboard type is $clipboardType" }
 
         if (clipboardType == ClipboardType.Image && !flavor.isRepresentationClassInputStream) {
             log.warn { "cannot handle image stored in ${flavor.representationClass}" }
@@ -296,6 +305,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
             return@forEach
         }
 
+        val maxUploadSize = MatrixMessengerConfiguration().clipboardMaxSize
         when (clipboardType) {
             ClipboardType.Image -> {
                 val estimatedSize =
@@ -309,7 +319,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
                     contentType,
                     byteArrayFlowFromInputStream {
                         clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
-                    }
+                    }.limitSize(maxUploadSize)
                 )
             }
 
@@ -333,7 +343,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
                         "$baseName.png",
                         byteArray.size.toLong(),
                         ContentType.Image.PNG,
-                        byteArray.toByteArrayFlow(),
+                        byteArray.toByteArrayFlow().limitSize(maxUploadSize),
                     )
                 }
             }
@@ -346,12 +356,27 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
                     log.info { "the selected files list is empty" }
                     return null
                 }
-                val uri = URI(fileName)
+                val uri = URI(URLEncoder.encode(fileName, Charsets.UTF_8))
                 if (uri.scheme != "file") {
                     log.warn { "improperly formatted uri: $fileName" }
                     return null
                 }
-                return PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem)
+                val descriptor = try {
+                    PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem, maxUploadSize)
+                } catch (_: MaxByteFlowSizeException) {
+                    return null
+                }
+                return descriptor
+            }
+
+            ClipboardType.FileList -> {
+                val data = clipboard.getDataOrNull<List<File>>(flavor)
+                data?.get(0)?.let {
+                    return if (it.totalSpace <= maxUploadSize) PathFileDescriptor(
+                        it.path.toPath(),
+                        fileSystem
+                    ) else null
+                }
             }
         }
     }

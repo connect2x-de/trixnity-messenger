@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.gb
+import de.connect2x.trixnity.messenger.util.kb
 import de.connect2x.trixnity.messenger.util.mb
 import org.koin.core.module.Module
 
@@ -45,6 +46,11 @@ data class MatrixMessengerConfiguration(
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
      */
     val imageAttachmentMaxProcessingSize: Long = 50.mb(),
+
+    /**
+     * The maximum size of clipboard files that can be uploaded
+     */
+    val clipboardMaxSize: Long = 5.kb(),
 
     /**
      * The maximum size of avatars that can be uploaded in *Bytes*
