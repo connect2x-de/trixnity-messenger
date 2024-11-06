@@ -271,10 +271,10 @@ kmmPublish:mac:
   timeout: 1h
   #  needs: [ "test:integration-test" ] FIXME
   script:
-    - ./gradlew
-      kmmBridgePublish updatePackageSwift
-      -PspmBuildTargets=ios_simulator_arm64 --stacktrace # FIXME only for testing
-    - cat Package.swift
+#    - ./gradlew
+#      kmmBridgePublish updatePackageSwift
+#      -PspmBuildTargets=ios_simulator_arm64 --stacktrace # FIXME only for testing
+#    - cat Package.swift
     - ./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}' | sed 's/DEV/alpha/g' > version.txt
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/connect2x/trixnity-messenger/spm
     - cp Package.swift spm/Package.swift
