@@ -98,7 +98,9 @@ private fun ShareFileCard(file: FileDescriptor) {
     val isImage = file.mimeType?.match("image/*") == true
     val isVideo = file.mimeType?.match("video/*") == true
     val isAudio = file.mimeType?.match("audio/*") == true
-    Card(Modifier.height(72.dp)) {
+    val baseName = file.fileName.substringBeforeLast('.')
+    val fileExtension = "." + file.fileName.substringAfterLast('.')
+    Card(Modifier.height(56.dp)) {
         Row {
             Box(
                 modifier = Modifier
@@ -119,18 +121,31 @@ private fun ShareFileCard(file: FileDescriptor) {
                 )
             }
             Column(
-                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+                verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxHeight()
                     .padding(start = 8.dp, end = 16.dp)
-                    .widthIn(120.dp, 240.dp)
+                    .widthIn(min = 112.dp)
             ) {
+                Row {
+                    Text(
+                        baseName,
+                        modifier = Modifier.widthIn(max = 180.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        fileExtension,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        softWrap = false
+                    )
+                }
                 Text(
-                    file.fileName,
-                    fontWeight = FontWeight.Bold,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis
+                    fileSize,
+                    style = MaterialTheme.typography.labelMedium
                 )
-                Text(fileSize)
             }
         }
     }
