@@ -20,6 +20,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
@@ -91,7 +92,8 @@ open class OutboxElementHolderViewModelImpl(
         ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
             val content = outboxMessage?.content
             val creationTime = outboxMessage?.createdAt?.toLocalDateTime(viewModelContext.get())
-            if (content is RoomMessageEventContent)
+            if (content?.relatesTo is RelatesTo.Replace) null
+            else if (content is RoomMessageEventContent)
                 when (content) {
                     is TextBased.Notice -> {
                         get<NoticeMessageViewModelFactory>().create(
