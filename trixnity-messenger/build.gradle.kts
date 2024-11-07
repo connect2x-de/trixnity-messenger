@@ -87,6 +87,7 @@ kotlin {
                 implementation(libs.korge)
                 implementation(libs.kim)
                 implementation(libs.markdown)
+                implementation(libs.skie.annotations)
             }
         }
         commonTest {
@@ -197,7 +198,7 @@ skie {
         group {
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)
-            DefaultArgumentInterop.Enabled(true)
+            DefaultArgumentInterop.Enabled(true) // is disabled by default (see https://skie.touchlab.co/features/default-arguments), so we have to use annotations where necessary
         }
         group("de.connect2x.trixnity.messenger.settings") {
             isEnabled = false

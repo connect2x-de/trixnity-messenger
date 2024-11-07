@@ -72,6 +72,8 @@ decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decom
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
 sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
 sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
+#sysnotify-desktop = { module = "de.connect2x:sysnotify-jvm", version.ref = "sysnotify" }
+skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
