@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Wizard and modal dialog buttons are always shown on smaller screens 
+
 ### Security
 
 ## 2.3.6
