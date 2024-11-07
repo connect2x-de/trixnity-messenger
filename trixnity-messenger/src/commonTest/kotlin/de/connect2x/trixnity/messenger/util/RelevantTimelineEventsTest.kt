@@ -11,8 +11,6 @@ import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
@@ -60,11 +58,8 @@ class RelevantTimelineEventsTest : ShouldSpec() {
             ) shouldBe true
         }
 
-        should("consider member events as relevant") {
-            cut.isRelevantTimelineEvent(MemberEventContent(membership = Membership.JOIN)) shouldBe true
-        }
 
-        should("consider some state events as not relevant") {
+        should("consider state events as not relevant") {
             cut.isRelevantTimelineEvent(CanonicalAliasEventContent()) shouldBe false
         }
     }

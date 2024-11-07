@@ -356,6 +356,23 @@ class RoomListElementViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
+        should("display last message as empty when unknown") {
+            val eventId1 = EventId("\$event1")
+            val room1 = Room(
+                roomId1,
+                lastEventId = eventId1,
+                isDirect = true,
+                lastRelevantEventId = eventId1
+            )
+            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(null)
+
+            roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "" }
+
+            cancelNeverEndingCoroutines()
+        }
+
         should("show 'you' as the author in the last message in a direct room when last message was sent by me") {
             val eventId1 = EventId("\$event1")
             val eventId2 = EventId("\$event2")

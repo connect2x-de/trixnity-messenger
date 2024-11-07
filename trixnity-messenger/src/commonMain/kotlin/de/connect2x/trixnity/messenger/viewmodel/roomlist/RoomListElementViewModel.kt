@@ -198,7 +198,7 @@ open class RoomListElementViewModelImpl(
                         if (isDirect && isByMe.not()) message
                         else "${sender}: $message"
                     }
-                } else flowOf(null)
+                } else flowOf("")
             }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
     override val lastMessage: StateFlow<String?> =
@@ -299,7 +299,6 @@ open class RoomListElementViewModelImpl(
             val content = lastTimelineEvent.content?.getOrNull()
             if (content is RoomMessageEventContent)
                 when (content) {
-
                     is FileBased.Image -> i18n.roomListContentImage()
                     is FileBased.Video -> i18n.roomListContentVideo()
                     is FileBased.Audio -> i18n.roomListContentAudio()
