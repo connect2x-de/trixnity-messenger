@@ -31,20 +31,21 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -55,7 +56,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
@@ -63,7 +63,6 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import org.koin.dsl.koinApplication
@@ -175,7 +174,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                     any()
                 )
             } returns flowOf(null)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId), any()) } returns
+            every { roomServiceMock.getTimelineEvent(eq(roomId), any()) } returns
                     MutableStateFlow(null)
             every {
                 roomServiceMock.getState(
@@ -246,7 +245,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                             encrypted = true,
                             unreadMessageCount = 0,
                             membership = Membership.INVITE,
-                            membersLoaded = false
+                            membersLoaded = false,
                         )
                     )
 
@@ -265,22 +264,38 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
         should("show time for last messages that were sent today and the date for messages from yesterday onwards") {
             val room1LastEvent = timelineEvent(EventId("event1"), clock.now().minus(1.seconds))
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(MutableStateFlow(room1LastEvent))
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(room1LastEvent.eventId)) } returns
+                    flowOf(room1LastEvent)
             val room2LastEvent = timelineEvent(EventId("event2"), clock.now().minus(1.minutes))
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId2), any()) } returns
-                    MutableStateFlow(MutableStateFlow(room2LastEvent))
+            every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(room2LastEvent.eventId)) } returns
+                    flowOf(room2LastEvent)
             val room3LastEvent = timelineEvent(EventId("event3"), clock.now().minus(1.hours))
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId3), any()) } returns
-                    MutableStateFlow(MutableStateFlow(room3LastEvent))
+            every { roomServiceMock.getTimelineEvent(eq(roomId3), eq(room3LastEvent.eventId)) } returns
+                    flowOf(room3LastEvent)
             val room4LastEvent = timelineEvent(EventId("event4"), clock.now().minus(1.days))
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId4), any()) } returns
-                    MutableStateFlow(MutableStateFlow(room4LastEvent))
+            every { roomServiceMock.getTimelineEvent(eq(roomId4), eq(room4LastEvent.eventId)) } returns
+                    flowOf(room4LastEvent)
 
-            val room1 = Room(roomId1)
-            val room2 = Room(roomId2)
-            val room3 = Room(roomId3)
-            val room4 = Room(roomId4)
+            val room1 = Room(
+                roomId1,
+                lastRelevantEventId = room1LastEvent.eventId,
+                lastRelevantEventTimestamp = Instant.fromEpochMilliseconds(room1LastEvent.originTimestamp)
+            )
+            val room2 = Room(
+                roomId2,
+                lastRelevantEventId = room2LastEvent.eventId,
+                lastRelevantEventTimestamp = Instant.fromEpochMilliseconds(room2LastEvent.originTimestamp)
+            )
+            val room3 = Room(
+                roomId3,
+                lastRelevantEventId = room3LastEvent.eventId,
+                lastRelevantEventTimestamp = Instant.fromEpochMilliseconds(room3LastEvent.originTimestamp)
+            )
+            val room4 = Room(
+                roomId4,
+                lastRelevantEventId = room4LastEvent.eventId,
+                lastRelevantEventTimestamp = Instant.fromEpochMilliseconds(room4LastEvent.originTimestamp)
+            )
 
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
@@ -314,24 +329,24 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1
             )
             val room2 = Room(
                 roomId2,
                 lastEventId = eventId2,
-                isDirect = true
+                isDirect = true,
+                lastRelevantEventId = eventId2
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!")))
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId2), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(
-                            timelineEventEncrypted(
-                                eventId2,
-                                Clock.System.now().minus(1.days),
-                                "What's up?"
-                            )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
+            every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(eventId2)) } returns
+                    flowOf(
+                        timelineEventEncrypted(
+                            eventId2,
+                            Clock.System.now().minus(1.days),
+                            "What's up?"
                         )
                     )
 
@@ -341,183 +356,19 @@ class RoomListElementViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("search for the last known message and display that instead of the last message of type UnknownEventContent") {
+        should("display last message as empty when unknown") {
             val eventId1 = EventId("\$event1")
-            val eventId2 = EventId("\$event2")
             val room1 = Room(
                 roomId1,
-                lastEventId = eventId2,
+                lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            val reaction = TimelineEvent(
-                MessageEvent(
-                    UnknownEventContent(
-                        raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
-                        eventType = "m.reaction"
-                    ),
-                    eventId2,
-                    user2,
-                    roomId1,
-                    Clock.System.now().toEpochMilliseconds(),
-                ),
-                previousEventId = eventId1,
-                nextEventId = null,
-                gap = null,
-            )
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(MutableStateFlow(reaction))
-            every {
-                roomServiceMock.getPreviousTimelineEvent(
-                    eq(reaction),
-                    any(),
-                )
-            } returns
-                    MutableStateFlow(
-                        TimelineEvent(
-                            MessageEvent(
-                                RoomMessageEventContent.TextBased.Text(body = "Hola"),
-                                eventId1,
-                                user2,
-                                roomId1,
-                                1000L,
-                            ),
-                            previousEventId = null,
-                            nextEventId = null,
-                            gap = null,
-                        )
-                    )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(null)
 
-            roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "Hola" }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("search for the last known message and display that instead of the last message is an encrypted UnknownEventContent") {
-            val eventId1 = EventId("\$event1")
-            val eventId2 = EventId("\$event2")
-            val room1 = Room(
-                roomId1,
-                lastEventId = eventId2,
-                isDirect = true,
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            val reaction = TimelineEvent(
-                MessageEvent(
-                    MegolmEncryptedMessageEventContent(
-                        ciphertext = "78fd687dfdsf",
-                        senderKey = Key.Curve25519Key(value = ""),
-                        deviceId = "deviceId",
-                        sessionId = "sessionId"
-                    ),
-                    eventId2,
-                    user2,
-                    roomId1,
-                    1000L,
-                ),
-                Result.success(
-                    UnknownEventContent(
-                        raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
-                        eventType = "m.reaction"
-                    ),
-                ),
-                previousEventId = eventId1,
-                nextEventId = null,
-                gap = null,
-            )
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(MutableStateFlow(reaction))
-            every {
-                roomServiceMock.getPreviousTimelineEvent(
-                    eq(reaction),
-                    any(),
-                )
-            } returns
-                    MutableStateFlow(
-                        TimelineEvent(
-                            MessageEvent(
-                                RoomMessageEventContent.TextBased.Text(body = "Hola"),
-                                eventId1,
-                                user2,
-                                roomId1,
-                                1000L,
-                            ),
-                            previousEventId = null,
-                            nextEventId = null,
-                            gap = null,
-                        )
-                    )
-
-            roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "Hola" }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("display the text of the last text message even when there are multiple state events since then") {
-            val lastEventNumber = 10
-            val lastEventId = EventId("\$event-$lastEventNumber")
-            val room = Room(
-                roomId1,
-                lastEventId = lastEventId,
-                isDirect = true,
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room)
-            val lastTimelineEvent = TimelineEvent(
-                StateEvent(
-                    NameEventContent("new name"),
-                    lastEventId,
-                    user2,
-                    roomId1,
-                    Clock.System.now().toEpochMilliseconds(),
-                    stateKey = ""
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
-            )
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(MutableStateFlow(lastTimelineEvent))
-            var currentTimelineEvent = lastTimelineEvent
-            (lastEventNumber - 1 downTo 0).forEach { i ->
-                val eventId = EventId("\$event-$i")
-                val previousTimelineEvent = if (i > 1) {
-                    TimelineEvent(
-                        StateEvent(
-                            NameEventContent("new name"),
-                            eventId,
-                            user2,
-                            roomId1,
-                            1000L,
-                            stateKey = "",
-                        ),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
-                } else if (i > 0) {
-                    TimelineEvent(
-                        MessageEvent(
-                            RoomMessageEventContent.TextBased.Text("Hello!"),
-                            eventId,
-                            user2,
-                            roomId1,
-                            1000L,
-                        ),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
-                } else null
-                every {
-                    roomServiceMock.getPreviousTimelineEvent(
-                        eq(currentTimelineEvent),
-                        any(),
-                    )
-                } returns previousTimelineEvent?.let { MutableStateFlow(it) }
-                if (previousTimelineEvent != null) currentTimelineEvent = previousTimelineEvent
-            }
-
-            roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "Hello!" }
+            roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "" }
 
             cancelNeverEndingCoroutines()
         }
@@ -529,128 +380,37 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1
             )
             val room2 = Room(
                 roomId2,
                 lastEventId = eventId2,
-                isDirect = true
+                isDirect = true,
+                lastRelevantEventId = eventId2
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(
-                            timelineEvent(
-                                eventId1,
-                                Clock.System.now(),
-                                "Hello!",
-                                sender = me,
-                            )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(
+                        timelineEvent(
+                            eventId1,
+                            Clock.System.now(),
+                            "Hello!",
+                            sender = me,
                         )
                     )
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId2), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(
-                            timelineEventEncrypted(
-                                eventId2,
-                                Clock.System.now().minus(1.days),
-                                "What's up?",
-                                sender = me,
-                            )
+            every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(eventId2)) } returns
+                    flowOf(
+                        timelineEventEncrypted(
+                            eventId2,
+                            Clock.System.now().minus(1.days),
+                            "What's up?",
+                            sender = me,
                         )
                     )
 
             roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "you: Hello!" }
             roomListElementViewModel(roomId2, coroutineContext).lastMessage.first { it == "you: What's up?" }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("cap the search for the last text message at 100 non-text messages") {
-            val lastEventNumber = 110
-            val lastEventId = EventId("\$event-$lastEventNumber")
-            val room = Room(
-                roomId1,
-                lastEventId = lastEventId,
-                isDirect = true,
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room)
-            val lastTimelineEvent = TimelineEvent(
-                StateEvent(
-                    NameEventContent("new name"),
-                    lastEventId,
-                    user2,
-                    roomId1,
-                    Clock.System.now().toEpochMilliseconds(),
-                    stateKey = ""
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
-            )
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    flowOf(flowOf(lastTimelineEvent))
-            var currentTimelineEvent = lastTimelineEvent
-            (lastEventNumber - 1 downTo 0).forEach { i ->
-                val eventId = EventId("\$event-$i")
-                val previousTimelineEvent = if (i > 1) {
-                    TimelineEvent(
-                        StateEvent(
-                            NameEventContent("new name"),
-                            eventId,
-                            user2,
-                            roomId1,
-                            Clock.System.now().toEpochMilliseconds(),
-                            stateKey = "",
-                        ),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
-                } else if (i > 0) {
-                    TimelineEvent(
-                        MessageEvent(
-                            RoomMessageEventContent.TextBased.Text("Hello!"),
-                            eventId,
-                            user2,
-                            roomId1,
-                            Clock.System.now().toEpochMilliseconds(),
-                        ),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
-                } else null
-                every {
-                    roomServiceMock.getPreviousTimelineEvent(
-                        eq(currentTimelineEvent),
-                        any(),
-                    )
-                } returns previousTimelineEvent?.let { flowOf(it) }
-                if (previousTimelineEvent != null) currentTimelineEvent = previousTimelineEvent
-            }
-            every {
-                roomServiceMock.getState(eq(roomId1), eq(CreateEventContent::class), any())
-            } returns flowOf(
-                StateEvent(
-                    CreateEventContent(
-                        creator = user2,
-                        federate = false,
-                        roomVersion = "6",
-                        type = CreateEventContent.RoomType.Room,
-                    ),
-                    EventId("creation"),
-                    sender = user2,
-                    roomId1,
-                    Instant.parse("2021-11-02T15:00:00Z").toEpochMilliseconds(),
-                    stateKey = "",
-                )
-            )
-
-            val cut = roomListElementViewModel(roomId1, coroutineContext)
-            combine(cut.lastMessage, cut.time) { lastMessage, time ->
-                lastMessage == "" && time == "02.11.21"
-            }.first { it }
 
             cancelNeverEndingCoroutines()
         }
@@ -662,54 +422,52 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1,
             )
             val room2 = Room(
                 roomId2,
                 lastEventId = eventId2,
                 isDirect = true,
+                lastRelevantEventId = eventId2,
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
             every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(
-                            TimelineEvent(
-                                MessageEvent(
-                                    RoomMessageEventContent.FileBased.Image(""),
-                                    eventId1,
-                                    user2,
-                                    roomId1,
-                                    Clock.System.now().toEpochMilliseconds(),
-                                ),
-                                previousEventId = null,
-                                nextEventId = null,
-                                gap = null,
-                            )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(
+                        TimelineEvent(
+                            MessageEvent(
+                                RoomMessageEventContent.FileBased.Image(""),
+                                eventId1,
+                                user2,
+                                roomId1,
+                                Clock.System.now().toEpochMilliseconds(),
+                            ),
+                            previousEventId = null,
+                            nextEventId = null,
+                            gap = null,
                         )
                     )
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId2), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(
-                            TimelineEvent(
-                                MessageEvent(
-                                    MegolmEncryptedMessageEventContent(
-                                        "",
-                                        Key.Curve25519Key(value = ""),
-                                        deviceId = "",
-                                        sessionId = "",
-                                    ),
-                                    eventId2,
-                                    user2,
-                                    roomId2,
-                                    Clock.System.now().toEpochMilliseconds(),
+            every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(eventId2)) } returns
+                    flowOf(
+                        TimelineEvent(
+                            MessageEvent(
+                                MegolmEncryptedMessageEventContent(
+                                    "",
+                                    Key.Curve25519Key(value = ""),
+                                    deviceId = "",
+                                    sessionId = "",
                                 ),
-                                Result.success(
-                                    RoomMessageEventContent.FileBased.Video(""),
-                                ),
-                                previousEventId = null,
-                                nextEventId = null,
-                                gap = null,
-                            )
+                                eventId2,
+                                user2,
+                                roomId2,
+                                Clock.System.now().toEpochMilliseconds(),
+                            ),
+                            Result.success(
+                                RoomMessageEventContent.FileBased.Video(""),
+                            ),
+                            previousEventId = null,
+                            nextEventId = null,
+                            gap = null,
                         )
                     )
 
@@ -721,25 +479,25 @@ class RoomListElementViewModelTest : ShouldSpec() {
 
         should("change the RoomElement when the last message in a room changes") {
             val eventId1 = EventId("\$event1")
+            val eventId2 = EventId("\$event2")
             val room1 = Room(
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1
             )
-            val lastMessageEvent =
-                MutableStateFlow(MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!")))
+            val roomFlow = MutableStateFlow(room1)
 
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every {
-                roomServiceMock.getLastTimelineEvent(eq(roomId1), any())
-            } returns lastMessageEvent
+            every { roomServiceMock.getById(roomId1) } returns roomFlow
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId2)) } returns
+                    flowOf(timelineEvent(eventId2, Clock.System.now(), "A new message."))
 
             val cut = roomListElementViewModel(roomId1, coroutineContext)
 
             cut.lastMessage.first { it == "Hello!" }
-
-            val eventId2 = EventId("\$event2")
-            lastMessageEvent.value = MutableStateFlow(timelineEvent(eventId2, Clock.System.now(), "A new message."))
+            roomFlow.update { it.copy(lastRelevantEventId = eventId2) }
             cut.lastMessage.first { it == "A new message." }
 
             cancelNeverEndingCoroutines()
@@ -751,11 +509,11 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1
             )
             val messageStateFlow = MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(messageStateFlow)
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns messageStateFlow
 
             val cut = roomListElementViewModel(roomId1, coroutineContext)
 
@@ -773,10 +531,11 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = false,
+                lastRelevantEventId = eventId1
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!")))
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
 
             roomListElementViewModel(roomId1, coroutineContext).lastMessage.firstWithClue("User 2: Hello!")
 
@@ -789,12 +548,12 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = false,
+                lastRelevantEventId = eventId1,
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!", sender = me))
-                    )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(timelineEvent(eventId1, Clock.System.now(), "Hello!", sender = me))
+
             roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "you: Hello!" }
 
             cancelNeverEndingCoroutines()
@@ -806,12 +565,11 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = true,
+                lastRelevantEventId = eventId1,
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
-                    )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
 
             roomListElementViewModel(roomId1, coroutineContext).lastMessage.first { it == "Hello!" }
 
@@ -824,12 +582,12 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 roomId1,
                 lastEventId = eventId1,
                 isDirect = false,
+                lastRelevantEventId = eventId1,
             )
             every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId1), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
-                    )
+            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns
+                    flowOf(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
+
 
             val cut = roomListElementViewModel(roomId1, coroutineContext)
 
@@ -848,18 +606,17 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 isDirect = false,
             )
             every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
-            every { roomServiceMock.getLastTimelineEvent(eq(roomId), any()) } returns
-                    MutableStateFlow(
-                        MutableStateFlow(
-                            TimelineEvent(
-                                event = inviteEvent(),
-                                content = Result.success(inviteEvent().content),
-                                previousEventId = null,
-                                nextEventId = null,
-                                gap = null,
-                            )
+            every { roomServiceMock.getTimelineEvent(eq(roomId), eq(eventId1)) } returns
+                    flowOf(
+                        TimelineEvent(
+                            event = inviteEvent(),
+                            content = Result.success(inviteEvent().content),
+                            previousEventId = null,
+                            nextEventId = null,
+                            gap = null,
                         )
                     )
+
             every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
                 IgnoredUserListEventContent(
                     mapOf(

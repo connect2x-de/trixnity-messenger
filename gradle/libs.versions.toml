@@ -29,7 +29,7 @@ korge = "4.0.10" # https://github.com/korlibs/korge/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.52" # https://www.npmjs.com/package/@zip.js/zip.js
-skie = "0.8.4" # https://github.com/touchlab/SKIE/releases
+skie = "0.9.3" # https://github.com/touchlab/SKIE/releases
 kmmBridge = "1.0.0" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.18.4"
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
@@ -72,6 +72,8 @@ decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decom
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
 sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
 sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
+#sysnotify-desktop = { module = "de.connect2x:sysnotify-jvm", version.ref = "sysnotify" }
+skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }

@@ -286,7 +286,6 @@ class RoomListViewModelTest : ShouldSpec() {
             every {
                 roomNameMock.getRoomName(isRoomOf(spaceId2), eq(matrixClientMock), any())
             } returns flowOf("space and beyond and beyonder")
-            every { roomServiceMock.getLastTimelineEvent(any(), any()) } returns flowOf(null)
 
             every {
                 roomServiceMock.getAllState(eq(spaceId1), ChildEventContent::class)
@@ -1110,7 +1109,6 @@ class RoomListViewModelTest : ShouldSpec() {
             every {
                 roomNameMock.getRoomName(any<RoomId>(), any(), any())
             } returns flowOf("room")
-            every { roomServiceMock2.getLastTimelineEvent(any(), any()) } returns flowOf(null)
 
             every { userServiceMock2.getAccountData(DirectEventContent::class) } returns
                     MutableStateFlow(

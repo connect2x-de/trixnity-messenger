@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import co.touchlab.skie.configuration.annotations.DefaultArgumentInterop
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
@@ -13,7 +14,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import org.koin.core.Koin
 import org.koin.dsl.bind
@@ -43,6 +43,7 @@ class MatrixMultiMessengerImpl private constructor(
 ) : MatrixMultiMessenger, ProfileManager by profileManager {
 
     companion object {
+        @DefaultArgumentInterop.Enabled
         suspend operator fun invoke(
             coroutineContext: CoroutineContext = Dispatchers.Default,
             configuration: MatrixMultiMessengerConfiguration.() -> Unit,

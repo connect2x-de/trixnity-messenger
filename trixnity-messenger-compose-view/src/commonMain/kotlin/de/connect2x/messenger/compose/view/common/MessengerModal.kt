@@ -78,7 +78,7 @@ fun MessengerModal(
 @Composable
 fun ColumnScope.MessengerModalContent(content: @Composable ColumnScope.() -> Unit) {
     val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState).weight(5.0f, fill = false)) {
+    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = true)) {
         content()
     }
     // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be needed)
@@ -92,7 +92,11 @@ fun ColumnScope.MessengerModalButtonRow(
     button3: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Spacer(Modifier.size(20.dp))
-    Column(Modifier.fillMaxWidth().weight(1.0f, fill = false), horizontalAlignment = Alignment.End) {
+    Column(
+        Modifier.fillMaxWidth().weight(1.0f, fill = false),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.Bottom,
+    ) {
         FlowRow(horizontalArrangement = Arrangement.SpaceEvenly) {
             button1()
             if (button2 != null) {
@@ -126,7 +130,11 @@ fun ColumnScope.MessengerModalThreeButtonRow(
     misc: (@Composable RowScope.() -> Unit)? = null,
 ) {
     MiddleSpacer()
-    Column(Modifier.fillMaxWidth().weight(1.0f, fill = false), horizontalAlignment = Alignment.End) {
+    Column(
+        Modifier.fillMaxWidth().weight(1.0f, fill = false),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.Bottom,
+    ) {
         FlowRow(horizontalArrangement = Arrangement.End) {
             if (misc != null) {
                 misc()
