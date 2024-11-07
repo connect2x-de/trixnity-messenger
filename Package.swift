@@ -1,7 +1,7 @@
 // swift-tools-version:5.3
 import PackageDescription
 
-let packageName = "trixnity-messenger"
+let packageName = "TrixnityMessenger"
 
 let package = Package(
     name: packageName,
