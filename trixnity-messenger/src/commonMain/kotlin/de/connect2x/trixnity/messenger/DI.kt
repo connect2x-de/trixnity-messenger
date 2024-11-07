@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
@@ -58,7 +59,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecur
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
@@ -157,8 +157,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.store.isEncrypted
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -191,13 +189,14 @@ fun createDefaultTrixnityMessengerModules() = listOf(
             }
         }
         single<CreateMatrixClientConfiguration> {
+            val relevantTimelineEvents = get<RelevantTimelineEvents>()
             CreateMatrixClientConfiguration {
                 {
                     name = getOrNull<DebugName>()?.invoke()
                     setOwnMessagesAsFullyRead = true
                     httpClientFactory = get<HttpClientFactory>()()
                     lastRelevantEventFilter =
-                        { it.content is RoomMessageEventContent || it.isEncrypted }
+                        { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
                 }
             }
         }

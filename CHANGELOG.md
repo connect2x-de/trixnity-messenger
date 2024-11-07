@@ -17,9 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Show Search Results when creating Room on small screen sizes
-
 ### Security
+
+## 2.3.6
+
+### Added
+
+- Cross symbol for sent messages
+
+### Changed
+
+- Reduce flickering by showing creation time and date on outbox messages
+- Change symbol for red messages to a double cross
+- Remove alpha channel in outbox messages.
+- Unify calculation of last relevant event in room list.
+
+### Fixed
+
+- Show Search Results when creating Room on small screen sizes
+- Fixed bad contrast due to missing root Surface.
+- Fixed editing a message bumps room up.
+- Fixed Android notifications.
 
 ## 2.3.5
 
