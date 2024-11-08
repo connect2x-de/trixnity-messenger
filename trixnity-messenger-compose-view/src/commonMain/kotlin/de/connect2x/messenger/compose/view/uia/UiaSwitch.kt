@@ -22,5 +22,7 @@ fun UiaSwitch(stack: Value<ChildStack<*, UiaRouter.Wrapper>>) =
             is UiaRouter.Wrapper.UiaStepFallback -> UiaFallbackFlow(child.viewModel)
             is UiaRouter.Wrapper.UiaStepRegistrationToken -> UiaRegistrationToken(child.viewModel)
             is UiaRouter.Wrapper.UiaStepDummy -> UiaDummyStep(child.viewModel)
+            is UiaRouter.Wrapper.UiaStepEmailIdentity -> UiaEmailIdentityStep(child.viewModel)
+            is UiaRouter.Wrapper.UiaStepMsisdn -> UiaMsisdnStep(child.viewModel)
         }.let {}
     }
