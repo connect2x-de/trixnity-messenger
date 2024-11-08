@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
@@ -2383,6 +2384,32 @@ abstract class I18nView(
         DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
         EN - "The activation of the encryption of the chat cannot be revoked."
     }
+
+    fun uploadFileErrorTitle() = translate {
+        DE - "Beim Hochladen der Datei ist ein Fehler aufgetreten"
+        EN - "An error occurred during the upload of the file"
+    }
+
+    fun uploadFileErrorFileTooBig(maxUploadSize: Long) = translate {
+        DE - "Die ausgewählte Datei überschreitet die maximale Uploadgröße von ${formatSize(maxUploadSize)}."
+        EN - "The selected files size exceeds the maximum upload size of ${formatSize(maxUploadSize)}."
+    }
+
+    fun uploadFileErrorUnknown() = translate {
+        DE - "Ein unbekannter Uploadfehler is aufgetreten."
+        EN - "An unknown upload error has occurred."
+    }
+
+    fun uploadFileErrorNotPasteable() = translate {
+        DE - "Die Inhalte der ausgewählten Datei können nicht hochgeladen werden."
+        EN - "The contents of the selected file can't be uploaded."
+    }
+
+    fun uploadFileErrorFileListEmpty() = translate {
+        DE - "Die ausgewählte Dateiliste ist leer."
+        EN - "The selected file list is empty."
+    }
+
 }
 
 fun i18nViewModule() = module {
