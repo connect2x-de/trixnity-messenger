@@ -50,6 +50,7 @@ interface UiaStepFallbackViewModel {
     val fallbackUrl: String
     val waitForResult: StateFlow<Boolean>
     val error: StateFlow<String?>
+    val authenticationTypeString: String
     fun openFallbackUrl()
 
     /**
@@ -62,7 +63,7 @@ interface UiaStepFallbackViewModel {
 class UiaStepFallbackViewModelImpl(
     viewModelContext: ViewModelContext,
     private val uiaStep: UIA.Step<*>,
-    authenticationType: AuthenticationType,
+    private val authenticationType: AuthenticationType,
     private val onNext: (UIA<*>) -> Unit,
     private val onCancel: () -> Unit,
     private val onError: (MatrixServerException) -> Unit,
@@ -75,6 +76,11 @@ class UiaStepFallbackViewModelImpl(
 
     private val uriCaller = get<UriCaller>()
     override val fallbackUrl: String = uiaStep.getFallbackUrl(authenticationType).toString()
+    override val authenticationTypeString: String = authenticationType.toString()
+
+    init {
+        isSupportedFallbackAuthentication(authenticationType)
+    }
 
     override fun openFallbackUrl() {
         uriCaller(fallbackUrl, true)
@@ -84,29 +90,41 @@ class UiaStepFallbackViewModelImpl(
     override fun confirm() {
         if (waitForResult.getAndUpdate { true }.not()) {
             pollingJob = coroutineScope.launch {
-                error.value = null
-                var nextUia: UIA<*>? = null
-                while (nextUia !is UIA.Success<*>) {
-                    delay(POLLING_INTERVAL)
-                    uiaStep.authenticate(AuthenticationRequest.Fallback)
-                        .onSuccess {
-                            if (it is UIA.Error) {
-                                log.error { "error during fallback: ${it.errorResponse.error}" }
-                                error.value = i18n.uiaGenericError(it.errorResponse.error)
-                            } else {
-                                nextUia = it
+                if (isSupportedFallbackAuthentication(authenticationType)) {
+                    error.value = null
+                    var nextUia: UIA<*>? = null
+                    log.debug { "nextUia.state.completed: ${(nextUia as? UIA.Step<*>)?.state?.completed ?: "[]"}, authenticationType: $authenticationType" }
+                    while (nextUia !is UIA.Success<*> && (
+                                (nextUia is UIA.Step<*> && nextUia.state.completed.contains(authenticationType)).not()
+                                )
+                    ) {
+                        log.debug { "nextUia: $nextUia, authenticationType: $authenticationType" }
+                        delay(POLLING_INTERVAL)
+                        uiaStep.authenticate(AuthenticationRequest.Fallback)
+                            .onSuccess {
+                                if (it is UIA.Error) {
+                                    log.error { "error during fallback: ${it.errorResponse.error}" }
+                                    error.value = i18n.uiaGenericError(it.errorResponse.error)
+                                } else {
+                                    log.debug { "UIA fallback action was successful -> set nextUia: $it" }
+                                    nextUia = it
+                                }
                             }
-                        }
-                        .onFailure { e ->
-                            log.error { "error during fallback: ${e.message}" }
-                            if (e is MatrixServerException) onError(e)
-                            else error.value = i18n.uiaGenericError(e.message)
-                            return@launch
-                        }
+                            .onFailure { e ->
+                                log.error { "error during fallback: ${e.message}" }
+                                if (e is MatrixServerException) onError(e)
+                                else error.value = i18n.uiaGenericError(e.message)
+                                return@launch
+                            }
+                    }
+                    nextUia?.also {
+                        log.debug { "nextUia is set -> onNext()" }
+                        onNext(it)
+                    }
                 }
-                nextUia?.also { onNext(it) }
             }
             pollingJob?.invokeOnCompletion {
+                log.debug { "UIA fallback action completed" }
                 waitForResult.value = false
             }
         }
@@ -116,12 +134,23 @@ class UiaStepFallbackViewModelImpl(
         pollingJob?.cancel()
         onCancel()
     }
+
+    private fun isSupportedFallbackAuthentication(authenticationType: AuthenticationType): Boolean =
+        when (authenticationType) {
+            is AuthenticationType.EmailIdentity, AuthenticationType.Msisdn -> {
+                error.value = i18n.uiaFallbackNotSupported(authenticationType)
+                false
+            }
+
+            else -> true
+        }
 }
 
 class UiaStepFallbackViewModelPreview(mode: PreviewMode = IDLE) : UiaStepFallbackViewModel {
     override val fallbackUrl: String = "https://fallbackUrl"
     override val waitForResult = MutableStateFlow(mode == AWAITING)
     override val error = MutableStateFlow(if (mode == ERROR) "Something's wrong!" else null)
+    override val authenticationTypeString: String = "ReCaptcha"
     override fun openFallbackUrl() {}
     override fun confirm() {}
     override fun cancel() {}

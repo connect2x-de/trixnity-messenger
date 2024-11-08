@@ -76,6 +76,7 @@ class UiaStepDummyInputViewModelImpl(
                             log.error { "error during dummy auth: ${errorResponse.error}" }
                             error.value = i18n.uiaGenericError(errorResponse.error)
                         } else {
+                            log.debug { "UIA dummy action was successful -> onNext()" }
                             onNext(it)
                         }
                     }
@@ -85,6 +86,7 @@ class UiaStepDummyInputViewModelImpl(
                         else error.value = i18n.uiaGenericError(e.message)
                     }
             }.invokeOnCompletion {
+                log.debug { "UIA dummy action completed" }
                 isLoading.value = false
             }
         }
