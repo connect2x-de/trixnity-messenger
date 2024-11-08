@@ -10,8 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - use KMMBridge to publish iOS Swift and Objective-C artefacts to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- support for pasting the first file of a fileList into the clipboard
 
 ### Changed
+
+- added a cutoff for uploading large files into the clipboard
 
 ### Deprecated
 
@@ -23,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't mark state events as relevant.
 - Wizard and modal dialog buttons are always shown on smaller screens 
 - Fix Emojis on Web
+- texts containing symbols not allowed in file names can be pasted via the Windows-clipboard again
+
 
 ### Security
 
