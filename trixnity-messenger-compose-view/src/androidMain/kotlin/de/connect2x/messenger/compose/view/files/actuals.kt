@@ -314,8 +314,8 @@ fun UploadButton(
     }
 }
 
-actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
-    return null
+actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
+    return Result.success(null)
 }
 
 @Composable

@@ -85,8 +85,10 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.net.URI
-import java.net.URLEncoder
+import java.net.URISyntaxException
+import java.nio.file.Files
 import javax.imageio.ImageIO
+import kotlin.io.path.Path
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -248,6 +250,7 @@ private interface ClipboardType {
     data object AwtImage : ClipboardType
     data object UriList : ClipboardType
     data object FileList : ClipboardType
+    data object Text : ClipboardType
 }
 
 private inline fun <reified T> Clipboard.getDataOrNull(flavor: DataFlavor): T? {
@@ -276,7 +279,7 @@ private fun isPreviewableImage(contentType: ContentType): Boolean {
             contentType.match(ContentType.Image.GIF)
 }
 
-actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
+actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
 
@@ -289,6 +292,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
             flavor.representationClass == java.awt.Image::class.java -> ClipboardType.AwtImage
             contentType.match(uriListContentType) -> ClipboardType.UriList
             flavor.isFlavorJavaFileListType -> ClipboardType.FileList
+            flavor.isFlavorTextType -> ClipboardType.Text
             else -> {
                 log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
                 return@forEach
@@ -308,22 +312,27 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
         val maxUploadSize = MatrixMessengerConfiguration().clipboardMaxSize
         when (clipboardType) {
             ClipboardType.Image -> {
+                log.info { "Sending image via clipboard" }
                 val estimatedSize =
-                    clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available().toLong() } ?: run { return null }
+                    clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available().toLong() }
+                        ?: run { return Result.success(null) }
                 val baseName = Random.nextString(12)
                 val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
 
-                return BasicFileDescriptor(
-                    baseName + extStr,
-                    estimatedSize,
-                    contentType,
-                    byteArrayFlowFromInputStream {
-                        clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
-                    }.limitSize(maxUploadSize)
+                return Result.success(
+                    BasicFileDescriptor(
+                        baseName + extStr,
+                        estimatedSize,
+                        contentType,
+                        byteArrayFlowFromInputStream {
+                            clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
+                        }.limitSize(maxUploadSize)
+                    )
                 )
             }
 
             ClipboardType.AwtImage -> {
+                log.info { "Sending AWT image via clipboard" }
                 clipboard.getDataOrNull<java.awt.Image>(flavor)?.let { img ->
                     // TODO: revisit this when we have ImageMagick
                     // this might not be the most efficient way, but works for images in memory on MacOS...
@@ -339,50 +348,67 @@ actual fun getClipboardFile(fileSystem: FileSystem): FileDescriptor? {
                     outputStream.close()
 
                     val baseName = Random.nextString(12)
-                    return BasicFileDescriptor(
-                        "$baseName.png",
-                        byteArray.size.toLong(),
-                        ContentType.Image.PNG,
-                        byteArray.toByteArrayFlow().limitSize(maxUploadSize),
-                    )
+                    return try {
+                        Result.success(
+                            BasicFileDescriptor(
+                                "$baseName.png",
+                                byteArray.size.toLong(),
+                                ContentType.Image.PNG,
+                                byteArray.toByteArrayFlow().limitSize(maxUploadSize),
+                            )
+                        )
+                    } catch (e: MaxByteFlowSizeException) {
+                        Result.failure(e)
+                    }
                 }
             }
 
             ClipboardType.UriList -> {
-                val data = clipboard.getDataOrNull<Reader>(flavor) ?: run { return null }
+                val data =
+                    clipboard.getDataOrNull<Reader>(flavor) ?: run { return Result.failure(NotPasteableException()) }
 
                 // TODO: Attach multiple files at once
                 val fileName = data.useLines { lines -> lines.firstOrNull() } ?: run {
                     log.info { "the selected files list is empty" }
-                    return null
+                    return Result.failure(EmptyFileListException())
                 }
-                val uri = URI(URLEncoder.encode(fileName, Charsets.UTF_8))
-                if (uri.scheme != "file") {
+                val uri = try {
+                    URI(fileName)
+                } catch (_: URISyntaxException) {
+                    null
+                }
+                if (uri?.scheme != "file") {
                     log.warn { "improperly formatted uri: $fileName" }
-                    return null
+                    return Result.success(null)
                 }
-                val descriptor = try {
-                    PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem, maxUploadSize)
-                } catch (_: MaxByteFlowSizeException) {
-                    return null
+                val metadata = fileSystem.metadataOrNull(uri.path.toPath(true))
+                if (metadata?.size?.let { it <= maxUploadSize } != true) {
+                    return Result.failure(MaxByteFlowSizeException(maxUploadSize))
                 }
-                return descriptor
+                return Result.success(PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem))
             }
 
             ClipboardType.FileList -> {
+                log.info { "Sending fileList via clipboard" }
                 val data = clipboard.getDataOrNull<List<File>>(flavor)
                 data?.get(0)?.let {
-                    return if (it.totalSpace <= maxUploadSize) PathFileDescriptor(
-                        it.path.toPath(),
-                        fileSystem
-                    ) else null
+                    return if (Files.size(Path(it.path)) <= maxUploadSize)
+                        Result.success(
+                            PathFileDescriptor(
+                                it.path.toPath(),
+                                fileSystem
+                            )
+                        ) else Result.failure(MaxByteFlowSizeException(maxUploadSize))
                 }
+            }
+            ClipboardType.Text -> {
+                return Result.success(null)
             }
         }
     }
 
     log.info { "content in clipboard was not paste-able" }
-    return null
+    return Result.failure(NotPasteableException())
 }
 
 @Composable

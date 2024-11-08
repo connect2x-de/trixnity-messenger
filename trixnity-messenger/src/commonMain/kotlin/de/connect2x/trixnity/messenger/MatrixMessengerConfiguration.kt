@@ -50,7 +50,7 @@ data class MatrixMessengerConfiguration(
     /**
      * The maximum size of clipboard files that can be uploaded
      */
-    val clipboardMaxSize: Long = 5.kb(),
+    val clipboardMaxSize: Long = 1.gb(),
 
     /**
      * The maximum size of avatars that can be uploaded in *Bytes*

@@ -16,5 +16,5 @@ fun ByteArrayFlow.limitSize(maxSizeBytes: Long): ByteArrayFlow = flow {
     }
 }
 
-class MaxByteFlowSizeException(maxSizeBytes: Long) :
+class MaxByteFlowSizeException(val maxSizeBytes: Long) :
     IllegalStateException("byte flow is exceeding $maxSizeBytes bytes!")
