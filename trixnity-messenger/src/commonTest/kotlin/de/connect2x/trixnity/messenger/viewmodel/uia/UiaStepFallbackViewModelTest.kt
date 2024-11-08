@@ -11,7 +11,6 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verify.VerifyMode.Companion.not
-import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -80,17 +79,6 @@ class UiaStepFallbackViewModelTest : ShouldSpec() {
             delay(2_300.milliseconds)
             cut.waitForResult.value shouldBe true
             verify(not) { onNextMock.invoke(any()) }
-        }
-
-        should("not support e-mail or phone verification (might be a feature in the future)") {
-            val cut =
-                uiaStepFallbackViewModel(AuthenticationType.EmailIdentity) { _ -> Result.success(UIA.Success(Unit)) }
-            cut.error.value shouldContain "not supported"
-            cut.confirm()
-            continually(3.seconds) {
-                cut.waitForResult.value shouldBe false
-                cut.error.value shouldContain "not supported"
-            }
         }
 
         should("show an error if UIA authentication failed") {
