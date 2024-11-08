@@ -23,10 +23,18 @@ fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
 }
 
 fun formatSize(sizeInByte: Long, maxSizeInByte: Long = sizeInByte): String {
-    return if (maxSizeInByte / 1_000_000 >= 1) { // MB
-        "${(sizeInByte / 1_000_000f).format(1)}MB"
-    } else {
-        "${(sizeInByte / 1_000f).format(1)}kB"
+    return when {
+        maxSizeInByte / 1_000_000_000 >= 1 -> {
+            "${(sizeInByte / 1_000_000_000f).format(1)}GB"
+        }
+
+        maxSizeInByte / 1_000_000 >= 1 -> { // MB
+            "${(sizeInByte / 1_000_000f).format(1)}MB"
+        }
+
+        else -> {
+            "${(sizeInByte / 1_000f).format(1)}kB"
+        }
     }
 }
 
@@ -67,7 +75,11 @@ fun formatTime(localDateTime: LocalDateTime): String =
 
 fun formatDuration(duration: Duration): String =
     duration.toComponents { hours, minutes, seconds, _ ->
-        "${if (hours > 0) { "${hours}:${minutes.toString().padStart(2, '0')}:"} else minutes}:" +
+        "${
+            if (hours > 0) {
+                "${hours}:${minutes.toString().padStart(2, '0')}:"
+            } else minutes
+        }:" +
                 seconds.toString().padStart(2, '0')
     }
 
