@@ -58,6 +58,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -239,6 +240,15 @@ open class TimelineElementHolderViewModelImpl(
     // since this is a rather expensive operation do not compute as a flow
     override suspend fun isReadBy(): List<String> = readBy.first()
 
+    private val newContentIfReplaced = matrixClient.room.getOutbox(selectedRoomId)
+        .flatMapLatest { it.lastOrNull() ?: flowOf(null) }
+        .map { maybeOutboxMessage ->
+            when (val relates = maybeOutboxMessage?.content?.relatesTo) {
+                is RelatesTo.Replace -> relates.newContent
+                else -> null
+            }
+        }
+
     override val timelineElementViewModel = combine(
         timelineEventFlow
             .filterNotNull()
@@ -257,7 +267,10 @@ open class TimelineElementHolderViewModelImpl(
                 if (it == null) 400.milliseconds else 0.milliseconds
             }
             .distinctUntilChanged(),
-    ) { timelineEvent, previousTimelineEvent, contentResult ->
+        newContentIfReplaced
+            .distinctUntilChanged(),
+    ) { timelineEvent, previousTimelineEvent, contentResult, newContent ->
+
         log.trace { "compute timelineElementViewModel ($timelineEvent, $previousTimelineEvent, $contentResult)" }
         val subViewModel = subViewModelCache.value
         if (subViewModel != null && subViewModel.first == keyFn(timelineEvent, contentResult?.getOrNull())) {
@@ -292,15 +305,14 @@ open class TimelineElementHolderViewModelImpl(
                     }
                 } else flowOf(null)
 
-
             val event = timelineEvent.event
-            val content = contentResult?.fold(
-                onSuccess = { it },
-                onFailure = {
-                    log.error(it) { "cannot decrypt message event" }
-                    event.content
-                }
-            ) ?: event.content
+            val content = newContent ?: (contentResult?.fold(
+                    onSuccess = { it },
+                    onFailure = {
+                        log.error(it) { "cannot decrypt message event" }
+                        event.content
+                    }
+                ) ?: event.content)
 
             timelineSubViewmodelFactory.createEventSubViewmodel(
                 this,
