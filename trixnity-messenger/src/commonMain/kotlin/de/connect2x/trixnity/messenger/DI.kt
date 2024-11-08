@@ -152,25 +152,13 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
-import io.ktor.client.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-fun interface HttpUserAgent {
-    operator fun invoke(): String
-}
-
-fun interface HttpClientFactory {
-    operator fun invoke(): (HttpClientConfig<*>.() -> Unit) -> HttpClient
-}
-
-fun interface CreateMatrixClientConfiguration {
-    operator fun invoke(): MatrixClientConfiguration.() -> Unit
-}
+data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
 
 fun interface DebugName {
     operator fun invoke(): String
@@ -181,23 +169,16 @@ fun createDefaultTrixnityMessengerModules() = listOf(
         single<Clock> { Clock.System }
         single<TimeZone> { TimeZone.currentSystemDefault() }
 
-        single<HttpClientFactory> {
-            val userAgent = getOrNull<HttpUserAgent>()?.invoke()
-            HttpClientFactory {
-                if (userAgent != null) defaultTrixnityHttpClientFactory(userAgent = userAgent)
-                else defaultTrixnityHttpClientFactory(userAgent = userAgent)
-            }
-        }
-        single<CreateMatrixClientConfiguration> {
+        single<MatrixClientConfigurationHolder> {
+            val config = get<MatrixMessengerConfiguration>()
             val relevantTimelineEvents = get<RelevantTimelineEvents>()
-            CreateMatrixClientConfiguration {
-                {
-                    name = getOrNull<DebugName>()?.invoke()
-                    setOwnMessagesAsFullyRead = true
-                    httpClientFactory = get<HttpClientFactory>()()
-                    lastRelevantEventFilter =
-                        { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
-                }
+            MatrixClientConfigurationHolder {
+                name = getOrNull<DebugName>()?.invoke()
+                setOwnMessagesAsFullyRead = true
+                httpClientEngine = config.httpClientEngine
+                httpClientConfig = config.httpClientConfig
+                lastRelevantEventFilter =
+                    { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
             }
         }
 

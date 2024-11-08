@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import org.koin.core.module.Module
 
 data class MatrixMultiMessengerConfiguration(
@@ -18,6 +20,16 @@ data class MatrixMultiMessengerConfiguration(
      * Consider using [messengerConfiguration], as it can be called multiple times.
      */
     var messenger: MatrixMessengerConfiguration.() -> Unit = { },
+
+    /**
+     * Specify a [HttpClientEngine]. This should be reused in an application.
+     */
+    override var httpClientEngine: HttpClientEngine? = null,
+
+    /**
+     * Configure the underlying [HttpClient].
+     */
+    override var httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
     /**
      * Inject and override modules.
      */

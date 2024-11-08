@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.ServiceLoader
+import java.util.*
 
 class MatrixMultiMessengerService : Service() {
     private val log = KotlinLogging.logger { }
@@ -75,7 +75,7 @@ class MatrixMultiMessengerService : Service() {
             _matrixMultiMessenger.value?.apply {
                 di.get<NotificationHandler>().close()
                 di.get<NotificationHandlerProvider>().close()
-                stop()
+                close()
             }
 
             _matrixMultiMessenger.value = null

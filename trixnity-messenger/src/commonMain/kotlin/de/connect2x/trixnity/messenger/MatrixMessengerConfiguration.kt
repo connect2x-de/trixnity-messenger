@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.gb
 import de.connect2x.trixnity.messenger.util.mb
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import org.koin.core.module.Module
 
 private val colors =
@@ -60,6 +62,16 @@ data class MatrixMessengerConfiguration(
     override var licenses: String? = null,
 
     override var pushUrl: String? = null,
+
+    /**
+     * Specify a [HttpClientEngine]. This should be reused in an application.
+     */
+    override var httpClientEngine: HttpClientEngine? = null,
+
+    /**
+     * Configure the underlying [HttpClient].
+     */
+    override var httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
 
     /**
      * Inject and override modules.
