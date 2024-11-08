@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't mark state events as relevant.
 - Wizard and modal dialog buttons are always shown on smaller screens 
 - Fix Emojis on Web
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
 
 ### Security
 
