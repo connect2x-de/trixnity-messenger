@@ -283,126 +283,137 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
 
-    clipboard.availableDataFlavors.forEach { flavor ->
-        val contentType = ContentType.parse(flavor.mimeType)
-        log.debug { "content type of clipboard is $contentType" }
+    if (clipboard.availableDataFlavors.size == 0) {
+        return Result.success(null)
+    } else {
+        clipboard.availableDataFlavors.forEach { flavor ->
+            val contentType = ContentType.parse(flavor.mimeType)
+            log.info { "content type of current flavor is $contentType" }
 
-        val clipboardType = when {
-            isPreviewableImage(contentType) -> ClipboardType.Image
-            flavor.representationClass == java.awt.Image::class.java -> ClipboardType.AwtImage
-            contentType.match(uriListContentType) -> ClipboardType.UriList
-            flavor.isFlavorJavaFileListType -> ClipboardType.FileList
-            flavor.isFlavorTextType -> ClipboardType.Text
-            else -> {
-                log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
+            val clipboardType = when {
+                isPreviewableImage(contentType) -> ClipboardType.Image
+                flavor.representationClass == java.awt.Image::class.java -> ClipboardType.AwtImage
+                contentType.match(uriListContentType) -> ClipboardType.UriList
+                flavor.isFlavorJavaFileListType -> ClipboardType.FileList
+                flavor.isFlavorTextType -> ClipboardType.Text
+                else -> {
+                    log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
+                    return@forEach
+                }
+            }
+            log.debug { "Clipboard type is $clipboardType" }
+
+            if (clipboardType == ClipboardType.Image && !flavor.isRepresentationClassInputStream) {
+                log.warn { "cannot handle image stored in ${flavor.representationClass}" }
                 return@forEach
             }
-        }
-        log.debug { "Clipboard type is $clipboardType" }
-
-        if (clipboardType == ClipboardType.Image && !flavor.isRepresentationClassInputStream) {
-            log.warn { "cannot handle image stored in ${flavor.representationClass}" }
-            return@forEach
-        }
-        if (clipboardType == ClipboardType.UriList && !flavor.isRepresentationClassReader) {
-            log.warn { "cannot handle uri list stored in ${flavor.representationClass}" }
-            return@forEach
-        }
-
-        val maxUploadSize = MatrixMessengerConfiguration().clipboardMaxSize
-        when (clipboardType) {
-            ClipboardType.Image -> {
-                log.info { "Sending image via clipboard" }
-                val estimatedSize =
-                    clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available().toLong() }
-                        ?: run { return Result.success(null) }
-                val baseName = Random.nextString(12)
-                val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
-
-                return Result.success(
-                    BasicFileDescriptor(
-                        baseName + extStr,
-                        estimatedSize,
-                        contentType,
-                        byteArrayFlowFromInputStream {
-                            clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
-                        }.limitSize(maxUploadSize)
-                    )
-                )
+            if (clipboardType == ClipboardType.UriList && !flavor.isRepresentationClassReader) {
+                log.warn { "cannot handle uri list stored in ${flavor.representationClass}" }
+                return@forEach
             }
 
-            ClipboardType.AwtImage -> {
-                log.info { "Sending AWT image via clipboard" }
-                clipboard.getDataOrNull<java.awt.Image>(flavor)?.let { img ->
-                    // TODO: revisit this when we have ImageMagick
-                    // this might not be the most efficient way, but works for images in memory on MacOS...
-                    val image = BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB)
-                    image.createGraphics().apply {
-                        drawImage(img, 0, 0, null)
-                        dispose()
-                    }
-                    val outputStream = ByteArrayOutputStream()
-                    ImageIO.write(image, "png", outputStream)
-                    outputStream.flush()
-                    val byteArray = outputStream.toByteArray()
-                    outputStream.close()
-
+            val maxUploadSize = MatrixMessengerConfiguration().clipboardMaxSize
+            when (clipboardType) {
+                ClipboardType.Image -> {
+                    log.info { "Sending image via clipboard" }
+                    val estimatedSize =
+                        clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available().toLong() }
+                            ?: run { return Result.success(null) }
                     val baseName = Random.nextString(12)
-                    return try {
-                        Result.success(
-                            BasicFileDescriptor(
-                                "$baseName.png",
-                                byteArray.size.toLong(),
-                                ContentType.Image.PNG,
-                                byteArray.toByteArrayFlow().limitSize(maxUploadSize),
-                            )
+                    val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
+
+                    return Result.success(
+                        BasicFileDescriptor(
+                            baseName + extStr,
+                            estimatedSize,
+                            contentType,
+                            byteArrayFlowFromInputStream {
+                                clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
+                            }.limitSize(maxUploadSize)
                         )
-                    } catch (e: MaxByteFlowSizeException) {
-                        Result.failure(e)
+                    )
+                }
+
+                ClipboardType.AwtImage -> {
+                    log.info { "Sending AWT image via clipboard" }
+                    clipboard.getDataOrNull<java.awt.Image>(flavor)?.let { img ->
+                        // TODO: revisit this when we have ImageMagick
+                        // this might not be the most efficient way, but works for images in memory on MacOS...
+                        val image = BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB)
+                        image.createGraphics().apply {
+                            drawImage(img, 0, 0, null)
+                            dispose()
+                        }
+                        val outputStream = ByteArrayOutputStream()
+                        ImageIO.write(image, "png", outputStream)
+                        outputStream.flush()
+                        val byteArray = outputStream.toByteArray()
+                        outputStream.close()
+
+                        val baseName = Random.nextString(12)
+                        return try {
+                            Result.success(
+                                BasicFileDescriptor(
+                                    "$baseName.png",
+                                    byteArray.size.toLong(),
+                                    ContentType.Image.PNG,
+                                    byteArray.toByteArrayFlow().limitSize(maxUploadSize),
+                                )
+                            )
+                        } catch (e: MaxByteFlowSizeException) {
+                            Result.failure(e)
+                        }
                     }
                 }
-            }
 
-            ClipboardType.UriList -> {
-                val data =
-                    clipboard.getDataOrNull<Reader>(flavor) ?: run { return Result.failure(NotPasteableException()) }
+                ClipboardType.UriList -> {
+                    val data =
+                        clipboard.getDataOrNull<Reader>(flavor)
+                            ?: run { return Result.failure(NotPasteableException()) }
 
-                // TODO: Attach multiple files at once
-                val fileName = data.useLines { lines -> lines.firstOrNull() } ?: run {
-                    log.info { "the selected files list is empty" }
-                    return Result.failure(EmptyFileListException())
+                    // TODO: Attach multiple files at once
+                    val fileName = data.useLines { lines -> lines.firstOrNull() } ?: run {
+                        log.info { "the selected files list is empty" }
+                        return Result.failure(EmptyFileListException())
+                    }
+                    val uri = try {
+                        URI(fileName)
+                    } catch (_: URISyntaxException) {
+                        null
+                    }
+                    if (uri?.scheme != "file") {
+                        log.warn { "improperly formatted uri: $fileName" }
+                        return Result.success(null)
+                    }
+                    val metadata = fileSystem.metadataOrNull(uri.path.toPath(true))
+                    if (metadata?.size?.let { it <= maxUploadSize } != true) {
+                        return Result.failure(MaxByteFlowSizeException(maxUploadSize))
+                    }
+                    return Result.success(
+                        PathFileDescriptor(
+                            uri.path.toPath(normalize = true),
+                            fileSystem = fileSystem
+                        )
+                    )
                 }
-                val uri = try {
-                    URI(fileName)
-                } catch (_: URISyntaxException) {
-                    null
+
+                ClipboardType.FileList -> {
+                    log.info { "Sending fileList via clipboard" }
+                    val data = clipboard.getDataOrNull<List<File>>(flavor)
+                    data?.get(0)?.let {
+                        return if (Files.size(Path(it.path)) <= maxUploadSize)
+                            Result.success(
+                                PathFileDescriptor(
+                                    it.path.toPath(),
+                                    fileSystem
+                                )
+                            ) else Result.failure(MaxByteFlowSizeException(maxUploadSize))
+                    }
                 }
-                if (uri?.scheme != "file") {
-                    log.warn { "improperly formatted uri: $fileName" }
+
+                ClipboardType.Text -> {
                     return Result.success(null)
                 }
-                val metadata = fileSystem.metadataOrNull(uri.path.toPath(true))
-                if (metadata?.size?.let { it <= maxUploadSize } != true) {
-                    return Result.failure(MaxByteFlowSizeException(maxUploadSize))
-                }
-                return Result.success(PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem))
-            }
-
-            ClipboardType.FileList -> {
-                log.info { "Sending fileList via clipboard" }
-                val data = clipboard.getDataOrNull<List<File>>(flavor)
-                data?.get(0)?.let {
-                    return if (Files.size(Path(it.path)) <= maxUploadSize)
-                        Result.success(
-                            PathFileDescriptor(
-                                it.path.toPath(),
-                                fileSystem
-                            )
-                        ) else Result.failure(MaxByteFlowSizeException(maxUploadSize))
-                }
-            }
-            ClipboardType.Text -> {
-                return Result.success(null)
             }
         }
     }
