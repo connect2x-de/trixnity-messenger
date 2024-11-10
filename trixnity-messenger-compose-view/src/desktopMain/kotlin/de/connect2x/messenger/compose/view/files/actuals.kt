@@ -50,13 +50,10 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.FileKit
@@ -86,9 +83,7 @@ import java.io.InputStream
 import java.io.Reader
 import java.net.URI
 import java.net.URISyntaxException
-import java.nio.file.Files
 import javax.imageio.ImageIO
-import kotlin.io.path.Path
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -312,7 +307,6 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                 return@forEach
             }
 
-            val maxUploadSize = MatrixMessengerConfiguration().clipboardMaxSize
             when (clipboardType) {
                 ClipboardType.Image -> {
                     log.info { "Sending image via clipboard" }
@@ -329,7 +323,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                             contentType,
                             byteArrayFlowFromInputStream {
                                 clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
-                            }.limitSize(maxUploadSize)
+                            }
                         )
                     )
                 }
@@ -351,18 +345,14 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                         outputStream.close()
 
                         val baseName = Random.nextString(12)
-                        return try {
                             Result.success(
                                 BasicFileDescriptor(
                                     "$baseName.png",
                                     byteArray.size.toLong(),
                                     ContentType.Image.PNG,
-                                    byteArray.toByteArrayFlow().limitSize(maxUploadSize),
+                                    byteArray.toByteArrayFlow(),
                                 )
                             )
-                        } catch (e: MaxByteFlowSizeException) {
-                            Result.failure(e)
-                        }
                     }
                 }
 
@@ -385,10 +375,6 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                         log.warn { "improperly formatted uri: $fileName" }
                         return Result.success(null)
                     }
-                    val metadata = fileSystem.metadataOrNull(uri.path.toPath(true))
-                    if (metadata?.size?.let { it <= maxUploadSize } != true) {
-                        return Result.failure(MaxByteFlowSizeException(maxUploadSize))
-                    }
                     return Result.success(
                         PathFileDescriptor(
                             uri.path.toPath(normalize = true),
@@ -401,13 +387,12 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                     log.info { "Sending fileList via clipboard" }
                     val data = clipboard.getDataOrNull<List<File>>(flavor)
                     data?.get(0)?.let {
-                        return if (Files.size(Path(it.path)) <= maxUploadSize)
-                            Result.success(
-                                PathFileDescriptor(
-                                    it.path.toPath(),
-                                    fileSystem
-                                )
-                            ) else Result.failure(MaxByteFlowSizeException(maxUploadSize))
+                        return Result.success(
+                            PathFileDescriptor(
+                                it.path.toPath(),
+                                fileSystem
+                            )
+                        )
                     }
                 }
 

@@ -234,8 +234,7 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
             .weight(1.0f, fill = true)
     ) {
         if (showUploadError.value != null) {
-            ErrorDialog(errorMessage = when (val error = showUploadError.value) {
-                is MaxByteFlowSizeException -> i18n.uploadFileErrorFileTooBig(error.maxSizeBytes)
+            ErrorDialog(errorMessage = when (showUploadError.value) {
                 is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
                 is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
                 else -> i18n.uploadFileErrorUnknown()
