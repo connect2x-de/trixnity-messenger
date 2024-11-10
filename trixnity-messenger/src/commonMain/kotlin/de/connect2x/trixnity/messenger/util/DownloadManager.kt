@@ -62,10 +62,12 @@ class DownloadManagerImpl(
                 trixnityProgress.collect { trixnityProgress ->
                     if (trixnityProgress != null) {
                         log.trace { "download progress for $fileName: ${trixnityProgress.transferred} / ${trixnityProgress.total}" }
-                        progress.value = FileTransferProgressElement(
-                            trixnityProgress.transferred.toFloat() / trixnityProgress.total.toFloat(),
-                            formatProgress(trixnityProgress)
-                        )
+                        val total = trixnityProgress.total
+                        if (total != null)
+                            progress.value = FileTransferProgressElement(
+                                trixnityProgress.transferred.toFloat() / total.toFloat(),
+                                formatProgress(trixnityProgress)
+                            )
                     }
                 }
             }

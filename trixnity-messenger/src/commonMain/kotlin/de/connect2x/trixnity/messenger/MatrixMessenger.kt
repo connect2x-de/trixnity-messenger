@@ -59,7 +59,7 @@ class MatrixMessengerImpl private constructor(
                     single<CoroutineScope> { coroutineScope }
                     single { config }.bind<MatrixMessengerBaseConfiguration>()
                 })
-                modules(config.modules)
+                modules(config.modulesFactories.map { it.invoke() })
             }.koin
             val settingsHolder = di.getAll<SettingsHolder<*>>()
             settingsHolder.forEach {

@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
@@ -51,11 +50,9 @@ class VerificationIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        runBlocking {
-            messenger1.stop()
-            messenger2.stop()
-            messenger3.stop()
-        }
+        messenger1.close()
+        messenger2.close()
+        messenger3.close()
     }
 
     @Test

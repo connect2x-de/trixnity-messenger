@@ -26,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
@@ -73,9 +72,7 @@ class AccountsIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        runBlocking {
-            messenger.stop()
-        }
+        messenger.close()
     }
 
     @Test

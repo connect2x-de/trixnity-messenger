@@ -52,8 +52,8 @@ class MatrixMultiMessengerService : Service() {
                     } else {
                         throw IllegalStateException("Cannot find configuration -> see README.md")
                     }
-                    modules += initialSyncModule()
-                    modules += notificationModule()
+                    modulesFactories += ::initialSyncModule
+                    modulesFactories += ::notificationModule
                 }
             }
         }

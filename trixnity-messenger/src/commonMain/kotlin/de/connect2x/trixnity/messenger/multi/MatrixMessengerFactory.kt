@@ -18,11 +18,13 @@ fun matrixMessengerFactoryModule(): Module = module {
         MatrixMessengerFactory { profileId ->
             MatrixMessengerImpl {
                 configuration()
-                modules += module {
-                    single<RootPath> {
-                        RootPath(rootPath.resolve(profileId))
+                modulesFactories += {
+                    module {
+                        single<RootPath> {
+                            RootPath(rootPath.resolve(profileId))
+                        }
+                        copyMultiMessengerSingletons.forEach { it.copy(from = this@single, to = this) }
                     }
-                    copyMultiMessengerSingletons.forEach { it.copy(from = this@single, to = this) }
                 }
             }
         }

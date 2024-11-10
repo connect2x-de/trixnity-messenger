@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import org.koin.core.module.Module
+import net.folivo.trixnity.client.ModuleFactory
 
 data class MatrixMultiMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
@@ -22,7 +22,7 @@ data class MatrixMultiMessengerConfiguration(
     var messenger: MatrixMessengerConfiguration.() -> Unit = { },
 
     /**
-     * Specify a [HttpClientEngine]. This should be reused in an application.
+     * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
      */
     override var httpClientEngine: HttpClientEngine? = null,
 
@@ -30,10 +30,18 @@ data class MatrixMultiMessengerConfiguration(
      * Configure the underlying [HttpClient].
      */
     override var httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
+
     /**
-     * Inject and override modules.
+     * Inject and override modules into Trixnity Messenger. By default, this is [createTrixnityMultiMessengerDefaultModuleFactories].
+     *
+     * Be aware to always create new modules because a module stores your class instances and therefore is reused, which we don't want!
+     *
+     * For example:
+     * ```kotlin
+     * modulesFactories += ::createCustomModule
+     * ```
      */
-    var modules: List<Module> = createDefaultTrixnityMultiMessengerModules(),
+    var modulesFactories: List<ModuleFactory> = createTrixnityMultiMessengerDefaultModuleFactories(),
 
     /**
      * Simultaneously use multiple profiles
