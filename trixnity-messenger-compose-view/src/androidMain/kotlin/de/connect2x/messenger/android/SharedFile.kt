@@ -20,14 +20,15 @@ sealed class SharedFile {
     }
 
     data class SharedText(val text: CharSequence) : SharedFile() {
-        override fun toFileDescriptor(context: Context, i18n: I18n) =
-            ManualFileDescriptor(
-                i18n.commonUnknown(),
-                null,
+        override fun toFileDescriptor(context: Context, i18n: I18n): ManualFileDescriptor {
+            val data = text.toString().encodeToByteArray()
+            return ManualFileDescriptor(
+                "${i18n.commonUnknown()}.txt",
+                data.size.toLong(),
                 ContentType.Text.Plain,
-                flowOf(text.toString().encodeToByteArray())
+                flowOf(data)
             )
-
+        }
     }
 
     companion object {
