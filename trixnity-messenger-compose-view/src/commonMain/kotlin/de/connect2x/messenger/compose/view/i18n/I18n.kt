@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
@@ -2405,8 +2406,8 @@ abstract class I18nView(
     }
 
     fun filePreviewErrorTooBig(maxUploadSize: Long) = translate {
-        DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße of $maxUploadSize."
-        EN - "The selected file exceeds the maximum preview size of $maxUploadSize."
+        DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße von ${formatSize(maxUploadSize)}."
+        EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
     }
 
 }

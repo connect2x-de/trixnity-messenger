@@ -9,11 +9,17 @@ import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.audio
@@ -54,7 +60,7 @@ interface SendAttachmentViewModel {
     val isImage: Boolean?
     val isVideo: Boolean?
     val isAudio: Boolean?
-    val fileContent: StateFlow<ByteArrayFlow?>
+    val previewFileContent: StateFlow<ByteArray?>
 
     fun send()
     fun cancel()
@@ -80,7 +86,15 @@ class SendAttachmentViewModelImpl(
     override val isAudio = file.mimeType?.match("audio/*")
 
     private val _fileContent = MutableStateFlow<ByteArrayFlow?>(null)
-    override val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
+    private val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
+
+    private val fileSize = file.fileSize
+    override val previewFileContent: StateFlow<ByteArray?> =
+        fileContent.filter { fileSize == null || fileSize <= messengerConfiguration.filePreviewMaxSize }
+            .map {
+                it?.limitSize(messengerConfiguration.filePreviewMaxSize)?.toByteArray()
+            }.catch { e -> null }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val backCallback = BackCallback {
         cancel()
@@ -110,10 +124,9 @@ class SendAttachmentViewModelImpl(
                 )
             ) get<ProcessImageUpload>().invoke(file.content.toByteArray(), file.mimeType ?: Image.PNG).toByteArrayFlow()
             else if (isImage == true) {
-                log.debug{"Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing"}
+                log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
                 file.content
-            }
-            else {
+            } else {
                 file.content
             }
         }
@@ -124,7 +137,7 @@ class SendAttachmentViewModelImpl(
             _sendEnabled.value = false
             coroutineScope.launch {
                 matrixClient.room.sendMessage(selectedRoomId) {
-                    val byteArrayFlow = fileContent.value?:file.content
+                    val byteArrayFlow = fileContent.value ?: file.content
                     when {
                         isImage ?: false -> {
                             log.debug { "send an image" }
@@ -197,7 +210,7 @@ class PreviewSendAttachmentViewModel() : SendAttachmentViewModel {
     override val isImage: Boolean = true
     override val isVideo: Boolean = false
     override val isAudio: Boolean = false
-    override val fileContent: StateFlow<ByteArrayFlow?> = MutableStateFlow(null)
+    override val previewFileContent: StateFlow<ByteArray?> = MutableStateFlow(null)
 
     override fun send() {
     }

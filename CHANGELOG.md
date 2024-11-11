@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- added a cutoff for uploading large files into the clipboard
+- added a cutoff for previews of images and thumbnails
 
 ### Deprecated
 
@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wizard and modal dialog buttons are always shown on smaller screens 
 - Fix Emojis on Web
 - texts containing symbols not allowed in file names can be pasted via the Windows-clipboard again
-
 
 ### Security
 

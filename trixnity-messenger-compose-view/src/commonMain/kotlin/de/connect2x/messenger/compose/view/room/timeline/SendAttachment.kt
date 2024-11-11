@@ -40,9 +40,9 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import net.folivo.trixnity.utils.toByteArray
 
 interface SendAttachmentView {
     @Composable
@@ -65,7 +65,8 @@ class SendAttachmentViewImpl : SendAttachmentView {
         val isVideo = sendAttachmentViewModel.isVideo
         val isAudio = sendAttachmentViewModel.isAudio
         var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-        val fileContent = sendAttachmentViewModel.fileContent.collectAsState().value
+        val fileContent = sendAttachmentViewModel.previewFileContent.collectAsState().value
+        val messengerConfiguration = DI.get<MatrixMessengerConfiguration>()
 
         Column(Modifier.fillMaxSize()) {
             SendAttachmentTitle(sendAttachmentViewModel)
@@ -80,12 +81,12 @@ class SendAttachmentViewImpl : SendAttachmentView {
                         .align(Alignment.CenterHorizontally),
                     verticalArrangement = Arrangement.Center,
                 ) {
+                    val maxPreviewSize = messengerConfiguration.filePreviewMaxSize
                     when {
                         isImage ?: false -> {
                             if (fileContent != null) {
                                 LaunchedEffect(isImage) {
-                                    val byteArray = fileContent.toByteArray()
-                                    imageBitmap = imageBitmapFromBytes(byteArray)
+                                    imageBitmap = imageBitmapFromBytes(fileContent)
                                 }
                                 imageBitmap?.let {
                                     Image(
@@ -98,6 +99,8 @@ class SendAttachmentViewImpl : SendAttachmentView {
                                         contentScale = ContentScale.Inside,
                                     )
                                 }
+                            } else {
+                                Text(i18n.filePreviewErrorTooBig(maxPreviewSize))
                             }
                         }
 

@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.resetMocks
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -140,7 +141,7 @@ class ThumbnailsTest : ShouldSpec() {
             result shouldBe null
         }
 
-        should("get no thumbnail when the encrypted thumbnail could not be loaded and the original file is larger than 1MB") {
+        should("get no thumbnail when the encrypted thumbnail could not be loaded and the original file is larger than the maximum preview size") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
             everySuspend {
                 mediaServiceMock.getEncryptedMedia(
@@ -160,6 +161,7 @@ class ThumbnailsTest : ShouldSpec() {
             } returns
                     Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
 
+            val maxPreviewSize = MatrixMessengerConfiguration().filePreviewMaxSize
             val cut = ThumbnailsImpl()
             val result = cut.loadThumbnail(
                 matrixClientMock,
@@ -167,7 +169,7 @@ class ThumbnailsTest : ShouldSpec() {
                 thumbnailUrl = null,
                 file = originalFile,
                 url = null,
-                sizeInBytes = 5_000_000, // too large!
+                sizeInBytes = maxPreviewSize + 1, // too large!
                 thumbnailProgressFlow = MutableStateFlow(null),
             )
 

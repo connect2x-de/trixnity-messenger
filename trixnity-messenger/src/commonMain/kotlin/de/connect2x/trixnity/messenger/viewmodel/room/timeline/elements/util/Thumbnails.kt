@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,7 +63,6 @@ interface Thumbnails {
 }
 
 class ThumbnailsImpl : Thumbnails {
-    private val maxThumbnailSize: Int = 1_000_000 // 1MB
 
     override suspend fun loadThumbnail(
         matrixClient: MatrixClient,
@@ -72,8 +73,9 @@ class ThumbnailsImpl : Thumbnails {
         sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
     ): ByteArray? {
+        val maxThumbnailSize = MatrixMessengerConfiguration().filePreviewMaxSize
         log.debug { "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $url" }
-        return (thumbnailFile?.let { // encrypted thumbnail
+        val thumbnail = (thumbnailFile?.let { // encrypted thumbnail
             matrixClient.media.getEncryptedMedia(
                 thumbnailFile,
                 thumbnailProgressFlow
@@ -167,7 +169,13 @@ class ThumbnailsImpl : Thumbnails {
                         null
                     }
                 })
-        })?.toByteArray()
+        })
+        return try {
+            thumbnail?.limitSize(maxThumbnailSize)?.toByteArray()
+        } catch (_: Exception) {
+            log.debug { "Size of Thumbnail $thumbnailFile exceeds maximum size for file previews, so it is not processed" }
+            null
+        }
     }
 
     override fun mapProgressToProgressElement(thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>) =
