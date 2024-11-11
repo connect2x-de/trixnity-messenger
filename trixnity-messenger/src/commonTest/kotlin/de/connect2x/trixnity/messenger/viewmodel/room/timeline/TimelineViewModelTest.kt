@@ -30,10 +30,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -984,10 +984,11 @@ class TimelineViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun timelineViewModel(
+    private suspend fun timelineViewModel(
         onBackMock: () -> Unit = mock(),
-    ) =
-        TimelineViewModelImpl(
+    ): TimelineViewModel {
+        Dispatchers.setMain(Dispatchers.Unconfined)
+        return TimelineViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koinApplication {
@@ -1031,6 +1032,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
+                coroutineContext = currentCoroutineContext(),
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
@@ -1039,6 +1041,7 @@ class TimelineViewModelTest : ShouldSpec() {
             onOpenModal = mock(),
             onOpenMention = mock(),
         )
+    }
 
     private fun TimelineMock.mockRoomServiceTimelineEventCalls() {
         every { // fallback
