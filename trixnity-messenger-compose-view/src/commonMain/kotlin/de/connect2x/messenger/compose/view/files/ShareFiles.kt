@@ -62,9 +62,115 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val log = KotlinLogging.logger {}
+interface ShareFilesView {
+    @Composable
+    fun create(viewModel: ShareFilesViewModel)
+}
+
+@Composable
+fun ShareFiles(viewModel: ShareFilesViewModel) {
+    DI.get<ShareFilesView>().create(viewModel)
+}
+
+class ShareFilesViewImpl : ShareFilesView {
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun create(viewModel: ShareFilesViewModel) {
+        val i18n = DI.get<I18nView>()
+        val state = rememberLazyListState()
+        val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
+        val allRooms by viewModel.roomList.sortedRoomListElementViewModels.collectAsState()
+        val selectedRoomId by viewModel.selectedRoomId.collectAsState()
+        val sending by viewModel.sending.collectAsState()
+        val enabled = selectedRoomId != null && !sending
+
+        LaunchedEffect(initialSyncFinished) {
+            state.scrollToItem(0)
+        }
+        LaunchedEffect(allRooms) {
+            if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
+                state.animateScrollToItem(0)
+            }
+        }
+
+        AdaptiveDialog(viewModel::cancel) {
+            Column(Modifier.fillMaxSize()) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            i18n.shareFilesTitle(viewModel.sharedFiles.size),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    navigationIcon = {
+                        ToolbarButton(viewModel::cancel, i18n.shareFilesCancel()) {
+                            Icon(
+                                Icons.Default.Close,
+                                i18n.shareFilesCancel()
+                            )
+                        }
+                    },
+                    actions = {
+                        ToolbarButton(viewModel::send, i18n.inputAreaSend(), enabled) {
+                            if (sending) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            } else {
+                                Icon(
+                                    Icons.AutoMirrored.Default.Send,
+                                    i18n.inputAreaSend(),
+                                    tint = if (enabled) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                )
+                            }
+                        }
+                    }
+                )
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(viewModel.sharedFiles) { file ->
+                        ShareFileCard(file)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Box(Modifier.fillMaxSize()) {
+                    if (allRooms.isEmpty()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(Modifier.padding(horizontal = 20.dp)) {
+                                Text(i18n.roomListNoRoom())
+                            }
+                        }
+                    } else {
+                        LazyColumn(Modifier.fillMaxSize(), state) {
+                            items(
+                                allRooms,
+                                { (roomId, _) -> roomId.full }
+                            ) { roomListElement ->
+                                RoomListElementContainer(
+                                    roomListElement.roomId,
+                                    viewModel.roomList,
+                                    roomListElement.viewModel,
+                                )
+                            }
+                        }
+                    }
+
+                    VerticalScrollbar(
+                        Modifier
+                            .align(Alignment.CenterEnd)
+                            .fillMaxHeight(),
+                        state,
+                        false,
+                    )
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -174,115 +280,6 @@ private fun AdaptiveDialog(
                     shadowElevation = 6.dp
                 ) {
                     content()
-                }
-            }
-        }
-    }
-}
-
-interface ShareFilesView {
-    @Composable
-    fun create(viewModel: ShareFilesViewModel)
-}
-
-@Composable
-fun ShareFiles(viewModel: ShareFilesViewModel) {
-    DI.get<ShareFilesView>().create(viewModel)
-}
-
-class ShareFilesViewImpl : ShareFilesView {
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    override fun create(viewModel: ShareFilesViewModel) {
-        val i18n = DI.get<I18nView>()
-        val state = rememberLazyListState()
-        val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
-        val allRooms by viewModel.roomList.sortedRoomListElementViewModels.collectAsState()
-        val selectedRoomId by viewModel.selectedRoomId.collectAsState()
-        val sending by viewModel.sending.collectAsState()
-        val enabled = selectedRoomId != null && !sending
-
-        LaunchedEffect(initialSyncFinished) {
-            state.scrollToItem(0)
-        }
-        LaunchedEffect(allRooms) {
-            if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
-                state.animateScrollToItem(0)
-            }
-        }
-
-        AdaptiveDialog(viewModel::cancel) {
-            Column(Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            i18n.shareFilesTitle(viewModel.sharedFiles.size),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
-                    navigationIcon = {
-                        ToolbarButton(viewModel::cancel, i18n.shareFilesCancel()) {
-                            Icon(
-                                Icons.Default.Close,
-                                i18n.shareFilesCancel()
-                            )
-                        }
-                    },
-                    actions = {
-                        ToolbarButton(viewModel::send, i18n.inputAreaSend(), enabled) {
-                            if (sending) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            } else {
-                                Icon(
-                                    Icons.AutoMirrored.Default.Send,
-                                    i18n.inputAreaSend(),
-                                    tint = if (enabled) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                )
-                            }
-                        }
-                    }
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(viewModel.sharedFiles) { file ->
-                        ShareFileCard(file)
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                Box(Modifier.fillMaxSize()) {
-                    if (allRooms.isEmpty()) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(Modifier.padding(horizontal = 20.dp)) {
-                                Text(i18n.roomListNoRoom())
-                            }
-                        }
-                    } else {
-                        LazyColumn(Modifier.fillMaxSize(), state) {
-                            items(
-                                allRooms,
-                                { (roomId, _) -> roomId.full }
-                            ) { roomListElement ->
-                                RoomListElementContainer(
-                                    roomListElement.roomId,
-                                    viewModel.roomList,
-                                    roomListElement.viewModel,
-                                )
-                            }
-                        }
-                    }
-
-                    VerticalScrollbar(
-                        Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxHeight(),
-                        state,
-                        false,
-                    )
                 }
             }
         }
