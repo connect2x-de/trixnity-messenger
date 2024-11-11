@@ -76,7 +76,7 @@ import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EmojiSelector
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
-import de.connect2x.messenger.compose.view.files.LoadDialog
+import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
 import de.connect2x.messenger.compose.view.files.getClipboardFile
 import de.connect2x.messenger.compose.view.get
@@ -464,7 +464,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     val isMobile = Platform.current.isMobile
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
-    if (showAttachmentDialog) LoadDialog(
+    if (showAttachmentDialog) LoadFileDialog(
         inputAreaViewModel::onAttachmentFileSelect,
         inputAreaViewModel::closeAttachmentDialog,
         LoadFileMode.AnyFile,

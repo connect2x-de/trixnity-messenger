@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't mark state events as relevant.
 - Wizard and modal dialog buttons are always shown on smaller screens
 - Fix Emojis on Web
+- Fix directory picker in room export.
 
 ### Security
 

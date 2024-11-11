@@ -60,7 +60,6 @@ appcompat = "1.7.0" # https://developer.android.com/jetpack/androidx/releases/ap
 firebase = "33.5.1" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://firebase.google.com/support/release-notes/android
 qrCodeKotlin = "4.1.1" # https://github.com/g0dkar/qrcode-kotlin/tags
-cmpFilePicker = "3.1.0" # https://github.com/Wavesonics/compose-multiplatform-file-picker/releases
 androidTestMonitor = "1.7.2" # https://developer.android.com/jetpack/androidx/releases/test
 
 [libraries]
@@ -115,7 +114,6 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 compose-richeditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
-mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "cmpFilePicker" }
 qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrCodeKotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
