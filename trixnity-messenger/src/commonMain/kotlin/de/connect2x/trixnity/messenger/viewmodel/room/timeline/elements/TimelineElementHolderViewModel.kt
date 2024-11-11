@@ -32,13 +32,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.react
@@ -245,18 +245,8 @@ open class TimelineElementHolderViewModelImpl(
     private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
         (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
 
-    private val newContentIfReplaced = matrixClient.room.getOutbox(selectedRoomId)
-        .flatMapLatest { roomOutboxMessageFlows ->
-            val mappedFlows = roomOutboxMessageFlows
-                .map { roomOutboxMessageFlow ->
-                    roomOutboxMessageFlow.map(::getNewContentIfAvailable).onStart { emit(null) }
-                }
-            combine(
-                mappedFlows
-            ) {
-                it.filterNotNull().lastOrNull()
-            }.onStart { emit(null) }
-        }
+    private val newContentIfReplaced = matrixClient.room.getOutbox(selectedRoomId).flatten()
+        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
 
     override val timelineElementViewModel = combine(
         timelineEventFlow
