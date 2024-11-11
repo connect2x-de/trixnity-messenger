@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.*
@@ -96,15 +97,15 @@ class MatrixMessengerServiceConnection : ServiceConnection {
     val matrixMultiMessenger = _matrixMultiMessenger.asStateFlow()
 
     // If we get the share files intent before the service connection is established, cache them
-    private var sharedFiles : List<SharedFile>? = null
+    private var sharedFiles = MutableStateFlow<List<SharedFile>?>(null)
 
     fun onShareFiles(context: Context, sharedFiles: List<SharedFile>?) {
-        this.sharedFiles = sharedFiles
+        this.sharedFiles.value = sharedFiles
         _matrixMultiMessenger.value?.activeMatrixMessenger?.value?.let { useCachedFiles(context, it) }
     }
 
     private fun useCachedFiles(context: Context, messenger: MatrixMessenger) {
-        sharedFiles?.let { files ->
+        sharedFiles.getAndUpdate { null }?.let { files ->
             val i18n = messenger.di.get<I18n>()
             messenger.di.get<SharedFileHandler>().onShare(
                 files.map {
@@ -112,7 +113,6 @@ class MatrixMessengerServiceConnection : ServiceConnection {
                 }
             )
         }
-        sharedFiles = null
     }
 
     override fun onServiceConnected(className: ComponentName, rawBinder: IBinder) {
