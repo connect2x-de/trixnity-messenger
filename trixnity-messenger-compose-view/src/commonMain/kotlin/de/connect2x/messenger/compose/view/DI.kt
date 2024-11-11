@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view
 
+import de.connect2x.messenger.compose.view.common.AdaptiveDialog
+import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
 import de.connect2x.messenger.compose.view.common.MatrixUsernameViewImpl
 import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountView
@@ -283,6 +285,7 @@ fun themeViewModule(): Module = module {
 
 fun commonViewModule() = module {
     single<MatrixUsernameView> { MatrixUsernameViewImpl() }
+    single<AdaptiveDialog> { AdaptiveDialogImpl() }
 }
 
 fun rootViewModule() = module {
@@ -309,6 +312,7 @@ fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
     single<PdfOverlayView> { PdfOverlayViewImpl() }
+    single<ShareFilesView> { ShareFilesViewImpl() }
 }
 
 fun profileViewModule() = module {
@@ -418,7 +422,6 @@ fun settingsViewModule() = module {
     single<AppInfoImprintView> { AppInfoImprintViewImpl() }
     single<AppInfoLicensesView> { AppInfoLicensesViewImpl() }
     single<AvatarCutterView> { AvatarCutterViewImpl() }
-    single<ShareFilesView> { ShareFilesViewImpl() }
     single<BlockedContactsSettingsView> { BlockedContactsSettingsViewImpl() }
     single<DevicesSettingsView> { DevicesSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }

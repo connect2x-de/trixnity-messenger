@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.files
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,13 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
@@ -32,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -44,20 +40,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.AdaptiveDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
-import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModel
@@ -249,38 +240,6 @@ private fun ShareFileCard(file: FileDescriptor) {
                     fileSize,
                     style = MaterialTheme.typography.labelMedium
                 )
-            }
-        }
-    }
-}
-
-
-// Full screen on mobile, separate dialog on larger screens
-@Composable
-private fun AdaptiveDialog(
-    onDismissRequest: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val isSinglePane = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
-        val maxContentHeight = min(1200.dp, maxHeight - (MaterialTheme.messengerDpConstants.large * 2))
-        val maxContentWidth = 800.dp
-        Dialog(
-            onDismissRequest = onDismissRequest,
-            properties = DialogProperties(usePlatformDefaultWidth = !isSinglePane),
-        ) {
-            Box(
-                if (isSinglePane) Modifier
-                else Modifier.sizeIn(maxWidth = maxContentWidth, maxHeight = maxContentHeight)
-            ) {
-                Surface(
-                    Modifier.fillMaxSize(),
-                    if (isSinglePane) RectangleShape
-                    else RoundedCornerShape(MaterialTheme.messengerDpConstants.small),
-                    shadowElevation = 6.dp
-                ) {
-                    content()
-                }
             }
         }
     }
