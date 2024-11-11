@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- added a cutoff for previews of images and thumbnails
+- implement a cutoff for previews of media previews and thumbnails
 
 ### Deprecated
 
