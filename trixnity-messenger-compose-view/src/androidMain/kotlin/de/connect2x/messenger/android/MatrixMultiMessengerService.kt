@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
 import de.connect2x.trixnity.messenger.util.SharedFileHandler
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
@@ -126,7 +126,7 @@ class MatrixMessengerServiceConnection : ServiceConnection {
             service.matrixMultiMessenger.collect {
                 log.debug { "matrixMultiMessenger found" }
                 _matrixMultiMessenger.value = it
-                it?.activeMatrixMessenger?.filterNotNull()?.scopedCollectLatest {
+                it?.activeMatrixMessenger?.filterNotNull()?.collectLatest {
                     useCachedFiles(service, it)
                 }
             }
