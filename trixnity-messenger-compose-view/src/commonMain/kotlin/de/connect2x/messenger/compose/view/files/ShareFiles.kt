@@ -185,6 +185,12 @@ private fun ToolbarButton(
     }
 }
 
+private fun splitFilename(name: String): Pair<String, String?> {
+    val index = name.lastIndexOf('.')
+    if (index < 0) return Pair(name, null)
+    return Pair(name.substring(0, index), name.substring(index))
+}
+
 @Composable
 private fun ShareFileCard(file: FileDescriptor) {
     val i18n = DI.current.get<I18nView>()
@@ -193,8 +199,7 @@ private fun ShareFileCard(file: FileDescriptor) {
     val isImage = file.mimeType?.match("image/*") == true
     val isVideo = file.mimeType?.match("video/*") == true
     val isAudio = file.mimeType?.match("audio/*") == true
-    val baseName = file.fileName.substringBeforeLast('.')
-    val fileExtension = "." + file.fileName.substringAfterLast('.')
+    val (baseName, fileExtension) = splitFilename(file.fileName)
     Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget)) {
         Row {
             Box(
@@ -233,12 +238,14 @@ private fun ShareFileCard(file: FileDescriptor) {
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        fileExtension,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        softWrap = false
-                    )
+                    if (fileExtension != null) {
+                        Text(
+                            fileExtension,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            softWrap = false
+                        )
+                    }
                 }
                 Text(
                     fileSize,
