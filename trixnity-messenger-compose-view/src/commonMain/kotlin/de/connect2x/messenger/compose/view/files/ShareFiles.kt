@@ -23,11 +23,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,6 +58,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
@@ -110,10 +107,10 @@ private fun ShareFileCard(file: FileDescriptor) {
             ) {
                 Icon(
                     when {
-                        isImage -> Icons.Default.Image
-                        isVideo -> Icons.Default.Movie
-                        isAudio -> Icons.Default.MusicNote
-                        else -> Icons.Default.AttachFile
+                        isImage -> MaterialTheme.messengerIcons.typeImage
+                        isVideo -> MaterialTheme.messengerIcons.typeVideo
+                        isAudio -> MaterialTheme.messengerIcons.typeAudio
+                        else -> MaterialTheme.messengerIcons.typeFile
                     },
                     null,
                     modifier = Modifier.align(Alignment.Center),

@@ -52,6 +52,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
@@ -204,14 +205,14 @@ actual fun LoadFileDialog(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     UploadButton(
-                        imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+                        imageVector = MaterialTheme.messengerIcons.attachFile,
                         contentDescription = i18nView.fileDialogLoadFileButton(),
                         iconButtonClick = {
                             fileAttachmentLauncher.launch((arrayOf("*/*")))
                         }
                     )
                     UploadButton(
-                        Icons.Default.Image,
+                        MaterialTheme.messengerIcons.attachImage,
                         i18nView.fileDialogLoadImageButton(),
                         iconButtonClick = {
                             mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
