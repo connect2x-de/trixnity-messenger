@@ -243,8 +243,9 @@ open class TimelineElementHolderViewModelImpl(
     private val newContentIfReplaced = matrixClient.room.getOutbox(selectedRoomId)
         .flatMapLatest { it.lastOrNull() ?: flowOf(null) }
         .map { maybeOutboxMessage ->
-            when (val relates = maybeOutboxMessage?.content?.relatesTo) {
-                is RelatesTo.Replace -> relates.newContent
+            val relates = maybeOutboxMessage?.content?.relatesTo
+            when {
+                relates is RelatesTo.Replace && relates.eventId == eventId -> relates.newContent
                 else -> null
             }
         }
