@@ -11,7 +11,7 @@ messengerVersionCode = "1"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
-trixnity = "4.10.0-LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.10.0" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
@@ -21,19 +21,19 @@ kotlinxDatetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "4.0.0" # https://github.com/InsertKoinIO/koin/tags
 ktor = "3.0.1" # https://github.com/ktorio/ktor/releases
 mokkery = "2.5.0" # https://github.com/lupuuss/Mokkery/releases
-kotest = "5.9.1" # https://github.com/kotest/kotest/releases
+kotest = "6.0.0.M1" # https://github.com/kotest/kotest/releases
 jna = "5.15.0" # https://github.com/java-native-access/jna/tags
 okio = "3.9.1" # https://square.github.io/okio/changelog
 uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
 korge = "4.0.10" # https://github.com/korlibs/korge/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
-zipjs = "2.7.52" # https://www.npmjs.com/package/@zip.js/zip.js
+zipjs = "2.7.53" # https://www.npmjs.com/package/@zip.js/zip.js
 skie = "0.9.3" # https://github.com/touchlab/SKIE/releases
-kmmBridge = "1.0.0" # https://github.com/touchlab/KMMBridge/releases
-kim = "0.18.4"
+kmmBridge = "1.0.1" # https://github.com/touchlab/KMMBridge/releases
+kim = "0.20" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
-pdfbox = "3.0.3"
+pdfbox = "3.0.3" # https://pdfbox.apache.org/
 
 # integration tests
 testContainers = "1.20.3" # https://github.com/testcontainers/testcontainers-java/releases
@@ -46,12 +46,12 @@ androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-a
 # ui
 composeMultiplatform = "1.7.0" # https://github.com/JetBrains/compose-multiplatform/releases
 androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
-richeditor = "1.0.0-rc07" # https://github.com/MohamedRejeb/Compose-Rich-Editor
+richeditor = "1.0.0-rc10" # https://github.com/MohamedRejeb/compose-rich-editor/releases
 aboutLibraries = "11.2.1" # https://github.com/mikepenz/AboutLibraries/releases
 downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 composeUiTest = "1.7.5" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
-filekit = "0.6.2"
+filekit = "0.8.7" # https://github.com/vinceglb/FileKit/releases
 slf4j = "2.0.16" # https://github.com/qos-ch/slf4j/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
 workManager = "2.10.0" # https://developer.android.com/jetpack/androidx/releases/work
@@ -91,7 +91,6 @@ okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", versio
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
-kotest-dataset-framework = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
 kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 trixnity-client-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
@@ -133,7 +132,7 @@ ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", ve
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidTestMonitor" }
 
 [bundles]
-kotest = ["kotest-common", "kotest-engine-framework", "kotest-dataset-framework", "kotest-assertion-core"]
+kotest = ["kotest-common", "kotest-engine-framework", "kotest-assertion-core"]
 jna = ["jna", "jna-platform"]
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 # ui
