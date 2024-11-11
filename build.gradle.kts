@@ -49,7 +49,7 @@ allprojects {
 }
 
 subprojects {
-    if (project.name.startsWith("trixnity-")) {
+    if (project.name.startsWith("trixnity-") && !project.name.endsWith("app")) {
         apply(plugin = "org.jetbrains.dokka")
         apply(plugin = "maven-publish")
 

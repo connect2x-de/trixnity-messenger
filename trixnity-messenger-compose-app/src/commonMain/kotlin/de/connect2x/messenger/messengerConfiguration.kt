@@ -19,15 +19,17 @@ fun messengerConfiguration(): MatrixMultiMessengerConfiguration.() -> Unit = {
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
-    modules += listOf(
-        composeViewModule(),
+    modulesFactories += listOf(
+        ::composeViewModule,
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
-        platformMatrixMessengerSettingsHolderModule(),
+        ::platformMatrixMessengerSettingsHolderModule,
         // TODO there should be a more clean way for I18n
-        platformGetSystemLangModule(),
-        module {
-            single<Languages> { DefaultLanguages }
-            single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+        ::platformGetSystemLangModule,
+        {
+            module {
+                single<Languages> { DefaultLanguages }
+                single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+            }
         },
     )
     multiProfile = false
@@ -36,17 +38,19 @@ fun messengerConfiguration(): MatrixMultiMessengerConfiguration.() -> Unit = {
     when (BuildConfig.flavor) {
         Flavor.PROD -> {}
         Flavor.DEV -> {
-            modules += module {
-                val devRootPath = getDevRootPath()
-                if (devRootPath != null) single<RootPath> { devRootPath }
+            modulesFactories += {
+                module {
+                    val devRootPath = getDevRootPath()
+                    if (devRootPath != null) single<RootPath> { devRootPath }
+                }
             }
         }
     }
 
     // MatrixMessengerConfiguration flavors
     messengerConfiguration {
-        modules += listOf(
-            composeViewModule(),
+        modulesFactories += listOf(
+            ::composeViewModule,
         )
         when (BuildConfig.flavor) {
             Flavor.PROD -> {}

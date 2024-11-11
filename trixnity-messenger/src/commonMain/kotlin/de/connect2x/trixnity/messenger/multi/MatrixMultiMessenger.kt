@@ -14,7 +14,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.job
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
@@ -23,18 +22,10 @@ import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger {}
 
-interface MatrixMultiMessenger : ProfileManager {
+interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
     companion object
 
     val di: Koin
-
-    /**
-     * Stop this [MatrixMultiMessenger], its [CoroutineScope] ant the active [MatrixMessenger].
-     * It should be called to clean up all resources used by [MatrixMultiMessenger].
-     *
-     * After calling this, this instance should not be used anymore!
-     */
-    suspend fun stop()
 }
 
 class MatrixMultiMessengerImpl private constructor(
@@ -61,7 +52,7 @@ class MatrixMultiMessengerImpl private constructor(
                         single { config }.bind<MatrixMessengerBaseConfiguration>()
                     },
                 )
-                modules(config.modules)
+                modules(config.modulesFactories.map { it.invoke() })
             }.koin
             val settingsHolder = di.getAll<SettingsHolder<*>>()
             settingsHolder.forEach {
@@ -79,12 +70,12 @@ class MatrixMultiMessengerImpl private constructor(
         }
     }
 
-    override suspend fun stop() {
+    override fun close() {
         di.get<CoroutineScope>().apply {
             cancel("stopped MatrixMultiMessenger")
-            coroutineContext.job.join()
         }
-        activeMatrixMessenger.value?.stop()
+        activeMatrixMessenger.value?.close()
+        di.get<MatrixMultiMessengerConfiguration>().httpClientEngine?.close()
     }
 }
 
