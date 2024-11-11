@@ -7,7 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 
-private var oldPosition: Offset? = null
+private var oldPosition: Offset? = null // TODO include in composable
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun mouseEventsForImageOverlay(
@@ -17,7 +17,7 @@ actual fun mouseEventsForImageOverlay(
     scale: MutableState<Float>,
     move: MutableState<Offset>,
     xMin: MutableState<Float>,
-    yMin: MutableState<Float>
+    yMin: MutableState<Float>,
 ): Modifier {
     val scaleFactorX = maxBoundsImage.x / maxWidth
     val scaleFactorY = maxBoundsImage.y / maxHeight

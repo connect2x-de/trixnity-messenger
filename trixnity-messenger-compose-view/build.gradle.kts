@@ -52,7 +52,6 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(compose.uiUtil)
                 implementation(libs.compose.richeditor)
-                implementation(libs.mpfilepicker)
                 implementation(libs.sysnotify)
             }
         }
