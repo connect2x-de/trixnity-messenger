@@ -23,7 +23,8 @@ class UriFileDescriptor(
     override val fileName: String = computedFileInfo?.fileName ?: i18n.commonUnknown()
     override val fileSize: Long? = computedFileInfo?.fileSize
     override val mimeType: ContentType? =
-        ContentType.fromFilePath(computedFileInfo?.fileName ?: i18n.commonUnknown()).firstOrNull()
+        computedFileInfo?.mimeType?.let(ContentType.Companion::parse) ?:
+        computedFileInfo?.fileName?.let(ContentType.Companion::fromFilePath)?.firstOrNull()
     override val content: ByteArrayFlow =
         byteArrayFlowFromSource { log.debug { "File size is $fileSize" }
             context.contentResolver.openInputStream(fileUri)?.source() ?: Buffer() }
@@ -33,7 +34,7 @@ class UriFileDescriptor(
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
             if (cursor.moveToFirst()) {
-                return@use ComputedFileInfo(cursor.getString(nameIndex), cursor.getLong(sizeIndex))
+                return@use ComputedFileInfo(cursor.getString(nameIndex), cursor.getLong(sizeIndex), context.contentResolver.getType(uri))
             } else {
                 return@use null
             }
@@ -41,4 +42,4 @@ class UriFileDescriptor(
     }.getOrNull()
 }
 
-data class ComputedFileInfo(val fileName: String, val fileSize: Long?)
+data class ComputedFileInfo(val fileName: String, val fileSize: Long?, val mimeType: String?)
