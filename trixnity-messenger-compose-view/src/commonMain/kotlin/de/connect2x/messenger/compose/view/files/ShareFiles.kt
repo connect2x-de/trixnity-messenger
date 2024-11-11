@@ -49,6 +49,7 @@ import de.connect2x.messenger.compose.view.common.AdaptiveDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModel
@@ -120,18 +121,18 @@ class ShareFilesViewImpl : ShareFilesView {
                     }
                 )
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.small),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                 ) {
                     items(viewModel.sharedFiles) { file ->
                         ShareFileCard(file)
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(MaterialTheme.messengerDpConstants.small))
                 Box(Modifier.fillMaxSize()) {
                     if (allRooms.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(Modifier.padding(horizontal = 20.dp)) {
+                            Column(Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.middle)) {
                                 Text(i18n.roomListNoRoom())
                             }
                         }
@@ -194,7 +195,7 @@ private fun ShareFileCard(file: FileDescriptor) {
     val isAudio = file.mimeType?.match("audio/*") == true
     val baseName = file.fileName.substringBeforeLast('.')
     val fileExtension = "." + file.fileName.substringAfterLast('.')
-    Card(Modifier.height(56.dp)) {
+    Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget)) {
         Row {
             Box(
                 modifier = Modifier
@@ -217,13 +218,16 @@ private fun ShareFileCard(file: FileDescriptor) {
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxHeight()
-                    .padding(start = 8.dp, end = 16.dp)
-                    .widthIn(min = 112.dp)
+                    .padding(
+                        start = MaterialTheme.messengerDpConstants.small,
+                        end = MaterialTheme.messengerDpConstants.middle
+                    )
+                    .widthIn(min = MaterialTheme.messengerDpConstants.touchTarget * 2)
             ) {
                 Row {
                     Text(
                         baseName,
-                        modifier = Modifier.widthIn(max = 180.dp),
+                        modifier = Modifier.widthIn(max = MaterialTheme.messengerDpConstants.touchTarget * 3),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         softWrap = false,
