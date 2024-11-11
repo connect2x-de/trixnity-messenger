@@ -343,12 +343,12 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val timelineEventFlow = MutableStateFlow(
                 timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "original text")))
             )
-            val outbox = MutableStateFlow<List<Flow<RoomOutboxMessage<*>>>>(listOf(flowOf(
-                outboxMessageReplace("dummy 1","first replace", EventId("bla")),
-                outboxMessageReplace("dummy 2","second replace", EventId("bla")),
-                outboxMessageReplace("dummy 3","third replace", EventId("bla")),
-                outboxMessageReplace("dummy 4","other replace", EventId("otherBla")),
-            )))
+            val outbox = MutableStateFlow<List<Flow<RoomOutboxMessage<*>>>>(listOf(
+                flowOf(outboxMessageReplace("dummy 1","first replace", EventId("bla"))),
+                flowOf(outboxMessageReplace("dummy 2","second replace", EventId("bla"))),
+                flowOf(outboxMessageReplace("dummy 3","third replace", EventId("bla"))),
+                flowOf(outboxMessageReplace("dummy 4","other replace", EventId("otherBla"))),
+            ))
             every { roomServiceMock.getOutbox(eq(roomId)) } returns outbox
             val cut = timelineElementViewModel(
                 timelineEventFlow = timelineEventFlow,
