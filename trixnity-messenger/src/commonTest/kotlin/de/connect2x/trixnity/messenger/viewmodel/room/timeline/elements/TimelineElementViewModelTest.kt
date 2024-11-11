@@ -103,6 +103,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
             every { userServiceMock.getById(eq(roomId), eq(bob)) } returns
                     MutableStateFlow(roomUser(bob, "Bob"))
 
+            every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+
             every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
         }
