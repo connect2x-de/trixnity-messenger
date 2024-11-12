@@ -380,7 +380,7 @@ private fun MessageImage(
     val showSender = imageMessageViewModel.showSender.collectAsState()
     val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
     if (saveFileDialogOpen) {
-        SaveDialog(
+        SaveFileDialog(
             imageMessageViewModel.fileName,
             imageMessageViewModel.fileMimeType,
             imageMessageViewModel.downloadError.collectAsState().value,
@@ -422,7 +422,7 @@ private fun MessageImageFallback(
 ) {
     val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
     if (saveFileDialogOpen) {
-        SaveDialog(
+        SaveFileDialog(
             imageMessageViewModel.fileName,
             imageMessageViewModel.fileMimeType,
             imageMessageViewModel.downloadError.collectAsState().value,

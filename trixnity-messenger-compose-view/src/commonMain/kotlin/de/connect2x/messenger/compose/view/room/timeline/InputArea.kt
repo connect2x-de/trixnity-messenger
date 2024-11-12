@@ -77,9 +77,8 @@ import de.connect2x.messenger.compose.view.common.EmojiSelector
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
-import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
-import de.connect2x.messenger.compose.view.files.LoadDialog
+import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
 import de.connect2x.messenger.compose.view.files.NotPasteableException
 import de.connect2x.messenger.compose.view.files.getClipboardFile
@@ -88,7 +87,6 @@ import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import kotlinx.coroutines.delay
 import okio.FileSystem
 import kotlin.time.Duration.Companion.milliseconds
