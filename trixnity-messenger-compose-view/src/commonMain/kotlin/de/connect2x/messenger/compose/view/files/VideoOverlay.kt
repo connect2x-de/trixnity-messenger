@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.VideoLabel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +37,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModel
 import kotlinx.coroutines.delay
 
@@ -100,7 +100,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                 }
                 if (video.value == null && progress.value == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.VideoLabel, i18n.commonVideo(), Modifier.size(96.dp))
+                        Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
                         Text(i18n.videoCouldNotBeLoaded())
                     }
 

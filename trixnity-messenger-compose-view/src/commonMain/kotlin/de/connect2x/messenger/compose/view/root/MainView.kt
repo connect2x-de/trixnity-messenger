@@ -48,5 +48,6 @@ class MainViewImpl : MainView {
         AvatarCutterSwitch(mainViewModel)
         AccountSetupSwitch(mainViewModel)
         SelfVerificationSwitch(mainViewModel)
+        ShareFilesSwitch(mainViewModel)
     }
 }

@@ -65,6 +65,7 @@ class MessengerActivity : AppCompatActivity() {
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMessengerServiceConnection.bind(applicationContext)
+        onNewIntent(intent)
 
         this.backgroundSyncShouldBeRunning = false
 
@@ -193,8 +194,20 @@ class MessengerActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.data?.also {
-            matrixMessengerServiceConnection.matrixMultiMessenger.value?.defaultUrlHandler?.onUri(it)
+        when (intent.action) {
+            Intent.ACTION_VIEW -> intent.data?.also {
+                matrixMessengerServiceConnection.matrixMultiMessenger.value?.defaultUrlHandler?.onUri(it)
+            }
+
+            Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let {
+                matrixMessengerServiceConnection.onShareFiles(
+                    applicationContext,
+                    intent.clipData
+                        ?.toSequence()
+                        ?.mapNotNull(SharedFile.Companion::of)
+                        ?.toList().orEmpty()
+                )
+            }
         }
     }
 }
