@@ -9,11 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Wizard for account bootstrapping after initial login
+- use KMMBridge to publish iOS Swift and Objective-C artefacts
+  to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- Wizard for account setup after initial login
 
 ### Changed
 
+- Upgrade Trixnity to 4.10.0
+- Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
+- Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
+  `MatrixMultiMessengerConfiguration`
 - Button to skip verification is now part of the list of available verification methods
+
 
 ### Deprecated
 
@@ -21,7 +28,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Don't show placeholder, when lastRelevantEventId not known.
+- Don't mark state events as relevant.
+- Wizard and modal dialog buttons are always shown on smaller screens
+- Fix Emojis on Web
+- Fix directory picker in room export.
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
+- Don't show edited message as new message
+
 ### Security
+
+## 2.3.6
+
+### Added
+
+- Cross symbol for sent messages
+
+### Changed
+
+- Reduce flickering by showing creation time and date on outbox messages
+- Change symbol for read messages to a double cross
+- Remove alpha channel in outbox messages.
+- Unify calculation of last relevant event in room list.
+
+### Fixed
+
+- Show Search Results when creating Room on small screen sizes
+- Fixed bad contrast due to missing root Surface.
+- Fixed editing a message bumps room up.
+- Fixed Android notifications.
+
+## 2.3.5
+
+### Removed
+
+- Removed edge-to-edge support until we support it in the UI.
+
+### Fixed
+
+- avoid unnecessary caching of all users for reactions and readBy markers
 
 ## 2.3.4
 

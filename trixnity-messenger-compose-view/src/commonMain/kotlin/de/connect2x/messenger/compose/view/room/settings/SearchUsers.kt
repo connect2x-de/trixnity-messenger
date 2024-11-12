@@ -12,6 +12,7 @@ interface SearchUsersSettingsView {
     @Composable
     fun create(
         potentialMembersViewModel: PotentialMembersViewModel,
+        shouldScroll: Boolean,
         onUserClick: suspend (Search.SearchUserElement) -> Unit,
     )
 }
@@ -19,19 +20,21 @@ interface SearchUsersSettingsView {
 @Composable
 fun SearchUsersSettings(
     potentialMembersViewModel: PotentialMembersViewModel,
+    shouldScroll: Boolean = true,
     onUserClick: suspend (Search.SearchUserElement) -> Unit,
 ) {
-    DI.get<SearchUsersSettingsView>().create(potentialMembersViewModel, onUserClick)
+    DI.get<SearchUsersSettingsView>().create(potentialMembersViewModel, shouldScroll, onUserClick)
 }
 
 class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
     @Composable
     override fun create(
         potentialMembersViewModel: PotentialMembersViewModel,
+        shouldScroll: Boolean,
         onUserClick: suspend (Search.SearchUserElement) -> Unit,
     ) {
         Column {
-            SearchUsersLocally(potentialMembersViewModel.searchHandler, onUserClick)
+            SearchUsersLocally(potentialMembersViewModel.searchHandler, shouldScroll, onUserClick)
         }
     }
 }

@@ -38,9 +38,11 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.react
+import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.eventId
@@ -58,6 +60,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -239,6 +242,12 @@ open class TimelineElementHolderViewModelImpl(
     // since this is a rather expensive operation do not compute as a flow
     override suspend fun isReadBy(): List<String> = readBy.first()
 
+    private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
+        (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
+
+    private val newContentIfReplaced = matrixClient.room.getOutbox(selectedRoomId).flatten()
+        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
+
     override val timelineElementViewModel = combine(
         timelineEventFlow
             .filterNotNull()
@@ -257,10 +266,13 @@ open class TimelineElementHolderViewModelImpl(
                 if (it == null) 400.milliseconds else 0.milliseconds
             }
             .distinctUntilChanged(),
-    ) { timelineEvent, previousTimelineEvent, contentResult ->
+        newContentIfReplaced
+            .distinctUntilChanged(),
+    ) { timelineEvent, previousTimelineEvent, contentResult, newContent ->
+
         log.trace { "compute timelineElementViewModel ($timelineEvent, $previousTimelineEvent, $contentResult)" }
         val subViewModel = subViewModelCache.value
-        if (subViewModel != null && subViewModel.first == keyFn(timelineEvent, contentResult?.getOrNull())) {
+        if (subViewModel != null && subViewModel.first == keyFn(timelineEvent, newContent ?: contentResult?.getOrNull())) {
             subViewModel.second
         } else {
             val sender = matrixClient.user.getById(selectedRoomId, timelineEvent.event.sender)
@@ -292,15 +304,14 @@ open class TimelineElementHolderViewModelImpl(
                     }
                 } else flowOf(null)
 
-
             val event = timelineEvent.event
-            val content = contentResult?.fold(
-                onSuccess = { it },
-                onFailure = {
-                    log.error(it) { "cannot decrypt message event" }
-                    event.content
-                }
-            ) ?: event.content
+            val content = newContent ?: (contentResult?.fold(
+                    onSuccess = { it },
+                    onFailure = {
+                        log.error(it) { "cannot decrypt message event" }
+                        event.content
+                    }
+                ) ?: event.content)
 
             timelineSubViewmodelFactory.createEventSubViewmodel(
                 this,

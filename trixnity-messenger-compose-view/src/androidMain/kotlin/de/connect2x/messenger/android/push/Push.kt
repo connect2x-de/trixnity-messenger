@@ -65,7 +65,7 @@ private fun setPushersRequest(fcmToken: String, userId: UserId, deviceId: String
     val config = di.get<MatrixMultiMessengerConfiguration>()
     return SetPushers.Request(
         appDisplayName = "${config.appName} (Android)",
-        appId = config.appId,
+        appId = "${config.appId}.android",
         data = PusherData(
             url = config.pushUrl,
             format = "event_id_only",

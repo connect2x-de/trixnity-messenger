@@ -594,6 +594,16 @@ abstract class I18nView(
         DE - "weiter"
     }
 
+    fun uiaMsisdnTitle() = translate {
+        EN - "Phone number authentication"
+        DE - "Autorisierung mit Telefonnummer"
+    }
+
+    fun uiaEmailTitle() = translate {
+        EN - "Email authentication"
+        DE - "E-Mail Autorisierung"
+    }
+
     fun addMatrixClientCreateMatrixAccount() = translate {
         EN - "Creation of your Matrix account"
         DE - "Einrichtung Ihres Matrix Kontos"

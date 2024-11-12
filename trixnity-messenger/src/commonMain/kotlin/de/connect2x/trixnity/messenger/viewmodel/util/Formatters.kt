@@ -18,7 +18,9 @@ fun Float.format(numOfDec: Int): String {
 
 fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
     return fileTransferProgress?.let {
-        "${formatSize(it.transferred, it.total)} / ${formatSize(it.total)}"
+        val total = it.total
+        if (total != null) "${formatSize(it.transferred, total)} / ${formatSize(total)}"
+        else ""
     } ?: ""
 }
 
@@ -67,7 +69,11 @@ fun formatTime(localDateTime: LocalDateTime): String =
 
 fun formatDuration(duration: Duration): String =
     duration.toComponents { hours, minutes, seconds, _ ->
-        "${if (hours > 0) { "${hours}:${minutes.toString().padStart(2, '0')}:"} else minutes}:" +
+        "${
+            if (hours > 0) {
+                "${hours}:${minutes.toString().padStart(2, '0')}:"
+            } else minutes
+        }:" +
                 seconds.toString().padStart(2, '0')
     }
 

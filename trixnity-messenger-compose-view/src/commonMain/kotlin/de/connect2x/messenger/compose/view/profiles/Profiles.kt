@@ -1,9 +1,13 @@
 package de.connect2x.messenger.compose.view.profiles
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
@@ -37,14 +41,19 @@ class ProfilesViewImpl : ProfilesView {
         existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
     ) {
         val multiProfile = DI.get<MatrixMultiMessengerConfiguration>().multiProfile
-
-        if (existingProfiles.isEmpty() || !multiProfile) {
-            createAndUseDefaultUserProfile(matrixMultiMessenger)
-        } else {
-            createOrSelectManualUserProfile(
-                matrixMultiMessenger,
-                existingProfiles
-            )
+        Surface(
+            Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+        ) {
+            if (existingProfiles.isEmpty() || !multiProfile) {
+                createAndUseDefaultUserProfile(matrixMultiMessenger)
+            } else {
+                createOrSelectManualUserProfile(
+                    matrixMultiMessenger,
+                    existingProfiles
+                )
+            }
         }
     }
 }

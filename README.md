@@ -145,9 +145,17 @@ the lifecycle of the messenger. To override the standard configuration use `Matr
 ```kotlin
 val matrixMessenger = MatrixMessenger.create {
     appName = "Dino Messenger"
+    appId = "org.example.dino.messenger"
     // ... more config ...
 }
 ```
+
+### Add HttpClientEngine
+
+Although Ktors `HttpClient`s used by Trixnity (Messenger) automatically use a `HttpClientEngine` defined in the
+classpath, it is highly recommended to explicitly set it in the configuration. Only that way, it can be shared between
+all `HttpClient` instances. Otherwise, each `HttpClient` creates a new `HttpClientEngine`, which can lead to performance
+issues on heavy usage of the SDK.
 
 ### Change the default behavior of view models
 
@@ -198,7 +206,7 @@ from `createDefaultTrixnityMessengerModules()`:
 
 ```kotlin
 val matrixMessenger = MatrixMessenger.create {
-    modules += addMatrixAccountModule()
+    modulesFactories += ::addMatrixAccountModule
 }
 ```
 

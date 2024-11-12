@@ -12,6 +12,7 @@ stages:
   - test
   - security
   - publish
+  - kmmPublish
 
 variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -235,7 +236,7 @@ publish:mac:
   stage: publish
   tags: [ "connect2x-mac" ]
   cache:
-    - *pull-cache-mac
+    - *cache-mac # is reused by kmmPublish:mac
   rules:
     - *if-main
     - *if-release
@@ -257,3 +258,27 @@ publish:linux:
     - ./gradlew
       publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
       --stacktrace
+
+kmmPublish:mac:
+  stage: kmmPublish
+  tags: [ "connect2x-mac" ]
+  cache:
+    - *pull-cache-mac
+  rules:
+    - *if-main
+    - *if-release
+  timeout: 2h
+  needs: [ "publish:mac" ]
+  script:
+    - ./gradlew
+      kmmBridgePublish updatePackageSwift
+      --stacktrace
+    - cat Package.swift
+    - ./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}' | sed 's/DEV-/alpha./g' > version.txt
+    - git clone https://write_to_repo:"$SPM_PROJECT_ACCESS_TOKEN"@gitlab.com/connect2x/trixnity-messenger/spm
+    - cp Package.swift spm/Package.swift
+    - cd spm
+    - git add Package.swift
+    - cat ../version.txt | xargs -I {} git commit -m "update to version {}"
+    - cat ../version.txt | xargs git tag
+    - cat ../version.txt | xargs git push origin --atomic main tag

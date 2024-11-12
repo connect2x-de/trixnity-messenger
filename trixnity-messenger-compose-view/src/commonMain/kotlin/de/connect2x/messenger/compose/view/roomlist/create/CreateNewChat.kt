@@ -56,7 +56,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                     Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
                     AddOrSearchGroup(createNewChatViewModel)
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                    SearchUsers(createNewChatViewModel.createNewRoomViewModel, createNewChatViewModel::onUserClick)
+                    SearchUsers(createNewChatViewModel.createNewRoomViewModel, onUserClick = createNewChatViewModel::onUserClick)
                 }
             }
         }

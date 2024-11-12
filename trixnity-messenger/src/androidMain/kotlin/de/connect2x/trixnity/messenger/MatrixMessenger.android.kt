@@ -7,6 +7,6 @@ suspend fun MatrixMessenger.Companion.create(
     context: Context,
     configuration: MatrixMessengerConfiguration.() -> Unit = {},
 ): MatrixMessenger = MatrixMessengerImpl {
+    modulesFactories += { module { single<Context> { context } } }
     configuration()
-    modules += module { single<Context> { context } }
 }

@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -30,10 +31,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -884,7 +885,7 @@ class TimelineViewModelTest : ShouldSpec() {
             cut.timelineElementHolderViewModels waitForSize 1
             val coroutineScope = CoroutineScope(Dispatchers.Default)
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
-            scrollToCalled.value.shouldBeEmpty()
+            scrollToCalled.map { it.size }.firstWithClue { 1 } // initial scroll ("0")
 
             outboxMessagesFlow.value = listOf(
                 RoomOutboxMessage(
@@ -895,7 +896,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 ),
             )
             cut.timelineElementHolderViewModels waitForSize 2
-            scrollToCalled.first { it == listOf("transactionId-1") }
+            scrollToCalled.first { it == listOf("0", "transactionId-1") }
             outboxMessagesFlow.value = listOf(
                 RoomOutboxMessage(
                     transactionId = "transactionId-1",
@@ -911,7 +912,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 )
             )
             cut.timelineElementHolderViewModels waitForSize 3
-            scrollToCalled.onEach { println(it) }.first { it == listOf("transactionId-1", "transactionId-2") }
+            scrollToCalled.onEach { println(it) }.first { it == listOf("0", "transactionId-1", "transactionId-2") }
 
             coroutineScope.cancel()
         }
@@ -984,10 +985,11 @@ class TimelineViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun timelineViewModel(
+    private suspend fun timelineViewModel(
         onBackMock: () -> Unit = mock(),
-    ) =
-        TimelineViewModelImpl(
+    ): TimelineViewModel {
+        Dispatchers.setMain(Dispatchers.Unconfined)
+        return TimelineViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koinApplication {
@@ -1031,6 +1033,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
+                coroutineContext = currentCoroutineContext(),
             ),
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
@@ -1039,6 +1042,7 @@ class TimelineViewModelTest : ShouldSpec() {
             onOpenModal = mock(),
             onOpenMention = mock(),
         )
+    }
 
     private fun TimelineMock.mockRoomServiceTimelineEventCalls() {
         every { // fallback
