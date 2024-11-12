@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wizard and modal dialog buttons are always shown on smaller screens
 - Fix Emojis on Web
 - Fix directory picker in room export.
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
 - Don't show edited message as new message
 
 ### Security

@@ -5,12 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
@@ -18,63 +16,50 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
-import de.connect2x.messenger.compose.view.common.LargeSpacer
-import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModel
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepEmailIdentityViewModel
 
-interface UiaFallbackFlowView {
+interface UiaEmailIdentityStepView {
     @Composable
-    fun create(uiaStepFallbackViewModel: UiaStepFallbackViewModel)
+    fun create(uiaStepEmailIdentityViewModel: UiaStepEmailIdentityViewModel)
 }
 
 @Composable
-fun UiaFallbackFlow(uiaStepFallbackViewModel: UiaStepFallbackViewModel) {
-    DI.get<UiaFallbackFlowView>().create(uiaStepFallbackViewModel)
+fun UiaEmailIdentityStep(uiaStepEmailIdentityViewModel: UiaStepEmailIdentityViewModel) {
+    DI.get<UiaEmailIdentityStepView>().create(uiaStepEmailIdentityViewModel)
 }
 
-class UiaFallbackFlowViewImpl : UiaFallbackFlowView {
+class UiaEmailIdentityStepViewImpl : UiaEmailIdentityStepView {
     @Composable
-    override fun create(uiaStepFallbackViewModel: UiaStepFallbackViewModel) {
+    override fun create(uiaStepEmailIdentityViewModel: UiaStepEmailIdentityViewModel) {
         val i18n = DI.get<I18nView>()
-        val error = uiaStepFallbackViewModel.error.collectAsState().value
-        val isAwaiting = uiaStepFallbackViewModel.waitForResult.collectAsState().value
-        val authenticationType = uiaStepFallbackViewModel.authenticationTypeString
+        val error = uiaStepEmailIdentityViewModel.error.collectAsState().value
         UiaModalBox {
             Column(
                 Modifier
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-                UiaHeading(i18n.uiaFallbackTitle())
+                UiaHeading(i18n.uiaEmailTitle())
                 if (error != null) {
                     ErrorView(error)
                 }
                 MiddleSpacer()
-                Text(authenticationType, Modifier.align(Alignment.CenterHorizontally))
-                MiddleSpacer()
-                if (isAwaiting) LoadingSpinner()
-                LargeSpacer()
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     OutlinedButton(
-                        onClick = uiaStepFallbackViewModel::cancel,
+                        onClick = uiaStepEmailIdentityViewModel::cancel,
                         modifier = Modifier.buttonPointerModifier(),
                     ) {
                         Text(i18n.commonCancel().capitalize(Locale.current))
-                    }
-                    Button(
-                        onClick = uiaStepFallbackViewModel::openFallbackUrl,
-                        modifier = Modifier.buttonPointerModifier(),
-                    ) {
-                        Text(i18n.uiaFallbackButtonRedirect().capitalize(Locale.current))
                     }
                 }
             }
         }
     }
+
 }
