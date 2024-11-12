@@ -42,7 +42,7 @@ class UiaEmailIdentityStepViewImpl : UiaEmailIdentityStepView {
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-                UiaHeading(i18n.uiaPasswordTitle())
+                UiaHeading(i18n.uiaEmailTitle())
                 if (error != null) {
                     ErrorView(error)
                 }

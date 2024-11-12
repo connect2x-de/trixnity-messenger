@@ -42,7 +42,7 @@ class UiaMsisdnStepViewImpl: UiaMsisdnStepView {
                     .fillMaxWidth()
                     .padding(20.dp)
             ) {
-                UiaHeading(i18n.uiaPasswordTitle())
+                UiaHeading(i18n.uiaMsisdnTitle())
                 if (error != null) {
                     ErrorView(error)
                 }
