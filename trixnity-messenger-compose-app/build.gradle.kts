@@ -33,8 +33,11 @@ val buildConfigGenerator by tasks.registering {
         val outputFile = generatedSrc.get()
             .dir(appId.replace(".", "/"))
             .file("BuildConfig.kt")
-        val licencesString = licencesFile.readText()
         val quotes = "\"\"\""
+        val licencesString = licencesFile.readText()
+            .replace("$", "\${'$'}")
+            .replace(quotes, "")
+        
         val buildConfigString =
             """
             package $appId

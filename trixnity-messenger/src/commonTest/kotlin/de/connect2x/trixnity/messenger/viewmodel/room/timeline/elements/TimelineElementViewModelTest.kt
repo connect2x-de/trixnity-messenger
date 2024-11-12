@@ -31,13 +31,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
@@ -102,6 +105,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     MutableStateFlow(roomUser(alice, "Alice"))
             every { userServiceMock.getById(eq(roomId), eq(bob)) } returns
                     MutableStateFlow(roomUser(bob, "Bob"))
+
+            every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
 
             every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
@@ -333,6 +338,28 @@ class TimelineElementViewModelTest : ShouldSpec() {
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
+
+        should("take message content from outbox if available") {
+            val timelineEventFlow = MutableStateFlow(
+                timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "original text")))
+            )
+            val outbox = MutableStateFlow<List<Flow<RoomOutboxMessage<*>>>>(listOf(
+                flowOf(outboxMessageReplace("dummy 1","first replace", EventId("bla"))),
+                flowOf(outboxMessageReplace("dummy 2","second replace", EventId("bla"))),
+                flowOf(outboxMessageReplace("dummy 3","third replace", EventId("bla"))),
+                flowOf(outboxMessageReplace("dummy 4","other replace", EventId("otherBla"))),
+            ))
+            every { roomServiceMock.getOutbox(eq(roomId)) } returns outbox
+            val cut = timelineElementViewModel(
+                timelineEventFlow = timelineEventFlow,
+                eventId = EventId("bla"),
+            )
+
+            cut.timelineElementViewModel.filterNotNull().first {
+                require(it is TextMessageViewModel)
+                it.message == "third replace"
+            }
+        }
     }
 
     private suspend fun timelineElementViewModel(
@@ -423,6 +450,19 @@ class TimelineElementViewModelTest : ShouldSpec() {
             0L,
             stateKey = ""
         )
+    )
+
+    private fun outboxMessageReplace(tid: String, text: String, replaceId: EventId) = RoomOutboxMessage(
+        roomId = roomId,
+        transactionId = tid,
+        createdAt = Instant.fromEpochMilliseconds(0),
+        content = RoomMessageEventContent.TextBased.Text(
+            text,
+            relatesTo = RelatesTo.Replace(
+                eventId = replaceId,
+                newContent = RoomMessageEventContent.TextBased.Text(body = text)
+            )
+        ),
     )
 
 }

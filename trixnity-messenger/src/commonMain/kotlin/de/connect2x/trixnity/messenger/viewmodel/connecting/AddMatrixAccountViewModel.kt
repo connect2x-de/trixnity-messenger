@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -77,7 +76,7 @@ open class AddMatrixAccountViewModelImpl(
 
     final override val serverUrl = MutableStateFlow(get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
 
-    private val httpClientFactory = get<HttpClientFactory>()()
+    private val config = get<MatrixMessengerConfiguration>()
 
     final override val serverDiscoveryState =
         serverUrl.debounce(1.seconds).transformLatest { serverUrl ->
@@ -85,14 +84,15 @@ open class AddMatrixAccountViewModelImpl(
                 serverUrl.isBlank() -> ServerDiscoveryState.None
                 else -> {
                     emit(ServerDiscoveryState.Loading)
-                    serverUrl.serverDiscovery(httpClientFactory = httpClientFactory)
-                        .onFailure {
-                            log.debug(it) { "server discovery failed -> try login with given server URL" }
-                            getLoginTypes(Url(serverUrl))
-                        }
-                        .onSuccess { serverDiscoveryUrl ->
-                            getLoginTypes(serverDiscoveryUrl)
-                        }
+                    serverUrl.serverDiscovery(
+                        httpClientEngine = config.httpClientEngine,
+                        httpClientConfig = config.httpClientConfig
+                    ).onFailure {
+                        log.debug(it) { "server discovery failed -> try login with given server URL" }
+                        getLoginTypes(Url(serverUrl))
+                    }.onSuccess { serverDiscoveryUrl ->
+                        getLoginTypes(serverDiscoveryUrl)
+                    }
                 }
             }
         }.stateIn(
@@ -112,62 +112,63 @@ open class AddMatrixAccountViewModelImpl(
     private suspend fun FlowCollector<ServerDiscoveryState>.getLoginTypes(
         serverDiscoveryUrl: Url
     ) {
-        val api = MatrixClientServerApiClientImpl(
+        MatrixClientServerApiClientImpl(
             serverDiscoveryUrl,
-            httpClientFactory = httpClientFactory
-        )
-        api.authentication.getLoginTypes()
-            .onFailure {
-                log.debug(it) { "get login types failed" }
-                emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
-            }
-            .onSuccess { loginTypes ->
-                log.debug { "get login types succeeded" }
-                val addMatrixAccountMethods = loginTypes.flatMap { loginType ->
-                    when (loginType) {
-                        is LoginType.Password ->
-                            setOf(AddMatrixAccountMethod.Password(serverDiscoveryUrl.toString()))
+            httpClientEngine = config.httpClientEngine,
+            httpClientConfig = config.httpClientConfig
+        ).use { api ->
+            api.authentication.getLoginTypes()
+                .onFailure {
+                    log.debug(it) { "get login types failed" }
+                    emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
+                }.onSuccess { loginTypes ->
+                    log.debug { "get login types succeeded" }
+                    val addMatrixAccountMethods = loginTypes.flatMap { loginType ->
+                        when (loginType) {
+                            is LoginType.Password ->
+                                setOf(AddMatrixAccountMethod.Password(serverDiscoveryUrl.toString()))
 
-                        is LoginType.SSO ->
-                            loginType.identityProviders.map { identityProvider ->
-                                val icon = identityProvider.icon?.let {
-                                    var byteArray: ByteArray? = null
-                                    api.media.downloadLegacy(it) {
-                                        byteArray =
-                                            it.content.toByteArrayFlow()
-                                                .takeBytes(10 * 1024 * 1024) // max 10 MB
-                                                .toByteArray()
-                                    }.onFailure {
-                                        log.warn { "could not download idp icon $it" }
-                                    }.getOrNull()
-                                    byteArray
+                            is LoginType.SSO ->
+                                loginType.identityProviders.map { identityProvider ->
+                                    val icon = identityProvider.icon?.let {
+                                        var byteArray: ByteArray? = null
+                                        api.media.downloadLegacy(it) {
+                                            byteArray =
+                                                it.content.toByteArrayFlow()
+                                                    .takeBytes(10 * 1024 * 1024) // max 10 MB
+                                                    .toByteArray()
+                                        }.onFailure {
+                                            log.warn { "could not download idp icon $it" }
+                                        }.getOrNull()
+                                        byteArray
+                                    }
+                                    AddMatrixAccountMethod.SSO(
+                                        serverUrl = serverDiscoveryUrl.toString(),
+                                        identityProvider = identityProvider,
+                                        icon = icon,
+                                    )
                                 }
-                                AddMatrixAccountMethod.SSO(
-                                    serverUrl = serverDiscoveryUrl.toString(),
-                                    identityProvider = identityProvider,
-                                    icon = icon,
-                                )
-                            }
 
-                        else -> setOf()
-                    }
-                }.toSet()
-                val canRegisterNewUser = api.authentication.register()
-                    .fold(
-                        onSuccess = { it is UIA.Step<*> },
-                        onFailure = { false }
+                            else -> setOf()
+                        }
+                    }.toSet()
+                    val canRegisterNewUser = api.authentication.register()
+                        .fold(
+                            onSuccess = { it is UIA.Step<*> },
+                            onFailure = { false }
+                        )
+                    emit(
+                        ServerDiscoveryState.Success(
+                            addMatrixAccountMethods =
+                            if (canRegisterNewUser)
+                                addMatrixAccountMethods + AddMatrixAccountMethod.Register(
+                                    serverDiscoveryUrl.toString()
+                                )
+                            else addMatrixAccountMethods
+                        )
                     )
-                emit(
-                    ServerDiscoveryState.Success(
-                        addMatrixAccountMethods =
-                        if (canRegisterNewUser)
-                            addMatrixAccountMethods + AddMatrixAccountMethod.Register(
-                                serverDiscoveryUrl.toString()
-                            )
-                        else addMatrixAccountMethods
-                    )
-                )
-            }
+                }
+        }
     }
 }
 

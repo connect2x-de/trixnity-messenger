@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.HttpClientFactory
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
@@ -17,10 +17,8 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import org.koin.dsl.koinApplication
-import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class AddMatrixAccountViewModelTest : ShouldSpec() {
@@ -211,22 +208,9 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
             else addHandler { _ -> respond("") }
         }.create()
         val di = koinApplication {
-            modules(createTestDefaultTrixnityMessengerModules() + module {
-                single<HttpClientFactory> {
-                    HttpClientFactory {
-                        {
-                            HttpClient(mockEngine) {
-                                it()
-                                install(Logging) {
-                                    logger = Logger.DEFAULT
-                                    level = LogLevel.ALL
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+            modules(createTestDefaultTrixnityMessengerModules())
         }.koin
+        di.get<MatrixMessengerConfiguration>().httpClientEngine = mockEngine
         di.get<I18n>().setCurrentLang(DefaultLanguages.EN)
         return AddMatrixAccountViewModelImpl(
             viewModelContext = ViewModelContextImpl(

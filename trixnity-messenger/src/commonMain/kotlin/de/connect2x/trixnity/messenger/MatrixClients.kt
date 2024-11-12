@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
@@ -71,11 +70,6 @@ class MatrixClientsImpl(
     private val config: MatrixMessengerConfiguration,
     coroutineScope: CoroutineScope,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
-    private val matrixClientServerApiClientFactory: (baseUrl: Url, accessToken: String) -> MatrixClientServerApiClient =
-        { baseUrl, accessToken ->
-            MatrixClientServerApiClientImpl(baseUrl = baseUrl)
-                .apply { this.accessToken.value = accessToken }
-        }
 ) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
     init {
         coroutineScope.launch {
@@ -195,8 +189,14 @@ class MatrixClientsImpl(
     private suspend fun checkExisting(loginInfo: LoginInfo, baseUrl: Url) {
         if (value.containsKey(loginInfo.userId)) {
             log.debug { "account ${loginInfo.userId} already exist -> logout" }
-            matrixClientServerApiClientFactory(baseUrl, loginInfo.accessToken)
-                .authentication.logout()
+            MatrixClientServerApiClientImpl(
+                baseUrl,
+                httpClientEngine = config.httpClientEngine,
+                httpClientConfig = config.httpClientConfig
+            ).use {
+                it.accessToken.value = loginInfo.accessToken
+                it.authentication.logout()
+            }
                 .onFailure { log.error(it) { "could not logout of duplicate account" } }
                 .getOrNull()
             throw AccountAlreadyExistsException(loginInfo.userId)
@@ -252,7 +252,7 @@ class MatrixClientsImpl(
         matrixClients.value[userId]?.let { matrixClient ->
             log.info { "delete account data on this machine" }
             withContext(NonCancellable) {
-                matrixClient.stop(wait = true)
+                matrixClient.close()
                 settings.delete(matrixClient.userId)
                 matrixClients.update { it - userId }
                 deleteAccountData(userId)

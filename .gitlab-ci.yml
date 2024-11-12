@@ -267,7 +267,7 @@ kmmPublish:mac:
   rules:
     - *if-main
     - *if-release
-  timeout: 1h
+  timeout: 2h
   needs: [ "publish:mac" ]
   script:
     - ./gradlew

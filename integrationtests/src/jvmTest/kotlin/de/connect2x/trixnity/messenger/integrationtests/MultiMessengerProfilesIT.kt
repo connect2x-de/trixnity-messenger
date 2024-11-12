@@ -30,7 +30,7 @@ class MultiMessengerProfilesIT {
 
         matrixMessenger1 shouldNotBe matrixMessenger2
 
-        matrixMessenger1?.stop()
-        matrixMessenger2?.stop()
+        matrixMessenger1?.close()
+        matrixMessenger2?.close()
     }
 }

@@ -221,10 +221,14 @@ import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationView
 import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaDummyStepView
 import de.connect2x.messenger.compose.view.uia.UiaDummyStepViewImpl
+import de.connect2x.messenger.compose.view.uia.UiaEmailIdentityStepView
+import de.connect2x.messenger.compose.view.uia.UiaEmailIdentityStepViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaFallbackFlowView
 import de.connect2x.messenger.compose.view.uia.UiaFallbackFlowViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaModalBoxView
 import de.connect2x.messenger.compose.view.uia.UiaModalBoxViewImpl
+import de.connect2x.messenger.compose.view.uia.UiaMsisdnStepView
+import de.connect2x.messenger.compose.view.uia.UiaMsisdnStepViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
@@ -339,7 +343,7 @@ fun searchViewModule() = module {
 
 fun roomViewModule() = module {
     single<RoomListElementView> { RoomListElementViewImpl() }
-    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl()  }
+    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
 fun roomSettingsViewModule() = module {
@@ -429,4 +433,6 @@ fun uiaViewModule() = module {
     single<UiaFallbackFlowView> { UiaFallbackFlowViewImpl() }
     single<UiaDummyStepView> { UiaDummyStepViewImpl() }
     single<UiaActionConfirmationView> { UiaActionConfirmationViewImpl() }
+    single<UiaEmailIdentityStepView> { UiaEmailIdentityStepViewImpl() }
+    single<UiaMsisdnStepView> { UiaMsisdnStepViewImpl() }
 }

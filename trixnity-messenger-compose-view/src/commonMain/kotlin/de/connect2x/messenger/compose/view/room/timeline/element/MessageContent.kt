@@ -63,7 +63,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
-import de.connect2x.messenger.compose.view.files.SaveDialog
+import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -467,7 +467,7 @@ fun MessageVideo(
     val uploadProgress = videoMessageViewModel.uploadProgress.collectAsState().value
     val downloadSuccessful = videoMessageViewModel.downloadSuccessful.collectAsState()
     val error = videoMessageViewModel.downloadError.collectAsState().value
-    if (saveFileDialogOpen.value) SaveDialog(
+    if (saveFileDialogOpen.value) SaveFileDialog(
         videoMessageViewModel.fileName,
         videoMessageViewModel.fileMimeType,
         error,
@@ -560,7 +560,7 @@ private fun MessageAudio(
     val downloadSuccessful = audioMessageViewModel.downloadSuccessful.collectAsState()
     val uploadProgress = audioMessageViewModel.uploadProgress.collectAsState().value
     val error = audioMessageViewModel.downloadError.collectAsState().value
-    if (saveFileDialogOpen.value) SaveDialog(
+    if (saveFileDialogOpen.value) SaveFileDialog(
         audioMessageViewModel.fileName,
         audioMessageViewModel.fileMimeType,
         error,
@@ -639,7 +639,7 @@ private fun MessageFile(
     val downloadSuccessful = fileMessageViewModel.downloadSuccessful.collectAsState()
     val uploadProgress = fileMessageViewModel.uploadProgress.collectAsState().value
     val error = fileMessageViewModel.downloadError.collectAsState().value
-    if (saveFileDialogOpen.value) SaveDialog(
+    if (saveFileDialogOpen.value) SaveFileDialog(
         fileMessageViewModel.fileName,
         fileMessageViewModel.fileMimeType,
         error,

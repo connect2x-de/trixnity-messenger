@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.gb
 import de.connect2x.trixnity.messenger.util.mb
-import org.koin.core.module.Module
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import net.folivo.trixnity.client.ModuleFactory
 
 private val colors =
     listOf(
@@ -67,7 +69,24 @@ data class MatrixMessengerConfiguration(
     override var pushUrl: String? = null,
 
     /**
-     * Inject and override modules.
+     * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
      */
-    var modules: List<Module> = createDefaultTrixnityMessengerModules(),
+    override var httpClientEngine: HttpClientEngine? = null,
+
+    /**
+     * Configure the underlying [HttpClient].
+     */
+    override var httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
+
+    /**
+     * Inject and override modules into Trixnity Messenger. By default, this is [createTrixnityMessengerDefaultModuleFactories].
+     *
+     * Be aware to always create new modules because a module stores your class instances and therefore is reused, which we don't want!
+     *
+     * For example:
+     * ```kotlin
+     * modulesFactories += ::createCustomModule
+     * ```
+     */
+    var modulesFactories: List<ModuleFactory> = createTrixnityMessengerDefaultModuleFactories(),
 ) : MatrixMessengerBaseConfiguration

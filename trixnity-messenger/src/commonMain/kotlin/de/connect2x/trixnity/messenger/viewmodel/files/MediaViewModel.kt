@@ -78,10 +78,17 @@ open class MediaViewModelImpl(
             val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
             launch {
                 mediaProgressFlow.collectLatest {
-                    progress.emit(FileTransferProgressElement(
-                        percent = it?.transferred?.let { transferred -> transferred / it.total.toFloat() } ?: 0f,
-                        formattedProgress = formatProgress(it),
-                    ))
+                    val transferred = it?.transferred
+                    val total = it?.total
+                    val percent =
+                        if (transferred != null && total != null) transferred / total.toFloat()
+                        else 0f
+                    progress.emit(
+                        FileTransferProgressElement(
+                            percent = percent,
+                            formattedProgress = formatProgress(it),
+                        )
+                    )
                 }
             }
             if (encryptedFile != null) {

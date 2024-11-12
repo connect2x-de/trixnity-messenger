@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import de.connect2x.trixnity.messenger.HttpClientFactory
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState.None
@@ -63,7 +63,7 @@ class RegisterNewAccountViewModelImpl(
 ) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
 
     private val authorizeUia = get<AuthorizeUia>()
-    private val httpClientFactory = get<HttpClientFactory>()()
+    private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -89,14 +89,19 @@ class RegisterNewAccountViewModelImpl(
         if (canRegisterNewUser && isRegisteringNewUser.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 error.value = null
-                val api = MatrixClientServerApiClientImpl(Url(serverUrl), httpClientFactory = httpClientFactory)
-                val result = authorizeUia {
-                    api.authentication.register(
-                        accountType = AccountType.USER,
-                        username = username.value,
-                        password = password.value,
-                        initialDeviceDisplayName = getDefaultDeviceDisplayName()
-                    )
+                val result = MatrixClientServerApiClientImpl(
+                    Url(serverUrl),
+                    httpClientEngine = config.httpClientEngine,
+                    httpClientConfig = config.httpClientConfig
+                ).use {
+                    authorizeUia {
+                        it.authentication.register(
+                            accountType = AccountType.USER,
+                            username = username.value,
+                            password = password.value,
+                            initialDeviceDisplayName = getDefaultDeviceDisplayName()
+                        )
+                    }
                 }
                 when (result) {
                     is AuthorizeUiaResult.Success -> {
@@ -138,6 +143,7 @@ class RegisterNewAccountViewModelImpl(
                         error.value = result.message
                     }
                 }
+
             }.invokeOnCompletion { isRegisteringNewUser.value = false }
         }
     }

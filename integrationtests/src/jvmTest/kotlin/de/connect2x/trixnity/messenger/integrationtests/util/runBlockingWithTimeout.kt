@@ -1,10 +1,9 @@
 package de.connect2x.trixnity.messenger.integrationtests.util
 
-import io.kotest.common.runBlocking
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 

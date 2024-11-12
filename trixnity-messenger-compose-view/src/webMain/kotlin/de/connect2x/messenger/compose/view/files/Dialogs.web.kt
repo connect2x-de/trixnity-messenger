@@ -18,7 +18,7 @@ import kotlin.js.Promise
 private val log = KotlinLogging.logger { }
 
 @Composable
-actual fun SaveDialog(
+actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
@@ -29,7 +29,7 @@ actual fun SaveDialog(
 }
 
 @Composable
-actual fun LoadDialog(
+actual fun LoadFileDialog(
     onFileSelect: (FileDescriptor) -> Unit,
     onCloseLoadFileDialog: () -> Unit,
     mode: LoadFileMode,

@@ -18,7 +18,9 @@ fun Float.format(numOfDec: Int): String {
 
 fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
     return fileTransferProgress?.let {
-        "${formatSize(it.transferred, it.total)} / ${formatSize(it.total)}"
+        val total = it.total
+        if (total != null) "${formatSize(it.transferred, total)} / ${formatSize(total)}"
+        else ""
     } ?: ""
 }
 

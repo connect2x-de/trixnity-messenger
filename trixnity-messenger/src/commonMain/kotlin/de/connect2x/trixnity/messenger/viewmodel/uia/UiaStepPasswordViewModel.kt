@@ -86,6 +86,7 @@ class UiaStepPasswordViewModelImpl(
                                 }
                             }
                         } else {
+                            log.debug { "UIA password action was successful -> onNext()" }
                             onNext(it)
                         }
                     }
@@ -95,6 +96,7 @@ class UiaStepPasswordViewModelImpl(
                         else error.value = i18n.uiaGenericError(e.message)
                     }
             }.invokeOnCompletion {
+                log.debug { "UIA password action completed" }
                 isSubmitting.value = false
             }
         }

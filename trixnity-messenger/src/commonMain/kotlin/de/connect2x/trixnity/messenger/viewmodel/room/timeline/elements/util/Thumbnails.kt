@@ -180,12 +180,13 @@ class ThumbnailsImpl : Thumbnails {
 
     override fun mapProgressToProgressElement(thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>) =
         thumbnailProgressFlow.map {
-            if (it == null) {
+            val total = it?.total
+            if (total == null) {
                 null
             } else {
                 FileTransferProgressElement(
-                    percent = if (it.total > 0) {
-                        it.transferred / it.total.toFloat()
+                    percent = if (total > 0) {
+                        it.transferred / total.toFloat()
                     } else {
                         0f
                     },
