@@ -2,9 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 
 import MediaViewModel
 import MediaViewModelImpl
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaConstants.MAX_SIZE_DOCUMENT_PREVIEW_BYTES
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
@@ -59,8 +59,9 @@ open class PdfDocumentViewModelImpl(
 ), PdfDocumentViewModel {
     private val i18n = get<I18n>()
     override val documentFlow = mediaDataFlow
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
     override val document = mediaDataFlow.map {
-        it?.limitSize(MAX_SIZE_DOCUMENT_PREVIEW_BYTES)
+        it?.limitSize(maxPreviewSize)
             ?.catch { e ->
                 if (e.cause is MaxByteFlowSizeException) error.value = i18n.mediaTooLargeForPreview()
                 else error.value = i18n.mediaCanNotBePreviewed()

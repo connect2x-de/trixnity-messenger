@@ -49,7 +49,7 @@ data class MatrixMessengerConfiguration(
     val imageAttachmentMaxProcessingSize: Long = 50.mb(),
 
     /**
-     * The maximum size of clipboard files that can be uploaded
+     * The maximum size of files that can be previewed in *Bytes*
      */
     val filePreviewMaxSize: Long = 50.mb(),
 

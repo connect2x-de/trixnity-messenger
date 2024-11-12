@@ -15,11 +15,6 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import org.koin.core.component.get
 
 
-object MediaConstants {
-    const val MAX_SIZE_IMAGE_PREVIEW_BYTES: Long = 8 * 1024 * 1024 // 8MB
-    const val MAX_SIZE_DOCUMENT_PREVIEW_BYTES: Long = 64 * 1024 * 1024 // 64MB
-}
-
 class MediaRouter(
     private val viewModelContext: ViewModelContext,
 ) {
