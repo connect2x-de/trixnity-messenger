@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
@@ -62,9 +63,10 @@ suspend fun MatrixMessengerWithRoot.login(
     val main = stack.waitFor(RootRouter.Wrapper.Main::class)
     log.info { " +- main view" }
     val mainViewModel = main.viewModel
+    mainViewModel.accountSetupRouterStack.waitFor(AccountSetupRouter.Wrapper.ShowAccountSetup::class).viewModel.closeAccountSetup()
     val verification = mainViewModel.selfVerificationStack.toFlow().first { childStack ->
         log.debug { " active: ${childStack.active.instance}" }
-        childStack.active.instance is SelfVerificationRouter.Wrapper.Bootstrap ||
+        childStack.active.instance is SelfVerificationRouter.Wrapper.CrossSigningBootstrap ||
                 childStack.active.instance is SelfVerificationRouter.Wrapper.View
     }.active.instance
     if (verification is SelfVerificationRouter.Wrapper.View) {
@@ -395,17 +397,17 @@ private suspend fun MatrixMessengerWithRoot.bootstrap(
     password: String,
 ): String? {
     log.info { "  +- bootstrap" }
-    val bootstrapViewModel =
-        (verification as SelfVerificationRouter.Wrapper.Bootstrap).viewModel
-    bootstrapViewModel.bootstrap()
+    val crossSigningBootstrapViewModel =
+        (verification as SelfVerificationRouter.Wrapper.CrossSigningBootstrap).viewModel
+    crossSigningBootstrapViewModel.startCrossSigningBootstrap()
 
     authorizeUia(username, password)
 
-    bootstrapViewModel.isBootstrapRunning.first { it.not() }
-    val createdRecoveryKey = bootstrapViewModel.recoveryKey.first { it != null }
+    crossSigningBootstrapViewModel.isBootstrapRunning.first { it.not() }
+    val createdRecoveryKey = crossSigningBootstrapViewModel.recoveryKey.first { it != null }
     log.info { "user '$username' with password '$password' has recovery key '$createdRecoveryKey'" }
 
-    bootstrapViewModel.close()
+    crossSigningBootstrapViewModel.close()
     log.info { "   - bootstrap finished" }
     return createdRecoveryKey
 }

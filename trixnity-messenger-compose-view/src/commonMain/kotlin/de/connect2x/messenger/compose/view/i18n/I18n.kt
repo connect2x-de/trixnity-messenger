@@ -279,6 +279,16 @@ abstract class I18nView(
         DE - "Logo"
     }
 
+    fun commonWelcome() = translate {
+        EN - "Welcome"
+        DE - "Willkommen"
+    }
+
+    fun commonConfirm() = translate {
+        EN - "confirm"
+        DE - "bestätigen"
+    }
+
     fun commonOptionalReason() = translate {
         EN - "Reason (optional)"
         DE - "Grund (optional)"
@@ -292,6 +302,11 @@ abstract class I18nView(
     fun commonCollapse() = translate {
         EN - "collapse"
         DE - "einklappen"
+    }
+
+    fun commonSkip() = translate {
+        EN - "skip"
+        DE - "überspringen"
     }
 
     fun newMessage() = translate {
@@ -1546,15 +1561,15 @@ abstract class I18nView(
 
     fun privacyReadMarkerIsPublicExplanation() = translate {
         EN - "Others can see which messages you have read"
-        DE - "Andere Nutzer können sehen, welche Nachrichten sie bereits gelesen haben"
+        DE - "Andere Nutzer können sehen, welche Nachrichten Sie bereits gelesen haben"
     }
 
-    fun typingIsPublic() = translate {
+    fun privacyTypingIsPublic() = translate {
         EN - "Typing Indicators"
-        DE - "Tippindikatoren"
+        DE - "Tipp-Indikatoren"
     }
 
-    fun typingIsPublicExplanation() = translate {
+    fun privacyTypingIsPublicExplanation() = translate {
         EN - "Others can see when you type a message"
         DE - "Andere Nutzer können sehen, wenn Sie eine neue Nachricht schreiben"
     }
@@ -1650,8 +1665,8 @@ abstract class I18nView(
     }
 
     fun bootstrapFinished() = translate {
-        EN - "Your account is now set up."
-        DE - "Ihr Konto ist nun eingerichtet."
+        EN - "Your recovery key is now set up."
+        DE - "Ihr Generalschlüssel ist nun eingerichtet."
     }
 
     fun deviceVerificationTitle() = translate {
@@ -1814,6 +1829,11 @@ abstract class I18nView(
         DE - "Generalschlüssel zurücksetzen"
     }
 
+    fun selfVerificationResetRecoveryKeyDescription() = translate {
+        EN - "This will lead to you losing access to all past messages."
+        DE - "Durch diesen Schritt verlieren Sie Zugriff auf alle ihre vergangenen Nachrichten."
+    }
+
     fun verificationWait() = translate {
         EN - "Wait for input on other device."
         DE - "Warte auf Eingabe an anderem Gerät."
@@ -1846,22 +1866,32 @@ abstract class I18nView(
 
     fun verificationSuccess(deviceName: String) = translate {
         EN - "Device '$deviceName' was verified successfully."
-        DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschalten werden."
+        DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschaltet werden."
+    }
+
+    fun verificationSuccessThisDevice() = translate {
+        EN - "This device was verified successfully."
+        DE - "Dieses Gerät konnte erfolgreich freigeschaltet werden."
     }
 
     fun verificationRejected(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein."
+        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein. ${verificationTryAgain()}"
     }
 
     fun verificationTimeout(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten."
+        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten. ${verificationTryAgain()}"
     }
 
     fun verificationCancelled(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} has been cancelled."
-        DE - "${type.capitalize(Locale.current)} wurde abgebrochen."
+        EN - "${type.capitalize(Locale.current)} has been cancelled. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} wurde abgebrochen. ${verificationTryAgain()}"
+    }
+
+    fun verificationTryAgain() = translate {
+        EN - "Please try again or choose a different verification method."
+        DE - "Bitte versuchen Sie es erneut oder wählen sie eine andere Verifikationsmethode."
     }
 
     fun deviceVerification() = translate {
@@ -2393,6 +2423,27 @@ abstract class I18nView(
         DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
         EN - "The activation of the encryption of the chat cannot be revoked."
     }
+
+    fun accountSetupWizardExplanationMessage() = translate {
+        DE - "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
+        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
+    }
+
+    fun accountSetupWizardFinishSetup() = translate {
+        DE - "Ist alles nach Ihren Wünschen eingestellt?"
+        EN - "Is everything configured to your liking?"
+    }
+
+    fun accountSetupWizardFinishSetupTitle() = translate {
+        DE - "Einrichtung abschließen"
+        EN - "Finish setup"
+    }
+
+    fun accountSetupWizardReset() = translate {
+        DE - "Setup zurücksetzen"
+        EN - "Reset setup"
+    }
+
 }
 
 fun i18nViewModule() = module {

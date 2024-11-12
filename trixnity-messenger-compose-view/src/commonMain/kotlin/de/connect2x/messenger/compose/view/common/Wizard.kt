@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,16 +35,27 @@ import androidx.compose.ui.unit.max
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
 typealias StepId = String
 
-interface WizardNextButton {
-    data class Standard(val enabled: @Composable () -> Boolean = { true }) : WizardNextButton
-    data object None : WizardNextButton
-    data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNextButton
+sealed interface WizardNavigationButton {
+    data class Standard(
+        val enabled: @Composable () -> Boolean = { true },
+        val content: (@Composable () -> Unit)? = null
+    ) : WizardNavigationButton
+
+    data object None : WizardNavigationButton
+    data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNavigationButton
+}
+
+sealed interface WizardButtons {
+    data object NextButton : WizardButtons
+    data object AdditionalButton : WizardButtons
+    data object BackButton : WizardButtons
 }
 
 @Immutable
@@ -52,7 +64,13 @@ data class WizardStep(
     val title: @Composable () -> String,
     val content: @Composable (BoxWithConstraintsScope) -> Unit,
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
-    val nextButton: WizardNextButton = WizardNextButton.Standard(),
+    val nextButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
+    val backButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
+    val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
+        Triple(
+            WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton
+        )
+    }
 )
 
 @Composable
@@ -165,31 +183,33 @@ private fun WizardButtons(
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     val additionalButton = wizardStep.additionalButton
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
-        if (previousStep != null) {
-            if (additionalButton != null) {
-                MessengerModalButtonRow(
-                    button1 = { additionalButton { stepId -> currentStep.value = stepId } },
-                    button2 = { BackButton(currentStep, previousStep) },
-                    button3 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
-            } else {
-                MessengerModalButtonRow(
-                    button1 = { BackButton(currentStep, previousStep) },
-                    button2 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
-            }
-        } else {
-            if (additionalButton != null) {
-                MessengerModalButtonRow(
-                    button1 = { additionalButton { stepId -> currentStep.value = stepId } },
-                    button2 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
-            } else {
-                MessengerModalButtonRow(
-                    button1 = { NextButton(wizardStep, nextStep, currentStep) },
-                )
-            }
+        val buttonList = wizardStep.buttonOrder().toList().toMutableList()
+        if (previousStep == null) {
+            buttonList.remove(WizardButtons.BackButton)
         }
+        if (additionalButton == null) {
+            buttonList.remove(WizardButtons.AdditionalButton)
+        }
+        MessengerModalButtonRow(
+            button1 = getCorrespondingButton(buttonList[0], wizardStep, nextStep, currentStep, previousStep),
+            button2 = if (buttonList.size > 1)
+                getCorrespondingButton(
+                    buttonList[1],
+                    wizardStep,
+                    nextStep,
+                    currentStep,
+                    previousStep
+                ) else null,
+            button3 =
+            if (buttonList.size > 2) getCorrespondingButton(
+                buttonList[2],
+                wizardStep,
+                nextStep,
+                currentStep,
+                previousStep
+            ) else null
+
+        )
     }
 }
 
@@ -199,38 +219,96 @@ private fun RowScope.NextButton(
     nextStep: StepId?,
     currentStep: MutableState<StepId>,
 ) {
-    when (val nextButton = wizardStep.nextButton) {
-        is WizardNextButton.Standard -> {
-            nextStep?.let { NextButtonImpl(currentStep, nextStep, nextButton.enabled) }
+    when (val nextButton = wizardStep.nextButton()) {
+        is WizardNavigationButton.Standard -> {
+            nextStep?.let { NextButtonImpl(currentStep, nextStep, nextButton) }
         }
 
-        is WizardNextButton.None -> {}
+        is WizardNavigationButton.None -> {}
 
-        is WizardNextButton.Custom -> {
+        is WizardNavigationButton.Custom -> {
             nextButton.button(this@NextButton)
         }
     }
 }
 
 @Composable
-private fun NextButtonImpl(currentStep: MutableState<StepId>, nextStep: StepId, enabled: @Composable () -> Boolean) {
+private fun NextButtonImpl(
+    currentStep: MutableState<StepId>,
+    nextStep: StepId,
+    nextButton: WizardNavigationButton.Standard
+) {
     val i18n = DI.get<I18nView>()
     Button(
         onClick = { currentStep.value = nextStep },
         modifier = Modifier.buttonPointerModifier(),
-        enabled = enabled(),
+        enabled = nextButton.enabled(),
     ) {
-        Text(i18n.commonNext())
+        if (nextButton.content != null) {
+            nextButton.content()
+        } else Text(i18n.commonNext())
     }
 }
 
 @Composable
-private fun BackButton(currentStep: MutableState<StepId>, previousStep: StepId) {
+private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: StepId) {
+    return when (val backButton = wizardStep.backButton()) {
+        is WizardNavigationButton.Standard -> {
+            BackButtonImpl(currentStep, previousStep, backButton)
+        }
+
+        is WizardNavigationButton.None -> {}
+
+        is WizardNavigationButton.Custom -> {
+            backButton.button(this@BackButton)
+        }
+    }
+}
+
+@Composable
+private fun BackButtonImpl(
+    currentStep: MutableState<StepId>,
+    previousStep: StepId,
+    backButton: WizardNavigationButton.Standard
+) {
     val i18n = DI.get<I18nView>()
-    Button(
+    OutlinedButton(
         onClick = { currentStep.value = previousStep },
         modifier = Modifier.buttonPointerModifier(),
+        enabled = backButton.enabled(),
     ) {
-        Text(i18n.commonBack())
+        if (backButton.content != null) {
+            backButton.content()
+        } else Text(i18n.commonBack())
+    }
+}
+
+
+@Composable
+private fun getCorrespondingButton(
+    wizardButton: WizardButtons,
+    wizardStep: WizardStep,
+    nextStep: StepId?,
+    currentStep: MutableState<StepId>,
+    previousStep: StepId?
+): @Composable (RowScope.() -> Unit) {
+    return when (wizardButton) {
+        NextButton -> {
+            {
+                NextButton(wizardStep, nextStep, currentStep)
+            }
+        }
+
+        WizardButtons.BackButton -> {
+            {
+                previousStep?.let { BackButton(wizardStep, currentStep, previousStep) }
+            }
+        }
+
+        WizardButtons.AdditionalButton -> {
+            {
+                wizardStep.additionalButton?.let { it { stepId -> currentStep.value = stepId } }
+            }
+        }
     }
 }

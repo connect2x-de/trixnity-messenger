@@ -4,6 +4,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -49,6 +52,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
+    private val onStartAccountSetup : (userId : UserId) -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -147,6 +151,7 @@ class RoomListRouter(
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
+                    onShowAccountSetup = ::onShowAccountSetup,
                 )
             )
 
@@ -355,6 +360,15 @@ class RoomListRouter(
     private fun onCloseAccountsOverview() {
         log.debug { "close accounts overview" }
         navigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    private fun onShowAccountSetup (userId: UserId) {
+        val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
+        viewModelContext.coroutineScope.launch {
+            log.debug { "Reset account setup for account $userId" }
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(accountSetupFinished = false)}
+        }
+        onStartAccountSetup(userId)
     }
 
     suspend fun moveToBackStack() {

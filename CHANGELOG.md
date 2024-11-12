@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- Wizard for account setup after initial login
 
 ### Changed
 
@@ -18,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
 - Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
   `MatrixMultiMessengerConfiguration`
+- Button to skip verification is now part of the list of available verification methods
+
 
 ### Deprecated
 

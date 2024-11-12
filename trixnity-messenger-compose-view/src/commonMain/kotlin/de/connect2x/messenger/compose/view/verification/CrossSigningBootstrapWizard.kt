@@ -45,12 +45,12 @@ import de.connect2x.messenger.compose.view.common.Paragraphs
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardImage
-import de.connect2x.messenger.compose.view.common.WizardNextButton
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.copyToClipboard
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.verification.BootstrapViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.vault
@@ -61,15 +61,15 @@ const val RECOVERY_KEY = "RECOVERY_KEY"
 const val FINISHED = "FINISHED"
 
 @Composable
-fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
+fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
     val i18n = DI.get<I18nView>()
     val wizardSteps = listOf(
         WizardStep(
             id = RECOVERY_KEY_EXPLANATION,
             title = { i18n.bootstrapRecoveryKeyExplanationTitle() },
             content = { boxWithConstraintsScope ->
-                val isBootstrapRunning = bootstrapViewModel.isBootstrapRunning.collectAsState().value
-                val error = bootstrapViewModel.error.collectAsState().value
+                val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
+                val error = crossSigningBootstrapViewModel.error.collectAsState().value
                 Paragraphs {
                     Text(i18n.bootstrapRecoveryKeyExplanation1())
                     Text(i18n.bootstrapRecoveryKeyExplanation2())
@@ -90,32 +90,34 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                 }
             },
             additionalButton = {
-                val isBootstrapRunning = bootstrapViewModel.isBootstrapRunning.collectAsState().value
-                val recoveryKey = bootstrapViewModel.recoveryKey.collectAsState().value
+                val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsState().value
+                val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
                 if (isBootstrapRunning.not() && recoveryKey == null) {
                     Button(
-                        { bootstrapViewModel.bootstrap() },
+                        { crossSigningBootstrapViewModel.startCrossSigningBootstrap() },
                         Modifier.buttonPointerModifier()
                     ) {
                         Text(i18n.bootstrapRecoveryKeyCreateVault())
                     }
                 }
             },
-            nextButton = WizardNextButton.Standard(enabled = {
-                val recoveryKey = bootstrapViewModel.recoveryKey.collectAsState().value
-                recoveryKey != null
-            })
+            nextButton = {
+                WizardNavigationButton.Standard(enabled = {
+                    val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
+                    recoveryKey != null
+                })
+            }
         ),
 
         WizardStep(
             id = RECOVERY_KEY,
             title = { i18n.bootstrapRecoveryKeyTitle() },
             content = {
-                val recoveryKey = bootstrapViewModel.recoveryKey.collectAsState().value
-                val recoveryKeyPart1 = bootstrapViewModel.recoveryKeyPart1.collectAsState().value
-                val recoveryKeyPart2 = bootstrapViewModel.recoveryKeyPart2.collectAsState().value
+                val recoveryKey = crossSigningBootstrapViewModel.recoveryKey.collectAsState().value
+                val recoveryKeyPart1 = crossSigningBootstrapViewModel.recoveryKeyPart1.collectAsState().value
+                val recoveryKeyPart2 = crossSigningBootstrapViewModel.recoveryKeyPart2.collectAsState().value
                 val copiedToClipBoard = remember { mutableStateOf(false) }
-                val recoveryKeyCopied = bootstrapViewModel.recoveryKeyCopied.collectAsState().value
+                val recoveryKeyCopied = crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
                 Paragraphs {
                     Text(text = i18n.bootstrapRecoveryKeyHandling())
                     Text(i18n.bootstrapRecoveryKeyWarning())
@@ -189,22 +191,25 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
                     }
                     Spacer(Modifier.size(40.dp))
                     Row(
-                        Modifier.fillMaxWidth().clickable { bootstrapViewModel.confirmRecoveryKeyCopied() },
+                        Modifier.fillMaxWidth().clickable { crossSigningBootstrapViewModel.confirmRecoveryKeyCopied() },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Checkbox(
                             checked = recoveryKeyCopied,
-                            { bootstrapViewModel.confirmRecoveryKeyCopied() })
+                            { crossSigningBootstrapViewModel.confirmRecoveryKeyCopied() })
                         Spacer(Modifier.size(10.dp))
                         Text(i18n.bootstrapRecoveryKeySafe())
                     }
                 }
             },
             additionalButton = {
-                CloseMessengerButton(bootstrapViewModel::closeMessenger)
+                CloseMessengerButton(crossSigningBootstrapViewModel::closeMessenger)
             },
-            nextButton = WizardNextButton.Standard {
-                bootstrapViewModel.recoveryKeyCopied.collectAsState().value
+            nextButton = {
+                WizardNavigationButton.Standard(
+                    enabled = {
+                        crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
+                    })
             }
         ),
 
@@ -214,12 +219,14 @@ fun BootstrapWizard(bootstrapViewModel: BootstrapViewModel) {
             content = {
                 // TODO content?
             },
-            nextButton = WizardNextButton.Custom {
-                Button(
-                    onClick = { bootstrapViewModel.close() },
-                    modifier = Modifier.buttonPointerModifier(),
-                ) {
-                    Text(i18n.commonNext())
+            nextButton = {
+                WizardNavigationButton.Custom {
+                    Button(
+                        onClick = { crossSigningBootstrapViewModel.close() },
+                        modifier = Modifier.buttonPointerModifier(),
+                    ) {
+                        Text(i18n.commonConfirm())
+                    }
                 }
             }
         )

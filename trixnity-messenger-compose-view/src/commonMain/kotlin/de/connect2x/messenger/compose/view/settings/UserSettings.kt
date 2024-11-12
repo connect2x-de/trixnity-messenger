@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +29,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 
@@ -55,6 +57,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     PrivacySettings(userSettingsViewModel)
                     DevicesSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
+                    AccountSetupSettings(userSettingsViewModel)
                 }
             }
         }
@@ -109,6 +112,19 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
         i18n.commonNotifications().capitalize(Locale.current),
         userSettingsViewModel::showNotificationsSettings,
     )
+}
+
+@Composable
+fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
+    val i18n = DI.get<I18nView>()
+    val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
+    if (account != null) {
+        SettingItem(
+            { Icon(Icons.Default.SettingsSuggest, i18n.accountSetupWizardReset()) },
+            i18n.accountSetupWizardReset().capitalize(Locale.current),
+            { userSettingsViewModel.showAccountSetup(account) }
+        )
+    }
 }
 
 @Composable
