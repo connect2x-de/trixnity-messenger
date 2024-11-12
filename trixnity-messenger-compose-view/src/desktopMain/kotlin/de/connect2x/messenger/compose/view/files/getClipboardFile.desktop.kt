@@ -85,7 +85,6 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                     return@forEach
                 }
             }
-            log.debug { "Clipboard type is $clipboardType" }
 
             if (clipboardType == ClipboardType.Image && !flavor.isRepresentationClassInputStream) {
                 log.warn { "cannot handle image stored in ${flavor.representationClass}" }
@@ -132,9 +131,8 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                         outputStream.flush()
                         val byteArray = outputStream.toByteArray()
                         outputStream.close()
-
                         val baseName = Random.nextString(12)
-                        Result.success(
+                        return Result.success(
                             BasicFileDescriptor(
                                 "$baseName.png",
                                 byteArray.size.toLong(),
