@@ -9,8 +9,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
+import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
@@ -28,13 +30,15 @@ interface Search {
         val initials: String
         val image: ByteArray?
         val userId: UserId
+        val presence: Presence?
     }
 
     data class SearchUserElementImpl(
         override val displayName: String,
         override val initials: String,
         override val image: ByteArray? = null,
-        override val userId: UserId
+        override val userId: UserId,
+        override val presence: Presence? = null,
     ) : SearchUserElement {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -77,13 +81,17 @@ class SearchImpl(
                     onFailure = { null }
                 )
             }
+            val presence = getPresence(matrixClient, userId)
+
             listOf(
                 searchUserElement(
                     SearchUsers.Response.SearchUser(
                         avatarUrl = profile?.avatarUrl,
                         displayName = profile?.displayName,
                         userId,
-                    ), image
+                    ),
+                    image,
+                    presence
                 )
             )
         } else {
@@ -95,9 +103,11 @@ class SearchImpl(
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
                             .filterNot { filterNot(it.userId) }
                             .sortedBy { searchUser -> searchUser.displayName }
+                            .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 val image = getImage(matrixClient, searchUser)
-                                searchUserElement(searchUser, image)
+                                val presence = getPresence(matrixClient, searchUser.userId)
+                                searchUserElement(searchUser, image, presence)
                             }
                     },
                     onFailure = {
@@ -117,15 +127,22 @@ class SearchImpl(
         }
     }
 
+    private suspend fun getPresence(matrixClient: MatrixClient, userId: UserId): Presence? {
+        return matrixClient.user.userPresence.value[userId]?.presence
+            ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+    }
+
     private fun searchUserElement(
         searchUser: SearchUsers.Response.SearchUser,
-        image: ByteArray?
+        image: ByteArray?,
+        presence: Presence?
     ) = Search.SearchUserElementImpl(
         searchUser.displayName ?: searchUser.userId.full,
         searchUser.displayName?.let { name -> initials.compute(name) }
             ?: initials.compute(searchUser.userId.localpart),
         image,
-        searchUser.userId
+        searchUser.userId,
+        presence
     )
 
 }
