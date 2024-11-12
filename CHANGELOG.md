@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- Wizard for account setup after initial login
 - support for pasting the first file of a fileList into the clipboard
 
 ### Changed
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
 - Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
   `MatrixMultiMessengerConfiguration`
+- Button to skip verification is now part of the list of available verification methods
 - implement a cutoff for previews of media and thumbnails
 
 ### Deprecated
@@ -34,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix directory picker in room export.
 - Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
 - Don't show edited message as new message
-- texts containing symbols not allowed in file names can be pasted via the Windows-clipboard again
+- text messages containing symbols not allowed in file names no longer crash the app when posted into the clipboard
 
 ### Security
 

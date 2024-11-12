@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.ErrorText
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.get
@@ -95,17 +96,19 @@ fun NotificationSettingsSingleAccount(
 
 @Composable
 internal expect fun ColumnScope.PlatformNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
+    viewModel: NotificationSettingsSingleAccountViewModel,
+    enabled : Boolean = true
 )
 
 @Composable
 fun ColumnScope.PlatformNotificationAccountSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
+    viewModel: NotificationSettingsSingleAccountViewModel,
+    enabled : Boolean = true
 ) {
     val i18n = DI.get<I18nView>()
     val settings by viewModel.accountSettings.collectAsState()
     val isUpdating by viewModel.accountSettingsIsUpdating.collectAsState()
-    val canChangeSettings = !isUpdating
+    val canChangeSettings = !isUpdating && enabled
 
     RadioSetting(
         text = i18n.notificationsSettingsAccountDefaultLevel(
@@ -136,10 +139,10 @@ fun ColumnScope.PlatformNotificationAccountSettings(
             ),
         ),
         value = settings.defaultLevel,
-        set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) }
+        set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) },
     )
 
-    Spacer(Modifier.size(16.dp))
+    MiddleSpacer()
 
     val soundOptions = listOfNotNull(
         if (settings.defaultLevel >= NotificationSettings.DefaultLevel.ROOM)
@@ -181,7 +184,7 @@ fun ColumnScope.PlatformNotificationAccountSettings(
             options = soundOptions,
         )
 
-    Spacer(Modifier.size(16.dp))
+    MiddleSpacer()
 
     val activityOptions = if (settings.defaultLevel > NotificationSettings.DefaultLevel.NONE)
         listOf(

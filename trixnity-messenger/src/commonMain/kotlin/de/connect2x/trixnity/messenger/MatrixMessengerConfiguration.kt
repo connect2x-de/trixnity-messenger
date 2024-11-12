@@ -32,9 +32,9 @@ data class MatrixMessengerConfiguration(
     },
 
     // for privacy-first, override these values
-    var defaultPresenceIsPublic: Boolean = true,
-    var defaultReadMarkerIsPublic: Boolean = true,
-    var defaultTypingIsPublic: Boolean = true,
+    var defaultPresenceIsPublic: Boolean = false,
+    var defaultReadMarkerIsPublic: Boolean = false,
+    var defaultTypingIsPublic: Boolean = false,
 
     val timelineAutoLoadBefore: Boolean = true,
 
