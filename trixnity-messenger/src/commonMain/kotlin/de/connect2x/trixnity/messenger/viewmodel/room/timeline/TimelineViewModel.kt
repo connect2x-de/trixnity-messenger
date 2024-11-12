@@ -605,10 +605,10 @@ class TimelineViewModelImpl(
         val viewModel = if (existingViewModel != null) existingViewModel
         else {
             val canLoadMoreBefore = timelineState.map {
-                it.canLoadBefore && it.lastLoadedEventIdBefore == eventId
+                it.canLoadBefore && it.elements.firstOrNull()?.viewModel?.eventId == eventId
             }
             val canLoadMoreAfter = timelineState.map {
-                it.canLoadAfter && it.lastLoadedEventIdAfter == eventId
+                it.canLoadAfter && it.elements.lastOrNull()?.viewModel?.eventId == eventId
             }
                 // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
                 .debounce(300.milliseconds)
@@ -981,7 +981,7 @@ class TimelineViewModelImpl(
         return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId)
             .flatMapLatest { reactions ->
                 combine(reactions.reactions.flatMap { (_, timelineEvents) ->
-                    timelineEvents.map {timelineEvent ->
+                    timelineEvents.map { timelineEvent ->
                         matrixClient.user.getById(selectedRoomId, timelineEvent.sender)
                     }
                 }) { users ->

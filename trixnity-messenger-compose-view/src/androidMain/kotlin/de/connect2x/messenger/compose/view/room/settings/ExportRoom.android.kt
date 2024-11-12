@@ -16,6 +16,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.files.FilePathHelper
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -25,7 +26,11 @@ import java.io.IOException
 private val log = KotlinLogging.logger { }
 
 @Composable
-internal actual fun SelectDirectory(properties: FileBasedExportRoomProperties?, result: (Destination?) -> Unit) {
+internal actual fun SelectExportDestination(
+    properties: FileBasedExportRoomProperties?,
+    result: (Destination?) -> Unit
+) {
+    val appName = DI.get<MatrixMessengerConfiguration>().appName
     val i18n = DI.get<I18nView>()
     val context = LocalContext.current
 
@@ -37,7 +42,9 @@ internal actual fun SelectDirectory(properties: FileBasedExportRoomProperties?, 
                 if (permission == PackageManager.PERMISSION_DENIED) {
                     throw IOException("Insufficient permissions to save files.")
                 }
-                Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
+                Uri.fromFile(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).resolve(appName)
+                )
             } else {
                 log.debug { "downloads folder: ${MediaStore.Downloads.EXTERNAL_CONTENT_URI}" }
                 MediaStore.Downloads.EXTERNAL_CONTENT_URI

@@ -41,7 +41,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.files.SaveDialog
+import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -125,7 +125,7 @@ fun SaveDialogForFileDownload(
 ) {
     val error = roomMessageViewModel.downloadError.collectAsState().value
     if (downloadAction.value)
-        SaveDialog(
+        SaveFileDialog(
             roomMessageViewModel.fileName,
             roomMessageViewModel.fileMimeType,
             error,

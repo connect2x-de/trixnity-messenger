@@ -190,11 +190,11 @@ class MockedTimeline(
 
     override suspend fun Flow<TimelineEvent>.canLoadBefore(): Flow<Boolean> = flowOf(true)
     override suspend fun Flow<TimelineEvent>.canLoadAfter(): Flow<Boolean> = flowOf(true)
-    
+
     override val state = combine(super.state, eventsInStore) { state, allEvents ->
         state.copy(
-            canLoadBefore = allEvents.indexOfFirst { it.value.eventId == state.lastLoadedEventIdBefore } > 0,
-            canLoadAfter = allEvents.indexOfLast { it.value.eventId == state.lastLoadedEventIdAfter } < (allEvents.size - 1),
+            canLoadBefore = allEvents.indexOfFirst { it.value.eventId == state.elements.firstOrNull()?.timelineEvent?.first()?.eventId } > 0,
+            canLoadAfter = allEvents.indexOfLast { it.value.eventId == state.elements.lastOrNull()?.timelineEvent?.first()?.eventId } < (allEvents.size - 1),
         )
     }
 
@@ -239,6 +239,7 @@ class MockedTimeline(
 
 object NoOpTimeline : Timeline<Unit> {
     override val state: Flow<TimelineState<Unit>> = flowOf(TimelineState())
+
     override suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
@@ -246,10 +247,16 @@ object NoOpTimeline : Timeline<Unit> {
         configAfter: GetTimelineEventsConfig.() -> Unit
     ): TimelineStateChange<Unit> = TimelineStateChange()
 
+    override suspend fun loadBefore(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<Unit> =
+        TimelineStateChange()
+
     override suspend fun loadAfter(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<Unit> =
         TimelineStateChange()
 
-    override suspend fun loadBefore(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<Unit> =
+    override suspend fun dropBefore(roomId: RoomId, eventId: EventId): TimelineStateChange<Unit> =
+        TimelineStateChange()
+
+    override suspend fun dropAfter(roomId: RoomId, eventId: EventId): TimelineStateChange<Unit> =
         TimelineStateChange()
 }
 

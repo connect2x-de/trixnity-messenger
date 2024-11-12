@@ -113,3 +113,6 @@ class PdfOverlayViewImpl : PdfOverlayView {
         }
     }
 }
+
+@Composable
+expect fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float = 1f)

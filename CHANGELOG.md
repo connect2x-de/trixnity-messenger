@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- use KMMBridge to publish iOS Swift and Objective-C artefacts to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- use KMMBridge to publish iOS Swift and Objective-C artefacts
+  to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
 
 ### Changed
+
+- Upgrade Trixnity to 4.10.0
+- Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
+- Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
+  `MatrixMultiMessengerConfiguration`
 
 ### Deprecated
 
@@ -21,8 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Don't show placeholder, when lastRelevantEventId not known.
 - Don't mark state events as relevant.
-- Wizard and modal dialog buttons are always shown on smaller screens 
+- Wizard and modal dialog buttons are always shown on smaller screens
 - Fix Emojis on Web
+- Fix directory picker in room export.
 - Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
 
 ### Security
@@ -36,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reduce flickering by showing creation time and date on outbox messages
-- Change symbol for red messages to a double cross
+- Change symbol for read messages to a double cross
 - Remove alpha channel in outbox messages.
 - Unify calculation of last relevant event in room list.
 
