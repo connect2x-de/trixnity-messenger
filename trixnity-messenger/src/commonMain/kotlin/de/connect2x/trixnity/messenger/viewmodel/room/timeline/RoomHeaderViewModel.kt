@@ -168,7 +168,7 @@ open class RoomHeaderViewModelImpl(
                 ).fold(
                     onSuccess = {
                         try {
-                            it.limitSize(maxPreviewSize)
+                            it.limitSize(maxPreviewSize).toByteArray()
                         } catch (_: MaxByteFlowSizeException) {
                             log.error { "Room avatar for room $selectedRoomId exceeds max preview limits, so it's not displayed" }
                             null
@@ -181,7 +181,7 @@ open class RoomHeaderViewModelImpl(
                         null
                     }
                 )
-            }?.toByteArray()
+            }
             RoomHeaderInfo(
                 roomName = roomNameElement,
                 roomTopic = roomTopicElement,
