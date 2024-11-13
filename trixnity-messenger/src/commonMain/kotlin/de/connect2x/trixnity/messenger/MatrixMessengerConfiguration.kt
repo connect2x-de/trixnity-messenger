@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.util.gb
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -39,22 +38,17 @@ data class MatrixMessengerConfiguration(
     val timelineAutoLoadBefore: Boolean = true,
 
     /**
-     * The maximum size of attachments that can be sent in *Bytes*.
-     */
-    var attachmentMaxSize: Long = 1.gb(),
-
-    /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
      */
     val imageAttachmentMaxProcessingSize: Long = 50.mb(),
 
     /**
-     * The maximum size of files that can be previewed in *Bytes*
+     * The maximum size of files that can be loaded into memory in *Bytes*
      */
-    val filePreviewMaxSize: Long = 50.mb(),
+    val maxMediaSizeInMemory: Long = 50.mb(),
 
     /**
-     * The maximum size of avatars that can be uploaded in *Bytes*
+     * The maximum size of avatars that can be uploaded/displayed in *Bytes*
      */
     var avatarMaxSize: Long = 10.mb(),
 

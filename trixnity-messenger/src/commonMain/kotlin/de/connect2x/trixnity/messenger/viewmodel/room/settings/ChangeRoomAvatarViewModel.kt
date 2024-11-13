@@ -4,10 +4,9 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -22,7 +21,6 @@ import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -65,7 +63,7 @@ class ChangeAvatarViewModelImpl(
         matrixClient.user.canSendEvent<AvatarEventContent>(selectedRoomId)
             .stateIn(coroutineScope, Eagerly, false) // Needs to be Eagerly for some use cases.
 
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val avatar = matrixClient.room.getById(selectedRoomId).map { room ->
         room?.avatarUrl?.let { avatar ->
             matrixClient.media.getThumbnail(
@@ -74,12 +72,8 @@ class ChangeAvatarViewModelImpl(
                 avatarSize().toLong(),
             ).fold(
                 onSuccess = {
-                    try {
-                        it.limitSize(maxPreviewSize).toByteArray()
-                    }
-                    catch (_ : MaxByteFlowSizeException) {
-                        log.error{"Room avatar for room $selectedRoomId exceeds max preview size, so it is not displayed"}
-                        null
+                    it.limitedByteArrayOrNull(maxAvatarSize) {
+                        log.error { "Room avatar for room $selectedRoomId exceeds max preview size, so it is not displayed" }
                     }
                 },
                 onFailure = {

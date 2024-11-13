@@ -8,16 +8,14 @@ import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -30,7 +28,6 @@ import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromSource
-import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import okio.Buffer
 import org.koin.core.component.get
@@ -91,10 +88,10 @@ class SendAttachmentViewModelImpl(
 
     private val fileSize = file.fileSize
     override val previewFileContent: StateFlow<ByteArray?> =
-        fileContent.filter { fileSize == null || fileSize <= messengerConfiguration.filePreviewMaxSize }
+        fileContent.filter { fileSize == null || fileSize <= messengerConfiguration.maxMediaSizeInMemory }
             .map {
-                it?.limitSize(messengerConfiguration.filePreviewMaxSize)?.toByteArray()
-            }.catch { e -> null }
+                it?.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory)
+            }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val backCallback = BackCallback {
@@ -105,7 +102,7 @@ class SendAttachmentViewModelImpl(
         val maxSize = run {
             val maxServerUploadSize = matrixClient.serverData.value
                 ?.mediaConfig?.maxUploadSize ?: Long.MAX_VALUE
-            val maxConfigAttachmentSize = messengerConfiguration.attachmentMaxSize
+            val maxConfigAttachmentSize = messengerConfiguration.maxMediaSizeInMemory
             min(maxServerUploadSize, maxConfigAttachmentSize)
         }
 
@@ -125,11 +122,8 @@ class SendAttachmentViewModelImpl(
                     messengerConfiguration.imageAttachmentMaxProcessingSize
                 )
             ) {
-                val imageByteArray = try {
-                    file.content.limitSize(messengerConfiguration.imageAttachmentMaxProcessingSize).toByteArray()
-                } catch (_: MaxByteFlowSizeException) {
+                val imageByteArray = file.content.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory) {
                     log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
-                    null
                 }
                 if (imageByteArray != null) {
                     get<ProcessImageUpload>().invoke(imageByteArray, file.mimeType ?: Image.PNG)

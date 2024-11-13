@@ -8,10 +8,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,7 +40,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -262,15 +260,12 @@ class MemberListElementViewModelImpl(
     }
 
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
-        val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
-                    try {
-                        it.limitSize(maxPreviewSize).toByteArray()
-                    } catch (_: MaxByteFlowSizeException) {
-                        log.error{"User avatar for user ${user.userId} exceeds max preview size, so it is not displayed"}
-                        null
+                    it.limitedByteArrayOrNull(maxAvatarSize) {
+                        log.error { "User avatar for user ${user.userId} exceeds max preview size, so it is not displayed" }
                     }
                 },
                 onFailure = { null }

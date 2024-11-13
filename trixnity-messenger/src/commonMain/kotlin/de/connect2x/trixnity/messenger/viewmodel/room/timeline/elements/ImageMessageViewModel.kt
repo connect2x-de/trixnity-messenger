@@ -127,10 +127,10 @@ class ImageMessageViewModelImpl(
     override fun getWidth(maxWidth: Float, possibleHeight: Float) =
         SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
-    private val maxUploadSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override fun openImage() {
-        if ((fileSize ?: 0) > maxUploadSize) {
+        if ((fileSize ?: 0) > maxPreviewSize) {
             log.debug { "Cannot open image, opening save file dialog instead" }
             openSaveFileDialog()
         } else url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName) }
@@ -142,7 +142,7 @@ class ImageMessageViewModelImpl(
 
     private fun getThumbnailAsync(): Deferred<ByteArray?> =
         coroutineScope.async {
-            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow)
+            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
         }
 
 

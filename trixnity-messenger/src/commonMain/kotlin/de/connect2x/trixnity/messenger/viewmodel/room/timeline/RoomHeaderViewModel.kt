@@ -5,13 +5,12 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +36,6 @@ import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.TypingEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -150,7 +148,7 @@ open class RoomHeaderViewModelImpl(
     private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
     override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
         combine(
@@ -167,12 +165,9 @@ open class RoomHeaderViewModelImpl(
                     avatarSize().toLong()
                 ).fold(
                     onSuccess = {
-                        try {
-                            it.limitSize(maxPreviewSize).toByteArray()
-                        } catch (_: MaxByteFlowSizeException) {
-                            log.error { "Room avatar for room $selectedRoomId exceeds max preview limits, so it's not displayed" }
-                            null
-                        }
+                        it.limitedByteArrayOrNull(
+                            maxAvatarSize
+                        ) { log.error { "Room avatar for room $selectedRoomId exceeds max preview limits, so it's not displayed" } }
                     },
                     onFailure = { exc ->
                         if (exc !is CancellationException) {

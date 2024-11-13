@@ -55,7 +55,7 @@ open class VideoViewModelImpl(
     OpenModalType.VIDEO,
     onCloseMedia,
 ), VideoViewModel {
-    val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+    val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val video = mediaDataFlow.map {
         it?.limitSize(maxPreviewSize)?.catch { e ->
             if (e.cause is MaxByteFlowSizeException) {

@@ -5,8 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +14,6 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -75,11 +73,8 @@ open class AvatarCutterViewModelImpl(
         coroutineScope.launch {
             val fileSize = file.fileSize
             if (fileSize == null || fileSize <= maxAvatarSize) {
-                _avatarImage.value = try {
-                    file.content.limitSize(maxAvatarSize).toByteArray()
-                } catch (_: MaxByteFlowSizeException) {
+                _avatarImage.value = file.content.limitedByteArrayOrNull(maxAvatarSize) {
                     log.warn { "Uploaded avatar file exceeds avatar size limits, so it's not shown" }
-                    null
                 }
             }
         }

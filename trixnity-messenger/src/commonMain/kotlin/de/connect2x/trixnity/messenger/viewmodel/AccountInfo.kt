@@ -1,11 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
 
@@ -53,7 +51,7 @@ data class AccountInfo(
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initials: Initials) =
+fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initials: Initials, maxAvatarSize: Long) =
     flatMapLatest { matrixClients ->
         combine(
             matrixClients.map { (userId, matrixClient) ->
@@ -66,12 +64,10 @@ fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initial
                             avatarSize().toLong(),
                         ).fold(
                             onSuccess = {
-                                val maxPreviewSize = MatrixMessengerConfiguration().filePreviewMaxSize
-                                try {
-                                    it.limitSize(maxPreviewSize).toByteArray()
-                                } catch (_: Exception) {
+                                it.limitedByteArrayOrNull(
+                                    maxAvatarSize
+                                ) {
                                     log.error { "Avatar for $userId exceeds preview size limits, so it's not displayed" }
-                                    null
                                 }
                             },
                             onFailure = {

@@ -11,11 +11,10 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -59,7 +58,6 @@ import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -388,7 +386,7 @@ class RoomListViewModelImpl(
                     }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
-        val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
         spaces = allRoomsFlow.flatMapLatest { allRooms ->
             combine( // TODO This is a heavy operation: SpaceViewModel should calculate room name.
@@ -408,11 +406,8 @@ class RoomListViewModelImpl(
                                             .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                                             .fold(
                                                 onSuccess = {
-                                                    try {
-                                                        it.limitSize(maxPreviewSize).toByteArray()
-                                                    } catch (_: MaxByteFlowSizeException) {
+                                                    it.limitedByteArrayOrNull(maxAvatarSize) {
                                                         log.error { "Space avatar for ${space.roomId} exceeds max preview size, so it's not displayed" }
-                                                        null
                                                     }
                                                 },
                                                 onFailure = {

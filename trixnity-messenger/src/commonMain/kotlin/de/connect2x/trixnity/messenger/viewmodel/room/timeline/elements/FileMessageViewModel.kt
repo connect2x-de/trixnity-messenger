@@ -92,7 +92,7 @@ open class FileMessageViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openFile() {
-        val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+        val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
         if ((fileSize ?: 0) > maxPreviewSize) {
             openSaveFileDialog()
         } else when (fileMimeType) {

@@ -128,7 +128,7 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                             dispose()
                         }
                         val outputStream = ByteArrayOutputStream()
-                        val maxAttachmentSize = MatrixMessengerConfiguration().attachmentMaxSize
+                        val maxAttachmentSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
                         ImageIO.write(image, "png", outputStream)
                         if (outputStream.size() <= maxAttachmentSize) {
                             val byteArray = outputStream.toByteArray()

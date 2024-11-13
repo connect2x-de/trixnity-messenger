@@ -75,7 +75,7 @@ open class MediaViewModelImpl(
         coroutineScope.launch {
             val i18n = get<I18n>()
             val mediaProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-            val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
+            val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
             launch {
                 mediaProgressFlow.collectLatest {
                     val transferred = it?.transferred

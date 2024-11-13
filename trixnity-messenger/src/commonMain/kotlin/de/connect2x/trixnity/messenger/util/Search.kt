@@ -1,19 +1,17 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
 
@@ -22,7 +20,8 @@ interface Search {
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean = { false }
+        filterNot: (userId: UserId) -> Boolean = { false },
+        maxPreviewSize: Long
     ): List<SearchUserElement>
 
     interface SearchUserElement {
@@ -64,7 +63,8 @@ class SearchImpl(
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean
+        filterNot: (userId: UserId) -> Boolean,
+        maxAvatarSize: Long
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
@@ -73,15 +73,13 @@ class SearchImpl(
                     log.error(exc) { "Cannot access user profile for $userId." }
                 }
                 .getOrNull()
-            val maxPreviewSize = MatrixMessengerConfiguration().filePreviewMaxSize
             val image = profile?.avatarUrl?.let { url ->
                 matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                     onSuccess = {
-                        try {
-                            it.limitSize(maxPreviewSize).toByteArray()
-                        } catch (_: Exception) {
+                        it.limitedByteArrayOrNull(
+                            maxAvatarSize
+                        ) {
                             log.error { "Image for $userId exceeds preview limits, so it's not displayed" }
-                            null
                         }
                     },
                     onFailure = { null }
@@ -106,7 +104,7 @@ class SearchImpl(
                             .filterNot { filterNot(it.userId) }
                             .sortedBy { searchUser -> searchUser.displayName }
                             .map { searchUser ->
-                                val image = getImage(matrixClient, searchUser)
+                                val image = getImage(matrixClient, searchUser, maxAvatarSize)
                                 searchUserElement(searchUser, image)
                             }
                     },
@@ -118,16 +116,18 @@ class SearchImpl(
         }
     }
 
-    private suspend fun getImage(matrixClient: MatrixClient, searchUser: SearchUsers.Response.SearchUser): ByteArray? {
-        val maxPreviewSize = MatrixMessengerConfiguration().filePreviewMaxSize
+    private suspend fun getImage(
+        matrixClient: MatrixClient,
+        searchUser: SearchUsers.Response.SearchUser,
+        maxAvatarSize: Long
+    ): ByteArray? {
         return searchUser.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
-                    try {
-                        it.limitSize(maxPreviewSize).toByteArray()
-                    } catch (_: Exception) {
+                    it.limitedByteArrayOrNull(
+                        maxAvatarSize
+                    ) {
                         log.error { "Image for ${searchUser.userId} exceeds preview limits, so it's not displayed" }
-                        null
                     }
                 },
                 onFailure = { null }

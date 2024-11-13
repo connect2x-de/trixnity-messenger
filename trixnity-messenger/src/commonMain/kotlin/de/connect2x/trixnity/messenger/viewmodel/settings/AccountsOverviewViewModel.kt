@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
@@ -56,9 +57,10 @@ class AccountsOverviewViewModelImpl(
 
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
     override val accounts: StateFlow<List<AccountInfo>> =
-        matrixClients.toAccountInfo(messengerSettings, initials)
+        matrixClients.toAccountInfo(messengerSettings, initials, maxAvatarSize)
             .stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override fun createNewAccount() {
