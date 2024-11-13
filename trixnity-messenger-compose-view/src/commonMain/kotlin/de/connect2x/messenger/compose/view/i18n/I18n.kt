@@ -2234,6 +2234,11 @@ abstract class I18nView(
         DE - "Bild hochladen"
     }
 
+    fun fileDialogSaveDescription() = translate {
+        EN - "Download File"
+        DE - "Datei herunterladen"
+    }
+
     fun fileDialogDownloadErrorSave() = translate {
         EN - "Download failed"
         DE - "Download fehlgeschlagen"

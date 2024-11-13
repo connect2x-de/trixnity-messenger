@@ -1,6 +1,17 @@
 package de.connect2x.messenger.compose.view.files
 
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import net.folivo.trixnity.utils.ByteArrayFlow
 
@@ -24,4 +35,26 @@ expect fun LoadFileDialog(
 enum class LoadFileMode {
     AnyFile,
     Picture,
+}
+
+@Composable
+fun DownloadErrorAlertDialog(
+    error: String,
+    onCloseSaveFileDialog: () -> Unit,
+) {
+    val i18n = DI.get<I18nView>()
+    AlertDialog(
+        modifier = Modifier.defaultMinSize(minWidth = 400.dp),
+        onDismissRequest = onCloseSaveFileDialog,
+        title = { Text(i18n.fileDialogDownloadErrorSave()) },
+        dismissButton = {
+            Button(
+                onCloseSaveFileDialog,
+                Modifier.buttonPointerModifier(),
+            ) { Text(i18n.commonOk()) }
+        },
+        confirmButton = {},
+        shape = RoundedCornerShape(8.dp),
+        text = { Text(error) },
+    )
 }
