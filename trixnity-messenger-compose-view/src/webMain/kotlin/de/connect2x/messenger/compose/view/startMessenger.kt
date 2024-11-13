@@ -18,6 +18,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration.logLevel
 import io.github.oshai.kotlinlogging.Level
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.updateAndGet
 import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
@@ -45,31 +46,30 @@ suspend fun startMessenger(
     document.addEventListener(
         type = Event.visibilityChange(),
         handler = { _: Event ->
-            if (document.visibilityState === DocumentVisibilityState.visible) {
-                log.debug { "onStart (window visible)" }
-                lifecycleRegistry.onStart()
-            } else {
-                log.debug { "onStop (window hidden)" }
-                lifecycleRegistry.onStop()
-            }
+            lifecycleRegistry.updateState(
+                document.visibilityState == DocumentVisibilityState.visible,
+                windowIsFocused.value
+            )
         }
     )
 
     window.addEventListener(
         type = FocusEvent.focus(),
         handler = { _: Event ->
-            log.debug { "onResume (window focussed)" }
-            windowIsFocused.value = false
-            lifecycleRegistry.onResume()
+            lifecycleRegistry.updateState(
+                visible = document.visibilityState == DocumentVisibilityState.visible,
+                focused = windowIsFocused.updateAndGet { true }
+            )
         }
     )
 
     window.addEventListener(
         type = FocusEvent.blur(),
         handler = { _: Event ->
-            log.debug { "onPause (window not in focus)" }
-            windowIsFocused.value = false
-            lifecycleRegistry.onPause()
+            lifecycleRegistry.updateState(
+                visible = document.visibilityState == DocumentVisibilityState.visible,
+                focused = windowIsFocused.updateAndGet { false }
+            )
         }
     )
 
@@ -106,6 +106,29 @@ suspend fun startMessenger(
             println("-------")
             println(e.stackTraceToString())
             throw e
+        }
+    }
+}
+
+private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {
+    val target = when {
+        visible && focused -> Lifecycle.State.RESUMED
+        visible -> Lifecycle.State.STARTED
+        else -> Lifecycle.State.CREATED
+    }
+    if (state != target) {
+        log.debug { "Application State changing from $state to $target" }
+        while (state < target) when (state) {
+            Lifecycle.State.INITIALIZED -> onCreate()
+            Lifecycle.State.CREATED -> onStart()
+            Lifecycle.State.STARTED -> onResume()
+            else -> Unit
+        }
+        while (state > target) when (state) {
+            Lifecycle.State.RESUMED -> onPause()
+            Lifecycle.State.STARTED -> onStop()
+            Lifecycle.State.CREATED -> onDestroy()
+            else -> Unit
         }
     }
 }
