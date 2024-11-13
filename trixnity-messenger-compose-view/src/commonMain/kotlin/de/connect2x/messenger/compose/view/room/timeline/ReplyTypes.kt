@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
-import androidx.compose.material.icons.filled.AudioFile
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +30,7 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.dp
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 
 interface TextReplyView {
     @Composable
@@ -95,7 +93,7 @@ class ImageReplyDefaultViewImpl : ImageReplyDefaultView {
         val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                Icons.Default.Image,
+                MaterialTheme.messengerIcons.typeImage,
                 i18n.commonImage(),
                 modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
             )
@@ -126,7 +124,7 @@ class VideoReplyViewImpl : VideoReplyView {
                 contentScale = ContentScale.Fit,
             )
             Icon(
-                Icons.Default.VideoFile,
+                MaterialTheme.messengerIcons.typeVideo,
                 i18n.commonVideo(),
                 Modifier.size(25.dp).align(Alignment.Center),
                 tint = Color.DarkGray,
@@ -152,7 +150,7 @@ class VideoReplyDefaultViewImpl : VideoReplyDefaultView {
         val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                Icons.Default.VideoFile,
+                MaterialTheme.messengerIcons.typeVideo,
                 i18n.commonVideo(),
                 modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
             )
@@ -178,7 +176,7 @@ class AudioReplyViewImpl : AudioReplyView {
         val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                Icons.Default.AudioFile,
+                MaterialTheme.messengerIcons.typeAudio,
                 i18n.commonAudio(),
                 Modifier.size(30.dp),
                 tint = Color.DarkGray,

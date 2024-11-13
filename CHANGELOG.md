@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- File save and upload dialog on web.
 
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
 - Wizard for account setup after initial login
+- Support for "share to" Intent on Android
 - Show online-status when searching for users
 
 ### Changed
@@ -36,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix directory picker in room export.
 - Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
 - Don't show edited message as new message
+- Correct lifecycle handling on web
 
 ### Security
 

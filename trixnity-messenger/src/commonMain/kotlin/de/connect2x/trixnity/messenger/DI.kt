@@ -16,6 +16,8 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
+import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.util.SharedFileHandlerImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
@@ -115,6 +117,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
+import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModelFactory
@@ -229,6 +232,9 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<UiaStepEmailIdentityViewModelFactory> { UiaStepEmailIdentityViewModelFactory }
             single<UiaStepMsisdnViewModelFactory> { UiaStepMsisdnViewModelFactory }
             single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
+
+            single<ShareFilesViewModelFactory> { ShareFilesViewModelFactory }
+            single<SharedFileHandler> { SharedFileHandlerImpl() }
         }
     },
     ::timelineElementModule,

@@ -52,10 +52,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.utils.ByteArrayFlow
 import simpleVerticalScrollbar
 import java.io.File
+import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.min
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 @Composable
 actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
