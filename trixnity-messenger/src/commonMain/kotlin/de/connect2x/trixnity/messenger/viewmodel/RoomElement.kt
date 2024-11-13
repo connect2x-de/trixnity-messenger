@@ -1,11 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.toByteArray
+
+private val log = KotlinLogging.logger {}
 
 data class RoomInfoElement(
     val name: String,
@@ -40,12 +46,18 @@ data class RoomInfoElement(
 }
 
 suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String): RoomInfoElement {
+    val maxPreviewSize = MatrixMessengerConfiguration().filePreviewMaxSize
     return RoomInfoElement(
         name = name,
         roomId = roomId,
         roomImageInitials = Initials.compute(name),
-        roomImage = this.avatarUrl?.let {
-            matrixClient.media.getMedia(it).getOrNull()?.toByteArray()
+        roomImage = try {
+            this.avatarUrl?.let {
+                matrixClient.media.getMedia(it).getOrNull()?.limitSize(maxPreviewSize)?.toByteArray()
+            }
+        } catch (_: MaxByteFlowSizeException) {
+            log.error {"Room image for room $roomId exceeds preview size limits, so it's not displayed"}
+            null
         }
     )
 }

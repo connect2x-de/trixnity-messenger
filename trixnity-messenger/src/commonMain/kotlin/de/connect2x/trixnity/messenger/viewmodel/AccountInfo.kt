@@ -1,9 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
@@ -63,7 +65,15 @@ fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initial
                             avatarSize().toLong(),
                             avatarSize().toLong(),
                         ).fold(
-                            onSuccess = { it.toByteArray() },
+                            onSuccess = {
+                                val maxPreviewSize = MatrixMessengerConfiguration().filePreviewMaxSize
+                                try {
+                                    it.limitSize(maxPreviewSize).toByteArray()
+                                } catch (_: Exception) {
+                                    log.error { "Avatar for $userId exceeds preview size limits, so it's not displayed" }
+                                    null
+                                }
+                            },
                             onFailure = {
                                 log.error(it) { "Cannot load user avatar" }
                                 null

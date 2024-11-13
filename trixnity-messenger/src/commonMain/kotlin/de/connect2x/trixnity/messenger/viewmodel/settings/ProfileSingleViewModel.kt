@@ -1,10 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,6 +53,7 @@ class ProfileSingleViewModelImpl(
     override val displayName = matrixClient.displayName.map { it ?: userId.localpart }
         .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
     override val avatar = matrixClient.avatarUrl.map { avatarUrl ->
         avatarUrl?.let {
             matrixClient.media.getThumbnail(
@@ -57,7 +61,14 @@ class ProfileSingleViewModelImpl(
                 avatarSize().toLong(),
                 avatarSize().toLong()
             ).fold(
-                onSuccess = { it.toByteArray() },
+                onSuccess = {
+                    try {
+                        it.limitSize(maxPreviewSize).toByteArray()
+                    } catch (_: MaxByteFlowSizeException) {
+                        log.error { "Profile size for $userId exceeds max preview size, so it's not displayed" }
+                        null
+                    }
+                },
                 onFailure = {
                     log.error(it) { "Cannot load user avatar." }
                     error.value = i18n.profileLoadError()

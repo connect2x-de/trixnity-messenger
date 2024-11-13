@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role
@@ -7,8 +8,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -259,9 +262,17 @@ class MemberListElementViewModelImpl(
     }
 
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
+        val maxPreviewSize = get<MatrixMessengerConfiguration>().filePreviewMaxSize
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = { it.toByteArray() },
+                onSuccess = {
+                    try {
+                        it.limitSize(maxPreviewSize).toByteArray()
+                    } catch (_: MaxByteFlowSizeException) {
+                        log.error{"User avatar for user ${user.userId} exceeds max preview size, so it is not displayed"}
+                        null
+                    }
+                },
                 onFailure = { null }
             )
         }

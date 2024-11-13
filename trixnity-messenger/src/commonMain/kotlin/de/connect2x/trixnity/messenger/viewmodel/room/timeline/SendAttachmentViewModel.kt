@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
 import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -118,12 +119,25 @@ class SendAttachmentViewModelImpl(
                 _error.value = i18n.attachmentSizeMaxSizeError(maxSize)
             }
             _sendEnabled.value = _error.value == null
+
             _fileContent.value = if (isImage == true && !checkFileSizeExceedsLimit(
                     file.fileSize,
                     messengerConfiguration.imageAttachmentMaxProcessingSize
                 )
-            ) get<ProcessImageUpload>().invoke(file.content.toByteArray(), file.mimeType ?: Image.PNG).toByteArrayFlow()
-            else if (isImage == true) {
+            ) {
+                val imageByteArray = try {
+                    file.content.limitSize(messengerConfiguration.imageAttachmentMaxProcessingSize).toByteArray()
+                } catch (_: MaxByteFlowSizeException) {
+                    log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
+                    null
+                }
+                if (imageByteArray != null) {
+                    get<ProcessImageUpload>().invoke(imageByteArray, file.mimeType ?: Image.PNG)
+                        .toByteArrayFlow()
+                } else {
+                    file.content
+                }
+            } else if (isImage == true) {
                 log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
                 file.content
             } else {
