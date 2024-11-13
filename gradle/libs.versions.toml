@@ -126,6 +126,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version = "" }
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidTestMonitor" }
 
