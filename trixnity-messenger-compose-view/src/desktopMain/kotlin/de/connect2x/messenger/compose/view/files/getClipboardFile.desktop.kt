@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.files
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
@@ -127,19 +128,20 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                             dispose()
                         }
                         val outputStream = ByteArrayOutputStream()
+                        val maxAttachmentSize = MatrixMessengerConfiguration().attachmentMaxSize
                         ImageIO.write(image, "png", outputStream)
-                        outputStream.flush()
-                        val byteArray = outputStream.toByteArray()
-                        outputStream.close()
-                        val baseName = Random.nextString(12)
-                        return Result.success(
-                            BasicFileDescriptor(
-                                "$baseName.png",
-                                byteArray.size.toLong(),
-                                ContentType.Image.PNG,
-                                byteArray.toByteArrayFlow(),
+                        if (outputStream.size() <= maxAttachmentSize) {
+                            val byteArray = outputStream.toByteArray()
+                            val baseName = Random.nextString(12)
+                            return Result.success(
+                                BasicFileDescriptor(
+                                    "$baseName.png",
+                                    byteArray.size.toLong(),
+                                    ContentType.Image.PNG,
+                                    byteArray.toByteArrayFlow(),
+                                )
                             )
-                        )
+                        }
                     }
                 }
 
