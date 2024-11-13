@@ -6,7 +6,10 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.user
@@ -14,6 +17,7 @@ import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.utils.toByteArray
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -100,15 +104,20 @@ class SearchImpl(
                 .fold( // TODO get correct language
                     onSuccess = { response ->
                         response.results
+                            .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
                             .filterNot { filterNot(it.userId) }
                             .sortedBy { searchUser -> searchUser.displayName }
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
-                                val image = getImage(matrixClient, searchUser)
-                                val presence = getPresence(matrixClient, searchUser.userId)
-                                searchUserElement(searchUser, image, presence)
+                                async {
+                                    val image = getImage(matrixClient, searchUser)
+                                    val presence = getPresence(matrixClient, searchUser.userId)
+                                    searchUserElement(searchUser, image, presence)
+                                }
                             }
+                            .toList()
+                            .awaitAll()
                     },
                     onFailure = {
                         log.error(it) { "search for users resulted in error" }
@@ -129,7 +138,9 @@ class SearchImpl(
 
     private suspend fun getPresence(matrixClient: MatrixClient, userId: UserId): Presence? {
         return matrixClient.user.userPresence.value[userId]?.presence
-            ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+            ?: withTimeoutOrNull(3.seconds) {
+                matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+            }
     }
 
     private fun searchUserElement(
