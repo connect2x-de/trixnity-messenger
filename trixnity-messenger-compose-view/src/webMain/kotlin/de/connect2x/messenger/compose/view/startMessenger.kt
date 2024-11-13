@@ -4,6 +4,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.Lifecycle
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.createRoot
@@ -14,9 +17,15 @@ import de.connect2x.trixnity.messenger.multi.singleMode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration.logLevel
 import io.github.oshai.kotlinlogging.Level
-import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.skiko.wasm.onWasmReady
+import web.dom.DocumentVisibilityState
+import web.dom.document
+import web.dom.visibilityChange
+import web.events.Event
+import web.events.addEventListener
+import web.uievents.FocusEvent
+import web.window.window
 
 private val log = KotlinLogging.logger {}
 
@@ -26,24 +35,47 @@ suspend fun startMessenger(
 ) {
     log.info { "Starting client" }
     logLevel = Level.DEBUG
-    val windowIsFocused = MutableStateFlow(false)
-    window.onfocus = {
-        log.debug { "window is focused" }
-        windowIsFocused.value = true
-        Unit
-    }
-    window.onblur = {
-        log.debug { "window is blurred" }
-        windowIsFocused.value = false
-        Unit
-    }
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
+    val lifecycleRegistry = LifecycleRegistry(Lifecycle.State.STARTED)
+    val windowIsFocused = MutableStateFlow(false)
 
     log.info { "Created MatrixMultiMessenger" }
+
+    document.addEventListener(
+        type = Event.visibilityChange(),
+        handler = { _: Event ->
+            if (document.visibilityState === DocumentVisibilityState.visible) {
+                log.debug { "onStart (window visible)" }
+                lifecycleRegistry.onStart()
+            } else {
+                log.debug { "onStop (window hidden)" }
+                lifecycleRegistry.onStop()
+            }
+        }
+    )
+
+    window.addEventListener(
+        type = FocusEvent.focus(),
+        handler = { _: Event ->
+            log.debug { "onResume (window focussed)" }
+            windowIsFocused.value = false
+            lifecycleRegistry.onResume()
+        }
+    )
+
+    window.addEventListener(
+        type = FocusEvent.blur(),
+        handler = { _: Event ->
+            log.debug { "onPause (window not in focus)" }
+            windowIsFocused.value = false
+            lifecycleRegistry.onPause()
+        }
+    )
+
     matrixMultiMessenger.singleMode { matrixMessenger ->
         try {
-            val rootViewModel = matrixMessenger.createRoot()
+            val rootViewModel = matrixMessenger.createRoot(DefaultComponentContext(lifecycleRegistry))
             val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
             onWasmReady {
                 CanvasBasedWindow(config.appName) {
