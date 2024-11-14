@@ -2,7 +2,9 @@ package de.connect2x.messenger.compose.view
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.HorizontalScrollbar
+import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
@@ -24,6 +26,13 @@ import org.koin.core.Koin
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
+@Composable
+private fun defaultScrollbarStyle(): ScrollbarStyle {
+    return  LocalScrollbarStyle.current.copy(
+        hoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
+        unhoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+    )
+}
 
 @Composable
 actual fun VerticalScrollbar(
@@ -31,7 +40,8 @@ actual fun VerticalScrollbar(
     scrollState: ScrollState
 ) = VerticalScrollbar(
     rememberScrollbarAdapter(scrollState),
-    modifier
+    modifier,
+    style = defaultScrollbarStyle(),
 )
 
 @Composable
@@ -43,6 +53,7 @@ actual fun VerticalScrollbar(
     rememberScrollbarAdapter(lazyListState),
     modifier,
     reverseLayout,
+    style = defaultScrollbarStyle(),
 )
 
 @Composable
@@ -52,6 +63,7 @@ actual fun HorizontalScrollbar(
 ) = HorizontalScrollbar(
     rememberScrollbarAdapter(scrollState),
     modifier,
+    style = defaultScrollbarStyle(),
 )
 
 @Composable
@@ -63,6 +75,7 @@ actual fun HorizontalScrollbar(
     rememberScrollbarAdapter(lazyListState),
     modifier,
     reverseLayout,
+    style = defaultScrollbarStyle(),
 )
 
 @OptIn(ExperimentalFoundationApi::class)
