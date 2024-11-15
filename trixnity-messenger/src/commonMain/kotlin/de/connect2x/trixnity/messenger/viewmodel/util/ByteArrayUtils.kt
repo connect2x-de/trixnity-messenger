@@ -15,12 +15,21 @@ fun ByteArrayFlow.limitSize(maxSizeBytes: Long): ByteArrayFlow = flow {
     }
 }
 
-suspend fun ByteArrayFlow.limitedByteArrayOrNull(maxSizeBytes: Long, onError: ((e: Exception) -> Unit)? = null): ByteArray? {
-    return try {
-        this.limitSize(maxSizeBytes).toByteArray()
-    } catch (e: MaxByteFlowSizeException) {
-        onError?.let { it(e) }
-        null
+suspend fun ByteArrayFlow.limitedByteArrayOrNull(
+    maxSizeBytes: Long,
+    knownSize: Long? = null,
+    onError: ((e: Exception) -> Unit)? = null,
+): ByteArray? {
+    if (knownSize == null || knownSize <= maxSizeBytes) {
+        return try {
+            this.limitSize(maxSizeBytes).toByteArray()
+        } catch (e: MaxByteFlowSizeException) {
+            onError?.let { it(e) }
+            null
+        }
+    } else {
+        onError?.let { it(MaxByteFlowSizeException(maxSizeBytes)) }
+        return null
     }
 }
 
