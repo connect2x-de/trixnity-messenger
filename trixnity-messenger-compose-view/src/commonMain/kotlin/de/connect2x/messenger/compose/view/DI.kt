@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view
 
+import de.connect2x.messenger.compose.view.common.AdaptiveDialog
+import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
 import de.connect2x.messenger.compose.view.common.MatrixUsernameViewImpl
 import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountView
@@ -26,6 +28,8 @@ import de.connect2x.messenger.compose.view.files.ImageOverlayView
 import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
 import de.connect2x.messenger.compose.view.files.PdfOverlayView
 import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
+import de.connect2x.messenger.compose.view.files.ShareFilesView
+import de.connect2x.messenger.compose.view.files.ShareFilesViewImpl
 import de.connect2x.messenger.compose.view.files.VideoOverlayView
 import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
@@ -281,6 +285,7 @@ fun themeViewModule(): Module = module {
 
 fun commonViewModule() = module {
     single<MatrixUsernameView> { MatrixUsernameViewImpl() }
+    single<AdaptiveDialog> { AdaptiveDialogImpl() }
 }
 
 fun rootViewModule() = module {
@@ -307,6 +312,7 @@ fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
     single<PdfOverlayView> { PdfOverlayViewImpl() }
+    single<ShareFilesView> { ShareFilesViewImpl() }
 }
 
 fun profileViewModule() = module {

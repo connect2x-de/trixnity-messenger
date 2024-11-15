@@ -11,10 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Audiotrack
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +36,7 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
@@ -104,9 +101,9 @@ class SendAttachmentViewImpl : SendAttachmentView {
                             }
                         }
 
-                        isVideo ?: false -> FileIcon(Icons.Default.PlayArrow, i18n.commonVideo())
-                        isAudio ?: false -> FileIcon(Icons.Default.Audiotrack, i18n.commonAudio())
-                        else -> FileIcon(Icons.Default.UploadFile, i18n.commonFile())
+                        isVideo ?: false -> FileIcon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo())
+                        isAudio ?: false -> FileIcon(MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio())
+                        else -> FileIcon(MaterialTheme.messengerIcons.typeFile, i18n.commonFile())
                     }
                     Spacer(Modifier.size(10.dp))
                     Text(buildAnnotatedString {

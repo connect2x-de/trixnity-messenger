@@ -20,11 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
-import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.SmartToy
-import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
@@ -82,6 +79,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMess
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
@@ -436,7 +434,7 @@ private fun MessageImageFallback(
         modifier = Modifier.padding(start = 30.dp)
     ) {
         Icon(
-            Icons.Default.Image,
+            MaterialTheme.messengerIcons.typeImage,
             i18n.commonImage(),
             Modifier
                 .pointerInput(Unit) {
@@ -495,7 +493,7 @@ fun MessageVideo(
                     )
                 } ?: run {
                     Icon(
-                        Icons.Default.VideoFile,
+                        MaterialTheme.messengerIcons.typeVideo,
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
@@ -575,7 +573,7 @@ private fun MessageAudio(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(start = 30.dp),
             ) {
-                Icon(Icons.Default.AudioFile, i18n.commonAudio(),
+                Icon(MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio(),
                     modifier = Modifier
                         .size(64.dp)
                         .pointerInput(Unit) {

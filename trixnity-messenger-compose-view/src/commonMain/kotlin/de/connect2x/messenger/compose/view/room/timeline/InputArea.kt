@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.EditOff
 import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material3.Button
@@ -86,6 +85,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlinx.coroutines.delay
 import okio.FileSystem
@@ -506,7 +506,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
                 Modifier.buttonPointerModifier().padding(end = if (isMobile) 6.dp else 8.dp),
             ) {
                 Icon(
-                    Icons.Default.AttachFile,
+                    MaterialTheme.messengerIcons.attachFile,
                     i18n.inputAreaSelectAttachment(),
                 )
             }

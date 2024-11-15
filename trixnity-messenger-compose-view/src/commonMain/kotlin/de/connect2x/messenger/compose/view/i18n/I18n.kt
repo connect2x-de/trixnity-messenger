@@ -2235,6 +2235,11 @@ abstract class I18nView(
         DE - "Bild hochladen"
     }
 
+    fun fileDialogSaveDescription() = translate {
+        EN - "Download File"
+        DE - "Datei herunterladen"
+    }
+
     fun fileDialogDownloadErrorSave() = translate {
         EN - "Download failed"
         DE - "Download fehlgeschlagen"
@@ -2443,6 +2448,16 @@ abstract class I18nView(
     fun accountSetupWizardReset() = translate {
         DE - "Setup zurücksetzen"
         EN - "Reset setup"
+    }
+
+    fun shareFilesTitle(count: Int) = translate {
+        EN - "Sharing $count files"
+        DE - "Teile $count Dateien"
+    }
+
+    fun shareFilesCancel() = translate {
+        EN - "Cancel"
+        DE - "Abbrechen"
     }
 
 
