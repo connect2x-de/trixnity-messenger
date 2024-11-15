@@ -1,14 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaConstants.MAX_SIZE_IMAGE_PREVIEW_BYTES
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
 
+private val log = KotlinLogging.logger { }
 
 interface ImageMessageViewModelFactory {
     fun create(
@@ -125,8 +127,11 @@ class ImageMessageViewModelImpl(
     override fun getWidth(maxWidth: Float, possibleHeight: Float) =
         SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     override fun openImage() {
-        if ((fileSize ?: 0) > MAX_SIZE_IMAGE_PREVIEW_BYTES) {
+        if ((fileSize ?: 0) > maxPreviewSize) {
+            log.debug { "Cannot open image, opening save file dialog instead" }
             openSaveFileDialog()
         } else url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName) }
     }
@@ -137,7 +142,7 @@ class ImageMessageViewModelImpl(
 
     private fun getThumbnailAsync(): Deferred<ByteArray?> =
         coroutineScope.async {
-            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow)
+            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
         }
 
 

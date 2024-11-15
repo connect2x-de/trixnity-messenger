@@ -8,7 +8,7 @@ import okio.Path
 
 class PathFileDescriptor(
     val path: Path,
-    private val fileSystem: FileSystem
+    private val fileSystem: FileSystem,
 ) : FileDescriptor {
 
     override val fileName = path.name

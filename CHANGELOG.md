@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
 - Wizard for account setup after initial login
 - Support for "share to" Intent on Android
+- support for pasting the first file of a fileList into the clipboard
 
 ### Changed
 
@@ -22,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
   `MatrixMultiMessengerConfiguration`
 - Button to skip verification is now part of the list of available verification methods
-
+- implement a cutoff for previews of media and thumbnails
 
 ### Deprecated
 
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't show edited message as new message
 - Correct lifecycle handling on web
 - Fix Scrollbars nearly invisible in dark mode
+- text messages containing symbols not allowed in file names no longer crash the app when posted into the clipboard
 
 ### Security
 

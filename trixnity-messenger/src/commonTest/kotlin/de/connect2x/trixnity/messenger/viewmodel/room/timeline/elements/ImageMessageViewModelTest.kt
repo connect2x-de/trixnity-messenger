@@ -57,6 +57,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Image>(),
                     any(),
+                    any()
                 )
             } returns "thumbnail".encodeToByteArray()
 
@@ -76,6 +77,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Image>(),
                     any(),
+                    any()
                 )
             } calls {
                 withContext(Dispatchers.Default) {
@@ -106,6 +108,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Image>(),
                     any(),
+                    any()
                 )
             } returns null
 
