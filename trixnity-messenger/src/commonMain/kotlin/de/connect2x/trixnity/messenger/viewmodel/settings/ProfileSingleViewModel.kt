@@ -1,10 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,7 +15,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -50,6 +51,7 @@ class ProfileSingleViewModelImpl(
     override val displayName = matrixClient.displayName.map { it ?: userId.localpart }
         .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
 
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val avatar = matrixClient.avatarUrl.map { avatarUrl ->
         avatarUrl?.let {
             matrixClient.media.getThumbnail(
@@ -57,7 +59,11 @@ class ProfileSingleViewModelImpl(
                 avatarSize().toLong(),
                 avatarSize().toLong()
             ).fold(
-                onSuccess = { it.toByteArray() },
+                onSuccess = {
+                    it.limitedByteArrayOrNull(maxAvatarSize) {
+                        log.error { "User avatar for $userId exceeds max preview size, so it's not displayed" }
+                    }
+                },
                 onFailure = {
                     log.error(it) { "Cannot load user avatar." }
                     error.value = i18n.profileLoadError()

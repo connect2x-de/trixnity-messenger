@@ -376,7 +376,16 @@ private fun MessageImage(
     onLongPress: (Offset) -> Unit,
 ) {
     val showSender = imageMessageViewModel.showSender.collectAsState()
-
+    val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
+    if (saveFileDialogOpen) {
+        SaveFileDialog(
+            imageMessageViewModel.fileName,
+            imageMessageViewModel.fileMimeType,
+            imageMessageViewModel.downloadError.collectAsState().value,
+            imageMessageViewModel::downloadFile,
+            imageMessageViewModel::closeSaveFileDialog
+        )
+    }
     Image(
         image,
         "",
@@ -409,6 +418,16 @@ private fun MessageImageFallback(
     imageMessageViewModel: ImageMessageViewModel,
     onLongPress: (Offset) -> Unit
 ) {
+    val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
+    if (saveFileDialogOpen) {
+        SaveFileDialog(
+            imageMessageViewModel.fileName,
+            imageMessageViewModel.fileMimeType,
+            imageMessageViewModel.downloadError.collectAsState().value,
+            imageMessageViewModel::downloadFile,
+            imageMessageViewModel::closeSaveFileDialog
+        )
+    }
     val i18n = DI.get<I18nView>()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -515,11 +534,12 @@ private fun Modifier.openVideoOnTouch(
     videoMessageViewModel: VideoMessageViewModel,
     onLongPress: (Offset) -> Unit
 ): Modifier {
-    val uploadProgress = videoMessageViewModel.uploadProgress.collectAsState().value
     return this.then(pointerInput(Unit) {
         detectTapGestures(
             onTap = {
-                if (uploadProgress != null && uploadProgress.percent >= 1.0f) videoMessageViewModel.openVideo()
+                //Since openVideo only starts the saveDialog currently, restricting it doesn't make sense yet
+                //if (uploadProgress != null && uploadProgress.percent >= 1.0f)
+                videoMessageViewModel.openVideo()
             },
             onLongPress = onLongPress,
         )

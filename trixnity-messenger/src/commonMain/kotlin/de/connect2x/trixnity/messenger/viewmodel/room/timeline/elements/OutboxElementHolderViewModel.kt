@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -84,6 +85,8 @@ open class OutboxElementHolderViewModelImpl(
     private val richRepliesComputations = get<RichRepliesComputations>()
     private val i18n = get<I18n>()
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         combine(
             outboxMessageFlow,
@@ -104,7 +107,8 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
@@ -131,7 +135,8 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
@@ -158,7 +163,8 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
@@ -272,7 +278,11 @@ open class OutboxElementHolderViewModelImpl(
                     is Unknown,
                     is VerificationRequest -> createNullTimelineElementViewModel()
                 } else createNullTimelineElementViewModel()
-        }.stateIn(coroutineScope, SharingStarted.Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.Lazily,
+            null
+        ) // we need Lazily here as otherwise this might be computed multiple times
 
     private fun createNullTimelineElementViewModel() =
         NullTimelineElementViewModel(

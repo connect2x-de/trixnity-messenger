@@ -5,9 +5,11 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.core.model.RoomId
@@ -36,6 +38,7 @@ interface AvatarCutterViewModel {
     val file: FileDescriptor
     val avatarCutterHeading: String
     val maxAvatarSize: Long
+    val avatarImage: StateFlow<ByteArray?>
     fun cancel()
     fun accept()
 }
@@ -63,9 +66,22 @@ open class AvatarCutterViewModelImpl(
 
     override val maxAvatarSize: Long = messengerConfiguration.avatarMaxSize
 
+    private val _avatarImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
+
     init {
         backHandler.register(backCallback)
+        coroutineScope.launch {
+            val fileSize = file.fileSize
+            if (fileSize == null || fileSize <= maxAvatarSize) {
+                _avatarImage.value = file.content.limitedByteArrayOrNull(maxAvatarSize) {
+                    log.warn { "Uploaded avatar file exceeds avatar size limits, so it's not shown" }
+                }
+            }
+        }
+
     }
+
+    override val avatarImage: StateFlow<ByteArray?> = _avatarImage.asStateFlow()
 
     override fun cancel() {
         onClose()

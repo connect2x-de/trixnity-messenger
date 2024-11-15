@@ -31,7 +31,8 @@ class DefaultUserSearchHandler(
     private val client: MatrixClient,
     private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
     private val limit: Long? = 100,
-    private val filterNot: (UserId) -> Boolean = { false }
+    private val maxAvatarSize : Long,
+    private val filterNot: (UserId) -> Boolean = { false },
 ) : UserSearchHandler {
     companion object {
         // Pattern that matches MXIDs without case sensitivity
@@ -59,7 +60,7 @@ class DefaultUserSearchHandler(
             }
             .scopedCollectLatest {
                 waitForUserResults.value = true
-                foundUsers.value = search.searchUsers(client, it, limit, filterNot, this)
+                foundUsers.value = search.searchUsers(client, it, limit, filterNot, this, maxAvatarSize)
                 waitForUserResults.value = false
             }
     }

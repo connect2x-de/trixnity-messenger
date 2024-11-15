@@ -40,6 +40,7 @@ interface RichRepliesComputations {
         matrixClient: MatrixClient,
         relatesTo: RelatesTo?,
         inRoom: RoomId,
+        maxPreviewSize: Long
     ): Flow<ReferencedMessage?>
 }
 
@@ -53,6 +54,7 @@ class RichRepliesComputationsImpl(
         matrixClient: MatrixClient,
         relatesTo: RelatesTo?,
         inRoom: RoomId,
+        maxPreviewSize: Long
     ): Flow<ReferencedMessage?> {
         return if (relatesTo == null) {
             flowOf(null)
@@ -101,6 +103,7 @@ class RichRepliesComputationsImpl(
                                     matrixClient,
                                     content,
                                     MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
+                                    maxPreviewSize
                                 )
                                 ReferencedImageMessage(
                                     sender,
@@ -114,6 +117,7 @@ class RichRepliesComputationsImpl(
                                     matrixClient,
                                     content,
                                     MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
+                                    maxPreviewSize
                                 )
                                 ReferencedVideoMessage(
                                     sender,

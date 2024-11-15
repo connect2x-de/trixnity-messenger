@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.DefaultUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
@@ -40,8 +41,14 @@ open class PotentialMembersViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     roomId: RoomId,
 ) : PotentialMembersViewModel, MatrixClientViewModelContext by viewModelContext {
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val searchHandler: UserSearchHandler =
-        DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient) { userId ->
+        DefaultUserSearchHandler(
+            coroutineScope,
+            get<Search>(),
+            matrixClient,
+            maxAvatarSize = maxAvatarSize
+        ) { userId ->
             currentMembers.value.contains(userId)
         }
     override val offline: StateFlow<Boolean> = matrixClient.syncState.transform { emit(it == SyncState.ERROR) }

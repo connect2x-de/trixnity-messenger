@@ -25,7 +25,8 @@ fun ErrorDialog(
     dismissAction: () -> Unit,
     confirmAction: () -> Unit = {},
     confirmText: String? = null,
-    errorCause: String? = null
+    errorCause: String? = null,
+    title: String? = null
 ) {
     val i18n = DI.get<I18nView>()
     AlertDialog(
@@ -44,7 +45,13 @@ fun ErrorDialog(
                 Text(i18n.commonOk())
             }
         },
-        title = { Text(i18n.anErrorHasOccurred()) },
+        title = {
+            if (title != null)
+                Text(title)
+            else
+                Text(i18n.anErrorHasOccurred())
+
+        },
         text = { ErrorText(errorMessage, errorCause) },
         shape = RoundedCornerShape(4.dp),
     )

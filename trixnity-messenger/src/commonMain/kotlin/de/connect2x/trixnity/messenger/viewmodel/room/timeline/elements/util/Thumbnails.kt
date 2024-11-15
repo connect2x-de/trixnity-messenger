@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,6 @@ import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
 
@@ -21,6 +21,7 @@ interface Thumbnails {
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Image,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxThumbnailSize: Long
     ): ByteArray? =
         loadThumbnail(
             matrixClient,
@@ -30,12 +31,14 @@ interface Thumbnails {
             content.url,
             content.info?.size ?: Long.MAX_VALUE,
             thumbnailProgressFlow,
+            maxThumbnailSize
         )
 
     suspend fun loadThumbnail(
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Video,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxThumbnailSize: Long
     ): ByteArray? =
         loadThumbnail(
             matrixClient,
@@ -45,6 +48,7 @@ interface Thumbnails {
             content.url,
             content.info?.size ?: Long.MAX_VALUE,
             thumbnailProgressFlow,
+            maxThumbnailSize
         )
 
     suspend fun loadThumbnail(
@@ -55,13 +59,13 @@ interface Thumbnails {
         url: String?,
         sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxThumbnailSize: Long
     ): ByteArray?
 
     fun mapProgressToProgressElement(thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>): Flow<FileTransferProgressElement?>
 }
 
 class ThumbnailsImpl : Thumbnails {
-    private val maxThumbnailSize: Int = 1_000_000 // 1MB
 
     override suspend fun loadThumbnail(
         matrixClient: MatrixClient,
@@ -71,9 +75,10 @@ class ThumbnailsImpl : Thumbnails {
         url: String?,
         sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxThumbnailSize: Long
     ): ByteArray? {
         log.debug { "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $url" }
-        return (thumbnailFile?.let { // encrypted thumbnail
+        val thumbnail = (thumbnailFile?.let { // encrypted thumbnail
             matrixClient.media.getEncryptedMedia(
                 thumbnailFile,
                 thumbnailProgressFlow
@@ -167,7 +172,10 @@ class ThumbnailsImpl : Thumbnails {
                         null
                     }
                 })
-        })?.toByteArray()
+        })
+        return thumbnail?.limitedByteArrayOrNull(maxThumbnailSize) {
+            log.error { "Size of Thumbnail $thumbnailFile exceeds maximum size for file previews, so it is not processed" }
+        }
     }
 
     override fun mapProgressToProgressElement(thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>) =

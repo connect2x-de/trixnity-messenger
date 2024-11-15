@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType.AudioReply
@@ -81,6 +82,7 @@ open class ReplyToViewModelImpl(
                 },
         ) { timelineEvent, roomUser ->
             val sender = roomUser?.name ?: i18n.commonUnknown()
+            val maxThumbnailSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
             when (val content = timelineEvent?.content?.getOrNull()) { // in case the event has to be decrypted
                 is TextBased.Notice -> NoticeReply(content.bodyWithoutFallback, sender)
                 is TextBased.Emote -> EmoteReply(content.bodyWithoutFallback, sender)
@@ -92,6 +94,7 @@ open class ReplyToViewModelImpl(
                             matrixClient,
                             content,
                             MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
+                            maxThumbnailSize
                         )
                         thumbnailCache.value = t
                         thumbnailLoading.value = false
@@ -107,6 +110,7 @@ open class ReplyToViewModelImpl(
                             matrixClient,
                             content,
                             MutableStateFlow(null), // progress should not be needed as the thumbnail is available locally
+                            maxThumbnailSize
                         )
                         thumbnailCache.value = t
                         thumbnailLoading.value = false

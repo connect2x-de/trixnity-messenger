@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
@@ -2457,6 +2458,32 @@ abstract class I18nView(
     fun shareFilesCancel() = translate {
         EN - "Cancel"
         DE - "Abbrechen"
+    }
+
+
+    fun uploadFileErrorTitle() = translate {
+        DE - "Beim Hochladen der Datei ist ein Fehler aufgetreten"
+        EN - "An error occurred during the upload of the file"
+    }
+
+    fun uploadFileErrorUnknown() = translate {
+        DE - "Ein unbekannter Uploadfehler is aufgetreten."
+        EN - "An unknown upload error has occurred."
+    }
+
+    fun uploadFileErrorNotPasteable() = translate {
+        DE - "Die Inhalte der ausgewählten Datei können nicht hochgeladen werden."
+        EN - "The contents of the selected file can't be uploaded."
+    }
+
+    fun uploadFileErrorFileListEmpty() = translate {
+        DE - "Die ausgewählte Dateiliste ist leer."
+        EN - "The selected file list is empty."
+    }
+
+    fun filePreviewErrorTooBig(maxUploadSize: Long) = translate {
+        DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße von ${formatSize(maxUploadSize)}."
+        EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
     }
 
 }

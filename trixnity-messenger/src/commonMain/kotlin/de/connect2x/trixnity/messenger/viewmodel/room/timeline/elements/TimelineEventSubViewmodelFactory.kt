@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
@@ -297,6 +298,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
 
         val unencryptedContent = event.content as? MessageEventContent
         val unencryptedRelatesTo = unencryptedContent?.relatesTo
+        val maxPreviewSize = viewModelContext.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
         return when (content) {
             is TextBased.Notice -> {
@@ -309,7 +311,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
                         unencryptedRelatesTo ?: content.relatesTo,
-                        selectedRoomId
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -337,7 +340,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
                         unencryptedRelatesTo ?: content.relatesTo,
-                        selectedRoomId
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -366,7 +370,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
                         unencryptedRelatesTo ?: content.relatesTo,
-                        selectedRoomId
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -508,7 +513,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
                         unencryptedRelatesTo ?: content.relatesTo,
-                        selectedRoomId
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,

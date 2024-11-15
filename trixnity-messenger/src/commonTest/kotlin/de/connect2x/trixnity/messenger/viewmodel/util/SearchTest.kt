@@ -137,7 +137,7 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, availableUsersSorted.shuffled())
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe availableUsersSorted.size
             res shouldBeEqual availableUsersSorted
@@ -150,7 +150,7 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, listOf(myUserData))
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe 0
 
@@ -160,7 +160,7 @@ class SearchTest : ShouldSpec() {
         should("not self on direct search") {
             val searchTerm = myUserId.full
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe 1
             res[0] shouldBeEqual myUserData
@@ -174,7 +174,7 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, availableUsersSorted, limit = limit.toLong())
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = limit.toLong(), presenceScope =  defaultPresenceScope)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = limit.toLong(), presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe limit
             res shouldBeEqual availableUsersSorted.take(limit)
@@ -188,7 +188,7 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, availableUsersSorted.drop(1), limit = limit.toLong())
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = limit.toLong(), presenceScope =  defaultPresenceScope)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = limit.toLong(), presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe limit - 1
             res shouldBeEqual availableUsersSorted.drop(1)
@@ -205,7 +205,7 @@ class SearchTest : ShouldSpec() {
 
             user.presence.value shouldBe Presence.OFFLINE
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope = this)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope = this, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe 1
             res.first().presence.drop(1).first() shouldBe Presence.ONLINE
@@ -217,7 +217,7 @@ class SearchTest : ShouldSpec() {
             val user = availableUsersMapping["other_local"]!!
             val searchTerm = user.userId.full
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
 
             res.size shouldBe 1
             res.first() shouldBeEqual user
@@ -245,7 +245,7 @@ class SearchTest : ShouldSpec() {
             val subscriberJob = Job()
             val subscriberScope = TestScope(UnconfinedTestDispatcher() + subscriberJob)
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope = scopeToCancel)
+            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope = scopeToCancel, maxPreviewSize = Long.MAX_VALUE)
             res.size shouldBe 1
             res.first().presence.value shouldBe null
 

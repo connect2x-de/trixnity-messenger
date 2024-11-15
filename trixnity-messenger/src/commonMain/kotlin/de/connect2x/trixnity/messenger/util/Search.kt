@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -23,7 +24,6 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.utils.toByteArray
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
@@ -34,7 +34,8 @@ interface Search {
         searchTerm: String,
         limit: Long?,
         filterNot: (userId: UserId) -> Boolean = { false },
-        presenceScope: CoroutineScope
+        presenceScope: CoroutineScope,
+        maxPreviewSize: Long,
     ): List<SearchUserElement>
 
     interface SearchUserElement {
@@ -79,7 +80,8 @@ class SearchImpl(
         searchTerm: String,
         limit: Long?,
         filterNot: (userId: UserId) -> Boolean,
-        presenceScope: CoroutineScope
+        presenceScope: CoroutineScope,
+        maxAvatarSize: Long,
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
@@ -90,7 +92,13 @@ class SearchImpl(
                 .getOrNull()
             val image = profile?.avatarUrl?.let { url ->
                 matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                    onSuccess = { it.toByteArray() },
+                    onSuccess = {
+                        it.limitedByteArrayOrNull(
+                            maxAvatarSize
+                        ) {
+                            log.error { "Image for $userId exceeds preview limits, so it's not displayed" }
+                        }
+                    },
                     onFailure = { null }
                 )
             }
@@ -122,7 +130,7 @@ class SearchImpl(
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 async {
-                                    val image = getImage(matrixClient, searchUser)
+                                    val image = getImage(matrixClient, searchUser, maxAvatarSize)
                                     val presence = getPresence(matrixClient, searchUser.userId)
                                         .stateIn(presenceScope, SharingStarted.WhileSubscribed(),null)
 
@@ -140,10 +148,20 @@ class SearchImpl(
         }
     }
 
-    private suspend fun getImage(matrixClient: MatrixClient, searchUser: SearchUsers.Response.SearchUser): ByteArray? {
+    private suspend fun getImage(
+        matrixClient: MatrixClient,
+        searchUser: SearchUsers.Response.SearchUser,
+        maxAvatarSize: Long
+    ): ByteArray? {
         return searchUser.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = { it.toByteArray() },
+                onSuccess = {
+                    it.limitedByteArrayOrNull(
+                        maxAvatarSize
+                    ) {
+                        log.error { "Image for ${searchUser.userId} exceeds preview limits, so it's not displayed" }
+                    }
+                },
                 onFailure = { null }
             )
         }
