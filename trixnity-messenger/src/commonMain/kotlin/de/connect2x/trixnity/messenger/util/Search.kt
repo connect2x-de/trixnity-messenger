@@ -6,9 +6,16 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
@@ -26,7 +33,8 @@ interface Search {
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean = { false }
+        filterNot: (userId: UserId) -> Boolean = { false },
+        presenceScope: CoroutineScope
     ): List<SearchUserElement>
 
     interface SearchUserElement {
@@ -34,7 +42,7 @@ interface Search {
         val initials: String
         val image: ByteArray?
         val userId: UserId
-        val presence: Presence?
+        val presence: StateFlow<Presence?>
     }
 
     data class SearchUserElementImpl(
@@ -42,7 +50,7 @@ interface Search {
         override val initials: String,
         override val image: ByteArray? = null,
         override val userId: UserId,
-        override val presence: Presence? = null,
+        override val presence: StateFlow<Presence?> = MutableStateFlow(null)
     ) : SearchUserElement {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -70,7 +78,8 @@ class SearchImpl(
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean
+        filterNot: (userId: UserId) -> Boolean,
+        presenceScope: CoroutineScope
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
@@ -86,6 +95,7 @@ class SearchImpl(
                 )
             }
             val presence = getPresence(matrixClient, userId)
+                .stateIn(presenceScope, SharingStarted.WhileSubscribed(),null)
 
             listOf(
                 searchUserElement(
@@ -103,6 +113,7 @@ class SearchImpl(
             matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language
                     onSuccess = { response ->
+                        log.trace { "got users $searchTerm" }
                         response.results
                             .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
@@ -113,6 +124,8 @@ class SearchImpl(
                                 async {
                                     val image = getImage(matrixClient, searchUser)
                                     val presence = getPresence(matrixClient, searchUser.userId)
+                                        .stateIn(presenceScope, SharingStarted.WhileSubscribed(),null)
+
                                     searchUserElement(searchUser, image, presence)
                                 }
                             }
@@ -136,17 +149,20 @@ class SearchImpl(
         }
     }
 
-    private suspend fun getPresence(matrixClient: MatrixClient, userId: UserId): Presence? {
-        return matrixClient.user.userPresence.value[userId]?.presence
-            ?: withTimeoutOrNull(3.seconds) {
-                matrixClient.api.user.getPresence(userId).getOrNull()?.presence
-            }
+    private fun getPresence(matrixClient: MatrixClient, userId: UserId): Flow<Presence?> {
+        return flow {
+            val presence = matrixClient.user.userPresence.value[userId]?.presence
+                ?: withTimeoutOrNull(3.seconds) {
+                    matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+                }
+            emit(presence)
+        }
     }
 
     private fun searchUserElement(
         searchUser: SearchUsers.Response.SearchUser,
         image: ByteArray?,
-        presence: Presence?
+        presence: StateFlow<Presence?>
     ) = Search.SearchUserElementImpl(
         searchUser.displayName ?: searchUser.userId.full,
         searchUser.displayName?.let { name -> initials.compute(name) }

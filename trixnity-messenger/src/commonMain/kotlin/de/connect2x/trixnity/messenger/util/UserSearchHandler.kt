@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -56,9 +57,9 @@ class DefaultUserSearchHandler(
                 if (mxidPattern.matches(it)) it.lowercase()
                 else it
             }
-            .collect {
+            .scopedCollectLatest {
                 waitForUserResults.value = true
-                foundUsers.value = search.searchUsers(client, it, limit, filterNot)
+                foundUsers.value = search.searchUsers(client, it, limit, filterNot, this)
                 waitForUserResults.value = false
             }
     }
