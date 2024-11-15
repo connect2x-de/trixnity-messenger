@@ -17,6 +17,7 @@ typealias OpenModalCallback = (
     mxcUrl: String,
     encryptedFile: EncryptedFile?,
     fileName: String,
+    fileSize: Long?,
 ) -> Unit
 
 typealias OpenModalUserCallback = (
@@ -24,5 +25,6 @@ typealias OpenModalUserCallback = (
     mxcUrl: String,
     encryptedFile: EncryptedFile?,
     fileName: String,
+    fileSize: Long?,
     userId: UserId,
 ) -> Unit

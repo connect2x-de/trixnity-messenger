@@ -25,12 +25,14 @@ interface VideoViewModelFactory {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         onCloseVideo: () -> Unit,
     ): VideoViewModel = VideoViewModelImpl(
         viewModelContext,
         mxcUrl,
         encryptedFile,
         fileName,
+        fileSize,
         onCloseVideo,
     )
 
@@ -46,23 +48,33 @@ open class VideoViewModelImpl(
     mxcUrl: String,
     encryptedFile: EncryptedFile?,
     override val fileName: String,
+    override val fileSize: Long?,
     override val onCloseMedia: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
     mxcUrl,
     encryptedFile,
     fileName,
+    fileSize,
     OpenModalType.VIDEO,
     onCloseMedia,
 ), VideoViewModel {
     val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val video = mediaDataFlow.map {
-        it?.limitSize(maxPreviewSize)?.catch { e ->
-            if (e.cause is MaxByteFlowSizeException) {
-                error.value = i18n.mediaTooLargeForPreview()
-            } else error.value = i18n.mediaCanNotBePreviewed()
+    private val fileSizePrivate = fileSize
+    override val video =
+        if (fileSizePrivate != null && fileSizePrivate <= maxPreviewSize) {
+            mediaDataFlow.map {
+                it?.limitSize(maxPreviewSize)?.catch { e ->
+                    if (e.cause is MaxByteFlowSizeException) {
+                        error.value = i18n.mediaTooLargeForPreview()
+                    } else error.value = i18n.mediaCanNotBePreviewed()
+                }
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        } else {
+            progress.value = null
+            error.value = i18n.mediaTooLargeForPreview()
+            MutableStateFlow(null)
         }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }
 
 class PreviewVideoViewModel : VideoViewModel {
@@ -73,6 +85,7 @@ class PreviewVideoViewModel : VideoViewModel {
     override val mediaType = OpenModalType.VIDEO
     override val progress = MutableStateFlow(null)
     override val fileName = "video.png"
+    override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
 }

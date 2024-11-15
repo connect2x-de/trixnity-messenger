@@ -86,8 +86,8 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
-            onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
+        onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long? ->
+            onOpenModal(type, mxcUrl, encryptedFile, fileName, fileSize, userId)
         },
         onOpenMention = onOpenMention
     )

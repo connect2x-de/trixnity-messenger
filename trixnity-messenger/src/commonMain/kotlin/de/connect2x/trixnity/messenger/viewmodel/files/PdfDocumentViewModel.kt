@@ -23,12 +23,14 @@ interface PdfDocumentViewModelFactory {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         onCloseDocument: () -> Unit,
     ): PdfDocumentViewModel = PdfDocumentViewModelImpl(
         viewModelContext,
         mxcUrl,
         encryptedFile,
         fileName,
+        fileSize,
         onCloseDocument,
     )
 
@@ -45,12 +47,14 @@ open class PdfDocumentViewModelImpl(
     mxcUrl: String,
     encryptedFile: EncryptedFile?,
     override val fileName: String,
+    override val fileSize: Long?,
     override val onCloseMedia: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
     mxcUrl,
     encryptedFile,
     fileName,
+    fileSize,
     OpenModalType.PDF,
     onCloseMedia,
 ), PdfDocumentViewModel {
@@ -58,7 +62,10 @@ open class PdfDocumentViewModelImpl(
     override val documentFlow = mediaDataFlow
     private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val document = mediaDataFlow.map {
-        it?.limitedByteArrayOrNull(maxPreviewSize) { error.value = i18n.mediaTooLargeForPreview() }
+        it?.limitedByteArrayOrNull(maxPreviewSize, fileSize) {
+            progress.value = null
+            error.value = i18n.mediaTooLargeForPreview()
+        }
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 }
 
@@ -71,6 +78,7 @@ class PreviewPdfDocumentViewModel : PdfDocumentViewModel {
     override val progress = MutableStateFlow(null)
     override val mediaType = OpenModalType.TEXT
     override val fileName = "document.pdf"
+    override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
 }

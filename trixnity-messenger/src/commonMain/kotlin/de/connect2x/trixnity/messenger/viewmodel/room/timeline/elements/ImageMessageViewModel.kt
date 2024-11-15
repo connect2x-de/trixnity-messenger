@@ -130,10 +130,7 @@ class ImageMessageViewModelImpl(
     private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override fun openImage() {
-        if ((fileSize ?: 0) > maxPreviewSize) {
-            log.debug { "Cannot open image, opening save file dialog instead" }
-            openSaveFileDialog()
-        } else url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName) }
+        url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName, fileSize) }
     }
 
     override fun cancelThumbnailDownload() {

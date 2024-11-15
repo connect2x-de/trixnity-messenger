@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -92,13 +91,10 @@ open class FileMessageViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openFile() {
-        val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-        if ((fileSize ?: 0) > maxPreviewSize) {
-            openSaveFileDialog()
-        } else when (fileMimeType) {
-            "application/pdf" -> url?.let { onOpenModal(OpenModalType.PDF, it, encryptedFile, fileName) }
-            "text/markdown" -> url?.let { onOpenModal(OpenModalType.MARKDOWN, it, encryptedFile, fileName) }
-            "text/plain" -> url?.let { onOpenModal(OpenModalType.TEXT, it, encryptedFile, fileName) }
+         when (fileMimeType) {
+            "application/pdf" -> url?.let { onOpenModal(OpenModalType.PDF, it, encryptedFile, fileName, fileSize) }
+            "text/markdown" -> url?.let { onOpenModal(OpenModalType.MARKDOWN, it, encryptedFile, fileName, fileSize) }
+            "text/plain" -> url?.let { onOpenModal(OpenModalType.TEXT, it, encryptedFile, fileName, fileSize) }
             else -> openSaveFileDialog()
         }
     }

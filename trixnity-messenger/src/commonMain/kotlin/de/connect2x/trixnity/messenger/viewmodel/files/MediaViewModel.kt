@@ -28,6 +28,7 @@ interface MediaViewModelFactory {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         fileType: OpenModalType,
         onCloseMedia: () -> Unit,
     ): MediaViewModel = MediaViewModelImpl(
@@ -35,6 +36,7 @@ interface MediaViewModelFactory {
         mxcUrl,
         encryptedFile,
         fileName,
+        fileSize,
         fileType,
         onCloseMedia,
     )
@@ -48,6 +50,7 @@ interface MediaViewModel {
     val mediaType: OpenModalType
     val progress: StateFlow<FileTransferProgressElement?>
     val fileName: String
+    val fileSize: Long?
     val error: StateFlow<String?>
     fun cancelMediaDownload()
     fun closeMedia()
@@ -58,6 +61,7 @@ open class MediaViewModelImpl(
     private val mxcUrl: String,
     private val encryptedFile: EncryptedFile?,
     override val fileName: String,
+    override val fileSize: Long?,
     override val mediaType: OpenModalType,
     override val onCloseMedia: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, MediaViewModel {

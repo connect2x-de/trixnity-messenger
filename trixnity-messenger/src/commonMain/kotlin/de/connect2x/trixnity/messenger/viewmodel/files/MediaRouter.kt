@@ -37,6 +37,7 @@ class MediaRouter(
                     mxcUrl = config.mxcUrl,
                     encryptedFile = config.encryptedFile,
                     fileName = config.fileName,
+                    fileSize = config.fileSize,
                     onCloseVideo = ::closeMedia,
                 )
             )
@@ -47,6 +48,7 @@ class MediaRouter(
                     mxcUrl = config.mxcUrl,
                     encryptedFile = config.encryptedFile,
                     fileName = config.fileName,
+                    fileSize = config.fileSize,
                     onCloseImage = ::closeMedia,
                 )
             )
@@ -57,6 +59,7 @@ class MediaRouter(
                     mxcUrl = config.mxcUrl,
                     encryptedFile = config.encryptedFile,
                     fileName = config.fileName,
+                    fileSize = config.fileSize,
                     onCloseDocument = ::closeMedia,
                 )
             )
@@ -67,6 +70,7 @@ class MediaRouter(
                     mxcUrl = config.mxcUrl,
                     encryptedFile = config.encryptedFile,
                     fileName = config.fileName,
+                    fileSize = config.fileSize,
                     fileType = OpenModalType.TEXT,
                     onCloseMedia = ::closeMedia,
                 )
@@ -78,30 +82,31 @@ class MediaRouter(
                     mxcUrl = config.mxcUrl,
                     encryptedFile = config.encryptedFile,
                     fileName = config.fileName,
+                    fileSize = config.fileSize,
                     fileType = OpenModalType.MARKDOWN,
                     onCloseMedia = ::closeMedia,
                 )
             )
         }
 
-    suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Video(mxcUrl, encryptedFile, fileName, userId))
+    suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
+        navigation.replaceAllSuspending(Config.Video(mxcUrl, encryptedFile, fileName, fileSize, userId))
     }
 
-    suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Image(mxcUrl, encryptedFile, fileName, userId))
+    suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
+        navigation.replaceAllSuspending(Config.Image(mxcUrl, encryptedFile, fileName, fileSize, userId))
     }
 
-    suspend fun openPdf(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.PdfDocument(mxcUrl, encryptedFile, fileName, userId))
+    suspend fun openPdf(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String,  fileSize: Long?, userId: UserId) {
+        navigation.replaceAllSuspending(Config.PdfDocument(mxcUrl, encryptedFile, fileName, fileSize, userId))
     }
 
-    suspend fun openText(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.TextDocument(mxcUrl, encryptedFile, fileName, userId))
+    suspend fun openText(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
+        navigation.replaceAllSuspending(Config.TextDocument(mxcUrl, encryptedFile, fileName, fileSize, userId))
     }
 
-    suspend fun openMarkdown(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.MarkdownDocument(mxcUrl, encryptedFile, fileName, userId))
+    suspend fun openMarkdown(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
+        navigation.replaceAllSuspending(Config.MarkdownDocument(mxcUrl, encryptedFile, fileName, fileSize, userId))
     }
 
     fun closeMedia() {
@@ -117,6 +122,7 @@ class MediaRouter(
             val mxcUrl: String,
             val encryptedFile: EncryptedFile?,
             val fileName: String,
+            val fileSize: Long?,
             val userId: UserId,
         ) : Config()
 
@@ -125,6 +131,7 @@ class MediaRouter(
             val mxcUrl: String,
             val encryptedFile: EncryptedFile?,
             val fileName: String,
+            val fileSize: Long?,
             val userId: UserId,
         ) : Config()
 
@@ -133,6 +140,7 @@ class MediaRouter(
             val mxcUrl: String,
             val encryptedFile: EncryptedFile?,
             val fileName: String,
+            val fileSize: Long?,
             val userId: UserId,
         ) : Config()
 
@@ -141,6 +149,7 @@ class MediaRouter(
             val mxcUrl: String,
             val encryptedFile: EncryptedFile?,
             val fileName: String,
+            val fileSize: Long?,
             val userId: UserId,
         ) : Config()
 
@@ -149,6 +158,7 @@ class MediaRouter(
             val mxcUrl: String,
             val encryptedFile: EncryptedFile?,
             val fileName: String,
+            val fileSize: Long?,
             val userId: UserId,
         ) : Config()
 

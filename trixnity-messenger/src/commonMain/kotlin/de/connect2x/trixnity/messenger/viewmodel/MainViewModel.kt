@@ -98,6 +98,7 @@ interface MainViewModel {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         userId: UserId
     )
 
@@ -529,6 +530,7 @@ open class MainViewModelImpl(
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         userId: UserId,
     ) {
         when (type) {
@@ -537,6 +539,7 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
+                    fileSize,
                     userId,
                 )
             }
@@ -546,6 +549,7 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
+                    fileSize,
                     userId,
                 )
             }
@@ -555,6 +559,7 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
+                    fileSize,
                     userId,
                 )
             }
@@ -564,6 +569,7 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
+                    fileSize,
                     userId,
                 )
             }
@@ -573,6 +579,7 @@ open class MainViewModelImpl(
                     mxcUrl,
                     encryptedFile,
                     fileName,
+                    fileSize,
                     userId,
                 )
             }
@@ -743,6 +750,7 @@ class PreviewMainViewModel : MainViewModel {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         userId: UserId
     ) {
     }

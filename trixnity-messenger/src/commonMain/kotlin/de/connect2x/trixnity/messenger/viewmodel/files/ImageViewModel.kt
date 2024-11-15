@@ -23,12 +23,14 @@ interface ImageViewModelFactory {
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
         fileName: String,
+        fileSize: Long?,
         onCloseImage: () -> Unit,
     ): ImageViewModel = ImageViewModelImpl(
         viewModelContext,
         mxcUrl,
         encryptedFile,
         fileName,
+        fileSize,
         onCloseImage,
     )
 
@@ -44,19 +46,22 @@ open class ImageViewModelImpl(
     mxcUrl: String,
     encryptedFile: EncryptedFile?,
     override val fileName: String,
+    override val fileSize: Long?,
     override val onCloseMedia: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
     mxcUrl,
     encryptedFile,
     fileName,
+    fileSize,
     OpenModalType.IMAGE,
     onCloseMedia,
 ), ImageViewModel {
     private val i18n = get<I18n>()
     private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val image = mediaDataFlow.map {
-        it?.limitedByteArrayOrNull(maxPreviewSize) {
+        it?.limitedByteArrayOrNull(maxPreviewSize, fileSize) {
+            progress.value = null
             error.value = i18n.mediaTooLargeForPreview()
         }
     }.stateIn(coroutineScope, WhileSubscribed(), null)
@@ -70,6 +75,7 @@ class PreviewImageViewModel : ImageViewModel {
     override val error = MutableStateFlow<String?>(null)
     override val progress = MutableStateFlow(null)
     override val fileName = "image.png"
+    override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
 }

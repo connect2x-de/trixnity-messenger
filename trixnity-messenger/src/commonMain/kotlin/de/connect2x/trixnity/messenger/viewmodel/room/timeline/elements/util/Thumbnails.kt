@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
@@ -174,7 +175,7 @@ class ThumbnailsImpl : Thumbnails {
                 })
         })
         return thumbnail?.limitedByteArrayOrNull(maxThumbnailSize) {
-            log.error { "Size of Thumbnail $thumbnailFile exceeds maximum size for file previews, so it is not processed" }
+            log.error { "Size of Thumbnail $thumbnailFile exceeds maximum size for file previews (${formatSize(maxThumbnailSize)}), so it is not processed" }
         }
     }
 
