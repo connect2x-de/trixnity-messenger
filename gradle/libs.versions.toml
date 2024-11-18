@@ -129,6 +129,7 @@ filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref =
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidTestMonitor" }
+mokkery-coroutines = { module = "dev.mokkery:mokkery-coroutines", version.ref = "mokkery" }
 
 [bundles]
 kotest = ["kotest-common", "kotest-engine-framework", "kotest-assertion-core"]
