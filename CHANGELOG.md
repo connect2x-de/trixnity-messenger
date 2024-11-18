@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
 - Don't show edited message as new message
 - Correct lifecycle handling on web
+- SSO support in local dev server
 - Fix Scrollbars nearly invisible in dark mode
 - text messages containing symbols not allowed in file names no longer crash the app when posted into the clipboard
 
