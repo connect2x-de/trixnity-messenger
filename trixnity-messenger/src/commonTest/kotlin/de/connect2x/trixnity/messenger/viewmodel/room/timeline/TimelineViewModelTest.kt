@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -242,7 +242,7 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel(mock())
-            cut.timelineElementHolderViewModels.first { it.size == 2 }
+            cut.elements.first { it.size == 2 }
             cut.lastVisibleTimelineElement.value = "1"
             delay(200) // give the viewmodel time to compute derived values
 
@@ -252,8 +252,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
             }
 
-            cut.timelineElementHolderViewModels.first { it.size == 3 }
-            cut.timelineElementHolderViewModels.value.last().key shouldBe "2"
+            cut.elements.first { it.size == 3 }
+            cut.elements.value.last().key shouldBe "2"
         }
 
         should("load more messages before") {
@@ -270,13 +270,13 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            withClue(lazy { "timelineElementViewModels size was ${cut.timelineElementHolderViewModels.value.size}, expected 11" }) {
-                cut.timelineElementHolderViewModels.first { it.size == 11 }
+            withClue(lazy { "timelineElementViewModels size was ${cut.elements.value.size}, expected 11" }) {
+                cut.elements.first { it.size == 11 }
             }
 
             // timeline starts at the end (no read messages) -> [9..19] are shown, if first visible is in the first 10 -> load before
             cut.firstVisibleTimelineElement.value = "9"
-            cut.timelineElementHolderViewModels waitForSize 20
+            cut.elements waitForSize 20
         }
 
         should("not load more messages before") {
@@ -293,11 +293,11 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
+            cut.elements waitForSize 11
 
             cut.firstVisibleTimelineElement.value = "8" // [9..19], see above
             continually(1.seconds) {
-                cut.timelineElementHolderViewModels.value.size shouldBe 11
+                cut.elements.value.size shouldBe 11
             }
         }
 
@@ -316,11 +316,11 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 0
 
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
+            cut.elements waitForSize 11
 
             // fully read events is set -> start at beginning -> [0..10], 9 is in last messages -> load after
             cut.lastVisibleTimelineElement.value = "9"
-            cut.timelineElementHolderViewModels waitForSize 20
+            cut.elements waitForSize 20
         }
 
         should("not load more messages after") {
@@ -338,12 +338,12 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 0
 
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
+            cut.elements waitForSize 11
 
             // see above, [0..10], 1 is at beginning -> do NOT load after
             cut.lastVisibleTimelineElement.value = "1"
             continually(1.seconds) {
-                cut.timelineElementHolderViewModels.value.size shouldBe 11
+                cut.elements.value.size shouldBe 11
             }
         }
 
@@ -361,10 +361,10 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 10
+            cut.elements waitForSize 10
 
             cut.jumpToEndOfTimeline()
-            cut.timelineElementHolderViewModels waitForSize 10
+            cut.elements waitForSize 10
         }
 
         should("load the last event of the room and add it to the timeline if it is not yet present in the timeline") {
@@ -386,12 +386,12 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.fullyReadEventIndex.value = 0
 
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
-            cut.timelineElementHolderViewModels.value.last().key shouldBe "10"
+            cut.elements waitForSize 11
+            cut.elements.value.last().key shouldBe "10"
 
             cut.jumpToEndOfTimeline()
-            cut.timelineElementHolderViewModels waitForSize 11
-            cut.timelineElementHolderViewModels.first { it.last().key == "11" }
+            cut.elements waitForSize 11
+            cut.elements.first { it.last().key == "11" }
         }
 
         // this test does flicker from time to time, so deactivate in the meantime; it is unclear whether this is a mocKMP or trixnity-messenger problem
@@ -484,7 +484,7 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
             val cut = timelineViewModel()
 
-            cut.timelineElementHolderViewModels waitForSize 2  // 1 message + 1 outbox message
+            cut.elements waitForSize 2  // 1 message + 1 outbox message
         }
 
         should("not show the date above an encrypted message if the message before is of the same day") {
@@ -505,12 +505,12 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 4
+            val result = cut.elements waitForSize 4
 
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // Hello
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // encrypted event
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe false // World
-            result[3].timelineElementViewModel.value?.showDateAbove shouldBe false // encrypted event
+            result[0].element.value?.showDateAbove shouldBe true // Hello
+            result[1].element.value?.showDateAbove shouldBe false // encrypted event
+            result[2].element.value?.showDateAbove shouldBe false // World
+            result[3].element.value?.showDateAbove shouldBe false // encrypted event
         }
 
         should("show date above first outgoing message when no received message is in the timeline yet") {
@@ -527,9 +527,9 @@ class TimelineViewModelTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            val result = cut.timelineElementHolderViewModels waitForSize 1
+            val result = cut.elements waitForSize 1
             retry(10, 1_000.milliseconds, 100.milliseconds) {
-                result[0].timelineElementViewModel.value?.showDateAbove shouldBe true
+                result[0].element.value?.showDateAbove shouldBe true
             }
         }
 
@@ -554,10 +554,10 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 2
+            val result = cut.elements waitForSize 2
 
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // outbox
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe true // timeline
+            result[0].element.value?.showDateAbove shouldBe true // outbox
+            result[1].element.value?.showDateAbove shouldBe true // timeline
         }
 
         should("not show the date above first outgoing message when the last received message is from today") {
@@ -581,13 +581,13 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 2
+            val result = cut.elements waitForSize 2
 
             withClue("show date above last timeline event") {
-                result[0].timelineElementViewModel.first { it?.showDateAbove == true }
+                result[0].element.first { it?.showDateAbove == true }
             }
             withClue("not show data above outbox") {
-                result[1].timelineElementViewModel.first { it?.showDateAbove == false }
+                result[1].element.first { it?.showDateAbove == false }
             }
         }
 
@@ -615,11 +615,11 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 3
+            val result = cut.elements waitForSize 3
 
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // Hello
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // World
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe false // !
+            result[0].element.value?.showDateAbove shouldBe true // Hello
+            result[1].element.value?.showDateAbove shouldBe false // World
+            result[2].element.value?.showDateAbove shouldBe false // !
         }
 
         should("not show the date above an unknown message event type when the following message is from the same day") {
@@ -643,11 +643,11 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 3
+            val result = cut.elements waitForSize 3
 
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // Hello
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // unknown
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe false // World
+            result[0].element.value?.showDateAbove shouldBe true // Hello
+            result[1].element.value?.showDateAbove shouldBe false // unknown
+            result[2].element.value?.showDateAbove shouldBe false // World
         }
 
         should("ignore redact messages as they are not displayed") {
@@ -674,11 +674,11 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 3
+            val result = cut.elements waitForSize 3
 
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe true // -redacted-
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // redaction (NTLEVM is always false)
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // World!
+            result[2].element.value?.showDateAbove shouldBe true // -redacted-
+            result[1].element.value?.showDateAbove shouldBe false // redaction (NTLEVM is always false)
+            result[0].element.value?.showDateAbove shouldBe true // World!
         }
 
         should("set sticky data to first visible message") {
@@ -706,7 +706,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
             val cut = timelineViewModel()
             cut.firstVisibleTimelineElement.value = "1"
-            cut.timelineElementHolderViewModels waitForSize 3
+            cut.elements waitForSize 3
             cut.stickyDate.first { it == "03.08.2020" }
         }
 
@@ -740,7 +740,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
             val cut = timelineViewModel()
             cut.firstVisibleTimelineElement.value = "1"
-            cut.timelineElementHolderViewModels waitForSize 3
+            cut.elements waitForSize 3
             cut.stickyDate.first { it == "02.08.2020" }
 
             // after the decryption, the UI would recognize that it does not need to render the unknown event
@@ -775,7 +775,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
             val cut = timelineViewModel()
             cut.firstVisibleTimelineElement.value = transactionId
-            cut.timelineElementHolderViewModels waitForSize 3
+            cut.elements waitForSize 3
             cut.stickyDate.first { it == "02.08.2020" }
         }
 
@@ -808,10 +808,10 @@ class TimelineViewModelTest : ShouldSpec() {
 
             val cut = timelineViewModel()
 
-            val result = cut.timelineElementHolderViewModels waitForSize 3  // 1 message + 2 outbox
+            val result = cut.elements waitForSize 3  // 1 message + 2 outbox
             continually(2.seconds) {
-                (result[1].timelineElementViewModel.value as RoomMessageViewModel).showChatBubbleEdge shouldBe true
-                (result[2].timelineElementViewModel.value as RoomMessageViewModel).showChatBubbleEdge shouldBe false
+                (result[1].element.value as MessageTimelineElementViewModel).showChatBubbleEdge shouldBe true
+                (result[2].element.value as MessageTimelineElementViewModel).showChatBubbleEdge shouldBe false
             }
         }
 
@@ -840,15 +840,15 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 2
+            cut.elements waitForSize 2
 
-            cut.timelineElementHolderViewModels.first() shouldHaveSize 2
+            cut.elements.first() shouldHaveSize 2
         }
 
         should("add new outbox message and when it is received as timeline event from the server not show as outbox message") {
             val timelineMock = timeline(roomServiceMock, roomId) {}
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels.value shouldHaveSize 0
+            cut.elements.value shouldHaveSize 0
 
             outboxMessagesFlow.value = listOf(
                 RoomOutboxMessage(
@@ -858,7 +858,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     createdAt = Instant.fromEpochMilliseconds(0)
                 ),
             )
-            cut.timelineElementHolderViewModels waitForSize 1
+            cut.elements waitForSize 1
 
             delay(500.milliseconds)
             timelineMock.addEvents {
@@ -869,8 +869,8 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
 
             continually(2.seconds) {
-                cut.timelineElementHolderViewModels.first() shouldHaveSize 1
-                cut.timelineElementHolderViewModels.first()[0].key shouldBe "transactionId-1"
+                cut.elements.first() shouldHaveSize 1
+                cut.elements.first()[0].key shouldBe "transactionId-1"
             }
         }
 
@@ -882,7 +882,7 @@ class TimelineViewModelTest : ShouldSpec() {
             }
             timelineMock.mockRoomServiceTimelineEventCalls()
             val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 1
+            cut.elements waitForSize 1
             val coroutineScope = CoroutineScope(Dispatchers.Default)
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
             scrollToCalled.map { it.size }.firstWithClue { 1 } // initial scroll ("0")
@@ -895,7 +895,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     createdAt = Instant.fromEpochMilliseconds(0)
                 ),
             )
-            cut.timelineElementHolderViewModels waitForSize 2
+            cut.elements waitForSize 2
             scrollToCalled.first { it == listOf("0", "transactionId-1") }
             outboxMessagesFlow.value = listOf(
                 RoomOutboxMessage(
@@ -911,7 +911,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     createdAt = Instant.fromEpochMilliseconds(1)
                 )
             )
-            cut.timelineElementHolderViewModels waitForSize 3
+            cut.elements waitForSize 3
             scrollToCalled.onEach { println(it) }.first { it == listOf("0", "transactionId-1", "transactionId-2") }
 
             coroutineScope.cancel()
@@ -926,7 +926,7 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
             val cut = timelineViewModel()
 
-            cut.timelineElementHolderViewModels waitForSize 1
+            cut.elements waitForSize 1
             cut.windowIsFocused.value = true
             cut.lastVisibleTimelineElement.value = "0"
             delay(200) // give the viewmodel time to compute derived values
@@ -941,7 +941,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
             }
 
-            cut.timelineElementHolderViewModels waitForSize 2
+            cut.elements waitForSize 2
             scrollToCalled.first { it == listOf("1") }
 
             coroutineScope.cancel()
@@ -959,7 +959,7 @@ class TimelineViewModelTest : ShouldSpec() {
             timelineMock.mockRoomServiceTimelineEventCalls()
             val cut = timelineViewModel()
 
-            cut.timelineElementHolderViewModels waitForSize 2
+            cut.elements waitForSize 2
 
             cut.lastVisibleTimelineElement.value = "0"
             cut.windowIsFocused.value = true
@@ -1039,7 +1039,7 @@ class TimelineViewModelTest : ShouldSpec() {
             isBackButtonVisible = MutableStateFlow(false),
             onShowSettings = mock(),
             onBack = onBackMock,
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onOpenMention = mock(),
         )
     }

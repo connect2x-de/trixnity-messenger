@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -123,8 +124,8 @@ class ImageMessageViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageMessageViewModelImpl {
-        return ImageMessageViewModelImpl(
+    private suspend fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageRoomMessageTimelineElementViewModelImpl {
+        return ImageRoomMessageTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
@@ -148,7 +149,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(true),
             sender = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
             invitation = flowOf(null),
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             mediaUploadProgress = MutableStateFlow(null),
         )
     }

@@ -38,7 +38,7 @@ import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.VideoViewModel
 import kotlinx.coroutines.delay
 
 

@@ -252,10 +252,10 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value.size shouldBe 3
+                cut.elements.value.size shouldBe 3
             }
 
-            val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
+            val memberListElementViewModel = cut.elements.value[1].second
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
 
@@ -321,10 +321,10 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value.size shouldBe 3
+                cut.elements.value.size shouldBe 3
             }
 
-            val memberListElementViewModel = cut.memberListElementViewModels.value[1].second
+            val memberListElementViewModel = cut.elements.value[1].second
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
 
@@ -407,11 +407,11 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value.size shouldBe 3
+                cut.elements.value.size shouldBe 3
             }
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value should containSortedMemberListElementViewModelsFor(
+                cut.elements.value should containSortedMemberListElementViewModelsFor(
                     listOf(alice, bob, me)
                 )
             }
@@ -435,7 +435,7 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value.size shouldBe 3
+                cut.elements.value.size shouldBe 3
             }
 
             eventually(2.seconds) {
@@ -598,7 +598,7 @@ class MemberListViewModelTest : ShouldSpec() {
             error = MutableStateFlow("")
         ).also {
             launch {
-                it.memberListElementViewModels.collect { }
+                it.elements.collect { }
             }
 
             launch {

@@ -15,13 +15,13 @@ import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.getOrNull
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
@@ -50,6 +50,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -93,15 +94,12 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
 
     fun setSinglePane(isSinglePane: Boolean)
-    fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    fun openMedia(
+        file: RoomMessageEventContent.FileBased,
         userId: UserId
     )
 
-    fun openMention(userId: UserId, messageMention: MessageMention)
+    fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
 
     fun closeAccountsOverview()
 }
@@ -161,7 +159,7 @@ open class MainViewModelImpl(
             viewModelContext = viewModelContext,
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
-            onOpenModal = ::openModal,
+            onOpenMedia = ::openMedia,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
         )
@@ -524,11 +522,8 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    override fun openMedia(
+        file: RoomMessageEventContent.FileBased,
         userId: UserId,
     ) {
         when (type) {
@@ -579,22 +574,22 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openMention(userId: UserId, messageMention: MessageMention) {
-        when (messageMention) {
-            is MessageMention.User -> {
-                val user = messageMention.user.userId
+    override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
+        when (timelineElementMention) {
+            is TimelineElementMention.User -> {
+                val user = timelineElementMention.user.userId
                 // TODO: implement and open user view (profile)
                 log.warn { "UserView to display $user not implemented yet" }
             }
 
-            is MessageMention.Room -> {
-                log.debug { "Opening Room ${messageMention.room.roomId}" }
-                val roomId = messageMention.room.roomId
+            is TimelineElementMention.Room -> {
+                log.debug { "Opening Room ${timelineElementMention.room.roomId}" }
+                val roomId = timelineElementMention.room.roomId
                 onRoomSelected(userId, roomId)
             }
 
-            is MessageMention.Event -> {
-                val eventId = messageMention.event.eventId
+            is TimelineElementMention.Event -> {
+                val eventId = timelineElementMention.event.eventId
                 // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
@@ -738,7 +733,7 @@ class PreviewMainViewModel : MainViewModel {
         this.isSinglePane.value = isSinglePane
     }
 
-    override fun openModal(
+    override fun openFile(
         type: OpenModalType,
         mxcUrl: String,
         encryptedFile: EncryptedFile?,
@@ -747,7 +742,7 @@ class PreviewMainViewModel : MainViewModel {
     ) {
     }
 
-    override fun openMention(userId: UserId, messageMention: MessageMention) {
+    override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
     }
 
     override fun closeAccountsOverview() {

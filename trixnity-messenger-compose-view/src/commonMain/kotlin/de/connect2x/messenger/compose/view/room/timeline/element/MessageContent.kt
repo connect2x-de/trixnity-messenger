@@ -21,18 +21,13 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,15 +38,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import com.mohamedrejeb.richeditor.model.RichTextState
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.BasicRichText
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -65,37 +56,22 @@ import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
-import de.connect2x.messenger.compose.view.room.timeline.AudioReply
-import de.connect2x.messenger.compose.view.room.timeline.FileReply
-import de.connect2x.messenger.compose.view.room.timeline.ImageReply
-import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefault
-import de.connect2x.messenger.compose.view.room.timeline.LocationReply
-import de.connect2x.messenger.compose.view.room.timeline.ReferencedMessagePill
-import de.connect2x.messenger.compose.view.room.timeline.TextReply
-import de.connect2x.messenger.compose.view.room.timeline.UnknownReply
-import de.connect2x.messenger.compose.view.room.timeline.VideoReply
-import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefault
-import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMessage
-import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.dp
-import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReferencedMessage
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 
@@ -103,155 +79,50 @@ private val log = KotlinLogging.logger {}
 
 @Composable
 fun MessageContent(
-    roomMessageViewModel: RoomMessageViewModel,
+    messageTimelineElementViewModel: MessageTimelineElementViewModel,
     baseTimelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     onLongPress: (Offset) -> Unit,
 ) {
-    when (roomMessageViewModel) {
-        is TextMessageViewModel -> MessageText(roomMessageViewModel, onLongPress)
-        is EmoteMessageViewModel -> MessageText(roomMessageViewModel, onLongPress)
-        is NoticeMessageViewModel -> MessageText(roomMessageViewModel, onLongPress, isNotice = true)
-        is RedactedMessageViewModel -> MessageRedacted(roomMessageViewModel)
-        is ImageMessageViewModel -> MessageImage(roomMessageViewModel, baseTimelineElementHolderViewModel, onLongPress)
-        is VideoMessageViewModel -> MessageVideo(roomMessageViewModel, onLongPress, baseTimelineElementHolderViewModel)
-        is AudioMessageViewModel -> MessageAudio(roomMessageViewModel, baseTimelineElementHolderViewModel, onLongPress)
-        is FileMessageViewModel -> MessageFile(roomMessageViewModel, baseTimelineElementHolderViewModel, onLongPress)
-        is EncryptedMessageViewModel -> EncryptedMessage(roomMessageViewModel)
-        is FallbackMessageViewModel -> MessageText(roomMessageViewModel, onLongPress)
-        is LocationMessageViewModel -> MessageLocation(roomMessageViewModel, onLongPress)
-    }
-}
-
-@Composable
-private fun MessageText(
-    textBasedViewModel: TextBasedViewModel,
-    onLongPress: (Offset) -> Unit,
-    isNotice: Boolean = false
-) {
-    if (Platform.current.isDesktop) {
-        // on Desktop it makes sense to select text and copy it;
-        // on Android, this will consume long tap events, which we use for the context menu
-        SelectionContainer {
-            MessageTextContent(textBasedViewModel, onLongPress, isNotice)
-        }
-    } else {
-        MessageTextContent(textBasedViewModel, onLongPress, isNotice)
-    }
-}
-
-
-@Composable
-private fun MessageTextContent(
-    textBasedViewModel: TextBasedViewModel,
-    onLongPress: (Offset) -> Unit,
-    isNotice: Boolean,
-) {
-    val referencedMessage = textBasedViewModel.referencedMessage.collectAsState().value
-
-    val i18n = DI.get<I18nView>()
-
-    Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
-        if (textBasedViewModel is NoticeMessageViewModel) {
-            Row {
-                Icon(Icons.Filled.SmartToy, i18n.automated())
-                Text(i18n.automated())
-            }
-
-            Spacer(Modifier.size(5.dp))
-        }
-
-        if (referencedMessage != null) {
-            val sender = referencedMessage.sender
-            ReferencedMessagePill(
-                senderName = sender.name,
-                senderNameColor = MaterialTheme.messengerColors.getUserColor(sender.userId),
-                content = {
-                    when (referencedMessage) {
-                        is ReferencedMessage.ReferencedTextMessage -> TextReply(referencedMessage.messageShortened())
-                        is ReferencedMessage.ReferencedImageMessage ->
-                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
-                                ?.let { imageBitmap ->
-                                    ImageReply(imageBitmap)
-                                } ?: ImageReplyDefault(referencedMessage.fileName)
-
-                        is ReferencedMessage.ReferencedVideoMessage ->
-                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
-                                ?.let { imageBitmap ->
-                                    VideoReply(imageBitmap)
-                                } ?: VideoReplyDefault(referencedMessage.fileName)
-
-                        is ReferencedMessage.ReferencedAudioMessage -> AudioReply(referencedMessage.fileName)
-                        is ReferencedMessage.ReferencedFileMessage -> FileReply(referencedMessage.fileName)
-                        is ReferencedMessage.ReferencedLocationMessage -> LocationReply(
-                            referencedMessage.name,
-                            referencedMessage.geoUri,
-                        )
-
-                        is ReferencedMessage.ReferencedUnknownMessage -> UnknownReply()
-                    }
-                },
-            )
-            Spacer(Modifier.size(5.dp))
-        }
-
-        val mentions = (textBasedViewModel.mentionsInFormattedBody ?: textBasedViewModel.mentionsInMessage)
-            .map {
-                it.key to it.value.collectAsState().value
-            }.sortedByDescending { it.first.first }
-
-        val message = textBasedViewModel.formattedBody ?: textBasedViewModel.message
-        val text = formatMessage(message, mentions, textBasedViewModel)
-
-        val richTextState = rememberRichTextState()
-        LaunchedEffect(text) {
-            richTextState.setHtml(text)
-        }
-        richTextState.config.linkColor =
-            if (textBasedViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-            else MaterialTheme.messengerColors.link
-
-        if (richTextState.toHtml().isNotBlank()) {
-            if (mentions.any { it.second != null }) {
-                val baseUriHandler = LocalUriHandler.current
-                val uriHandler by remember {
-                    mentionsUriHandler(baseUriHandler, textBasedViewModel, mentions.map { it.second })
-                }
-
-                MessageRichText(uriHandler, richTextState, textBasedViewModel.isByMe, onLongPress)
-            } else {
-                MessageRichText(LocalUriHandler.current, richTextState, textBasedViewModel.isByMe, onLongPress)
-            }
-        } else {
-            // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
-            Text(textBasedViewModel.message, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-@Composable
-fun MessageRichText(uriHandler: UriHandler, state: RichTextState, isByMe: Boolean, onLongPress: (Offset) -> Unit) {
-    CompositionLocalProvider(
-        LocalUriHandler provides uriHandler
-    ) {
-        BasicRichText(
-            state = state,
-            modifier = Modifier.pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = onLongPress
-                )
-            },
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = if (isByMe) MaterialTheme.colorScheme.onPrimary
-                else MaterialTheme.colorScheme.onSecondary
-            )
+    when (messageTimelineElementViewModel) {
+        is TextMessageViewModel -> MessageText(messageTimelineElementViewModel, onLongPress)
+        is EmoteMessageViewModel -> MessageText(messageTimelineElementViewModel, onLongPress)
+        is NoticeMessageViewModel -> MessageText(messageTimelineElementViewModel, onLongPress, isNotice = true)
+        is RedactedTimelineElementViewModel -> MessageRedacted(messageTimelineElementViewModel)
+        is ImageRoomMessageTimelineElementViewModelImpl -> MessageImage(
+            messageTimelineElementViewModel,
+            baseTimelineElementHolderViewModel,
+            onLongPress
         )
+
+        is VideoMessageViewModel -> MessageVideo(
+            messageTimelineElementViewModel,
+            onLongPress,
+            baseTimelineElementHolderViewModel
+        )
+
+        is AudioMessageViewModel -> MessageAudio(
+            messageTimelineElementViewModel,
+            baseTimelineElementHolderViewModel,
+            onLongPress
+        )
+
+        is FileMessageViewModel -> MessageFile(
+            messageTimelineElementViewModel,
+            baseTimelineElementHolderViewModel,
+            onLongPress
+        )
+
+        is EncryptedWaitTimelineElementViewModel -> EncryptedMessage(messageTimelineElementViewModel)
+        is FallbackMessageViewModel -> MessageText(messageTimelineElementViewModel, onLongPress)
+        is LocationMessageViewModel -> MessageLocation(messageTimelineElementViewModel, onLongPress)
     }
 }
 
+
 @Composable
-private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) {
+private fun MessageRedacted(redactedTimelineElementViewModel: RedactedTimelineElementViewModel) {
     val i18n = DI.get<I18nView>()
-    val formattedMessage = redactedMessageViewModel.formattedMessage.collectAsState().value
+    val formattedMessage = redactedTimelineElementViewModel.message.collectAsState().value
     Row(Modifier.padding(10.dp)) {
         Icon(
             Icons.Outlined.Delete, i18n.commonDeleted(),
@@ -260,7 +131,7 @@ private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) 
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            "$formattedMessage${redactedMessageViewModel.redactedAtDateTime?.let { " ($it)" } ?: ""}",
+            "$formattedMessage${redactedTimelineElementViewModel.redactedAtDateTime?.let { " ($it)" } ?: ""}",
             Modifier.alignByBaseline(),
             style = MaterialTheme.typography.bodySmall,
             fontStyle = FontStyle.Italic,
@@ -269,9 +140,9 @@ private fun MessageRedacted(redactedMessageViewModel: RedactedMessageViewModel) 
 }
 
 @Composable
-private fun EncryptedMessage(encryptedMessageViewModel: EncryptedMessageViewModel) {
+private fun EncryptedMessage(encryptedWaitTimelineElementViewModel: EncryptedWaitTimelineElementViewModel) {
     val i18n = DI.get<I18nView>()
-    val waitForDecryption = encryptedMessageViewModel.waitForDecryption.collectAsState().value
+    val waitForDecryption = encryptedWaitTimelineElementViewModel.waitForDecryption.collectAsState().value
     if (waitForDecryption) {
         Row(Modifier.padding(10.dp)) {
             Icon(
@@ -299,33 +170,37 @@ private fun EncryptedMessage(encryptedMessageViewModel: EncryptedMessageViewMode
 
 @Composable
 private fun MessageImage(
-    imageMessageViewModel: ImageMessageViewModel,
+    roomMessageImageTimelineElementViewModelImpl: ImageRoomMessageTimelineElementViewModelImpl,
     baseTimelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     onLongPress: (Offset) -> Unit,
 ) {
     if (baseTimelineElementHolderViewModel is OutboxElementHolderViewModel) {
-        OutboxMessageImage(imageMessageViewModel, onLongPress, baseTimelineElementHolderViewModel)
+        OutboxMessageImage(
+            roomMessageImageTimelineElementViewModelImpl,
+            onLongPress,
+            baseTimelineElementHolderViewModel
+        )
     } else {
-        InboxMessageImage(imageMessageViewModel, onLongPress)
+        InboxMessageImage(roomMessageImageTimelineElementViewModelImpl, onLongPress)
     }
 }
 
 @Composable
 private fun OutboxMessageImage(
-    imageMessageViewModel: ImageMessageViewModel,
+    roomMessageImageTimelineElementViewModelImpl: ImageRoomMessageTimelineElementViewModelImpl,
     onLongPress: (Offset) -> Unit,
     outboxElementHolderViewModel: OutboxElementHolderViewModel
 ) {
-    val uploadProgress = imageMessageViewModel.uploadProgress.collectAsState(null)
-    val image = imageMessageViewModel.thumbnail.collectAsState()
+    val uploadProgress = roomMessageImageTimelineElementViewModelImpl.uploadProgress.collectAsState(null)
+    val image = roomMessageImageTimelineElementViewModelImpl.thumbnail.collectAsState()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(top = 10.dp)
     ) {
         image.value?.let { imageBitmapFromBytes(it) }?.let {
-            MessageImage(it, imageMessageViewModel, onLongPress)
-        } ?: MessageImageFallback(imageMessageViewModel, onLongPress)
+            MessageImage(it, roomMessageImageTimelineElementViewModelImpl, onLongPress)
+        } ?: MessageImageFallback(roomMessageImageTimelineElementViewModelImpl, onLongPress)
         uploadProgress.value?.let {
             MiddleSpacer()
             Box(Modifier.padding(all = 20.dp)) {
@@ -337,32 +212,32 @@ private fun OutboxMessageImage(
 
 @Composable
 private fun InboxMessageImage(
-    imageMessageViewModel: ImageMessageViewModel,
+    roomMessageImageTimelineElementViewModelImpl: ImageRoomMessageTimelineElementViewModelImpl,
     onLongPress: (Offset) -> Unit
 ) {
     val i18n = DI.get<I18nView>()
-    val uploadProgress = imageMessageViewModel.uploadProgress.collectAsState(null)
-    val image = imageMessageViewModel.thumbnail.collectAsState()
+    val uploadProgress = roomMessageImageTimelineElementViewModelImpl.uploadProgress.collectAsState(null)
+    val image = roomMessageImageTimelineElementViewModelImpl.thumbnail.collectAsState()
 
     BoxWithConstraints(Modifier.padding(top = 10.dp)) {
         image.value?.let { imageBitmapFromBytes(it) }?.let {
-            MessageImage(it, imageMessageViewModel, onLongPress)
-        } ?: MessageImageFallback(imageMessageViewModel, onLongPress)
+            MessageImage(it, roomMessageImageTimelineElementViewModelImpl, onLongPress)
+        } ?: MessageImageFallback(roomMessageImageTimelineElementViewModelImpl, onLongPress)
         uploadProgress.value?.let {
             if (image.value == null) {
                 val height =
                     with(LocalDensity.current) {
-                        imageMessageViewModel.getHeight(maxWidth.toPx()).toDp()
+                        roomMessageImageTimelineElementViewModelImpl.getHeight(maxWidth.toPx()).toDp()
                     }
                 val width =
                     with(LocalDensity.current) {
-                        imageMessageViewModel.getWidth(
+                        roomMessageImageTimelineElementViewModelImpl.getWidth(
                             maxWidth.toPx(),
                             height.toPx()
                         ).toDp()
                     }
                 Box(Modifier.height(height).width(width)) {
-                    DownloadProgress(it, imageMessageViewModel::cancelThumbnailDownload)
+                    DownloadProgress(it, roomMessageImageTimelineElementViewModelImpl::cancelThumbnailDownload)
                 }
             }
         }
@@ -372,18 +247,18 @@ private fun InboxMessageImage(
 @Composable
 private fun MessageImage(
     image: ImageBitmap,
-    imageMessageViewModel: ImageMessageViewModel,
+    roomMessageImageTimelineElementViewModelImpl: ImageRoomMessageTimelineElementViewModelImpl,
     onLongPress: (Offset) -> Unit,
 ) {
-    val showSender = imageMessageViewModel.showSender.collectAsState()
-    val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
+    val showSender = roomMessageImageTimelineElementViewModelImpl.showSender.collectAsState()
+    val saveFileDialogOpen = roomMessageImageTimelineElementViewModelImpl.saveFileDialogOpen.collectAsState().value
     if (saveFileDialogOpen) {
         SaveFileDialog(
-            imageMessageViewModel.fileName,
-            imageMessageViewModel.fileMimeType,
-            imageMessageViewModel.downloadError.collectAsState().value,
-            imageMessageViewModel::downloadFile,
-            imageMessageViewModel::closeSaveFileDialog
+            roomMessageImageTimelineElementViewModelImpl.fileName,
+            roomMessageImageTimelineElementViewModelImpl.fileMimeType,
+            roomMessageImageTimelineElementViewModelImpl.downloadError.collectAsState().value,
+            roomMessageImageTimelineElementViewModelImpl::downloadFile,
+            roomMessageImageTimelineElementViewModelImpl::closeSaveFileDialog
         )
     }
     Image(
@@ -392,7 +267,7 @@ private fun MessageImage(
         Modifier
             .heightIn(
                 50.dp,
-                with(LocalDensity.current) { imageMessageViewModel.getMaxHeight().toDp() })
+                with(LocalDensity.current) { roomMessageImageTimelineElementViewModelImpl.getMaxHeight().toDp() })
             .clip(
                 if (showSender.value) {
                     RoundedCornerShape(0.dp)
@@ -403,7 +278,7 @@ private fun MessageImage(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        imageMessageViewModel.openImage()
+                        roomMessageImageTimelineElementViewModelImpl.openImage()
                     },
                     onLongPress = onLongPress,
                 )
@@ -415,17 +290,17 @@ private fun MessageImage(
 
 @Composable
 private fun MessageImageFallback(
-    imageMessageViewModel: ImageMessageViewModel,
+    roomMessageImageTimelineElementViewModelImpl: ImageRoomMessageTimelineElementViewModelImpl,
     onLongPress: (Offset) -> Unit
 ) {
-    val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
+    val saveFileDialogOpen = roomMessageImageTimelineElementViewModelImpl.saveFileDialogOpen.collectAsState().value
     if (saveFileDialogOpen) {
         SaveFileDialog(
-            imageMessageViewModel.fileName,
-            imageMessageViewModel.fileMimeType,
-            imageMessageViewModel.downloadError.collectAsState().value,
-            imageMessageViewModel::downloadFile,
-            imageMessageViewModel::closeSaveFileDialog
+            roomMessageImageTimelineElementViewModelImpl.fileName,
+            roomMessageImageTimelineElementViewModelImpl.fileMimeType,
+            roomMessageImageTimelineElementViewModelImpl.downloadError.collectAsState().value,
+            roomMessageImageTimelineElementViewModelImpl::downloadFile,
+            roomMessageImageTimelineElementViewModelImpl::closeSaveFileDialog
         )
     }
     val i18n = DI.get<I18nView>()
@@ -440,7 +315,7 @@ private fun MessageImageFallback(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
-                            imageMessageViewModel.openImage()
+                            roomMessageImageTimelineElementViewModelImpl.openImage()
                         },
                         onLongPress = onLongPress,
                     )
@@ -448,7 +323,7 @@ private fun MessageImageFallback(
                 .size(64.dp)
                 .buttonPointerModifier()
         )
-        FileName(imageMessageViewModel.fileName)
+        FileName(roomMessageImageTimelineElementViewModelImpl.fileName)
     }
 }
 
@@ -573,7 +448,8 @@ private fun MessageAudio(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(start = 30.dp),
             ) {
-                Icon(MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio(),
+                Icon(
+                    MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio(),
                     modifier = Modifier
                         .size(64.dp)
                         .pointerInput(Unit) {
@@ -588,7 +464,8 @@ private fun MessageAudio(
                 FileName(audioMessageViewModel.fileName)
                 if (uploadProgress != null) {
                     Box {
-                        DownloadProgress(uploadProgress,
+                        DownloadProgress(
+                            uploadProgress,
                             cancel = {
                                 if (baseTimelineElementHolderViewModel is OutboxElementHolderViewModel) {
                                     baseTimelineElementHolderViewModel.abortSend()

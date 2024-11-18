@@ -45,22 +45,20 @@ import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiaryContaine
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 
 
-private fun previewReactionEvent(sender: String, isMe: Boolean = false) =
+private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
     TimelineElementHolderViewModel.ReactionEvent(
         eventId = EventId(""),
         sender = UserInfoElement(
             name = sender,
             userId = UserId(""),
-            initials = Initials.compute(sender),
+            initials = initials.compute(sender),
             image = null,
         ),
         isMe = isMe,
-        timestamp = Instant.fromEpochMilliseconds(0),
     )
 
 @Composable

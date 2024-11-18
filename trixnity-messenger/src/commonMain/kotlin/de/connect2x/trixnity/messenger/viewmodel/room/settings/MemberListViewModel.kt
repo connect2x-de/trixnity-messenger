@@ -1,17 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -41,7 +41,7 @@ interface MemberListViewModelFactory {
 }
 
 interface MemberListViewModel {
-    val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>>
+    val elements: StateFlow<List<MemberListElementViewModel>>
     val membershipCounts: StateFlow<Map<Membership, Int>>
     val showLoadingSpinner: StateFlow<Boolean>
     val error: StateFlow<String?>
@@ -57,40 +57,56 @@ open class MemberListViewModelImpl(
         it?.membersLoaded != true
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    private val viewModels = mutableMapOf<UserId, MemberListElementViewModel>()
+    private class MemberListElementViewModelWrapper(
+        val viewModel: MemberListElementViewModel,
+        val lifecycle: LifecycleRegistry,
+    )
+
+    private val elementCache = mutableMapOf<UserId, MemberListElementViewModelWrapper>()
 
     private val allUsers = matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
-    override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
+    override val elements: StateFlow<List<MemberListElementViewModel>> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
             matrixClient.room.getState<CreateEventContent>(selectedRoomId).filterNotNull(),
             allUsers
         ) { powerLevels, createEvent, roomUsers ->
-            roomUsers.mapNotNull { roomUser ->
-                if (roomUser.membership == Membership.JOIN ||
-                    roomUser.membership == Membership.INVITE ||
-                    roomUser.membership == Membership.BAN
-                ) {
-                    val userId = roomUser.userId
-                    val memberListElementViewModel = viewModels.getOrPut(userId) {
-                        get<MemberListElementViewModelFactory>()
-                            .create(
-                                viewModelContext = childContext("memberListElement-${roomUser.userId.full}"),
-                                roomUser,
-                                error = error,
-                                selectedRoomId = selectedRoomId,
-                            )
-                    }
-                    Pair(userId, memberListElementViewModel)
-                } else null
-            }.sortedByDescending { (userId, _) ->
+            val relevantRoomUsers = roomUsers.filter { roomUser ->
+                roomUser.membership == Membership.JOIN ||
+                        roomUser.membership == Membership.INVITE ||
+                        roomUser.membership == Membership.BAN
+            }.sortedByDescending { roomUser ->
                 matrixClient.user.getPowerLevel(
-                    userId,
+                    roomUser.userId,
                     createEvent.sender,
                     powerLevels
                 )
+            }.associateBy { it.userId }
+
+            elementCache.mapNotNull { (userId, wrapper) ->
+                if (relevantRoomUsers[userId] == null) {
+                    wrapper.lifecycle.destroy()
+                    userId
+                } else null
+            }.forEach { key -> elementCache.remove(key) }
+
+            relevantRoomUsers.map { (userId, roomUser) ->
+                elementCache[userId]?.viewModel
+                    ?: run {
+                        val lifecycle = LifecycleRegistry()
+                        lifecycle.start()
+                        get<MemberListElementViewModelFactory>()
+                            .create(
+                                viewModelContext = childContext("element-${userId.full}", lifecycle),
+                                roomUser,
+                                error = error,
+                                selectedRoomId = selectedRoomId,
+                            ).also {
+                                elementCache[userId] = MemberListElementViewModelWrapper(it, lifecycle)
+                            }
+                    }
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -106,7 +122,7 @@ open class MemberListViewModelImpl(
 
 
 class PreviewMemberListViewModel : MemberListViewModel {
-    override val memberListElementViewModels: MutableStateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
+    override val elements: MutableStateFlow<List<MemberListElementViewModel>> =
         MutableStateFlow(emptyList())
     override val membershipCounts: StateFlow<Map<Membership, Int>> = MutableStateFlow(emptyMap())
     override val showLoadingSpinner: MutableStateFlow<Boolean> = MutableStateFlow(false)

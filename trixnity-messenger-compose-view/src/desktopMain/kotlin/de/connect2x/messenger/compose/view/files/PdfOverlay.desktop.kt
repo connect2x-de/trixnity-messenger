@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer

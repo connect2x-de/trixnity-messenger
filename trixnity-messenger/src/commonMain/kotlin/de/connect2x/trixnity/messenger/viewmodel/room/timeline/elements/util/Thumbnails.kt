@@ -16,7 +16,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 private val log = KotlinLogging.logger { }
 
-interface Thumbnails {
+interface Thumbnails { // TODO this as part of the DI just adds complexity
     suspend fun loadThumbnail(
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased.Image,

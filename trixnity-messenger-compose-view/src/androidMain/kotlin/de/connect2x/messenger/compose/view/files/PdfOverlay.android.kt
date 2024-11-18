@@ -47,12 +47,11 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.utils.ByteArrayFlow
 import simpleVerticalScrollbar
 import java.io.File
-import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.min
 

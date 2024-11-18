@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.HistoryVisibilityStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.mock
@@ -48,20 +49,20 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
             val newHistoryVisibilityEvent = HistoryVisibilityEventContent.HistoryVisibility.SHARED
             val cut = historyVisibilityChangeStatusViewModel(
                 timelineEvent =
-                timelineEvent(
-                    previousHistoryVisibilityEvent = UnsignedStateEventData(
-                        previousContent = HistoryVisibilityEventContent(
-                            historyVisibility = previousHistoryVisibilityEvent
-                        )
+                    timelineEvent(
+                        previousHistoryVisibilityEvent = UnsignedStateEventData(
+                            previousContent = HistoryVisibilityEventContent(
+                                historyVisibility = previousHistoryVisibilityEvent
+                            )
+                        ),
+                        newHistoryVisibilityEventContent = newHistoryVisibilityEvent
                     ),
-                    newHistoryVisibilityEventContent = newHistoryVisibilityEvent
-                ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.historyVisibilityMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group from '${
+            cut.changeMessage.value shouldBe """Bob has changed the history visibility of the group from '${
                 cut.translateVisibility(
                     previousHistoryVisibilityEvent
                 )
@@ -78,10 +79,10 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
                     timelineEvent = timelineEvent(newHistoryVisibilityEventContent = newHistoryVisibilityEvent),
                     coroutineContext = coroutineContext
                 )
-            val subscriberJob = launch { cut.historyVisibilityMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.historyVisibilityMessage.value shouldBe """Bob has changed the history visibility of the group to '${
+            cut.changeMessage.value shouldBe """Bob has changed the history visibility of the group to '${
                 cut.translateVisibility(
                     newHistoryVisibilityEvent
                 )
@@ -97,14 +98,14 @@ class HistoryVisibilityChangeStatusViewModelTest : ShouldSpec() {
         usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ): HistoryVisibilityChangeStatusViewModelImpl {
+    ): HistoryVisibilityStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return HistoryVisibilityChangeStatusViewModelImpl(
+        return HistoryVisibilityStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.CanonicalAliasStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -75,10 +76,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
+                cut.changeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
             }
 
             subscriberJob.cancel()
@@ -97,10 +98,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
+                cut.changeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
             }
 
             subscriberJob.cancel()
@@ -119,10 +120,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
+                cut.changeMessage.value shouldBe listOf(i18n.setAsMainAlias(user.name, alias1.full))
             }
 
             subscriberJob.cancel()
@@ -141,10 +142,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removeAsMainAlias(user.name, alias2.full))
+                cut.changeMessage.value shouldBe listOf(i18n.removeAsMainAlias(user.name, alias2.full))
             }
 
             subscriberJob.cancel()
@@ -163,10 +164,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias2.full))
+                cut.changeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias2.full))
             }
 
             subscriberJob.cancel()
@@ -185,10 +186,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.addedAlias(user.name, alias4.full))
+                cut.changeMessage.value shouldBe listOf(i18n.addedAlias(user.name, alias4.full))
             }
 
             subscriberJob.cancel()
@@ -207,10 +208,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(
+                cut.changeMessage.value shouldBe listOf(
                     i18n.addedAlias(user.name, alias4.full),
                     i18n.addedAlias(user.name, alias5.full)
                 )
@@ -233,10 +234,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias4.full))
+                cut.changeMessage.value shouldBe listOf(i18n.removedAlias(user.name, alias4.full))
             }
 
             subscriberJob.cancel()
@@ -255,10 +256,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf(
+                cut.changeMessage.value shouldBe listOf(
                     i18n.removedAlias(user.name, alias4.full),
                     i18n.removedAlias(user.name, alias5.full)
                 )
@@ -280,10 +281,10 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.roomAliasChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
 
             eventually(2.seconds) {
-                cut.roomAliasChangeMessage.value shouldBe listOf()
+                cut.changeMessage.value shouldBe listOf()
             }
 
             subscriberJob.cancel()
@@ -296,14 +297,14 @@ class RoomAliasChangeStatusViewModelTest : ShouldSpec() {
         previousEventContent: CanonicalAliasEventContent,
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ): RoomAliasChangeStatusViewModelImpl {
+    ): CanonicalAliasStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return RoomAliasChangeStatusViewModelImpl(
+        return CanonicalAliasStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

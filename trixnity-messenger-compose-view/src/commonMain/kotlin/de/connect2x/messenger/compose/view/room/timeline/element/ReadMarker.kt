@@ -19,35 +19,35 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 interface ReadMarkerView {
     @Composable
     fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     )
 }
 
 @Composable
 fun ReadMarker(
-    roomMessageViewModel: RoomMessageViewModel,
+    messageTimelineElementViewModel: MessageTimelineElementViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    DI.get<ReadMarkerView>().create(roomMessageViewModel, timelineElementHolderViewModel)
+    DI.get<ReadMarkerView>().create(messageTimelineElementViewModel, timelineElementHolderViewModel)
 }
 
 class ReadMarkerViewImpl : ReadMarkerView {
     @Composable
     override fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel
     ) {
         val i18n = DI.get<I18nView>()
         if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
             val isRead by timelineElementHolderViewModel.isRead.collectAsState()
-            val isByMe = roomMessageViewModel.isByMe
+            val isByMe = messageTimelineElementViewModel.isByMe
             if (isByMe) {
                 Box(
                     Modifier

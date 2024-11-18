@@ -5,6 +5,8 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -59,7 +61,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.timelineElementViewModel.filterNotNull().first()
+            val value = cut.element.filterNotNull().first()
             value.shouldBeInstanceOf<TextMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.first { !it }
@@ -75,8 +77,8 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.timelineElementViewModel.filterNotNull().first()
-            value.shouldBeInstanceOf<ImageMessageViewModel>()
+            val value = cut.element.filterNotNull().first()
+            value.shouldBeInstanceOf<ImageRoomMessageTimelineElementViewModelImpl>()
             value.isByMe shouldBe true
             value.showSender.first { !it }
         }
@@ -91,7 +93,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.timelineElementViewModel.filterNotNull().first()
+            val value = cut.element.filterNotNull().first()
             value.shouldBeInstanceOf<VideoMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.first { !it }
@@ -107,7 +109,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            val value = cut.timelineElementViewModel.filterNotNull().first()
+            val value = cut.element.filterNotNull().first()
             value.shouldBeInstanceOf<FileMessageViewModel>()
             value.isByMe shouldBe true
             value.showSender.first { !it }
@@ -123,7 +125,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
                 )
             )
 
-            cut.timelineElementViewModel.filterNotNull().first().shouldBeInstanceOf<NullTimelineElementViewModel>()
+            cut.element.filterNotNull().first().shouldBeInstanceOf<EmptyTimelineElementViewModel>()
         }
     }
 
@@ -153,7 +155,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             showDateAboveFlow = flowOf(false),
             showChatBubbleEdgeFlow = flowOf(false),
             selectedRoomId = roomId,
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onOpenMention = mock(),
         )
     }

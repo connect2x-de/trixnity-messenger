@@ -9,9 +9,9 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalUserCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenModal: OpenModalUserCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     ): RoomViewModel {
@@ -39,7 +39,7 @@ interface RoomViewModelFactory {
             roomId = selectedRoomId,
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
-            onOpenModal = onOpenModal,
+            onOpenMedia = onOpenMedia,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
         )
@@ -62,7 +62,7 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenModal: OpenModalUserCallback,
+    onOpenMedia: OpenMediaCallback,
     onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
@@ -86,8 +86,8 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
-            onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
+        onOpenMedia = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
+            onOpenMedia(type, mxcUrl, encryptedFile, fileName, userId)
         },
         onOpenMention = onOpenMention
     )

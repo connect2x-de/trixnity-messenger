@@ -124,6 +124,7 @@ open class RoomListElementViewModelImpl(
     override val isInvite: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.INVITE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
@@ -137,7 +138,7 @@ open class RoomListElementViewModelImpl(
                 roomInviter.getInviter(matrixClient, roomId)?.let { inviterUserId ->
                     matrixClient.user.getById(roomId, inviterUserId)
                         .filterNotNull()
-                        .map { it.toUserInfoElement(matrixClient) }
+                        .map { it.toUserInfoElement(matrixClient, maxAvatarSize) }
                 } ?: flowOf(null)
             } else {
                 flowOf(null)
@@ -158,7 +159,6 @@ open class RoomListElementViewModelImpl(
         roomNameCalculations.getRoomName(roomId, matrixClient, formatted = false)
             .map { initials.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), null)
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val roomImage: StateFlow<ByteArray?> =
         roomFlow.map { room ->
             room.avatarUrl?.let { avatarUrl ->

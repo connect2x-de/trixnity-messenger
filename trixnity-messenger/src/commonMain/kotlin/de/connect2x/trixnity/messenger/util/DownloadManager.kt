@@ -27,17 +27,15 @@ interface DownloadManager {
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        success: MutableStateFlow<Boolean>,
-    ): Deferred<Result<ByteArrayFlow>>
-
-    val scope: CoroutineScope
+        processFile: suspend (ByteArrayFlow) -> Unit,
+    ): Deferred<Result<Unit>>
 }
 
 // TODO should have platform implementations in future (Background Job in Android for example)
 class DownloadManagerImpl(
     coroutineContext: CoroutineContext = Dispatchers.IOOrDefault,
 ) : DownloadManager {
-    override val scope =
+    private val scope =
         CoroutineScope(coroutineContext + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
             log.error(throwable) { "DownloadManager failed." }
         })
@@ -49,10 +47,10 @@ class DownloadManagerImpl(
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        success: MutableStateFlow<Boolean>,
-    ): Deferred<Result<ByteArrayFlow>> {
+        processFile: suspend (ByteArrayFlow) -> Unit,
+    ): Deferred<Result<Unit>> {
         log.debug { "add $fileName to current downloads" }
-        val download = Download(fileName, content.info?.size, progress, success)
+        val download = Download(fileName, content.info?.size, progress)
         _downloads.value += download
 
         val trixnityProgress = MutableStateFlow<FileTransferProgress?>(null)
@@ -78,14 +76,14 @@ class DownloadManagerImpl(
                     encryptedFile != null -> matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
                     url != null -> matrixClient.media.getMedia(url, trixnityProgress)
                     else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
+                }.mapCatching {
+                    log.debug { "process file $fileName" }
+                    processFile(it)
+                }.onSuccess {
+                    log.debug { "successfully downloaded $fileName" }
+                }.onFailure {
+                    log.warn(it) { "download for $fileName was not successful" }
                 }
-            result.onSuccess {
-                log.debug { "successfully downloaded $fileName" }
-                success.value = true
-            }
-            result.onFailure {
-                log.warn(it) { "download for $fileName was not successful" }
-            }
             progressJob.cancelAndJoin()
             _downloads.value -= download // we remove Download history for now
             result
@@ -97,6 +95,5 @@ data class Download(
     val fileName: String,
     val fileSize: Long?,
     val progress: StateFlow<FileTransferProgressElement?>,
-    val success: StateFlow<Boolean>
 )
 

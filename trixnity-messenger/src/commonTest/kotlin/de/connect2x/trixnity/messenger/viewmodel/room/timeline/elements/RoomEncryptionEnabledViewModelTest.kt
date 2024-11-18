@@ -5,6 +5,8 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.EncryptionStateTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.EncryptionStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.mock
@@ -38,9 +40,9 @@ class RoomEncryptionEnabledViewModelTest : ShouldSpec() {
 
         should("display who enabled to end-to-end encryption") {
             val cut = roomEncryptionEnabledViewModel(coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomEncryptionEnabledMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomEncryptionEnabledMessage.value shouldBe "Bob enabled end-to-end encryption"
+            cut.changeMessage.value shouldBe "Bob enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -48,10 +50,10 @@ class RoomEncryptionEnabledViewModelTest : ShouldSpec() {
         should("react to username changes") {
             val userFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost")))
             val cut = roomEncryptionEnabledViewModel(userFlow = userFlow, coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomEncryptionEnabledMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             userFlow.value = UserInfoElement("Bobby", UserId("booby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
-            cut.roomEncryptionEnabledMessage.value shouldBe "Bobby enabled end-to-end encryption"
+            cut.changeMessage.value shouldBe "Bobby enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -62,8 +64,8 @@ class RoomEncryptionEnabledViewModelTest : ShouldSpec() {
         userFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext
-    ): RoomEncryptionEnabledViewModel =
-        RoomEncryptionEnabledViewModelImpl(
+    ): EncryptionStateTimelineElementViewModel =
+        EncryptionStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {

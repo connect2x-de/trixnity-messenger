@@ -11,10 +11,10 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.FILENAME_AND_INFO
 import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.FILENAME_ONLY
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileBasedMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileBasedMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlin.math.min
@@ -51,27 +51,29 @@ enum class OverflowingFileInfoDisplayMode {
 
 
 @Composable
-fun formatFileMetadata(roomMessageViewModel: RoomMessageViewModel): String {
+fun formatFileMetadata(messageTimelineElementViewModel: MessageTimelineElementViewModel): String {
     val i18n = DI.get<I18nView>()
-    return when (roomMessageViewModel) {
+    return when (messageTimelineElementViewModel) {
 
         is VideoMessageViewModel ->
-            "${roomMessageViewModel.fileName}:" +
-                    (roomMessageViewModel.duration?.let { " " + formatDuration(it.milliseconds) } ?: "") +
-                    (roomMessageViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
+            "${messageTimelineElementViewModel.fileName}:" +
+                    (messageTimelineElementViewModel.duration?.let { " " + formatDuration(it.milliseconds) }
+                        ?: "") +
+                    (messageTimelineElementViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
 
         is AudioMessageViewModel ->
-            "${roomMessageViewModel.fileName}:" +
-                    (roomMessageViewModel.duration?.let { " " + formatDuration(it.milliseconds) } ?: "") +
-                    (roomMessageViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
+            "${messageTimelineElementViewModel.fileName}:" +
+                    (messageTimelineElementViewModel.duration?.let { " " + formatDuration(it.milliseconds) }
+                        ?: "") +
+                    (messageTimelineElementViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
 
-        is ImageMessageViewModel ->
-            "${roomMessageViewModel.fileName}:" +
-                    (roomMessageViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
+        is ImageRoomMessageTimelineElementViewModelImpl ->
+            "${messageTimelineElementViewModel.fileName}:" +
+                    (messageTimelineElementViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
 
         is FileBasedMessageViewModel ->
-            "${roomMessageViewModel.fileName}:" +
-                    (roomMessageViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
+            "${messageTimelineElementViewModel.fileName}:" +
+                    (messageTimelineElementViewModel.fileSize?.let { " " + formatSize(it.toLong()) } ?: "")
 
         else -> i18n.unknownFileInfo()
     }
