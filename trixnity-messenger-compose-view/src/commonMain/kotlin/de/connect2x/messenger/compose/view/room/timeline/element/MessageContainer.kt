@@ -21,39 +21,37 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.MessageBubble
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface MessageContainerView {
     @Composable
     fun create(
-        roomMessageViewModel: RoomMessageViewModel,
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
     )
 }
 
 @Composable
 fun MessageContainer(
-    roomMessageViewModel: RoomMessageViewModel,
-    timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+    holder: BaseTimelineElementHolderViewModel,
 ) {
-    DI.get<MessageContainerView>().create(roomMessageViewModel, timelineElementHolderViewModel)
+    DI.get<MessageContainerView>().create(holder)
 }
 
 class MessageContainerViewImpl : MessageContainerView {
     @Composable
     override fun create(
-        roomMessageViewModel: RoomMessageViewModel,
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
     ) {
         val redactionInProgress by remember {
-            if (timelineElementHolderViewModel is TimelineElementHolderViewModel)
-                timelineElementHolderViewModel.redactionInProgress
+            if (holder is TimelineElementHolderViewModel)
+                holder.redactionInProgress
             else MutableStateFlow(false)
         }.collectAsState()
-        val topPadding = if (roomMessageViewModel.showBigGap) 10.dp else 3.dp
+        val showBigGap = holder.showBigGap.collectAsState().value == true
+        val topPadding = if (showBigGap) 10.dp else 3.dp
 
         BoxWithConstraints(
             Modifier.fillMaxWidth()
@@ -62,30 +60,30 @@ class MessageContainerViewImpl : MessageContainerView {
                 (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
             Column(
                 modifier = Modifier.run {
-                    if (roomMessageViewModel.isByMe) padding(start = padding, top = topPadding)
+                    if (holder.isByMe) padding(start = padding, top = topPadding)
                         .align(Alignment.CenterEnd)
                     else padding(end = padding, top = topPadding)
                 },
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = if (roomMessageViewModel.isByMe) Alignment.End else Alignment.Start,
+                horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
                 Row {
                     if (redactionInProgress) {
                         RedactionInProgress()
                     }
                     MessageBubble(
-                        roomMessageViewModel,
-                        timelineElementHolderViewModel,
+                        messageTimelineElementViewModel,
+                        holder,
                     )
                 }
                 MessageInfo(
-                    roomMessageViewModel,
-                    timelineElementHolderViewModel,
+                    messageTimelineElementViewModel,
+                    holder,
                     modifier = Modifier.padding(start = 8.dp),
                 )
                 MessageReactions(
-                    roomMessageViewModel,
-                    timelineElementHolderViewModel,
+                    messageTimelineElementViewModel,
+                    holder,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }

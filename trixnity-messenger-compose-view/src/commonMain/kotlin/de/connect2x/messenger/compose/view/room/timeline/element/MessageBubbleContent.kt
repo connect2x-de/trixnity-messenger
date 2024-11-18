@@ -58,20 +58,21 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.pointerMoveFilter
-import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuAction
 import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.FILENAME_AND_INFO
 import de.connect2x.messenger.compose.view.room.timeline.OverflowingFileInfoDisplayMode.FILENAME_ONLY
+import de.connect2x.messenger.compose.view.room.timeline.element.message.ChatEdgeLeft
+import de.connect2x.messenger.compose.view.room.timeline.element.message.ChatEdgeRight
 import de.connect2x.messenger.compose.view.room.timeline.formatFileMetadata
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileBasedMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileBasedMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,7 +81,7 @@ import kotlin.time.Duration.Companion.milliseconds
 interface MessageBubbleContentView {
     @Composable
     fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         messageActions: List<BaseTimelineElementHolderContextMenuAction>,
         showBottomSheet: MutableState<Boolean>,
@@ -89,19 +90,19 @@ interface MessageBubbleContentView {
 
 @Composable
 fun MessageBubbleContent(
-    roomMessageViewModel: RoomMessageViewModel,
+    messageTimelineElementViewModel: MessageTimelineElementViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     messageActions: List<BaseTimelineElementHolderContextMenuAction>,
     showBottomSheet: MutableState<Boolean>,
 ) {
     DI.get<MessageBubbleContentView>()
-        .create(roomMessageViewModel, timelineElementHolderViewModel, messageActions, showBottomSheet)
+        .create(messageTimelineElementViewModel, timelineElementHolderViewModel, messageActions, showBottomSheet)
 }
 
 class MessageBubbleContentViewImpl : MessageBubbleContentView {
     @Composable
     override fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         messageActions: List<BaseTimelineElementHolderContextMenuAction>,
         showBottomSheet: MutableState<Boolean>
@@ -127,7 +128,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
         val messageBackground =
             when {
                 sendError != null -> MaterialTheme.colorScheme.errorContainer
-                roomMessageViewModel.isByMe -> MaterialTheme.colorScheme.primary
+                messageTimelineElementViewModel.isByMe -> MaterialTheme.colorScheme.primary
 
                 else -> MaterialTheme.colorScheme.secondary
             }
@@ -148,8 +149,8 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                 }
         ) {
             Row {
-                if (roomMessageViewModel.isByMe.not()) {
-                    if (roomMessageViewModel.showChatBubbleEdge) {
+                if (messageTimelineElementViewModel.isByMe.not()) {
+                    if (messageTimelineElementViewModel.showChatBubbleEdge) {
                         Box(
                             Modifier
                                 .background(
@@ -185,20 +186,20 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                                 .weight(1.0f, fill = false)
                                 .then(highlighted)
                         ) {
-                            MessageHeader(roomMessageViewModel, timelineElementHolderViewModel)
+                            MessageHeader(messageTimelineElementViewModel, timelineElementHolderViewModel)
 
-                            when (roomMessageViewModel) {
-                                is ImageMessageViewModel -> { //, is VideoElement -> {
+                            when (messageTimelineElementViewModel) {
+                                is ImageRoomMessageTimelineElementViewModelImpl -> { //, is VideoElement -> {
                                     MessageContent(
-                                        roomMessageViewModel,
+                                        messageTimelineElementViewModel,
                                         timelineElementHolderViewModel,
                                         onLongPress
                                     )
-                                    MessageDate(roomMessageViewModel, timelineElementHolderViewModel)
+                                    MessageDate(messageTimelineElementViewModel, timelineElementHolderViewModel)
                                 }
 
                                 else -> MessageAndDate(
-                                    roomMessageViewModel,
+                                    messageTimelineElementViewModel,
                                     timelineElementHolderViewModel,
                                     onLongPress
                                 )
@@ -216,7 +217,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                         }
                     }
                 }
-                if (roomMessageViewModel.isByMe && roomMessageViewModel.showChatBubbleEdge) {
+                if (messageTimelineElementViewModel.isByMe && messageTimelineElementViewModel.showChatBubbleEdge) {
                     Box(
                         Modifier
                             .background(
@@ -234,7 +235,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                 Box(
                     Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 4.dp, end = if (roomMessageViewModel.isByMe) 14.dp else 4.dp)
+                        .padding(top = 4.dp, end = if (messageTimelineElementViewModel.isByMe) 14.dp else 4.dp)
                         .defaultMinSize(minHeight = 24.dp, minWidth = 24.dp) // 24dp Material Icon
                 ) {
                     AnimatedVisibility(
@@ -262,12 +263,12 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                         modifier = Modifier.background(MaterialTheme.colorScheme.background)
                             .sizeIn(maxWidth = 300.dp),
                     ) {
-                        if (roomMessageViewModel is FileBasedMessageViewModel) {
+                        if (messageTimelineElementViewModel is FileBasedMessageViewModel) {
                             Tooltip(
-                                { TooltipText(formatFileMetadata(roomMessageViewModel)) }
+                                { TooltipText(formatFileMetadata(messageTimelineElementViewModel)) }
                             ) {
                                 OverflowingFileInfo(
-                                    roomMessageViewModel,
+                                    messageTimelineElementViewModel,
                                     FILENAME_AND_INFO,
                                     modifier = Modifier.padding(5.dp),
                                 )
@@ -295,7 +296,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                     }
                 }
 
-                if (roomMessageViewModel is FileBasedMessageViewModel) {
+                if (messageTimelineElementViewModel is FileBasedMessageViewModel) {
                     AnimatedVisibility(
                         hoverMessage.value,
                         Modifier
@@ -312,16 +313,16 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                                 .padding(6.dp)
                         ) {
                             Row {
-                                when (roomMessageViewModel) {
-                                    is ImageMessageViewModel -> {
+                                when (messageTimelineElementViewModel) {
+                                    is ImageRoomMessageTimelineElementViewModelImpl -> {
                                         OverflowingFileInfo(
-                                            roomMessageViewModel,
+                                            messageTimelineElementViewModel,
                                             FILENAME_ONLY,
                                             modifier = Modifier.weight(0.6f, false),
                                             color = metaDataPreviewColor,
                                         )
                                         Text(
-                                            " (${roomMessageViewModel.fileSize?.let { formatSize(it.toLong()) }})",
+                                            " (${messageTimelineElementViewModel.fileSize?.let { formatSize(it.toLong()) }})",
                                             modifier = Modifier.weight(1.0f, false),
                                             color = metaDataPreviewColor,
                                             maxLines = 1,
@@ -330,15 +331,15 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
 
                                     is VideoMessageViewModel -> {
                                         OverflowingFileInfo(
-                                            roomMessageViewModel,
+                                            messageTimelineElementViewModel,
                                             FILENAME_ONLY,
                                             modifier = Modifier.weight(0.6f, false),
                                             color = metaDataPreviewColor,
                                         )
                                         Text(
-                                            ": ${roomMessageViewModel.duration?.let { formatDuration(it.milliseconds) }} " +
+                                            ": ${messageTimelineElementViewModel.duration?.let { formatDuration(it.milliseconds) }} " +
                                                     "(${
-                                                        roomMessageViewModel.fileSize?.let {
+                                                        messageTimelineElementViewModel.fileSize?.let {
                                                             formatSize(
                                                                 it.toLong()
                                                             )
@@ -352,7 +353,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                                     is AudioMessageViewModel -> {
                                         Text(
                                             "${
-                                                roomMessageViewModel.duration?.let { formatDuration(it.milliseconds) }
+                                                messageTimelineElementViewModel.duration?.let { formatDuration(it.milliseconds) }
                                             } ",
                                             Modifier.weight(0.6f, false),
                                             maxLines = 1,
@@ -361,7 +362,7 @@ class MessageBubbleContentViewImpl : MessageBubbleContentView {
                                         )
                                         Text(
                                             "(${
-                                                roomMessageViewModel.fileSize?.let {
+                                                messageTimelineElementViewModel.fileSize?.let {
                                                     formatSize(
                                                         it.toLong()
                                                     )

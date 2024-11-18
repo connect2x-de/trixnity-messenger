@@ -32,7 +32,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModel
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min

@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.CreateStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.mock
@@ -43,10 +44,10 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
                 isDirectFlow = MutableStateFlow(false),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomCreatedMessage.collect {} }
+            val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomCreatedMessage.value shouldBe "Bob has created the group"
+            cut.message.value shouldBe "Bob has created the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -59,11 +60,11 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
                 isDirectFlow = MutableStateFlow(false),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomCreatedMessage.collect {} }
+            val subscriberJob = launch { cut.message.collect {} }
             usernameFlow.value = UserInfoElement("Bobby", UserId("bobby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomCreatedMessage.value shouldBe "Bobby has created the group"
+            cut.message.value shouldBe "Bobby has created the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -76,11 +77,11 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomCreatedMessage.collect {} }
+            val subscriberJob = launch { cut.message.collect {} }
             isDirectFlow.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomCreatedMessage.value shouldBe "Bob has created the chat"
+            cut.message.value shouldBe "Bob has created the chat"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -91,14 +92,14 @@ class RoomCreatedStatusViewModelTest : ShouldSpec() {
         usernameFlow: StateFlow<UserInfoElement>,
         isDirectFlow: StateFlow<Boolean>,
         coroutineContext: CoroutineContext
-    ): RoomCreatedStatusViewModelImpl {
+    ): CreateStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return RoomCreatedStatusViewModelImpl(
+        return CreateStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

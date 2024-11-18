@@ -81,10 +81,10 @@ class RedactedMessageViewModelTest : ShouldSpec() {
                 timelineEvent = timelineEventFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMessage.collect {} }
+            val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMessage.value shouldBe "This message has been deleted"
+            cut.message.value shouldBe "This message has been deleted"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -97,10 +97,10 @@ class RedactedMessageViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
                 redactedBy = me
             )
-            val subscriberJob = launch { cut.formattedMessage.collect {} }
+            val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMessage.value shouldBe "You deleted this message"
+            cut.message.value shouldBe "You deleted this message"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -115,10 +115,10 @@ class RedactedMessageViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
                 redactedBy = ourUserId
             )
-            val subscriberJob = launch { cut.formattedMessage.collect {} }
+            val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMessage.value shouldBe "message has been deleted by TestUser"
+            cut.message.value shouldBe "message has been deleted by TestUser"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -131,14 +131,14 @@ class RedactedMessageViewModelTest : ShouldSpec() {
         timelineEvent: TimelineEvent,
         redactedBy: UserId? = null,
         coroutineContext: CoroutineContext,
-    ): RedactedMessageViewModelImpl {
+    ): RedactedTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return RedactedMessageViewModelImpl(
+        return RedactedTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

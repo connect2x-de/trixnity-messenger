@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModel
 
 
 @Composable

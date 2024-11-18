@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -104,10 +105,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
+            cut.changeMessage.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -125,10 +126,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 usernameFlow = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob has changed the avatar image"
+            cut.changeMessage.value shouldBe "Bob has changed the avatar image"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -145,10 +146,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob has joined the group"
+            cut.changeMessage.value shouldBe "Bob has joined the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -165,10 +166,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob has left the group"
+            cut.changeMessage.value shouldBe "Bob has left the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -186,10 +187,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 usernameFlow = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Mallory has been removed by User1 from the group"
+            cut.changeMessage.value shouldBe "Mallory has been removed by User1 from the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -207,10 +208,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 usernameFlow = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob has been invited by User1"
+            cut.changeMessage.value shouldBe "Bob has been invited by User1"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -226,10 +227,10 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob wants to join the group"
+            cut.changeMessage.value shouldBe "Bob wants to join the group"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -247,11 +248,11 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 usernameFlow = usernameFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             usernameFlow.value = UserInfoElement("User1 new name", UserId("user1new:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob has been invited by User1 new name"
+            cut.changeMessage.value shouldBe "Bob has been invited by User1 new name"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -270,11 +271,11 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             isDirectFlow.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob has joined the chat"
+            cut.changeMessage.value shouldBe "Bob has joined the chat"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -289,7 +290,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
                 )
             )
             val cut = memberStatusViewModel(timelineEventFlow = timelineEventFlow, coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.formattedMemberStatus.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             timelineEventFlow.value = memberStateTimelineEvent(
                 membership = Membership.KNOCK,
                 previousMemberEventContent = null,
@@ -297,7 +298,7 @@ class MemberStatusViewModelTest : ShouldSpec() {
             )
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.formattedMemberStatus.value shouldBe "Bob wants to join the group"
+            cut.changeMessage.value shouldBe "Bob wants to join the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -309,14 +310,14 @@ class MemberStatusViewModelTest : ShouldSpec() {
         usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("", UserId(""))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ): MemberStatusViewModelImpl {
+    ): MemberStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return MemberStatusViewModelImpl(
+        return MemberStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

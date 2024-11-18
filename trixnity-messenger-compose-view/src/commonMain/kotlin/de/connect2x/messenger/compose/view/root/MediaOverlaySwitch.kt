@@ -7,7 +7,7 @@ import de.connect2x.messenger.compose.view.files.ImageOverlay
 import de.connect2x.messenger.compose.view.files.PdfOverlay
 import de.connect2x.messenger.compose.view.files.VideoOverlay
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaRouter
 
 @Composable
 fun MediaOverlaySwitch(mainViewModel: MainViewModel) {

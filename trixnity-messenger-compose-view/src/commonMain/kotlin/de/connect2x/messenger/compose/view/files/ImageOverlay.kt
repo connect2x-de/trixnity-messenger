@@ -44,7 +44,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.ImageViewModel
 import kotlinx.coroutines.delay
 
 

@@ -284,6 +284,76 @@ matrixMultiMessenger.defaultActivityGetter { this@Activity }
 matrixMessenger.defaultActivityGetter { this@Activity }
 ```
 
+## Custom events
+
+Adding custom events can be done via DI.
+
+First create the custom event type:
+
+```kotlin
+@Serializable
+data class CatEventContent(
+    val hasEaten: Boolean,
+    val isTired: Boolean,
+) : MessageEventContent {
+    // just ignore these properties when you don't need them
+    override val relatesTo: RelatesTo? = null
+    override val mentions: Mentions? = null
+    override val externalUrl: String? = null
+}
+
+val catEventContentSerializerMappings = createEventContentSerializerMappings {
+    stateOf<CatEventContent>("de.connect2x.cat")
+}
+```
+
+Define the new view model:
+
+```kotlin
+interface CatMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<CatEventContent> {
+    override fun create(
+        viewModelContext: MatrixClientViewModelContext,
+        content: CatEventContent,
+        //...
+    ): CatMessageTimelineElementViewModel? =
+        CatMessageTimelineElementViewModelImpl(viewModelContext, content)
+
+    override val supports: KClass<CatEventContent>
+        get() = CatEventContent::class
+
+    companion object : CatMessageTimelineElementViewModelFactory
+}
+
+interface CatMessageTimelineElementViewModel : MessageTimelineElementViewModel<CatEventContent> {
+    val isPurring: Boolean
+}
+
+class CatMessageTimelineElementViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    content: TextBased.Notice,
+) : CatMessageTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val isPurring: Boolean = content.hasEaten && content.isTired
+}
+```
+
+Define the UI (you may skip that when you don't use compose-view):
+
+```kotlin
+// FIXME
+```
+
+Next, add it to the DI:
+
+```kotlin
+fun catEventModule() = modules {
+    single<EventContentSerializerMappings> { catEventContentSerializerMappings }
+    timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
+}
+
+// add the modules to the matrix messenger:
+moduleFactories += ::catEventModule
+```
+
 ## Export room
 
 When exporting a room (via view model or `ExportRoom`), a properties instance needs to be defined.

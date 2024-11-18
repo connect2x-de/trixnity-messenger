@@ -75,8 +75,6 @@ import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyView
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.GetContextMenuActionsView
-import de.connect2x.messenger.compose.view.room.timeline.GetContextMenuActionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ImageReplyView
@@ -99,8 +97,6 @@ import de.connect2x.messenger.compose.view.room.timeline.SendAttachmentView
 import de.connect2x.messenger.compose.view.room.timeline.SendAttachmentViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.TextReplyView
 import de.connect2x.messenger.compose.view.room.timeline.TextReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.TimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.TimelineView
 import de.connect2x.messenger.compose.view.room.timeline.TimelineViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.TypingIndicatorView
@@ -111,12 +107,12 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.GetContextMenuActionsView
+import de.connect2x.messenger.compose.view.room.timeline.element.GetContextMenuActionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageAndDateView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageAndDateViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleContentView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleContentViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageContainerView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageContainerViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateView
@@ -129,8 +125,12 @@ import de.connect2x.messenger.compose.view.room.timeline.element.MessageReaction
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderView
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationView
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.message.MessageBubbleView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.MessageBubbleViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListView
@@ -377,7 +377,7 @@ fun timelineViewModule() = module {
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }
     single<TimelineView> { TimelineViewImpl() }
-    single<TimelineElementView> { TimelineElementViewImpl() }
+    single<TimelineElementHolderView> { TimelineElementHolderViewImpl() }
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
     single<MessageContainerView> { MessageContainerViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }

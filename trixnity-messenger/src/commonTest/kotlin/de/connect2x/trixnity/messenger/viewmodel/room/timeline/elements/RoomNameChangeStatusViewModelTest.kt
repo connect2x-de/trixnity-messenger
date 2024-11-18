@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.EncryptionStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.mock
@@ -47,15 +48,15 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         should("display who changed the room's name (with reference to the old name)") {
             val cut = roomNameChangeStatusViewModel(
                 timelineEvent =
-                timelineEvent(
-                    previousNameEvent = UnsignedStateEventData(previousContent = NameEventContent("old name"))
-                ),
+                    timelineEvent(
+                        previousNameEvent = UnsignedStateEventData(previousContent = NameEventContent("old name"))
+                    ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.value shouldBe """Bob has changed the name of the group from 'old name' to 'new name'"""
+            cut.changeMessage.value shouldBe """Bob has changed the name of the group from 'old name' to 'new name'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -64,10 +65,10 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         should("display who changed the room's name without the old name if not set") {
             val cut =
                 roomNameChangeStatusViewModel(timelineEvent = timelineEvent(), coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.value shouldBe """Bob has changed the name of the group to 'new name'"""
+            cut.changeMessage.value shouldBe """Bob has changed the name of the group to 'new name'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -80,11 +81,11 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
                 usernameFlow = usernameFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             usernameFlow.value = UserInfoElement("Bobby", UserId("bobby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
+            cut.changeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -96,11 +97,11 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomNameChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             isDirectFlow.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomNameChangeMessage.first() shouldBe """Bob has changed the name of the chat to 'new name'"""
+            cut.changeMessage.first() shouldBe """Bob has changed the name of the chat to 'new name'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -112,14 +113,14 @@ class RoomNameChangeStatusViewModelTest : ShouldSpec() {
         usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ): RoomNameChangeStatusViewModelImpl {
+    ): EncryptionStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return RoomNameChangeStatusViewModelImpl(
+        return EncryptionStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

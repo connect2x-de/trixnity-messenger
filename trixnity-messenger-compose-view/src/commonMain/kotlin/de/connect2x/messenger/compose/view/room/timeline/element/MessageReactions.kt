@@ -35,13 +35,13 @@ import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 interface MessageReactionsView {
     @Composable
     fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         modifier: Modifier
     )
@@ -49,11 +49,11 @@ interface MessageReactionsView {
 
 @Composable
 fun MessageReactions(
-    roomMessageViewModel: RoomMessageViewModel,
+    messageTimelineElementViewModel: MessageTimelineElementViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     modifier: Modifier = Modifier
 ) {
-    DI.get<MessageReactionsView>().create(roomMessageViewModel, timelineElementHolderViewModel, modifier)
+    DI.get<MessageReactionsView>().create(messageTimelineElementViewModel, timelineElementHolderViewModel, modifier)
 }
 
 @Composable
@@ -134,7 +134,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         modifier: Modifier
     ) {
@@ -166,7 +166,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
                 timelineElementHolderViewModel.reactionsOpen.value = false
                 timelineElementHolderViewModel.addReaction(it)
             },
-            isByMe = roomMessageViewModel.isByMe,
+            isByMe = messageTimelineElementViewModel.isByMe,
         )
 
         if (reactions.isNotEmpty()) {

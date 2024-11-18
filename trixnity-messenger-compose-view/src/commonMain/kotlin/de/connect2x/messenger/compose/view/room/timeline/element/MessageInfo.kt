@@ -13,14 +13,14 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.InfoPopup
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 interface MessageInfoView {
     @Composable
     fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         modifier: Modifier
     )
@@ -28,18 +28,18 @@ interface MessageInfoView {
 
 @Composable
 fun MessageInfo(
-    roomMessageViewModel: RoomMessageViewModel,
+    messageTimelineElementViewModel: MessageTimelineElementViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     modifier: Modifier = Modifier
 ) {
-    DI.get<MessageInfoView>().create(roomMessageViewModel, timelineElementHolderViewModel, modifier)
+    DI.get<MessageInfoView>().create(messageTimelineElementViewModel, timelineElementHolderViewModel, modifier)
 }
 
 class MessageInfoViewImpl : MessageInfoView {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Composable
     override fun create(
-        roomMessageViewModel: RoomMessageViewModel,
+        messageTimelineElementViewModel: MessageTimelineElementViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         modifier: Modifier
     ) {

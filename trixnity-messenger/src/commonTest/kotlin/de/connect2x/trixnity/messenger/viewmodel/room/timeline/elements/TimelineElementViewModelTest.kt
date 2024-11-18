@@ -121,7 +121,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 eventId = EventId("bla"),
             )
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
+            val viewModel = cut.element.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
             viewModel.sender.first { it.name == "Me" }
@@ -141,7 +141,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             )
             roomUserMutableStateFlow.value = roomUser(me, "Me changed")
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
+            val viewModel = cut.element.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.sender.first { it.name == "Me changed" }
 
@@ -159,7 +159,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             timelineEventFlow.value =
                 timelineEvent(messageEvent(content), Result.success(content))
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
+            val viewModel = cut.element.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
 
@@ -195,7 +195,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 ),
                 content = Result.success(RoomMessageEventContent.TextBased.Text(body = "Hello World"))
             )
-            val viewModel = cut.timelineElementViewModel.first { it != null }
+            val viewModel = cut.element.first { it != null }
             require(viewModel is TextMessageViewModel)
             viewModel.fallbackMessage shouldBe "Hello World"
 
@@ -215,8 +215,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
             timelineEventFlow.value =
                 timelineEvent(messageEvent(redactedEventContent), Result.success(redactedEventContent))
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
-            viewModel should beInstanceOf<RedactedMessageViewModel>()
+            val viewModel = cut.element.first { it != null }
+            viewModel should beInstanceOf<RedactedTimelineElementViewModel>()
 
             cancelNeverEndingCoroutines()
         }
@@ -242,10 +242,10 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     timelineEventFlow = timelineEventFlow,
                     eventId = EventId("bla"),
                 )
-            val subscriberJob = launch { cut.timelineElementViewModel.collect() }
+            val subscriberJob = launch { cut.element.collect() }
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
-            require(viewModel is EncryptedMessageViewModel)
+            val viewModel = cut.element.first { it != null }
+            require(viewModel is EncryptedWaitTimelineElementViewModel)
             viewModel.waitForDecryption.value shouldBe true
 
             timelineEventFlow.value =
@@ -261,7 +261,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     content = Result.success(UnknownEventContent(JsonObject(mapOf()), "body"))
                 )
 
-            cut.timelineElementViewModel.first { it != null && it is NullTimelineElementViewModel }
+            cut.element.first { it != null && it is EmptyTimelineElementViewModel }
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -281,8 +281,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
                     eventId = EventId("bla"),
                 )
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
-            require(viewModel is NullTimelineElementViewModel)
+            val viewModel = cut.element.first { it != null }
+            require(viewModel is EmptyTimelineElementViewModel)
 
             cancelNeverEndingCoroutines()
         }
@@ -300,8 +300,8 @@ class TimelineElementViewModelTest : ShouldSpec() {
             timelineEventFlow.value =
                 timelineEvent(messageEvent(redactedEventContent), Result.success(redactedEventContent))
 
-            val viewModel = cut.timelineElementViewModel.first { it != null }
-            viewModel should beInstanceOf<NullTimelineElementViewModel>()
+            val viewModel = cut.element.first { it != null }
+            viewModel should beInstanceOf<EmptyTimelineElementViewModel>()
 
 
 
@@ -325,14 +325,14 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 ),
                 eventId = EventId("bla"),
             )
-            val subscriberJob = launch { cut.timelineElementViewModel.collect() }
+            val subscriberJob = launch { cut.element.collect() }
 
             continually(300.milliseconds) {
-                cut.timelineElementViewModel.value should beNull()
+                cut.element.value should beNull()
             }
             eventually(600.milliseconds) {
-                cut.timelineElementViewModel.value shouldNot beNull()
-                cut.timelineElementViewModel.value shouldBe instanceOf<EncryptedMessageViewModel>()
+                cut.element.value shouldNot beNull()
+                cut.element.value shouldBe instanceOf<EncryptedWaitTimelineElementViewModel>()
             }
 
             subscriberJob.cancel()
@@ -343,12 +343,14 @@ class TimelineElementViewModelTest : ShouldSpec() {
             val timelineEventFlow = MutableStateFlow(
                 timelineEvent(messageEvent(RoomMessageEventContent.TextBased.Text(body = "original text")))
             )
-            val outbox = MutableStateFlow<List<Flow<RoomOutboxMessage<*>>>>(listOf(
-                flowOf(outboxMessageReplace("dummy 1","first replace", EventId("bla"))),
-                flowOf(outboxMessageReplace("dummy 2","second replace", EventId("bla"))),
-                flowOf(outboxMessageReplace("dummy 3","third replace", EventId("bla"))),
-                flowOf(outboxMessageReplace("dummy 4","other replace", EventId("otherBla"))),
-            ))
+            val outbox = MutableStateFlow<List<Flow<RoomOutboxMessage<*>>>>(
+                listOf(
+                    flowOf(outboxMessageReplace("dummy 1", "first replace", EventId("bla"))),
+                    flowOf(outboxMessageReplace("dummy 2", "second replace", EventId("bla"))),
+                    flowOf(outboxMessageReplace("dummy 3", "third replace", EventId("bla"))),
+                    flowOf(outboxMessageReplace("dummy 4", "other replace", EventId("otherBla"))),
+                )
+            )
             every { roomServiceMock.getOutbox(eq(roomId)) } returns outbox
             val cut = timelineElementViewModel(
                 timelineEventFlow = timelineEventFlow,
@@ -383,11 +385,11 @@ class TimelineElementViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
             ),
             key = eventId.full,
-            selectedRoomId = roomId,
+            roomId = roomId,
             timelineEventFlow = timelineEventFlow,
             eventId = eventId,
-            canLoadMoreBefore = canLoadMoreBefore,
-            canLoadMoreAfter = canLoadMoreAfter,
+            canLoadBefore = canLoadMoreBefore,
+            canLoadAfter = canLoadMoreAfter,
             isDirect = isDirect,
             isReadFlow = MutableStateFlow(false),
             readBy = MutableStateFlow(emptyList()),
@@ -396,7 +398,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             onMessageEdited = mock(),
             onMessageRepliedTo = mock(),
             onMessageReportTo = mock(),
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onOpenMention = mock(),
         )
     }

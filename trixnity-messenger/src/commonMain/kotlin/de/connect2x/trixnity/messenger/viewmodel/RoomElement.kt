@@ -43,12 +43,12 @@ data class RoomInfoElement(
     }
 }
 
-suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String): RoomInfoElement {
+suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String, initials: Initials): RoomInfoElement {
     val maxAvatarSize = matrixClient.di.get<MatrixMessengerConfiguration>().avatarMaxSize
     return RoomInfoElement(
         name = name,
         roomId = roomId,
-        roomImageInitials = Initials.compute(name),
+        roomImageInitials = initials.compute(name),
         roomImage =
             this.avatarUrl?.let {
                 matrixClient.media.getMedia(it).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {

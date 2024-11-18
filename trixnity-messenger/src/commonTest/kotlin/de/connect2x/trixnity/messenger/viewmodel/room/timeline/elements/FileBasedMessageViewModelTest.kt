@@ -9,8 +9,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileBasedRoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -164,9 +164,9 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun fileBasedMessageViewModel(): FileBasedMessageViewModelInstance {
+    private fun fileBasedMessageViewModel(): FileBasedMessageViewModelInstanceRoomMessage {
 
-        val fileBasedMessageViewModelInstance = FileBasedMessageViewModelInstance(
+        val fileBasedMessageViewModelInstance = FileBasedMessageViewModelInstanceRoomMessage(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
@@ -190,13 +190,13 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(false),
             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
             uploadProgress = MutableStateFlow(null),
-            onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
+            onOpenMedia = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
             },
         )
         return fileBasedMessageViewModelInstance
     }
 
-    private class FileBasedMessageViewModelInstance(
+    private class FileBasedMessageViewModelInstanceRoomMessage(
         viewModelContext: MatrixClientViewModelContext,
         url: String?,
         encryptedFile: EncryptedFile?,
@@ -209,10 +209,10 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
         override val showBigGap: Boolean,
         override val showSender: StateFlow<Boolean>,
         override val sender: StateFlow<UserInfoElement>,
-        override val uploadProgress: StateFlow<FileTransferProgressElement?>, onOpenModal: OpenModalCallback,
-    ) : AbstractFileBasedMessageViewModel(
+        override val uploadProgress: StateFlow<FileTransferProgressElement?>, onOpenMedia: OpenMediaCallback,
+    ) : FileBasedRoomMessageTimelineElementViewModel(
         viewModelContext,
-        RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile), onOpenModal
+        RoomMessageEventContent.FileBased.File("", fileName = "test.pdf", url = url, file = encryptedFile), onOpenMedia
     ), ViewModelContext by viewModelContext {
         override val invitation: StateFlow<String?> =
             invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)

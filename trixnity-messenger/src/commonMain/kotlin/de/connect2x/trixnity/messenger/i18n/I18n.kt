@@ -18,7 +18,12 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang, timeZone: TimeZone) :
+abstract class I18n(
+    languages: Languages,
+    settings: MatrixMessengerSettingsHolder,
+    getSystemLang: GetSystemLang,
+    timeZone: TimeZone
+) :
     I18nBase(languages, settings, getSystemLang, timeZone) {
 
     // ---- translations -----
@@ -1153,6 +1158,25 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Sie können offline keine Teilnehmer entbannen"
     }
 
+    fun timelineElementDecryptionErrorAlgorithmNotSupported() = translate {
+        EN - "Decryption algorithm not supported."
+        DE - "Verschlüsselungsalgorithmus wird nicht unterstützt."
+    }
+
+    fun timelineElementDecryptionErrorTimeout() = translate {
+        EN - "Decryption took too much time."
+        DE - "Entschlüsselung hat zu lange gedauert."
+    }
+
+    fun timelineElementDecryptionErrorNoContent() = translate {
+        EN - "This message has been edited, but the new content could not be found."
+        DE - "Diese Nachricht wurde editiert, aber der neue Inhalt konnte nicht gefunden werden."
+    }
+
+    fun timelineElementDecryptionErrorGeneric(error: String?) = translate {
+        EN - "There was an error decrypting this message: ${error ?: commonUnknown()}"
+        DE - "Es gab einen Fehler beim Entschlüsseln der Nachricht: ${error ?: commonUnknown()}"
+    }
 }
 
 internal fun getLang(

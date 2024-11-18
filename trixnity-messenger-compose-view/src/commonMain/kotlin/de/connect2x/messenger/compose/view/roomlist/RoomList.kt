@@ -62,7 +62,7 @@ class RoomListViewImpl : RoomListView {
     override fun create(roomListViewModel: RoomListViewModel) {
         val state = rememberLazyListState()
         val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
-        val allRooms = roomListViewModel.sortedRoomListElementViewModels.collectAsState().value
+        val allRooms = roomListViewModel.elements.collectAsState().value
         val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
         val i18n = DI.get<I18nView>()
         Surface {
@@ -94,12 +94,12 @@ class RoomListViewImpl : RoomListView {
                     LazyColumn(Modifier.fillMaxSize(), state) {
                         items(
                             allRooms,
-                            { (roomId, _) -> roomId.full }
+                            { it.roomId.full }
                         ) { roomListElement ->
                             RoomListElementContainer(
                                 roomListElement.roomId,
                                 roomListViewModel,
-                                roomListElement.viewModel,
+                                roomListElement,
                             )
                         }
                     }

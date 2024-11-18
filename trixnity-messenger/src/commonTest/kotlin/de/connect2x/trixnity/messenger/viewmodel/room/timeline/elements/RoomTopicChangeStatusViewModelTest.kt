@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.mock
@@ -47,15 +48,15 @@ class RoomTopicChangeStatusViewModelTest : ShouldSpec() {
         should("display who changed the room's topic (with reference to the old topic)") {
             val cut = roomTopicChangeStatusViewModel(
                 timelineEvent =
-                timelineEvent(
-                    previousTopicEvent = UnsignedStateEventData(previousContent = TopicEventContent("old topic"))
-                ),
+                    timelineEvent(
+                        previousTopicEvent = UnsignedStateEventData(previousContent = TopicEventContent("old topic"))
+                    ),
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomTopicChangeMessage.value shouldBe """Bob has changed the topic of the group from 'old topic' to 'new topic'"""
+            cut.changeMessage.value shouldBe """Bob has changed the topic of the group from 'old topic' to 'new topic'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -64,10 +65,10 @@ class RoomTopicChangeStatusViewModelTest : ShouldSpec() {
         should("display who changed the room's topic without the old topic if not set") {
             val cut =
                 roomTopicChangeStatusViewModel(timelineEvent = timelineEvent(), coroutineContext = coroutineContext)
-            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomTopicChangeMessage.value shouldBe """Bob has changed the topic of the group to 'new topic'"""
+            cut.changeMessage.value shouldBe """Bob has changed the topic of the group to 'new topic'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -80,11 +81,11 @@ class RoomTopicChangeStatusViewModelTest : ShouldSpec() {
                 usernameFlow = usernameFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             usernameFlow.value = UserInfoElement("Bobby", UserId("bobby:localhost"))
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomTopicChangeMessage.first() shouldBe """Bobby has changed the topic of the group to 'new topic'"""
+            cut.changeMessage.first() shouldBe """Bobby has changed the topic of the group to 'new topic'"""
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -96,11 +97,11 @@ class RoomTopicChangeStatusViewModelTest : ShouldSpec() {
                 isDirectFlow = isDirectFlow,
                 coroutineContext = coroutineContext,
             )
-            val subscriberJob = launch { cut.roomTopicChangeMessage.collect {} }
+            val subscriberJob = launch { cut.changeMessage.collect {} }
             isDirectFlow.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.roomTopicChangeMessage.first() shouldBe """Bob has changed the topic of the chat to 'new topic'"""
+            cut.changeMessage.first() shouldBe """Bob has changed the topic of the chat to 'new topic'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -112,14 +113,14 @@ class RoomTopicChangeStatusViewModelTest : ShouldSpec() {
         usernameFlow: StateFlow<UserInfoElement> = MutableStateFlow(UserInfoElement("Bob", UserId("bob:localhost"))),
         isDirectFlow: StateFlow<Boolean> = MutableStateFlow(false),
         coroutineContext: CoroutineContext,
-    ): RoomTopicChangeStatusViewModelImpl {
+    ): TopicStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
-        return RoomTopicChangeStatusViewModelImpl(
+        return TopicStateTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,

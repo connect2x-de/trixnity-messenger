@@ -92,7 +92,7 @@ class EncryptedMessageViewModelTest : ShouldSpec() {
     }
 
     private fun encryptedMessageViewModel(timelineEventFlow: StateFlow<TimelineEvent?>) =
-        EncryptedMessageViewModelImpl(
+        EncryptedWaitTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
