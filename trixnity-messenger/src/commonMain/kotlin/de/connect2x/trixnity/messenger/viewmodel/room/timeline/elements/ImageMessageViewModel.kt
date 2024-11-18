@@ -103,10 +103,13 @@ class ImageMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val thumbnailLoad = getThumbnailAsync()
+
+    private val thumbnailLoad = getThumbnailAsync(this.maxPreviewSize)
 
     override val thumbnail: StateFlow<ByteArray?> = channelFlow {
         send(thumbnailLoad.await())
@@ -127,7 +130,6 @@ class ImageMessageViewModelImpl(
     override fun getWidth(maxWidth: Float, possibleHeight: Float) =
         SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override fun openImage() {
         if ((fileSize ?: 0) > maxPreviewSize) {
@@ -140,7 +142,7 @@ class ImageMessageViewModelImpl(
         thumbnailLoad.cancel()
     }
 
-    private fun getThumbnailAsync(): Deferred<ByteArray?> =
+    private fun getThumbnailAsync(maxPreviewSize: Long): Deferred<ByteArray?> =
         coroutineScope.async {
             thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
         }

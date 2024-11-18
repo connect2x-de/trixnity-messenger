@@ -35,17 +35,17 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = false,
     var defaultTypingIsPublic: Boolean = false,
 
-    val timelineAutoLoadBefore: Boolean = true,
+    var timelineAutoLoadBefore: Boolean = true,
 
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
      */
-    val imageAttachmentMaxProcessingSize: Long = 50.mb(),
+    var imageAttachmentMaxProcessingSize: Long = 50.mb(),
 
     /**
      * The maximum size of files that can be loaded into memory in *Bytes*
      */
-    val maxMediaSizeInMemory: Long = 50.mb(),
+    var maxMediaSizeInMemory: Long = 50.mb(),
 
     /**
      * The maximum size of avatars that can be uploaded/displayed in *Bytes*
