@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix headings not readable in dark mode
+
 ### Security
 
 ## 2.3.7
