@@ -8,8 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- File save and upload dialog on web.
 
+- Show online-status when searching for users
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Fix thumbnails not being displayed sometimes because of size limit evaluations
+
+### Security
+
+## 2.3.7
+
+### Added
+- File save and upload dialog on web.
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
 - Wizard for account setup after initial login
@@ -25,10 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Button to skip verification is now part of the list of available verification methods
 - implement a cutoff for previews of media and thumbnails
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Don't show placeholder, when lastRelevantEventId not known.
@@ -41,8 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correct lifecycle handling on web
 - Fix Scrollbars nearly invisible in dark mode
 - text messages containing symbols not allowed in file names no longer crash the app when posted into the clipboard
-
-### Security
 
 ## 2.3.6
 
