@@ -96,6 +96,9 @@ variables:
 .if-release: &if-release
   - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
 
+.if-kmm-publish: &if-kmm-publish
+  - if: $CI_PIPELINE_SOURCE == "schedule" && $KMM_PUBLISH == "true"
+
 build:mac:
   stage: build
   interruptible: true
@@ -265,7 +268,7 @@ kmmPublish:mac:
   cache:
     - *pull-cache-mac
   rules:
-    - *if-main
+    - *if-kmm-publish
     - *if-release
   timeout: 2h
   needs: [ "publish:mac" ]
