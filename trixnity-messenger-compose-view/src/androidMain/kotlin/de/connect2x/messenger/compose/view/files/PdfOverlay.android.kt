@@ -64,7 +64,6 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
     val i18n = DI.current.get<I18n>()
     val i18nView = DI.current.get<I18nView>()
     val document = documentViewModel.documentFlow.collectAsState().value
-    val mediaError = documentViewModel.error.collectAsState().value
     var reader by remember { mutableStateOf<PdfRender?>(null) }
     val filename = documentViewModel.fileName
     val context = LocalContext.current
@@ -111,7 +110,7 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
             .fillMaxSize()
             .onSizeChanged { viewSize = it }
     ) {
-        (mediaError ?: readerError)?.let {
+        readerError?.let {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,

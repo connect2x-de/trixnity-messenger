@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +16,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -50,24 +48,13 @@ private val log = KotlinLogging.logger { }
 
 @Composable
 actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
-    val i18nView = DI.current.get<I18nView>()
+    val i18n = DI.current.get<I18nView>()
     val pageCacheSize = max(2f, min(16f, 8f / scale)).toInt()
     val media = documentViewModel.document.collectAsState()
-    val error = documentViewModel.error.collectAsState()
     val filename = documentViewModel.fileName
     var document by remember { mutableStateOf<Pair<PDDocument, PDFRenderer>?>(null) }
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
     var documentWidth: Int? by remember { mutableStateOf(null) }
-
-    val errorText = error.value
-    if (errorText != null) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize().padding(32.dp),
-        ) { Text(errorText) }
-        return
-    }
 
     val renderCache by remember {
         mutableStateOf<MutableMap<String, Pair<Long, ImageBitmap>>>(mutableMapOf())
@@ -133,7 +120,7 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
                             }
                         Image(
                             bitmap = img,
-                            contentDescription = i18nView.fileOverlayPdfPageDescriptor(pageId),
+                            contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                             modifier = Modifier
                                 .background(color = Color.White) // Avoid performance drops on transparent images.
                                 .width(viewSize.width.dp / density * scale - 16.dp),

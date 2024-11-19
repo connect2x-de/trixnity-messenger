@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -92,10 +91,20 @@ class VideoOverlayViewImpl : VideoOverlayView {
 //                            this@BoxWithConstraints.maxHeight.toPx(),
 //                            it
 //                        )
+                            //Remove once video playing works
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                            ) {
+                                Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
+                                Text(i18n.fileOverlayPreviewNotSupported())
+                            }
                         }
                     }
                 }
-                progress.value?.let {
+                //Uncomment once video playing works
+                /*progress.value?.let {
                     if (video.value == null) {
                         DownloadProgress(it, videoViewModel::cancelMediaDownload)
                     }
@@ -112,7 +121,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                         } else Text(i18n.videoCouldNotBeLoaded())
                     }
 
-                }
+                }*/
                 // TODO does not work
                 //  see https://github.com/JetBrains/compose-jb/issues/1087 as a workaround, we need to render buttons in Swing
                 IconButton(

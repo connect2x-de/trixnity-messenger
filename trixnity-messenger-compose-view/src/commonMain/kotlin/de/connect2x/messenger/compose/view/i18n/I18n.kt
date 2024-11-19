@@ -1956,8 +1956,8 @@ abstract class I18nView(
     }
 
     fun fileOverlayPreviewNotSupported() = translate {
-        EN - "File preview not supported"
-        DE - "Datei-Vorschau nicht verfügbar"
+        EN - "File preview not supported. Please download the file instead."
+        DE - "Datei-Vorschau nicht verfügbar. Bitte laden Sie die Datei stattdessen herunter."
     }
 
     fun fileOverlayPdfPageDescriptor(pageId: Int) = translate {
