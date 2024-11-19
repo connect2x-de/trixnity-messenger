@@ -28,7 +28,14 @@ kotlin {
         }
     }
     js("web", IR) {
-        browser()
+        browser {
+            // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
+            testRuns.create("firefox").executionTask.configure {
+                useKarma {
+                    useFirefoxHeadless()
+                }
+            }
+        }
         binaries.library()
     }
 
