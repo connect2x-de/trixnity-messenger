@@ -178,7 +178,7 @@ test:smoketest-desktop-linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      desktopTest
+      :trixnity-messenger-compose-view:desktopTest
       --stacktrace
 
 test:smoketest-web-linux:
@@ -195,7 +195,7 @@ test:smoketest-web-linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      webBrowserFirefoxTest
+      :trixnity-messenger-compose-view:webBrowserFirefoxTest
       --stacktrace
 
 test:integration-test:
