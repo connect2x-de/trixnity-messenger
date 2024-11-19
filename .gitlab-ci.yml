@@ -164,6 +164,40 @@ test:linux:
       {jvm,js}Test -x :integrationtests:jvmTest
       --stacktrace
 
+test:smoketest-desktop-linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew
+      desktopTest
+      --stacktrace
+
+test:smoketest-web-linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew
+      webBrowserFirefoxTest
+      --stacktrace
+
 test:integration-test:
   stage: test
   interruptible: true
