@@ -1,8 +1,6 @@
 package de.connect2x.messenger.compose.view.files
 
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.equals.shouldBeEqual
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import net.folivo.trixnity.utils.toByteArray
@@ -13,8 +11,6 @@ import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.ClipboardOwner
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 
@@ -67,8 +63,7 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
 
                 val transferable = CopyFileTransferable("file:///${fileName}")
                 clipboard.setContents(transferable, this@GetClipboardFileTest)
-                val fileDescriptor = getClipboardFile(fileSystem, Long.MAX_VALUE)
-
+                val fileDescriptor = getClipboardFile(fileSystem, Long.MAX_VALUE).getOrNull()
                 fileDescriptor shouldNotBe null
                 fileDescriptor?.fileName shouldBe fileName
                 fileDescriptor?.fileSize shouldBe fileContent.size
@@ -83,7 +78,7 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
                 val data = "hello world".toByteArray()
                 val transferable = CopyImageTransferable(data)
                 clipboard.setContents(transferable, this@GetClipboardFileTest)
-                val fileDescriptor = getClipboardFile(fileSystem, Long.MAX_VALUE)
+                val fileDescriptor = getClipboardFile(fileSystem, Long.MAX_VALUE).getOrNull()
 
                 assertNotNull(fileDescriptor)
                 fileDescriptor shouldNotBe null
