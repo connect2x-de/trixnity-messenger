@@ -87,7 +87,7 @@ class ThumbnailsImpl : Thumbnails {
                 onSuccess = { it },
                 onFailure = {
                     thumbnailProgressFlow.emit(null)
-                    if (file != null && sizeInBytes < maxThumbnailSize) {
+                    if (file != null && sizeInBytes <= maxThumbnailSize) {
                         matrixClient.media.getEncryptedMedia(file, thumbnailProgressFlow).fold(
                             onSuccess = { it },
                             onFailure = {
@@ -112,7 +112,7 @@ class ThumbnailsImpl : Thumbnails {
                 onSuccess = { it },
                 onFailure = {  // fallback: real image
                     thumbnailProgressFlow.emit(null)
-                    if (url != null && sizeInBytes < maxThumbnailSize) {
+                    if (url != null && sizeInBytes <= maxThumbnailSize) {
                         matrixClient.media.getMedia(url, thumbnailProgressFlow).fold(
                             onSuccess = { it },
                             onFailure = {
@@ -127,7 +127,7 @@ class ThumbnailsImpl : Thumbnails {
                 }
             )
         } ?: file?.let { // encrypted file
-            if (sizeInBytes < maxThumbnailSize) {
+            if (sizeInBytes <= maxThumbnailSize) {
                 matrixClient.media.getEncryptedMedia(file, thumbnailProgressFlow).fold(
                     onSuccess = { it },
                     onFailure = {
@@ -156,7 +156,7 @@ class ThumbnailsImpl : Thumbnails {
                 onFailure = {
                     thumbnailProgressFlow.emit(null)
                     // otherwise, see if the image itself is ok
-                    if (sizeInBytes < maxThumbnailSize) {
+                    if (sizeInBytes <= maxThumbnailSize) {
                         matrixClient.media.getMedia(url, thumbnailProgressFlow).fold(
                             onSuccess = { it },
                             onFailure = {

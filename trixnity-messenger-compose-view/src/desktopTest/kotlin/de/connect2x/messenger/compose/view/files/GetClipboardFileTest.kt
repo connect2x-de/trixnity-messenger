@@ -67,7 +67,7 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
 
                 val transferable = CopyFileTransferable("file:///${fileName}")
                 clipboard.setContents(transferable, this@GetClipboardFileTest)
-                val fileDescriptor = getClipboardFile(fileSystem)
+                val fileDescriptor = getClipboardFile(fileSystem, Long.MAX_VALUE)
 
                 fileDescriptor shouldNotBe null
                 fileDescriptor?.fileName shouldBe fileName
@@ -83,7 +83,7 @@ class GetClipboardFileTest : ShouldSpec(), ClipboardOwner {
                 val data = "hello world".toByteArray()
                 val transferable = CopyImageTransferable(data)
                 clipboard.setContents(transferable, this@GetClipboardFileTest)
-                val fileDescriptor = getClipboardFile(fileSystem)
+                val fileDescriptor = getClipboardFile(fileSystem, Long.MAX_VALUE)
 
                 assertNotNull(fileDescriptor)
                 fileDescriptor shouldNotBe null

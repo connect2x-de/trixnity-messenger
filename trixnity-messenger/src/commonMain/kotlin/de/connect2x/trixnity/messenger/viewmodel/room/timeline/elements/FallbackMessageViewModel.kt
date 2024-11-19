@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
@@ -12,6 +13,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import org.koin.core.component.get
 
 interface FallbackMessageViewModelFactory {
     fun create(
@@ -89,11 +91,12 @@ open class FallbackMessageViewModelImpl(
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    private val maxAvatarSize = viewModelContext.get<MatrixMessengerConfiguration>().avatarMaxSize
     override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention?>> =
-        mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
+        mentionsStateFlow(message, roomId, matrixClient, coroutineScope, maxAvatarSize)
     override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention?>>? =
         formattedBody?.let {
-            mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
+            mentionsStateFlow(it, roomId, matrixClient, coroutineScope, maxAvatarSize)
         }
 
     override fun openMention(messageMention: MessageMention) {
