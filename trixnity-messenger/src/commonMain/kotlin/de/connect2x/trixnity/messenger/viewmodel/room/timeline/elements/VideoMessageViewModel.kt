@@ -128,8 +128,7 @@ open class VideoMessageViewModelImpl(
     }
 
     override fun openVideo() {
-        // if you have video working replace this with: 'url?.let { onOpenModal(OpenModalType.VIDEO, it, encryptedFile, getFileNameWithExtension()) }'
-        openSaveFileDialog()
+        url?.let { onOpenMedia(content) }
     }
 
     private fun getThumbnailAsync(maxPreviewSize: Long): Deferred<ByteArray?> =

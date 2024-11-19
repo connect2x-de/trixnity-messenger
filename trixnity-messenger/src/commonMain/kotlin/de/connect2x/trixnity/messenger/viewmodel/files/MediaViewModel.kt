@@ -10,7 +10,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
@@ -70,58 +69,72 @@ open class MediaViewModelImpl(
 
     private fun loadMedia(): Job =
         coroutineScope.launch {
+            val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+            val fileSize = fileSize
             val i18n = get<I18n>()
-            val mediaProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-            val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-            val encryptedFile = content.file
-            val mxcUrl = content.url
-            launch {
-                mediaProgressFlow.collectLatest {
-                    val transferred = it?.transferred
-                    val total = it?.total
-                    val percent =
-                        if (transferred != null && total != null) transferred / total.toFloat()
-                        else 0f
-                    progress.emit(
-                        FileTransferProgressElement(
-                            percent = percent,
-                            formattedProgress = formatProgress(it),
+            if (fileSize == null || fileSize <= maxMediaSize) {
+                val mediaProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
+                val encryptedFile = content.file
+                val mxcUrl = content.url
+                launch {
+                    mediaProgressFlow.collectLatest {
+                        val transferred = it?.transferred
+                        val total = it?.total
+                        val percent =
+                            if (transferred != null && total != null) transferred / total.toFloat()
+                            else 0f
+                        progress.emit(
+                            FileTransferProgressElement(
+                                percent = percent,
+                                formattedProgress = formatProgress(it),
+                            )
                         )
-                    )
-                }
-            }
-            if (encryptedFile != null) {
-                matrixClient.media.getEncryptedMedia(encryptedFile, mediaProgressFlow).fold(
-                    onSuccess = {
-                        mediaDataFlow.value = it.limitSize(maxPreviewSize).catch { e ->
-                            if (e.cause is MaxByteFlowSizeException) {
-                                error.value = i18n.mediaTooLargeForPreview()
-                            } else {
-                                error.value = i18n.mediaCanNotBePreviewed()
-                            }
-                            mediaDataFlow.value = null
-                        }
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot load encrypted ${mediaType.name} from '${encryptedFile.url}'." }
-                        error.value = i18n.mediaCouldNotBeDecrypted()
-                        progress.emit(null)
                     }
-                )
-            } else {
-                mxcUrl?.let {
-                    matrixClient.media.getMedia(mxcUrl, mediaProgressFlow).fold(
+                }
+                if (encryptedFile != null) {
+                    matrixClient.media.getEncryptedMedia(encryptedFile, mediaProgressFlow).fold(
                         onSuccess = {
-                            mediaDataFlow.value = it
+                            mediaDataFlow.value = try {
+                                it.limitSize(maxMediaSize)
+                            } catch (e: Exception) {
+                                if (e.cause is MaxByteFlowSizeException) {
+                                    error.value = i18n.mediaTooLargeForPreview()
+                                } else {
+                                    error.value = i18n.mediaCanNotBePreviewed()
+                                }
+                                null
+                            }
                         },
                         onFailure = {
-                            log.error(it) { "Cannot load ${mediaType.name} from '$mxcUrl'." }
-                            error.value = i18n.mediaCouldNotBeRead()
+                            log.error(it) { "Cannot load encrypted ${mediaType.name} from '${encryptedFile.url}'." }
+                            error.value = i18n.mediaCouldNotBeDecrypted()
                             progress.emit(null)
                         }
                     )
+                } else {
+                    mxcUrl?.let {
+                        matrixClient.media.getMedia(mxcUrl, mediaProgressFlow).fold(
+                            onSuccess = {
+                                mediaDataFlow.value = try {
+                                    it.limitSize(maxMediaSize)
+                                } catch (e: Exception) {
+                                    if (e.cause is MaxByteFlowSizeException) {
+                                        error.value = i18n.mediaTooLargeForPreview()
+                                    } else {
+                                        error.value = i18n.mediaCanNotBePreviewed()
+                                    }
+                                    null
+                                }
+                            },
+                            onFailure = {
+                                log.error(it) { "Cannot load ${mediaType.name} from '$mxcUrl'." }
+                                error.value = i18n.mediaCouldNotBeRead()
+                                progress.emit(null)
+                            }
+                        )
+                    }
                 }
-            }
+            } else error.value = i18n.mediaTooLargeForPreview()
         }
 
     override fun cancelMediaDownload() {

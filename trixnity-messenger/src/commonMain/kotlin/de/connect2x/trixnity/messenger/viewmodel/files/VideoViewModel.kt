@@ -2,21 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 
 import MediaViewModel
 import MediaViewModelImpl
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
-import org.koin.core.component.get
 
 
 interface VideoViewModelFactory {
@@ -47,22 +38,7 @@ open class VideoViewModelImpl(
     OpenMediaType.VIDEO,
     onCloseMedia,
 ), VideoViewModel {
-    val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    private val fileSizePrivate = fileSize
-    override val video =
-        if (fileSizePrivate != null && fileSizePrivate <= maxPreviewSize) {
-            mediaDataFlow.map {
-                it?.limitSize(maxPreviewSize)?.catch { e ->
-                    if (e.cause is MaxByteFlowSizeException) {
-                        error.value = i18n.mediaTooLargeForPreview()
-                    } else error.value = i18n.mediaCanNotBePreviewed()
-                }
-            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-        } else {
-            progress.value = null
-            error.value = i18n.mediaTooLargeForPreview()
-            MutableStateFlow(null)
-        }
+    override val video = mediaDataFlow
 }
 
 class PreviewVideoViewModel : VideoViewModel {

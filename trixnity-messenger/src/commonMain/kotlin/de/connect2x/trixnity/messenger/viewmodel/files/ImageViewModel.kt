@@ -2,20 +2,16 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 
 import MediaViewModel
 import MediaViewModelImpl
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import org.koin.core.component.get
+import net.folivo.trixnity.utils.toByteArray
 
 
 interface ImageViewModelFactory {
@@ -46,14 +42,8 @@ open class ImageViewModelImpl(
     OpenMediaType.IMAGE,
     onCloseMedia,
 ), ImageViewModel {
-    private val i18n = get<I18n>()
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val image = mediaDataFlow.map {
-        it?.limitedByteArrayOrNull(maxPreviewSize, fileSize) {
-            progress.value = null
-            error.value = i18n.mediaTooLargeForPreview()
-        }
-    }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val image =
+        mediaDataFlow.map { it?.toByteArray() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }
 
 class PreviewImageViewModel : ImageViewModel {

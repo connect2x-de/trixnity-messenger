@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Do not run kmmPublish on push to main
+- Open video player overlay when clicking on the preview
 
 ### Deprecated
 

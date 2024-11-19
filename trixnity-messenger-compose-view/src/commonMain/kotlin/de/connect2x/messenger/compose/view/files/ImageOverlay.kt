@@ -64,6 +64,7 @@ class ImageOverlayViewImpl : ImageOverlayView {
         val i18n = DI.get<I18nView>()
         val image = imageViewModel.image.collectAsState()
         val progress = imageViewModel.progress.collectAsState()
+        val error = imageViewModel.error.collectAsState().value
         val scale = remember { mutableStateOf(1f) }
         val move = remember { mutableStateOf(Offset(0f, 0f)) }
         val xMin = remember { mutableStateOf(0f) }
@@ -146,9 +147,16 @@ class ImageOverlayViewImpl : ImageOverlayView {
                     }
                 }
                 if (image.value == null && progress.value == null) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(MaterialTheme.messengerIcons.typeImage, i18n.commonImage(), Modifier.size(96.dp))
-                        Text(i18n.imageCouldNotBeLoaded())
+                    Box(modifier = Modifier.align(Alignment.Center)) {
+                        Column {
+                            Icon(
+                                MaterialTheme.messengerIcons.typeImage, i18n.commonImage(),
+                                Modifier.size(96.dp).align(Alignment.CenterHorizontally)
+                            )
+                            if (error != null) {
+                                Text(error)
+                            } else Text(i18n.imageCouldNotBeLoaded())
+                        }
                     }
                 }
             }

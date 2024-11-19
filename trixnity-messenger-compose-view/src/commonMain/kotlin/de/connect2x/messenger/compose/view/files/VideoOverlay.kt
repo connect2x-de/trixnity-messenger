@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
         val i18n = DI.get<I18nView>()
         val video = videoViewModel.video.collectAsState()
         val progress = videoViewModel.progress.collectAsState()
+        val error = videoViewModel.error.collectAsState().value
         val isFocused = IsFocused.current
 
         // we need focus in the box to capture key events
@@ -99,9 +101,15 @@ class VideoOverlayViewImpl : VideoOverlayView {
                     }
                 }
                 if (video.value == null && progress.value == null) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                    ) {
                         Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
-                        Text(i18n.videoCouldNotBeLoaded())
+                        if (error != null) {
+                            Text(error)
+                        } else Text(i18n.videoCouldNotBeLoaded())
                     }
 
                 }
