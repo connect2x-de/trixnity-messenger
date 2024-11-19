@@ -79,13 +79,11 @@ private suspend fun whenSyncIsRunning(
                             notification.actions.any { it is PushAction.SetSoundTweak }
                         ) {
                             withContext(Dispatchers.IO) {
-                                val audioStream =
-                                    AudioSystem.getAudioInputStream(
-                                        MessengerTrayIcon::class.java.getResourceAsStream("/ding.wav")?.buffered()
-                                    )
-                                val clip = AudioSystem.getClip()
-                                clip.open(audioStream)
-                                clip.start()
+                                MessengerTrayIcon::class.java.getResourceAsStream("/ding.wav")
+                                    ?.buffered()
+                                    ?.let(AudioSystem::getAudioInputStream)
+                                    ?.let { AudioSystem.getClip().apply { open(it) } }
+                                    ?.start()
                             }
                         }
                         if (currentSettings.platformNotifications.notificationsShowPopup) {
