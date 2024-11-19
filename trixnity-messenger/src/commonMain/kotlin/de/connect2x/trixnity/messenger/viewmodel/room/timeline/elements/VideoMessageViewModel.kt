@@ -4,7 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
@@ -42,7 +42,7 @@ interface VideoMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
     ): VideoMessageViewModel = VideoMessageViewModelImpl(
         viewModelContext,
@@ -57,7 +57,7 @@ interface VideoMessageViewModelFactory {
         showSender,
         sender,
         invitation,
-        onOpenModal,
+        onOpenMedia,
         mediaUploadProgress,
     )
 
@@ -89,9 +89,9 @@ open class VideoMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>
-) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
+) : VideoMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenMedia),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)

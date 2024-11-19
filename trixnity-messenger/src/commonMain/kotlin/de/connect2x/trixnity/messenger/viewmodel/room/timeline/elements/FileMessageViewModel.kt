@@ -3,8 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +33,7 @@ interface FileMessageViewModelFactory {
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
     ): FileMessageViewModel = FileMessageViewModelImpl(
         viewModelContext,
         timelineEvent,
@@ -49,7 +48,7 @@ interface FileMessageViewModelFactory {
         sender,
         invitation,
         mediaUploadProgress,
-        onOpenModal,
+        onOpenMedia,
     )
 
     companion object : FileMessageViewModelFactory
@@ -63,7 +62,7 @@ interface FileMessageViewModel : FileBasedMessageViewModel {
 open class FileMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     timelineEvent: TimelineEvent?,
-    content: RoomMessageEventContent.FileBased.File,
+    private val content: RoomMessageEventContent.FileBased.File,
     override val formattedDate: String,
     override val showDateAbove: Boolean,
     override val formattedTime: String?,
@@ -74,8 +73,8 @@ open class FileMessageViewModelImpl(
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-    private val onOpenModal: OpenModalCallback,
-) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
+    private val onOpenMedia: OpenMediaCallback,
+) : FileMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenMedia),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -91,11 +90,9 @@ open class FileMessageViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openFile() {
-         when (fileMimeType) {
-            "application/pdf" -> url?.let { onOpenModal(OpenModalType.PDF, it, encryptedFile, fileName, fileSize) }
-            "text/markdown" -> url?.let { onOpenModal(OpenModalType.MARKDOWN, it, encryptedFile, fileName, fileSize) }
-            "text/plain" -> url?.let { onOpenModal(OpenModalType.TEXT, it, encryptedFile, fileName, fileSize) }
-            else -> openSaveFileDialog()
-        }
+         if (fileMimeType == "application/pdf" || fileMimeType == "text/markdown" || fileMimeType == "text/plain") {
+             url?.let { onOpenMedia(content) }
+         }
+         else openSaveFileDialog()
     }
 }

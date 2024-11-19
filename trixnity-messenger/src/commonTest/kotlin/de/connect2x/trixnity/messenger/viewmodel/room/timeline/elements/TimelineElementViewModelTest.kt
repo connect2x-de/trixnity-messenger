@@ -396,7 +396,7 @@ class TimelineElementViewModelTest : ShouldSpec() {
             onMessageEdited = mock(),
             onMessageRepliedTo = mock(),
             onMessageReportTo = mock(),
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onOpenMention = mock(),
         )
     }

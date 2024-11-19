@@ -153,7 +153,7 @@ class OutboxElementViewModelTest : ShouldSpec() {
             showDateAboveFlow = flowOf(false),
             showChatBubbleEdgeFlow = flowOf(false),
             selectedRoomId = roomId,
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onOpenMention = mock(),
         )
     }

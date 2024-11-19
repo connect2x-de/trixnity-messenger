@@ -8,10 +8,10 @@ import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 
@@ -34,10 +34,7 @@ class MediaRouter(
             is Config.Video -> Wrapper.Video(
                 viewModelContext.get<VideoViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileSize = config.fileSize,
+                    content = config.content,
                     onCloseVideo = ::closeMedia,
                 )
             )
@@ -45,10 +42,7 @@ class MediaRouter(
             is Config.Image -> Wrapper.Image(
                 viewModelContext.get<ImageViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileSize = config.fileSize,
+                    content = config.content,
                     onCloseImage = ::closeMedia,
                 )
             )
@@ -56,10 +50,7 @@ class MediaRouter(
             is Config.PdfDocument -> Wrapper.Pdf(
                 viewModelContext.get<PdfDocumentViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileSize = config.fileSize,
+                    content = config.content,
                     onCloseDocument = ::closeMedia,
                 )
             )
@@ -67,11 +58,8 @@ class MediaRouter(
             is Config.TextDocument -> Wrapper.Text(
                 viewModelContext.get<MediaViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileSize = config.fileSize,
-                    fileType = OpenModalType.TEXT,
+                    content = config.content,
+                    fileType = OpenMediaType.TEXT,
                     onCloseMedia = ::closeMedia,
                 )
             )
@@ -79,34 +67,31 @@ class MediaRouter(
             is Config.MarkdownDocument -> Wrapper.Markdown(
                 viewModelContext.get<MediaViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileSize = config.fileSize,
-                    fileType = OpenModalType.MARKDOWN,
+                    content = config.content,
+                    fileType = OpenMediaType.MARKDOWN,
                     onCloseMedia = ::closeMedia,
                 )
             )
         }
 
-    suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Video(mxcUrl, encryptedFile, fileName, fileSize, userId))
+    suspend fun openVideo(content: RoomMessageEventContent.FileBased.Video, userId: UserId) {
+        navigation.replaceAllSuspending(Config.Video(content, userId))
     }
 
-    suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Image(mxcUrl, encryptedFile, fileName, fileSize, userId))
+    suspend fun openImage(content: RoomMessageEventContent.FileBased.Image, userId: UserId) {
+        navigation.replaceAllSuspending(Config.Image(content, userId))
     }
 
-    suspend fun openPdf(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String,  fileSize: Long?, userId: UserId) {
-        navigation.replaceAllSuspending(Config.PdfDocument(mxcUrl, encryptedFile, fileName, fileSize, userId))
+    suspend fun openPdf(content: RoomMessageEventContent.FileBased.File, userId: UserId) {
+        navigation.replaceAllSuspending(Config.PdfDocument(content, userId))
     }
 
-    suspend fun openText(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
-        navigation.replaceAllSuspending(Config.TextDocument(mxcUrl, encryptedFile, fileName, fileSize, userId))
+    suspend fun openText(content: RoomMessageEventContent.FileBased.File, userId: UserId) {
+        navigation.replaceAllSuspending(Config.TextDocument(content, userId))
     }
 
-    suspend fun openMarkdown(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, fileSize: Long?, userId: UserId) {
-        navigation.replaceAllSuspending(Config.MarkdownDocument(mxcUrl, encryptedFile, fileName, fileSize, userId))
+    suspend fun openMarkdown(content: RoomMessageEventContent.FileBased.File, userId: UserId) {
+        navigation.replaceAllSuspending(Config.MarkdownDocument(content, userId))
     }
 
     fun closeMedia() {
@@ -119,46 +104,31 @@ class MediaRouter(
     sealed class Config {
         @Serializable
         data class Video(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val fileSize: Long?,
+            val content: RoomMessageEventContent.FileBased.Video,
             val userId: UserId,
         ) : Config()
 
         @Serializable
         data class Image(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val fileSize: Long?,
+            val content: RoomMessageEventContent.FileBased.Image,
             val userId: UserId,
         ) : Config()
 
         @Serializable
         data class PdfDocument(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val fileSize: Long?,
+            val content: RoomMessageEventContent.FileBased.File,
             val userId: UserId,
         ) : Config()
 
         @Serializable
         data class TextDocument(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val fileSize: Long?,
+            val content: RoomMessageEventContent.FileBased.File,
             val userId: UserId,
         ) : Config()
 
         @Serializable
         data class MarkdownDocument(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val fileSize: Long?,
+            val content: RoomMessageEventContent.FileBased.File,
             val userId: UserId,
         ) : Config()
 

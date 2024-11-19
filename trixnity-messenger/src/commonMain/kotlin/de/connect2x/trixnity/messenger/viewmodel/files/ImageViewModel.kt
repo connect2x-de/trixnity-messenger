@@ -5,7 +5,7 @@ import MediaViewModelImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,23 +14,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 
 interface ImageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
-        fileSize: Long?,
+        content: RoomMessageEventContent.FileBased.Image,
         onCloseImage: () -> Unit,
     ): ImageViewModel = ImageViewModelImpl(
         viewModelContext,
-        mxcUrl,
-        encryptedFile,
-        fileName,
-        fileSize,
+        content,
         onCloseImage,
     )
 
@@ -43,18 +38,12 @@ interface ImageViewModel : MediaViewModel {
 
 open class ImageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    mxcUrl: String,
-    encryptedFile: EncryptedFile?,
-    override val fileName: String,
-    override val fileSize: Long?,
+    content: RoomMessageEventContent.FileBased.Image,
     override val onCloseMedia: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
-    mxcUrl,
-    encryptedFile,
-    fileName,
-    fileSize,
-    OpenModalType.IMAGE,
+    content,
+    OpenMediaType.IMAGE,
     onCloseMedia,
 ), ImageViewModel {
     private val i18n = get<I18n>()
@@ -70,7 +59,7 @@ open class ImageViewModelImpl(
 class PreviewImageViewModel : ImageViewModel {
     override val onCloseMedia: () -> Unit = {}
     override val mediaDataFlow = MutableStateFlow(null)
-    override val mediaType = OpenModalType.IMAGE
+    override val mediaType = OpenMediaType.IMAGE
     override val image = MutableStateFlow(previewImageByteArray())
     override val error = MutableStateFlow<String?>(null)
     override val progress = MutableStateFlow(null)

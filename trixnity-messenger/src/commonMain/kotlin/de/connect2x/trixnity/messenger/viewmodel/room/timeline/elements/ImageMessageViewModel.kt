@@ -4,8 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
@@ -45,7 +44,7 @@ interface ImageMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
     ): ImageMessageViewModel = ImageMessageViewModelImpl(
         viewModelContext,
@@ -60,7 +59,7 @@ interface ImageMessageViewModelFactory {
         showSender,
         sender,
         invitation,
-        onOpenModal,
+        onOpenMedia,
         mediaUploadProgress,
     )
 
@@ -92,9 +91,9 @@ class ImageMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
+) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenMedia),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -132,7 +131,7 @@ class ImageMessageViewModelImpl(
 
 
     override fun openImage() {
-        url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName, fileSize) }
+        url?.let { onOpenMedia(content) }
     }
 
     override fun cancelThumbnailDownload() {

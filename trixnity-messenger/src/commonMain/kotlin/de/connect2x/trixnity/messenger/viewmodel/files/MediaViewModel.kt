@@ -2,20 +2,18 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
 
@@ -25,18 +23,12 @@ private val log = KotlinLogging.logger {}
 interface MediaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
-        fileSize: Long?,
-        fileType: OpenModalType,
+        content: RoomMessageEventContent.FileBased,
+        fileType: OpenMediaType,
         onCloseMedia: () -> Unit,
     ): MediaViewModel = MediaViewModelImpl(
         viewModelContext,
-        mxcUrl,
-        encryptedFile,
-        fileName,
-        fileSize,
+        content,
         fileType,
         onCloseMedia,
     )
@@ -47,7 +39,7 @@ interface MediaViewModelFactory {
 interface MediaViewModel {
     val onCloseMedia: () -> Unit
     val mediaDataFlow: StateFlow<ByteArrayFlow?>
-    val mediaType: OpenModalType
+    val mediaType: OpenMediaType
     val progress: StateFlow<FileTransferProgressElement?>
     val fileName: String
     val fileSize: Long?
@@ -58,14 +50,13 @@ interface MediaViewModel {
 
 open class MediaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val mxcUrl: String,
-    private val encryptedFile: EncryptedFile?,
-    override val fileName: String,
-    override val fileSize: Long?,
-    override val mediaType: OpenModalType,
+    private val content: RoomMessageEventContent.FileBased,
+    override val mediaType: OpenMediaType,
     override val onCloseMedia: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, MediaViewModel {
 
+    override val fileSize: Long? = content.info?.size
+    override val fileName: String = content.fileName ?: content.body
     override val progress = MutableStateFlow<FileTransferProgressElement?>(null)
     override val mediaDataFlow = MutableStateFlow<ByteArrayFlow?>(null)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -80,6 +71,8 @@ open class MediaViewModelImpl(
             val i18n = get<I18n>()
             val mediaProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
             val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+            val encryptedFile = content.file
+            val mxcUrl = content.url
             launch {
                 mediaProgressFlow.collectLatest {
                     val transferred = it?.transferred
@@ -114,16 +107,18 @@ open class MediaViewModelImpl(
                     }
                 )
             } else {
-                matrixClient.media.getMedia(mxcUrl, mediaProgressFlow).fold(
-                    onSuccess = {
-                        mediaDataFlow.value = it
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot load ${mediaType.name} from '$mxcUrl'." }
-                        error.value = i18n.mediaCouldNotBeRead()
-                        progress.emit(null)
-                    }
-                )
+                mxcUrl?.let {
+                    matrixClient.media.getMedia(mxcUrl, mediaProgressFlow).fold(
+                        onSuccess = {
+                            mediaDataFlow.value = it
+                        },
+                        onFailure = {
+                            log.error(it) { "Cannot load ${mediaType.name} from '$mxcUrl'." }
+                            error.value = i18n.mediaCouldNotBeRead()
+                            progress.emit(null)
+                        }
+                    )
+                }
             }
         }
 
