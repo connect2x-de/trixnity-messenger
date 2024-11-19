@@ -4,9 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -15,7 +18,9 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -45,6 +50,7 @@ import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
@@ -191,6 +197,7 @@ fun ColumnScope.ShowSelfVerificationMethods(selfVerificationViewModel: SelfVerif
         },
     )
 }
+
 @Composable
 fun ColumnScope.ShowSelfVerificationMethodsContent(
     selfVerificationViewModel: SelfVerificationViewModel,
@@ -201,165 +208,94 @@ fun ColumnScope.ShowSelfVerificationMethodsContent(
     Text(i18n.selfVerificationMethodsTitle())
     Spacer(Modifier.size(10.dp))
 
-    selfVerificationMethods.value.forEachIndexed { index, method ->
+    selfVerificationMethods.value.forEachIndexed { _, method ->
         when (method) {
             is SelfVerificationMethod.CrossSignedDeviceVerification -> {
-                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
-                        }
-                    ) {
-                        RadioButton(
-                            selected = selectedVerificationMethod.value is SelectSelfVerificationMethod
-                                    && (selectedVerificationMethod.value as SelectSelfVerificationMethod).method == method,
-                            onClick = {
-                                selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
-                            },
-                        )
+                EntryContainer(
+                    header = {
                         Text(
                             text = i18n.selfVerificationMethodsOtherDevice(),
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(vertical = 10.dp)
                         )
-                    }
-                    Column(Modifier.padding(start = 48.dp)) {
-                        Text(
-                            text = i18n.selfVerificationMethodsOtherDeviceInfo(),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
+                    },
+                    description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
+                    onClick = { selectedVerificationMethod.value = SelectSelfVerificationMethod(method) },
+                    selected = selectedVerificationMethod.value == SelectSelfVerificationMethod(method)
+                )
             }
 
             is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
-                        }
-                    ) {
-                        RadioButton(
-                            selected = selectedVerificationMethod.value is SelectSelfVerificationMethod
-                                    && (selectedVerificationMethod.value as SelectSelfVerificationMethod).method == method,
-                            onClick = {
-                                selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
-                            }
-                        )
+                EntryContainer(
+                    header = {
                         Text(
                             i18n.selfVerificationMethodsRecoveryKey(),
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(vertical = 10.dp)
                         )
-                    }
-                    Column(Modifier.padding(start = 48.dp)) {
-                        Text(
-                            text = i18n.selfVerificationMethodsRecoveryKeyInfo(),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-
-                }
+                    },
+                    description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
+                    onClick = { selectedVerificationMethod.value = SelectSelfVerificationMethod(method) },
+                    selected = selectedVerificationMethod.value == SelectSelfVerificationMethod(method)
+                )
             }
 
             is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
-                Column(Modifier.padding(top = if (index == 0) 0.dp else 20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
-                        }
-                    ) {
-                        RadioButton(
-                            selected = selectedVerificationMethod.value is SelectSelfVerificationMethod
-                                    && (selectedVerificationMethod.value as SelectSelfVerificationMethod).method == method,
-                            onClick = {
-                                selectedVerificationMethod.value = SelectSelfVerificationMethod(method)
-                            }
-                        )
+                EntryContainer(
+                    header = {
                         Text(
                             i18n.selfVerificationMethodsRecoveryPassphrase(),
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(vertical = 10.dp)
                         )
-                    }
-                    Column(Modifier.padding(start = 48.dp)) {
-                        Text(
-                            text = i18n.selfVerificationMethodsRecoveryPassphraseInfo(),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
+                    },
+                    description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
+                    onClick = { selectedVerificationMethod.value = SelectSelfVerificationMethod(method) },
+                    selected = selectedVerificationMethod.value == SelectSelfVerificationMethod(method)
+                )
             }
 
             else -> Box {}
         }
     }
-    Column(Modifier.padding(top = 20.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-            }
-        ) {
-            RadioButton(
-                selected = selectedVerificationMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey,
-                onClick = {
-                    selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                }
-            )
-            Icon(Icons.Default.Warning, i18n.commonWarning())
+    EntryContainer(
+        header = {
+            Icon(Icons.Default.Warning, i18n.commonWarning(), Modifier.size(16.dp), MaterialTheme.colorScheme.error)
             SmallSpacer()
             Text(
                 i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(vertical = 10.dp),
                 color = MaterialTheme.colorScheme.error,
             )
-        }
-        Column(Modifier.padding(start = 48.dp)) {
-            Text(
-                text = buildAnnotatedString {
-                    append("${i18n.selfVerificationResetRecoveryKey()}. ")
-                    pushStyle(SpanStyle(fontWeight = Bold))
-                    append("${i18n.commonWarning().capitalize(Locale.current)}: ")
-                    append(i18n.selfVerificationResetRecoveryKeyDescription())
-                    pop()
-                },
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-    }
-    Column(Modifier.padding(top = 20.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
-            }
-        ) {
-            RadioButton(
-                selected = selectedVerificationMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification,
-                onClick = {
-                    selectedVerificationMethod.value =
-                        SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
-                }
-            )
-            Icon(Icons.Default.Warning, i18n.commonWarning())
+        },
+        description = {
+            Text(buildAnnotatedString {
+                append("${i18n.selfVerificationResetRecoveryKey()}. ")
+                pushStyle(SpanStyle(fontWeight = Bold))
+                append("${i18n.commonWarning().capitalize(Locale.current)}: ")
+                append(i18n.selfVerificationResetRecoveryKeyDescription())
+                pop()
+            })
+        },
+        onClick = { selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey },
+        selected = selectedVerificationMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+    )
+    EntryContainer(
+        header = {
+            Icon(Icons.Default.Warning, i18n.commonWarning(), Modifier.size(16.dp), MaterialTheme.colorScheme.error)
             SmallSpacer()
             Text(
                 i18n.redoSelfVerificationContinueWithoutVerification(),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(vertical = 10.dp),
                 color = MaterialTheme.colorScheme.error,
             )
-        }
-        Column(Modifier.padding(start = 48.dp)) {
+        },
+        description = {
             Text(
                 text = i18n.redoSelfVerificationDoItLater(),
-                style = MaterialTheme.typography.bodySmall
             )
-        }
-    }
-
+        },
+        onClick = {
+            selectedVerificationMethod.value = SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+        },
+        selected = selectedVerificationMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+    )
 }
 
 @Composable
@@ -470,4 +406,46 @@ fun ColumnScope.ShowRecoveryKeyMethodContent(
     }
 
     error.value?.let { Spacer(Modifier.size(20.dp)); ErrorView(it) }
+}
+
+
+@Composable
+private fun EntryContainer(
+    header: @Composable RowScope.() -> Unit,
+    description: @Composable () -> Unit,
+    onClick: () -> Unit,
+    selected: Boolean,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shape = MaterialTheme.shapes.medium,
+        onClick = onClick,
+        modifier = Modifier.padding(vertical = MaterialTheme.messengerDpConstants.small)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+                .padding(MaterialTheme.messengerDpConstants.small)
+        ) {
+            RadioButton(onClick = onClick, selected = selected)
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.height(IntrinsicSize.Min)
+                ) {
+                    ProvideTextStyle(
+                        MaterialTheme.typography.titleSmall
+                    ) {
+                        header()
+                    }
+                }
+                SmallSpacer()
+                ProvideTextStyle(
+                    MaterialTheme.typography.bodySmall
+                ) {
+                    description()
+                }
+            }
+        }
+    }
 }

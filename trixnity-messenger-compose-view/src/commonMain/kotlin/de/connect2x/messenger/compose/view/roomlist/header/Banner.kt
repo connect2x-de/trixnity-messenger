@@ -141,12 +141,13 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
             Modifier.padding(24.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Default.Warning, i18n.roomListAccountNotVerifiedIcon())
+            Icon(Icons.Default.Warning, i18n.roomListAccountNotVerifiedIcon(), tint = MaterialTheme.colorScheme.onErrorContainer)
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 if (firstUserNotVerified != null) Text(
                     i18n.roomListAccountNotVerifiedMessage(firstUserNotVerified),
                     style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }

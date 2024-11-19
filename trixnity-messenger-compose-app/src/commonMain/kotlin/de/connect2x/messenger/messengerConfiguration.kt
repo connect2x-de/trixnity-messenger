@@ -11,7 +11,9 @@ import de.connect2x.trixnity.messenger.util.RootPath
 import org.koin.dsl.module
 
 
-fun messengerConfiguration(): MatrixMultiMessengerConfiguration.() -> Unit = {
+fun messengerConfiguration(
+    customConfig: MatrixMultiMessengerConfiguration.() -> Unit = {},
+): MatrixMultiMessengerConfiguration.() -> Unit = {
     appName = BuildConfig.appName
     appId = BuildConfig.appId
     privacyInfoUrl = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
@@ -59,6 +61,7 @@ fun messengerConfiguration(): MatrixMultiMessengerConfiguration.() -> Unit = {
             }
         }
     }
+    customConfig()
 }
 
 internal expect fun getDevRootPath(): RootPath?
