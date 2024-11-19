@@ -12,4 +12,6 @@ debug(basePath)
 debug(rootPath)
 debug(configPath)
 
+// TODO: We need a custom context to import `skiko.js` like in trixnity-messenger-compose-app/src/webMain/resources/index.html
+// https://youtrack.jetbrains.com/issue/CMP-4906/1nMakeRasterN32Premul-is-not-defined-when-running-runComposeUiTest-with-js
 config.customContextFile = path.resolve(configPath, "compose_context.html");
