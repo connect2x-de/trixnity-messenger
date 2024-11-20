@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import dev.mokkery.matcher.*
-
-import dev.mokkery.answering.*
-
 import de.connect2x.trixnity.messenger.CreateMediaStore
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -14,7 +10,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
-import de.connect2x.trixnity.messenger.createDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.SecretByteArray
@@ -28,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.InMemoryMediaStore
@@ -55,7 +52,8 @@ fun createTestDefaultTrixnityMessengerModules(
 fun createTestDefaultTrixnityMessengerModules(
     matrixClients: StateFlow<Map<UserId, MatrixClient>>? = null,
     settings: MatrixMessengerSettingsHolder = createTestMatrixMessengerSettingsHolder(),
-) = createDefaultTrixnityMessengerModules() + module {
+) = createTrixnityMessengerDefaultModuleFactories().map { it.invoke() } + module {
+    single<TimeZone> { TimeZone.of("CET") }
     single<CoroutineScope> {
         CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, throwable ->
             throwable.printStackTrace()
@@ -83,7 +81,10 @@ fun createTestDefaultTrixnityMessengerModules(
                     TODO("Not yet implemented")
                 }
 
-                override suspend fun loginWith(baseUrl: Url, loginInfo: MatrixClient.LoginInfo): Result<MatrixClient> {
+                override suspend fun loginWith(
+                    baseUrl: Url,
+                    loginInfo: MatrixClient.LoginInfo
+                ): Result<MatrixClient> {
                     TODO("Not yet implemented")
                 }
 

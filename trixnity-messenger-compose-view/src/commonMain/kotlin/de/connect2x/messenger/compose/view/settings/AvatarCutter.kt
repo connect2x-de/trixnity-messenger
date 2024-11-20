@@ -45,9 +45,7 @@ import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
 import io.github.oshai.kotlinlogging.KotlinLogging
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger {}
 
@@ -68,11 +66,10 @@ class AvatarCutterViewImpl : AvatarCutterView {
         val upload = avatarCutterViewModel.upload.collectAsState().value
         val error = avatarCutterViewModel.error.collectAsState().value
         var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-        val maxAllowedSize = 10
+        val byteArray = avatarCutterViewModel.avatarImage.collectAsState().value
 
-        if (!checkFileSizeExceedsLimit(avatarCutterViewModel.file.fileSize, maxAllowedSize)) {
+        byteArray?.let {
             LaunchedEffect(true) {
-                val byteArray = avatarCutterViewModel.file.content.toByteArray()
                 bitmap = imageBitmapFromBytes(byteArray)
             }
 
@@ -155,10 +152,8 @@ class AvatarCutterViewImpl : AvatarCutterView {
             } ?: run {
                 log.error { "failed to create bitmap image " }
             }
-        } else {
-            // TODO: show error dialog
-            log.warn { "Size is greater $maxAllowedSize MB" }
         }
+        // TODO: show error dialog
     }
 }
 

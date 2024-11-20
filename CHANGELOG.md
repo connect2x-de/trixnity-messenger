@@ -9,6 +9,139 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show online-status when searching for users
+- Ability to see who reacted to a message
+
+### Changed
+
+- Do not run kmmPublish on push to main
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Fix thumbnails not being displayed sometimes because of size limit evaluations
+- fix headings not readable in dark mode
+- Fix RoomElement using wrong DI context
+- Fix crash when notification sound is unavailable
+
+### Security
+
+## 2.3.7
+
+### Added
+- File save and upload dialog on web.
+- use KMMBridge to publish iOS Swift and Objective-C artefacts
+  to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- Wizard for account setup after initial login
+- Support for "share to" Intent on Android
+- support for pasting the first file of a fileList into the clipboard
+
+### Changed
+
+- Upgrade Trixnity to 4.10.0
+- Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
+- Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
+  `MatrixMultiMessengerConfiguration`
+- Button to skip verification is now part of the list of available verification methods
+- implement a cutoff for previews of media and thumbnails
+
+### Fixed
+
+- Don't show placeholder, when lastRelevantEventId not known.
+- Don't mark state events as relevant.
+- Wizard and modal dialog buttons are always shown on smaller screens
+- Fix Emojis on Web
+- Fix directory picker in room export.
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
+- Don't show edited message as new message
+- Correct lifecycle handling on web
+- SSO support in local dev server
+- Fix Scrollbars nearly invisible in dark mode
+- text messages containing symbols not allowed in file names no longer crash the app when posted into the clipboard
+
+## 2.3.6
+
+### Added
+
+- Cross symbol for sent messages
+
+### Changed
+
+- Reduce flickering by showing creation time and date on outbox messages
+- Change symbol for read messages to a double cross
+- Remove alpha channel in outbox messages.
+- Unify calculation of last relevant event in room list.
+
+### Fixed
+
+- Show Search Results when creating Room on small screen sizes
+- Fixed bad contrast due to missing root Surface.
+- Fixed editing a message bumps room up.
+- Fixed Android notifications.
+
+## 2.3.5
+
+### Removed
+
+- Removed edge-to-edge support until we support it in the UI.
+
+### Fixed
+
+- avoid unnecessary caching of all users for reactions and readBy markers
+
+## 2.3.4
+
+### Added
+
+- Back button minimises App on Android
+
+### Fixed
+
+- Fixed verification modal navigation buttons not being shown on Android
+- Do not display empty html tags
+- Fixed misleading i18n content
+- Fixed double padding in wizard
+- Fixed wrong padding on Android 10 keyboard usage
+
+# 2.3.3
+
+### Added
+
+- Introduce appId in configurations
+
+### Changed
+
+- Change keychain handling to include an appId
+- Show Read-by information in context menu
+- Replace MacOS Keychain handling with new API (a deprecated API was used before).
+
+### Fixed
+
+- Editing a reply now keeps it as reply
+
+## 2.3.2
+
+### Changed
+
+- Open in App Browser for SSO.
+
+## 2.3.1
+
+### Changed
+
+- Upgrade Trixnity
+
+### Fixed
+
+- Wrong indexedDb database name
+
+## 2.3.0
+
+### Added
+
 - Markdown support for sending messages
 - Setting to ban members from rooms
 - List of banned users in a room
@@ -20,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: ability to see Aliases without edit permissions
 - Show images in Web version
 - Allow resetting recovery keys
-- Ability to see who reacted to a message
+- Show notifications in Web version
+- Respect homeserver media upload limit
 
 ### Changed
 
@@ -31,10 +165,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed ENV variable `BUILD_CONFIG` to `MESSENGER_BUILD_CONFIG` to avoid confusion with white-labelled clients
 - Made MediaOverlaySwitch public
 - Upgrade Docker build image and dependencies
+- Hide multi profile mode in trixnity messenger
+- not shown redaction messages now also include not supported events in unencrypted rooms
 
 ### Deprecated
 
 ### Removed
+
+- `app_name` from compose-view
+- reaction functionality for deleted (redacted) messages
 
 ### Fixed
 
@@ -56,8 +195,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Require checkbox to advance when setting up recovery keys
 - Create new chats in Web
 - Fix message actions on mobile not updating when messages are sent
-
-### Security
+- Web production code does not crash on unknown timezone
+- Do not scroll to bottom on reactions
+- Fix crash on android when deleting events that are still in the outbox
+- Fix replied message remains highlighted after sending
+- Fix answering or editing own messages now correctly highlights it
+- Desktop: notifications are shown when app is minimized
 
 ## 2.2.2
 

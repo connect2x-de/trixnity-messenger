@@ -38,6 +38,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
@@ -78,7 +79,7 @@ fun MessengerModal(
 @Composable
 fun ColumnScope.MessengerModalContent(content: @Composable ColumnScope.() -> Unit) {
     val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState).weight(5.0f, fill = false)) {
+    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = true)) {
         content()
     }
     // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be needed)
@@ -92,7 +93,11 @@ fun ColumnScope.MessengerModalButtonRow(
     button3: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Spacer(Modifier.size(20.dp))
-    Column(Modifier.fillMaxWidth().weight(1.0f, fill = false), horizontalAlignment = Alignment.End) {
+    Column(
+        Modifier.fillMaxWidth().weight(1.0f, fill = false),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.Bottom,
+    ) {
         FlowRow(horizontalArrangement = Arrangement.SpaceEvenly) {
             button1()
             if (button2 != null) {
@@ -125,19 +130,23 @@ fun ColumnScope.MessengerModalThreeButtonRow(
     back: (@Composable RowScope.() -> Unit)? = null,
     misc: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    Spacer(Modifier.size(20.dp))
-    Column(Modifier.fillMaxWidth().weight(1.0f, fill = false), horizontalAlignment = Alignment.End) {
+    MiddleSpacer()
+    Column(
+        Modifier.fillMaxWidth().weight(1.0f, fill = false),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.Bottom,
+    ) {
         FlowRow(horizontalArrangement = Arrangement.End) {
             if (misc != null) {
                 misc()
             }
             Row {
                 if (misc != null) {
-                    Spacer(Modifier.width(20.dp))
+                    SmallSpacer()
                 }
                 if (back != null) {
                     back()
-                    Spacer(Modifier.width(10.dp))
+                    SmallSpacer()
                 }
                 next()
             }
@@ -208,7 +217,7 @@ private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
     Row(
         Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(10.dp)
             .padding(start = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -217,6 +226,7 @@ private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
             title,
             Modifier.weight(1.0f, fill = true),
             style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         if (onDismiss != null)
             IconButton(

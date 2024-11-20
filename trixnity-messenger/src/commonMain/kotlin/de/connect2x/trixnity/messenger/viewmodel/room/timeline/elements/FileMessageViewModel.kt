@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaConstants.MAX_SIZE_DOCUMENT_PREVIEW_BYTES
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
@@ -92,7 +92,8 @@ open class FileMessageViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openFile() {
-        if ((fileSize ?: 0) > MAX_SIZE_DOCUMENT_PREVIEW_BYTES) {
+        val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+        if ((fileSize ?: 0) > maxPreviewSize) {
             openSaveFileDialog()
         } else when (fileMimeType) {
             "application/pdf" -> url?.let { onOpenModal(OpenModalType.PDF, it, encryptedFile, fileName) }

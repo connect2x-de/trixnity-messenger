@@ -1,11 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.utils.toByteArray
+import org.koin.core.Koin
+
+private val log = KotlinLogging.logger {}
 
 data class RoomInfoElement(
     val name: String,
@@ -39,13 +44,17 @@ data class RoomInfoElement(
     }
 }
 
-suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String): RoomInfoElement {
+suspend fun Room.toRoomInfoElement(config: MatrixMessengerConfiguration, matrixClient: MatrixClient, name: String): RoomInfoElement {
+    val maxAvatarSize = config.avatarMaxSize
     return RoomInfoElement(
         name = name,
         roomId = roomId,
         roomImageInitials = Initials.compute(name),
-        roomImage = this.avatarUrl?.let {
-            matrixClient.media.getMedia(it).getOrNull()?.toByteArray()
-        }
+        roomImage =
+            this.avatarUrl?.let {
+                matrixClient.media.getMedia(it).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {
+                    log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
+                }
+            }
     )
 }

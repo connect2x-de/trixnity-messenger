@@ -2,14 +2,12 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.DebugName
-import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import de.connect2x.trixnity.messenger.util.SecretByteArray
-import io.ktor.client.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
@@ -20,23 +18,9 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
-fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
+fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
     single<DebugName> {
         DebugName { debugName }
-    }
-    single<HttpClientFactory> {
-        HttpClientFactory {
-            { config ->
-                HttpClient {
-                    config()
-// TODO activate for better debugging
-//                    install(Logging) {
-//                        logger = Logger.DEFAULT
-//                        level = LogLevel.ALL
-//                    }
-                }
-            }
-        }
     }
     single<CreateRepositoriesModule> {
         object : CreateRepositoriesModule {
@@ -60,7 +44,7 @@ fun createTestTrixnityMessengerModule(debugName: String = "client") = module {
 suspend fun createTestMatrixMessenger(debugName: String = "client") =
     MatrixMessengerWithRoot(
         MatrixMessenger.create {
-            modules += createTestTrixnityMessengerModule(debugName)
+            modulesFactories += { createTrixnityMessengerTestModule(debugName) }
         }
     )
 
@@ -70,11 +54,13 @@ suspend fun createTestMatrixMultiMessenger(
 ) =
     MatrixMultiMessengerImpl(coroutineContext) {
         messenger = {
-            modules += createTestTrixnityMessengerModule(debugName)
+            modulesFactories += { createTrixnityMessengerTestModule(debugName) }
         }
-        modules += module {
-            single<FileSystem> {
-                FakeFileSystem()
+        modulesFactories += {
+            module {
+                single<FileSystem> {
+                    FakeFileSystem()
+                }
             }
         }
     }

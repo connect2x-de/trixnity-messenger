@@ -1,5 +1,6 @@
 package de.connect2x.messenger.android
 
+import android.content.ClipData
 import androidx.work.ForegroundInfo
 import de.connect2x.sysnotify.NotificationHandle
 import de.connect2x.sysnotify.nativeNotification
@@ -11,6 +12,14 @@ internal fun NotificationHandle.toForegroundInfo(): ForegroundInfo {
 }
 
 internal fun pushChannelId(userId: UserId, config: MatrixMultiMessengerConfiguration) =
-    "${config.packageName}.push.${
+    "${config.appId}.push.${
         userId.full.replace("[@.]".toRegex(), "_")
     }"
+
+fun ClipData.toSequence(): Sequence<ClipData.Item> = sequence {
+    for (i in 0 until itemCount) {
+        yield(getItemAt(i))
+    }
+}
+
+fun ClipData.toList(): List<ClipData.Item> = toSequence().toList()

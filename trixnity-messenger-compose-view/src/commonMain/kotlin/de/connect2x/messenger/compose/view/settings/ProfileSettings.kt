@@ -51,7 +51,7 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
-import de.connect2x.messenger.compose.view.files.LoadDialog
+import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -73,7 +73,7 @@ class ProfileSettingsViewImpl : ProfileSettingsView {
     @Composable
     override fun create(profileViewModel: ProfileViewModel) {
         val openAvatarCutter = profileViewModel.openAvatarCutter.collectAsState().value
-        if (openAvatarCutter != null) LoadDialog(
+        if (openAvatarCutter != null) LoadFileDialog(
             { profileViewModel.openAvatarCutter(openAvatarCutter, it) },
             { profileViewModel.closeAvatarCutter() },
             LoadFileMode.Picture,

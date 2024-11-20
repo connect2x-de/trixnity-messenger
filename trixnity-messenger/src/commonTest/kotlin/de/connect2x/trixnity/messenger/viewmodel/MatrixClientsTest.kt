@@ -20,11 +20,13 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
+import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -158,8 +160,8 @@ class MatrixClientsTest : ShouldSpec() {
             every { matrixClientServerApiClient.authentication } returns authenticationApiClient
             every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
             everySuspend { authenticationApiClient.logout(any()) } returns Result.success(Unit)
-            everySuspend { matrixClientMock1.stop(any()) } returns Unit
-            everySuspend { matrixClientMock2.stop(any()) } returns Unit
+            every { matrixClientMock1.close() } returns Unit
+            every { matrixClientMock2.close() } returns Unit
 
             everySuspend { deleteAccountData.invoke(any()) } returns Unit
             mutableMatrixClients = MutableStateFlow(mapOf())
@@ -296,8 +298,10 @@ class MatrixClientsTest : ShouldSpec() {
                 )
                 logoutCalled shouldBe true
                 settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
+                verify {
+                    matrixClientMock1.close()
+                }
                 verifySuspend {
-                    matrixClientMock1.stop(any())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -318,8 +322,10 @@ class MatrixClientsTest : ShouldSpec() {
                 cut.value shouldBe mapOf()
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf()
+                verify {
+                    matrixClientMock1.close()
+                }
                 verifySuspend {
-                    matrixClientMock1.stop(any())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -343,8 +349,10 @@ class MatrixClientsTest : ShouldSpec() {
                 )
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
+                verify {
+                    matrixClientMock1.close()
+                }
                 verifySuspend {
-                    matrixClientMock1.stop(any())
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
 
@@ -358,9 +366,10 @@ class MatrixClientsTest : ShouldSpec() {
             factory = matrixClientFactory,
             deleteAccountData = deleteAccountData,
             settings = settings,
-            config = MatrixMessengerConfiguration(),
+            config = MatrixMessengerConfiguration().apply {
+                httpClientEngine = MockEngine { respond("") }
+            },
             coroutineScope = CoroutineScope(currentCoroutineContext()),
             matrixClients = mutableMatrixClients,
-            matrixClientServerApiClientFactory = { _, _ -> matrixClientServerApiClient },
         )
 }

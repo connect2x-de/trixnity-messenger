@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.EditOff
 import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material3.Button
@@ -74,15 +73,19 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EmojiSelector
+import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
-import de.connect2x.messenger.compose.view.files.LoadDialog
+import de.connect2x.messenger.compose.view.files.EmptyFileListException
+import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
+import de.connect2x.messenger.compose.view.files.NotPasteableException
 import de.connect2x.messenger.compose.view.files.getClipboardFile
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlinx.coroutines.delay
 import okio.FileSystem
@@ -212,6 +215,7 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
     val selection = remember { mutableStateOf(TextRange(message.value.length)) }
     val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
+    val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
     val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState().value
 
@@ -228,6 +232,14 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
             .padding(end = 8.dp, top = 8.dp, bottom = 8.dp)
             .weight(1.0f, fill = true)
     ) {
+        if (showUploadError.value != null) {
+            ErrorDialog(errorMessage = when (showUploadError.value) {
+                is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
+                is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
+                else -> i18n.uploadFileErrorUnknown()
+            },
+            dismissAction = { showUploadError.value = null }, title = i18n.uploadFileErrorTitle())
+        }
         BasicTextField(
             modifier = Modifier
                 .focusRequester(focusRequester)
@@ -250,10 +262,14 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
 
                             ((it.isCtrlPressed || it.isMetaPressed) && it.key == Key.V) -> { // MacOS: Meta == Command?
                                 val clipboardFile = fileSystem?.let { it1 -> getClipboardFile(it1) }
-                                if (clipboardFile != null) {
-                                    inputAreaViewModel.onAttachmentFileSelect(clipboardFile)
+                                val fileContent = clipboardFile?.getOrNull()
+                                if (fileContent != null) {
+                                    inputAreaViewModel.onAttachmentFileSelect(fileContent)
                                     true
-                                } else false
+                                } else {
+                                    showUploadError.value = clipboardFile?.exceptionOrNull()
+                                    false
+                                }
                             }
 
                             else -> false
@@ -464,7 +480,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     val isMobile = Platform.current.isMobile
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
-    if (showAttachmentDialog) LoadDialog(
+    if (showAttachmentDialog) LoadFileDialog(
         inputAreaViewModel::onAttachmentFileSelect,
         inputAreaViewModel::closeAttachmentDialog,
         LoadFileMode.AnyFile,
@@ -490,7 +506,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
                 Modifier.buttonPointerModifier().padding(end = if (isMobile) 6.dp else 8.dp),
             ) {
                 Icon(
-                    Icons.Default.AttachFile,
+                    MaterialTheme.messengerIcons.attachFile,
                     i18n.inputAreaSelectAttachment(),
                 )
             }

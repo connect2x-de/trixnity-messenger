@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.HttpClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientFactory
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
@@ -23,9 +23,7 @@ import dev.mokkery.verifySuspend
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -116,26 +114,12 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             modules(
                 createTestDefaultTrixnityMessengerModules() +
                         module {
-                            single<HttpClientFactory> {
-                                HttpClientFactory {
-                                    {
-                                        HttpClient(MockEngine {
-                                            respond("")
-                                        }) {
-                                            it()
-                                            install(Logging) {
-                                                logger = Logger.DEFAULT
-                                                level = LogLevel.ALL
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                             single<MatrixClientFactory> { matrixClientFactoryMock }
                             single<AuthorizeUia> { authorizeUia }
                         }
             )
         }.koin
+        di.get<MatrixMessengerConfiguration>().httpClientEngine = MockEngine { respond("") }
         return RegisterNewAccountViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 di = di,

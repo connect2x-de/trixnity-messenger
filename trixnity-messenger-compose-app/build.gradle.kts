@@ -13,7 +13,7 @@ plugins {
 
 val version = libs.versions.messenger.get()
 val appName = libs.versions.appName.get()
-val appNameCleaned = appName.replace("[-.\\s]".toRegex(), "").lowercase()
+val appId = libs.versions.appId.get()
 
 enum class BuildFlavor { PROD, DEV }
 
@@ -31,19 +31,22 @@ val buildConfigGenerator by tasks.registering {
     inputs.file(licencesFile)
     doLast {
         val outputFile = generatedSrc.get()
-            .dir("de/connect2x/$appNameCleaned")
+            .dir(appId.replace(".", "/"))
             .file("BuildConfig.kt")
-        val licencesString = licencesFile.readText()
         val quotes = "\"\"\""
+        val licencesString = licencesFile.readText()
+            .replace("$", "\${'$'}")
+            .replace(quotes, "")
+        
         val buildConfigString =
             """
-            package de.connect2x.$appNameCleaned
+            package $appId
             
             object BuildConfig {
                 const val version = "$version"
                 val flavor = Flavor.valueOf("$buildFlavor")
                 const val appName = "$appName"
-                const val appNameCleaned = "$appNameCleaned"
+                const val appId = "$appId"
                 val licenses = $quotes$licencesString$quotes
             }
             
@@ -78,10 +81,10 @@ kotlin {
     js("web", IR) {
         browser {
             runTask {
-                mainOutputFileName = "$appNameCleaned.js"
+                mainOutputFileName = "$appId.js"
             }
             webpackTask {
-                mainOutputFileName = "$appNameCleaned.js"
+                mainOutputFileName = "$appId.js"
             }
         }
         binaries.executable()
@@ -138,7 +141,7 @@ composeCompiler {
 compose {
     desktop {
         application {
-            mainClass = "de.connect2x.$appNameCleaned.desktop.MainKt"
+            mainClass = "$appId.desktop.MainKt"
             jvmArgs(
 //            "-Dapple.awt.application.appearance=system",
                 "-Xmx1G",
@@ -151,7 +154,7 @@ compose {
                 modules("java.net.http", "java.sql", "java.naming")
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
                 appResourcesRootDir.set(layout.buildDirectory) // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
-                packageName = appNameCleaned
+                packageName = appId
                 packageVersion = libs.versions.messenger.get()
 
                 windows {
@@ -168,7 +171,7 @@ compose {
 }
 
 android {
-    namespace = "de.connect2x.$appNameCleaned"
+    namespace = appId
     buildFeatures {
         compose = true
     }
@@ -178,7 +181,7 @@ android {
         minSdk = libs.versions.androidMinimalSDK.get().toInt()
         targetSdk = libs.versions.androidTargetSDK.get().toInt()
         resValue("string", "app_name", appName)
-        resValue("string", "scheme", appNameCleaned)
+        resValue("string", "scheme", appId)
     }
 
     compileOptions {

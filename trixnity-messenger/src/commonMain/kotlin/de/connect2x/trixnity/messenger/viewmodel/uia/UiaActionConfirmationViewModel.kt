@@ -72,6 +72,7 @@ class UiaActionConfirmationViewModelImpl(
                             log.error { "error during action confirmation: ${it.errorResponse.error}" }
                             error.value = i18n.uiaGenericError(it.errorResponse.error)
                         } else {
+                            log.debug { "UIA action confirmation was successful -> onNext()" }
                             onNext(it)
                         }
                     }
@@ -81,6 +82,7 @@ class UiaActionConfirmationViewModelImpl(
                         else error.value = i18n.uiaGenericError(e.message)
                     }
             }.invokeOnCompletion {
+                log.debug { "UIA action confirmation completed" }
                 isPerformingAction.value = false
             }
         }

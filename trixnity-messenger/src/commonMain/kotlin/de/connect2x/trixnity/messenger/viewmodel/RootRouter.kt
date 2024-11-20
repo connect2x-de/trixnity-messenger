@@ -141,6 +141,7 @@ class RootRouter(
     }
 
     init {
+        log.debug { "init RootViewModel" }
         // when a MatrixClient is removed, be sure to re-init everything (e.g. show root on zero MatrixClients)
         viewModelContext.coroutineScope.launch {
             matrixClients.scan(0 to 0) { old, new ->

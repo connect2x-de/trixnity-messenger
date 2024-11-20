@@ -28,13 +28,12 @@ import dev.mokkery.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.should
 import io.kotest.matchers.types.beOfType
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,6 +60,7 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
@@ -154,7 +154,8 @@ class RoomViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "")
             } returns flowOf(null)
-            every { roomServiceMock.getOutbox() } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
+            every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
 
             every {
                 roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
@@ -211,7 +212,7 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = roomViewModel()
 
             shouldShowInitialView(cut)
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
         }
 
         context(RoomViewModel::setSinglePane.toString()) {
@@ -221,7 +222,7 @@ class RoomViewModelTest : ShouldSpec() {
                     shouldShowInitialView(cut)
 
                     cut.setSinglePane(true)
-                    testCoroutineScheduler.advanceUntilIdle()
+                    delay(100.milliseconds)
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
@@ -233,7 +234,7 @@ class RoomViewModelTest : ShouldSpec() {
                     shouldShowInitialView(cut)
 
                     cut.setSinglePane(false)
-                    testCoroutineScheduler.advanceUntilIdle()
+                    delay(100.milliseconds)
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
@@ -251,7 +252,7 @@ class RoomViewModelTest : ShouldSpec() {
                     timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
 
                     cut.setSinglePane(true)
-                    testCoroutineScheduler.advanceUntilIdle()
+                    delay(100.milliseconds)
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
@@ -268,7 +269,7 @@ class RoomViewModelTest : ShouldSpec() {
                     timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
 
                     cut.setSinglePane(false)
-                    testCoroutineScheduler.advanceUntilIdle()
+                    delay(100.milliseconds)
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
@@ -281,10 +282,10 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = roomViewModel()
             shouldShowInitialView(cut)
             cut.setSinglePane(true)
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             cut.onSettingsBack()
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
@@ -296,10 +297,10 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = roomViewModel()
             shouldShowInitialView(cut)
             cut.setSinglePane(false)
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             cut.onSettingsBack()
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
@@ -311,10 +312,10 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = roomViewModel()
             shouldShowInitialView(cut)
             cut.setSinglePane(true)
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             cut.onShowSettings()
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
@@ -326,10 +327,10 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = roomViewModel()
             shouldShowInitialView(cut)
             cut.setSinglePane(false)
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             cut.onShowSettings()
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(100.milliseconds)
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
@@ -338,17 +339,16 @@ class RoomViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun TestScope.shouldShowInitialView(cut: RoomViewModel) {
-        testCoroutineScheduler.advanceUntilIdle()
+    private suspend fun TestScope.shouldShowInitialView(cut: RoomViewModel) {
+        delay(100.milliseconds)
         assertSoftly {
             cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
             cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
         }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun roomViewModel(): RoomViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        Dispatchers.setMain(Dispatchers.Unconfined)
         val roomViewModel = RoomViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(
@@ -411,7 +411,7 @@ class RoomViewModelTest : ShouldSpec() {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = Dispatchers.Unconfined,
+                coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId,
             onRoomBack = mock(),

@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.ImeVisible
 import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
@@ -48,7 +47,6 @@ internal fun InitMessengerPreview(
         IsFocused provides true,
         IsDebug provides false,
         DI provides koinApplication.koin,
-        ImeVisible provides false,
     ) {
         MessengerTheme(typography = MaterialTheme.typography) { // TODO we have to disable our own typography here, since there is a bug in compose resources (https://github.com/JetBrains/compose-multiplatform/pull/4965)
             content()
@@ -61,7 +59,7 @@ private fun createKoinApplication(): KoinApplication {
         modules(
             composeViewModule(),
             module {
-                single<I18nView> { object : I18nView(DefaultLanguages, get(), get()) {} }
+                single<I18nView> { object : I18nView(DefaultLanguages, get(), get(), get()) {} }
                 single<MatrixMessengerConfiguration> {
                     MatrixMessengerConfiguration()
                 }

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.export
 
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.writeTo
+import okio.BufferedSink
 import okio.FileSystem
 import okio.buffer
 import okio.use
@@ -26,10 +27,12 @@ class OkioFileBasedExportRoomSinkWriter(
     private val fileSystem: FileSystem,
 ) : FileBasedExportRoomSinkWriter {
     private val filePath = destination.resolve(fileName)
-    private val fileSink = fileSystem.appendingSink(filePath).buffer()
+    private lateinit var fileSink: BufferedSink
     private val mediaPath = destination.resolve("media")
     override suspend fun start() {
         fileSystem.createDirectory(destination)
+        fileSystem.createDirectory(mediaPath)
+        fileSink = fileSystem.appendingSink(filePath).buffer()
     }
 
     override suspend fun addContent(content: String) {
@@ -37,7 +40,6 @@ class OkioFileBasedExportRoomSinkWriter(
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
-        fileSystem.createDirectory(mediaPath)
         fileSystem.sink(mediaPath.resolve(filename)).buffer().use {
             content.writeTo(it)
         }

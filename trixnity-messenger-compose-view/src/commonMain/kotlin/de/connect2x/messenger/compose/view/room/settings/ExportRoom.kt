@@ -217,7 +217,7 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
     when (selectedTarget?.first) {
         "txt" -> {
             val selectedProperties = properties as? PlainTextFileBasedExportRoomProperties
-            SelectDirectory(selectedProperties) { destination ->
+            SelectExportDestination(selectedProperties) { destination ->
                 if (destination != null)
                     exportRoomViewModel.properties.value =
                         selectedProperties?.copy(destination = destination)
@@ -227,7 +227,7 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
 
         "csv" -> {
             val selectedProperties = properties as? CSVFileBasedExportRoomProperties
-            SelectDirectory(selectedProperties) { destination ->
+            SelectExportDestination(selectedProperties) { destination ->
                 if (destination != null)
                     exportRoomViewModel.properties.value =
                         selectedProperties?.copy(destination = destination)
@@ -241,4 +241,4 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
 }
 
 @Composable
-internal expect fun SelectDirectory(properties: FileBasedExportRoomProperties?, result: (Destination?) -> Unit)
+internal expect fun SelectExportDestination(properties: FileBasedExportRoomProperties?, result: (Destination?) -> Unit)

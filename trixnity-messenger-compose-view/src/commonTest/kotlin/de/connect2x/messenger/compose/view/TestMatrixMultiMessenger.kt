@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import de.connect2x.trixnity.messenger.util.SecretByteArray
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
@@ -20,51 +21,57 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
-    modules += listOf(
+    modulesFactories += listOf(
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
-        platformMatrixMessengerSettingsHolderModule(),
+        ::platformMatrixMessengerSettingsHolderModule,
         // TODO there should be a more clean way for I18n
-        platformGetSystemLangModule(),
-        module {
-            single<Languages> { DefaultLanguages }
-            single<I18n> { object : I18n(get(), get(), get()) {} }
-        },
-        composeViewModule(),
-        module {
-            single<FileSystem> {
-                FakeFileSystem()
-            }
-        }
-
-    )
-    messengerConfiguration {
-        modules += listOf(
-            composeViewModule(),
+        ::platformGetSystemLangModule,
+        {
             module {
-                single<CreateRepositoriesModule> {
-                    object : CreateRepositoriesModule {
-                        val modules: MutableMap<UserId, Module> = HashMap()
-
-                        override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
-                            val module = createInMemoryRepositoriesModule()
-                            modules += (userId to module)
-                            return CreateRepositoriesModule.CreateResult(module, null)
-                        }
-
-                        override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module =
-                            modules[userId]
-                                ?: throw IllegalStateException("Repositories module for $userId not instantiated")
-                    }
-                }
-                single<CreateMediaStore> {
-                    object : CreateMediaStore {
-                        val store by lazy { InMemoryMediaStore() }
-                        override suspend fun invoke(userId: UserId): MediaStore = store
-                    }
-                }
-
+                single<Languages> { DefaultLanguages }
+                single<TimeZone> { TimeZone.currentSystemDefault() }
+                single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+            }
+        },
+        ::composeViewModule,
+        {
+            module {
                 single<FileSystem> {
                     FakeFileSystem()
+                }
+            }
+        }
+    )
+    messengerConfiguration {
+        modulesFactories += listOf(
+            ::composeViewModule,
+            {
+                module {
+                    single<CreateRepositoriesModule> {
+                        object : CreateRepositoriesModule {
+                            val modules: MutableMap<UserId, Module> = HashMap()
+
+                            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+                                val module = createInMemoryRepositoriesModule()
+                                modules += (userId to module)
+                                return CreateRepositoriesModule.CreateResult(module, null)
+                            }
+
+                            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module =
+                                modules[userId]
+                                    ?: throw IllegalStateException("Repositories module for $userId not instantiated")
+                        }
+                    }
+                    single<CreateMediaStore> {
+                        object : CreateMediaStore {
+                            val store by lazy { InMemoryMediaStore() }
+                            override suspend fun invoke(userId: UserId): MediaStore = store
+                        }
+                    }
+
+                    single<FileSystem> {
+                        FakeFileSystem()
+                    }
                 }
             }
         )

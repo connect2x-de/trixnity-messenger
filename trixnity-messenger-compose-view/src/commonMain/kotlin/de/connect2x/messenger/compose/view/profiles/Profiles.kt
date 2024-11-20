@@ -1,12 +1,17 @@
 package de.connect2x.messenger.compose.view.profiles
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
@@ -35,13 +40,20 @@ class ProfilesViewImpl : ProfilesView {
         matrixMultiMessenger: MatrixMultiMessenger,
         existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
     ) {
-        if (existingProfiles.isEmpty()) {
-            createAndUseDefaultUserProfile(matrixMultiMessenger)
-        } else {
-            createOrSelectManualUserProfile(
-                matrixMultiMessenger,
-                existingProfiles
-            )
+        val multiProfile = DI.get<MatrixMultiMessengerConfiguration>().multiProfile
+        Surface(
+            Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+        ) {
+            if (existingProfiles.isEmpty() || !multiProfile) {
+                createAndUseDefaultUserProfile(matrixMultiMessenger)
+            } else {
+                createOrSelectManualUserProfile(
+                    matrixMultiMessenger,
+                    existingProfiles
+                )
+            }
         }
     }
 }

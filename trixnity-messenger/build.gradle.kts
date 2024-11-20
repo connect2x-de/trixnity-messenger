@@ -1,6 +1,9 @@
 import co.touchlab.skie.configuration.DefaultArgumentInterop
 import co.touchlab.skie.configuration.EnumInterop
+import co.touchlab.skie.configuration.FlowInterop
+import co.touchlab.skie.configuration.FunctionInterop
 import co.touchlab.skie.configuration.SealedInterop
+import co.touchlab.skie.configuration.SuspendInterop
 
 plugins {
     id("com.android.library")
@@ -58,8 +61,10 @@ kotlin {
         iosX64(),
     ).forEach {
         it.binaries.framework {
+            baseName = "TrixnityMessenger"
             export(libs.decompose)
             export(libs.trixnity.client)
+            isStatic = true
         }
     }
     applyDefaultHierarchyTemplate()
@@ -85,6 +90,7 @@ kotlin {
                 implementation(libs.korge)
                 implementation(libs.kim)
                 implementation(libs.markdown)
+                implementation(libs.skie.annotations)
             }
         }
         commonTest {
@@ -94,6 +100,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.bundles.kotest)
                 implementation(libs.ktor.client.mock)
+                implementation(libs.mokkery.coroutines)
             }
         }
         val jvmAndNativeMain by creating {
@@ -113,6 +120,7 @@ kotlin {
             dependencies {
                 implementation(libs.androidx.activity)
                 implementation(libs.androidx.security.crypto)
+                implementation(libs.androidx.browser)
             }
         }
         nativeMain {
@@ -159,10 +167,10 @@ kotlin {
 
 android {
     namespace = "de.connect2x.trixnity.messenger"
-    compileSdk = 33
+    compileSdk = libs.versions.androidCompileSDK.get().toInt()
 
     defaultConfig {
-        minSdk = 28
+        minSdk = libs.versions.androidMinimalSDK.get().toInt()
     }
 
     compileOptions {
@@ -190,18 +198,32 @@ skie {
     analytics {
         disableUpload.set(true)
     }
+    build {
+        produceDistributableFramework()
+        this.enableConcurrentSkieCompilation = true
+    }
     features {
         group {
+            enableSwiftUIObservingPreview = true
+            FlowInterop.Enabled(true)
+            EnumInterop.Enabled(false)
+            SealedInterop.Enabled(false)
+            DefaultArgumentInterop.Enabled(true) // is disabled by default (see https://skie.touchlab.co/features/default-arguments), so we have to use annotations where necessary
+        }
+        group("de.connect2x.trixnity.messenger.settings") {
+            FlowInterop.Enabled(false)
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)
             DefaultArgumentInterop.Enabled(false)
+            FunctionInterop.FileScopeConversion.Enabled(false)
+            SuspendInterop.Enabled(false)
         }
     }
 }
 
-if (isCI) {
+//if (isCI) {
     kmmbridge {
         mavenPublishArtifacts()
         spm()
     }
-}
+//}

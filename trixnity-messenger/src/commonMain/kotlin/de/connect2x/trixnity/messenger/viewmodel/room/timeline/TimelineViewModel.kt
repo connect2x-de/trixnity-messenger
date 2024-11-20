@@ -39,7 +39,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.isDifferentDay
 import de.connect2x.trixnity.messenger.viewmodel.util.takeLastWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
-import de.connect2x.trixnity.messenger.viewmodel.util.timezone
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -61,7 +60,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -71,6 +69,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -83,6 +82,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.media
@@ -104,6 +104,7 @@ import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKW
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import org.koin.core.component.get
 import kotlin.collections.component1
@@ -237,6 +238,7 @@ class TimelineViewModelImpl(
 
     private val config = get<MatrixMessengerConfiguration>()
     private val outerScope = get<CoroutineScope>()
+    private val timeZone = get<TimeZone>()
 
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
     private val timeline: SharedFlow<Timeline<TimelineElementWrapper>> =
@@ -291,12 +293,6 @@ class TimelineViewModelImpl(
     private val directRoom = get<DirectRoom>()
     private val timelineElementRules = get<TimelineElementRules>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
-
-    private val roomUsers =
-        matrixClient.user.getAll(selectedRoomId)
-            .flattenNotNull()
-            .filterNotNull()
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     private val roomUsersReceipts =
         matrixClient.user.getAllReceipts(selectedRoomId)
@@ -367,6 +363,22 @@ class TimelineViewModelImpl(
         )
     }
 
+    private val showDateAboveFlow: Flow<Boolean> =
+        timelineEvents.flatMapLatest { it.lastOrNull() ?: flowOf(null) }
+            .distinctUntilChanged()
+            .map { lastTimelineEvent ->
+                val lastDate =
+                    lastTimelineEvent?.event?.originTimestamp?.let { millis ->
+                        Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
+                    }
+                val today = clock.now().toLocalDateTime(timeZone)
+                val lastMessageFromAtLeastYesterday =
+                    lastDate != null && lastDate.isDifferentDay(today)
+                lastDate == null || lastMessageFromAtLeastYesterday
+            }.distinctUntilChanged()
+
+    private val lastTimelineEventFromUs = timelineEvents.map { it.lastOrNull()?.first()?.sender == matrixClient.userId }
+
     init {
         coroutineScope.launch {
             matrixClient.user.getReceiptsById(selectedRoomId, matrixClient.userId)
@@ -386,7 +398,7 @@ class TimelineViewModelImpl(
         timelineElementHolderViewModels =
             combine(
                 timelineElements,
-                matrixClient.room.getOutbox()
+                matrixClient.room.getOutbox(roomId = selectedRoomId)
             ) { timelineEventsViewModels, outbox ->
                 log.debug { "compute timeline elements" }
                 val timelineElements = timelineEventsViewModels.map { it.viewModel } +
@@ -431,8 +443,7 @@ class TimelineViewModelImpl(
                         }
                     visibleTimelineEvent?.first()?.event?.originTimestamp?.let { timestamp ->
                         formatDate(
-                            Instant.fromEpochMilliseconds(timestamp)
-                                .toLocalDateTime(TimeZone.of(timezone()))
+                            Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(timeZone)
                         )
                     }
                 } else {
@@ -531,10 +542,13 @@ class TimelineViewModelImpl(
 
     private fun scrollToEndOnNewOutboxElement() {
         coroutineScope.launch {
-            matrixClient.room.getOutbox().flattenValues()
+            matrixClient.room.getOutbox().flatten()
                 .scan(emptySet<String>()) { transactionIdsOld, outboxNew ->
                     val transactionIdsNew =
-                        outboxNew.filter { it.roomId == selectedRoomId }.map { it.transactionId }
+                        outboxNew
+                            .filter { it.roomId == selectedRoomId }
+                            .filter { it.content !is ReactionEventContent }
+                            .map { it.transactionId }
                             .toSet()
                     val diff = (transactionIdsNew - transactionIdsOld).toSet()
                     if (diff.isNotEmpty()) {
@@ -594,10 +608,10 @@ class TimelineViewModelImpl(
         val viewModel = if (existingViewModel != null) existingViewModel
         else {
             val canLoadMoreBefore = timelineState.map {
-                it.canLoadBefore && it.lastLoadedEventIdBefore == eventId
+                it.canLoadBefore && it.elements.firstOrNull()?.viewModel?.eventId == eventId
             }
             val canLoadMoreAfter = timelineState.map {
-                it.canLoadAfter && it.lastLoadedEventIdAfter == eventId
+                it.canLoadAfter && it.elements.lastOrNull()?.viewModel?.eventId == eventId
             }
                 // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
                 .debounce(300.milliseconds)
@@ -633,76 +647,65 @@ class TimelineViewModelImpl(
         )
     }
 
+    private suspend fun computeShowChatBubbleEdgeFlow(transactionId: String): Flow<Boolean> {
+        val firstOutboxEvent = matrixClient.room.getOutbox(roomId = selectedRoomId).mapNotNull {
+            it.firstOrNull()?.first()?.transactionId
+        }
+        return combine(
+            lastTimelineEventFromUs,
+            firstOutboxEvent,
+        ) { fromUs, first ->
+            !fromUs && first == transactionId
+        }.distinctUntilChanged()
+    }
+
     private suspend fun computeOutbox(
-        outbox: Map<String, Flow<RoomOutboxMessage<*>?>>,
+        outbox: List<Flow<RoomOutboxMessage<*>?>>,
         timelineEventList: List<Flow<TimelineEvent>>,
     ): List<OutboxElementHolderViewModel> = coroutineScope {
         log.debug { "compute outbox" }
-        if (outbox.isEmpty()) emptyList()
-        else {
-            val timelineEventsTransactionIds =
-                timelineEventList.mapNotNull { it.first().event.unsigned?.transactionId }.toSet()
-            outbox.entries.asFlow()
-                .filter { (_, outboxMessage) -> outboxMessage.first()?.roomId == selectedRoomId }
-                .filterNot { (transactionId, _) ->
-                    timelineEventsTransactionIds.contains(
-                        transactionId
-                    )
-                }
-                .map { (transactionId, outboxMessage) ->
-                    val existingViewModel = outboxElementHolderViewModelCache[transactionId]
-                    if (existingViewModel == null) {
-                        val showDateAboveFlow =
-                            timelineEvents.flatMapLatest { it.lastOrNull() ?: flowOf(null) }
-                                .distinctUntilChanged()
-                                .map { lastTimelineEvent ->
-                                    val lastDate =
-                                        lastTimelineEvent?.event?.originTimestamp?.let { millis ->
-                                            Instant.fromEpochMilliseconds(millis)
-                                                .toLocalDateTime(TimeZone.of(timezone()))
-                                        }
-                                    val today = clock.now().toLocalDateTime(TimeZone.of(timezone()))
-                                    val lastMessageFromAtLeastYesterday =
-                                        lastDate != null && lastDate.isDifferentDay(today)
-                                    lastDate == null || lastMessageFromAtLeastYesterday
-                                }.distinctUntilChanged()
-                        val showChatBubbleEdgeFlow =
-                            combine(
-                                matrixClient.room.getOutbox()
-                                    .map { outbox ->
-                                        outbox.filter { it.value.first()?.roomId == selectedRoomId }.keys
-                                            .indexOf(transactionId)
-                                    }.distinctUntilChanged(),
-                                timelineEvents.map {
-                                    it.lastOrNull()?.first()?.sender == matrixClient.userId
-                                }
-                                    .distinctUntilChanged()
-                            ) { index, lastEventFromUs ->
-                                log.trace { "compute outbox showChatBubbleEdge (index=$index, lastEventFromUs=$lastEventFromUs)" }
-                                index == 0 && !lastEventFromUs
-                            }.distinctUntilChanged()
-                        get<OutboxElementHolderViewModelFactory>().create(
-                            viewModelContext = childContext("outboxTimelineElement-${transactionId}"),
-                            key = transactionId,
-                            outboxMessageFlow = outboxMessage,
-                            selectedRoomId = selectedRoomId,
-                            transactionId = transactionId,
-                            showDateAboveFlow = showDateAboveFlow,
-                            showChatBubbleEdgeFlow = showChatBubbleEdgeFlow,
-                            onOpenModal = onOpenModal,
-                            onOpenMention = onOpenMention,
-                        ).also {
-                            outboxElementHolderViewModelCache[transactionId] = it
-                            // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                            // is needed in the UI for initial position of read marker
-                            it.timelineElementViewModel.first { viewModel -> viewModel != null }
-                        }
-                    } else existingViewModel
-                }.toList().also {
-                    log.debug { "finished compute outbox" }
-                }
+
+        if (outbox.isEmpty()) {
+            log.debug { "empty outbox" }
+            return@coroutineScope emptyList()
         }
+
+        val outboxMap = outbox.mapNotNull {
+            it.first()?.transactionId?.let { tid -> tid to it }
+        }.toMap()
+
+        val timelineEventsTransactionIds =
+            timelineEventList.mapNotNull { it.first().event.unsigned?.transactionId }.toSet()
+
+        outboxMap.entries.asFlow()
+            .filterNot { (transactionId, _) ->
+                timelineEventsTransactionIds.contains(
+                    transactionId
+                )
+            }
+            .map { (transactionId, outboxMessage) ->
+                outboxElementHolderViewModelCache[transactionId]
+                    ?: get<OutboxElementHolderViewModelFactory>().create(
+                        viewModelContext = childContext("outboxTimelineElement-${transactionId}"),
+                        key = transactionId,
+                        outboxMessageFlow = outboxMessage,
+                        selectedRoomId = selectedRoomId,
+                        transactionId = transactionId,
+                        showDateAboveFlow = showDateAboveFlow,
+                        showChatBubbleEdgeFlow = computeShowChatBubbleEdgeFlow(transactionId),
+                        onOpenModal = onOpenModal,
+                        onOpenMention = onOpenMention,
+                    ).also {
+                        outboxElementHolderViewModelCache[transactionId] = it
+                        // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
+                        // is needed in the UI for initial position of read marker
+                        it.timelineElementViewModel.first { viewModel -> viewModel != null }
+                    }
+            }.toList().also {
+                log.debug { "finished compute outbox" }
+            }
     }
+
 
     override fun errorDismiss() {
         error.value = null
@@ -723,7 +726,8 @@ class TimelineViewModelImpl(
     }
 
     private fun onMessageEdited(eventId: EventId) {
-        timelineElements.value.filterNot { it.key == eventId.full }
+        timelineElements.value
+            .filterNot { it.viewModel.eventId.full == eventId.full }
             .forEach { it.viewModel.endEdit() }
         inputAreaViewModel.editMessage(eventId)
     }
@@ -734,13 +738,14 @@ class TimelineViewModelImpl(
     }
 
     private fun onMessageRepliedTo(eventId: EventId) {
-        timelineElements.value.filterNot { it.key == eventId.full }
+        timelineElements.value
+            .filterNot { it.viewModel.eventId.full == eventId.full }
             .forEach { it.viewModel.endReplyTo() }
         inputAreaViewModel.replyToMessage(eventId)
     }
 
     private fun onMessageReplyToFinished(eventId: EventId) {
-        timelineElements.value.firstOrNull { it.key == eventId.full }?.viewModel?.endEdit()
+        timelineElements.value.firstOrNull { it.key == eventId.full }?.viewModel?.endReplyTo()
             ?: log.warn { "try to end reply to timeline event that is not present (${eventId})" }
     }
 
@@ -938,7 +943,7 @@ class TimelineViewModelImpl(
                 .filterNot { (userId, _) -> userId == matrixClient.userId }
                 .forEach { (userId, receipts) ->
                     receipts.receipts[Read]?.eventId?.also { lastReadMessage ->
-                        roomUsers.first()[userId]?.name?.also { name ->
+                        matrixClient.user.getById(selectedRoomId, userId).first()?.name?.also { name ->
                             messagesReadBy[lastReadMessage] =
                                 messagesReadBy.getOrElse(lastReadMessage) { emptyList() }.plus(name)
                         }
@@ -946,7 +951,7 @@ class TimelineViewModelImpl(
                 }
 
             val collectReadByUsers =
-                collectReadByUsers(messagesReadBy, roomUsers.first().size, eventId)
+                collectReadByUsers(messagesReadBy, eventId)
             log.debug { "collected read by users for $eventId: $collectReadByUsers" }
             collectReadByUsers
         }
@@ -954,7 +959,6 @@ class TimelineViewModelImpl(
 
     private suspend fun collectReadByUsers(
         messagesReadBy: Map<EventId, List<String>>,
-        roomUsersSize: Int,
         eventId: EventId,
     ): List<String> {
         return matrixClient.room.getById(selectedRoomId)
@@ -965,35 +969,44 @@ class TimelineViewModelImpl(
                     .scan(listOf<String>()) { readBy, currentEvent ->
                         readBy + (currentEvent.first().eventId.let { eventId -> messagesReadBy[eventId] }
                             ?: emptyList())
-                    }.takeWhileInclusive { readBy ->
-                        readBy.size <= 10 && readBy.size < roomUsersSize
-                    }.lastOrNull()?.take(11)?.sorted() ?: emptyList()
+                    }
+                    .takeWhileInclusive { readBy ->
+                        readBy.size <= 10
+                    }
+                    .lastOrNull()
+                    ?.take(11)
+                    ?.sorted()
+                    ?: emptyList()
             } ?: emptyList()
     }
 
     private fun reactionMap(eventId: EventId): Flow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> {
-        return combine(
-            matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId),
-            roomUsers
-        ) { reactions, roomUsers ->
-            reactions.reactions.mapValues { (_, events) ->
-                events.mapNotNull { event ->
-                    roomUsers[event.sender]?.let { sender ->
-                        TimelineElementHolderViewModel.ReactionEvent(
-                            eventId = event.eventId,
-                            sender = UserInfoElement(
-                                name = sender.originalName ?: sender.name,
-                                userId = sender.userId,
-                                initials = Initials.compute(sender.originalName ?: sender.name),
-                                image = sender.avatarUrl?.let { matrixClient.media.getMedia(it).getOrNull() }
-                            ),
-                            isMe = event.sender == matrixClient.userId,
-                            timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
-                        )
+        return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId)
+            .flatMapLatest { reactions ->
+                combine(reactions.reactions.flatMap { (_, timelineEvents) ->
+                    timelineEvents.map { timelineEvent ->
+                        matrixClient.user.getById(selectedRoomId, timelineEvent.sender)
                     }
-                }.toSet()
+                }) { users ->
+                    reactions.reactions.mapValues { (_, events) ->
+                        events.mapNotNull { event ->
+                            users.find { it?.userId == event.sender }?.let { sender ->
+                                TimelineElementHolderViewModel.ReactionEvent(
+                                    eventId = event.eventId,
+                                    sender = UserInfoElement(
+                                        name = sender.originalName ?: sender.name,
+                                        userId = sender.userId,
+                                        initials = Initials.compute(sender.originalName ?: sender.name),
+                                        image = sender.avatarUrl?.let { matrixClient.media.getMedia(it).getOrNull() }
+                                    ),
+                                    isMe = event.sender == matrixClient.userId,
+                                    timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
+                                )
+                            }
+                        }.toSet()
+                    }
+                }
             }
-        }
     }
 
     private fun onVerifyUser() {

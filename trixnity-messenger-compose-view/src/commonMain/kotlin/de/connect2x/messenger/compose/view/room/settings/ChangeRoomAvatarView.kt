@@ -19,7 +19,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EditButton
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
-import de.connect2x.messenger.compose.view.files.LoadDialog
+import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.LoadFileMode
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -63,7 +63,7 @@ class ChangeRoomAvatarViewImpl : ChangeRoomAvatarView {
                 }
             }
         }
-        if (openSelector) LoadDialog(
+        if (openSelector) LoadFileDialog(
             onFileSelect = changeRoomAvatarViewModel::openAvatarCutter,
             { changeRoomAvatarViewModel.openImageSelector.value = false },
             mode = LoadFileMode.Picture,

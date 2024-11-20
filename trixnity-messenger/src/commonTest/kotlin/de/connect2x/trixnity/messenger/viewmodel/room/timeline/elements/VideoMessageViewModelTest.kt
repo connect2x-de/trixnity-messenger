@@ -56,6 +56,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Video>(),
                     any(),
+                    any()
                 )
             } returns "thumbnail".encodeToByteArray()
 
@@ -74,6 +75,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
                 thumbnailsMock.loadThumbnail(
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                     any(),
                 )
             } calls {
@@ -101,6 +103,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
                 thumbnailsMock.loadThumbnail(
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                     any(),
                 )
             } returns null

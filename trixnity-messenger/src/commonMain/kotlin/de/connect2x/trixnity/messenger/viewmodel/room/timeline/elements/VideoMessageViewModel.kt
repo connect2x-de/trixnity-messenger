@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -99,10 +100,12 @@ open class VideoMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val thumbnailLoad = getThumbnailAsync()
+    private val thumbnailLoad = getThumbnailAsync(maxPreviewSize)
 
     override val thumbnail: StateFlow<ByteArray?> = channelFlow {
         send(thumbnailLoad.await())
@@ -129,9 +132,9 @@ open class VideoMessageViewModelImpl(
         openSaveFileDialog()
     }
 
-    private fun getThumbnailAsync(): Deferred<ByteArray?> =
+    private fun getThumbnailAsync(maxPreviewSize: Long): Deferred<ByteArray?> =
         coroutineScope.async {
-            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow)
+            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
         }
 
     private fun videoWidth(content: RoomMessageEventContent.FileBased.Video) =

@@ -8,14 +8,17 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
-    getSystemLang: GetSystemLang
-) : I18nBase(lang, messengerSettings, getSystemLang) {
+    getSystemLang: GetSystemLang,
+    timeZone: TimeZone,
+) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
 
     fun commonInactive() = translate {
         EN - "inactive"
@@ -277,6 +280,16 @@ abstract class I18nView(
         DE - "Logo"
     }
 
+    fun commonWelcome() = translate {
+        EN - "Welcome"
+        DE - "Willkommen"
+    }
+
+    fun commonConfirm() = translate {
+        EN - "confirm"
+        DE - "bestätigen"
+    }
+
     fun commonOptionalReason() = translate {
         EN - "Reason (optional)"
         DE - "Grund (optional)"
@@ -297,8 +310,13 @@ abstract class I18nView(
         DE - "einklappen"
     }
 
-    fun newNotification() = translate {
-        EN - "new notification"
+    fun commonSkip() = translate {
+        EN - "skip"
+        DE - "überspringen"
+    }
+
+    fun newMessage() = translate {
+        EN - "new message"
         DE - "neue Nachricht"
     }
 
@@ -582,14 +600,24 @@ abstract class I18nView(
         DE - "weiter"
     }
 
+    fun uiaMsisdnTitle() = translate {
+        EN - "Phone number authentication"
+        DE - "Autorisierung mit Telefonnummer"
+    }
+
+    fun uiaEmailTitle() = translate {
+        EN - "Email authentication"
+        DE - "E-Mail Autorisierung"
+    }
+
     fun addMatrixClientCreateMatrixAccount() = translate {
         EN - "Creation of your Matrix account"
         DE - "Einrichtung Ihres Matrix Kontos"
     }
 
     fun addMatrixClientAnotherMatrixClient() = translate {
-        EN - "Creation of another Matrix account"
-        DE - "Einrichtung eines weiteren Matrix Kontos"
+        EN - "Adding another Matrix account"
+        DE - "Hinzufügen eines weiteren Matrix Kontos"
     }
 
     fun addMatrixClientServerMatrix() = translate {
@@ -1539,15 +1567,15 @@ abstract class I18nView(
 
     fun privacyReadMarkerIsPublicExplanation() = translate {
         EN - "Others can see which messages you have read"
-        DE - "Andere Nutzer können sehen, welche Nachrichten sie bereits gelesen haben"
+        DE - "Andere Nutzer können sehen, welche Nachrichten Sie bereits gelesen haben"
     }
 
-    fun typingIsPublic() = translate {
+    fun privacyTypingIsPublic() = translate {
         EN - "Typing Indicators"
-        DE - "Tippindikatoren"
+        DE - "Tipp-Indikatoren"
     }
 
-    fun typingIsPublicExplanation() = translate {
+    fun privacyTypingIsPublicExplanation() = translate {
         EN - "Others can see when you type a message"
         DE - "Andere Nutzer können sehen, wenn Sie eine neue Nachricht schreiben"
     }
@@ -1643,8 +1671,8 @@ abstract class I18nView(
     }
 
     fun bootstrapFinished() = translate {
-        EN - "Your account is now set up."
-        DE - "Ihr Konto ist nun eingerichtet."
+        EN - "Your recovery key is now set up."
+        DE - "Ihr Generalschlüssel ist nun eingerichtet."
     }
 
     fun deviceVerificationTitle() = translate {
@@ -1807,6 +1835,11 @@ abstract class I18nView(
         DE - "Generalschlüssel zurücksetzen"
     }
 
+    fun selfVerificationResetRecoveryKeyDescription() = translate {
+        EN - "This will lead to you losing access to all past messages."
+        DE - "Durch diesen Schritt verlieren Sie Zugriff auf alle ihre vergangenen Nachrichten."
+    }
+
     fun verificationWait() = translate {
         EN - "Wait for input on other device."
         DE - "Warte auf Eingabe an anderem Gerät."
@@ -1839,22 +1872,32 @@ abstract class I18nView(
 
     fun verificationSuccess(deviceName: String) = translate {
         EN - "Device '$deviceName' was verified successfully."
-        DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschalten werden."
+        DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschaltet werden."
+    }
+
+    fun verificationSuccessThisDevice() = translate {
+        EN - "This device was verified successfully."
+        DE - "Dieses Gerät konnte erfolgreich freigeschaltet werden."
     }
 
     fun verificationRejected(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein."
+        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein. ${verificationTryAgain()}"
     }
 
     fun verificationTimeout(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten."
+        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten. ${verificationTryAgain()}"
     }
 
     fun verificationCancelled(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} has been cancelled."
-        DE - "${type.capitalize(Locale.current)} wurde abgebrochen."
+        EN - "${type.capitalize(Locale.current)} has been cancelled. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} wurde abgebrochen. ${verificationTryAgain()}"
+    }
+
+    fun verificationTryAgain() = translate {
+        EN - "Please try again or choose a different verification method."
+        DE - "Bitte versuchen Sie es erneut oder wählen sie eine andere Verifikationsmethode."
     }
 
     fun deviceVerification() = translate {
@@ -2067,9 +2110,14 @@ abstract class I18nView(
         DE - "Reagieren"
     }
 
+    fun infoMessage() = translate {
+        EN - "Info"
+        DE - "Info"
+    }
+
     fun reportMessage() = translate {
         EN - "Report"
-        DE - "Bericht"
+        DE - "Melden"
     }
 
     fun reportMessageHeader() = translate {
@@ -2190,6 +2238,11 @@ abstract class I18nView(
     fun fileDialogLoadImageButton() = translate {
         EN - "Upload image"
         DE - "Bild hochladen"
+    }
+
+    fun fileDialogSaveDescription() = translate {
+        EN - "Download File"
+        DE - "Datei herunterladen"
     }
 
     fun fileDialogDownloadErrorSave() = translate {
@@ -2381,8 +2434,65 @@ abstract class I18nView(
         DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
         EN - "The activation of the encryption of the chat cannot be revoked."
     }
+
+    fun accountSetupWizardExplanationMessage() = translate {
+        DE - "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
+        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
+    }
+
+    fun accountSetupWizardFinishSetup() = translate {
+        DE - "Ist alles nach Ihren Wünschen eingestellt?"
+        EN - "Is everything configured to your liking?"
+    }
+
+    fun accountSetupWizardFinishSetupTitle() = translate {
+        DE - "Einrichtung abschließen"
+        EN - "Finish setup"
+    }
+
+    fun accountSetupWizardReset() = translate {
+        DE - "Setup zurücksetzen"
+        EN - "Reset setup"
+    }
+
+    fun shareFilesTitle(count: Int) = translate {
+        EN - "Sharing $count files"
+        DE - "Teile $count Dateien"
+    }
+
+    fun shareFilesCancel() = translate {
+        EN - "Cancel"
+        DE - "Abbrechen"
+    }
+
+
+    fun uploadFileErrorTitle() = translate {
+        DE - "Beim Hochladen der Datei ist ein Fehler aufgetreten"
+        EN - "An error occurred during the upload of the file"
+    }
+
+    fun uploadFileErrorUnknown() = translate {
+        DE - "Ein unbekannter Uploadfehler is aufgetreten."
+        EN - "An unknown upload error has occurred."
+    }
+
+    fun uploadFileErrorNotPasteable() = translate {
+        DE - "Die Inhalte der ausgewählten Datei können nicht hochgeladen werden."
+        EN - "The contents of the selected file can't be uploaded."
+    }
+
+    fun uploadFileErrorFileListEmpty() = translate {
+        DE - "Die ausgewählte Dateiliste ist leer."
+        EN - "The selected file list is empty."
+    }
+
+    fun filePreviewErrorTooBig(maxUploadSize: Long) = translate {
+        DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße von ${formatSize(maxUploadSize)}."
+        EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
+    }
+
 }
 
 fun i18nViewModule() = module {
-    single<I18nView> { object : I18nView(get(), get(), get()) {} }
+    single<I18nView> { object : I18nView(get(), get(), get(), get()) {} }
 }

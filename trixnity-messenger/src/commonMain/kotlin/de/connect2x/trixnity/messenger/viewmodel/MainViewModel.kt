@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
@@ -23,7 +24,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
+import de.connect2x.trixnity.messenger.viewmodel.sharing.SharingRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -79,7 +82,8 @@ interface MainViewModel {
     val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
-
+    val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
+    val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -121,6 +125,10 @@ open class MainViewModelImpl(
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         selfVerificationRouter.stack
 
+    internal val sharingRouter = SharingRouter(viewModelContext)
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
+        sharingRouter.stack
+
 
     private val backCallback = BackCallback {
         backPressHandler()
@@ -142,7 +150,8 @@ open class MainViewModelImpl(
             onSendLogs = ::onSendLogs,
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
-            onAccountSelected = ::closeRoom,
+            onAccountSelected = ::onAccountSelected,
+            onStartAccountSetup = ::startAccountSetup
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
@@ -188,12 +197,29 @@ open class MainViewModelImpl(
     override val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>> =
         avatarCutterRouter.stack
 
+    private val accountSetupRouter: AccountSetupRouter =
+        AccountSetupRouter(
+            viewModelContext,
+            onStartCrossSigningBootstrap = ::showCrossSigningBootstrap,
+            onCloseCrossDeviceVerification = verificationRouter::closeVerification
+        )
+
+    override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
+        accountSetupRouter.stack
+
+    private fun showCrossSigningBootstrap(userId: UserId) {
+        coroutineScope.launch {
+            selfVerificationRouter.showCrossSigningBootstrap(userId)
+        }
+    }
+
     private fun backPressHandler() {
         if (mediaRouter.isMediaOpen()) {
             mediaRouter.closeMedia()
         } else if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {
+            getOrNull<MinimizeApp>()?.invoke()
             // TODO was "minimize", but we should use native routing without all the back press handlers
             //  native routing could also allow to use web history
             //  see also: https://github.com/arkivanov/Decompose/tree/master/sample/shared/shared/src/commonMain/kotlin/com/arkivanov/sample/shared/multipane
@@ -229,6 +255,7 @@ open class MainViewModelImpl(
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
+        possiblyStartAccountSetup()
     }
 
     private fun startSync() {
@@ -306,7 +333,7 @@ open class MainViewModelImpl(
 
                                     is VerificationService.SelfVerificationMethods.NoCrossSigningEnabled -> {
                                         log.debug { "start bootstrapping $userId" }
-                                        selfVerificationRouter.showBootstrap(userId)
+                                        selfVerificationRouter.showCrossSigningBootstrap(userId)
                                     }
 
                                     is VerificationService.SelfVerificationMethods.AlreadyCrossSigned -> {
@@ -401,11 +428,32 @@ open class MainViewModelImpl(
         }
     }
 
+    private fun possiblyStartAccountSetup() {
+        coroutineScope.launch {
+            matrixClients.scopedCollectLatest { clients ->
+                clients.forEach {
+                    if (messengerSettings.value.base.accounts[it.key]?.base?.accountSetupFinished == false) {
+                        startAccountSetup(it.key)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startAccountSetup(userId: UserId) {
+        accountSetupRouter.startSetup(userId)
+    }
+
     override fun closeDetailsAndShowList() {
         coroutineScope.launch {
             roomListRouter.show()
             roomRouter.closeRoom()
         }
+    }
+
+    private fun onAccountSelected() {
+        closeRoom()
+        possiblyStartAccountSetup()
     }
 
     private fun closeRoom() {
@@ -604,6 +652,15 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = SharingRouter.Config.None,
+                    instance = SharingRouter.Wrapper.None
+                )
+            )
+        )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         MutableValue(
             ChildStack(
@@ -649,6 +706,16 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
+    override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = AccountSetupRouter.Config.None,
+                    instance = AccountSetupRouter.Wrapper.None
+                )
+            )
+        )
+
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun start() {

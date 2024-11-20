@@ -88,7 +88,7 @@ sealed interface ReferencedMessage {
                 .lines()
                 .chunked(maxLines)
             return if (chunks.size > 1 && chunks[1].firstOrNull()?.isNotBlank() == true) {
-                (chunks[0].dropLast(1) + "$ellipsis").joinToString("\n")
+                (chunks[0].dropLast(1) + ellipsis).joinToString("\n")
             } else message
         }
     }

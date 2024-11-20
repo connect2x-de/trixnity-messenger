@@ -10,7 +10,7 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import java.io.File
 
-class FilePathHelper(private val context: Context) {
+internal class FilePathHelper(private val context: Context) {
     fun getPath(uri: Uri?): String? {
         var uriToProcess = uri
         var selectionArgs: Array<String>? = null

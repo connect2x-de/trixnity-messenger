@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import net.folivo.trixnity.core.model.UserId
 
 
 interface UserSettingsViewModelFactory {
@@ -13,6 +14,7 @@ interface UserSettingsViewModelFactory {
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
+        onShowAccountSetup: (userId: UserId) -> Unit,
     ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
@@ -21,7 +23,8 @@ interface UserSettingsViewModelFactory {
             onShowProfile,
             onShowNotificationsSettings,
             onShowPrivacySettings,
-            onShowAppearanceSettings
+            onShowAppearanceSettings,
+            onShowAccountSetup,
         )
     }
 
@@ -35,6 +38,7 @@ interface UserSettingsViewModel {
     fun showNotificationsSettings()
     fun showPrivacySettings()
     fun showAppearanceSettings()
+    fun showAccountSetup(userId: UserId)
 }
 
 open class UserSettingsViewModelImpl(
@@ -45,6 +49,7 @@ open class UserSettingsViewModelImpl(
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
+    private val onShowAccountSetup: (userId : UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -77,5 +82,9 @@ open class UserSettingsViewModelImpl(
 
     override fun showAppearanceSettings() {
         onShowAppearanceSettings()
+    }
+
+    override fun showAccountSetup(userId: UserId) {
+        onShowAccountSetup(userId)
     }
 }

@@ -52,7 +52,6 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(compose.uiUtil)
                 implementation(libs.compose.richeditor)
-                implementation(libs.mpfilepicker)
                 implementation(libs.sysnotify)
             }
         }
@@ -85,6 +84,8 @@ kotlin {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
+                implementation(libs.sysnotify.js)
+                implementation(libs.filekit.core)
             }
         }
 

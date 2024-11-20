@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
@@ -64,8 +65,9 @@ open class AccountViewModelImpl(
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val accounts: StateFlow<List<AccountInfo>> =
-        matrixClients.toAccountInfo(messengerSettings, initials)
+        matrixClients.toAccountInfo(messengerSettings, initials, maxAvatarSize)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
     override val activeAccount: StateFlow<UserId?> =

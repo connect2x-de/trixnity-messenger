@@ -8,8 +8,11 @@ import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
+import de.connect2x.trixnity.messenger.util.SharedFileHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -17,11 +20,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.ServiceLoader
+import java.util.*
 
 class MatrixMultiMessengerService : Service() {
     private val log = KotlinLogging.logger { }
@@ -52,8 +57,8 @@ class MatrixMultiMessengerService : Service() {
                     } else {
                         throw IllegalStateException("Cannot find configuration -> see README.md")
                     }
-                    modules += initialSyncModule()
-                    modules += notificationModule()
+                    modulesFactories += ::initialSyncModule
+                    modulesFactories += ::notificationModule
                 }
             }
         }
@@ -75,7 +80,7 @@ class MatrixMultiMessengerService : Service() {
             _matrixMultiMessenger.value?.apply {
                 di.get<NotificationHandler>().close()
                 di.get<NotificationHandlerProvider>().close()
-                stop()
+                close()
             }
 
             _matrixMultiMessenger.value = null
@@ -91,16 +96,39 @@ class MatrixMessengerServiceConnection : ServiceConnection {
     private val _matrixMultiMessenger = MutableStateFlow<MatrixMultiMessenger?>(null)
     val matrixMultiMessenger = _matrixMultiMessenger.asStateFlow()
 
-    override fun onServiceConnected(className: ComponentName, service: IBinder) {
-        val binder = service as MatrixMultiMessengerService.LocalBinder
+    // If we get the share files intent before the service connection is established, cache them
+    private var sharedFiles = MutableStateFlow<List<SharedFile>?>(null)
+
+    fun onShareFiles(context: Context, sharedFiles: List<SharedFile>?) {
+        this.sharedFiles.value = sharedFiles
+        _matrixMultiMessenger.value?.activeMatrixMessenger?.value?.let { useCachedFiles(context, it) }
+    }
+
+    private fun useCachedFiles(context: Context, messenger: MatrixMessenger) {
+        sharedFiles.getAndUpdate { null }?.let { files ->
+            val i18n = messenger.di.get<I18n>()
+            messenger.di.get<SharedFileHandler>().onShare(
+                files.map {
+                    it.toFileDescriptor(context, i18n)
+                }
+            )
+        }
+    }
+
+    override fun onServiceConnected(className: ComponentName, rawBinder: IBinder) {
+        val binder = rawBinder as MatrixMultiMessengerService.LocalBinder
         log.info { "bind service" }
         coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
             log.error(exception) { "Exception in MatrixMessengerServiceConnection coroutine" }
         })
         coroutineScope.launch {
-            binder.getService().matrixMultiMessenger.collect {
+            val service = binder.getService()
+            service.matrixMultiMessenger.collect {
                 log.debug { "matrixMultiMessenger found" }
                 _matrixMultiMessenger.value = it
+                it?.activeMatrixMessenger?.filterNotNull()?.collectLatest {
+                    useCachedFiles(service, it)
+                }
             }
         }.invokeOnCompletion { _matrixMultiMessenger.value = null }
     }

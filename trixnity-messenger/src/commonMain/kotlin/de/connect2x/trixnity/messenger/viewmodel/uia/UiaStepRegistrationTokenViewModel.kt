@@ -78,6 +78,7 @@ class UiaStepRegistrationTokenViewModelImpl(
                                 }
                             }
                         } else {
+                            log.debug { "UIA registration token action successful -> onNext()" }
                             onNext(it)
                         }
                     }
@@ -87,6 +88,7 @@ class UiaStepRegistrationTokenViewModelImpl(
                         else error.value = i18n.uiaGenericError(e.message)
                     }
             }.invokeOnCompletion {
+                log.debug { "UIA registration token action completed" }
                 isSubmitting.value = false
             }
         }

@@ -82,6 +82,20 @@ class UiaRouter(
                 )
             )
 
+            is Config.UiaStepEmailIdentity -> Wrapper.UiaStepEmailIdentity(
+                viewModelContext.get<UiaStepEmailIdentityViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    onCancel = ::cancel,
+                )
+            )
+
+            is Config.UiaStepMsisdn -> Wrapper.UiaStepMsisdn(
+                viewModelContext.get<UiaStepMsisdnViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    onCancel = ::cancel,
+                )
+            )
+
             is Config.UiaStepFallback -> Wrapper.UiaStepFallback(
                 viewModelContext.get<UiaStepFallbackViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
@@ -100,6 +114,8 @@ class UiaRouter(
         class UiaStepDummy(val viewModel: UiaStepDummyViewModel) : Wrapper()
         class UiaStepPassword(val viewModel: UiaStepPasswordViewModel) : Wrapper()
         class UiaStepRegistrationToken(val viewModel: UiaStepRegistrationTokenViewModel) : Wrapper()
+        class UiaStepEmailIdentity(val viewModel: UiaStepEmailIdentityViewModel): Wrapper()
+        class UiaStepMsisdn(val viewModel: UiaStepMsisdnViewModel): Wrapper()
         class UiaStepFallback(val viewModel: UiaStepFallbackViewModel) : Wrapper()
     }
 
@@ -109,6 +125,8 @@ class UiaRouter(
         data class UiaStepDummy(val uiaStep: UIA.Step<*>) : Config()
         data class UiaStepPassword(val uiaStep: UIA.Step<*>) : Config()
         data class UiaStepRegistrationToken(val uiaStep: UIA.Step<*>) : Config()
+        data class UiaStepEmailIdentity(val uiaStep: UIA.Step<*>) : Config()
+        data class UiaStepMsisdn(val uiaStep: UIA.Step<*>) : Config()
         data class UiaStepFallback(val uiaStep: UIA.Step<*>, val authenticationType: AuthenticationType) : Config()
     }
 
@@ -142,6 +160,8 @@ class UiaRouter(
                             AuthenticationType.Password -> Config.UiaStepPassword(uia)
                             AuthenticationType.RegistrationToken -> Config.UiaStepRegistrationToken(uia)
                             AuthenticationType.SSO -> Config.UiaStepFallback(uia, nextStepAuthenticationType)
+                            AuthenticationType.EmailIdentity -> Config.UiaStepEmailIdentity(uia)
+                            AuthenticationType.Msisdn -> Config.UiaStepMsisdn(uia)
                             else -> Config.UiaStepFallback(uia, nextStepAuthenticationType)
                         }
                         navigation.replaceAllSuspending(nextConfig)

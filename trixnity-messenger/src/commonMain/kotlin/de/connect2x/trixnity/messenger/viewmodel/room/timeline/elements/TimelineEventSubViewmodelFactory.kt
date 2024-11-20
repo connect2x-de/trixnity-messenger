@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
@@ -19,6 +20,7 @@ import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
@@ -71,12 +73,13 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         onOpenModal: OpenModalCallback,
         onOpenMention: OpenMentionCallback,
     ): Flow<BaseTimelineElementViewModel> {
+        val timelineElementHolderViewModelHelper = TimelineElementHolderViewModelHelper(viewModelContext.get())
         return timelineEventFlow
             .filterNotNull()
             .map { timelineEvent ->
                 val event = timelineEvent.event
-                val isByMe = TimelineElementHolderViewModelHelper.isByMe(viewModelContext, timelineEvent)
-                val (isPreviousBySomeoneElse, isPreviousOfOtherDay) = TimelineElementHolderViewModelHelper
+                val isByMe = timelineElementHolderViewModelHelper.isByMe(viewModelContext, timelineEvent)
+                val (isPreviousBySomeoneElse, isPreviousOfOtherDay) = timelineElementHolderViewModelHelper
                     .isPreviousBySomeoneElseOrOtherDay(previousRoomEvent, event)
                 val showChatBubbleEdge = isPreviousBySomeoneElse || isPreviousOfOtherDay
                 val showSender = isDirect.map {
@@ -84,8 +87,8 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     // we can safely stateIn here since viewModels are cached
                 }
                 val showDateAbove: Boolean = isPreviousOfOtherDay
-                val receivedDateTime = TimelineElementHolderViewModelHelper.localDateTimeOf(event)
-                if (timelineEvent.isReplacing) return@map TimelineElementHolderViewModelHelper
+                val receivedDateTime = timelineElementHolderViewModelHelper.localDateTimeOf(event)
+                if (timelineEvent.isReplacing) return@map timelineElementHolderViewModelHelper
                     .createNullTimelineElementViewModel(viewModelContext, invitation)
                 else when (content) {
                     is RoomMessageEventContent -> createRoomMessageEventSubViewmodel(
@@ -106,13 +109,16 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     )
 
                     is RedactedEventContent -> {
-                        log.trace { "Create redacted text message view model: ${event.id}" }
-                        val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
-                        if (content.eventType == "m.reaction") {
-                            return@map TimelineElementHolderViewModelHelper
+                        if (content.eventType !in setOf<String>("m.room.encrypted", "m.room.message")) {
+                            log.trace {
+                                "Creating NullTimelineElementViewModel for event ${event.id} " +
+                                        "with event type ${content.eventType} since it isn't supposed to have a redacted message."
+                            }
+                            return@map timelineElementHolderViewModelHelper
                                 .createNullTimelineElementViewModel(viewModelContext, invitation)
                         }
-
+                        log.trace { "Create redacted text message view model: ${event.id}" }
+                        val redactedBy = timelineEvent.unsigned?.redactedBecause?.sender
                         viewModelContext.get<RedactedMessageViewModelFactory>().create(
                             viewModelContext = viewModelContext,
                             timelineEvent = timelineEvent,
@@ -263,7 +269,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
 
                     else -> {
                         log.error { "Unable to resolve sub viewmodel for event: ${event.id}" }
-                        TimelineElementHolderViewModelHelper.createNullTimelineElementViewModel(
+                        timelineElementHolderViewModelHelper.createNullTimelineElementViewModel(
                             viewModelContext,
                             invitation
                         )
@@ -289,6 +295,11 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         onOpenModal: OpenModalCallback,
     ): TimelineElementWithTimestampViewModel {
         val richRepliesComputations = viewModelContext.get<RichRepliesComputations>()
+
+        val unencryptedContent = event.content as? MessageEventContent
+        val unencryptedRelatesTo = unencryptedContent?.relatesTo
+        val maxPreviewSize = viewModelContext.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
         return when (content) {
             is TextBased.Notice -> {
                 log.trace { "Create notice message view model: ${event.id}" }
@@ -299,8 +310,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -327,8 +339,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -356,8 +369,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -498,8 +512,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,

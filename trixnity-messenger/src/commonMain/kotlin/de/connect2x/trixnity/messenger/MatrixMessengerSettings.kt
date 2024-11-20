@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.settings.update
 import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.SecretByteArrayKey
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -23,6 +24,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
+
+private val log = KotlinLogging.logger {  }
 
 @Serializable
 data class MatrixMessengerSettingsBase(
@@ -46,6 +49,7 @@ data class MatrixMessengerAccountSettingsBase(
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
+    val accountSetupFinished : Boolean = false
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
@@ -102,6 +106,7 @@ class MatrixMessengerSettingsHolderImpl(
         userId: UserId,
         updater: MutableSettings<MatrixMessengerAccountSettings>.(MatrixMessengerAccountSettings) -> Unit,
     ) = update<MatrixMessengerSettingsBase> {
+        log.debug { "update MatrixMessengerSettings" }
         val oldAccounts = it.accounts
         val oldAccountSettings = oldAccounts[userId] ?: MatrixMessengerAccountSettings(emptyMap())
         val newAccountSettings = MutableSettingsImpl(oldAccountSettings)

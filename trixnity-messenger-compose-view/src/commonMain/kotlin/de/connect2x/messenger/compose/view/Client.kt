@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -31,10 +31,8 @@ val PlatformType.isWeb
 val PlatformType.isDesktop
     get() = this == PlatformType.DESKTOP
 
-val ImeVisible = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val Platform = compositionLocalOf<PlatformType> { error("compositionLocal not defined") }
 val IsFocused = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
-val LocalWindowScope = compositionLocalOf<Any? /* WindowScope? */> { error("compositionLocal not defined") }
 val IsDebug = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val DI = compositionLocalOf<Koin> { error("DI is not defined as compositionLocal") }
 
@@ -51,11 +49,13 @@ fun Client(rootViewModel: RootViewModel) {
 class ClientViewImpl : ClientView {
     @Composable
     override fun create(rootViewModel: RootViewModel) {
-        Surface(Modifier.fillMaxSize()) {
+        Surface(
+            Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+        ) {
             RootSwitch(rootViewModel.stack)
-            Box(modifier = Modifier.fillMaxSize()) {
-                UiaSwitch(rootViewModel.uiaStack)
-            }
+            UiaSwitch(rootViewModel.uiaStack)
         }
     }
 }

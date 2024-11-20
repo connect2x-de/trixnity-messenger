@@ -1,10 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,10 +16,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
@@ -80,6 +85,8 @@ open class OutboxElementHolderViewModelImpl(
     private val richRepliesComputations = get<RichRepliesComputations>()
     private val i18n = get<I18n>()
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         combine(
             outboxMessageFlow,
@@ -87,7 +94,9 @@ open class OutboxElementHolderViewModelImpl(
             showChatBubbleEdgeFlow
         ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
             val content = outboxMessage?.content
-            if (content is RoomMessageEventContent)
+            val creationTime = outboxMessage?.createdAt?.toLocalDateTime(viewModelContext.get())
+            if (content?.relatesTo is RelatesTo.Replace) null
+            else if (content is RoomMessageEventContent)
                 when (content) {
                     is TextBased.Notice -> {
                         get<NoticeMessageViewModelFactory>().create(
@@ -98,14 +107,15 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -125,14 +135,15 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -152,14 +163,15 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -175,9 +187,9 @@ open class OutboxElementHolderViewModelImpl(
                             viewModelContext = this,
                             timelineEvent = null,
                             content = content,
-                            formattedDate = "",
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
                             showDateAbove = showDateAbove,
-                            formattedTime = null,
+                            formattedTime = creationTime?.let { formatTime(it) },
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
@@ -196,8 +208,8 @@ open class OutboxElementHolderViewModelImpl(
                             content = content,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -215,8 +227,8 @@ open class OutboxElementHolderViewModelImpl(
                             content = content,
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             showSender = MutableStateFlow(false),
-                            formattedDate = "",
-                            formattedTime = null,
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
+                            formattedTime = creationTime?.let { formatTime(it) },
                             showDateAbove = showDateAbove,
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
@@ -232,9 +244,9 @@ open class OutboxElementHolderViewModelImpl(
                             viewModelContext = this,
                             timelineEvent = null,
                             content = content,
-                            formattedDate = "",
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
                             showDateAbove = showDateAbove,
-                            formattedTime = null,
+                            formattedTime = creationTime?.let { formatTime(it) },
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
@@ -251,9 +263,9 @@ open class OutboxElementHolderViewModelImpl(
                             viewModelContext = this,
                             timelineEvent = null,
                             content = content,
-                            formattedDate = "",
+                            formattedDate = creationTime?.let { formatDate(it) } ?: "",
                             showDateAbove = showDateAbove,
-                            formattedTime = null,
+                            formattedTime = creationTime?.let { formatTime(it) },
                             isByMe = true,
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
@@ -266,7 +278,11 @@ open class OutboxElementHolderViewModelImpl(
                     is Unknown,
                     is VerificationRequest -> createNullTimelineElementViewModel()
                 } else createNullTimelineElementViewModel()
-        }.stateIn(coroutineScope, SharingStarted.Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.Lazily,
+            null
+        ) // we need Lazily here as otherwise this might be computed multiple times
 
     private fun createNullTimelineElementViewModel() =
         NullTimelineElementViewModel(
@@ -283,7 +299,6 @@ open class OutboxElementHolderViewModelImpl(
             RoomOutboxMessage.SendError.MediaTooLarge -> i18n.sendErrorMediaTooLarge()
             is RoomOutboxMessage.SendError.BadRequest -> i18n.sendErrorUnknown(sendError.errorResponse.error)
             is RoomOutboxMessage.SendError.Unknown -> i18n.sendErrorUnknown(sendError.errorResponse?.error)
-            RoomOutboxMessage.SendError.RoomDataNotFoundLocally -> i18n.sendErrorUnknown(sendError.toString())
             RoomOutboxMessage.SendError.EncryptionAlgorithmNotSupported -> i18n.sendErrorUnknown(sendError.toString())
             is RoomOutboxMessage.SendError.EncryptionError -> i18n.sendErrorUnknown(sendError.reason)
             null -> null
@@ -296,13 +311,13 @@ open class OutboxElementHolderViewModelImpl(
 
     override fun abortSend() {
         coroutineScope.launch {
-            matrixClient.room.abortSendMessage(transactionId)
+            matrixClient.room.cancelSendMessage(roomId = selectedRoomId, transactionId = transactionId)
         }
     }
 
     override fun retrySend() {
         coroutineScope.launch {
-            matrixClient.room.retrySendMessage(transactionId)
+            matrixClient.room.retrySendMessage(roomId = selectedRoomId, transactionId = transactionId)
         }
     }
 }

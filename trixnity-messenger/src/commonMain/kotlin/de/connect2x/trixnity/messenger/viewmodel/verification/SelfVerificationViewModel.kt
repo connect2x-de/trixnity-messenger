@@ -198,6 +198,7 @@ open class SelfVerificationViewModelImpl(
 
     override fun backToChoose() {
         resetMethods()
+        showResetRecoveryWarning.value = false
         waitForAvailableVerificationMethods()
     }
 
