@@ -91,17 +91,17 @@ class VideoOverlayViewImpl : VideoOverlayView {
 //                            this@BoxWithConstraints.maxHeight.toPx(),
 //                            it
 //                        )
-                            //Remove once video playing works
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
-                                Text(i18n.fileOverlayPreviewNotSupported())
-                            }
                         }
                     }
+                }
+                //Remove once video playing works
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                ) {
+                    Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
+                    Text(i18n.fileOverlayPreviewNotSupported())
                 }
                 //Uncomment once video playing works
                 /*progress.value?.let {

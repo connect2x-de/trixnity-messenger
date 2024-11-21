@@ -23,8 +23,11 @@ suspend fun ByteArrayFlow.limitedByteArrayOrNull(
     if (knownSize == null || knownSize <= maxSizeBytes) {
         return try {
             this.limitSize(maxSizeBytes).toByteArray()
-        } catch (e: MaxByteFlowSizeException) {
-            onError?.let { it(e) }
+        } catch (e: Exception) {
+            if (e is MaxByteFlowSizeException || e.cause is MaxByteFlowSizeException) {
+                onError?.let { it(e) }
+            }
+            else throw e
             null
         }
     } else {

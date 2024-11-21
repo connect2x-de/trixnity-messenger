@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
@@ -75,7 +76,7 @@ class PdfOverlayViewImpl : PdfOverlayView {
                     FlowRow {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Button(
-                                modifier = Modifier.padding(horizontal = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
                                 onClick = { documentViewModel.closeMedia() },
                             ) {
                                 Text(i18n.commonClose())
@@ -84,7 +85,7 @@ class PdfOverlayViewImpl : PdfOverlayView {
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Button(
-                                modifier = Modifier.padding(horizontal = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
                                 onClick = {
                                     val newZoom = min(4.0f, zoom * 1.33f)
                                     zoom = if (newZoom > 1f && zoom < 1f) 1f else newZoom
@@ -93,7 +94,7 @@ class PdfOverlayViewImpl : PdfOverlayView {
                             }
                             Text("${ceil(zoom * 100)}%")
                             Button(
-                                modifier = Modifier.padding(horizontal = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
                                 onClick = {
                                     val newZoom = max(0.1f, zoom * 0.66f)
                                     zoom = if (newZoom < 1f && zoom > 1f) 1f else newZoom
