@@ -3,6 +3,10 @@ const path = require("node:path");
 config.browserConsoleLogOptions.level = "debug"
 
 const basePath = config.basePath;
+// According to https://kotlinlang.org/docs/js-project-setup.html#karma-configuration all files ending in `.js` are
+// from the `karma.config.d` directory are merged into a single configuration. This configuration however does not
+// reside in the subprojects build directory, but instead in the main one. The resulting path of the merged config is
+// then `build/js/packages/trixnity-messenger-root-trixnity-messenger-compose-view-web-test/karma.conf.js`.
 const rootPath = path.resolve(basePath, "..", "..", "..", "..");
 const configPath = path.resolve(rootPath, "trixnity-messenger-compose-view", "karma.config.d");
 
