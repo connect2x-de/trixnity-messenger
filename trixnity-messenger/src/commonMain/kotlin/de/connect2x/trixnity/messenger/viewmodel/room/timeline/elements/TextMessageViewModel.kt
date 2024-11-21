@@ -92,11 +92,9 @@ open class TextMessageViewModelImpl(
     override val referencedMessage: StateFlow<ReferencedMessage?> =
         referencedMessage.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val mentionsInMessage: Map<IntRange, StateFlow<MessageMention?>> =
-        mentionsStateFlow(message, roomId, matrixClient, coroutineScope)
+        mentionsStateFlow(message, roomId)
     override val mentionsInFormattedBody: Map<IntRange, StateFlow<MessageMention?>>? =
-        formattedBody?.let {
-            mentionsStateFlow(it, roomId, matrixClient, coroutineScope)
-        }
+        formattedBody?.let { mentionsStateFlow(it, roomId) }
 
     override fun openMention(messageMention: MessageMention) {
         onOpenMention(matrixClient.userId, messageMention)
