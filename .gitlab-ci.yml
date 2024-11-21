@@ -20,6 +20,7 @@ variables:
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
   KOTLIN_DATA_DIR: $CI_PROJECT_DIR/.kotlin
   BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-base:latest
+  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
 
 .cache-linux: &cache-linux
   - key: global-trixnity-messenger-cache-linux
@@ -165,6 +166,56 @@ test:linux:
     - ./gradlew
       {jvm,js}Test -x :integrationtests:jvmTest
       --stacktrace
+
+test:smoketest-desktop-linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew
+      :trixnity-messenger-compose-view:desktopTest
+      --stacktrace
+
+test:smoketest-web-linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew
+      :trixnity-messenger-compose-view:webBrowserFirefoxTest
+      --stacktrace
+
+test:smoketest-android-linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./scripts/start_emulator.sh
+    - ./gradlew :trixnity-messenger-compose-view:connectedAndroidTest --stacktrace
 
 test:integration-test:
   stage: test
