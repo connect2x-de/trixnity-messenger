@@ -88,9 +88,11 @@ variables:
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
 
-.if-main: &if-main
+.if-not-scheduled: &if-not-scheduled
   - if: $CI_PIPELINE_SOURCE == "schedule"
     when: never
+
+.if-main: &if-main
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 .if-release: &if-release
@@ -241,6 +243,8 @@ publish:mac:
   cache:
     - *cache-mac # is reused by kmmPublish:mac
   rules:
+    - *if-kmm-publish
+    - *if-not-scheduled
     - *if-main
     - *if-release
   script:
@@ -255,6 +259,7 @@ publish:linux:
   cache:
     - *pull-cache-linux
   rules:
+    - *if-not-scheduled
     - *if-main
     - *if-release
   script:
