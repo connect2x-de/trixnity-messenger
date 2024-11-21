@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix headings not readable in dark mode
 - Fix RoomElement using wrong DI context
 - Fix crash when notification sound is unavailable
+- Fix nightly pipeline missing job dependency
 
 ### Security
 
