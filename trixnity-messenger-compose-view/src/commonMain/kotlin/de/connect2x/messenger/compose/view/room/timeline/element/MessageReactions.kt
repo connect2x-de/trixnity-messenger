@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -87,13 +85,12 @@ internal fun MessageReactionButton(
     myReaction: TimelineElementHolderViewModel.ReactionEvent?,
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
-    modifier: Modifier = buttonModifier,
 ) {
     if (myReaction != null) {
         FilledTonalButton(
             onClick = { onRemoveReaction(myReaction) },
             contentPadding = buttonPadding,
-            modifier = modifier,
+            modifier = buttonModifier,
             colors = ButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
@@ -109,7 +106,7 @@ internal fun MessageReactionButton(
         OutlinedButton(
             onClick = { onAddReaction(reaction) },
             contentPadding = buttonPadding,
-            modifier = modifier,
+            modifier = buttonModifier,
         ) {
             MessageReactionDisplay(reaction)
             Spacer(Modifier.width(4.dp))
@@ -135,7 +132,7 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
 }
 
 class MessageReactionsViewImpl : MessageReactionsView {
-    @OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun create(
         roomMessageViewModel: RoomMessageViewModel,
@@ -199,13 +196,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
                         myReaction = reactionEvents.firstOrNull { it.isMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,
                         onRemoveReaction = timelineElementHolderViewModel::removeReaction,
-                        buttonModifier.combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                // todo: doesn't work not sure why
-                                timelineElementHolderViewModel.reactorListOpen.value = true
-                            },
-                        )
                     )
                 }
                 MessageAddReactionButton(
@@ -214,12 +204,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
                     },
                     i18n.reactMessage()
                 )
-                // todo: remove when got onPress working
-                OutlinedButton(onClick = {
-                    timelineElementHolderViewModel.reactorListOpen.value = true
-                }, buttonModifier) {
-                    Text("Show")
-                }
             }
         }
     }

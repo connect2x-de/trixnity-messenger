@@ -2110,6 +2110,11 @@ abstract class I18nView(
         DE - "Reagieren"
     }
 
+    fun reactorListMessage() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
+    }
+
     fun infoMessage() = translate {
         EN - "Info"
         DE - "Info"
