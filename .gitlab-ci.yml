@@ -204,13 +204,15 @@ test:smoketest-web-linux:
 test:smoketest-android-linux:
   stage: test
   interruptible: true
-  timeout: 1h
+  timeout: 15m
   needs: [ "build:linux" ]
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   cache:
     - *pull-cache-linux
-  artifacts: *artifact-reports
+  artifacts:
+    paths:
+      - emulator.log
   rules:
     - *if-merge-request-or-main
   script:
