@@ -49,8 +49,21 @@ sealed interface WizardNavigationButton {
     ) : WizardNavigationButton
 
     data object None : WizardNavigationButton
-    data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNavigationButton
+    data class Custom(val button: @Composable CustomButtonScope.() -> Unit) : WizardNavigationButton
 }
+
+interface CustomButtonScope : RowScope {
+    val currentStepId: MutableState<StepId>
+    val nextStep: StepId?
+    val previousStep: StepId?
+}
+
+private data class CustomButtonScopeImpl(
+    val rowScope: RowScope,
+    override val currentStepId: MutableState<StepId>,
+    override val nextStep: StepId? = null,
+    override val previousStep: StepId? = null,
+) : RowScope by rowScope, CustomButtonScope
 
 sealed interface WizardButtons {
     data object NextButton : WizardButtons
@@ -227,7 +240,7 @@ private fun RowScope.NextButton(
         is WizardNavigationButton.None -> {}
 
         is WizardNavigationButton.Custom -> {
-            nextButton.button(this@NextButton)
+            nextButton.button(CustomButtonScopeImpl(this, currentStep, nextStep = nextStep))
         }
     }
 }
@@ -260,7 +273,7 @@ private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableStat
         is WizardNavigationButton.None -> {}
 
         is WizardNavigationButton.Custom -> {
-            backButton.button(this@BackButton)
+            backButton.button(CustomButtonScopeImpl(this, currentStep, previousStep = previousStep))
         }
     }
 }
