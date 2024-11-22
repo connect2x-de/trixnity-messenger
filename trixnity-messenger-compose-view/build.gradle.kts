@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
@@ -14,6 +17,9 @@ kotlin {
         compilations.configureEach {
             kotlinOptions.jvmTarget = kotlinJvm
         }
+
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test)
     }
     jvm("desktop") {
         compilations.all {
@@ -28,7 +34,14 @@ kotlin {
         }
     }
     js("web", IR) {
-        browser()
+        browser {
+            // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
+            testRuns.create("firefox").executionTask.configure {
+                useKarma {
+                    useFirefoxHeadless()
+                }
+            }
+        }
         binaries.library()
     }
 
@@ -107,15 +120,12 @@ kotlin {
                 implementation(libs.kotest.junit.runner)
             }
         }
-        val androidUnitTest by getting {
-            dependencies {
-                implementation(libs.androidx.test.monitor)
-            }
-        }
     }
 }
 
 dependencies {
+    androidTestImplementation(libs.ui.test.junit4.android)
+    debugImplementation(libs.ui.test.android.manifest)
     implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
     implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
     implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
