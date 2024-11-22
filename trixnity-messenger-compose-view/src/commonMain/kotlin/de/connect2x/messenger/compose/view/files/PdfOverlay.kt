@@ -60,8 +60,6 @@ class PdfOverlayViewImpl : PdfOverlayView {
         val media = documentViewModel.documentFlow.collectAsState()
         val progress = documentViewModel.progress.collectAsState().value
         val error = documentViewModel.error.collectAsState().value
-        println("Error is $error")
-        println("Document flow is $media")
         var zoom by remember { mutableStateOf(1.0f) }
         val i18n = DI.current.get<I18nView>()
         BoxWithConstraints {
