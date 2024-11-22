@@ -8,6 +8,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.core.model.RoomId
+import org.koin.core.Koin
 
 private val log = KotlinLogging.logger {}
 
@@ -43,7 +44,8 @@ data class RoomInfoElement(
     }
 }
 
-suspend fun Room.toRoomInfoElement(matrixClient: MatrixClient, name: String, maxAvatarSize: Long): RoomInfoElement {
+suspend fun Room.toRoomInfoElement(config: MatrixMessengerConfiguration, matrixClient: MatrixClient, name: String): RoomInfoElement {
+    val maxAvatarSize = config.avatarMaxSize
     return RoomInfoElement(
         name = name,
         roomId = roomId,

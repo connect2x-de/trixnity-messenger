@@ -1,11 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.EventInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,15 +29,13 @@ import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import org.koin.core.component.get
 import net.folivo.trixnity.core.model.Mention as CoreMention
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun mentionsStateFlow(
+fun MatrixClientViewModelContext.mentionsStateFlow(
     content: String,
     roomId: RoomId,
-    matrixClient: MatrixClient,
-    coroutineScope: CoroutineScope,
-    maxAvatarSize: Long
 ): Map<IntRange, StateFlow<MessageMention?>> =
     MatrixRegex.findMentions(content)
         .mapValues { (_, mention) ->
@@ -50,7 +50,7 @@ fun mentionsStateFlow(
                     }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-                is CoreMention.Room -> parseRoom(mention.roomId, matrixClient, maxAvatarSize = maxAvatarSize)
+                is CoreMention.Room -> parseRoom(get(), matrixClient, mention.roomId)
                     .map { info ->
                         info?.let { MessageMention.Room(info) }
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -58,14 +58,14 @@ fun mentionsStateFlow(
                 is CoreMention.RoomAlias ->
                     flow {
                         emitAll(
-                            parseRoom(mention.roomAliasId, matrixClient, maxAvatarSize)
+                            parseRoom(get(), matrixClient, mention.roomAliasId)
                                 .map { info ->
                                     info?.let { MessageMention.Room(info) }
                                 }
                         )
                     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-                is Mention.Event -> parseRoom(mention.roomId ?: roomId, matrixClient, maxAvatarSize = maxAvatarSize)
+                is Mention.Event -> parseRoom(get(), matrixClient, mention.roomId ?: roomId)
                     .flatMapLatest { roomInfo ->
                         if (roomInfo == null) flowOf(null)
                         else flowOf(MessageMention.Event(EventInfoElement(mention.eventId), roomInfo))
@@ -74,26 +74,26 @@ fun mentionsStateFlow(
         }
 
 private fun parseRoom(
-    roomId: RoomId,
+    config: MatrixMessengerConfiguration,
     matrixClient: MatrixClient,
-    forceAlias: RoomAliasId? = null,
-    maxAvatarSize: Long
+    roomId: RoomId,
+    forceAlias: RoomAliasId? = null
 ): Flow<RoomInfoElement?> =
     combine(
         matrixClient.room.getById(roomId),
         matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map { it?.content },
     ) { room, aliases ->
         room?.toRoomInfoElement(
+            config,
             matrixClient,
-            forceAlias?.full ?: aliases?.alias?.full ?: aliases?.aliases?.firstOrNull()?.full ?: room.roomId.full,
-            maxAvatarSize
+            forceAlias?.full ?: aliases?.alias?.full ?: aliases?.aliases?.firstOrNull()?.full ?: room.roomId.full
         )
     }
 
 private suspend fun parseRoom(
-    roomAliasId: RoomAliasId,
+    config: MatrixMessengerConfiguration,
     matrixClient: MatrixClient,
-    maxAvatarSize: Long
+    roomAliasId: RoomAliasId,
 ): Flow<RoomInfoElement?> {
     val foundRoomId = matrixClient.room.getAll().first()
         .firstNotNullOfOrNull { (roomId, _) ->
@@ -103,7 +103,7 @@ private suspend fun parseRoom(
             if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId
             else null
         } ?: return flowOf(null)
-    return parseRoom(foundRoomId, matrixClient, roomAliasId, maxAvatarSize)
+    return parseRoom(config, matrixClient, foundRoomId, roomAliasId)
 }
 
 sealed interface MessageMention {
