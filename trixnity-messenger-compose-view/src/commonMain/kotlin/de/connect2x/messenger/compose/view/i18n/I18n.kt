@@ -13,6 +13,7 @@ import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
+@Suppress("UNUSED")
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
