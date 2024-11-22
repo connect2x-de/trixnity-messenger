@@ -128,7 +128,7 @@ open class VideoMessageViewModelImpl(
     }
 
     override fun openVideo() {
-        url?.let { onOpenMedia(content) }
+        url?.let { onOpenMedia(content, ::openSaveFileDialog) }
     }
 
     private fun getThumbnailAsync(maxPreviewSize: Long): Deferred<ByteArray?> =

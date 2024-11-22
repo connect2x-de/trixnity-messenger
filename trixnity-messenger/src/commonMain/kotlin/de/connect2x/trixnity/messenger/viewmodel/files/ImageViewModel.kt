@@ -19,10 +19,12 @@ interface ImageViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         content: RoomMessageEventContent.FileBased.Image,
         onCloseImage: () -> Unit,
+        onDownload: () -> Unit,
     ): ImageViewModel = ImageViewModelImpl(
         viewModelContext,
         content,
         onCloseImage,
+        onDownload
     )
 
     companion object : ImageViewModelFactory
@@ -36,11 +38,13 @@ open class ImageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: RoomMessageEventContent.FileBased.Image,
     override val onCloseMedia: () -> Unit,
+    onDownload: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
     content,
     OpenMediaType.IMAGE,
     onCloseMedia,
+    onDownload
 ), ImageViewModel {
     override val image =
         mediaDataFlow.map { it?.toByteArray() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -57,4 +61,5 @@ class PreviewImageViewModel : ImageViewModel {
     override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
+    override fun downloadMedia() {}
 }

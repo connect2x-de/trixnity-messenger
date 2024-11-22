@@ -36,6 +36,7 @@ class MediaRouter(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     content = config.content,
                     onCloseVideo = ::closeMedia,
+                    onDownload = config.onDownload
                 )
             )
 
@@ -44,6 +45,7 @@ class MediaRouter(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     content = config.content,
                     onCloseImage = ::closeMedia,
+                    onDownload = config.onDownload
                 )
             )
 
@@ -52,6 +54,7 @@ class MediaRouter(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
                     content = config.content,
                     onCloseDocument = ::closeMedia,
+                    onDownload = config.onDownload
                 )
             )
 
@@ -61,6 +64,7 @@ class MediaRouter(
                     content = config.content,
                     fileType = OpenMediaType.TEXT,
                     onCloseMedia = ::closeMedia,
+                    onDownload = config.onDownload
                 )
             )
 
@@ -70,28 +74,29 @@ class MediaRouter(
                     content = config.content,
                     fileType = OpenMediaType.MARKDOWN,
                     onCloseMedia = ::closeMedia,
+                    onDownload = config.onDownload
                 )
             )
         }
 
-    suspend fun openVideo(content: RoomMessageEventContent.FileBased.Video, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Video(content, userId))
+    suspend fun openVideo(content: RoomMessageEventContent.FileBased.Video, userId: UserId, onDownload: () -> Unit) {
+        navigation.replaceAllSuspending(Config.Video(content, userId, onDownload))
     }
 
-    suspend fun openImage(content: RoomMessageEventContent.FileBased.Image, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Image(content, userId))
+    suspend fun openImage(content: RoomMessageEventContent.FileBased.Image, userId: UserId, onDownload: () -> Unit) {
+        navigation.replaceAllSuspending(Config.Image(content, userId, onDownload))
     }
 
-    suspend fun openPdf(content: RoomMessageEventContent.FileBased.File, userId: UserId) {
-        navigation.replaceAllSuspending(Config.PdfDocument(content, userId))
+    suspend fun openPdf(content: RoomMessageEventContent.FileBased.File, userId: UserId, onDownload: () -> Unit) {
+        navigation.replaceAllSuspending(Config.PdfDocument(content, userId, onDownload))
     }
 
-    suspend fun openText(content: RoomMessageEventContent.FileBased.File, userId: UserId) {
-        navigation.replaceAllSuspending(Config.TextDocument(content, userId))
+    suspend fun openText(content: RoomMessageEventContent.FileBased.File, userId: UserId, onDownload: () -> Unit) {
+        navigation.replaceAllSuspending(Config.TextDocument(content, userId, onDownload))
     }
 
-    suspend fun openMarkdown(content: RoomMessageEventContent.FileBased.File, userId: UserId) {
-        navigation.replaceAllSuspending(Config.MarkdownDocument(content, userId))
+    suspend fun openMarkdown(content: RoomMessageEventContent.FileBased.File, userId: UserId, onDownload: () -> Unit) {
+        navigation.replaceAllSuspending(Config.MarkdownDocument(content, userId, onDownload))
     }
 
     fun closeMedia() {
@@ -106,30 +111,35 @@ class MediaRouter(
         data class Video(
             val content: RoomMessageEventContent.FileBased.Video,
             val userId: UserId,
+            val onDownload: () -> Unit,
         ) : Config()
 
         @Serializable
         data class Image(
             val content: RoomMessageEventContent.FileBased.Image,
             val userId: UserId,
+            val onDownload: () -> Unit,
         ) : Config()
 
         @Serializable
         data class PdfDocument(
             val content: RoomMessageEventContent.FileBased.File,
             val userId: UserId,
+            val onDownload: () -> Unit,
         ) : Config()
 
         @Serializable
         data class TextDocument(
             val content: RoomMessageEventContent.FileBased.File,
             val userId: UserId,
+            val onDownload: () -> Unit,
         ) : Config()
 
         @Serializable
         data class MarkdownDocument(
             val content: RoomMessageEventContent.FileBased.File,
             val userId: UserId,
+            val onDownload: () -> Unit,
         ) : Config()
 
         @Serializable

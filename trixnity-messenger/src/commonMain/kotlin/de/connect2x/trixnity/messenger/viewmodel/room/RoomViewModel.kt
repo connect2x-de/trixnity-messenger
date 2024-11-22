@@ -85,8 +85,8 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenMedia = { content: RoomMessageEventContent.FileBased ->
-            onOpenMedia(content, userId)
+        onOpenMedia = { content: RoomMessageEventContent.FileBased, onDownload: () -> Unit ->
+            onOpenMedia(content, onDownload, userId)
         },
         onOpenMention = onOpenMention
     )

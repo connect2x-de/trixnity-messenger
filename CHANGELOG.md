@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show online-status when searching for users
 - Make Smoketests work on Web
 - Make Smoketests work on Android
+- Download button for file overlays
 
 ### Changed
 
 - Do not run kmmPublish on push to main
 - Open video player overlay when clicking on the preview
+- Download text and markdown files when clicking on them in the timeline
 
 ### Deprecated
 

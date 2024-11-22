@@ -19,10 +19,12 @@ interface PdfDocumentViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         content: RoomMessageEventContent.FileBased.File,
         onCloseDocument: () -> Unit,
+        onDownload: () -> Unit,
     ): PdfDocumentViewModel = PdfDocumentViewModelImpl(
         viewModelContext,
         content,
         onCloseDocument,
+        onDownload
     )
 
     companion object : PdfDocumentViewModelFactory
@@ -37,11 +39,13 @@ open class PdfDocumentViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val content: RoomMessageEventContent.FileBased.File,
     override val onCloseMedia: () -> Unit,
+    onDownload: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
     content,
     OpenMediaType.PDF,
     onCloseMedia,
+    onDownload
 ), PdfDocumentViewModel {
     override val documentFlow = mediaDataFlow
     override val document = mediaDataFlow.map {
@@ -61,4 +65,5 @@ class PreviewPdfDocumentViewModel : PdfDocumentViewModel {
     override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
+    override fun downloadMedia() {}
 }

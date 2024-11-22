@@ -5,14 +5,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +64,7 @@ fun ImageOverlay(imageViewModel: ImageViewModel) {
 }
 
 class ImageOverlayViewImpl : ImageOverlayView {
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun create(imageViewModel: ImageViewModel) {
         val i18n = DI.get<I18nView>()
@@ -160,14 +166,24 @@ class ImageOverlayViewImpl : ImageOverlayView {
                     }
                 }
             }
-            IconButton(
-                { imageViewModel.closeMedia() },
-                Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(20.dp)
-                    .buttonPointerModifier()
+            FlowRow(
+                Modifier.fillMaxWidth().padding(20.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalArrangement = Arrangement.Top
             ) {
-                Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
+                IconButton(
+                    { imageViewModel.downloadMedia() },
+                    Modifier.buttonPointerModifier()
+                ) {
+                    Icon(Icons.Default.Download, i18n.downloadMessage())
+                }
+                IconButton(
+                    { imageViewModel.closeMedia() },
+                    Modifier
+                        .buttonPointerModifier()
+                ) {
+                    Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
+                }
             }
         }
 

@@ -6,11 +6,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +57,7 @@ fun VideoOverlay(videoViewModel: VideoViewModel) {
 }
 
 class VideoOverlayViewImpl : VideoOverlayView {
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun create(videoViewModel: VideoViewModel) {
         val i18n = DI.get<I18nView>()
@@ -85,7 +90,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                 video.value?.let {
                     Box(Modifier.align(Alignment.Center).focusable(false)) {
                         with(LocalDensity.current) {
-                            // FIXME stream video player
+                        // FIXME stream video player
 //                        VideoPlayer(
 //                            this@BoxWithConstraints.maxWidth.toPx(),
 //                            this@BoxWithConstraints.maxHeight.toPx(),
@@ -94,7 +99,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                         }
                     }
                 }
-                //Remove once video playing works
+                //TODO Remove once video playing works
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -103,7 +108,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                     Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
                     Text(i18n.fileOverlayPreviewNotSupported())
                 }
-                //Uncomment once video playing works
+                //TODO Uncomment once video playing works
                 /*progress.value?.let {
                     if (video.value == null) {
                         DownloadProgress(it, videoViewModel::cancelMediaDownload)
@@ -124,14 +129,23 @@ class VideoOverlayViewImpl : VideoOverlayView {
                 }*/
                 // TODO does not work
                 //  see https://github.com/JetBrains/compose-jb/issues/1087 as a workaround, we need to render buttons in Swing
-                IconButton(
-                    { videoViewModel.closeMedia() },
-                    Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(20.dp)
-                        .buttonPointerModifier()
+                FlowRow(
+                    Modifier.fillMaxWidth().padding(20.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
+                    IconButton(
+                        { videoViewModel.downloadMedia() },
+                        Modifier.buttonPointerModifier()
+                    ) {
+                        Icon(Icons.Default.Download, i18n.downloadMessage())
+                    }
+                    IconButton(
+                        { videoViewModel.closeMedia() },
+                        Modifier.buttonPointerModifier()
+                    ) {
+                        Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
+                    }
                 }
             }
         }

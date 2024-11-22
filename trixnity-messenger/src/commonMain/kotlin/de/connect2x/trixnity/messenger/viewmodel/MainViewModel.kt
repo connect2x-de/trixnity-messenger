@@ -94,6 +94,7 @@ interface MainViewModel {
     fun setSinglePane(isSinglePane: Boolean)
     fun openMedia(
         content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId
     )
 
@@ -522,6 +523,7 @@ open class MainViewModelImpl(
 
     override fun openMedia(
         content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId,
     ) {
         when (content) {
@@ -529,6 +531,7 @@ open class MainViewModelImpl(
                 mediaRouter.openImage(
                     content,
                     userId,
+                    onDownload
                 )
             }
 
@@ -536,19 +539,19 @@ open class MainViewModelImpl(
                 mediaRouter.openVideo(
                     content,
                     userId,
+                    onDownload
                 )
             }
 
             is RoomMessageEventContent.FileBased.File -> coroutineScope.launch {
-                when (content.info?.mimeType)
-                {
-                    "application/pdf" -> mediaRouter.openPdf(content, userId)
-                    "text/markdown" -> mediaRouter.openMarkdown(content, userId)
-                    "text/plain" -> mediaRouter.openText(content, userId)
+                when (content.info?.mimeType) {
+                    "application/pdf" -> mediaRouter.openPdf(content, userId, onDownload)
+                    "text/markdown" -> mediaRouter.openMarkdown(content, userId, onDownload)
+                    "text/plain" -> mediaRouter.openText(content, userId, onDownload)
                 }
             }
 
-            is RoomMessageEventContent.FileBased.Audio -> {}
+            else -> {}
         }
     }
 
@@ -713,6 +716,7 @@ class PreviewMainViewModel : MainViewModel {
 
     override fun openMedia(
         content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId
     ) {
     }

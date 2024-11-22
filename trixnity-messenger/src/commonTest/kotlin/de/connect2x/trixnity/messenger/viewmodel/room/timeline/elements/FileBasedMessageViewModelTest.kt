@@ -189,7 +189,7 @@ class FileBasedMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(false),
             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
             uploadProgress = MutableStateFlow(null),
-            onOpenMedia = { content: RoomMessageEventContent.FileBased ->
+            onOpenMedia = { content: RoomMessageEventContent.FileBased, onDownload: () -> Unit ->
             },
         )
         return fileBasedMessageViewModelInstance

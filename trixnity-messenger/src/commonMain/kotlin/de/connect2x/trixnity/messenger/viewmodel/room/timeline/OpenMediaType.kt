@@ -13,10 +13,12 @@ enum class OpenMediaType {
 }
 
 typealias OpenMediaCallback = (
-    content: RoomMessageEventContent.FileBased
+    content: RoomMessageEventContent.FileBased,
+    onDownloadAction: () -> Unit
 ) -> Unit
 
 typealias OpenMediaUserCallback = (
     content: RoomMessageEventContent.FileBased,
+    onDownloadAction: () -> Unit,
     userId: UserId,
 ) -> Unit

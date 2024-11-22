@@ -15,10 +15,12 @@ interface VideoViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         content: RoomMessageEventContent.FileBased.Video,
         onCloseVideo: () -> Unit,
+        onDownload: () -> Unit,
     ): VideoViewModel = VideoViewModelImpl(
         viewModelContext,
         content,
         onCloseVideo,
+        onDownload
     )
 
     companion object : VideoViewModelFactory
@@ -32,11 +34,13 @@ open class VideoViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: RoomMessageEventContent.FileBased.Video,
     override val onCloseMedia: () -> Unit,
+    onDownload: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
     content,
     OpenMediaType.VIDEO,
     onCloseMedia,
+    onDownload
 ), VideoViewModel {
     override val video = mediaDataFlow
 }
@@ -52,4 +56,5 @@ class PreviewVideoViewModel : VideoViewModel {
     override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
+    override fun downloadMedia() {}
 }

@@ -83,6 +83,12 @@ class PdfOverlayViewImpl : PdfOverlayView {
                             }
                             Text(documentViewModel.fileName)
                         }
+                        Button(
+                            modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
+                            onClick = { documentViewModel.downloadMedia() }
+                        ) {
+                            Text(i18n.downloadMessage())
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Button(
                                 modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),

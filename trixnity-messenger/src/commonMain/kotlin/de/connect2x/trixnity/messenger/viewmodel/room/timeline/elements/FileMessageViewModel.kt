@@ -90,8 +90,9 @@ open class FileMessageViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun openFile() {
-         if (fileMimeType == "application/pdf" || fileMimeType == "text/markdown" || fileMimeType == "text/plain") {
-             url?.let { onOpenMedia(content) }
+        //TODO If txt and Markdown overlays work, add " || fileMimeType == "text/markdown" || fileMimeType == "text/plain" "
+         if (fileMimeType == "application/pdf") {
+             url?.let { onOpenMedia(content, ::openSaveFileDialog) }
          }
          else openSaveFileDialog()
     }

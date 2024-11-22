@@ -131,7 +131,7 @@ class ImageMessageViewModelImpl(
 
 
     override fun openImage() {
-        url?.let { onOpenMedia(content) }
+        url?.let { onOpenMedia(content, ::openSaveFileDialog) }
     }
 
     override fun cancelThumbnailDownload() {
