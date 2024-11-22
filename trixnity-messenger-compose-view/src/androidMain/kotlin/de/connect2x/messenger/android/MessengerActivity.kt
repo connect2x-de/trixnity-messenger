@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,6 +103,7 @@ class MessengerActivity : AppCompatActivity() {
                             }
                         }
                 }
+
             }
             withContext(Dispatchers.Main) {
                 setContent {
@@ -121,6 +123,16 @@ class MessengerActivity : AppCompatActivity() {
                             ) {
                                 MessengerTheme {
                                     Client(rootViewModel)
+                                }
+                                LaunchedEffect(Unit) {
+                                    val matrixMessengerStartup =
+                                        matrixMessenger.di.getOrNull<MatrixMessengerStartup>()
+                                    log.debug { "MatrixMessengerStartup: $matrixMessengerStartup" }
+                                    if (matrixMessengerStartup != null) {
+                                        matrixMessengerStartup(this@MessengerActivity)
+                                    } else {
+                                        log.info { "no MatrixMessengerStartup implementation found -> ignore" }
+                                    }
                                 }
                             }
                         }

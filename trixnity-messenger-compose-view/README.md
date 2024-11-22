@@ -155,6 +155,10 @@ fun myViewModule() = module {
 For more information on how to use the DI to configure your client, please refer to
 the [Trixnity Messenger README](../README.md).
 
+## Android: MessengerActivity startup hook
+When using the `MessengerActivity`, one can use a startup hook called `MatrixMessengerStartup` that can be used to act
+on the main activity.
+
 ## Troubleshooting
 
 ### Common Images
