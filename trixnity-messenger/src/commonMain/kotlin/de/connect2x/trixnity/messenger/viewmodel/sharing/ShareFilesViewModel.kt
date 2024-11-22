@@ -89,13 +89,17 @@ class ShareFilesViewModelImpl(
                     when {
                         file.mimeType?.match("image/*") == true -> {
                             log.debug { "send an image to ${roomId.full}" }
-                            val (width, height) = getImageDimensions(file.content, maxMediaSize)
+                            val size = file.fileSize
+                            val (width, height) = if (size == null || size <= maxMediaSize) getImageDimensions(
+                                file.content,
+                                maxMediaSize
+                            ) else Pair(null, null)
                             image(
                                 body = file.fileName,
                                 fileName = file.fileName,
                                 image = file.content,
                                 type = file.mimeType,
-                                size = file.fileSize,
+                                size = size,
                                 width = width,
                                 height = height,
                             )
