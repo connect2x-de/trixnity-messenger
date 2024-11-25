@@ -340,7 +340,6 @@ private fun InboxMessageImage(
     imageMessageViewModel: ImageMessageViewModel,
     onLongPress: (Offset) -> Unit
 ) {
-    val i18n = DI.get<I18nView>()
     val uploadProgress = imageMessageViewModel.uploadProgress.collectAsState(null)
     val image = imageMessageViewModel.thumbnail.collectAsState()
 

@@ -126,13 +126,19 @@ class SendAttachmentViewModelImpl(
                     log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
                 }
                 if (imageByteArray != null) {
-                    get<ProcessImageUpload>().invoke(imageByteArray, file.mimeType ?: Image.PNG)
-                        .toByteArrayFlow()
+                    get<ProcessImageUpload>().invoke(
+                        imageByteArray,
+                        file.mimeType ?: Image.PNG, // TODO: check if defaulting to PNG isn't causing any issues
+                    ).toByteArrayFlow()
                 } else {
                     file.content
                 }
             } else if (isImage == true) {
-                log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
+                log.debug {
+                    "Uploaded image ${file.fileName} couldn't be processed" +
+                            " because it exceeds file size limits," +
+                            " it will be sent without processing"
+                }
                 file.content
             } else {
                 file.content

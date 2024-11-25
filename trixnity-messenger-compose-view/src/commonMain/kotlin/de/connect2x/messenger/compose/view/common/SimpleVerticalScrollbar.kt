@@ -2,6 +2,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -18,6 +19,7 @@ fun Modifier.simpleVerticalScrollbar(
     state: LazyListState,
     color: Color,
     width: Dp = 8.dp,
+    scrollBarState: MutableState<SimpleVerticalScrollbarState?>? = null,
 ): Modifier {
     val targetAlpha = if (state.isScrollInProgress) 1f else 0f
     val duration = if (state.isScrollInProgress) 150 else 500
@@ -38,12 +40,22 @@ fun Modifier.simpleVerticalScrollbar(
             val elementHeight = this.size.height / state.layoutInfo.totalItemsCount
             val scrollbarOffsetY = firstVisibleElementIndex * elementHeight
             val scrollbarHeight = state.layoutInfo.visibleItemsInfo.size * elementHeight
+            val offset = Offset(this.size.width - width.toPx(), scrollbarOffsetY)
+            val size = Size(width.toPx(), scrollbarHeight)
+            if (scrollBarState != null) scrollBarState.value =
+                SimpleVerticalScrollbarState(offset, size, alpha)
             drawRect(
                 color = color,
-                topLeft = Offset(this.size.width - width.toPx(), scrollbarOffsetY),
-                size = Size(width.toPx(), scrollbarHeight),
+                topLeft = offset,
+                size = size,
                 alpha = alpha,
             )
         }
     }
 }
+
+data class SimpleVerticalScrollbarState(
+    val topLeft: Offset,
+    val size: Size,
+    val alpha: Float,
+)

@@ -6,15 +6,21 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 
-fun Float.format(numOfDec: Int): String {
-    val integerDigits = this.toInt()
-    val floatDigits = ((this - integerDigits) * 10f.pow(numOfDec)).roundToInt()
-    return "${integerDigits},${floatDigits}"
-}
+fun Float.format(precision: Int = 3, separator: Char = '.') =
+    if (this.isNaN()) "0" else {
+        val n = this.toInt()
+        "$n$separator${
+            abs((this - n) * 10f.pow(precision))
+                .roundToInt().toString()
+                .padStart(precision, '0')
+                .take(precision)
+        }"
+    }
 
 fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
     return fileTransferProgress?.let {
@@ -27,15 +33,15 @@ fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
 fun formatSize(sizeInByte: Long, maxSizeInByte: Long = sizeInByte): String {
     return when {
         maxSizeInByte / 1_000_000_000 >= 1 -> {
-            "${(sizeInByte / 1_000_000_000f).format(1)}GB"
+            "${(sizeInByte / 1_000_000_000f).format(1, ',')}GB"
         }
 
         maxSizeInByte / 1_000_000 >= 1 -> { // MB
-            "${(sizeInByte / 1_000_000f).format(1)}MB"
+            "${(sizeInByte / 1_000_000f).format(1, ',')}MB"
         }
 
         else -> {
-            "${(sizeInByte / 1_000f).format(1)}kB"
+            "${(sizeInByte / 1_000f).format(1, ',')}kB"
         }
     }
 }

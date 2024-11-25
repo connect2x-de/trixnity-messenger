@@ -45,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.CenteredElement
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
@@ -120,6 +123,12 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
                     .background(Color.Cyan),
             ) { Text(it) }
         } ?: reader?.let { pdfReader ->
+            if (pdfReader.pageCount == 0) {
+                CenteredElement {
+                    Text(i18nView.fileOverlayPreviewNotSupported())
+                }
+                return@let
+            }
             val dwidth: Float = pdfReader.documentWidth?.toFloat()
                 ?: return
             val maxDpi = 1f / dwidth * 1800f
@@ -158,11 +167,7 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
                     .fillMaxWidth(),
                 horizontalScroll,
             )
-        } ?: Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize(),
-        ) {
+        } ?: CenteredElement {
             CircularProgressIndicator(Modifier.size(32.dp))
         }
     }
