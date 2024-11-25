@@ -54,6 +54,16 @@ data class MatrixMessengerConfiguration(
 
     var defaultHomeServer: String? = null,
 
+    /**
+     * Whether the [de.connect2x.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
+     *
+     * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel]
+     * and others can be used to manually guide the user through the setup process.
+     *
+     * Default is `true`.
+     */
+    var useAccountSetupWizard: Boolean = true,
+
     override var sendLogsEmailAddress: String? = null,
 
     override var privacyInfoUrl: String? = null,

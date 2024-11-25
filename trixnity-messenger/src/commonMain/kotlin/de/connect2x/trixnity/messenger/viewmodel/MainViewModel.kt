@@ -9,6 +9,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
@@ -426,11 +427,14 @@ open class MainViewModelImpl(
     }
 
     private fun possiblyStartAccountSetup() {
-        coroutineScope.launch {
-            matrixClients.scopedCollectLatest { clients ->
-                clients.forEach {
-                    if (messengerSettings.value.base.accounts[it.key]?.base?.accountSetupFinished == false) {
-                        startAccountSetup(it.key)
+        val matrixMessengerConfiguration = get<MatrixMessengerConfiguration>()
+        if (matrixMessengerConfiguration.useAccountSetupWizard) {
+            coroutineScope.launch {
+                matrixClients.scopedCollectLatest { clients ->
+                    clients.forEach {
+                        if (messengerSettings.value.base.accounts[it.key]?.base?.accountSetupFinished == false) {
+                            startAccountSetup(it.key)
+                        }
                     }
                 }
             }
