@@ -187,6 +187,7 @@ class MatrixClientsImpl(
     }
 
     private suspend fun checkExisting(loginInfo: LoginInfo, baseUrl: Url) {
+        // TODO: This check leads to login issues if account data for this user already exists.
         if (value.containsKey(loginInfo.userId)) {
             log.debug { "account ${loginInfo.userId} already exist -> logout" }
             MatrixClientServerApiClientImpl(

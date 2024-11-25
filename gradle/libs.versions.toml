@@ -33,6 +33,7 @@ skie = "0.9.3" # https://github.com/touchlab/SKIE/releases
 kmmBridge = "1.0.1" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.20" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
+pdfjs = "4.7.76" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.3" # https://pdfbox.apache.org/
 
 # integration tests

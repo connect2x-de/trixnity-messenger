@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for "share to" Intent on Android
 - support for pasting the first file of a fileList into the clipboard
 
+- PDF reader for web
+
 ### Changed
 
 - Upgrade Trixnity to 4.10.0

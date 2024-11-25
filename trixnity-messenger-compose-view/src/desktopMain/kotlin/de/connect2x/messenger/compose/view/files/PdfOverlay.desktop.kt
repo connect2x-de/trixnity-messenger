@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -81,14 +82,20 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
     val lazyListState = rememberLazyListState()
     val horizontalScroll = rememberScrollState()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .onSizeChanged { viewSize = it }
+    Box(Modifier
+        .fillMaxSize()
+        .onSizeChanged { viewSize = it }
     ) {
         val documentData = document?.first
         val renderer = document?.second
-        if (viewSize != IntSize.Zero && documentWidth != null && documentData != null && renderer != null) {
+        if (documentData?.numberOfPages == 0) CenteredElement {
+            Text(i18n.fileOverlayPreviewNotSupported())
+        }
+        else if (viewSize != IntSize.Zero
+            && documentWidth != null
+            && documentData != null
+            && renderer != null
+        ) {
             val dwidth: Float = documentWidth?.toFloat() ?: 1f
             val maxDpi = 1f / dwidth * 64f * 3600f
             val newDpi = (viewSize.width / dwidth * scale / density * 64f).coerceAtMost(maxDpi)
@@ -129,11 +136,7 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
                     }
                 }
             )
-        } else Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize(),
-        ) {
+        } else CenteredElement {
             CircularProgressIndicator(Modifier.size(32.dp))
         }
         HorizontalScrollbar(

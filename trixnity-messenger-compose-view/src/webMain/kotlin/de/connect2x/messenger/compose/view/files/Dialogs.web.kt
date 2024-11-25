@@ -130,19 +130,19 @@ private suspend fun saveStreamToFile(
     // TODO: use web worker where available
     log.debug { "begin download file stream: $fileName" }
     // TODO: resolve the writable as WritableStream<Uint8Array> instead to use existing write util
-    val writeable = fileHandle.createWritable()
+    val writable = fileHandle.createWritable()
     try {
         bytes.collect {
             log.debug { "write ${it.size} bytes for: $fileName" }
-            writeable.write(it)
+            writable.write(it)
         }
         log.debug { "completed download file stream: $fileName" }
-        writeable.close()
+        writable.close()
         return Result.success(Unit)
 
     } catch (e: Exception) {
         log.error(e) { "error downloading file stream: $fileName" }
-        writeable.close()
+        writable.close()
         return Result.failure(e)
     }
 }

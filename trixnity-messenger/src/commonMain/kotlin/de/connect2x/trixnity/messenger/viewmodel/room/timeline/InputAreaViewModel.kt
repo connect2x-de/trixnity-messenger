@@ -371,7 +371,7 @@ open class InputAreaViewModelImpl(
     }
 
     override fun onAttachmentFileSelect(file: FileDescriptor) {
-        log.debug { "selected $file as attachment" }
+        log.debug { "selected as attachment: ${file.fileName} of size: ${file.fileSize}" }
         onShowAttachmentSendView(file)
     }
 
