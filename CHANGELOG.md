@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make Smoketests work on Android
 - Added hook on Android to change the behaviour of the messenger on startup of the Activity
 - Add download button for file overlays
+- Allow configuration to not use the account setup wizard
 
 ### Changed
 
