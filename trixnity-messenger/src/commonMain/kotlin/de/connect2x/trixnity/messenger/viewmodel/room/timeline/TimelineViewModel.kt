@@ -119,7 +119,7 @@ interface TimelineViewModelFactory {
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
         return TimelineViewModelImpl(
@@ -128,7 +128,7 @@ interface TimelineViewModelFactory {
             isBackButtonVisible,
             onShowSettings,
             onBack,
-            onOpenModal,
+            onOpenMedia,
             onOpenMention
         )
     }
@@ -219,7 +219,7 @@ class TimelineViewModelImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
@@ -628,7 +628,7 @@ class TimelineViewModelImpl(
                 onMessageEdited = ::onMessageEdited,
                 onMessageRepliedTo = ::onMessageRepliedTo,
                 onMessageReportTo = ::onShowReportMessageModal,
-                onOpenModal = onOpenModal,
+                onOpenMedia = onOpenMedia,
                 onOpenMention = onOpenMention,
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
@@ -690,7 +690,7 @@ class TimelineViewModelImpl(
                         transactionId = transactionId,
                         showDateAboveFlow = showDateAboveFlow,
                         showChatBubbleEdgeFlow = computeShowChatBubbleEdgeFlow(transactionId),
-                        onOpenModal = onOpenModal,
+                        onOpenMedia = onOpenMedia,
                         onOpenMention = onOpenMention,
                     ).also {
                         outboxElementHolderViewModelCache[transactionId] = it

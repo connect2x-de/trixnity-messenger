@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.files
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
@@ -64,7 +63,7 @@ private fun isPreviewableImage(contentType: ContentType): Boolean {
             contentType.match(ContentType.Image.GIF)
 }
 
-actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
+actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Result<FileDescriptor?> {
     log.debug { "access clipboard" }
     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
 
@@ -128,7 +127,6 @@ actual fun getClipboardFile(fileSystem: FileSystem): Result<FileDescriptor?> {
                             dispose()
                         }
                         val outputStream = ByteArrayOutputStream()
-                        val maxAttachmentSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
                         ImageIO.write(image, "png", outputStream)
                         if (outputStream.size() <= maxAttachmentSize) {
                             val byteArray = outputStream.toByteArray()

@@ -2,14 +2,19 @@ package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -53,11 +57,13 @@ fun VideoOverlay(videoViewModel: VideoViewModel) {
 }
 
 class VideoOverlayViewImpl : VideoOverlayView {
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun create(videoViewModel: VideoViewModel) {
         val i18n = DI.get<I18nView>()
         val video = videoViewModel.video.collectAsState()
         val progress = videoViewModel.progress.collectAsState()
+        val error = videoViewModel.error.collectAsState().value
         val isFocused = IsFocused.current
 
         // we need focus in the box to capture key events
@@ -84,7 +90,7 @@ class VideoOverlayViewImpl : VideoOverlayView {
                 video.value?.let {
                     Box(Modifier.align(Alignment.Center).focusable(false)) {
                         with(LocalDensity.current) {
-                            // FIXME stream video player
+                        // FIXME stream video player
 //                        VideoPlayer(
 //                            this@BoxWithConstraints.maxWidth.toPx(),
 //                            this@BoxWithConstraints.maxHeight.toPx(),
@@ -93,28 +99,53 @@ class VideoOverlayViewImpl : VideoOverlayView {
                         }
                     }
                 }
-                progress.value?.let {
+                //TODO Remove once video playing works
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                ) {
+                    Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
+                    Text(i18n.fileOverlayPreviewNotSupported())
+                }
+                //TODO Uncomment once video playing works
+                /*progress.value?.let {
                     if (video.value == null) {
                         DownloadProgress(it, videoViewModel::cancelMediaDownload)
                     }
                 }
                 if (video.value == null && progress.value == null) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize().padding(32.dp),
+                    ) {
                         Icon(MaterialTheme.messengerIcons.typeVideo, i18n.commonVideo(), Modifier.size(96.dp))
-                        Text(i18n.videoCouldNotBeLoaded())
+                        if (error != null) {
+                            Text(error)
+                        } else Text(i18n.videoCouldNotBeLoaded())
                     }
 
-                }
+                }*/
                 // TODO does not work
                 //  see https://github.com/JetBrains/compose-jb/issues/1087 as a workaround, we need to render buttons in Swing
-                IconButton(
-                    { videoViewModel.closeMedia() },
-                    Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(20.dp)
-                        .buttonPointerModifier()
+                FlowRow(
+                    Modifier.fillMaxWidth().padding(20.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalArrangement = Arrangement.Top
                 ) {
-                    Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
+                    IconButton(
+                        { videoViewModel.downloadMedia() },
+                        Modifier.buttonPointerModifier()
+                    ) {
+                        Icon(Icons.Default.Download, i18n.downloadMessage())
+                    }
+                    IconButton(
+                        { videoViewModel.closeMedia() },
+                        Modifier.buttonPointerModifier()
+                    ) {
+                        Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
+                    }
                 }
             }
         }

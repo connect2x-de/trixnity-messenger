@@ -20,7 +20,6 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
@@ -49,7 +48,7 @@ import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -93,11 +92,9 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
 
     fun setSinglePane(isSinglePane: Boolean)
-    fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    fun openMedia(
+        content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId
     )
 
@@ -161,7 +158,7 @@ open class MainViewModelImpl(
             viewModelContext = viewModelContext,
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
-            onOpenModal = ::openModal,
+            onOpenMedia = ::openMedia,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
         )
@@ -524,58 +521,37 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    override fun openMedia(
+        content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId,
     ) {
-        when (type) {
-            OpenModalType.IMAGE -> coroutineScope.launch {
+        when (content) {
+            is RoomMessageEventContent.FileBased.Image -> coroutineScope.launch {
                 mediaRouter.openImage(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
+                    content,
                     userId,
+                    onDownload
                 )
             }
 
-            OpenModalType.VIDEO -> coroutineScope.launch {
+            is RoomMessageEventContent.FileBased.Video -> coroutineScope.launch {
                 mediaRouter.openVideo(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
+                    content,
                     userId,
+                    onDownload
                 )
             }
 
-            OpenModalType.PDF -> coroutineScope.launch {
-                mediaRouter.openPdf(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
+            is RoomMessageEventContent.FileBased.File -> coroutineScope.launch {
+                when (content.info?.mimeType) {
+                    "application/pdf" -> mediaRouter.openPdf(content, userId, onDownload)
+                    "text/markdown" -> mediaRouter.openMarkdown(content, userId, onDownload)
+                    "text/plain" -> mediaRouter.openText(content, userId, onDownload)
+                }
             }
 
-            OpenModalType.TEXT -> coroutineScope.launch {
-                mediaRouter.openText(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
-            }
-
-            OpenModalType.MARKDOWN -> coroutineScope.launch {
-                mediaRouter.openMarkdown(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
-            }
+            else -> {}
         }
     }
 
@@ -738,11 +714,9 @@ class PreviewMainViewModel : MainViewModel {
         this.isSinglePane.value = isSinglePane
     }
 
-    override fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    override fun openMedia(
+        content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId
     ) {
     }

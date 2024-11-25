@@ -46,7 +46,7 @@ class TimelineRouterImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onRoomBack: () -> Unit,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineRouter {
 
@@ -73,7 +73,7 @@ class TimelineRouterImpl(
                     isBackButtonVisible = isBackButtonVisible,
                     onShowSettings = onShowSettings,
                     onBack = onRoomBack,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     onOpenMention = onOpenMention,
                 )
             )

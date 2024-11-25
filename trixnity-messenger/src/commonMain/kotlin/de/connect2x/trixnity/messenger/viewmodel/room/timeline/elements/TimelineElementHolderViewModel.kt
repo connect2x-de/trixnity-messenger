@@ -4,7 +4,7 @@ import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -90,7 +90,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageEdited: (EventId) -> Unit,
         onMessageRepliedTo: (EventId) -> Unit,
         onMessageReportTo: (EventId) -> Unit,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
@@ -108,7 +108,7 @@ interface TimelineElementHolderViewModelFactory {
             shouldShowUnreadMarkerFlow,
             onMessageEdited,
             onMessageRepliedTo,
-            onOpenModal = onOpenModal,
+            onOpenMedia = onOpenMedia,
             onMessageReportTo = onMessageReportTo,
             onOpenMention = onOpenMention,
         )
@@ -178,7 +178,7 @@ open class TimelineElementHolderViewModelImpl(
     private val onMessageEdited: (EventId) -> Unit,
     private val onMessageRepliedTo: (EventId) -> Unit,
     private val onMessageReportTo: (EventId) -> Unit,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineElementRules = get<TimelineElementRules>()
@@ -322,7 +322,7 @@ open class TimelineElementHolderViewModelImpl(
                 sender,
                 invitation,
                 isDirect,
-                onOpenModal,
+                onOpenMedia,
                 onOpenMention,
             ).also {
                 subViewModelCache.value = keyFn(timelineEvent, content) to it

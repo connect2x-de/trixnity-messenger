@@ -1039,7 +1039,7 @@ class TimelineViewModelTest : ShouldSpec() {
             isBackButtonVisible = MutableStateFlow(false),
             onShowSettings = mock(),
             onBack = onBackMock,
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onOpenMention = mock(),
         )
     }

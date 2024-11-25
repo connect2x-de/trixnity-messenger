@@ -715,6 +715,11 @@ abstract class I18nView(
         DE - "Video konnte nicht geladen werden."
     }
 
+    fun fileCouldNotBeLoaded() = translate {
+        EN - "File could not be loaded."
+        DE - "Datei konnte nicht geladen werden."
+    }
+
     fun addMembers() = translate {
         EN - "add members"
         DE - "Teilnehmer hinzufügen"
@@ -1951,8 +1956,8 @@ abstract class I18nView(
     }
 
     fun fileOverlayPreviewNotSupported() = translate {
-        EN - "File preview not supported"
-        DE - "Datei-Vorschau nicht verfügbar"
+        EN - "File preview not supported. Please download the file instead."
+        DE - "Datei-Vorschau nicht verfügbar. Bitte laden Sie die Datei stattdessen herunter."
     }
 
     fun fileOverlayPdfPageDescriptor(pageId: Int) = translate {
