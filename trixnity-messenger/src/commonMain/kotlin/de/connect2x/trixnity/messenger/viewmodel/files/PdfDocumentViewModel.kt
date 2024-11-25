@@ -2,34 +2,29 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 
 import MediaViewModel
 import MediaViewModelImpl
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
-import org.koin.core.component.get
+import net.folivo.trixnity.utils.toByteArray
 
 
 interface PdfDocumentViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+        content: RoomMessageEventContent.FileBased.File,
         onCloseDocument: () -> Unit,
+        onDownload: () -> Unit,
     ): PdfDocumentViewModel = PdfDocumentViewModelImpl(
         viewModelContext,
-        mxcUrl,
-        encryptedFile,
-        fileName,
+        content,
         onCloseDocument,
+        onDownload
     )
 
     companion object : PdfDocumentViewModelFactory
@@ -42,23 +37,19 @@ interface PdfDocumentViewModel : MediaViewModel {
 
 open class PdfDocumentViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    mxcUrl: String,
-    encryptedFile: EncryptedFile?,
-    override val fileName: String,
+    val content: RoomMessageEventContent.FileBased.File,
     override val onCloseMedia: () -> Unit,
+    onDownload: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
-    mxcUrl,
-    encryptedFile,
-    fileName,
-    OpenModalType.PDF,
+    content,
+    OpenMediaType.PDF,
     onCloseMedia,
+    onDownload
 ), PdfDocumentViewModel {
-    private val i18n = get<I18n>()
     override val documentFlow = mediaDataFlow
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val document = mediaDataFlow.map {
-        it?.limitedByteArrayOrNull(maxPreviewSize) { error.value = i18n.mediaTooLargeForPreview() }
+        it?.toByteArray()
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 }
 
@@ -69,8 +60,10 @@ class PreviewPdfDocumentViewModel : PdfDocumentViewModel {
     override val document = MutableStateFlow(null) // TODO: document data
     override val error = MutableStateFlow<String?>(null)
     override val progress = MutableStateFlow(null)
-    override val mediaType = OpenModalType.TEXT
+    override val mediaType = OpenMediaType.PDF
     override val fileName = "document.pdf"
+    override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
+    override fun downloadMedia() {}
 }

@@ -2,34 +2,29 @@ package de.connect2x.trixnity.messenger.viewmodel.files
 
 import MediaViewModel
 import MediaViewModelImpl
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import org.koin.core.component.get
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.utils.toByteArray
 
 
 interface ImageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+        content: RoomMessageEventContent.FileBased.Image,
         onCloseImage: () -> Unit,
+        onDownload: () -> Unit,
     ): ImageViewModel = ImageViewModelImpl(
         viewModelContext,
-        mxcUrl,
-        encryptedFile,
-        fileName,
+        content,
         onCloseImage,
+        onDownload
     )
 
     companion object : ImageViewModelFactory
@@ -41,35 +36,30 @@ interface ImageViewModel : MediaViewModel {
 
 open class ImageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    mxcUrl: String,
-    encryptedFile: EncryptedFile?,
-    override val fileName: String,
+    content: RoomMessageEventContent.FileBased.Image,
     override val onCloseMedia: () -> Unit,
+    onDownload: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
-    mxcUrl,
-    encryptedFile,
-    fileName,
-    OpenModalType.IMAGE,
+    content,
+    OpenMediaType.IMAGE,
     onCloseMedia,
+    onDownload
 ), ImageViewModel {
-    private val i18n = get<I18n>()
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val image = mediaDataFlow.map {
-        it?.limitedByteArrayOrNull(maxPreviewSize) {
-            error.value = i18n.mediaTooLargeForPreview()
-        }
-    }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val image =
+        mediaDataFlow.map { it?.toByteArray() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }
 
 class PreviewImageViewModel : ImageViewModel {
     override val onCloseMedia: () -> Unit = {}
     override val mediaDataFlow = MutableStateFlow(null)
-    override val mediaType = OpenModalType.IMAGE
+    override val mediaType = OpenMediaType.IMAGE
     override val image = MutableStateFlow(previewImageByteArray())
     override val error = MutableStateFlow<String?>(null)
     override val progress = MutableStateFlow(null)
     override val fileName = "image.png"
+    override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
+    override fun downloadMedia() {}
 }

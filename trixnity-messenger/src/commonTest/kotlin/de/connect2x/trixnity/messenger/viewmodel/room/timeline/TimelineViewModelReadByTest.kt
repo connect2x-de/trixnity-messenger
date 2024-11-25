@@ -441,7 +441,7 @@ class TimelineViewModelReadByTest : ShouldSpec() {
             selectedRoomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
             onBack = mock(),
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             onShowSettings = mock(),
             onOpenMention = mock(),
         )

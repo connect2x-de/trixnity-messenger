@@ -1,14 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.EventInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +28,6 @@ import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import org.koin.core.Koin
 import org.koin.core.component.get
 import net.folivo.trixnity.core.model.Mention as CoreMention
 

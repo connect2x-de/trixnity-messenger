@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -54,7 +54,7 @@ interface TimelineEventSubViewmodelFactory {
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         isDirect: StateFlow<Boolean>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): Flow<BaseTimelineElementViewModel>
 }
@@ -70,7 +70,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         isDirect: StateFlow<Boolean>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): Flow<BaseTimelineElementViewModel> {
         val timelineElementHolderViewModelHelper = TimelineElementHolderViewModelHelper(viewModelContext.get())
@@ -105,7 +105,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                         showChatBubbleEdge,
                         invitation,
                         onOpenMention,
-                        onOpenModal,
+                        onOpenMedia,
                     )
 
                     is RedactedEventContent -> {
@@ -292,7 +292,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         showChatBubbleEdge: Boolean,
         invitation: Flow<String?>,
         onOpenMention: OpenMentionCallback,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
     ): TimelineElementWithTimestampViewModel {
         val richRepliesComputations = viewModelContext.get<RichRepliesComputations>()
 
@@ -404,7 +404,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showSender = showSender,
                     sender = sender,
                     invitation = invitation,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     mediaUploadProgress = MutableStateFlow(null),
                 )
             }
@@ -424,7 +424,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showSender = showSender,
                     sender = sender,
                     invitation = invitation,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     mediaUploadProgress = MutableStateFlow(null)
                 )
             }
@@ -444,7 +444,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     mediaUploadProgress = MutableStateFlow(null)
                 )
             }
@@ -465,7 +465,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     sender = sender,
                     invitation = invitation,
                     mediaUploadProgress = MutableStateFlow(null),
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                 )
             }
 

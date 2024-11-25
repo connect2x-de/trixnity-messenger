@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.sharing
 
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.getImageDimensions
@@ -75,6 +76,7 @@ class ShareFilesViewModelImpl(
         onAccountSelected = { },
     )
 
+    private val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override fun send() {
         val selectedAccount =
             messengerSettings.value.base.selectedAccount ?: return log.warn { "selectedAccount is null" }
@@ -87,13 +89,17 @@ class ShareFilesViewModelImpl(
                     when {
                         file.mimeType?.match("image/*") == true -> {
                             log.debug { "send an image to ${roomId.full}" }
-                            val (width, height) = getImageDimensions(file.content)
+                            val size = file.fileSize
+                            val (width, height) = if (size == null || size <= maxMediaSize) getImageDimensions(
+                                file.content,
+                                maxMediaSize
+                            ) else Pair(null, null)
                             image(
                                 body = file.fileName,
                                 fileName = file.fileName,
                                 image = file.content,
                                 type = file.mimeType,
-                                size = file.fileSize,
+                                size = size,
                                 width = width,
                                 height = height,
                             )

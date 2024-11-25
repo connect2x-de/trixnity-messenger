@@ -149,13 +149,18 @@ class SendAttachmentViewModelImpl(
                     when {
                         isImage ?: false -> {
                             log.debug { "send an image" }
-                            val (width, height) = getImageDimensions(byteArrayFlow)
+                            val size = file.fileSize
+                            val (width, height) = if (size == null || size <= messengerConfiguration.maxMediaSizeInMemory)
+                                getImageDimensions(
+                                    byteArrayFlow,
+                                    messengerConfiguration.maxMediaSizeInMemory
+                                ) else Pair(null, null)
                             image(
                                 body = file.fileName,
                                 fileName = file.fileName,
                                 image = byteArrayFlow,
                                 type = file.mimeType,
-                                size = file.fileSize,
+                                size = size,
                                 width = width,
                                 height = height,
                             )

@@ -479,7 +479,8 @@ fun MessageVideo(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                thumbnail.value?.let { imageBitmapFromBytes(it) }?.let {
+                //Uncomment this once video thumbnails are supported
+                /*thumbnail.value?.let { imageBitmapFromBytes(it) }?.let {
                     Image(
                         it,
                         "",
@@ -491,7 +492,7 @@ fun MessageVideo(
                             .buttonPointerModifier(),
                         contentScale = ContentScale.FillBounds
                     )
-                } ?: run {
+                } ?: */run {
                     Icon(
                         MaterialTheme.messengerIcons.typeVideo,
                         i18n.commonVideo(),

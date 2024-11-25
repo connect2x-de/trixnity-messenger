@@ -12,10 +12,12 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +39,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
 import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.utils.toByteArray
 import javax.sound.sampled.AudioSystem
 
 private val log = KotlinLogging.logger { }
@@ -48,12 +49,13 @@ fun Notifications(
     trayState: TrayState,
 ) {
     val i18n = DI.get<I18nView>()
+    val maxAvatarSize = DI.get<MatrixMessengerConfiguration>().avatarMaxSize
 
     val windowIsFocused = IsFocused.current
     LaunchedEffect(windowIsFocused) {
         withContext(Dispatchers.Default) {
             val roomNameComputation = matrixMessenger.di.get<RoomName>()
-            whenSyncIsRunning(matrixMessenger, windowIsFocused, roomNameComputation, trayState, i18n)
+            whenSyncIsRunning(matrixMessenger, windowIsFocused, roomNameComputation, trayState, i18n, maxAvatarSize)
         }
     }
 }
@@ -63,7 +65,8 @@ private suspend fun whenSyncIsRunning(
     windowIsFocused: Boolean,
     roomNameComputation: RoomName,
     trayState: TrayState,
-    i18n: I18nView
+    i18n: I18nView,
+    maxAvatarSize: Long
 ) {
     val settings = matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
     matrixMessenger.di.get<MatrixClients>().scopedCollectLatest { matrixClients ->
@@ -98,7 +101,8 @@ private suspend fun whenSyncIsRunning(
                                 notification.event.content,
                                 isDirect,
                                 roomName,
-                                i18n
+                                i18n,
+                                maxAvatarSize
                             )?.let { trayState.sendNotification(it) }
                         }
                     }
@@ -115,7 +119,8 @@ private suspend fun displayNotification(
     content: EventContent, // possibly decrypted
     isDirect: Boolean,
     roomName: String,
-    i18n: I18nView
+    i18n: I18nView,
+    maxAvatarSize: Long
 ): Notification? {
     event.roomIdOrNull?.let { roomId ->
         val message = when {
@@ -130,9 +135,9 @@ private suspend fun displayNotification(
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                }?.map { it.toByteArray() }
+                }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }
                     ?.map { bytes ->
-                        imageBitmapFromBytes(bytes)
+                        bytes?.let { it -> imageBitmapFromBytes(it) }
                     }?.getOrNull()
                 user?.name to image
             } ?: (null to null)
