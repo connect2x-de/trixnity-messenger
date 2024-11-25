@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix RoomElement using wrong DI context
 - Fix crash when notification sound is unavailable
 - Fix nightly pipeline missing job dependency
+- Fix problem with login when an IOException has been thrown
 - Fix crash when opening file picker on linux distribution
 
 ### Security
