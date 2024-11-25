@@ -100,7 +100,7 @@ class SelfVerificationRouter(
     /** @see startSelfVerificationsQueue() **/
     fun showSelfVerification(userId: UserId) {
         log.debug { "add account to self verification queue: $userId" }
-        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished } && messengerConfiguration.useAccountSetupWizard) {
+        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished }) {
             log.debug { "At least one account isn't set up with the wizard, not showing self verification for $userId" }
         } else if (bootstrapStarted.value) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
