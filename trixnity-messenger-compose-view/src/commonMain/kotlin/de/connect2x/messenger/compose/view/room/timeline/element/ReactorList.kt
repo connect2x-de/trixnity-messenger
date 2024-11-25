@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.common
+package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
@@ -30,7 +32,10 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ReactorList(
     focusRequester: FocusRequester,
@@ -38,7 +43,8 @@ fun ReactorList(
 ) {
     val i18n = DI.get<I18nView>()
     val reactions = reactors.toList()
-    val reactionCounts = listOf(i18n.commonAll() to reactors.values.flatten().size) + reactions.map { it.first to it.second.size }
+    val reactionCounts =
+        listOf(i18n.commonAll() to reactors.values.flatten().size) + reactions.map { it.first to it.second.size }
     var selectedReaction by remember {
         mutableStateOf(0)
     }
@@ -65,22 +71,27 @@ fun ReactorList(
             }
         }
         HorizontalDivider()
-        if (selectedReaction == 0) {
-            reactions.map { (reaction, users) ->
-                users.map { user -> reaction to user }
-            }.flatten()
-        } else {
-            reactions[selectedReaction - 1].let { (reaction, users) ->
-                users.map { user -> reaction to user }
+        LazyColumn {
+            items(
+                if (selectedReaction == 0) {
+                    reactions.map { (reaction, users) ->
+                        users.map { user -> reaction to user }
+                    }.flatten()
+                } else {
+                    reactions[selectedReaction - 1].let { (reaction, users) ->
+                        users.map { user -> reaction to user }
+                    }
+                },
+                { Uuid.random().toString() },
+            ) { (reaction, user) ->
+                ReactorListElement(reaction, user)
             }
-        }.forEach { (reaction, user) ->
-            ReactorListElement(user, reaction)
         }
     }
 }
 
 @Composable
-fun ReactorListElement(user: UserInfoElement, reaction: String?) {
+fun ReactorListElement(reaction: String?, user: UserInfoElement) {
     Row(
         Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
