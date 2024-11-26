@@ -26,7 +26,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElement
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.SpaceViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -749,9 +748,6 @@ class MainViewModelTest : ShouldSpec() {
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-                                        override val spaces: StateFlow<List<SpaceViewModel>> = MutableStateFlow(
-                                            emptyList()
-                                        )
                                         override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
                                             MutableStateFlow(true)
                                         override val unverifiedAccounts: StateFlow<List<UserId>> =

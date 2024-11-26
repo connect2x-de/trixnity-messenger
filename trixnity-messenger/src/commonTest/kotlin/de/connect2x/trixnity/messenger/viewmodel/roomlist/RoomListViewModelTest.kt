@@ -819,58 +819,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("consider all spaces") {
-            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
-            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
-            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(room1),
-                    spaceId1 to MutableStateFlow(space1),
-                    spaceId2 to MutableStateFlow(space2),
-                )
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
-            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-            every { roomServiceMock.getState(spaceId1, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.spaces.value shouldHaveSize 2
-            cut.spaces.value[0].name shouldBe "space and beyond"
-            cut.spaces.value[1].name shouldBe "space and beyond and beyonder"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("only show rooms, spaces and direct chats of selected account") {
+        should("only show rooms and direct chats of selected account") {
             val roomId21 = RoomId("room21", "localhost") // direct room
             val roomId22 = RoomId("room22", "localhost") // group
             val roomId23 = RoomId("room23", "localhost") // group
@@ -1085,10 +1034,6 @@ class RoomListViewModelTest : ShouldSpec() {
                 println("(2) ... ${it.map { it.roomId }}")
                 it.size == 3
             }
-            cut.spaces.first {
-                println("spaces... ${it.map { it.roomId }}")
-                it.size == 1
-            }
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -1178,7 +1123,6 @@ class RoomListViewModelTest : ShouldSpec() {
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
         launch { cut.searchTerm.collect() }
-        launch { cut.spaces.collect() }
     }
 
     private suspend fun roomListViewModel(

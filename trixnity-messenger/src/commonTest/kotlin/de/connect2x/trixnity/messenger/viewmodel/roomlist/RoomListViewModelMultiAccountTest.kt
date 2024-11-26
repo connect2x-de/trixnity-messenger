@@ -743,65 +743,6 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("consider all spaces") {
-            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
-            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
-            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            every { roomServiceMock1.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(room1),
-                    spaceId1 to MutableStateFlow(space1),
-                )
-            )
-            every { roomServiceMock2.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId3 to MutableStateFlow(room3),
-                    spaceId2 to MutableStateFlow(space2),
-                )
-            )
-            every { roomServiceMock3.getAll() } returns MutableStateFlow(emptyMap())
-            every { roomServiceMock1.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock1.getById(spaceId1) } returns MutableStateFlow(space1)
-            every { roomServiceMock2.getById(roomId3) } returns MutableStateFlow(room3)
-            every { roomServiceMock2.getById(spaceId2) } returns MutableStateFlow(space2)
-            every { roomServiceMock1.getState(spaceId1, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = me1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-            every { roomServiceMock2.getState(spaceId2, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = me2,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.spaces.value shouldHaveSize 2
-            cut.spaces.value[0].name shouldBe "space and beyond"
-            cut.spaces.value[1].name shouldBe "space and beyond and beyonder"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
         should("react to changes of accounts") {
             val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
             val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
@@ -848,7 +789,6 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
         launch { cut.searchTerm.collect() }
-        launch { cut.spaces.collect() }
     }
 
     private suspend fun roomListViewModel(coroutineContext: CoroutineContext): RoomListViewModelImpl {

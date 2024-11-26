@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
@@ -12,9 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,7 +42,6 @@ import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
@@ -105,8 +101,6 @@ interface RoomListViewModel {
 
     val showSearch: MutableStateFlow<Boolean>
     val searchTerm: MutableStateFlow<String>
-
-    val spaces: StateFlow<List<SpaceViewModel>>
 
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
@@ -170,8 +164,6 @@ class RoomListViewModelImpl(
 
     override val showSearch = MutableStateFlow(false)
     override val searchTerm = MutableStateFlow("")
-
-    override val spaces: StateFlow<List<SpaceViewModel>>
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
@@ -342,50 +334,6 @@ class RoomListViewModelImpl(
                     }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
-        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
-
-        spaces = allRoomsFlow.flatMapLatest { allRooms ->
-            combine( // TODO This is a heavy operation: SpaceViewModel should calculate room name.
-                allRooms.values.asFlow()
-                    .filter { (room, _) ->
-                        val isSpace = room.createEventContent?.type == RoomType.Space
-                        isSpace && (room.membership == Membership.INVITE || room.membership == Membership.JOIN)
-                    }.map { (space, matrixClient) ->
-                        roomName.getRoomName(space, matrixClient)
-                            .map { roomName ->
-                                val isInvite = space.membership == Membership.INVITE
-                                val spaceImage = if (isInvite) {
-                                    null
-                                } else {
-                                    space.avatarUrl?.let { avatarUrl ->
-                                        matrixClient.media
-                                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                                            .fold(
-                                                onSuccess = {
-                                                    it.limitedByteArrayOrNull(maxAvatarSize) {
-                                                        log.error { "Space avatar for ${space.roomId} exceeds max preview size, so it's not displayed" }
-                                                    }
-                                                },
-                                                onFailure = {
-                                                    log.error(it) { "Cannot load avatar of the space ${space.roomId}." }
-                                                    null
-                                                }
-                                            )
-                                    }
-                                }
-                                SpaceViewModel(
-                                    space.roomId,
-                                    roomName,
-                                    spaceImage,
-                                    initials.compute(roomName),
-                                )
-                            }
-                    }.toList()
-            ) { spaces ->
-                spaces.toList()
-            }
-        }.stateIn(coroutineScope, WhileSubscribed(), listOf())
-
         syncState = matrixClients.flatMapLatest { matrixClients ->
             combine(matrixClients.map { (userId, matrixClient) ->
                 matrixClient.syncState.map { userId to it }
@@ -425,7 +373,7 @@ class RoomListViewModelImpl(
         // Handle room navigation requests through the timmy://localhost/room/<ID> scheme.
         coroutineScope.launch {
             get<UrlHandler>().collect {
-                val segments = it.pathSegments // TODO use rawSegments
+                val segments = it.rawSegments
                 if (segments.size < 3 || segments[1] != "room") return@collect
                 selectRoom(RoomId(segments[2]))
             }
@@ -538,7 +486,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-    override val spaces: MutableStateFlow<List<SpaceViewModel>> = MutableStateFlow(listOf())
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())
