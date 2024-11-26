@@ -9,9 +9,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
@@ -30,6 +32,7 @@ interface RoomSettingsViewModelFactory {
         onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        onShowUserProfile: (RoomUser) -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
@@ -39,6 +42,7 @@ interface RoomSettingsViewModelFactory {
             onCloseRoomSettings = onCloseRoomSettings,
             onBack = onBack,
             onOpenAvatarCutter = onOpenAvatarCutter,
+            onOpenUserProfile = onShowUserProfile,
         )
     }
 
@@ -71,6 +75,7 @@ interface RoomSettingsViewModel {
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
     fun close()
+    fun showUserProfile(userId: UserId)
 }
 
 class RoomSettingsViewModelImpl(
@@ -81,6 +86,7 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val onOpenUserProfile: (RoomUser) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -146,7 +152,9 @@ class RoomSettingsViewModelImpl(
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
-            selectedRoomId = selectedRoomId, error = error
+            selectedRoomId = selectedRoomId,
+            error = error,
+            onShowUserProfile = ::showUserProfile
         )
 
     override val hasPowerToInvite: StateFlow<Boolean> =
@@ -215,6 +223,14 @@ class RoomSettingsViewModelImpl(
     override fun openExportRoomView() {
         onShowExportRoom()
     }
+
+    override fun showUserProfile(userId: UserId) {
+        coroutineScope.launch {
+            matrixClient.user.getById(selectedRoomId, userId).firstOrNull()?.let {
+                onOpenUserProfile(it)
+            }
+        }
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
@@ -258,5 +274,8 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     }
 
     override fun close() {
+    }
+
+    override fun showUserProfile(userId: UserId) {
     }
 }

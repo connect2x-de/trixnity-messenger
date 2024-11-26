@@ -64,7 +64,7 @@ class RoomViewImpl : RoomView {
                         )
                     }
                     Box(modifier = Modifier.weight(if (isSinglePane) 1F else SETTINGS_WEIGHT)) {
-                        RoomSettingsSwitch(roomViewModel.settingsStack, isSinglePane)
+                        RoomSettingsSwitch(roomViewModel.widgetStack, isSinglePane)
                     }
                 }
             }

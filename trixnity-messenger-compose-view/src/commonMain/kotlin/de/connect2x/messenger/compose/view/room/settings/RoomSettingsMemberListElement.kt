@@ -1,35 +1,18 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,20 +20,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MessengerDialog
 import de.connect2x.messenger.compose.view.common.UserState
-import de.connect2x.messenger.compose.view.common.WarningDialog
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
@@ -60,7 +36,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListElementView {
     @Composable
@@ -68,7 +43,7 @@ interface RoomSettingsMemberListElementView {
         memberListViewModel: MemberListViewModel,
         memberUserId: UserId,
         memberListElementViewModel: MemberListElementViewModel,
-        clickedUser: MutableState<MemberListElementViewModel.MemberElement?>,
+        onClick: () -> Unit,
     )
 }
 
@@ -77,10 +52,10 @@ fun RoomSettingsMemberListElement(
     memberListViewModel: MemberListViewModel,
     memberUserId: UserId,
     memberListElementViewModel: MemberListElementViewModel,
-    clickedUser: MutableState<MemberListElementViewModel.MemberElement?>,
+    onClick: () -> Unit,
 ) {
     DI.get<RoomSettingsMemberListElementView>()
-        .create(memberListViewModel, memberUserId, memberListElementViewModel, clickedUser)
+        .create(memberListViewModel, memberUserId, memberListElementViewModel, onClick)
 }
 
 class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView {
@@ -89,11 +64,11 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         memberListViewModel: MemberListViewModel,
         memberUserId: UserId,
         memberListElementViewModel: MemberListElementViewModel,
-        clickedUser: MutableState<MemberListElementViewModel.MemberElement?>,
+        onClick: () -> Unit,
     ) {
         val i18n = DI.get<I18nView>()
         val memberElement = memberListElementViewModel.member.collectAsState().value
-        val memberOptionsOpen = memberListElementViewModel.memberOptionsOpen.collectAsState().value
+        // val memberOptionsOpen = memberListElementViewModel.memberOptionsOpen.collectAsState().value
         val role = memberListElementViewModel.role.collectAsState().value
         val powerLevel = memberListElementViewModel.powerLevel.collectAsState().value
         val showPowerLevel = memberListElementViewModel.showPowerLevel.collectAsState().value
@@ -102,14 +77,14 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
             memberListViewModel.memberListElementViewModels.collectAsState().value.lastOrNull()?.first == memberListElementViewModel.userId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val membership = memberListElementViewModel.membership.collectAsState().value
-        val membershipReason = memberListElementViewModel.membershipReason.collectAsState().value
+        // val membershipReason = memberListElementViewModel.membershipReason.collectAsState().value
         var bannedMemberReasonOpen by remember { mutableStateOf(false) }
 
         Box(
             Modifier
                 .fillMaxWidth()
                 .clickable {
-                    clickedUser.value = memberElement; memberListElementViewModel.openMemberOptions()
+                    memberListElementViewModel.showUserProfile()
                 }
                 .buttonPointerModifier()) {
 
@@ -143,17 +118,14 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 maxLines = 1
                             )
                         }
-                        if (!membershipReason.isNullOrBlank() && membership == Membership.BAN) {
+                        /*if (!membershipReason.isNullOrBlank() && membership == Membership.BAN) {
                             Icon(
                                 if (bannedMemberReasonOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                 if (bannedMemberReasonOpen) i18n.commonCollapse() else i18n.commonExpand(),
                                 Modifier.clickable { bannedMemberReasonOpen = !bannedMemberReasonOpen }
                             )
-                        }
+                        }*/
                     }
-                }
-                if (memberElement != null && memberOptionsOpen && memberElement == clickedUser.value) {
-                    MemberOptions(memberListElementViewModel, memberUserId, clickedUser)
                 }
                 if (bannedMemberReasonOpen) {
                     Column(
@@ -163,9 +135,9 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 bannedMemberReasonOpen = false
                             }
                     ) {
-                        membershipReason?.let {
+                        /*membershipReason?.let {
                             Text(it)
-                        }
+                        }*/
                     }
                 }
                 if (isLastMember.not()) {
@@ -175,7 +147,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         }
     }
 }
-
+/*
 @Composable
 fun ChangingRoleWarning(memberListElementViewModel: MemberListElementViewModel, role: Role) {
     val i18n = DI.get<I18nView>()
@@ -570,6 +542,7 @@ fun UnbanUserWarning(
         }
     )
 }
+*/
 
 private fun getRoleName(role: Role, i18n: I18nView): String {
     return when (role) {

@@ -117,6 +117,7 @@ open class MainViewModelImpl(
     override val isBackButtonVisible = MutableStateFlow(true)
     override val isSinglePane = MutableStateFlow(false)
     override val showRoom = MutableStateFlow(false)
+    private val showedUserId: MutableStateFlow<UserId?> = MutableStateFlow(null)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
@@ -152,6 +153,7 @@ open class MainViewModelImpl(
         RoomRouterImpl(
             viewModelContext = viewModelContext,
             isBackButtonVisible = isBackButtonVisible,
+            showedUserId = showedUserId,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenModal = ::openModal,
             onOpenMention = ::openMention,
@@ -537,7 +539,7 @@ open class MainViewModelImpl(
         when (messageMention) {
             is MessageMention.User -> {
                 val user = messageMention.user.userId
-                // TODO: implement and open user view (profile)
+                showedUserId.value = messageMention.user.userId
                 log.warn { "UserView to display $user not implemented yet" }
             }
 

@@ -19,6 +19,7 @@ fun RoomSettingsSwitch(
         animation = stackAnimation(fade())
     ) {
         when (val child = it.instance) {
+            is SettingsRouter.Wrapper.ViewProfile -> RoomUserProfileContainer(child.viewModel)
             is SettingsRouter.Wrapper.View -> RoomSettingsContainer(child.viewModel, isTwoPane)
             is SettingsRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is SettingsRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)

@@ -15,8 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -28,9 +26,9 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListView {
@@ -75,14 +73,16 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 }
             }
         }
-        MemberList(memberListViewModel)
+        MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.showUserProfile(it) })
     }
 }
 
 @Composable
-fun MemberList(memberListViewModel: MemberListViewModel) {
+fun MemberList(
+    memberListViewModel: MemberListViewModel,
+    onClickUser: (UserId) -> Unit,
+) {
     val members = memberListViewModel.memberListElementViewModels.collectAsState().value
-    val clickedUser = remember { mutableStateOf<MemberListElementViewModel.MemberElement?>(null) }
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
@@ -94,7 +94,9 @@ fun MemberList(memberListViewModel: MemberListViewModel) {
                         memberListViewModel,
                         userId,
                         memberListElementViewModel,
-                        clickedUser,
+                        onClick = {
+                            onClickUser(userId)
+                        },
                     )
                 }
             }

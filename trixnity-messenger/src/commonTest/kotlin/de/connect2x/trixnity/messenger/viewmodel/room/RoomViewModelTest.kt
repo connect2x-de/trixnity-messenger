@@ -226,7 +226,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                        cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                     }
                 }
                 should("show room list in multi-pane view") {
@@ -238,7 +238,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                        cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
                     }
                 }
             }
@@ -256,7 +256,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                        cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                     }
                 }
 
@@ -273,7 +273,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                        cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
                     }
                 }
             }
@@ -289,7 +289,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
             }
         }
 
@@ -304,7 +304,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
             }
         }
 
@@ -319,7 +319,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
             }
         }
 
@@ -334,7 +334,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
             }
         }
     }
@@ -343,7 +343,7 @@ class RoomViewModelTest : ShouldSpec() {
         testCoroutineScheduler.advanceUntilIdle()
         assertSoftly {
             cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+            cut.widgetStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
         }
     }
 
@@ -420,6 +420,7 @@ class RoomViewModelTest : ShouldSpec() {
             isBackButtonVisible = MutableStateFlow(false),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),
+            showedUserId = MutableStateFlow(null)
         )
         return roomViewModel
     }

@@ -1,16 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
@@ -26,14 +23,16 @@ import org.koin.core.component.get
 
 interface MemberListViewModelFactory {
     fun create(
-        viewModelContext: MatrixClientViewModelContext,
-        selectedRoomId: RoomId,
-        error: MutableStateFlow<String?>
-    ): MemberListViewModel {
+            viewModelContext: MatrixClientViewModelContext,
+            selectedRoomId: RoomId,
+            error: MutableStateFlow<String?>,
+            onShowUserProfile: (UserId) -> Unit,
+        ): MemberListViewModel {
         return MemberListViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
-            error = error
+            error = error,
+            onShowUserProfile = onShowUserProfile
         )
     }
 
@@ -51,6 +50,7 @@ open class MemberListViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     override val error: MutableStateFlow<String?>,
+    private val onShowUserProfile: (UserId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, MemberListViewModel {
 
     override val showLoadingSpinner = matrixClient.room.getById(selectedRoomId).map {
@@ -79,8 +79,8 @@ open class MemberListViewModelImpl(
                             .create(
                                 viewModelContext = childContext("memberListElement-${roomUser.userId.full}"),
                                 roomUser,
-                                error = error,
                                 selectedRoomId = selectedRoomId,
+                                onShowUserProfile = onShowUserProfile
                             )
                     }
                     Pair(userId, memberListElementViewModel)

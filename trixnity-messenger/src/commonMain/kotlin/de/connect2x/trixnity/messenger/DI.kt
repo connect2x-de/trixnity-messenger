@@ -58,6 +58,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotif
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
@@ -366,6 +367,7 @@ private fun roomViewModels() = module {
 
 private fun roomSettingsViewModels() = module {
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
+    single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
     single<ChangePowerLevelViewModelFactory> { ChangePowerLevelViewModelFactory }
     single<ChangeRoomAvatarViewModelFactory> { ChangeRoomAvatarViewModelFactory }
     single<MemberListElementViewModelFactory> { MemberListElementViewModelFactory }
