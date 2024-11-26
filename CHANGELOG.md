@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix nightly pipeline missing job dependency
 - Fix problem with login when an IOException has been thrown
 - Fix crash when opening file picker on linux distribution
+- Fix Cannot delete database when corrupted
 
 ### Security
 
