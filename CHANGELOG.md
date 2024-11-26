@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix problem with login when an IOException has been thrown
 - Fix crash when opening file picker on linux distribution
 - Fix Cannot delete database when corrupted
+- Fix server discovery fallback hiding server discovery errors
 
 ### Security
 
