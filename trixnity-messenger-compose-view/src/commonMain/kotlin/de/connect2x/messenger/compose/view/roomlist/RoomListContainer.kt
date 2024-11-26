@@ -16,7 +16,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.header.AccountData
 import de.connect2x.messenger.compose.view.roomlist.header.NotVerifiedBanner
 import de.connect2x.messenger.compose.view.roomlist.header.SearchRoomsBanner
-import de.connect2x.messenger.compose.view.roomlist.header.SpacesBanner
 import de.connect2x.messenger.compose.view.roomlist.header.SyncErrorBanner
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
@@ -51,7 +50,6 @@ class RoomListContainerViewImpl : RoomListContainerView {
                 NotVerifiedBanner(roomListViewModel)
                 SyncErrorBanner(roomListViewModel)
                 SearchRoomsBanner(roomListViewModel)
-                SpacesBanner(roomListViewModel)
                 RoomList(roomListViewModel)
             }
         }

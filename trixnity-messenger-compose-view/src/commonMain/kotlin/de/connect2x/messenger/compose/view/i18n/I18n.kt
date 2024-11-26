@@ -13,6 +13,7 @@ import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
+
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
@@ -1129,16 +1130,6 @@ abstract class I18nView(
         DE - "Alle Konten"
     }
 
-    fun accountDeactivateFilter() = translate {
-        EN - "deactivate filter"
-        DE - "Filter deaktivieren"
-    }
-
-    fun accountSelectFilter() = translate {
-        EN - "select filter"
-        DE - "Filter auswählen"
-    }
-
     fun accountDeactivateSearch() = translate {
         EN - "deactivate search"
         DE - "Suche ausschalten"
@@ -1237,11 +1228,6 @@ abstract class I18nView(
     fun roomListCreateRoom() = translate {
         EN - "Create a new chat or group"
         DE - "Neuen Chat oder Gruppe anlegen"
-    }
-
-    fun roomListNoFilter() = translate {
-        EN - "no filter"
-        DE - "kein Filter"
     }
 
     fun roomListSearch() = translate {

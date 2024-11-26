@@ -18,6 +18,7 @@ data class SpaceViewModel(
     val initials: String,
 )
 
+// TODO check if still needed
 internal fun RoomId.roomsInThisSpace(matrixClient: MatrixClient): Flow<List<RoomId>> {
     log.debug { "rooms in space: $this" }
     return matrixClient.room.getAllState<ChildEventContent>(this).map { stateEvents ->

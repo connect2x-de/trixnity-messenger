@@ -21,7 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
@@ -107,8 +107,6 @@ interface RoomListViewModel {
     val searchTerm: MutableStateFlow<String>
 
     val spaces: StateFlow<List<SpaceViewModel>>
-    val activeSpace: MutableStateFlow<RoomId?>
-    val showSpaces: MutableStateFlow<Boolean>
 
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
@@ -151,7 +149,7 @@ class RoomListViewModelImpl(
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
-    private val onAccountSelected: () -> Unit,
+    private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -174,8 +172,6 @@ class RoomListViewModelImpl(
     override val searchTerm = MutableStateFlow("")
 
     override val spaces: StateFlow<List<SpaceViewModel>>
-    override val activeSpace: MutableStateFlow<RoomId?> = MutableStateFlow(null)
-    override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
@@ -203,11 +199,7 @@ class RoomListViewModelImpl(
     override val accountViewModel =
         viewModelContext.get<AccountViewModelFactory>().create(
             viewModelContext = childContext("accountViewModel"),
-            onAccountSelected = {
-                // reset the active space as it might filter rooms in another account where it is not even present
-                activeSpace.value = null
-                onAccountSelected()
-            },
+            onAccountSelected = { onAccountSelected() },
             onUserSettingsSelected = onUserSettingsSelected,
             onShowAppInfo = onOpenAppInfo,
         )
@@ -246,31 +238,6 @@ class RoomListViewModelImpl(
         }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
     init {
-        data class ActiveSpaceInfo(
-            val roomsInSpace: List<RoomId>,
-            val usersInSpace: List<UserId>,
-        )
-
-        val activeSpaceInfoFlow =
-            combine(selectedMatrixClients, activeSpace) { selectedMatrixClients, activeSpace ->
-                if (activeSpace != null) {
-                    val roomsInThisSpaceFlow =
-                        combine(selectedMatrixClients
-                            .map { selectedMatrixClient ->
-                                log.trace { "get rooms in space ${activeSpace.full} for account ${selectedMatrixClient.userId}" }
-                                activeSpace.roomsInThisSpace(selectedMatrixClient)
-                            }) { it.toList().flatten() }
-                    val usersInThisSpaceFlow =
-                        combine(selectedMatrixClients.map { selectedMatrixClient ->
-                            selectedMatrixClient.user.getAll(activeSpace).map { it.keys }
-                        }) { it.toList().flatten() }
-                    combine(roomsInThisSpaceFlow, usersInThisSpaceFlow) { roomsInThisSpace, usersInThisSpace ->
-                        log.trace { "$activeSpace: rooms in this space -> $roomsInThisSpace, users in this space -> ${usersInThisSpace.joinToString { it.full }}" }
-                        ActiveSpaceInfo(roomsInThisSpace, usersInThisSpace)
-                    }
-                } else flowOf(null)
-            }.flatMapLatest { it }
-
         val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
             combine(selectedMatrixClients
                 .map { selectedMatrixClient ->
@@ -300,7 +267,7 @@ class RoomListViewModelImpl(
         val searchedRoomsFlow =
             combine(
                 allRoomsFlow.map { it.keys },
-                searchTerm.debounce { if (it.isBlank()) 0.milliseconds else 300.milliseconds }
+                searchTerm.debounce { if (it.isBlank()) 0.milliseconds else 300.milliseconds },
             ) { allRoomIds, currentSearchTerm ->
                 allRoomIds to currentSearchTerm
             }.flatMapLatest { (allRoomIds, currentSearchTerm) ->
@@ -310,18 +277,15 @@ class RoomListViewModelImpl(
                             roomName.contains(currentSearchTerm, ignoreCase = true)
                         }.keys
                     }
-                } else {
-                    flowOf(allRoomIds)
-                }
+                } else flowOf(allRoomIds)
             }
 
         sortedRoomListElementViewModels =
             combine(
                 allRoomsFlow,
-                activeSpaceInfoFlow,
                 directRoomsFlow,
-                searchedRoomsFlow
-            ) { roomsWithMeta, activeSpaceInfo, directRooms, searchedRooms ->
+                searchedRoomsFlow,
+            ) { roomsWithMeta, directRooms, searchedRooms ->
                 data class SortableRoom(
                     val roomWithMatrixClient: RoomWithMatrixClient,
                     val sortTime: Instant?,
@@ -329,22 +293,14 @@ class RoomListViewModelImpl(
                 roomsWithMeta.values.asFlow()
                     .filter { (room, _) ->
                         val isSpace = room.createEventContent?.type == RoomType.Space
-                        val isInActiveSpace =
-                            if (activeSpaceInfo != null) {
-                                activeSpaceInfo.roomsInSpace.contains(room.roomId) ||
-                                        (room.isDirect && directRooms.entries.find {
-                                            it.value.contains(room.roomId)
-                                        }?.let { otherUser ->
-                                            activeSpaceInfo.usersInSpace.any { roomUser -> roomUser == otherUser.key }
-                                        } ?: false)
-                            } else true
                         val includedInSearch = searchedRooms.contains(room.roomId)
-                        !isSpace &&
+                        val isDisplayed = !isSpace &&
                                 (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
-                                isInActiveSpace &&
                                 includedInSearch
+                        isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
-                    .map<RoomWithMatrixClient, SortableRoom> { roomWithMeta -> // why map here? -> because we need the creation time and cannot call suspended functions in `sortedByDescending`
+                    .map<RoomWithMatrixClient, SortableRoom> { roomWithMeta ->
+                        // Use `map` to get the creation time here since `sortedByDescending` won't support suspended function calls.
                         val room = roomWithMeta.room
                         val lastRelevantEventTime = room.lastRelevantEventTimestamp
                         val sortTime =
@@ -381,7 +337,7 @@ class RoomListViewModelImpl(
                             roomId = roomId,
                             isDirect = room.isDirect,
                             isInvite = room.membership == Membership.INVITE,
-                            viewModel = viewModel
+                            viewModel = viewModel,
                         )
                     }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
@@ -459,30 +415,19 @@ class RoomListViewModelImpl(
             }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-        resetSpacesWhenNotShown()
         resetSearchWhenNotShown()
 
         canCreateNewRoomWithAccount =
             combine(accountViewModel.accounts, activeAccount) { allAccounts, activeAccount ->
                 allAccounts.size == 1 || activeAccount != null
-            }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // has to eager as it is used as a helper
+            }.stateIn(coroutineScope, Eagerly, false) // Has to be `Eagerly` as it is used as a helper.
 
-        // Handle room navigation requests through the timmy://localhost/room/<ID> scheme
+        // Handle room navigation requests through the timmy://localhost/room/<ID> scheme.
         coroutineScope.launch {
             get<UrlHandler>().collect {
-                val segments = it.pathSegments
+                val segments = it.pathSegments // TODO use rawSegments
                 if (segments.size < 3 || segments[1] != "room") return@collect
                 selectRoom(RoomId(segments[2]))
-            }
-        }
-    }
-
-    private fun resetSpacesWhenNotShown() {
-        coroutineScope.launch {
-            showSpaces.drop(1).collect {
-                if (it.not()) {
-                    activeSpace.value = null
-                }
             }
         }
     }
@@ -543,7 +488,8 @@ class RoomListViewModelImpl(
         }
     }
 
-    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile ?: false
+    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()
+        ?.multiProfile ?: false
 
     override fun closeProfile() {
         log.debug { "close profile" }
@@ -592,9 +538,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-    override val activeSpace: MutableStateFlow<RoomId?> = MutableStateFlow(null)
     override val spaces: MutableStateFlow<List<SpaceViewModel>> = MutableStateFlow(listOf())
-    override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())

@@ -752,8 +752,6 @@ class MainViewModelTest : ShouldSpec() {
                                         override val spaces: StateFlow<List<SpaceViewModel>> = MutableStateFlow(
                                             emptyList()
                                         )
-                                        override val activeSpace: MutableStateFlow<RoomId?> = MutableStateFlow(null)
-                                        override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
                                             MutableStateFlow(true)
                                         override val unverifiedAccounts: StateFlow<List<UserId>> =
