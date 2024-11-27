@@ -128,7 +128,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val reactionsOpen: MutableStateFlow<Boolean>
     val canBeReactedTo: StateFlow<Boolean>
-    val canGetReacted: StateFlow<Boolean>
 
     val infoOpen: MutableStateFlow<Boolean>
     val canGetInfo: StateFlow<Boolean>
@@ -208,9 +207,6 @@ open class TimelineElementHolderViewModelImpl(
         ) { timelineEvent, canSendReactEvent ->
             timelineEvent?.content?.getOrNull() !is RedactedEventContent && canSendReactEvent
         }.stateIn(coroutineScope, WhileSubscribed(), false)
-    override val canGetReacted: StateFlow<Boolean> = _reactions.map {
-        it.isNotEmpty()
-    }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     private val _editInProgress = MutableStateFlow(false)
     private val _redactionInProgress = MutableStateFlow(false)
@@ -536,7 +532,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeReactedTo: StateFlow<Boolean> = MutableStateFlow(false)
-    override val canGetReacted: StateFlow<Boolean> = MutableStateFlow(false)
     override val infoOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canGetInfo: StateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)
@@ -588,7 +583,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isRead: StateFlow<Boolean> = MutableStateFlow(false)
     override val reactionsOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeReactedTo: StateFlow<Boolean> = MutableStateFlow(false)
-    override val canGetReacted: StateFlow<Boolean> = MutableStateFlow(false)
     override val infoOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canGetInfo: StateFlow<Boolean> = MutableStateFlow(true)
     override val isReplaced: StateFlow<Boolean> = MutableStateFlow(false)

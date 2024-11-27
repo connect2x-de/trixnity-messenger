@@ -81,7 +81,6 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
             val canAbortSendFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canBeReportedFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canBeReactedToFlow: StateFlow<Boolean> = MutableStateFlow(false),
-            val canGetReactedFlow: StateFlow<Boolean> = MutableStateFlow(false),
             val canGetInfoFlow: StateFlow<Boolean> = MutableStateFlow(false),
         )
 
@@ -93,7 +92,6 @@ class GetContextMenuActionsViewImpl : GetContextMenuActionsView {
                     canBeRepliedToFlow = canBeRepliedTo,
                     canBeReportedFlow = canBeReported,
                     canBeReactedToFlow = canBeReactedTo,
-                    canGetReactedFlow = canGetReacted,
                     canGetInfoFlow = canGetInfo,
                 )
 
