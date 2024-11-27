@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view
 
+import de.connect2x.messenger.compose.view.common.AdaptiveDialog
+import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
 import de.connect2x.messenger.compose.view.common.MatrixUsernameViewImpl
 import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountView
@@ -26,6 +28,8 @@ import de.connect2x.messenger.compose.view.files.ImageOverlayView
 import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
 import de.connect2x.messenger.compose.view.files.PdfOverlayView
 import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
+import de.connect2x.messenger.compose.view.files.ShareFilesView
+import de.connect2x.messenger.compose.view.files.ShareFilesViewImpl
 import de.connect2x.messenger.compose.view.files.VideoOverlayView
 import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
@@ -119,6 +123,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoView
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
@@ -223,10 +229,14 @@ import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationView
 import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaDummyStepView
 import de.connect2x.messenger.compose.view.uia.UiaDummyStepViewImpl
+import de.connect2x.messenger.compose.view.uia.UiaEmailIdentityStepView
+import de.connect2x.messenger.compose.view.uia.UiaEmailIdentityStepViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaFallbackFlowView
 import de.connect2x.messenger.compose.view.uia.UiaFallbackFlowViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaModalBoxView
 import de.connect2x.messenger.compose.view.uia.UiaModalBoxViewImpl
+import de.connect2x.messenger.compose.view.uia.UiaMsisdnStepView
+import de.connect2x.messenger.compose.view.uia.UiaMsisdnStepViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
@@ -279,6 +289,7 @@ fun themeViewModule(): Module = module {
 
 fun commonViewModule() = module {
     single<MatrixUsernameView> { MatrixUsernameViewImpl() }
+    single<AdaptiveDialog> { AdaptiveDialogImpl() }
 }
 
 fun rootViewModule() = module {
@@ -305,6 +316,7 @@ fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
     single<PdfOverlayView> { PdfOverlayViewImpl() }
+    single<ShareFilesView> { ShareFilesViewImpl() }
 }
 
 fun profileViewModule() = module {
@@ -345,7 +357,7 @@ fun searchViewModule() = module {
 
 fun roomViewModule() = module {
     single<RoomListElementView> { RoomListElementViewImpl() }
-    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl()  }
+    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
 fun roomSettingsViewModule() = module {
@@ -374,6 +386,7 @@ fun timelineViewModule() = module {
     single<MessageContainerView> { MessageContainerViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
     single<MessageReactionsView> { MessageReactionsViewImpl() }
+    single<MessageInfoView> { MessageInfoViewImpl() }
     single<MessageBubbleContentView> { MessageBubbleContentViewImpl() }
     single<GetContextMenuActionsView> { GetContextMenuActionsViewImpl() }
     single<MessageAndDateView> { MessageAndDateViewImpl() }
@@ -438,4 +451,6 @@ fun uiaViewModule() = module {
     single<UiaFallbackFlowView> { UiaFallbackFlowViewImpl() }
     single<UiaDummyStepView> { UiaDummyStepViewImpl() }
     single<UiaActionConfirmationView> { UiaActionConfirmationViewImpl() }
+    single<UiaEmailIdentityStepView> { UiaEmailIdentityStepViewImpl() }
+    single<UiaMsisdnStepView> { UiaMsisdnStepViewImpl() }
 }

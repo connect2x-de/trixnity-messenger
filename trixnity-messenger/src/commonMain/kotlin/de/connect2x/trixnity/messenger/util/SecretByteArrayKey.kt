@@ -69,7 +69,7 @@ abstract class GetSecretByteArrayKeyBase(
         val existing = getSecretByteArrayKeyFromSettings()
         if (existing != null) convert(existing, getSecretByteArrayKeyKey(32))
         else {
-            log.debug { "there is SecretByteArrayKey yet, generate new one" }
+            log.debug { "there is no SecretByteArrayKey yet, generate new one" }
             val newKey = SecureRandom.nextBytes(sizeOnCreate)
             val secretByteArrayKey = convert(newKey, getSecretByteArrayKeyKey(32))
             setSecretByteArrayKeyInSettings(secretByteArrayKey)

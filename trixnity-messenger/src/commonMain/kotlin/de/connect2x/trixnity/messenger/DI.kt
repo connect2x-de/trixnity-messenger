@@ -13,14 +13,18 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
+import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.util.SharedFileHandlerImpl
 import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
+import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
@@ -57,7 +61,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecur
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
@@ -114,11 +117,14 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
+import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepEmailIdentityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
@@ -152,129 +158,120 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
-import io.ktor.client.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.api.client.defaultTrixnityHttpClientFactory
 import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.store.isEncrypted
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.client.ModuleFactory
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
-fun interface HttpUserAgent {
-    operator fun invoke(): String
-}
-
-fun interface HttpClientFactory {
-    operator fun invoke(): (HttpClientConfig<*>.() -> Unit) -> HttpClient
-}
-
-fun interface CreateMatrixClientConfiguration {
-    operator fun invoke(): MatrixClientConfiguration.() -> Unit
-}
+data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
 
 fun interface DebugName {
     operator fun invoke(): String
 }
 
-fun createDefaultTrixnityMessengerModules() = listOf(
-    module {
-        single<Clock> { Clock.System }
-        single<TimeZone> { TimeZone.currentSystemDefault() }
+fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
+    {
+        module {
+            single<Clock> { Clock.System }
+            single<TimeZone> { TimeZone.currentSystemDefault() }
 
-        single<HttpClientFactory> {
-            val userAgent = getOrNull<HttpUserAgent>()?.invoke()
-            HttpClientFactory {
-                if (userAgent != null) defaultTrixnityHttpClientFactory(userAgent = userAgent)
-                else defaultTrixnityHttpClientFactory(userAgent = userAgent)
-            }
-        }
-        single<CreateMatrixClientConfiguration> {
-            CreateMatrixClientConfiguration {
-                {
+            single<MatrixClientConfigurationHolder> {
+                val config = get<MatrixMessengerConfiguration>()
+                val relevantTimelineEvents = get<RelevantTimelineEvents>()
+                MatrixClientConfigurationHolder {
                     name = getOrNull<DebugName>()?.invoke()
                     setOwnMessagesAsFullyRead = true
-                    httpClientFactory = get<HttpClientFactory>()()
+                    httpClientEngine = config.httpClientEngine
+                    httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =
-                        { it.content is RoomMessageEventContent || it.isEncrypted }
+                        { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
                 }
             }
+
+            single<MatrixClientFactory> {
+                MatrixClientFactoryImpl(get(), get(), get())
+            }
+            single<MatrixClients> {
+                MatrixClientsImpl(get(), get(), get(), get(), get())
+            }
+
+            single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
+            single<Initials> { Initials }
+            single<VerifyAccount> { VerifyAccountImpl() }
+            single<RelevantTimelineEvents> { RelevantTimelineEvents }
+
+            single<Languages> { DefaultLanguages }
+            single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+            single<RoomName> { RoomNameImpl(get(), get()) }
+            single<RoomTopic> { RoomTopicImpl() }
+            single<RoomInviter> { RoomInviterImpl() }
+            single<UserBlocking> { UserBlockingImpl() }
+
+            single<DownloadManager> { DownloadManagerImpl() }
+            single<Thumbnails> { ThumbnailsImpl() }
+            single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get()) }
+            single<DirectRoom> { DirectRoomImpl() }
+            single<ActiveVerifications> { ActiveVerificationsImpl() }
+            single<UserPresence> { UserPresenceImpl(get()) }
+            single<Search> { SearchImpl(get(), get()) }
+            single<RunInitialSync> { RunInitialSync }
+            single<DragAndDropHandler> { DragAndDropHandlerBase() }
+            single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
+
+            single<RootViewModelFactory> { RootViewModelFactory }
+            single<MainViewModelFactory> { MainViewModelFactory }
+            single<SelfVerificationTrigger> { SelfVerificationTriggerImpl() }
+
+            single<AuthorizeUia> { AuthorizeUiaImpl() }
+            single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
+            single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
+            single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
+            single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
+            single<UiaStepEmailIdentityViewModelFactory> { UiaStepEmailIdentityViewModelFactory }
+            single<UiaStepMsisdnViewModelFactory> { UiaStepMsisdnViewModelFactory }
+            single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
+
+            single<ShareFilesViewModelFactory> { ShareFilesViewModelFactory }
+            single<SharedFileHandler> { SharedFileHandlerImpl() }
         }
-
-        single<MatrixClientFactory> {
-            MatrixClientFactoryImpl(get(), get(), get())
-        }
-        single<MatrixClients> {
-            MatrixClientsImpl(get(), get(), get(), get(), get())
-        }
-
-        single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
-        single<Initials> { Initials }
-        single<VerifyAccount> { VerifyAccountImpl() }
-        single<RelevantTimelineEvents> { RelevantTimelineEvents }
-
-        single<Languages> { DefaultLanguages }
-        single<I18n> { object : I18n(get(), get(), get(), get()) {} }
-        single<RoomName> { RoomNameImpl(get(), get()) }
-        single<RoomTopic> { RoomTopicImpl() }
-        single<RoomInviter> { RoomInviterImpl() }
-        single<UserBlocking> { UserBlockingImpl() }
-
-        single<DownloadManager> { DownloadManagerImpl() }
-        single<Thumbnails> { ThumbnailsImpl() }
-        single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get()) }
-        single<DirectRoom> { DirectRoomImpl() }
-        single<ActiveVerifications> { ActiveVerificationsImpl() }
-        single<UserPresence> { UserPresenceImpl(get()) }
-        single<Search> { SearchImpl(get(), get()) }
-        single<RunInitialSync> { RunInitialSync }
-        single<DragAndDropHandler> { DragAndDropHandlerBase() }
-        single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
-
-        single<RootViewModelFactory> { RootViewModelFactory }
-        single<MainViewModelFactory> { MainViewModelFactory }
-        single<SelfVerificationTrigger> { SelfVerificationTriggerImpl() }
-
-        single<AuthorizeUia> { AuthorizeUiaImpl() }
-        single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
-        single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
-        single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
-        single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
-        single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
     },
-    timelineElementModule(),
-    connectingViewModels(),
-    filesViewModels(),
-    syncViewModels(),
-    roomListViewModels(),
-    settingsViewModels(),
-    timelineElementsViewModels(),
-    timelineViewModels(),
-    verificationViewModels(),
-    roomViewModels(),
-    roomSettingsViewModels(),
-    exportModule(),
+    ::timelineElementModule,
+    ::connectingViewModels,
+    ::filesViewModels,
+    ::syncViewModels,
+    ::roomListViewModels,
+    ::settingsViewModels,
+    ::timelineElementsViewModels,
+    ::timelineViewModels,
+    ::verificationViewModels,
+    ::roomViewModels,
+    ::roomSettingsViewModels,
+    ::exportModule,
 
     // platform-specific view models
-    platformNotificationSettingsSingleAccountViewModelFactoryModule(),
+    ::platformNotificationSettingsSingleAccountViewModelFactoryModule,
 
-    // platform-specific implementations
-    platformPathsModule(),
-    platformCreateRepositoriesModuleModule(),
-    platformCreateMediaStoreModule(),
-    platformGetSecretByteArrayKey(),
-    convertSecretByteArrayModule(),
-    platformGetSystemLangModule(),
-    platformDeleteAccountDataModule(),
-    platformMatrixMessengerSettingsHolderModule(),
-    platformSendLogToDevsModule(),
-    platformGetDefaultDisplayNameModule(),
-    platformIsNetworkAvailableModule(),
-    platformCloseAppModule(),
-    platformUrlHandlerModule(),
-    platformUriCallerModule(),
-    platformDeleteProfileDataModule(),
-    platformProcessImageUploadModule()
+// platform-specific implementations
+    ::platformModule,
+    ::platformPathsModule,
+    ::platformCreateRepositoriesModuleModule,
+    ::platformCreateMediaStoreModule,
+    ::platformGetSecretByteArrayKey,
+    ::convertSecretByteArrayModule,
+    ::platformGetSystemLangModule,
+    ::platformDeleteAccountDataModule,
+    ::platformMatrixMessengerSettingsHolderModule,
+    ::platformSendLogToDevsModule,
+    ::platformGetDefaultDisplayNameModule,
+    ::platformIsNetworkAvailableModule,
+    ::platformCloseAppModule,
+    ::platformMinimizeAppModule,
+    ::platformUrlHandlerModule,
+    ::platformUriCallerModule,
+    ::platformDeleteProfileDataModule,
+    ::platformProcessImageUploadModule,
 )
 
 private fun timelineElementModule() = module {
@@ -404,3 +401,5 @@ private fun verificationViewModels() = module {
     single<VerificationStepTimeoutViewModelFactory> { VerificationStepTimeoutViewModelFactory }
     single<VerificationViewModelFactory> { VerificationViewModelFactory }
 }
+
+expect fun platformModule(): Module

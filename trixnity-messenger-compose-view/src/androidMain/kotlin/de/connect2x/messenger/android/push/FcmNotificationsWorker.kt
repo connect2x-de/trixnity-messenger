@@ -25,11 +25,13 @@ import de.connect2x.sysnotify.getNotificationIcon
 import de.connect2x.sysnotify.push
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -51,7 +53,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
-import net.folivo.trixnity.utils.toByteArray
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
 
@@ -69,6 +70,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         expectedRoomId: RoomId,
         expectedEventId: EventId,
         notificationHandlerProvider: NotificationHandlerProvider,
+        maxAvatarSize: Long
     ) {
         val notification = matrixClient.notification.getNotifications().first {
             log.trace { "Notification: ${it.event.idOrNull} in ${it.event.roomIdOrNull} from ${it.event.senderOrNull}" }
@@ -96,6 +98,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 isDirect,
                 roomName,
                 notificationHandlerProvider,
+                maxAvatarSize
             )
         }
     }
@@ -107,6 +110,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         isDirect: Boolean,
         roomName: String,
         notificationHandlerProvider: NotificationHandlerProvider,
+        maxAvatarSize: Long
     ) {
         val content = event.content
         log.debug { "Content is RoomMessageEventContent: ${content is RoomMessageEventContent}" }
@@ -126,8 +130,8 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                     val image = it.avatarUrl?.let { avatarUrl ->
                         matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     }?.map { flow ->
-                        val bytes = flow.toByteArray()
-                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size).getCircledBitmap()
+                        val bytes = flow.limitedByteArrayOrNull(maxAvatarSize)
+                        bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size).getCircledBitmap() }
                     }?.getOrNull()
                     user.name to image
                 }
@@ -192,6 +196,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 // we cannot assume that we should still be running
                 val pushModes =
                     matrixMessenger.di.get<MatrixMessengerSettingsHolder>().value.base.accounts.map { it.value.platformNotifications.pushMode }
+                val maxAvatarSize = matrixMessenger.di.get<MatrixMessengerConfiguration>().avatarMaxSize
                 if (pushModes.none { it == PushMode.PUSH } ||
                     applicationContext.backgroundSyncShouldBeRunning.not()
                 ) {
@@ -216,6 +221,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                             roomId,
                             eventId,
                             matrixMultiMessenger.di.get(),
+                            maxAvatarSize
                         )
                     }
 

@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -12,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
@@ -20,13 +20,13 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
 import net.folivo.trixnity.core.model.UserId
 
-private fun pushChannelId(userId: UserId, config: MatrixMessengerConfiguration) = "${config.packageName}.push.${
+private fun pushChannelId(userId: UserId, config: MatrixMessengerConfiguration) = "${config.appId}.push.${
     userId.full.replace("[@.]".toRegex(), "_")
 }"
 
 @Composable
 fun DeviceSettingsButton(viewModel: NotificationSettingsSingleAccountViewModel, enabled: Boolean) {
-    val context = DI.get<Context>()
+    val context = LocalContext.current
     val messengerConfig = DI.get<MatrixMessengerConfiguration>()
     val i18n = DI.get<I18nView>()
     Button(

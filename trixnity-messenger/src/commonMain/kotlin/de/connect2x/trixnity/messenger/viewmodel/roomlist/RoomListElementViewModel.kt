@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
@@ -13,9 +13,9 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +40,6 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
@@ -52,7 +51,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -107,7 +105,6 @@ open class RoomListElementViewModelImpl(
     private val initials = get<Initials>()
     private val clock = get<Clock>()
     private val timeZone = get<TimeZone>()
-    private val relevantTimelineEvents = get<RelevantTimelineEvents>()
     private val userBlocking = get<UserBlocking>()
 
     private val roomFlow = matrixClient.room.getById(roomId).filterNotNull()
@@ -161,12 +158,17 @@ open class RoomListElementViewModelImpl(
         roomNameCalculations.getRoomName(roomId, matrixClient, formatted = false)
             .map { initials.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val roomImage: StateFlow<ByteArray?> =
         roomFlow.map { room ->
             room.avatarUrl?.let { avatarUrl ->
                 matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     .fold(
-                        onSuccess = { it.toByteArray() },
+                        onSuccess = {
+                            it.limitedByteArrayOrNull(maxAvatarSize) {
+                                log.error { "Room avatar for ${room.roomId} exceeds max preview size, so it's not displayed" }
+                            }
+                        },
                         onFailure = {
                             log.error(it) { "Cannot load user avatar." }
                             null
@@ -174,34 +176,39 @@ open class RoomListElementViewModelImpl(
                     )
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
-    private val lastTimelineEventAndMessage =
-        matrixClient.room.getLastTimelineEvent(roomId).flatMapLatest { lastTimelineEventFlow ->
-            lastTimelineEventFlow
-                ?.flatMapLatest { lastTimelineEvent ->
-                    getRelevantLastTimelineEvent(lastTimelineEvent)
-                }
-                ?.flatMapLatest { lastTimelineEvent ->
-                    if (lastTimelineEvent != null) {
-                        combine(
-                            matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
-                            matrixClient.room.getById(roomId).map { it?.isDirect == true }
-                                .distinctUntilChanged(),
-                        ) { lastTimelineEventSender, isDirect ->
-                            val message = lastTimelineEventType(lastTimelineEvent)
-                            val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
-                            val sender = if (isByMe) {
-                                i18n.roomListYou()
-                            } else {
-                                lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
-                            }
-                            if (isDirect && isByMe.not()) Pair(lastTimelineEvent, message)
-                            else Pair(lastTimelineEvent, "${sender}: $message")
+
+    private val lastRelevantTimelineEventMessage =
+        roomFlow.flatMapLatest { room ->
+            val lastRelevantEventId = room.lastRelevantEventId
+            if (lastRelevantEventId != null)
+                matrixClient.room.getTimelineEvent(
+                    roomId = roomId,
+                    eventId = lastRelevantEventId,
+                )
+            else flowOf(null)
+        }.distinctUntilChanged()
+            .flatMapLatest { lastTimelineEvent ->
+                if (lastTimelineEvent != null) {
+                    combine(
+                        matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
+                        matrixClient.room.getById(roomId).map { it?.isDirect == true }
+                            .distinctUntilChanged(),
+                    ) { lastTimelineEventSender, isDirect ->
+                        val message = lastTimelineEventType(lastTimelineEvent)
+                        val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
+                        val sender = if (isByMe) {
+                            i18n.roomListYou()
+                        } else {
+                            lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
                         }
-                    } else flowOf(Pair(null, ""))
-                } ?: flowOf(Pair(null, ""))
-        }.shareIn(coroutineScope, WhileSubscribed(), 1)
+                        if (isDirect && isByMe.not()) message
+                        else "${sender}: $message"
+                    }
+                } else flowOf("")
+            }.shareIn(coroutineScope, WhileSubscribed(), 1)
+
     override val lastMessage: StateFlow<String?> =
-        combine(lastTimelineEventAndMessage, isInvite.filterNotNull()) { (_, message), isInvite ->
+        combine(lastRelevantTimelineEventMessage, isInvite.filterNotNull()) { message, isInvite ->
             if (isInvite) {
                 val inviter = roomNameCalculations.getInviterName(roomId, matrixClient)
                 i18n.roomListInvitationFrom(inviter)
@@ -210,14 +217,13 @@ open class RoomListElementViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val time: StateFlow<String?> =
-        lastTimelineEventAndMessage.map { (lastTimelineEvent) ->
-            lastTimelineEvent?.let {
-                formatTimestamp(Instant.fromEpochMilliseconds(it.event.originTimestamp), clock, timeZone)
-            }
-                ?: matrixClient.room.getState<CreateEventContent>(roomId).first()
-                    ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
-                    ?.let { formatTimestamp(it, clock, timeZone) }
-                ?: ""
+        roomFlow.map { room ->
+            room.lastRelevantEventTimestamp?.let {
+                formatTimestamp(it, clock, timeZone)
+            } ?: matrixClient.room.getState<CreateEventContent>(roomId).first()
+                ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
+                ?.let { formatTimestamp(it, clock, timeZone) }
+            ?: ""
         }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val unreadMessages: StateFlow<String?> =
         combine(roomFlow, isInvite.filterNotNull()) { room, isInvite ->
@@ -299,7 +305,6 @@ open class RoomListElementViewModelImpl(
             val content = lastTimelineEvent.content?.getOrNull()
             if (content is RoomMessageEventContent)
                 when (content) {
-
                     is FileBased.Image -> i18n.roomListContentImage()
                     is FileBased.Video -> i18n.roomListContentVideo()
                     is FileBased.Audio -> i18n.roomListContentAudio()
@@ -311,22 +316,6 @@ open class RoomListElementViewModelImpl(
                 }
             else ""
         } else ""
-
-    private fun getRelevantLastTimelineEvent(
-        timelineEvent: TimelineEvent?,
-        eventsToSearch: Int = 100,
-    ): Flow<TimelineEvent?> {
-        return if (relevantTimelineEvents.isRelevantTimelineEvent(timelineEvent) && timelineEvent?.event !is StateEvent)
-            return flowOf(timelineEvent)
-        else {
-            if (eventsToSearch > 0) {
-                timelineEvent?.let { matrixClient.room.getPreviousTimelineEvent(it) }
-                    ?.flatMapLatest { getRelevantLastTimelineEvent(it, eventsToSearch - 1) }
-                    ?: flowOf(null)
-            } else flowOf(null)
-        }
-    }
-
 }
 
 class PreviewRoomListElementViewModel1 : RoomListElementViewModel {

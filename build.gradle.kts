@@ -28,7 +28,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("2.3.1")
+    version = withVersionSuffix("2.3.8")
 
     repositories {
         mavenCentral()
@@ -49,7 +49,7 @@ allprojects {
 }
 
 subprojects {
-    if (project.name.startsWith("trixnity-")) {
+    if (project.name.startsWith("trixnity-") && !project.name.endsWith("app")) {
         apply(plugin = "org.jetbrains.dokka")
         apply(plugin = "maven-publish")
 

@@ -9,7 +9,7 @@ class ImagesTest : ShouldSpec() {
     init {
         should("determine image dimensions") {
             fileSystem.readByteArrayFlow("./src/commonTest/resources/images/cat.jpg".toPath(normalize = true))?.let {
-                getImageDimensions(it) shouldBe (640 to 457)
+                getImageDimensions(it, Long.MAX_VALUE) shouldBe (640 to 457)
             }
         }
     }

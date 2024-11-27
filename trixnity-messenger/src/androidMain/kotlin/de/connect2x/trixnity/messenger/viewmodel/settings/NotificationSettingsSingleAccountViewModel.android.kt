@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountPlatformNotificationSettings
@@ -9,6 +8,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.ActivityGetter
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -39,11 +39,10 @@ class NotificationSettingsSingleAccountViewModelImpl(
         viewModelContext
     ),
     NotificationSettingsSingleAccountViewModel {
-    val context = get<Context>()
-
 
     private val _notificationPermissionGranted = flow {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val context = getOrNull<ActivityGetter>()?.invoke()?.applicationContext
+        if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             while (coroutineScope.isActive) {
                 emit(context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
                 delay(15000)

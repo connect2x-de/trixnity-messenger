@@ -62,6 +62,7 @@ data class MatrixMessengerAccountSettingsBase(
             presenceIsPublic = config.defaultPresenceIsPublic,
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,
+            accountSetupFinished = config.useAccountSetupWizard.not(),
         )
     }
 }

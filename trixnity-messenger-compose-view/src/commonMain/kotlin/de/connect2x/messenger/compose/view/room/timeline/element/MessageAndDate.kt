@@ -115,6 +115,7 @@ fun MessageDateText(
                 Text(
                     it,
                     style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.paddingFromBaseline(0.dp),
                     maxLines = 1,
                 )

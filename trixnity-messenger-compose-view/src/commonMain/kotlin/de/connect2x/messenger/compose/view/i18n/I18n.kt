@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
@@ -594,14 +595,24 @@ abstract class I18nView(
         DE - "weiter"
     }
 
+    fun uiaMsisdnTitle() = translate {
+        EN - "Phone number authentication"
+        DE - "Autorisierung mit Telefonnummer"
+    }
+
+    fun uiaEmailTitle() = translate {
+        EN - "Email authentication"
+        DE - "E-Mail Autorisierung"
+    }
+
     fun addMatrixClientCreateMatrixAccount() = translate {
         EN - "Creation of your Matrix account"
         DE - "Einrichtung Ihres Matrix Kontos"
     }
 
     fun addMatrixClientAnotherMatrixClient() = translate {
-        EN - "Creation of another Matrix account"
-        DE - "Einrichtung eines weiteren Matrix Kontos"
+        EN - "Adding another Matrix account"
+        DE - "Hinzufügen eines weiteren Matrix Kontos"
     }
 
     fun addMatrixClientServerMatrix() = translate {
@@ -702,6 +713,11 @@ abstract class I18nView(
     fun videoCouldNotBeLoaded() = translate {
         EN - "Video could not be loaded."
         DE - "Video konnte nicht geladen werden."
+    }
+
+    fun fileCouldNotBeLoaded() = translate {
+        EN - "File could not be loaded."
+        DE - "Datei konnte nicht geladen werden."
     }
 
     fun addMembers() = translate {
@@ -1940,8 +1956,8 @@ abstract class I18nView(
     }
 
     fun fileOverlayPreviewNotSupported() = translate {
-        EN - "File preview not supported"
-        DE - "Datei-Vorschau nicht verfügbar"
+        EN - "File preview not supported. Please download the file instead."
+        DE - "Datei-Vorschau nicht verfügbar. Bitte laden Sie die Datei stattdessen herunter."
     }
 
     fun fileOverlayPdfPageDescriptor(pageId: Int) = translate {
@@ -2094,9 +2110,14 @@ abstract class I18nView(
         DE - "Reagieren"
     }
 
+    fun infoMessage() = translate {
+        EN - "Info"
+        DE - "Info"
+    }
+
     fun reportMessage() = translate {
         EN - "Report"
-        DE - "Bericht"
+        DE - "Melden"
     }
 
     fun reportMessageHeader() = translate {
@@ -2217,6 +2238,11 @@ abstract class I18nView(
     fun fileDialogLoadImageButton() = translate {
         EN - "Upload image"
         DE - "Bild hochladen"
+    }
+
+    fun fileDialogSaveDescription() = translate {
+        EN - "Download File"
+        DE - "Datei herunterladen"
     }
 
     fun fileDialogDownloadErrorSave() = translate {
@@ -2427,6 +2453,42 @@ abstract class I18nView(
     fun accountSetupWizardReset() = translate {
         DE - "Setup zurücksetzen"
         EN - "Reset setup"
+    }
+
+    fun shareFilesTitle(count: Int) = translate {
+        EN - "Sharing $count files"
+        DE - "Teile $count Dateien"
+    }
+
+    fun shareFilesCancel() = translate {
+        EN - "Cancel"
+        DE - "Abbrechen"
+    }
+
+
+    fun uploadFileErrorTitle() = translate {
+        DE - "Beim Hochladen der Datei ist ein Fehler aufgetreten"
+        EN - "An error occurred during the upload of the file"
+    }
+
+    fun uploadFileErrorUnknown() = translate {
+        DE - "Ein unbekannter Uploadfehler is aufgetreten."
+        EN - "An unknown upload error has occurred."
+    }
+
+    fun uploadFileErrorNotPasteable() = translate {
+        DE - "Die Inhalte der ausgewählten Datei können nicht hochgeladen werden."
+        EN - "The contents of the selected file can't be uploaded."
+    }
+
+    fun uploadFileErrorFileListEmpty() = translate {
+        DE - "Die ausgewählte Dateiliste ist leer."
+        EN - "The selected file list is empty."
+    }
+
+    fun filePreviewErrorTooBig(maxUploadSize: Long) = translate {
+        DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße von ${formatSize(maxUploadSize)}."
+        EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
     }
 
 }

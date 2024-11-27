@@ -119,7 +119,7 @@ interface TimelineViewModelFactory {
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
         return TimelineViewModelImpl(
@@ -128,7 +128,7 @@ interface TimelineViewModelFactory {
             isBackButtonVisible,
             onShowSettings,
             onBack,
-            onOpenModal,
+            onOpenMedia,
             onOpenMention
         )
     }
@@ -219,7 +219,7 @@ class TimelineViewModelImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
@@ -291,12 +291,6 @@ class TimelineViewModelImpl(
     private val timelineElementRules = get<TimelineElementRules>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
-    private val roomUsers =
-        matrixClient.user.getAll(selectedRoomId)
-            .flattenNotNull()
-            .filterNotNull()
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
-
     private val roomUsersReceipts =
         matrixClient.user.getAllReceipts(selectedRoomId)
             .flattenNotNull()
@@ -365,6 +359,22 @@ class TimelineViewModelImpl(
             )
         )
     }
+
+    private val showDateAboveFlow: Flow<Boolean> =
+        timelineEvents.flatMapLatest { it.lastOrNull() ?: flowOf(null) }
+            .distinctUntilChanged()
+            .map { lastTimelineEvent ->
+                val lastDate =
+                    lastTimelineEvent?.event?.originTimestamp?.let { millis ->
+                        Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
+                    }
+                val today = clock.now().toLocalDateTime(timeZone)
+                val lastMessageFromAtLeastYesterday =
+                    lastDate != null && lastDate.isDifferentDay(today)
+                lastDate == null || lastMessageFromAtLeastYesterday
+            }.distinctUntilChanged()
+
+    private val lastTimelineEventFromUs = timelineEvents.map { it.lastOrNull()?.first()?.sender == matrixClient.userId }
 
     init {
         coroutineScope.launch {
@@ -595,10 +605,10 @@ class TimelineViewModelImpl(
         val viewModel = if (existingViewModel != null) existingViewModel
         else {
             val canLoadMoreBefore = timelineState.map {
-                it.canLoadBefore && it.lastLoadedEventIdBefore == eventId
+                it.canLoadBefore && it.elements.firstOrNull()?.viewModel?.eventId == eventId
             }
             val canLoadMoreAfter = timelineState.map {
-                it.canLoadAfter && it.lastLoadedEventIdAfter == eventId
+                it.canLoadAfter && it.elements.lastOrNull()?.viewModel?.eventId == eventId
             }
                 // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
                 .debounce(300.milliseconds)
@@ -618,7 +628,7 @@ class TimelineViewModelImpl(
                 onMessageEdited = ::onMessageEdited,
                 onMessageRepliedTo = ::onMessageRepliedTo,
                 onMessageReportTo = ::onShowReportMessageModal,
-                onOpenModal = onOpenModal,
+                onOpenMedia = onOpenMedia,
                 onOpenMention = onOpenMention,
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
@@ -633,22 +643,6 @@ class TimelineViewModelImpl(
             viewModel
         )
     }
-
-    private val showDateAboveFlow: Flow<Boolean> =
-            timelineEvents.flatMapLatest { it.lastOrNull() ?: flowOf(null) }
-                .distinctUntilChanged()
-                .map { lastTimelineEvent ->
-                    val lastDate =
-                        lastTimelineEvent?.event?.originTimestamp?.let { millis ->
-                            Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone)
-                        }
-                    val today = clock.now().toLocalDateTime(timeZone)
-                    val lastMessageFromAtLeastYesterday =
-                        lastDate != null && lastDate.isDifferentDay(today)
-                    lastDate == null || lastMessageFromAtLeastYesterday
-                }.distinctUntilChanged()
-
-    private val lastTimelineEventFromUs = timelineEvents.map { it.lastOrNull()?.first()?.sender == matrixClient.userId }
 
     private suspend fun computeShowChatBubbleEdgeFlow(transactionId: String): Flow<Boolean> {
         val firstOutboxEvent = matrixClient.room.getOutbox(roomId = selectedRoomId).mapNotNull {
@@ -696,7 +690,7 @@ class TimelineViewModelImpl(
                         transactionId = transactionId,
                         showDateAboveFlow = showDateAboveFlow,
                         showChatBubbleEdgeFlow = computeShowChatBubbleEdgeFlow(transactionId),
-                        onOpenModal = onOpenModal,
+                        onOpenMedia = onOpenMedia,
                         onOpenMention = onOpenMention,
                     ).also {
                         outboxElementHolderViewModelCache[transactionId] = it
@@ -946,7 +940,7 @@ class TimelineViewModelImpl(
                 .filterNot { (userId, _) -> userId == matrixClient.userId }
                 .forEach { (userId, receipts) ->
                     receipts.receipts[Read]?.eventId?.also { lastReadMessage ->
-                        roomUsers.first()[userId]?.name?.also { name ->
+                        matrixClient.user.getById(selectedRoomId, userId).first()?.name?.also { name ->
                             messagesReadBy[lastReadMessage] =
                                 messagesReadBy.getOrElse(lastReadMessage) { emptyList() }.plus(name)
                         }
@@ -954,7 +948,7 @@ class TimelineViewModelImpl(
                 }
 
             val collectReadByUsers =
-                collectReadByUsers(messagesReadBy, roomUsers.first().size, eventId)
+                collectReadByUsers(messagesReadBy, eventId)
             log.debug { "collected read by users for $eventId: $collectReadByUsers" }
             collectReadByUsers
         }
@@ -962,7 +956,6 @@ class TimelineViewModelImpl(
 
     private suspend fun collectReadByUsers(
         messagesReadBy: Map<EventId, List<String>>,
-        roomUsersSize: Int,
         eventId: EventId,
     ): List<String> {
         return matrixClient.room.getById(selectedRoomId)
@@ -973,35 +966,44 @@ class TimelineViewModelImpl(
                     .scan(listOf<String>()) { readBy, currentEvent ->
                         readBy + (currentEvent.first().eventId.let { eventId -> messagesReadBy[eventId] }
                             ?: emptyList())
-                    }.takeWhileInclusive { readBy ->
-                        readBy.size <= 10 && readBy.size < roomUsersSize
-                    }.lastOrNull()?.take(11)?.sorted() ?: emptyList()
+                    }
+                    .takeWhileInclusive { readBy ->
+                        readBy.size <= 10
+                    }
+                    .lastOrNull()
+                    ?.take(11)
+                    ?.sorted()
+                    ?: emptyList()
             } ?: emptyList()
     }
 
     private fun reactionMap(eventId: EventId): Flow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> {
-        return combine(
-            matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId),
-            roomUsers
-        ) { reactions, roomUsers ->
-            reactions.reactions.mapValues { (_, events) ->
-                events.mapNotNull { event ->
-                    roomUsers[event.sender]?.let { sender ->
-                        TimelineElementHolderViewModel.ReactionEvent(
-                            eventId = event.eventId,
-                            sender = UserInfoElement(
-                                name = sender.originalName ?: sender.name,
-                                userId = sender.userId,
-                                initials = Initials.compute(sender.originalName ?: sender.name),
-                                image = null
-                            ),
-                            isMe = event.sender == matrixClient.userId,
-                            timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
-                        )
+        return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId)
+            .flatMapLatest { reactions ->
+                combine(reactions.reactions.flatMap { (_, timelineEvents) ->
+                    timelineEvents.map { timelineEvent ->
+                        matrixClient.user.getById(selectedRoomId, timelineEvent.sender)
                     }
-                }.toSet()
+                }) { users ->
+                    reactions.reactions.mapValues { (_, events) ->
+                        events.mapNotNull { event ->
+                            users.find { it?.userId == event.sender }?.let { sender ->
+                                TimelineElementHolderViewModel.ReactionEvent(
+                                    eventId = event.eventId,
+                                    sender = UserInfoElement(
+                                        name = sender.originalName ?: sender.name,
+                                        userId = sender.userId,
+                                        initials = Initials.compute(sender.originalName ?: sender.name),
+                                        image = null
+                                    ),
+                                    isMe = event.sender == matrixClient.userId,
+                                    timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)
+                                )
+                            }
+                        }.toSet()
+                    }
+                }
             }
-        }
     }
 
     private fun onVerifyUser() {

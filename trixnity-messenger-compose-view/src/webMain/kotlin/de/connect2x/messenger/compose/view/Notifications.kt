@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +39,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
-import net.folivo.trixnity.utils.toByteArray
 
 private val log = KotlinLogging.logger { }
 
@@ -50,7 +50,7 @@ fun Notifications(
     val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
     val notificationHandler = NotificationHandler.create(
         name = "${config.appName} Notifications",
-        id = "${config.packageName}.${config.appName}.notification",
+        id = "${config.appId}.notification",
     )
 
     LaunchedEffect(Unit) {
@@ -88,6 +88,7 @@ private suspend fun whenSyncIsRunning(
     i18n: I18nView
 ) {
     val settings = matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+    val maxAvatarSize = matrixMessenger.di.get<MatrixMessengerConfiguration>().avatarMaxSize
     matrixMessenger.di.get<MatrixClients>().scopedCollectLatest { matrixClients ->
         matrixClients.forEach { (userId, matrixClient) ->
             launch {
@@ -109,7 +110,8 @@ private suspend fun whenSyncIsRunning(
                                 notification.event.content,
                                 isDirect,
                                 roomName,
-                                i18n
+                                i18n,
+                                maxAvatarSize
                             )?.let {
                                 notificationHandler.push(it)
                             }
@@ -128,7 +130,8 @@ private suspend fun displayNotification(
     content: EventContent, // possibly decrypted
     isDirect: Boolean,
     roomName: String,
-    i18n: I18nView
+    i18n: I18nView,
+    maxAvatarSize: Long
 ): Notification? {
     event.roomIdOrNull?.let { roomId ->
         val message = when {
@@ -143,7 +146,7 @@ private suspend fun displayNotification(
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                }?.map { it.toByteArray() }?.getOrNull()
+                }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }?.getOrNull()
                 user?.name to image
             } ?: (null to null)
 

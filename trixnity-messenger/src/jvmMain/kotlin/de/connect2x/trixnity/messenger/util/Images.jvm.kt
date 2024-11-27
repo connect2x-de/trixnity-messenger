@@ -8,7 +8,7 @@ import net.folivo.trixnity.utils.toByteReadChannel
 import java.io.IOException
 import javax.imageio.ImageIO
 
-actual suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow): Pair<Int?, Int?> {
+actual suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long): Pair<Int?, Int?> {
     val inputStream = byteArrayFlow.toByteReadChannel().toInputStream()
     return withContext(Dispatchers.IO) {
         try {

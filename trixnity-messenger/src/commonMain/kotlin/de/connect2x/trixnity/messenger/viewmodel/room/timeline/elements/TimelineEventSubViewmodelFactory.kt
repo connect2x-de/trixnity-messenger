@@ -1,8 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -19,6 +20,7 @@ import net.folivo.trixnity.client.store.isReplacing
 import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
@@ -52,7 +54,7 @@ interface TimelineEventSubViewmodelFactory {
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         isDirect: StateFlow<Boolean>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): Flow<BaseTimelineElementViewModel>
 }
@@ -68,7 +70,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
         isDirect: StateFlow<Boolean>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): Flow<BaseTimelineElementViewModel> {
         val timelineElementHolderViewModelHelper = TimelineElementHolderViewModelHelper(viewModelContext.get())
@@ -103,7 +105,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                         showChatBubbleEdge,
                         invitation,
                         onOpenMention,
-                        onOpenModal,
+                        onOpenMedia,
                     )
 
                     is RedactedEventContent -> {
@@ -290,9 +292,14 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
         showChatBubbleEdge: Boolean,
         invitation: Flow<String?>,
         onOpenMention: OpenMentionCallback,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
     ): TimelineElementWithTimestampViewModel {
         val richRepliesComputations = viewModelContext.get<RichRepliesComputations>()
+
+        val unencryptedContent = event.content as? MessageEventContent
+        val unencryptedRelatesTo = unencryptedContent?.relatesTo
+        val maxPreviewSize = viewModelContext.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
         return when (content) {
             is TextBased.Notice -> {
                 log.trace { "Create notice message view model: ${event.id}" }
@@ -303,8 +310,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -331,8 +339,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -360,8 +369,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,
@@ -394,7 +404,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showSender = showSender,
                     sender = sender,
                     invitation = invitation,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     mediaUploadProgress = MutableStateFlow(null),
                 )
             }
@@ -414,7 +424,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showSender = showSender,
                     sender = sender,
                     invitation = invitation,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     mediaUploadProgress = MutableStateFlow(null)
                 )
             }
@@ -434,7 +444,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     showChatBubbleEdge = showChatBubbleEdge,
                     showBigGap = showChatBubbleEdge,
                     invitation = invitation,
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                     mediaUploadProgress = MutableStateFlow(null)
                 )
             }
@@ -455,7 +465,7 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     sender = sender,
                     invitation = invitation,
                     mediaUploadProgress = MutableStateFlow(null),
-                    onOpenModal = onOpenModal,
+                    onOpenMedia = onOpenMedia,
                 )
             }
 
@@ -502,8 +512,9 @@ class DefaultTimelineEventSubViewmodelFactory : TimelineEventSubViewmodelFactory
                     fallbackMessage = content.body,
                     referencedMessage = richRepliesComputations.getReferencedMessage(
                         viewModelContext.matrixClient,
-                        content.relatesTo,
-                        selectedRoomId
+                        unencryptedRelatesTo ?: content.relatesTo,
+                        selectedRoomId,
+                        maxPreviewSize
                     ),
                     message = content.bodyWithoutFallback,
                     formattedBody = content.formattedBody,

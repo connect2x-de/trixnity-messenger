@@ -49,9 +49,21 @@ sealed interface WizardNavigationButton {
     ) : WizardNavigationButton
 
     data object None : WizardNavigationButton
-    data class Custom(val button: @Composable RowScope.() -> Unit) : WizardNavigationButton
-    data object InstantMove : WizardNavigationButton
+    data class Custom(val button: @Composable CustomButtonScope.() -> Unit) : WizardNavigationButton
 }
+
+interface CustomButtonScope : RowScope {
+    val currentStepId: MutableState<StepId>
+    val nextStep: StepId?
+    val previousStep: StepId?
+}
+
+private data class CustomButtonScopeImpl(
+    val rowScope: RowScope,
+    override val currentStepId: MutableState<StepId>,
+    override val nextStep: StepId? = null,
+    override val previousStep: StepId? = null,
+) : RowScope by rowScope, CustomButtonScope
 
 sealed interface WizardButtons {
     data object NextButton : WizardButtons
@@ -67,7 +79,11 @@ data class WizardStep(
     val additionalButton: (@Composable RowScope.((StepId) -> Unit) -> Unit)? = null,
     val nextButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
     val backButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
-    val onStepEnter: ((() -> Unit)?) = null
+    val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
+        Triple(
+            WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton
+        )
+    }
 )
 
 @Composable
@@ -83,8 +99,7 @@ fun Wizard(wizardSteps: List<WizardStep>) {
         ) {
             BoxWithConstraints(
                 Modifier
-                    .fillMaxSize()
-                    .padding(MaterialTheme.messengerDpConstants.large),
+                    .fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
                 // this is necessary to have a scroll position saved on every step, but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
@@ -177,12 +192,12 @@ private fun WizardButtons(
     wizardStep: WizardStep,
     currentStep: MutableState<StepId>,
 ) {
-    val nextStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) + 1)
-    val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)
+    val nextStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) + 1)?.id
+    val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     val additionalButton = wizardStep.additionalButton
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
-        val buttonList = mutableListOf(WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton)
-        if (previousStep == null && wizardStep.backButton() !is WizardNavigationButton.Custom) {
+        val buttonList = wizardStep.buttonOrder().toList().toMutableList()
+        if (previousStep == null) {
             buttonList.remove(WizardButtons.BackButton)
         }
         if (additionalButton == null) {
@@ -214,7 +229,7 @@ private fun WizardButtons(
 @Composable
 private fun RowScope.NextButton(
     wizardStep: WizardStep,
-    nextStep: WizardStep?,
+    nextStep: StepId?,
     currentStep: MutableState<StepId>,
 ) {
     when (val nextButton = wizardStep.nextButton()) {
@@ -225,11 +240,7 @@ private fun RowScope.NextButton(
         is WizardNavigationButton.None -> {}
 
         is WizardNavigationButton.Custom -> {
-            nextButton.button(this@NextButton)
-        }
-
-        is WizardNavigationButton.InstantMove -> {
-            nextStep?.let { currentStep.value = nextStep.id }
+            nextButton.button(CustomButtonScopeImpl(this, currentStep, nextStep = nextStep))
         }
     }
 }
@@ -237,15 +248,12 @@ private fun RowScope.NextButton(
 @Composable
 private fun NextButtonImpl(
     currentStep: MutableState<StepId>,
-    nextStep: WizardStep,
+    nextStep: StepId,
     nextButton: WizardNavigationButton.Standard
 ) {
     val i18n = DI.get<I18nView>()
     Button(
-        onClick = {
-            currentStep.value = nextStep.id
-            nextStep.onStepEnter?.let { it() }
-        },
+        onClick = { currentStep.value = nextStep },
         modifier = Modifier.buttonPointerModifier(),
         enabled = nextButton.enabled(),
     ) {
@@ -256,20 +264,16 @@ private fun NextButtonImpl(
 }
 
 @Composable
-private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: WizardStep?) {
-    when (val backButton = wizardStep.backButton()) {
+private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: StepId) {
+    return when (val backButton = wizardStep.backButton()) {
         is WizardNavigationButton.Standard -> {
-            previousStep?.let { BackButtonImpl(currentStep, previousStep, backButton) }
+            BackButtonImpl(currentStep, previousStep, backButton)
         }
 
         is WizardNavigationButton.None -> {}
 
         is WizardNavigationButton.Custom -> {
-            backButton.button(this@BackButton)
-        }
-
-        WizardNavigationButton.InstantMove -> {
-            previousStep?.let { currentStep.value = previousStep.id }
+            backButton.button(CustomButtonScopeImpl(this, currentStep, previousStep = previousStep))
         }
     }
 }
@@ -277,15 +281,12 @@ private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableStat
 @Composable
 private fun BackButtonImpl(
     currentStep: MutableState<StepId>,
-    previousStep: WizardStep,
+    previousStep: StepId,
     backButton: WizardNavigationButton.Standard
 ) {
     val i18n = DI.get<I18nView>()
     OutlinedButton(
-        onClick = {
-            currentStep.value = previousStep.id
-            previousStep.onStepEnter?.let { it() }
-        },
+        onClick = { currentStep.value = previousStep },
         modifier = Modifier.buttonPointerModifier(),
         enabled = backButton.enabled(),
     ) {
@@ -300,9 +301,9 @@ private fun BackButtonImpl(
 private fun getCorrespondingButton(
     wizardButton: WizardButtons,
     wizardStep: WizardStep,
-    nextStep: WizardStep?,
+    nextStep: StepId?,
     currentStep: MutableState<StepId>,
-    previousStep: WizardStep?
+    previousStep: StepId?
 ): @Composable (RowScope.() -> Unit) {
     return when (wizardButton) {
         NextButton -> {
@@ -313,7 +314,7 @@ private fun getCorrespondingButton(
 
         WizardButtons.BackButton -> {
             {
-                BackButton(wizardStep, currentStep, previousStep)
+                previousStep?.let { BackButton(wizardStep, currentStep, previousStep) }
             }
         }
 

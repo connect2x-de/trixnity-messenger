@@ -120,7 +120,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                             }"
                         ) {
                             for (visibility in createNewGroupViewModel.availableRoomHistoryVisibilities) {
-                                VisibilityOption(visibility, createNewGroupViewModel)
+                                CreateGroupVisibilityOption(visibility, createNewGroupViewModel)
                             }
                         }
                     }
@@ -131,7 +131,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
 }
 
 @Composable
-private fun VisibilityOption(
+fun CreateGroupVisibilityOption(
     visibility: HistoryVisibilityEventContent.HistoryVisibility,
     createNewGroupViewModel: CreateNewGroupViewModel
 ) {

@@ -4,6 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -94,12 +96,13 @@ class SelfVerificationRouter(
     }
 
     val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    val messengerConfiguration = get<MatrixMessengerConfiguration>()
 
     /** @see startSelfVerificationsQueue() **/
     fun showSelfVerification(userId: UserId, isFromSetup: Boolean = false) {
         log.debug { "add account to self verification queue: $userId" }
-        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished && !isFromSetup}) {
-            log.debug { "At least one account isn't bootstrapped, not showing self verification for $userId" }
+        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished } && !isFromSetup) {
+            log.debug { "At least one account isn't set up with the wizard, not showing self verification for $userId" }
         } else if (bootstrapStarted.value) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
         } else {

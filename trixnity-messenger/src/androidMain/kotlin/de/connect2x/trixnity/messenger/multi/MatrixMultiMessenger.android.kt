@@ -11,7 +11,7 @@ suspend fun MatrixMultiMessenger.Companion.create(
     val oldMessenger = messenger
     messenger = {
         oldMessenger()
-        modules += module { single<Context> { context } }
+        modulesFactories += { module { single<Context> { context } } }
     }
-    modules += module { single<Context> { context } }
+    modulesFactories += { module { single<Context> { context } } }
 }

@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
@@ -19,12 +20,12 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
+import de.connect2x.trixnity.messenger.viewmodel.sharing.SharingRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
@@ -47,7 +48,7 @@ import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -81,6 +82,7 @@ interface MainViewModel {
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
     val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
+    val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
     // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
     fun start()
@@ -90,11 +92,9 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
 
     fun setSinglePane(isSinglePane: Boolean)
-    fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    fun openMedia(
+        content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId
     )
 
@@ -121,6 +121,10 @@ open class MainViewModelImpl(
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         selfVerificationRouter.stack
+
+    internal val sharingRouter = SharingRouter(viewModelContext)
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
+        sharingRouter.stack
 
 
     private val backCallback = BackCallback {
@@ -154,7 +158,7 @@ open class MainViewModelImpl(
             viewModelContext = viewModelContext,
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
-            onOpenModal = ::openModal,
+            onOpenMedia = ::openMedia,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
         )
@@ -213,6 +217,7 @@ open class MainViewModelImpl(
         } else if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {
+            getOrNull<MinimizeApp>()?.invoke()
             // TODO was "minimize", but we should use native routing without all the back press handlers
             //  native routing could also allow to use web history
             //  see also: https://github.com/arkivanov/Decompose/tree/master/sample/shared/shared/src/commonMain/kotlin/com/arkivanov/sample/shared/multipane
@@ -517,58 +522,37 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    override fun openMedia(
+        content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId,
     ) {
-        when (type) {
-            OpenModalType.IMAGE -> coroutineScope.launch {
+        when (content) {
+            is RoomMessageEventContent.FileBased.Image -> coroutineScope.launch {
                 mediaRouter.openImage(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
+                    content,
                     userId,
+                    onDownload
                 )
             }
 
-            OpenModalType.VIDEO -> coroutineScope.launch {
+            is RoomMessageEventContent.FileBased.Video -> coroutineScope.launch {
                 mediaRouter.openVideo(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
+                    content,
                     userId,
+                    onDownload
                 )
             }
 
-            OpenModalType.PDF -> coroutineScope.launch {
-                mediaRouter.openPdf(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
+            is RoomMessageEventContent.FileBased.File -> coroutineScope.launch {
+                when (content.info?.mimeType) {
+                    "application/pdf" -> mediaRouter.openPdf(content, userId, onDownload)
+                    "text/markdown" -> mediaRouter.openMarkdown(content, userId, onDownload)
+                    "text/plain" -> mediaRouter.openText(content, userId, onDownload)
+                }
             }
 
-            OpenModalType.TEXT -> coroutineScope.launch {
-                mediaRouter.openText(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
-            }
-
-            OpenModalType.MARKDOWN -> coroutineScope.launch {
-                mediaRouter.openMarkdown(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
-            }
+            else -> {}
         }
     }
 
@@ -642,6 +626,15 @@ class PreviewMainViewModel : MainViewModel {
                 active = Child.Created(
                     configuration = SelfVerificationRouter.Config.None,
                     instance = SelfVerificationRouter.Wrapper.None
+                )
+            )
+        )
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
+        MutableValue(
+            ChildStack(
+                active = Child.Created(
+                    configuration = SharingRouter.Config.None,
+                    instance = SharingRouter.Wrapper.None
                 )
             )
         )
@@ -722,11 +715,9 @@ class PreviewMainViewModel : MainViewModel {
         this.isSinglePane.value = isSinglePane
     }
 
-    override fun openModal(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+    override fun openMedia(
+        content: RoomMessageEventContent.FileBased,
+        onDownload: () -> Unit,
         userId: UserId
     ) {
     }
