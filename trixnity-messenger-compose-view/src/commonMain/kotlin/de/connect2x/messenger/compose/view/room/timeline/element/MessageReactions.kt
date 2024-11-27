@@ -148,8 +148,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
             timelineElementHolderViewModel.reactionsOpen
         }.collectAsState()
 
-        val reactorListOpen = timelineElementHolderViewModel.reactorListOpen.collectAsState().value
-
         val reactions by remember(timelineElementHolderViewModel) {
             timelineElementHolderViewModel.reactions
         }.collectAsState()
@@ -169,16 +167,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
                 timelineElementHolderViewModel.addReaction(it)
             },
             isByMe = roomMessageViewModel.isByMe,
-        )
-
-        ReactorListPopup(
-            isOpen = reactorListOpen,
-            focusRequester = focusRequester,
-            onDismiss = {
-                timelineElementHolderViewModel.reactorListOpen.value = false
-            },
-            isByMe = roomMessageViewModel.isByMe,
-            reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
         )
 
         if (reactions.isNotEmpty()) {

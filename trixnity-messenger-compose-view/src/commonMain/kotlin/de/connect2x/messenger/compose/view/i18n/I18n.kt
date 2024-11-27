@@ -900,6 +900,16 @@ abstract class I18nView(
         DE - "suche Personen"
     }
 
+    fun messageInfoReadBy() = translate {
+        EN - "Read by"
+        DE - "Gelesen von"
+    }
+
+    fun messageInfoReactions() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
+    }
+
     fun userSearchNameOrMatrixId() = translate {
         EN - "display name or Matrix id"
         DE - "Name oder Matrix Id"

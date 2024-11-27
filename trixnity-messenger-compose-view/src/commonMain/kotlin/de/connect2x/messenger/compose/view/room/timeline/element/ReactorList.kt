@@ -38,8 +38,8 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ReactorList(
-    focusRequester: FocusRequester,
     reactors: Map<String, List<UserInfoElement>>,
+    focusRequester: FocusRequester,
 ) {
     val i18n = DI.get<I18nView>()
     val reactions = reactors.toList()
@@ -55,23 +55,9 @@ fun ReactorList(
             .focusTarget()
             .fillMaxHeight()
     ) {
-        ScrollableTabRow(
-            selectedTabIndex = selectedReaction,
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            edgePadding = 0.dp,
-            divider = {}
+        LazyColumn(
+            modifier = Modifier.weight(1f, fill = true),
         ) {
-            reactionCounts.forEachIndexed { index, (reaction, count) ->
-                Tab(
-                    selected = selectedReaction == index,
-                    onClick = { selectedReaction = index },
-                    Modifier.minimumInteractiveComponentSize()
-                ) { Text("$reaction $count") }
-            }
-        }
-        HorizontalDivider()
-        LazyColumn {
             items(
                 if (selectedReaction == 0) {
                     reactions.map { (reaction, users) ->
@@ -85,6 +71,22 @@ fun ReactorList(
                 { Uuid.random().toString() },
             ) { (reaction, user) ->
                 ReactorListElement(reaction, user)
+            }
+        }
+        HorizontalDivider()
+        ScrollableTabRow(
+            selectedTabIndex = selectedReaction,
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            edgePadding = 0.dp,
+            divider = {},
+        ) {
+            reactionCounts.forEachIndexed { index, (reaction, count) ->
+                Tab(
+                    selected = selectedReaction == index,
+                    onClick = { selectedReaction = index },
+                    Modifier.minimumInteractiveComponentSize().padding(horizontal = 5.dp),
+                ) { Text("$reaction $count") }
             }
         }
     }
