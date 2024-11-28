@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -24,13 +23,12 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 
 @Composable
-actual fun EmojiPopup(
+actual fun TimelinePopup(
     isOpen: Boolean,
-    focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    onSelect: (String) -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
+    content: @Composable () -> Unit
 ) {
     val expandedState = remember { MutableTransitionState(false) }
     expandedState.targetState = isOpen
@@ -63,7 +61,7 @@ actual fun EmojiPopup(
                     tonalElevation = 4.dp,
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    EmojiSelector(onSelect, focusRequester)
+                    content()
                 }
             }
         }
