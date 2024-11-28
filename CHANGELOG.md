@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added hook on Android to change the behaviour of the messenger on startup of the Activity
 - Add download button for file overlays
 - Allow configuration to not use the account setup wizard
+- Support private Browser Tabs.
 
 ### Changed
 
@@ -39,12 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash when opening file picker on linux distribution
 - Fix Cannot delete database when corrupted
 - Fix server discovery fallback hiding server discovery errors
+- Fixed scaling on mobile devices in web.
 
 ### Security
 
 ## 2.3.7
 
 ### Added
+
 - File save and upload dialog on web.
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
@@ -70,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wizard and modal dialog buttons are always shown on smaller screens
 - Fix Emojis on Web
 - Fix directory picker in room export.
-- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet
+  supported
 - Don't show edited message as new message
 - Correct lifecycle handling on web
 - SSO support in local dev server

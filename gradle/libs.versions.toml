@@ -98,6 +98,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 trixnity-client-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
 trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
 trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
+trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
