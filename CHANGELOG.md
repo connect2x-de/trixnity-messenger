@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Show online-status when searching for users
+- Ability to see who reacted to a message
 - Make Smoketests work on Web
 - Make Smoketests work on Android
 - Added hook on Android to change the behaviour of the messenger on startup of the Activity
@@ -37,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix nightly pipeline missing job dependency
 - Fix problem with login when an IOException has been thrown
 - Fix crash when opening file picker on linux distribution
+- Fix Cannot delete database when corrupted
+- Fix server discovery fallback hiding server discovery errors
 
 ### Security
 

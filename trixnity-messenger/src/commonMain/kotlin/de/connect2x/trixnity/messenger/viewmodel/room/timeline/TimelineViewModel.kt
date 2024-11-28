@@ -84,12 +84,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.flattenNotNull
+import net.folivo.trixnity.client.flattenValues
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.Timeline
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.originalName
@@ -994,7 +997,7 @@ class TimelineViewModelImpl(
                                         name = sender.originalName ?: sender.name,
                                         userId = sender.userId,
                                         initials = Initials.compute(sender.originalName ?: sender.name),
-                                        image = null
+                                        image = sender.avatarUrl?.let { matrixClient.media.getMedia(it).getOrNull() }
                                     ),
                                     isMe = event.sender == matrixClient.userId,
                                     timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)

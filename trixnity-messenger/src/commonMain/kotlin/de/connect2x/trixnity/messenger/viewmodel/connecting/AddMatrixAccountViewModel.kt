@@ -88,8 +88,8 @@ open class AddMatrixAccountViewModelImpl(
                         httpClientEngine = config.httpClientEngine,
                         httpClientConfig = config.httpClientConfig
                     ).onFailure {
-                        log.debug(it) { "server discovery failed -> try login with given server URL" }
-                        getLoginTypes(Url(serverUrl))
+                        log.debug(it) { "server discovery failed" }
+                        emit(ServerDiscoveryState.Failure(i18n.serverDiscoveryFailed()))
                     }.onSuccess { serverDiscoveryUrl ->
                         getLoginTypes(serverDiscoveryUrl)
                     }

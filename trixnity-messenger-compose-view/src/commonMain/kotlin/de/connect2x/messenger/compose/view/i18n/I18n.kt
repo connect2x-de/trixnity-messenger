@@ -13,7 +13,7 @@ import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
-
+@Suppress("UNUSED")
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
@@ -299,6 +299,11 @@ abstract class I18nView(
     fun commonExpand() = translate {
         EN - "expand"
         DE - "ausklappen"
+    }
+
+    fun commonAll() = translate {
+        EN - "All"
+        DE - "Alle"
     }
 
     fun commonCollapse() = translate {
@@ -898,6 +903,16 @@ abstract class I18nView(
     fun userSearchSearchPeople() = translate {
         EN - "search people"
         DE - "suche Personen"
+    }
+
+    fun messageInfoReadBy() = translate {
+        EN - "Read by"
+        DE - "Gelesen von"
+    }
+
+    fun messageInfoReactions() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
     }
 
     fun userSearchNameOrMatrixId() = translate {
@@ -2094,6 +2109,11 @@ abstract class I18nView(
     fun reactMessage() = translate {
         EN - "React"
         DE - "Reagieren"
+    }
+
+    fun reactorListMessage() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
     }
 
     fun infoMessage() = translate {

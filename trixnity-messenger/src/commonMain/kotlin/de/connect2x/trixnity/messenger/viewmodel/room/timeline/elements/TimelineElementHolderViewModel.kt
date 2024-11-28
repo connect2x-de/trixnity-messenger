@@ -226,7 +226,7 @@ open class TimelineElementHolderViewModelImpl(
     override val canGetInfo: StateFlow<Boolean> = timelineEventFlow
         .filterNotNull()
         .map {
-            it.event.sender == matrixClient.userId
+            true
         }
         .stateIn(coroutineScope, WhileSubscribed(), false)
 
