@@ -3,6 +3,7 @@ package de.connect2x.messenger.android
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
@@ -206,18 +207,36 @@ class MessengerActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        when (intent.action) {
-            Intent.ACTION_VIEW -> intent.data?.also {
+        when {
+            intent.action == Intent.ACTION_VIEW -> intent.data?.also {
                 matrixMessengerServiceConnection.matrixMultiMessenger.value?.defaultUrlHandler?.onUri(it)
             }
 
-            Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let {
-                matrixMessengerServiceConnection.onShareFiles(
+            intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
+                intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
+                    val uri = Uri.parse(text)
+
+                    if (uri.scheme == "http" || uri.scheme == "https") {
+                        val icon = intent.clipData?.toSequence()?.firstOrNull()?.uri
+
+                        matrixMessengerServiceConnection.onShareData(
+                            applicationContext,
+                            SharedIntentData.SharedUrl(text, icon)
+                        )
+                    } else {
+                        matrixMessengerServiceConnection.onShareData(
+                            applicationContext,
+                            SharedIntentData.SharedText(text)
+                        )
+                    }
+                }
+            }
+
+            intent.action == Intent.ACTION_SEND ||
+                    intent.action == Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let {
+                matrixMessengerServiceConnection.onShareData(
                     applicationContext,
-                    intent.clipData
-                        ?.toSequence()
-                        ?.mapNotNull(SharedFile.Companion::of)
-                        ?.toList().orEmpty()
+                    intent.clipData?.toList()?.let(SharedIntentData::SharedItems)
                 )
             }
         }

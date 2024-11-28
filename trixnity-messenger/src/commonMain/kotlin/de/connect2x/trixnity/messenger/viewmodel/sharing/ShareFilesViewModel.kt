@@ -4,6 +4,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -14,34 +15,39 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.message.audio
 import net.folivo.trixnity.client.room.message.file
 import net.folivo.trixnity.client.room.message.image
+import net.folivo.trixnity.client.room.message.text
 import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
+import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 
-interface ShareFilesViewModelFactory {
+interface ShareDataViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        sharedFiles: List<FileDescriptor>,
+        sharedData: SharedData,
         onClose: () -> Unit,
-    ): ShareFilesViewModel {
-        return ShareFilesViewModelImpl(
+    ): ShareDataViewModel {
+        return SharedDataViewModelImpl(
             viewModelContext,
-            sharedFiles,
+            sharedData,
             onClose,
         )
     }
 
-    companion object : ShareFilesViewModelFactory
+    companion object : ShareDataViewModelFactory
 }
 
 
-interface ShareFilesViewModel {
+interface ShareDataViewModel {
     val selectedRoomId: StateFlow<RoomId?>
-    val sharedFiles: List<FileDescriptor>
+    val sharedData: SharedData
     val roomList: RoomListViewModel
     val sending: StateFlow<Boolean>
     fun send()
@@ -50,11 +56,11 @@ interface ShareFilesViewModel {
 
 private val log = KotlinLogging.logger { }
 
-class ShareFilesViewModelImpl(
+class SharedDataViewModelImpl(
     private val viewModelContext: ViewModelContext,
-    override val sharedFiles: List<FileDescriptor>,
+    override val sharedData: SharedData,
     private val onClose: () -> Unit,
-) : ViewModelContext by viewModelContext, ShareFilesViewModel {
+) : ViewModelContext by viewModelContext, ShareDataViewModel {
     private val _selectedRoomId = MutableStateFlow<RoomId?>(null)
     override val selectedRoomId: StateFlow<RoomId?> = _selectedRoomId
 
@@ -77,6 +83,8 @@ class ShareFilesViewModelImpl(
     )
 
     private val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
+    // TODO: unified SendMessage viewmodel
     override fun send() {
         val selectedAccount =
             messengerSettings.value.base.selectedAccount ?: return log.warn { "selectedAccount is null" }
@@ -84,65 +92,90 @@ class ShareFilesViewModelImpl(
         val roomId = this.selectedRoomId.value ?: return log.warn { "selected room is null" }
         coroutineScope.launch {
             _sending.value = true
-            for (file in sharedFiles) {
-                matrixClient.room.sendMessage(roomId) {
-                    when {
-                        file.mimeType?.match("image/*") == true -> {
-                            log.debug { "send an image to ${roomId.full}" }
-                            val size = file.fileSize
-                            val (width, height) = if (size == null || size <= maxMediaSize) getImageDimensions(
-                                file.content,
-                                maxMediaSize
-                            ) else Pair(null, null)
-                            image(
-                                body = file.fileName,
-                                fileName = file.fileName,
-                                image = file.content,
-                                type = file.mimeType,
-                                size = size,
-                                width = width,
-                                height = height,
-                            )
-                        }
 
-                        file.mimeType?.match("video/*") ?: false -> {
-                            log.debug { "send a video to ${roomId.full}" }
-                            video(
-                                body = file.fileName,
-                                fileName = file.fileName,
-                                video = file.content,
-                                type = file.mimeType,
-                                size = file.fileSize,
-                            )
-                        }
-
-                        file.mimeType?.match("audio/*") ?: false -> {
-                            log.debug { "send an audio to ${roomId.full}" }
-                            audio(
-                                body = file.fileName,
-                                fileName = file.fileName,
-                                audio = file.content,
-                                type = file.mimeType,
-                                size = file.fileSize,
-                            )
-                        }
-
-                        else -> {
-                            log.debug { "send a file to ${roomId.full}" }
-                            file(
-                                body = file.fileName,
-                                file = file.content,
-                                type = file.mimeType,
-                                fileName = file.fileName,
-                                size = file.fileSize
-                            )
-                        }
-                    }
-                }
+            when (sharedData) {
+                is SharedData.SingleFile -> sendFiles(listOf(sharedData.file), matrixClient, roomId)
+                is SharedData.MultipleFiles -> sendFiles(sharedData.files, matrixClient, roomId)
+                is SharedData.PlainText -> sendPlainText(sharedData.text, matrixClient, roomId)
+                is SharedData.Url -> sendPlainText(sharedData.url, matrixClient, roomId)
             }
+
             _sending.value = false
             onClose()
         }
+    }
+
+    private val markdownFlavor = CommonMarkFlavourDescriptor()
+    private val markdownParser = MarkdownParser(markdownFlavor)
+    private suspend fun sendPlainText(body: String, matrixClient: MatrixClient, roomId: RoomId) {
+        // TODO: unified SendMessage viewmodel
+        val parsedTree = markdownParser.buildMarkdownTreeFromString(body)
+        val formattedBody = HtmlGenerator(body, parsedTree, markdownFlavor).generateHtml()
+        formattedBody.removePrefix("<body>").removeSuffix("</body>")
+
+        matrixClient.room.sendMessage(roomId) {
+            text(body = body, format = "org.matrix.custom.html", formattedBody = formattedBody)
+        }
+    }
+
+    private suspend fun sendFiles(files: List<FileDescriptor>, matrixClient: MatrixClient, roomId: RoomId) {
+        for (file in files) {
+            matrixClient.room.sendMessage(roomId) {
+                when {
+                    file.mimeType?.match("image/*") == true -> {
+                        log.debug { "send an image to ${roomId.full}" }
+                        val size = file.fileSize
+                        val (width, height) = if (size == null || size <= maxMediaSize) getImageDimensions(
+                            file.content,
+                            maxMediaSize
+                        ) else Pair(null, null)
+                        image(
+                            body = file.fileName,
+                            fileName = file.fileName,
+                            image = file.content,
+                            type = file.mimeType,
+                            size = size,
+                            width = width,
+                            height = height,
+                        )
+                    }
+
+                    file.mimeType?.match("video/*") ?: false -> {
+                        log.debug { "send a video to ${roomId.full}" }
+                        video(
+                            body = file.fileName,
+                            fileName = file.fileName,
+                            video = file.content,
+                            type = file.mimeType,
+                            size = file.fileSize,
+                        )
+                    }
+
+                    file.mimeType?.match("audio/*") ?: false -> {
+                        log.debug { "send an audio to ${roomId.full}" }
+                        audio(
+                            body = file.fileName,
+                            fileName = file.fileName,
+                            audio = file.content,
+                            type = file.mimeType,
+                            size = file.fileSize,
+                        )
+                    }
+
+                    else -> {
+                        log.debug { "send a file to ${roomId.full}" }
+                        file(
+                            body = file.fileName,
+                            file = file.content,
+                            type = file.mimeType,
+                            fileName = file.fileName,
+                            size = file.fileSize
+                        )
+                    }
+                }
+            }
+        }
+
     }
 
     override fun cancel() {

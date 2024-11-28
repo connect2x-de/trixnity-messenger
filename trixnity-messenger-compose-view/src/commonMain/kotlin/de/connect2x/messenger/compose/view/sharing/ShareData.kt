@@ -1,5 +1,6 @@
-package de.connect2x.messenger.compose.view.files
+package de.connect2x.messenger.compose.view.sharing
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +23,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,37 +41,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.AdaptiveDialog
+import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareFilesViewModel
+import de.connect2x.trixnity.messenger.util.SharedData
+import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
+import net.folivo.trixnity.utils.toByteArray
 
-interface ShareFilesView {
+interface ShareDataView {
     @Composable
-    fun create(viewModel: ShareFilesViewModel)
+    fun create(viewModel: ShareDataViewModel)
 }
 
 @Composable
-fun ShareFiles(viewModel: ShareFilesViewModel) {
-    DI.get<ShareFilesView>().create(viewModel)
+fun ShareData(viewModel: ShareDataViewModel) {
+    DI.get<ShareDataView>().create(viewModel)
 }
 
-class ShareFilesViewImpl : ShareFilesView {
+class ShareDataViewImpl : ShareDataView {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun create(viewModel: ShareFilesViewModel) {
+    override fun create(viewModel: ShareDataViewModel) {
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
         val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
@@ -88,46 +99,40 @@ class ShareFilesViewImpl : ShareFilesView {
 
         AdaptiveDialog(viewModel::cancel) {
             Column(Modifier.fillMaxSize()) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            i18n.shareFilesTitle(viewModel.sharedFiles.size),
-                            style = MaterialTheme.typography.titleMedium
+                TopAppBar(title = {
+                    Text(
+                        i18n.shareDataTitle(viewModel.sharedData), style = MaterialTheme.typography.titleMedium
+                    )
+                }, navigationIcon = {
+                    ToolbarButton(viewModel::cancel, i18n.shareFilesCancel()) {
+                        Icon(
+                            Icons.Default.Close, i18n.shareFilesCancel()
                         )
-                    },
-                    navigationIcon = {
-                        ToolbarButton(viewModel::cancel, i18n.shareFilesCancel()) {
+                    }
+                }, actions = {
+                    ToolbarButton(viewModel::send, i18n.inputAreaSend(), enabled) {
+                        if (sending) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
                             Icon(
-                                Icons.Default.Close,
-                                i18n.shareFilesCancel()
+                                Icons.AutoMirrored.Default.Send,
+                                i18n.inputAreaSend(),
+                                tint = if (enabled) MaterialTheme.colorScheme.primary else LocalContentColor.current
                             )
                         }
-                    },
-                    actions = {
-                        ToolbarButton(viewModel::send, i18n.inputAreaSend(), enabled) {
-                            if (sending) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            } else {
-                                Icon(
-                                    Icons.AutoMirrored.Default.Send,
-                                    i18n.inputAreaSend(),
-                                    tint = if (enabled) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                )
-                            }
-                        }
                     }
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.small),
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
-                ) {
-                    items(viewModel.sharedFiles) { file ->
-                        ShareFileCard(file)
-                    }
+                })
+
+                when (val data = viewModel.sharedData) {
+                    is SharedData.SingleFile -> ShareFilesLazyRow(listOf(data.file))
+                    is SharedData.MultipleFiles -> ShareFilesLazyRow(data.files)
+                    is SharedData.PlainText -> ShareTextRow(data.text)
+                    is SharedData.Url -> ShareUrlRow(data.url, data.icon)
                 }
+
                 Spacer(Modifier.height(MaterialTheme.messengerDpConstants.small))
                 Box(Modifier.fillMaxSize()) {
                     if (allRooms.isEmpty()) {
@@ -139,9 +144,7 @@ class ShareFilesViewImpl : ShareFilesView {
                     } else {
                         LazyColumn(Modifier.fillMaxSize(), state) {
                             items(
-                                allRooms,
-                                { (roomId, _) -> roomId.full }
-                            ) { roomListElement ->
+                                allRooms, { (roomId, _) -> roomId.full }) { roomListElement ->
                                 RoomListElementContainer(
                                     roomListElement.roomId,
                                     viewModel.roomList,
@@ -152,9 +155,7 @@ class ShareFilesViewImpl : ShareFilesView {
                     }
 
                     VerticalScrollbar(
-                        Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxHeight(),
+                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                         state,
                         false,
                     )
@@ -192,10 +193,93 @@ private fun splitFilename(name: String): Pair<String, String?> {
 }
 
 @Composable
+private fun ShareTextRow(text: String) {
+    Row(
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small)
+    ) {
+        Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget).fillMaxWidth()) {
+            Column(
+                verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight().padding(
+                        start = MaterialTheme.messengerDpConstants.small,
+                        end = MaterialTheme.messengerDpConstants.middle
+                    )
+            ) {
+                Text(
+                    text, style = MaterialTheme.typography.bodyLarge, softWrap = false, overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShareUrlRow(text: String, icon: FileDescriptor?) {
+    var image by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(icon) {
+        icon?.let { imageBitmapFromBytes(it.content.toByteArray()) }.also {
+            image = it
+        }
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small)
+    ) {
+        Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget).fillMaxWidth()) {
+            Row {
+                Box(
+                    modifier = Modifier.aspectRatio(1.0f).fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    image?.let {
+                        Image(
+                            it,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    } ?: run {
+                        Icon(
+                            Icons.Default.Public,
+                            contentDescription = null,
+                            modifier = Modifier.align(Alignment.Center),
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        )
+                    }
+                }
+                Column(
+                    verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight().padding(
+                        start = MaterialTheme.messengerDpConstants.small,
+                        end = MaterialTheme.messengerDpConstants.middle
+                    )
+                ) {
+                    Text(
+                        text, style = MaterialTheme.typography.bodyLarge, softWrap = false, overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShareFilesLazyRow(files: List<FileDescriptor>) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.small),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+    ) {
+        items(files) { file ->
+            ShareFileCard(file)
+        }
+    }
+}
+
+@Composable
 private fun ShareFileCard(file: FileDescriptor) {
     val i18n = DI.current.get<I18nView>()
-    val fileSize = "(" + (file.fileSize?.let { size -> formatSize(size) }
-        ?: i18n.commonUnknown()) + ")"
+    val fileSize = "(" + (file.fileSize?.let { size -> formatSize(size) } ?: i18n.commonUnknown()) + ")"
     val isImage = file.mimeType?.match("image/*") == true
     val isVideo = file.mimeType?.match("video/*") == true
     val isAudio = file.mimeType?.match("audio/*") == true
@@ -203,9 +287,7 @@ private fun ShareFileCard(file: FileDescriptor) {
     Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget)) {
         Row {
             Box(
-                modifier = Modifier
-                    .aspectRatio(1.0f)
-                    .fillMaxSize()
+                modifier = Modifier.aspectRatio(1.0f).fillMaxSize()
                     .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Icon(
@@ -221,13 +303,10 @@ private fun ShareFileCard(file: FileDescriptor) {
                 )
             }
             Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxHeight()
-                    .padding(
+                verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight().padding(
                         start = MaterialTheme.messengerDpConstants.small,
                         end = MaterialTheme.messengerDpConstants.middle
-                    )
-                    .widthIn(min = MaterialTheme.messengerDpConstants.touchTarget * 2)
+                    ).widthIn(min = MaterialTheme.messengerDpConstants.touchTarget * 2)
             ) {
                 Row {
                     Text(
@@ -248,8 +327,7 @@ private fun ShareFileCard(file: FileDescriptor) {
                     }
                 }
                 Text(
-                    fileSize,
-                    style = MaterialTheme.typography.labelMedium
+                    fileSize, style = MaterialTheme.typography.labelMedium
                 )
             }
         }
