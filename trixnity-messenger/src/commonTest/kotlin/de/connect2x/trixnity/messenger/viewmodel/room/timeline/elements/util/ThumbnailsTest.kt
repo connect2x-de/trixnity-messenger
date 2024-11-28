@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -57,7 +58,7 @@ class ThumbnailsTest : ShouldSpec() {
                     any()
                 )
             } returns
-                    Result.success("encryptedThumbnail".encodeToByteArray().toByteArrayFlow())
+                    Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
             val cut = ThumbnailsImpl()
             val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
 
@@ -93,7 +94,7 @@ class ThumbnailsTest : ShouldSpec() {
                     any()
                 )
             } returns
-                    Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
+                    Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
             val cut = ThumbnailsImpl()
             val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
@@ -167,7 +168,7 @@ class ThumbnailsTest : ShouldSpec() {
                     any()
                 )
             } returns
-                    Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
+                    Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
             val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
             val cut = ThumbnailsImpl()
@@ -195,7 +196,7 @@ class ThumbnailsTest : ShouldSpec() {
                 )
             } calls {
                 delay(500)
-                Result.success("encryptedThumbnail".encodeToByteArray().toByteArrayFlow())
+                Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
             }
 
             val scope = CoroutineScope(Dispatchers.Default)

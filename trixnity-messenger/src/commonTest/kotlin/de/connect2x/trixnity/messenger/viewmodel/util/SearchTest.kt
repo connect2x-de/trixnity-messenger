@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import dev.mokkery.answering.returns
@@ -23,14 +24,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -137,7 +138,13 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, availableUsersSorted.shuffled())
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = null,
+                presenceScope = defaultPresenceScope,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe availableUsersSorted.size
             res shouldBeEqual availableUsersSorted
@@ -150,7 +157,13 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, listOf(myUserData))
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = null,
+                presenceScope = defaultPresenceScope,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe 0
 
@@ -160,7 +173,13 @@ class SearchTest : ShouldSpec() {
         should("not self on direct search") {
             val searchTerm = myUserId.full
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = null,
+                presenceScope = defaultPresenceScope,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe 1
             res[0] shouldBeEqual myUserData
@@ -174,7 +193,13 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, availableUsersSorted, limit = limit.toLong())
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = limit.toLong(), presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = limit.toLong(),
+                presenceScope = defaultPresenceScope,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe limit
             res shouldBeEqual availableUsersSorted.take(limit)
@@ -188,7 +213,13 @@ class SearchTest : ShouldSpec() {
 
             injectSearchUsers(searchTerm, availableUsersSorted.drop(1), limit = limit.toLong())
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = limit.toLong(), presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = limit.toLong(),
+                presenceScope = defaultPresenceScope,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe limit - 1
             res shouldBeEqual availableUsersSorted.drop(1)
@@ -205,7 +236,13 @@ class SearchTest : ShouldSpec() {
 
             user.presence.value shouldBe Presence.OFFLINE
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope = this, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = null,
+                presenceScope = this,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe 1
             res.first().presence.drop(1).first() shouldBe Presence.ONLINE
@@ -217,7 +254,13 @@ class SearchTest : ShouldSpec() {
             val user = availableUsersMapping["other_local"]!!
             val searchTerm = user.userId.full
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope =  defaultPresenceScope, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = null,
+                presenceScope = defaultPresenceScope,
+                maxPreviewSize = Long.MAX_VALUE
+            )
 
             res.size shouldBe 1
             res.first() shouldBeEqual user
@@ -245,7 +288,13 @@ class SearchTest : ShouldSpec() {
             val subscriberJob = Job()
             val subscriberScope = TestScope(UnconfinedTestDispatcher() + subscriberJob)
 
-            val res = search.searchUsers(matrixClientMock, searchTerm, limit = null, presenceScope = scopeToCancel, maxPreviewSize = Long.MAX_VALUE)
+            val res = search.searchUsers(
+                matrixClientMock,
+                searchTerm,
+                limit = null,
+                presenceScope = scopeToCancel,
+                maxPreviewSize = Long.MAX_VALUE
+            )
             res.size shouldBe 1
             res.first().presence.value shouldBe null
 
@@ -324,6 +373,7 @@ class SearchTest : ShouldSpec() {
                     Exception("presence not available")
                 )
             }
+
             else -> {
                 everySuspend { usersApiClientMock.getPresence(eq(userId), any()) } returns Result.success(
                     PresenceEventContent(p)
@@ -335,9 +385,11 @@ class SearchTest : ShouldSpec() {
     private fun setupGetThumbnail(data: Pair<String, ByteArray>?) {
         data?.also { (url, bytes) ->
             everySuspend { mediaServiceMock.getThumbnail(eq(url), any(), any()) } returns Result.success(
-                flow {
-                    bytes.forEach { emit(byteArrayOf(it)) }
-                }
+                InMemoryPlatformMedia(
+                    flow {
+                        bytes.forEach { emit(byteArrayOf(it)) }
+                    }
+                )
             )
         }
     }
