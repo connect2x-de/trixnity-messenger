@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.export
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -148,7 +149,7 @@ class ExportRoomTest : ShouldSpec() {
 
             everySuspend {
                 mediaServiceMock.getMedia(any(), any(), any())
-            } returns Result.success(flowOf(ByteArray(0)))
+            } returns Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0))))
             everySuspend {
                 mediaServiceMock.getMedia("mxc://localhost/20", any(), any())
             } returns Result.failure(IllegalStateException("download error"))
@@ -165,7 +166,12 @@ class ExportRoomTest : ShouldSpec() {
         should("export timeline") {
             val cut = cut()
 
-            cut(roomId, fakeProperties, matrixClientMock, timeZone = TimeZone.of("CET")) shouldBe ExportRoomResult.Success()
+            cut(
+                roomId,
+                fakeProperties,
+                matrixClientMock,
+                timeZone = TimeZone.of("CET")
+            ) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)
@@ -184,7 +190,13 @@ class ExportRoomTest : ShouldSpec() {
         should("export timeline in chunks") {
             val cut = cut()
 
-            cut(roomId, fakeProperties, matrixClientMock, buffer = 15, timeZone = TimeZone.of("CET")) shouldBe ExportRoomResult.Success()
+            cut(
+                roomId,
+                fakeProperties,
+                matrixClientMock,
+                buffer = 15,
+                timeZone = TimeZone.of("CET")
+            ) shouldBe ExportRoomResult.Success()
 
             verifySuspend(VerifyMode.order) {
                 sinkFactoryMock.create(roomId, fakeProperties)
@@ -204,7 +216,13 @@ class ExportRoomTest : ShouldSpec() {
             val cut = cut()
 
             val progress = MutableStateFlow(ExportRoomProgress())
-            cut(roomId, fakeProperties, matrixClientMock, progress = progress, timeZone = TimeZone.of("CET")) shouldBe ExportRoomResult.Success()
+            cut(
+                roomId,
+                fakeProperties,
+                matrixClientMock,
+                progress = progress,
+                timeZone = TimeZone.of("CET")
+            ) shouldBe ExportRoomResult.Success()
 
             progress.value shouldBe ExportRoomProgress(20, 20)
         }

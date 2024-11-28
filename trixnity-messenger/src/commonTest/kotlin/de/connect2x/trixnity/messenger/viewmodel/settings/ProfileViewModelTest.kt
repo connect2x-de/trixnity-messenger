@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -92,7 +93,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar2".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar2".encodeToByteArray().toByteArrayFlow()))
         }
 
         should("show profiles initially") {
@@ -106,7 +107,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
             val cut = profileViewModel()
             val profilesOfAccounts = cut.profileSingleViewModels
@@ -148,7 +149,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
             val cut = profileViewModel()
             val profilesOfAccounts = cut.profileSingleViewModels
@@ -182,7 +183,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
             setDisplayNameMocker calls { Result.failure(RuntimeException("Oh no!")) }
 
             val cut = profileViewModel()
@@ -215,7 +216,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
             setDisplayNameMocker returns
                     Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
@@ -244,7 +245,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
             val cut = profileViewModel()
             val profilesOfAccounts = cut.profileSingleViewModels
@@ -275,7 +276,7 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("avatar".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
             val cut = profileViewModel()
             val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }

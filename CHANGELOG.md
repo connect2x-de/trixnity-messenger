@@ -24,11 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatically proceed bootstrapping without next button
 - Open video player overlay when clicking on the preview
 - Download text and markdown files when clicking on them in the timeline
+- Upgraded dependencies
 
 ### Deprecated
 
 ### Removed
-- Removed spaces filter as a prerequisite for grouping rooms by spaces  
+
+- Removed spaces filter as a prerequisite for grouping rooms by spaces
 
 ### Fixed
 
