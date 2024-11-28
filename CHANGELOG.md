@@ -28,11 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 ### Removed
+- Removed spaces filter as a prerequisite for grouping rooms by spaces  
 
 ### Fixed
 
 - Fix thumbnails not being displayed sometimes because of size limit evaluations
-- fix headings not readable in dark mode
+- Fix headings not readable in dark mode
 - Fix RoomElement using wrong DI context
 - Fix crash when notification sound is unavailable
 - Fix nightly pipeline missing job dependency
