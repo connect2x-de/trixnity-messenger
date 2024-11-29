@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add ability to share plain and formatted text
+- Add ability to share url with icon
+
 ### Changed
 
 ### Deprecated
@@ -31,8 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add download button for file overlays
 - Allow configuration to not use the account setup wizard
 - Support private Browser Tabs.
-- Add ability to share plain and formatted text
-- Add ability to share url with icon
 
 ### Changed
 
