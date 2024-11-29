@@ -1,12 +1,11 @@
 package de.connect2x.messenger.android
 
 import android.content.ClipData
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ManualFileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
 import io.ktor.http.*
@@ -51,7 +50,7 @@ private fun ClipData.Item.toFileDescriptor(context: Context, i18n: I18n): FileDe
 
 private fun CharSequence.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor? {
     val data = toString().encodeToByteArray()
-    return ManualFileDescriptor(
+    return BasicFileDescriptor(
         "${i18n.commonUnknown()}.txt",
         data.size.toLong(),
         ContentType.Text.Plain,

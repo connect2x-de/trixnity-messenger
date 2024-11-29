@@ -60,11 +60,14 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import net.folivo.trixnity.utils.toByteArray
+import org.koin.core.component.get
 
 interface ShareDataView {
     @Composable
@@ -87,6 +90,7 @@ class ShareDataViewImpl : ShareDataView {
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
         val sending by viewModel.sending.collectAsState()
         val enabled = selectedRoomId != null && !sending
+        val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
         LaunchedEffect(initialSyncFinished) {
             state.scrollToItem(0)
@@ -130,7 +134,7 @@ class ShareDataViewImpl : ShareDataView {
                     is SharedData.SingleFile -> ShareFilesLazyRow(listOf(data.file))
                     is SharedData.MultipleFiles -> ShareFilesLazyRow(data.files)
                     is SharedData.PlainText -> ShareTextRow(data.text)
-                    is SharedData.Url -> ShareUrlRow(data.url, data.icon)
+                    is SharedData.Url -> ShareUrlRow(data.url, data.icon, maxMediaSize)
                 }
 
                 Spacer(Modifier.height(MaterialTheme.messengerDpConstants.small))
@@ -214,13 +218,13 @@ private fun ShareTextRow(text: String) {
 }
 
 @Composable
-private fun ShareUrlRow(text: String, icon: FileDescriptor?) {
+private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long) {
     var image by remember { mutableStateOf<ImageBitmap?>(null) }
 
     LaunchedEffect(icon) {
-        icon?.let { imageBitmapFromBytes(it.content.toByteArray()) }.also {
-            image = it
-        }
+        icon
+            ?.let { it.content.limitedByteArrayOrNull(maxMediaSize) }
+            ?.also { image = imageBitmapFromBytes(it) }
     }
 
     Row(
