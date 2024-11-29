@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -70,98 +72,100 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val canSetRoleToUser =
             userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
 
-        Box(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize()) {
-                Column {
-                    Header(userProfileViewModel::back, "Profil")
-                    if (error.value != null) {
-                        ErrorDialog(error.value.orEmpty(), { userProfileViewModel.errorDismiss() }, errorCause = error.value)
-                    }
-                    error.value?.let {
-                        Text("Error: $it")
-                    }
-                    Box(Modifier.width(100.dp).height(100.dp))
-                    Text(member?.displayName ?: userId.full)
-                    member?.displayName?.let {
-                        Text(userId.full)
-                    }
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            Column {
+                Header(userProfileViewModel::back, "Profil")
+                if (error.value != null) {
+                    ErrorDialog(
+                        error.value.orEmpty(),
+                        { userProfileViewModel.errorDismiss() },
+                        errorCause = error.value
+                    )
+                }
+                error.value?.let {
+                    Text("Error: $it")
+                }
+                Box(Modifier.width(100.dp).height(100.dp))
+                Text(member?.displayName ?: userId.full)
+                member?.displayName?.let {
+                    Text(userId.full)
+                }
 
-                    HorizontalDivider(Modifier.fillMaxWidth())
-                    if (!blockingInProgress) {
-                        if (isUserBlocked) {
-                            Button(onClick = {
-                                userProfileViewModel.unblockUser()
-                            }) {
-                                Text("unblock")
-                            }
-                        } else {
-                            Button(onClick = {
-                                userProfileViewModel.blockUser()
-                            }) {
-                                Text("block")
-                            }
+                HorizontalDivider(Modifier.fillMaxWidth())
+                if (!blockingInProgress) {
+                    if (isUserBlocked) {
+                        Button(onClick = {
+                            userProfileViewModel.unblockUser()
+                        }) {
+                            Text("unblock")
+                        }
+                    } else {
+                        Button(onClick = {
+                            userProfileViewModel.blockUser()
+                        }) {
+                            Text("block")
                         }
                     }
+                }
+                Button(onClick = {
+                    TODO("Jap")
+                }) {
+                    Text("contact")
+                }
+                Button(onClick = {
+                    TODO("Jap")
+                }) {
+                    Text("verify session")
+                }
+                HorizontalDivider(Modifier.fillMaxWidth())
+                if (iHavePowerToBanUser) {
                     Button(onClick = {
-                        TODO("Jap")
+                        userProfileViewModel.openBanUserWarning()
                     }) {
-                        Text("contact")
+                        Text("ban")
                     }
+                }
+                if (membership == Membership.BAN && iHavePowerToUnbanUser) {
                     Button(onClick = {
-                        TODO("Jap")
+                        userProfileViewModel.openUnbanUserWarning()
                     }) {
-                        Text("verify session")
+                        Text("unban")
                     }
-                    HorizontalDivider(Modifier.fillMaxWidth())
-                    if (iHavePowerToBanUser) {
-                        Button(onClick = {
-                            userProfileViewModel.openBanUserWarning()
-                        }) {
-                            Text("ban")
-                        }
+                }
+                if (iHavePowerToKickUser) {
+                    Button(onClick = {
+                        userProfileViewModel.openKickUserWarning()
+                    }) {
+                        Text("kick")
                     }
-                    if (membership == Membership.BAN && iHavePowerToUnbanUser) {
-                        Button(onClick = {
-                            userProfileViewModel.openUnbanUserWarning()
-                        }) {
-                            Text("unban")
-                        }
+                }
+                HorizontalDivider(Modifier.fillMaxWidth())
+                if (canSetRoleToAdmin) {
+                    Button(onClick = {
+                        userProfileViewModel.changePowerLevelViewModel.openChangingRoleWarningDialog(ADMIN)
+                    }) {
+                        Text("Make Admin")
                     }
-                    if (iHavePowerToKickUser) {
-                        Button(onClick = {
-                            userProfileViewModel.openKickUserWarning()
-                        }) {
-                            Text("kick")
-                        }
+                }
+                if (canSetRoleToModerator) {
+                    Button(onClick = {
+                        userProfileViewModel.changePowerLevelViewModel.openChangingRoleWarningDialog(MODERATOR)
+                    }) {
+                        Text("Make Mod")
                     }
-                    HorizontalDivider(Modifier.fillMaxWidth())
-                    if (canSetRoleToAdmin) {
-                        Button(onClick = {
-                            userProfileViewModel.changePowerLevelViewModel.openChangingRoleWarningDialog(ADMIN)
-                        }) {
-                            Text("Make Admin")
-                        }
-                    }
-                    if (canSetRoleToModerator) {
-                        Button(onClick = {
-                            userProfileViewModel.changePowerLevelViewModel.openChangingRoleWarningDialog(MODERATOR)
-                        }) {
-                            Text("Make Mod")
-                        }
-                    }
-                    if (canSetRoleToUser) {
+                }
+                if (canSetRoleToUser) {
                     Button(onClick = {
                         userProfileViewModel.changePowerLevelViewModel.openChangingRoleWarningDialog(USER)
                     }) {
                         Text("Make User")
                     }
                 }
-                    if (maxPowerLevel != null && maxPowerLevel != 0L) {
-                        Button(onClick = {
-                            userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
-                        }) {
-                            Text("set specific powerlevel")
-                        }
+                if (maxPowerLevel != null && maxPowerLevel != 0L) {
+                    Button(onClick = {
+                        userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
+                    }) {
+                        Text("set specific powerlevel")
                     }
                 }
             }

@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
@@ -64,6 +65,7 @@ class SettingsRouterImpl(
     private val roomId: RoomId,
     private val showedUserId: StateFlow<RoomUser?>,
     private val onSettingsBack: () -> Unit,
+    private val onCloseUserProfile: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : SettingsRouter {
@@ -173,8 +175,11 @@ class SettingsRouterImpl(
     }
 
     private fun closeUserProfile() {
-        settingsNavigation.launchPop(viewModelContext.coroutineScope)
-        onSettingsBack()
+        settingsNavigation.popWhile {
+            it != Config.Settings
+        }
+
+        onCloseUserProfile()
     }
 
     override fun isShown(): Boolean = stack.value.active.configuration !is Config.None

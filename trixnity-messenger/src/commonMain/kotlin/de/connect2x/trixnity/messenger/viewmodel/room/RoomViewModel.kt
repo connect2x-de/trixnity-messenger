@@ -58,7 +58,7 @@ interface RoomViewModelFactory {
 
 interface RoomViewModel {
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
-    val widgetStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>>
+    val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>>
     val isShowSettings: StateFlow<Boolean>
     val isShowUserProfile: StateFlow<Boolean>
     val isTwoPane: StateFlow<Boolean>
@@ -95,6 +95,7 @@ open class RoomViewModelImpl(
             } ?: flowOf(null)
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
         onSettingsBack = ::onSettingsBack,
+        onCloseUserProfile = ::onCloseUserProfile,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
 
@@ -111,13 +112,13 @@ open class RoomViewModelImpl(
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         timelineRouter.stack
-    override val widgetStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
+    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
         settingsRouter.stack
 
     init {
         log.debug { "create RoomViewModel " + roomId.full }
         coroutineScope.launch { timelineRouter.showTimeline(roomId) }
-        widgetStack.subscribe {
+        settingsStack.subscribe {
             isShowSettings.value = it.active.instance !is SettingsRouter.Wrapper.None
         }
     }
@@ -158,6 +159,10 @@ open class RoomViewModelImpl(
         }
     }
 
+    internal fun onCloseUserProfile() {
+        showedUserId.value = null
+    }
+
     internal fun onSettingsBack() = coroutineScope.launch {
         if (showedUserId.value != null) {
             showedUserId.value = null
@@ -187,7 +192,7 @@ class PreviewRoomViewModel : RoomViewModel {
                 )
             )
         )
-    override val widgetStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
+    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
