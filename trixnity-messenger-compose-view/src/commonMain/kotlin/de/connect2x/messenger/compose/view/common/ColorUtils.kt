@@ -1,7 +1,10 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import kotlin.math.absoluteValue
+import kotlin.math.round
+
 
 operator fun Color.times(factor: Float): Color {
     return Color(
@@ -40,6 +43,9 @@ inline val Color.hue: Float
         } / 6F) * 360F).coerceIn(0F..360F)
     }
 
+/**
+ * Calculates the hsv based value of the color. Not to be confused with color luminance!
+ */
 inline val Color.lightness: Float
     get() = ((maxChannel + minChannel) / 2F).coerceIn(0F..1F)
 
@@ -51,5 +57,38 @@ inline val Color.saturation: Float
         else delta / (1F - (2F * lightness - 1F).absoluteValue)).coerceIn(0F..1F)
     }
 
-// Changes hue of color without changing saturation or lightness (or alpha)
-fun Color.deriveFromHue(hue: Float): Color = Color.hsl(hue, saturation, lightness, alpha)
+/**
+ * Helper method to pick a bright or a dark color that would be readable
+ * on the current color based on its luminance.
+ */
+fun Color.contrastByLuminance(brightColor: Color, darkColor: Color): Color {
+    require(brightColor.luminance() > darkColor.luminance()) {
+        "dark is brighter than light color: $brightColor <= $darkColor"
+    }
+    return if (luminance() > 0.66f) darkColor else brightColor
+}
+
+/**
+ * Sets the hue of the color while preserving the value, saturation and alpha.
+ */
+fun Color.deriveFromHue(hue: Float): Color =
+    // `hsl(..)` already normalizes the hue value.
+    Color.hsl(hue, saturation, lightness, alpha)
+
+@OptIn(ExperimentalStdlibApi::class)
+fun Color.toHex(): String =
+    HexFormat {
+        bytes {
+            bytesPerLine = 1
+        }
+        number {
+            minLength = 2
+            removeLeadingZeros = false
+        }
+    }.let { format ->
+        "#" +
+                round(this.red * 255).toInt().toHexString(format).takeLast(2) +
+                round(this.green * 255).toInt().toHexString(format).takeLast(2) +
+                round(this.blue * 255).toInt().toHexString(format).takeLast(2) +
+                round(this.alpha * 255).toInt().toHexString(format).takeLast(2)
+    }
