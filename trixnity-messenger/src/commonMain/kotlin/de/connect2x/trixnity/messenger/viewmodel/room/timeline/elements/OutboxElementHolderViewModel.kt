@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -162,6 +163,18 @@ class OutboxElementHolderViewModelImpl(
                     }?.sender == userId
                 }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val showSender: StateFlow<Boolean?> =
+        matrixClient.room.getById(roomId)
+            .filterNotNull()
+            .map { it.isDirect }
+            .flatMapLatest { isDirect ->
+                if (isDirect) flowOf(false)
+                else isFirstInUserSequence.filterNotNull()
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val uploadProgress: StateFlow<FileTransferProgressElement?> =

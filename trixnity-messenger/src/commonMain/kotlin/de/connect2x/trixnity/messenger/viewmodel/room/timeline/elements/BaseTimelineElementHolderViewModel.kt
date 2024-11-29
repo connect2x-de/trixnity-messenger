@@ -53,5 +53,5 @@ sealed interface BaseTimelineElementHolderViewModel {
     /**
      * This element show render a big gap (e.g. due to a time gap or sender change)
      */
-    val showBigGap: StateFlow<Boolean?>
+    val showBigGapBefore: StateFlow<Boolean?>
 }

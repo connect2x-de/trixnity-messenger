@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getAccountData
@@ -50,6 +51,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.membership
+import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
@@ -70,6 +72,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -293,13 +296,6 @@ class TimelineElementHolderViewModelImpl(
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val sender: StateFlow<UserInfoElement?> =
-        matrixClient.user.getById(roomId, senderUserId).map { user ->
-            user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
-
-    override val isByMe: Boolean = senderUserId == userId
-
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         flow {
             val timelineEvent = matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
@@ -309,6 +305,42 @@ class TimelineElementHolderViewModelImpl(
                 }
             emit(timelineEvent?.sender != senderUserId)
         }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val sender: StateFlow<UserInfoElement?> =
+        matrixClient.user.getById(roomId, senderUserId).map { user ->
+            user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val showSender: StateFlow<Boolean?> =
+        matrixClient.room.getById(roomId)
+            .filterNotNull()
+            .map { it.isDirect }
+            .flatMapLatest { isDirect ->
+                if (isDirect) flowOf(false)
+                else isFirstInUserSequence.filterNotNull()
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val showBigGapBefore: StateFlow<Boolean?> =
+        flow {
+            val isFirstInUserSequence = isFirstInUserSequence.filterNotNull().first()
+            if (isFirstInUserSequence) emit(true)
+            else {
+                val previousSupportedTimelineEvent =
+                    matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
+                        .map { it.first() }
+                        .first { timelineEvent ->
+                            val origEventContent = timelineEvent.event.content
+                            timelineElementViewModelFactorySelector.supports(origEventContent)
+                        }
+                val previousTimestamp = Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
+                val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
+                if (thisTimestamp - previousTimestamp > 1.hours) emit(true)
+                else emit(false)
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val isByMe: Boolean = senderUserId == userId
+
 
     private sealed interface IsReadSearchResult {
         data class Read(val readBy: Set<UserId>) : IsReadSearchResult
@@ -556,6 +588,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = true
     override val sender: StateFlow<UserInfoElement?> = MutableStateFlow(null)
+    override val showSender: StateFlow<Boolean?> = MutableStateFlow(true)
+    override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false)
     override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val hasUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -600,6 +634,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isByMe: Boolean = false
     override val sender: StateFlow<UserInfoElement?> =
         MutableStateFlow(UserInfoElement("Bob", UserId("bob", "server"), "B"))
+    override val showSender: StateFlow<Boolean?> = MutableStateFlow(true)
+    override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false)
     override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val hasUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
