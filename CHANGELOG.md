@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Cannot delete database when corrupted
 - Fix server discovery fallback hiding server discovery errors
 - Fixed scaling on mobile devices in web.
+- Fix SPM: only publish when there are changes
 
 ### Security
 
