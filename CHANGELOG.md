@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 2.4.0
+
+### Added
+
 - Show online-status when searching for users
 - Ability to see who reacted to a message
 - Make Smoketests work on Web
@@ -26,8 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Download text and markdown files when clicking on them in the timeline
 - Upgraded dependencies
 
-### Deprecated
-
 ### Removed
 
 - Removed spaces filter as a prerequisite for grouping rooms by spaces
@@ -44,8 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Cannot delete database when corrupted
 - Fix server discovery fallback hiding server discovery errors
 - Fixed scaling on mobile devices in web.
-
-### Security
 
 ## 2.3.7
 
