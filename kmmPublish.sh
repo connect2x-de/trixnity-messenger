@@ -1,11 +1,13 @@
 #!/bin/sh
 
 TAG=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}' | sed 's/DEV-/alpha./g')
+git clone https://write_to_repo:"$SPM_PROJECT_ACCESS_TOKEN"@gitlab.com/connect2x/trixnity-messenger/spm &&
+cd spm
 NEW_TAG=$(git tag | grep "$TAG")
 if [ "$NEW_TAG" = '' ]; then
+    cd ..
     ./gradlew kmmBridgePublish updatePackageSwift --stacktrace &&
     cat Package.swift &&
-    git clone https://write_to_repo:"$SPM_PROJECT_ACCESS_TOKEN"@gitlab.com/connect2x/trixnity-messenger/spm &&
     cp Package.swift spm/Package.swift &&
     cd spm &&
     git add Package.swift &&
