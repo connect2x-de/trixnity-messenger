@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add download button for file overlays
 - Allow configuration to not use the account setup wizard
 - Support private Browser Tabs.
+- PDF reader for web
 
 ### Changed
 
@@ -71,8 +72,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wizard for account setup after initial login
 - Support for "share to" Intent on Android
 - support for pasting the first file of a fileList into the clipboard
-
-- PDF reader for web
 
 ### Changed
 
