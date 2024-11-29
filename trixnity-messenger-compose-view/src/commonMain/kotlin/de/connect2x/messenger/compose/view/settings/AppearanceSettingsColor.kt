@@ -35,25 +35,28 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
-import de.connect2x.messenger.compose.view.common.lightness
-import de.connect2x.messenger.compose.view.common.saturation
 import de.connect2x.messenger.compose.view.get
 
 interface AppearanceSettingsColorView {
     @Composable
-    fun ColumnScope.create(text: String,
-                           defaultColor: Color,
-                           color: Color,
-                           set: (Color) -> Unit)
+    fun ColumnScope.create(
+        text: String,
+        defaultColor: Color,
+        color: Color,
+        set: (Color) -> Unit
+    )
 }
 
 @Composable
-fun ColumnScope.AppearanceSettingsColor(text: String,
-                                        defaultColor: Color,
-                                        color: Color,
-                                        set: (Color) -> Unit) {
-    with(DI.get<AppearanceSettingsColorView>()) {create(text, defaultColor, color, set) }
+fun ColumnScope.AppearanceSettingsColor(
+    text: String,
+    defaultColor: Color,
+    color: Color,
+    set: (Color) -> Unit
+) {
+    with(DI.get<AppearanceSettingsColorView>()) { create(text, defaultColor, color, set) }
 }
 
 class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
@@ -75,7 +78,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                 style = MaterialTheme.typography.titleSmall
             )
             Spacer(Modifier.width(5.dp))
-            AppearanceSettingsColorPreview(Color.hsl(getCurrentHue(), color.saturation, color.lightness))
+            AppearanceSettingsColorPreview(color.deriveFromHue(getCurrentHue()))
         }) {
             Row(
                 modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -87,7 +90,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         newHue = it
                     },
                     onValueChangeFinished = {
-                        set(Color.hsl(newHue, color.saturation, color.lightness))
+                        set(color.deriveFromHue(newHue))
                     },
                     valueRange = 0F..359F,
                     steps = 359,
