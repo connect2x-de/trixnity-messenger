@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -9,9 +10,9 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
@@ -23,7 +24,7 @@ private val log = KotlinLogging.logger { }
 @OptIn(ExperimentalCoroutinesApi::class)
 class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
-    private val onCloseCrossDeviceVerification : () -> Unit,
+    private val onCloseCrossDeviceVerification: () -> Unit,
     private val onStartCrossSigningBootstrap: (userId: UserId) -> Unit,
     private val onStartVerification: (UserId, Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
@@ -49,7 +50,12 @@ class AccountSetupRouter(
                 get<AccountSetupViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext, userId = config.userId
-                    ), ::onSetupClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification, onStartVerification
+                    ),
+                    ::onSetupClose,
+                    onStartCrossSigningBootstrap,
+                    onCloseCrossDeviceVerification,
+                    onStartVerification,
+                    completedVerification
                 )
             )
         }
@@ -71,7 +77,17 @@ class AccountSetupRouter(
 
     fun startSetup(userId: UserId) {
         log.debug { "Starting Account setup for $userId" }
-        navigation.launchPush(coroutineScope, Config.ShowAccountSetup(userId))
+        completedVerification.value = null
+        navigation.launchPush(coroutineScope, Config.ShowAccountSetup(userId, completedVerification))
+    }
+
+    private val completedVerification = MutableStateFlow<Boolean?>(null)
+
+    fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
+        if (stack.active.configuration is Config.ShowAccountSetup && (stack.active.configuration as Config.ShowAccountSetup).userId == userId) {
+            println("value is now $completedVerification")
+            this.completedVerification.value = completedVerification
+        }
     }
 
 
@@ -83,7 +99,8 @@ class AccountSetupRouter(
     @Serializable
     sealed class Config {
         @Serializable
-        data class ShowAccountSetup(val userId: UserId) : Config()
+        data class ShowAccountSetup(val userId: UserId, val isVerifying: MutableStateFlow<Boolean?>) : Config()
+
         @Serializable
         data object None : Config()
     }

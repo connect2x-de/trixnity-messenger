@@ -5,7 +5,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -25,6 +24,7 @@ private val log = KotlinLogging.logger { }
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
+    private val onCloseSelfVerification: (userId: UserId, completedVerification: Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
@@ -53,7 +53,10 @@ class SelfVerificationRouter(
                                 componentContext,
                                 selfVerificationConfig.userId,
                             ),
-                            onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
+                            onCloseSelfVerification = { completedVerification ->
+                                closeSelfVerification(selfVerificationConfig.userId)
+                                onCloseSelfVerification(selfVerificationConfig.userId, completedVerification)
+                            },
                             onResetRecovery = {
                                 closeSelfVerification(selfVerificationConfig.userId)
                                 viewModelContext.coroutineScope.launch {

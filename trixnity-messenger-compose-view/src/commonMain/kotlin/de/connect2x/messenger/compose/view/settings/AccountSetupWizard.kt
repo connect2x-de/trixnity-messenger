@@ -1,24 +1,18 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
-import de.connect2x.messenger.compose.view.common.WizardNavigationButton.*
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -140,7 +134,8 @@ private fun wizardStepNotification(
         content = {
             val enabledOnDevice = notificationSettingsViewModel.enabledForThisDevice.collectAsState().value
             Column {
-                Setting(text = i18n.notificationsSettingsEnabledForThisDevice(),
+                Setting(
+                    text = i18n.notificationsSettingsEnabledForThisDevice(),
                     value = enabledOnDevice,
                     toggle = { notificationSettingsViewModel.toggleEnabledForThisDevice() })
                 MiddleSpacer()
@@ -180,15 +175,18 @@ private fun wizardStepPrivacy(
         val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
         val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
         Column {
-            Setting(text = i18n.privacyPresenceIsPublic(),
+            Setting(
+                text = i18n.privacyPresenceIsPublic(),
                 explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
                 value = publicPresence,
                 toggle = { privacySettingsViewModel.togglePresenceIsPublic() })
-            Setting(text = i18n.privacyReadMarkerIsPublic(),
+            Setting(
+                text = i18n.privacyReadMarkerIsPublic(),
                 explanation = i18n.privacyReadMarkerIsPublicExplanation(),
                 value = publicRead,
                 toggle = { privacySettingsViewModel.toggleReadMarkerIsPublic() })
-            Setting(text = i18n.privacyTypingIsPublic(),
+            Setting(
+                text = i18n.privacyTypingIsPublic(),
                 explanation = i18n.privacyTypingIsPublicExplanation(),
                 value = publicTyping,
                 toggle = { privacySettingsViewModel.toggleTypingIsPublic() })
@@ -201,42 +199,33 @@ private fun wizardStepVerification(
     step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
-    val isVerified = viewModel.isVerified
+    val completedVerification = viewModel.completedVerification
     return WizardStep(
         id = step.stepId,
         title = { i18n.deviceVerification() },
         content = {
-            val isVerified = isVerified.collectAsState().value
-            if (isVerified == false) {
-                Column {
-                    Text(i18n.redoSelfVerificationWarning1())
-                    Text(i18n.redoSelfVerificationWarning2())
-                    Text(i18n.redoSelfVerificationWarning3())
-                }
-            } else if (isVerified == true) {
-                Column {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        modifier = Modifier.size(50.dp).align(Alignment.CenterHorizontally),
-                        contentDescription = i18n.commonSuccess()
-                    )
-                    Text(i18n.verificationSuccessThisDevice())
+            viewModel.startVerification()
+            Text("If you are seeing this, something has gone very wrong")
+        },
+        nextButton = {
+            Custom {
+                val completedVerification = completedVerification.collectAsState().value
+                println("verification completed is $completedVerification")
+                if (completedVerification == true) {
+                    nextStep?.let { currentStepId.value = it }
+                    viewModel.completedVerification.value = null
                 }
             }
         },
-        nextButton = {
-            Standard()
-        },
-        additionalButton = {
-            val isVerified = isVerified.collectAsState().value
-            if (isVerified == false) {
-                Button(onClick = { viewModel.startVerification() }) {
-                    Text(i18n.redoSelfVerificationRedo())
+        backButton = {
+            Custom {
+                val completedVerification = completedVerification.collectAsState().value
+                if (completedVerification == false) {
+                    println("Current id is ${currentStepId.value}, previous id is $previousStep")
+                    viewModel.completedVerification.value = null
+                    previousStep?.let { currentStepId.value = it }
                 }
-            } else null
-        },
-        onStepEnter = {
-            viewModel.startVerification()
+            }
         }
     )
 }

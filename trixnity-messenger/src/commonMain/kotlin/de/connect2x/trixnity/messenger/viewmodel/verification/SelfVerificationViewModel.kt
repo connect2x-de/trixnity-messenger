@@ -27,7 +27,7 @@ private val log = KotlinLogging.logger { }
 interface SelfVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onCloseSelfVerification: () -> Unit,
+        onCloseSelfVerification: (Boolean) -> Unit,
         onResetRecovery: () -> Unit,
     ): SelfVerificationViewModel {
         return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerification, onResetRecovery)
@@ -61,7 +61,7 @@ interface SelfVerificationViewModel {
 
 open class SelfVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val onCloseSelfVerification: () -> Unit,
+    private val onCloseSelfVerification: (Boolean) -> Unit,
     private val onResetRecovery: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SelfVerificationViewModel {
 
@@ -126,7 +126,7 @@ open class SelfVerificationViewModelImpl(
                             log.error(it) { "device verification failed" }
                         }
                     log.debug { "close self verification view" }
-                    onCloseSelfVerification()
+                    onCloseSelfVerification(true)
                 }
             }
 
@@ -150,7 +150,7 @@ open class SelfVerificationViewModelImpl(
                 verifyAccount.verify(recoveryKeyMethod, recoveryKey).fold(
                     onSuccess = {
                         log.debug { "successfully verified with recovery key" }
-                        onCloseSelfVerification()
+                        onCloseSelfVerification(true)
                     },
                     onFailure = {
                         if (it is RecoveryKeyInvalidException) {
@@ -175,7 +175,7 @@ open class SelfVerificationViewModelImpl(
                 verifyAccount.verify(passphraseMethod, passphrase).fold(
                     onSuccess = {
                         log.debug { "successfully verified with passphrase" }
-                        onCloseSelfVerification()
+                        onCloseSelfVerification(true)
                     },
                     onFailure = {
                         // internally, the passphrase is used to re-create the recovery key
@@ -223,6 +223,7 @@ open class SelfVerificationViewModelImpl(
     }
 
     override fun close() {
-        onCloseSelfVerification()
+        println("closing with ${!showVerificationHelp.value}")
+        onCloseSelfVerification(!showVerificationHelp.value)
     }
 }

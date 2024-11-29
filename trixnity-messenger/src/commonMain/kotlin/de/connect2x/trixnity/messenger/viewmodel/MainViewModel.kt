@@ -118,7 +118,7 @@ open class MainViewModelImpl(
     override val isSinglePane = MutableStateFlow(false)
     override val showRoom = MutableStateFlow(false)
 
-    internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
+    internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext, ::onCloseSelfVerification)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         selfVerificationRouter.stack
 
@@ -440,6 +440,10 @@ open class MainViewModelImpl(
 
     private fun startAccountSetup(userId: UserId) {
         accountSetupRouter.startSetup(userId)
+    }
+
+    private fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
+        accountSetupRouter.onCloseSelfVerification(userId, completedVerification)
     }
 
     override fun closeDetailsAndShowList() {
