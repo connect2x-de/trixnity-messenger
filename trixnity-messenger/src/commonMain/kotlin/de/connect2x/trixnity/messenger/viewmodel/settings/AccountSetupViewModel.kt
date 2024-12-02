@@ -4,8 +4,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,7 +51,6 @@ interface AccountSetupViewModel {
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
-    val verificationViewModel: VerificationViewModel
     val isVerified: StateFlow<Boolean?>
 }
 
@@ -99,10 +96,6 @@ class AccountSetupViewModelImpl(
             .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-
-    override val verificationViewModel by lazy {
-        get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
-    }
 
     override fun closeAccountSetup() {
         this.onWizardClose(userId)

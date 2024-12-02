@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
@@ -29,7 +28,6 @@ class DeviceVerificationWizardViewImpl : DeviceVerificationWizardView {
     @Composable
     override fun create(verificationViewModel: VerificationViewModel) {
         val i18n = DI.get<I18nView>()
-        // TODO: Close the modal instead of cancelling the current process here.
         val step = WizardStep(
             id = "DEVICE-VERIFICATION-WIZARD-VERIFICATION",
             title = { i18n.deviceVerification() },
