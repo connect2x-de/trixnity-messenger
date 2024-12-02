@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
@@ -2459,6 +2460,28 @@ abstract class I18nView(
     fun accountSetupWizardReset() = translate {
         DE - "Setup zurücksetzen"
         EN - "Reset setup"
+    }
+
+    fun shareDataTitle(data: SharedData) = when (data) {
+        is SharedData.PlainText -> translate {
+            EN - "Sharing Text"
+            DE - "Teile Text"
+        }
+
+        is SharedData.SingleFile -> translate {
+            EN - "Sharing 1 file"
+            DE - "Teile 1 Datei"
+        }
+
+        is SharedData.MultipleFiles -> translate {
+            EN - "Sharing ${data.files.size} files"
+            DE - "Teile ${data.files.size} Dateien"
+        }
+
+        is SharedData.Url -> translate {
+            EN - "Sharing URL"
+            DE - "Teile URL"
+        }
     }
 
     fun shareFilesTitle(count: Int) = translate {

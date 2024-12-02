@@ -4,8 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
-import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.util.SharedData
+import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.collectLatest
@@ -15,11 +15,11 @@ import org.koin.core.component.get
 class SharingRouter(
     private val viewModelContext: ViewModelContext,
 ) {
-    private val sharedFileHandler = viewModelContext.get<SharedFileHandler>()
+    private val sharedDataHandler = viewModelContext.get<SharedDataHandler>()
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = navigation,
-        initialConfiguration = sharedFileHandler.value?.let { Config.ShareFiles(it) } ?: Config.None,
+        initialConfiguration = sharedDataHandler.value?.let { Config.ShareData(it) } ?: Config.None,
         serializer = null,
         handleBackButton = false,
         childFactory = ::createChild,
@@ -33,21 +33,22 @@ class SharingRouter(
         when (config) {
             is Config.None -> Wrapper.None
 
-            is Config.ShareFiles -> Wrapper.ShareFiles(
-                viewModelContext.get<ShareFilesViewModelFactory>().create(
+            is Config.ShareData -> Wrapper.ShareData(
+                viewModelContext.get<ShareDataViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    sharedFiles = config.files,
+                    sharedData = config.data,
                     onClose = ::close,
                 )
             )
+
         }
 
     init {
         viewModelContext.coroutineScope.launch {
-            sharedFileHandler.collectLatest {
+            sharedDataHandler.collectLatest {
                 navigation.launchReplaceAll(
                     viewModelContext.coroutineScope,
-                    if (it == null) Config.None else Config.ShareFiles(it)
+                    if (it == null) Config.None else Config.ShareData(it)
                 )
             }
         }
@@ -55,15 +56,15 @@ class SharingRouter(
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class ShareFiles(val viewModel: ShareFilesViewModel) : Wrapper()
+        class ShareData(val viewModel: ShareDataViewModel) : Wrapper()
     }
 
     sealed class Config {
         data object None : Config()
-        data class ShareFiles(val files: List<FileDescriptor>) : Config()
+        data class ShareData(val data: SharedData) : Config()
     }
 
     private fun close() {
-        sharedFileHandler.onShare(null)
+        sharedDataHandler.onShare(null)
     }
 }
