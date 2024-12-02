@@ -6,8 +6,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import kotlin.reflect.KClass
 
 interface TimelineElementView<V : TimelineElementViewModel<*>> {
+    val supports: KClass<V>
+
     @Composable
     fun create(holder: BaseTimelineElementHolderViewModel, element: V)
-
-    val supports: KClass<V>
 }

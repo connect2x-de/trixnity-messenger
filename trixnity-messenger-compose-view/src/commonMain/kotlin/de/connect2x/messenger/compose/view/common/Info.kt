@@ -21,11 +21,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 
 @Composable
 fun Info(
-    readers: List<String>, focusRequester: FocusRequester
+    readers: List<UserInfoElement>, focusRequester: FocusRequester
 ) {
     val i18n = DI.get<I18n>()
     val scrollState = rememberScrollState()
@@ -45,7 +46,7 @@ fun Info(
                     modifier = Modifier.verticalScroll(scrollState).fillMaxWidth().padding(horizontal = 16.dp)
                 ) {
                     readers.map {
-                        Text(text = it)
+                        Text(text = it.name)
                     }
                 }
             }

@@ -22,6 +22,26 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun OverflowingFileInfo(
+    text: String,
+    modifier: Modifier,
+    color: Color = Color.Unspecified,
+) {
+    val indexOfLastPeriod = text.lastIndexOf('.')
+    val indexToCut = min(
+        if (indexOfLastPeriod > -1) indexOfLastPeriod else text.length,
+        text.length,
+    )
+    OverflowingText(
+        text,
+        indexToCut,
+        TextOverflow.Ellipsis,
+        modifier = modifier,
+        color = color,
+    )
+}
+
+@Composable
+fun OverflowingFileInfo(
     roomMessageViewModel: FileBasedMessageViewModel,
     displayMode: OverflowingFileInfoDisplayMode,
     modifier: Modifier,

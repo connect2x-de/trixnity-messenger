@@ -14,7 +14,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.TextBased.Text
+        element: RoomMessageTimelineElementViewModel.TextBased.Text,
     ) {
         TextBasedRoomMessageTimelineElementView(holder, element)
     }
