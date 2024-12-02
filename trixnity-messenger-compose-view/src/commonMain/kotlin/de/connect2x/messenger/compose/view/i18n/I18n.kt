@@ -13,6 +13,7 @@ import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
+@Suppress("UNUSED")
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
@@ -298,6 +299,11 @@ abstract class I18nView(
     fun commonExpand() = translate {
         EN - "expand"
         DE - "ausklappen"
+    }
+
+    fun commonAll() = translate {
+        EN - "All"
+        DE - "Alle"
     }
 
     fun commonCollapse() = translate {
@@ -899,6 +905,16 @@ abstract class I18nView(
         DE - "suche Personen"
     }
 
+    fun messageInfoReadBy() = translate {
+        EN - "Read by"
+        DE - "Gelesen von"
+    }
+
+    fun messageInfoReactions() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
+    }
+
     fun userSearchNameOrMatrixId() = translate {
         EN - "display name or Matrix id"
         DE - "Name oder Matrix Id"
@@ -1129,16 +1145,6 @@ abstract class I18nView(
         DE - "Alle Konten"
     }
 
-    fun accountDeactivateFilter() = translate {
-        EN - "deactivate filter"
-        DE - "Filter deaktivieren"
-    }
-
-    fun accountSelectFilter() = translate {
-        EN - "select filter"
-        DE - "Filter auswählen"
-    }
-
     fun accountDeactivateSearch() = translate {
         EN - "deactivate search"
         DE - "Suche ausschalten"
@@ -1237,11 +1243,6 @@ abstract class I18nView(
     fun roomListCreateRoom() = translate {
         EN - "Create a new chat or group"
         DE - "Neuen Chat oder Gruppe anlegen"
-    }
-
-    fun roomListNoFilter() = translate {
-        EN - "no filter"
-        DE - "kein Filter"
     }
 
     fun roomListSearch() = translate {
@@ -2108,6 +2109,11 @@ abstract class I18nView(
     fun reactMessage() = translate {
         EN - "React"
         DE - "Reagieren"
+    }
+
+    fun reactorListMessage() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
     }
 
     fun infoMessage() = translate {

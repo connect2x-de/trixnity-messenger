@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
+import de.connect2x.messenger.compose.view.common.toHex
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.format
@@ -54,7 +55,6 @@ import org.w3c.dom.get
 import simpleVerticalScrollbar
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.round
 
 
 private val log = KotlinLogging.logger {}
@@ -390,24 +390,6 @@ private fun removeViewerFrame() {
         document.getElementsByTagName("body")[0]?.removeChild(it)
     }
 }
-
-@OptIn(ExperimentalStdlibApi::class)
-private fun Color.toHex(): String =
-    HexFormat {
-        bytes {
-            bytesPerLine = 1
-        }
-        number {
-            minLength = 2
-            removeLeadingZeros = false
-        }
-    }.let { format ->
-        "#" +
-                round(this.red * 255).toInt().toHexString(format).takeLast(2) +
-                round(this.green * 255).toInt().toHexString(format).takeLast(2) +
-                round(this.blue * 255).toInt().toHexString(format).takeLast(2) +
-                round(this.alpha * 255).toInt().toHexString(format).takeLast(2)
-    }
 
 private fun safeError(e: dynamic, message: String? = null): Throwable =
     if (e is Throwable) (e as Throwable).let { if (message != null) Exception(message, it) else it }

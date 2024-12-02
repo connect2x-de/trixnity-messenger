@@ -116,6 +116,17 @@ fun MessageReactionPreview() {
         ) {
             MessageReactionButton(
                 reaction = "\uD83D\uDC4D",
+                reactionEvents = setOf(
+                    TimelineElementHolderViewModel.ReactionEvent(
+                        eventId = EventId(""),
+                        sender = UserInfoElement(
+                            name = "Martin",
+                            userId = UserId("@martin:local"),
+                        ),
+                        isMe = false,
+                        timestamp = null,
+                    )
+                ),
                 count = 3,
                 myReaction = null,
                 onAddReaction = { },
@@ -123,6 +134,17 @@ fun MessageReactionPreview() {
             )
             MessageReactionButton(
                 reaction = "\uD83D\uDC4D",
+                reactionEvents = setOf(
+                    TimelineElementHolderViewModel.ReactionEvent(
+                        eventId = EventId(""),
+                        sender = UserInfoElement(
+                            name = "Jan",
+                            userId = UserId("@jan:local"),
+                        ),
+                        isMe = false,
+                        timestamp = null,
+                    )
+                ),
                 count = 2,
                 myReaction = previewReactionEvent("username", isMe = false),
                 onAddReaction = { },
@@ -149,6 +171,7 @@ fun MessageReactionWrappingPreview() {
             for (i in 0..10) {
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
+                    reactionEvents = setOf(),
                     count = 3,
                     myReaction = null,
                     onAddReaction = { },
@@ -157,6 +180,7 @@ fun MessageReactionWrappingPreview() {
             }
             MessageReactionButton(
                 reaction = "\uD83D\uDC4D",
+                reactionEvents = setOf(),
                 count = 2,
                 myReaction = previewReactionEvent("username", isMe = false),
                 onAddReaction = { },
@@ -164,6 +188,7 @@ fun MessageReactionWrappingPreview() {
             )
             MessageReactionButton(
                 reaction = "Bee Movie By Jerry Seinfeld NARRATOR: (Black screen with text; The sound of buzzing bees can be heard) According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible. BARRY BENSON: (Barry is picking out a shirt) Yellow, black. Yellow, black. Yellow, black. Yellow, black. : Ooh, black and yellow! Let's shake it up a little. JANET BENSON: Barry! Breakfast is ready! BARRY: Coming! : Hang on a second. (Barry uses his antenna like a phone) : Hello? ADAM FLAYMAN: (Through phone) - Barry? BARRY: - Adam? ADAM: - Can you believe this is happening? BARRY: - I can't. I'll pick you up. (Barry flies down the stairs) ",
+                reactionEvents = setOf(),
                 count = 2,
                 myReaction = null,
                 onAddReaction = { },

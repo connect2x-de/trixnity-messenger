@@ -13,12 +13,12 @@ import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHold
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.DEBUG
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.DOWNLOAD
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.EDIT
-import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REDACT
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.INFO
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REACT
+import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REDACT
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPLY
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.REPORT
 import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.RETRY_SEND
-import de.connect2x.messenger.compose.view.room.timeline.BaseTimelineElementHolderContextMenuActionType.INFO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileBasedMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -48,7 +48,6 @@ class BaseTimelineElementHolderContextMenuAction(
     operator fun invoke() = action()
 }
 
-// TODO TIM
 interface GetContextMenuActionsView {
     @Composable
     fun BaseTimelineElementHolderViewModel.create(

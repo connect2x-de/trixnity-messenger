@@ -30,8 +30,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.EmojiPopup
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -80,36 +82,39 @@ private val buttonModifier = Modifier.buttonPointerModifier()
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
+    reactionEvents: Set<TimelineElementHolderViewModel. ReactionEvent>,
     count: Int,
     myReaction: TimelineElementHolderViewModel.ReactionEvent?,
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
 ) {
-    if (myReaction != null) {
-        FilledTonalButton(
-            onClick = { onRemoveReaction(myReaction) },
-            contentPadding = buttonPadding,
-            modifier = buttonModifier,
-            colors = ButtonColors(
-                containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary,
-                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-        ) {
-            MessageReactionDisplay(reaction)
-            Spacer(Modifier.width(4.dp))
-            Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    } else {
-        OutlinedButton(
-            onClick = { onAddReaction(reaction) },
-            contentPadding = buttonPadding,
-            modifier = buttonModifier,
-        ) {
-            MessageReactionDisplay(reaction)
-            Spacer(Modifier.width(4.dp))
-            Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Tooltip({ TooltipText(reactionEvents.joinToString { it.sender.name }) }) {
+        if (myReaction != null) {
+            FilledTonalButton(
+                onClick = { onRemoveReaction(myReaction) },
+                contentPadding = buttonPadding,
+                modifier = buttonModifier,
+                colors = ButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            ) {
+                MessageReactionDisplay(reaction)
+                Spacer(Modifier.width(4.dp))
+                Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            OutlinedButton(
+                onClick = { onAddReaction(reaction) },
+                contentPadding = buttonPadding,
+                modifier = buttonModifier,
+            ) {
+                MessageReactionDisplay(reaction)
+                Spacer(Modifier.width(4.dp))
+                Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
@@ -179,6 +184,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
                     val reactionEvents = reactions[reaction].orEmpty()
                     MessageReactionButton(
                         reaction = reaction,
+                        reactionEvents = reactionEvents,
                         count = reactionEvents.size,
                         myReaction = reactionEvents.firstOrNull { it.isMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,

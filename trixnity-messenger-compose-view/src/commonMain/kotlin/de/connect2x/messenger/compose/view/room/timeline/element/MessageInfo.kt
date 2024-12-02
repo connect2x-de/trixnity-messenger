@@ -15,7 +15,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 interface MessageInfoView {
     @Composable
@@ -36,7 +35,6 @@ fun MessageInfo(
 }
 
 class MessageInfoViewImpl : MessageInfoView {
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Composable
     override fun create(
         roomMessageViewModel: RoomMessageViewModel,
@@ -51,6 +49,7 @@ class MessageInfoViewImpl : MessageInfoView {
         val infoOpenFlow = timelineElementHolderViewModel.infoOpen
         val infoOpen by infoOpenFlow.collectAsState()
         var readers by remember { mutableStateOf(listOf<String>()) }
+        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
 
         LaunchedEffect(infoOpen) {
             if (infoOpen) {
@@ -65,6 +64,7 @@ class MessageInfoViewImpl : MessageInfoView {
                 timelineElementHolderViewModel.infoOpen.value = false
             },
             readers = readers,
+            reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
         )
     }
 }

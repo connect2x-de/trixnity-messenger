@@ -9,19 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Show online-status when searching for users
-- Make Smoketests work on Web
-- Make Smoketests work on Android
-- Added hook on Android to change the behaviour of the messenger on startup of the Activity
-- Add download button for file overlays
-- Allow configuration to not use the account setup wizard
-
 ### Changed
 
-- Do not run kmmPublish on push to main
-- Automatically proceed bootstrapping without next button
-- Open video player overlay when clicking on the preview
-- Download text and markdown files when clicking on them in the timeline
+- Color handling utils
 
 ### Deprecated
 
@@ -29,27 +19,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 2.4.0
+
+### Added
+
+- Show online-status when searching for users
+- Ability to see who reacted to a message
+- Make Smoketests work on Web
+- Make Smoketests work on Android
+- Added hook on Android to change the behaviour of the messenger on startup of the Activity
+- Add download button for file overlays
+- Allow configuration to not use the account setup wizard
+- Support private Browser Tabs.
+- PDF reader for web
+
+### Changed
+
+- Do not run kmmPublish on push to main
+- Automatically proceed bootstrapping without next button
+- Open video player overlay when clicking on the preview
+- Download text and markdown files when clicking on them in the timeline
+- Upgraded dependencies
+
+### Removed
+
+- Removed spaces filter as a prerequisite for grouping rooms by spaces
+
+### Fixed
+
 - Fix thumbnails not being displayed sometimes because of size limit evaluations
-- fix headings not readable in dark mode
+- Fix headings not readable in dark mode
 - Fix RoomElement using wrong DI context
 - Fix crash when notification sound is unavailable
 - Fix nightly pipeline missing job dependency
 - Fix problem with login when an IOException has been thrown
 - Fix crash when opening file picker on linux distribution
-
-### Security
+- Fix Cannot delete database when corrupted
+- Fix server discovery fallback hiding server discovery errors
+- Fixed scaling on mobile devices in web.
+- Fix SPM: only publish when there are changes
 
 ## 2.3.7
 
 ### Added
+
 - File save and upload dialog on web.
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
 - Wizard for account setup after initial login
 - Support for "share to" Intent on Android
 - support for pasting the first file of a fileList into the clipboard
-
-- PDF reader for web
 
 ### Changed
 
@@ -67,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wizard and modal dialog buttons are always shown on smaller screens
 - Fix Emojis on Web
 - Fix directory picker in room export.
-- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet supported
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet
+  supported
 - Don't show edited message as new message
 - Correct lifecycle handling on web
 - SSO support in local dev server

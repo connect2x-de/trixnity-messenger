@@ -3,17 +3,28 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
-import dev.mokkery.*
-import dev.mokkery.answering.*
-import dev.mokkery.matcher.*
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -51,7 +62,7 @@ class DownloadManagerTest : ShouldSpec() {
             val cut = DownloadManagerImpl(coroutineContext)
             everySuspend {
                 mediaServiceMock.getMedia(eq("mxc://localhost/ABCDEFGH"), any(), any())
-            } returns Result.success("test".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
             val success = MutableStateFlow(false)
 
@@ -77,7 +88,7 @@ class DownloadManagerTest : ShouldSpec() {
             )
             everySuspend {
                 mediaServiceMock.getEncryptedMedia(eq(encryptedFile), any(), any())
-            } returns Result.success("test".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
             val success = MutableStateFlow(false)
 
@@ -107,7 +118,7 @@ class DownloadManagerTest : ShouldSpec() {
                 @Suppress("UNCHECKED_CAST")
                 internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
-                Result.success("test".encodeToByteArray().toByteArrayFlow())
+                Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
             val success = MutableStateFlow(false)
@@ -154,7 +165,7 @@ class DownloadManagerTest : ShouldSpec() {
                 @Suppress("UNCHECKED_CAST")
                 internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
-                Result.success("test".encodeToByteArray().toByteArrayFlow())
+                Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
             val success = MutableStateFlow(false)

@@ -135,6 +135,7 @@ class RootRouter(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     userId = config.userId,
                     exception = config.exception,
+                    onDeletionFinished = ::showInitialization,
                 )
             )
         }
