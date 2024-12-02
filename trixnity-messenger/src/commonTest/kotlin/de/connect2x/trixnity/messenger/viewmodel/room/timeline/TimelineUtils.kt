@@ -181,7 +181,7 @@ class TimelineMock(
     }
 }
 
-class MockedTimeline(
+internal class MockedTimeline(
     private val pageSize: Int,
     private val timelineMock: TimelineMock,
     transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper

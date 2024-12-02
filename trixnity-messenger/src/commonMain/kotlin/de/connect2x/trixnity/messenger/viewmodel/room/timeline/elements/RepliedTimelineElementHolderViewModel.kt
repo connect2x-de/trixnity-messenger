@@ -80,6 +80,11 @@ interface RepliedTimelineElementHolderViewModel {
      * The sender of this event.
      */
     val sender: StateFlow<UserInfoElement?>
+
+    /**
+     * This element should show the sender.
+     */
+    val showSender: StateFlow<Boolean?>
 }
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -146,6 +151,12 @@ class RepliedTimelineElementHolderViewModelImpl(
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
+    override val showSender: StateFlow<Boolean?> =
+        matrixClient.room.getById(roomId)
+            .filterNotNull()
+            .map { it.isDirect }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val isByMe: StateFlow<Boolean?> =
         flow {
             emit(senderUserId.filterNotNull().first() == userId)
@@ -164,4 +175,5 @@ class PreviewRepliedTimelineElementViewModel1 : RepliedTimelineElementHolderView
         })
     override val isByMe: StateFlow<Boolean> = MutableStateFlow(true)
     override val sender: StateFlow<UserInfoElement?> = MutableStateFlow(null)
+    override val showSender: StateFlow<Boolean?> = MutableStateFlow(false)
 }
