@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -299,6 +300,7 @@ class TimelineElementHolderViewModelImpl(
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         flow {
             val timelineEvent = matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
+                .drop(1)
                 .map { it.first() }
                 .firstOrNull { timelineEvent ->
                     timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
@@ -327,15 +329,20 @@ class TimelineElementHolderViewModelImpl(
             else {
                 val previousSupportedTimelineEvent =
                     matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
+                        .drop(1)
                         .map { it.first() }
-                        .first { timelineEvent ->
+                        .firstOrNull { timelineEvent ->
                             val origEventContent = timelineEvent.event.content
                             timelineElementViewModelFactorySelector.supports(origEventContent)
                         }
-                val previousTimestamp = Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
-                val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
-                if (thisTimestamp - previousTimestamp > 1.hours) emit(true)
-                else emit(false)
+                if (previousSupportedTimelineEvent == null) emit(false)
+                else {
+                    val previousTimestamp =
+                        Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
+                    val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
+                    if (thisTimestamp - previousTimestamp > 1.hours) emit(true)
+                    else emit(false)
+                }
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 

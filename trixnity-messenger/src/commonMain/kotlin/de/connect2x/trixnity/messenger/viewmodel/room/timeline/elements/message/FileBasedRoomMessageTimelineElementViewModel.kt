@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -38,6 +39,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
     private val activeDownload = MutableStateFlow<Deferred<Result<Unit>>?>(null)
+    private val i18n = get<I18n>()
 
     override fun download(processFile: suspend (ByteArrayFlow) -> Unit) {
         activeDownload.value?.cancel("new download started")
@@ -60,18 +62,18 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     .onSuccess {
                         _downloadSuccessful.value = true
                         _downloadError.value = null
-                        activeDownload.value = null
+
                     }.onFailure {
                         _downloadSuccessful.value = false
-                        _downloadError.value = "download failed" // TODO i18n
-                        activeDownload.value = null
+                        _downloadError.value = i18n.downloadFailed(it.message)
                     }
             } catch (exc: CancellationException) {
                 _downloadProgress.value = null
-                _downloadSuccessful.value = false
-                _downloadError.value = "download cancelled" // TODO i18n
-                activeDownload.value = null
+                _downloadSuccessful.value = null
+                _downloadError.value = null
             }
+        }.invokeOnCompletion {
+            activeDownload.value = null
         }
     }
 

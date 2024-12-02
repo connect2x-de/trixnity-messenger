@@ -1,11 +1,9 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -23,7 +21,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
@@ -38,7 +35,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ImageMessageViewModelTest : ShouldSpec() {
+class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
     val matrixClientMock = mock<MatrixClient>()
@@ -124,7 +121,7 @@ class ImageMessageViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageRoomMessageTimelineElementViewModelImpl {
+    private fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageRoomMessageTimelineElementViewModelImpl {
         return ImageRoomMessageTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -138,19 +135,8 @@ class ImageMessageViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext,
             ),
-            timelineEvent = null,
             content = RoomMessageEventContent.FileBased.Image(""),
-            formattedDate = "21.11.2021",
-            showDateAbove = true,
-            formattedTime = null,
-            isByMe = false,
-            showChatBubbleEdge = true,
-            showBigGap = true,
-            showSender = MutableStateFlow(true),
-            sender = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
-            invitation = flowOf(null),
             onOpenMedia = mock(),
-            mediaUploadProgress = MutableStateFlow(null),
         )
     }
 }

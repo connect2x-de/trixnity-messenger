@@ -39,6 +39,7 @@ interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelF
         if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
             MemberStateTimelineElementViewModelImpl(
                 viewModelContext,
+                content,
                 roomId,
                 eventIdOrTransactionId.eventId,
             ) else null
@@ -55,6 +56,7 @@ interface MemberStateTimelineElementViewModel : State<MemberEventContent> {
 
 class MemberStateTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    content: MemberEventContent,
     roomId: RoomId,
     eventId: EventId,
 ) : MemberStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
@@ -69,8 +71,6 @@ class MemberStateTimelineElementViewModelImpl(
                 ) { userInfo, isDirect, timelineEvent ->
                     val event = timelineEvent.event
                     require(event is StateEvent)
-                    val content = event.content
-                    require(content is MemberEventContent)
 
                     val name = userInfo?.name ?: timelineEventSnapshot.sender.full
                     val previousContent = event.unsigned?.previousContent

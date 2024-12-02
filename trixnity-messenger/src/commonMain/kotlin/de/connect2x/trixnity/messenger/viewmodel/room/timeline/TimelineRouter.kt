@@ -70,7 +70,7 @@ class TimelineRouterImpl(
             is Config.View -> Wrapper.View(
                 viewModelContext.get<TimelineViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    selectedRoomId = RoomId(timelineConfig.roomId),
+                    roomId = RoomId(timelineConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
                     onShowSettings = onShowSettings,
                     onBack = onRoomBack,

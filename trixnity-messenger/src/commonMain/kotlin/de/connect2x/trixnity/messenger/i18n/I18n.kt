@@ -1177,6 +1177,11 @@ abstract class I18n(
         EN - "There was an error decrypting this message: ${error ?: commonUnknown()}"
         DE - "Es gab einen Fehler beim Entschlüsseln der Nachricht: ${error ?: commonUnknown()}"
     }
+
+    fun downloadFailed(error: String?) = translate {
+        EN - "Download failed: ${error ?: commonUnknown()}"
+        DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
+    }
 }
 
 internal fun getLang(
