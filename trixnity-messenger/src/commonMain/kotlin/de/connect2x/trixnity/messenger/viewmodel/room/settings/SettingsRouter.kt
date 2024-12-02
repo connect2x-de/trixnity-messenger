@@ -134,7 +134,6 @@ class SettingsRouterImpl(
             is Config.ViewProfile -> Wrapper.ViewProfile(
                 viewModelContext.get<UserProfileViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    roomId = settingsConfig.roomId,
                     userId = settingsConfig.userId,
                     error = MutableStateFlow(null),
                     selectedRoomId = roomId,

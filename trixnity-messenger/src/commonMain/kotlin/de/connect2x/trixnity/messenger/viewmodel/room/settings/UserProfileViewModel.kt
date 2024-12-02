@@ -45,7 +45,6 @@ private val log = KotlinLogging.logger {}
 interface UserProfileViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        roomId: RoomId,
         userId: UserId,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
@@ -53,7 +52,6 @@ interface UserProfileViewModelFactory {
     ): UserProfileViewModelImpl {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
-            roomId = roomId,
             userId = userId,
             error = error,
             selectedRoomId = selectedRoomId,
@@ -156,7 +154,6 @@ interface UserProfileViewModel {
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserProfileViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    roomId: RoomId,
     userId: UserId,
     override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
@@ -250,7 +247,7 @@ class UserProfileViewModelImpl(
             }
         }
 
-        member = matrixClient.user.getById(roomId, userId).mapNotNull {
+        member = matrixClient.user.getById(selectedRoomId, userId).mapNotNull {
             it?.let { roomUser ->
                 roomUserOriginalName.value = roomUser.originalName
 

@@ -161,7 +161,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.success(EventId(""))
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
                 testCoroutineScheduler.advanceUntilIdle()
@@ -190,7 +190,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 }
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
                 testCoroutineScheduler.advanceUntilIdle()
@@ -212,7 +212,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.failure(Throwable())
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
                 testCoroutineScheduler.advanceUntilIdle()
@@ -249,7 +249,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.success(EventId(""))
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
                 testCoroutineScheduler.advanceUntilIdle()
@@ -277,7 +277,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 }
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
                 testCoroutineScheduler.advanceUntilIdle()
@@ -299,7 +299,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.failure(Throwable())
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
                 testCoroutineScheduler.advanceUntilIdle()
@@ -317,7 +317,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(100L)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered("")
@@ -335,7 +335,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(100L)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered(".,")
@@ -352,7 +352,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(100)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered("-56")
@@ -369,7 +369,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(56)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(56L)
+                    coroutineContext, alice, MutableStateFlow(56L)
                 )
 
                 cut.onPowerLevelEntered("57")
@@ -384,7 +384,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(null)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered("57")
@@ -397,7 +397,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
     private suspend fun changePowerLevelViewModel(
         coroutineContext: CoroutineContext,
-        roomUser: RoomUser,
+        userId: UserId,
         powerLevel: StateFlow<Long>,
     ): ChangePowerLevelViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
@@ -412,7 +412,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
-            roomUser = roomUser,
+            userId = userId,
             error = MutableStateFlow(""),
             selectedRoomId = roomId,
             closeMemberOptions = closeMemberOptions,

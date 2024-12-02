@@ -276,8 +276,9 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        error: MutableStateFlow<String?>
-                                    ): MemberListViewModel = object : MemberListViewModel {
+                                        error: MutableStateFlow<String?>,
+                                        onShowUserProfile: (UserId) -> Unit,
+                                        ): MemberListViewModel = object : MemberListViewModel {
                                         override val memberListElementViewModels: StateFlow<List<Pair<UserId, MemberListElementViewModel>>> =
                                             MutableStateFlow(listOf())
                                         override val membershipCounts: StateFlow<Map<Membership, Int>> = MutableStateFlow(emptyMap())
@@ -299,6 +300,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             onOpenAvatarCutter = { _, _, _ -> },
             onShowAddMembers = mock(),
             onShowExportRoom = mock(),
+            onOpenUserProfile = mock()
         )
     }
 }

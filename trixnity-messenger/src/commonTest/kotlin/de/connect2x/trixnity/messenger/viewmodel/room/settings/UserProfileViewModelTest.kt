@@ -8,26 +8,32 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.ADMIN
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.ADMIN
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.MODERATOR
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.USER
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import dev.mokkery.verifySuspend
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -42,6 +48,7 @@ import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -54,15 +61,18 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class MemberListElementViewModelTest : ShouldSpec() {
+class UserProfileViewModelTest : ShouldSpec() {
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
@@ -70,7 +80,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room", "localhost")
 
     private val memberElementAlice =
-        MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
+        UserProfileViewModel.MemberElement(null, "Alice", alice.full, "A")
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
@@ -83,6 +93,8 @@ class MemberListElementViewModelTest : ShouldSpec() {
         )
     )
 
+    private val roomUserAliceFlow = MutableStateFlow(roomUserAlice)
+
     private val roomUserBob = RoomUser(
         roomId, bob, "Bob", StateEvent(
             MemberEventContent(membership = Membership.JOIN),
@@ -93,6 +105,10 @@ class MemberListElementViewModelTest : ShouldSpec() {
             stateKey = ""
         )
     )
+
+    private val roomUserBobFlow = MutableStateFlow(roomUserBob)
+
+    private val roomUserMapFlow = MutableStateFlow(mapOf<UserId, MutableStateFlow<RoomUser>>())
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -132,6 +148,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 usersApiClientMock,
                 roomsApiClientMock
             )
+
+            roomUserMapFlow.value = mapOf(alice to roomUserAliceFlow, bob to roomUserBobFlow)
+
             every { matrixClientMock.di } returns koinApplication {
                 modules(
                     module {
@@ -152,9 +171,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
             every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
                 Room(isDirect = true, roomId = roomId)
             )
-
-            every { userServiceMock.getById(eq(roomId), eq(roomUserAlice.userId)) } returns flowOf(roomUserAlice)
-            every { userServiceMock.getById(eq(roomId), eq(roomUserBob.userId)) } returns flowOf(roomUserBob)
+            every { userServiceMock.getAll(eq(roomId)) } returns roomUserMapFlow
+            every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
+            every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
             every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
@@ -165,6 +184,24 @@ class MemberListElementViewModelTest : ShouldSpec() {
             every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
                 IgnoredUserListEventContent(emptyMap())
             )
+
+            everySuspend { roomsApiClientMock.banUser(eq(roomId), any(), any(), any()) } calls {
+                val userId = (it.args[1] as UserId)
+                roomUserMapFlow.value -= userId
+                Result.success(Unit)
+            }
+
+            everySuspend { roomsApiClientMock.unbanUser(eq(roomId), any(), any(), any()) } calls {
+                val userId = (it.args[1] as UserId)
+                val roomUserFlow = userServiceMock.getById(roomId, userId) as MutableStateFlow<RoomUser?>
+                setMemberEventContentOf(
+                    roomUserFlow, MemberEventContent(
+                        membership = Membership.LEAVE,
+                        reason = it.args[2] as String
+                    )
+                )
+                Result.success(Unit)
+            }
 
             every { keyServiceMock.getTrustLevel(any()) } returns flowOf(UserTrustLevel.Blocked)
 
@@ -178,7 +215,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
             every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
 
-            val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
+            val cut = userProfileViewModel(coroutineContext, alice)
 
             testCoroutineScheduler.advanceTimeBy(200)
 
@@ -191,7 +228,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
             every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
 
-            val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
+            val cut = userProfileViewModel(coroutineContext, alice)
 
             launch { cut.member.collect() }
 
@@ -200,6 +237,71 @@ class MemberListElementViewModelTest : ShouldSpec() {
             cut.member.value shouldBe memberElementAlice
 
             cancelNeverEndingCoroutines()
+        }
+
+        context("kicking an user") {
+            beforeTest {
+                every {
+                    userServiceMock.getPowerLevel(eq(roomId), any())
+                } returns MutableStateFlow(50)
+            }
+
+            should("return to room settings after kicking an user") {
+                everySuspend {
+                    roomsApiClientMock.kickUser(
+                        eq(roomId),
+                        eq(alice),
+                        eqNull(),
+                        eqNull()
+                    )
+                } returns Result.success(Unit)
+
+                val cut = userProfileViewModel(coroutineContext, alice)
+                cut.kickUser(alice)
+                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
+
+                cut.error.value shouldBe ""
+                verifySuspend {
+                    roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
+                }
+                cut.memberOptionsOpen.value shouldBe false
+                cancelNeverEndingCoroutines()
+
+            }
+
+            should("show an error message when trying to kick an user and we are not connected") {
+                syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+
+                val cut = userProfileViewModel(coroutineContext, alice)
+                cut.kickUser(alice)
+
+                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
+                // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
+
+                cut.error.value shouldNotBe null
+                cancelNeverEndingCoroutines()
+            }
+
+            should("show an error message when kicking an user fails") {
+                everySuspend {
+                    roomsApiClientMock.kickUser(
+                        eq(roomId),
+                        eq(alice),
+                        eqNull(),
+                        eqNull()
+                    )
+                } returns
+                        Result.failure(RuntimeException("Oh nooo"))
+
+                val cut = userProfileViewModel(coroutineContext, alice)
+                cut.kickUser(alice)
+
+                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
+                // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
+
+                cut.error.value shouldNotBe null
+                cancelNeverEndingCoroutines()
+            }
         }
 
         context("role computation for the member list") {
@@ -218,7 +320,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = userProfileViewModel(coroutineContext, bob)
                     cut.role.first { it != USER } shouldBe ADMIN
                     cancelNeverEndingCoroutines()
                 }
@@ -227,7 +329,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = userProfileViewModel(coroutineContext, bob)
                     cut.showRole.first { it } shouldBe true
                     cancelNeverEndingCoroutines()
 
@@ -238,7 +340,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = userProfileViewModel(coroutineContext, bob)
                     cut.role.first { it != USER } shouldBe MODERATOR
                     cancelNeverEndingCoroutines()
                 }
@@ -246,7 +348,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = userProfileViewModel(coroutineContext, bob)
                     delay(100)
                     cut.showRole.first { it } shouldBe true
                     cancelNeverEndingCoroutines()
@@ -259,7 +361,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = userProfileViewModel(coroutineContext, bob)
                     cut.role.value shouldBe USER
                     cancelNeverEndingCoroutines()
                 }
@@ -267,7 +369,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = userProfileViewModel(coroutineContext, bob)
                     delay(50)
                     cut.showRole.value shouldBe false
                     cancelNeverEndingCoroutines()
@@ -277,25 +379,38 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
     }
 
+    private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
+        roomUser.value = requireNotNull(roomUser.value).copy(
+            event = StateEvent(
+                eventContent,
+                EventId(""),
+                requireNotNull(roomUser.value).userId,
+                roomId,
+                0,
+                stateKey = ""
+            )
+        )
+    }
 
-    private suspend fun memberListElementViewModel(
-        coroutineContext: CoroutineContext, roomUser: RoomUser
-    ): MemberListElementViewModelImpl {
+    private suspend fun userProfileViewModel(
+        coroutineContext: CoroutineContext, userId: UserId
+    ): UserProfileViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
-        return MemberListElementViewModelImpl(
+        return UserProfileViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("user1", "server") to matrixClientMock)),
                     )
                 }.koin,
-                userId = UserId("test", "server"),
+                userId = UserId("user1", "server"),
                 coroutineContext = coroutineContext,
             ),
-            roomUser,
+            userId = userId,
             selectedRoomId = roomId,
-            onShowUserProfile = mock()
+            error = MutableStateFlow(""),
+            onBack = mock()
         )
     }
 }
