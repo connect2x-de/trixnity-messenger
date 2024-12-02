@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 
 private val log = KotlinLogging.logger {}
@@ -23,7 +23,7 @@ interface ChangePowerLevelViewModelFactory {
         powerLevel: StateFlow<Long>,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
-        roomUser: RoomUser,
+        userId: UserId,
         closeMemberOptions: () -> Unit,
     ): ChangePowerLevelViewModel {
         return ChangePowerLevelViewModelImpl(
@@ -31,7 +31,7 @@ interface ChangePowerLevelViewModelFactory {
             powerLevel,
             error,
             selectedRoomId,
-            roomUser,
+            userId,
             closeMemberOptions,
         )
     }
@@ -81,11 +81,13 @@ open class ChangePowerLevelViewModelImpl(
     val powerLevel: StateFlow<Long>,
     val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
-    private val roomUser: RoomUser,
+    userId: UserId,
     private val closeMemberOptions: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
+    private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private val targetUser = roomUser.userId
+    private val targetUser = userId
 
     override val canSetPowerLevelToMax =
         matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
@@ -182,7 +184,7 @@ open class ChangePowerLevelViewModelImpl(
                                 return@launch
                             }
                             log.error(it) { "cannot set user $targetUser to role $powerLevel in room $selectedRoomId" }
-                            error.value = i18n.settingsRoomMemberListChangePowerLevelError(roomUser.name)
+                            error.value = i18n.settingsRoomMemberListChangePowerLevelError(roomUser.value?.name ?: userId.full)
                         })
             }
             changingPowerLevelDialogInput.value =

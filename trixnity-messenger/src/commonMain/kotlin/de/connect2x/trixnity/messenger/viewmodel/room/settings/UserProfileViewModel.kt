@@ -15,12 +15,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
@@ -46,14 +45,16 @@ private val log = KotlinLogging.logger {}
 interface UserProfileViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        roomUser: RoomUser,
+        roomId: RoomId,
+        userId: UserId,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
         onBack: () -> Unit
     ): UserProfileViewModelImpl {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
-            roomUser = roomUser,
+            roomId = roomId,
+            userId = userId,
             error = error,
             selectedRoomId = selectedRoomId,
             onBack = onBack
@@ -155,13 +156,15 @@ interface UserProfileViewModel {
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserProfileViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val roomUser: RoomUser,
+    roomId: RoomId,
+    userId: UserId,
     override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
+    // private val roomUser = matrixClient.user.getById(roomId, userId)
+
     override val memberOptionsOpen = MutableStateFlow(false)
-    override val userId = roomUser.userId
 
     override val kickUserWarningOpen = MutableStateFlow(false)
     override val kickUserWarningMessage = MutableStateFlow("")
@@ -208,9 +211,9 @@ class UserProfileViewModelImpl(
     override val changePowerLevelViewModel: ChangePowerLevelViewModel =
         get<ChangePowerLevelViewModelFactory>()
             .create(
-                viewModelContext = viewModelContext.childContext("changePowerLevel-${roomUser.userId.full}"),
+                viewModelContext = viewModelContext.childContext("changePowerLevel-${userId.full}"),
                 powerLevel = powerLevel,
-                roomUser = roomUser,
+                userId = userId,
                 error = error,
                 selectedRoomId = selectedRoomId,
                 closeMemberOptions = ::closeMemberOptions
@@ -247,10 +250,10 @@ class UserProfileViewModelImpl(
             }
         }
 
-        // TODO this is not reactive! For example instead of RoomUser, just the userId should be passed from the list.
-        member = channelFlow {
-            roomUserOriginalName.value = roomUser.originalName
-            send(
+        member = matrixClient.user.getById(roomId, userId).mapNotNull {
+            it?.let { roomUser ->
+                roomUserOriginalName.value = roomUser.originalName
+
                 UserProfileViewModel.MemberElement(
                     getImage(
                         matrixClient,
@@ -260,8 +263,8 @@ class UserProfileViewModelImpl(
                     roomUser.userId.full,
                     initials.compute(roomUser.name),
                 )
-            )
-        }.buffer(0).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
@@ -276,6 +279,7 @@ class UserProfileViewModelImpl(
     override fun back() {
         onBack()
     }
+
     override fun errorDismiss() {
         error.value = null
     }
@@ -371,7 +375,7 @@ class UserProfileViewModelImpl(
     }
 
     override fun unbanUser(reason: String?) {
-        val roomUserId = roomUser.userId
+        val roomUserId = userId
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberUnbanUserErrorOffline()

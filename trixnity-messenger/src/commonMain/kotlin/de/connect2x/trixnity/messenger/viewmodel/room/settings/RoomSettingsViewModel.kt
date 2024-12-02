@@ -9,11 +9,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
@@ -32,7 +30,7 @@ interface RoomSettingsViewModelFactory {
         onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-        onShowUserProfile: (RoomUser) -> Unit,
+        onShowUserProfile: (RoomId, UserId) -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
@@ -86,7 +84,7 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    private val onOpenUserProfile: (RoomUser) -> Unit,
+    private val onOpenUserProfile: (RoomId, UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -225,11 +223,7 @@ class RoomSettingsViewModelImpl(
     }
 
     override fun showUserProfile(userId: UserId) {
-        coroutineScope.launch {
-            matrixClient.user.getById(selectedRoomId, userId).firstOrNull()?.let {
-                onOpenUserProfile(it)
-            }
-        }
+        onOpenUserProfile(selectedRoomId, userId)
     }
 }
 
@@ -238,8 +232,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-    override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
-        = PreviewRoomSettingsAliasViewModel()
+    override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel = PreviewRoomSettingsAliasViewModel()
     override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel =
         PreviewRoomSettingsHistoryVisibilityViewModel()
     override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel =

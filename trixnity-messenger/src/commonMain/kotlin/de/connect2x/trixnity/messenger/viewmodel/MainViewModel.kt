@@ -194,6 +194,8 @@ open class MainViewModelImpl(
     private fun backPressHandler() {
         if (mediaRouter.isMediaOpen()) {
             mediaRouter.closeMedia()
+        } else if (showedUserId.value != null) {
+            showedUserId.value = null
         } else if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {

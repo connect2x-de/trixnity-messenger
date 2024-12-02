@@ -17,9 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.Wr
 import io.github.oshai.kotlinlogging.KotlinLogging
 import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
@@ -56,16 +54,15 @@ interface SettingsRouter {
         data object ExportRoom : Config()
 
         @Serializable
-        data class ViewProfile(val roomUser: RoomUser) : Config()
+        data class ViewProfile(val roomId: RoomId, val userId: UserId) : Config()
     }
 }
 
 class SettingsRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val showedUserId: StateFlow<RoomUser?>,
+    private val showedUserId: MutableStateFlow<UserId?>,
     private val onSettingsBack: () -> Unit,
-    private val onCloseUserProfile: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : SettingsRouter {
@@ -87,7 +84,7 @@ class SettingsRouterImpl(
                 when (it) {
                     null -> closeUserProfile()
                     else -> {
-                        showUserProfile(it)
+                        showUserProfile(roomId, it)
                     }
                 }
             }
@@ -137,7 +134,8 @@ class SettingsRouterImpl(
             is Config.ViewProfile -> Wrapper.ViewProfile(
                 viewModelContext.get<UserProfileViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    settingsConfig.roomUser,
+                    roomId = settingsConfig.roomId,
+                    userId = settingsConfig.userId,
                     error = MutableStateFlow(null),
                     selectedRoomId = roomId,
                     onBack = ::closeUserProfile
@@ -170,8 +168,8 @@ class SettingsRouterImpl(
         settingsNavigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun showUserProfile(roomUser: RoomUser) {
-        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ViewProfile(roomUser))
+    private fun showUserProfile(roomId: RoomId, userId: UserId) {
+        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ViewProfile(roomId, userId))
     }
 
     private fun closeUserProfile() {
@@ -179,7 +177,7 @@ class SettingsRouterImpl(
             it != Config.Settings
         }
 
-        onCloseUserProfile()
+        showedUserId.value = null
     }
 
     override fun isShown(): Boolean = stack.value.active.configuration !is Config.None

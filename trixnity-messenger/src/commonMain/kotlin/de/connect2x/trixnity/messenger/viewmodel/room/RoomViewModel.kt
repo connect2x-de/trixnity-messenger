@@ -16,13 +16,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
@@ -89,13 +84,8 @@ open class RoomViewModelImpl(
         viewModelContext = viewModelContext,
         roomId = roomId,
         onRoomBack = onRoomBack,
-        showedUserId = showedUserId.flatMapLatest {
-            it?.let {
-                matrixClient.user.getById(roomId, it)
-            } ?: flowOf(null)
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
+        showedUserId = showedUserId,
         onSettingsBack = ::onSettingsBack,
-        onCloseUserProfile = ::onCloseUserProfile,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
 
@@ -157,10 +147,6 @@ open class RoomViewModelImpl(
         } else {
             timelineRouter.showTimeline(roomId)
         }
-    }
-
-    internal fun onCloseUserProfile() {
-        showedUserId.value = null
     }
 
     internal fun onSettingsBack() = coroutineScope.launch {
