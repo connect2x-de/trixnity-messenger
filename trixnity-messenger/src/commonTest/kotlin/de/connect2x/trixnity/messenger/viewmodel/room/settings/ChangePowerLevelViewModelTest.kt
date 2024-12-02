@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -38,8 +37,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -48,36 +45,10 @@ import kotlin.coroutines.CoroutineContext
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class ChangePowerLevelViewModelTest : ShouldSpec() {
 
-    private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
     private val roomId = RoomId("room", "localhost")
-
-    private val memberElementAlice =
-        MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
-
-    private val roomUserAlice = RoomUser(
-        roomId, alice, "Alice", StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId(""),
-            alice,
-            roomId,
-            0L,
-            stateKey = ""
-        )
-    )
-
-    private val roomUserBob = RoomUser(
-        roomId, bob, "Bob", StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId(""),
-            bob,
-            roomId,
-            0L,
-            stateKey = ""
-        )
-    )
 
     val matrixClientMock = mock<MatrixClient>()
 
