@@ -239,14 +239,10 @@ import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalView
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalViewImpl
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalView
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalViewImpl
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModalView
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModalViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import org.koin.core.module.Module
@@ -436,9 +432,7 @@ fun settingsViewModule() = module {
 }
 
 fun verificationViewModule() = module {
-    single<DeviceVerificationModalView> { DeviceVerificationModalViewImpl() }
     single<RedoSelfVerificationModalView> { RedoSelfVerificationModalViewImpl() }
-    single<SelfVerificationModalView> { SelfVerificationModalViewImpl() }
 }
 
 fun uiaViewModule() = module {
