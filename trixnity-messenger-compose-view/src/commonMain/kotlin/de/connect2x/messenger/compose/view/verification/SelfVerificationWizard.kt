@@ -596,7 +596,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
-                    Button(
+                    OutlinedButton(
                         onClick = { selfVerificationViewModel.close() },
                         modifier = Modifier.buttonPointerModifier()
                     ) {

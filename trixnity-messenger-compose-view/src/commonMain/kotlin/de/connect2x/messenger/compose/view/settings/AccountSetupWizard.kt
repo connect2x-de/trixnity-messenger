@@ -205,12 +205,10 @@ private fun wizardStepVerification(
         title = { i18n.deviceVerification() },
         content = {
             viewModel.startVerification()
-            Text("If you are seeing this, something has gone very wrong")
         },
         nextButton = {
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
-                println("verification completed is $completedVerification")
                 if (completedVerification == true) {
                     nextStep?.let { currentStepId.value = it }
                     viewModel.completedVerification.value = null
@@ -221,7 +219,6 @@ private fun wizardStepVerification(
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
                 if (completedVerification == false) {
-                    println("Current id is ${currentStepId.value}, previous id is $previousStep")
                     viewModel.completedVerification.value = null
                     previousStep?.let { currentStepId.value = it }
                 }

@@ -185,6 +185,12 @@ class RoomListViewModelImpl(
                 pairs.filter { it.second.isVerified.not() }
                     .map { it.first }
             }
+        }.combine(activeAccount) { unverifiedAccounts, activeAccount ->
+            if (activeAccount != null) {
+                unverifiedAccounts.find {
+                    it == activeAccount
+                }?.let { listOf(it) } ?: listOf()
+            } else unverifiedAccounts
         }
         .stateIn(coroutineScope, WhileSubscribed(), listOf())
 
@@ -231,10 +237,11 @@ class RoomListViewModelImpl(
 
     init {
         val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
-            combine(selectedMatrixClients
-                .map { selectedMatrixClient ->
-                    selectedMatrixClient.user.getAccountData<DirectEventContent>().map { it?.mappings.orEmpty() }
-                }) { allDirectEventContents ->
+            combine(
+                selectedMatrixClients
+                    .map { selectedMatrixClient ->
+                        selectedMatrixClient.user.getAccountData<DirectEventContent>().map { it?.mappings.orEmpty() }
+                    }) { allDirectEventContents ->
                 allDirectEventContents
                     .flatMap { it.entries }
                     .groupBy { it.key }
