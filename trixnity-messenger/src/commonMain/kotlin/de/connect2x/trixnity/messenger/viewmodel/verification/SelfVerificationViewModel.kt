@@ -5,11 +5,20 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
@@ -46,6 +55,7 @@ interface SelfVerificationViewModel {
     val recoveryKeyWrong: MutableStateFlow<Boolean>
     val passphraseWrong: MutableStateFlow<Boolean>
     val error: MutableStateFlow<String?>
+    val isVerified: StateFlow<Boolean?>
 
     fun waitForAvailableVerificationMethods()
     fun launchVerification(selfVerificationMethod: SelfVerificationMethod)
@@ -77,6 +87,13 @@ open class SelfVerificationViewModelImpl(
     override val passphraseWrong = MutableStateFlow(false)
 
     override val error = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val isVerified: StateFlow<Boolean?> =
+        matrixClients.map { it[userId] }.filterNotNull()
+            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest { it }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
 
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {
@@ -199,6 +216,7 @@ open class SelfVerificationViewModelImpl(
     override fun backToChoose() {
         resetMethods()
         showResetRecoveryWarning.value = false
+        showVerificationHelp.value = false
         waitForAvailableVerificationMethods()
     }
 
@@ -226,4 +244,5 @@ open class SelfVerificationViewModelImpl(
         println("closing with ${!showVerificationHelp.value}")
         onCloseSelfVerification(!showVerificationHelp.value)
     }
+
 }

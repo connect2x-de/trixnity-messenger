@@ -51,7 +51,6 @@ interface AccountSetupViewModel {
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
-    val isVerified: StateFlow<Boolean?>
 }
 
 class AccountSetupViewModelImpl(
@@ -89,13 +88,6 @@ class AccountSetupViewModelImpl(
             startedVerification.value = true
         }
     }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val isVerified =
-        matrixClients.map { it[userId] }.filterNotNull()
-            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
 
     override fun closeAccountSetup() {
         this.onWizardClose(userId)

@@ -1,21 +1,31 @@
 package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
@@ -46,6 +56,9 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
 
         data object SelfVerificationWizardResetRecoveryKeyConfirmation :
             SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_RESET_RECOVERY_KEY_CONFIRM")
+
+        data object SelfVerificationWizardVerificationConfirmation :
+            SelfVerificationWizardStep("SELF_VERIFICATION_WIZARD_VERIFICATION_CONFIRMATION")
     }
 
     @Composable
@@ -55,7 +68,8 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             SelfVerificationWizardStep.SelfVerificationWizardMethods,
             SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
             SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
-            SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation
+            SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
+            SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation
         )
         val i18n = DI.get<I18nView>()
 
@@ -101,6 +115,14 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                 i18n
                             )
                         )
+
+                        is SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation -> this.add(
+                            selfVerificationWizardVerificationConfirmationStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation,
+                                i18n
+                            )
+                        )
                     }
                 }
             }
@@ -113,16 +135,25 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         step: SelfVerificationWizardStep,
         i18n: I18nView
     ): WizardStep {
+        val isVerified = selfVerificationViewModel.isVerified
         return WizardStep(
             id = step.stepId,
             title = { i18n.deviceVerification() },
             content = {
-                Column {
-                    ShowVerificationHelpContent()
+                val isVerified = isVerified.collectAsState().value
+                if (isVerified == false) {
+                    Column {
+                        ShowVerificationHelpContent()
+                    }
                 }
             },
             nextButton = {
                 Custom {
+                    val isVerified = isVerified.collectAsState().value
+                    if (isVerified == true) {
+                        currentStepId.value =
+                            SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation.stepId
+                    }
                     Button(
                         modifier = Modifier.buttonPointerModifier(),
                         onClick = {
@@ -337,6 +368,52 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         )
     }
 
+    private fun selfVerificationWizardVerificationConfirmationStep(
+        selfVerificationViewModel: SelfVerificationViewModel,
+        step: SelfVerificationWizardStep,
+        i18n: I18nView
+    ): WizardStep {
+        return WizardStep(
+            id = step.stepId, title = { i18n.deviceVerification() },
+            content = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        modifier = Modifier.align(Alignment.CenterHorizontally).size(50.dp),
+                        contentDescription = i18n.commonSuccess(),
+                        tint = MaterialTheme.messengerColors.success
+                    )
+                    SmallSpacer()
+                    Text(i18n.verificationSuccessThisDevice(), modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
+            },
+            nextButton = {
+                Custom {
+                    Button(
+                        onClick = {
+                            selfVerificationViewModel.backToChoose()
+                            selfVerificationViewModel.close()
+                        },
+                        modifier = Modifier.buttonPointerModifier()
+                    ) {
+                        Text(i18n.commonNext())
+                    }
+
+                }
+            },
+            backButton = {
+                Custom {
+                    Button(
+                        onClick = { selfVerificationViewModel.close() },
+                        modifier = Modifier.buttonPointerModifier()
+                    ) {
+                        Text(i18n.commonBack())
+                    }
+                }
+            }
+        )
+    }
+
     @Composable
     private fun selfVerificationWizar(
         selfVerificationViewModel: SelfVerificationViewModel,
@@ -350,136 +427,145 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         val checkedRecoveryResetWarning = mutableStateOf<Boolean>(false)
         val startCrossDevice = mutableStateOf(false)
         val step =
-            WizardStep(id = "SELF-VERIFICATION-WIZARD-VERIFICATION", title = { i18n.deviceVerification() }, content = {
-                Column {
+            WizardStep(
+                id = "SELF-VERIFICATION-WIZARD-VERIFICATION",
+                title = { i18n.deviceVerification() },
+                content = {
+                    Column {
+                        val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
+                        val showPassphrase =
+                            selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+                        val showKey =
+                            selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                        val showResetRecoveryKeyWarning =
+                            selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+
+                        when {
+                            showHelp -> {
+                                if (!showHelpScreen) selfVerificationViewModel.waitForAvailableVerificationMethods()
+                                ShowVerificationHelpContent()
+                            }
+
+                            showPassphrase -> ShowPassphraseMethodContent(
+                                selfVerificationViewModel, selectedPassphrase
+                            )
+
+                            showKey -> ShowRecoveryKeyMethodContent(
+                                selfVerificationViewModel, selectedRecoveryKey
+                            )
+
+                            showResetRecoveryKeyWarning -> {
+                                ShowResetRecoveryWarningContent(checkedRecoveryResetWarning)
+                            }
+
+                            else -> ShowSelfVerificationMethodsContent(
+                                selfVerificationViewModel,
+                                selectedMethod,
+                            )
+                        }
+                    }
+                },
+                nextButton = {
                     val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-                    val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+
+                    if (!showHelp && selectedMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification) {
+                        if (startCrossDevice.value) {
+                            startCrossDevice.value = false
+                        }
+                        Custom { Button(onClick = { selfVerificationViewModel.close() }) { Text(i18n.commonNext()) } }
+                    } else {
+                        Custom {
+                            val showPassphrase =
+                                selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
+                            val showKey =
+                                selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                            val showResetRecoveryWarning =
+                                selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+                            val enableButton =
+                                !startCrossDevice.value
+                                        && (showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
+                                        || (showKey && selectedRecoveryKey.value.isNotBlank())
+                                        || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
+                                        || (showResetRecoveryWarning && checkedRecoveryResetWarning.value
+                                        || selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod))
+                            Button(
+                                modifier = Modifier.buttonPointerModifier(enableButton),
+                                enabled = enableButton,
+                                onClick = {
+                                    when {
+                                        showHelp -> {
+                                            selfVerificationViewModel.waitForAvailableVerificationMethods()
+                                        }
+
+                                        showPassphrase -> {
+                                            selfVerificationViewModel.verifyWithPassphrase(selectedPassphrase.value)
+                                        }
+
+                                        showKey -> {
+                                            selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
+                                        }
+
+                                        showResetRecoveryWarning -> {
+                                            if (checkedRecoveryResetWarning.value) {
+                                                selfVerificationViewModel.resetRecovery()
+                                            }
+                                        }
+
+                                        selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> {
+                                            selfVerificationViewModel.resetRecoveryWarning()
+                                        }
+
+                                        selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod -> {
+                                            val selectedVerificationMethod =
+                                                (selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
+                                            if (selectedVerificationMethod is SelfVerificationMethod.CrossSignedDeviceVerification) {
+                                                startCrossDevice.value = true
+                                            }
+                                            selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
+                                        }
+                                    }
+                                }) {
+                                Text(i18n.commonNext())
+                            }
+                        }
+                    }
+                },
+                backButton = {
+                    val showPassphrase =
+                        selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
                     val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
                     val showResetRecoveryKeyWarning =
                         selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+                    val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
 
-                    when {
-                        showHelp -> {
-                            if (!showHelpScreen) selfVerificationViewModel.waitForAvailableVerificationMethods()
-                            ShowVerificationHelpContent()
-                        }
-
-                        showPassphrase -> ShowPassphraseMethodContent(
-                            selfVerificationViewModel, selectedPassphrase
-                        )
-
-                        showKey -> ShowRecoveryKeyMethodContent(
-                            selfVerificationViewModel, selectedRecoveryKey
-                        )
-
-                        showResetRecoveryKeyWarning -> {
-                            ShowResetRecoveryWarningContent(checkedRecoveryResetWarning)
-                        }
-
-                        else -> ShowSelfVerificationMethodsContent(
-                            selfVerificationViewModel,
-                            selectedMethod,
-                        )
-                    }
-                }
-            }, nextButton = {
-                val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-
-                if (!showHelp && selectedMethod.value is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification) {
-                    if (startCrossDevice.value) {
-                        startCrossDevice.value = false
-                    }
-                    Custom { Button(onClick = { selfVerificationViewModel.close() }) { Text(i18n.commonNext()) } }
-                } else {
-                    Custom {
-                        val showPassphrase =
-                            selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
-                        val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-                        val showResetRecoveryWarning =
-                            selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
-                        val enableButton =
-                            !startCrossDevice.value
-                                    && (showHelp || (showPassphrase && selectedPassphrase.value.isNotBlank())
-                                    || (showKey && selectedRecoveryKey.value.isNotBlank())
-                                    || (selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey && !showResetRecoveryWarning)
-                                    || (showResetRecoveryWarning && checkedRecoveryResetWarning.value
-                                    || selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod))
-                        Button(
-                            modifier = Modifier.buttonPointerModifier(enableButton),
-                            enabled = enableButton,
-                            onClick = {
-                                when {
-                                    showHelp -> {
-                                        selfVerificationViewModel.waitForAvailableVerificationMethods()
-                                    }
-
-                                    showPassphrase -> {
-                                        selfVerificationViewModel.verifyWithPassphrase(selectedPassphrase.value)
-                                    }
-
-                                    showKey -> {
-                                        selfVerificationViewModel.verifyWithRecoveryKey(selectedRecoveryKey.value)
-                                    }
-
-                                    showResetRecoveryWarning -> {
-                                        if (checkedRecoveryResetWarning.value) {
-                                            selfVerificationViewModel.resetRecovery()
-                                        }
-                                    }
-
-                                    selectedMethod.value is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> {
-                                        selfVerificationViewModel.resetRecoveryWarning()
-                                    }
-
-                                    selectedMethod.value is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod -> {
-                                        val selectedVerificationMethod =
-                                            (selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method
-                                        if (selectedVerificationMethod is SelfVerificationMethod.CrossSignedDeviceVerification) {
-                                            startCrossDevice.value = true
-                                        }
-                                        selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
-                                    }
-                                }
+                    if (showPassphrase || showKey || showResetRecoveryKeyWarning) {
+                        Custom(button = {
+                            OutlinedButton(onClick = {
+                                selfVerificationViewModel.backToChoose()
                             }) {
-                            Text(i18n.commonNext())
+                                Text(i18n.commonBack())
+                            }
+                        })
+                    } else if (!showHelp) {
+                        Custom(button = {
+                            OutlinedButton(onClick = {
+                                if (showHelpScreen) selfVerificationViewModel.backToHelp()
+                                else selfVerificationViewModel.close()
+                            }) {
+                                Text(i18n.commonBack())
+                            }
+                        })
+                    } else {
+                        if (startCrossDevice.value) {
+                            startCrossDevice.value = false
+                        }
+                        Custom {
+                            OutlinedButton(onClick = { selfVerificationViewModel.close() }) {
+                                Text(i18n.commonBack())
+                            }
                         }
                     }
-                }
-            }, backButton = {
-                val showPassphrase = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
-                val showKey = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
-                val showResetRecoveryKeyWarning =
-                    selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
-                val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
-
-                if (showPassphrase || showKey || showResetRecoveryKeyWarning) {
-                    Custom(button = {
-                        OutlinedButton(onClick = {
-                            selfVerificationViewModel.backToChoose()
-                        }) {
-                            Text(i18n.commonBack())
-                        }
-                    })
-                } else if (!showHelp) {
-                    Custom(button = {
-                        OutlinedButton(onClick = {
-                            if (showHelpScreen) selfVerificationViewModel.backToHelp()
-                            else selfVerificationViewModel.close()
-                        }) {
-                            Text(i18n.commonBack())
-                        }
-                    })
-                } else {
-                    if (startCrossDevice.value) {
-                        startCrossDevice.value = false
-                    }
-                    Custom {
-                        OutlinedButton(onClick = { selfVerificationViewModel.close() }) {
-                            Text(i18n.commonBack())
-                        }
-                    }
-                }
-            })
+                })
         Wizard(listOf(step))
     }
 }
