@@ -17,13 +17,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @Composable
 actual fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: List<String>,
+    readers: List<UserInfoElement>,
     modifier: Modifier,
 ) {
     val expandedState = remember { MutableTransitionState(false) }

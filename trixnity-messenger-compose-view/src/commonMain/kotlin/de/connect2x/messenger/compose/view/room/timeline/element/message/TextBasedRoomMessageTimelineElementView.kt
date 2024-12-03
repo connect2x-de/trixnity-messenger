@@ -2,14 +2,8 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SmartToy
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -29,20 +22,9 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
-import de.connect2x.messenger.compose.view.room.timeline.AudioReply
-import de.connect2x.messenger.compose.view.room.timeline.FileReply
-import de.connect2x.messenger.compose.view.room.timeline.ImageReply
-import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefault
-import de.connect2x.messenger.compose.view.room.timeline.LocationReply
-import de.connect2x.messenger.compose.view.room.timeline.ReferencedMessagePill
-import de.connect2x.messenger.compose.view.room.timeline.TextReply
-import de.connect2x.messenger.compose.view.room.timeline.UnknownReply
-import de.connect2x.messenger.compose.view.room.timeline.VideoReply
-import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefault
 import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -52,105 +34,97 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
 ) {
     MessageBubble(
-        // FIXME
         holder,
         element,
-    ) {
-        MessageText()
-    }
-}
-
-@Composable
-private fun MessageText(
-    textBasedRoomMessageTimelineElementViewModel: TextBasedRoomMessageTimelineElementViewModel,
-    onLongPress: (Offset) -> Unit,
-    isNotice: Boolean = false
-) {
-    if (Platform.current.isDesktop) {
-        // on Desktop it makes sense to select text and copy it;
-        // on Android, this will consume long tap events, which we use for the context menu
-        SelectionContainer {
-            MessageTextContent(textBasedRoomMessageTimelineElementViewModel, onLongPress, isNotice)
+        showDate = true,
+        needsMaxWidth = true, // FIXME ?
+    ) { showActionMenu ->
+        if (Platform.current.isDesktop) {
+            // on Desktop, it makes sense to select text and copy it;
+            // on Android, this will consume long tap events, which we use for the context menu
+            SelectionContainer {
+                MessageTextContent(holder, element, showActionMenu)
+            }
+        } else {
+            MessageTextContent(holder, element, showActionMenu)
         }
-    } else {
-        MessageTextContent(textBasedRoomMessageTimelineElementViewModel, onLongPress, isNotice)
     }
 }
-
 
 @Composable
 private fun MessageTextContent(
-    textBasedRoomMessageTimelineElementViewModel: TextBasedRoomMessageTimelineElementViewModel,
-    onLongPress: (Offset) -> Unit,
-    isNotice: Boolean,
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    showActionMenu: () -> Unit,
 ) {
-    val referencedMessage = textBasedRoomMessageTimelineElementViewModel.referencedMessage.collectAsState().value
+//    val referencedMessage = holder.repliedElement.collectAsState().value // FIXME in parent element?
 
     val i18n = DI.get<I18nView>()
 
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
-        if (textBasedRoomMessageTimelineElementViewModel is NoticeMessageViewModel) {
-            Row {
-                Icon(Icons.Filled.SmartToy, i18n.automated())
-                Text(i18n.automated())
-            }
+        // FIXME own View?
+//        if (textBasedRoomMessageTimelineElementViewModel is NoticeMessageViewModel) {
+//            Row {
+//                Icon(Icons.Filled.SmartToy, i18n.automated())
+//                Text(i18n.automated())
+//            }
+//
+//            Spacer(Modifier.size(5.dp))
+//        }
 
-            Spacer(Modifier.size(5.dp))
-        }
+//        if (referencedMessage != null) {
+//            val sender = referencedMessage.sender
+//            ReferencedMessagePill(
+//                senderName = sender.name,
+//                senderNameColor = MaterialTheme.messengerColors.getUserColor(sender.userId),
+//                content = {
+//                    when (referencedMessage) {
+//                        is ReferencedMessage.ReferencedTextMessage -> TextReply(referencedMessage.messageShortened())
+//                        is ReferencedMessage.ReferencedImageMessage ->
+//                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
+//                                ?.let { imageBitmap ->
+//                                    ImageReply(imageBitmap)
+//                                } ?: ImageReplyDefault(referencedMessage.fileName)
+//
+//                        is ReferencedMessage.ReferencedVideoMessage ->
+//                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
+//                                ?.let { imageBitmap ->
+//                                    VideoReply(imageBitmap)
+//                                } ?: VideoReplyDefault(referencedMessage.fileName)
+//
+//                        is ReferencedMessage.ReferencedAudioMessage -> AudioReply(referencedMessage.fileName)
+//                        is ReferencedMessage.ReferencedFileMessage -> FileReply(referencedMessage.fileName)
+//                        is ReferencedMessage.ReferencedLocationMessage -> LocationReply(
+//                            referencedMessage.name,
+//                            referencedMessage.geoUri,
+//                        )
+//
+//                        is ReferencedMessage.ReferencedUnknownMessage -> UnknownReply()
+//                    }
+//                },
+//            )
+//            Spacer(Modifier.size(5.dp))
+//        }
 
-        if (referencedMessage != null) {
-            val sender = referencedMessage.sender
-            ReferencedMessagePill(
-                senderName = sender.name,
-                senderNameColor = MaterialTheme.messengerColors.getUserColor(sender.userId),
-                content = {
-                    when (referencedMessage) {
-                        is ReferencedMessage.ReferencedTextMessage -> TextReply(referencedMessage.messageShortened())
-                        is ReferencedMessage.ReferencedImageMessage ->
-                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
-                                ?.let { imageBitmap ->
-                                    ImageReply(imageBitmap)
-                                } ?: ImageReplyDefault(referencedMessage.fileName)
-
-                        is ReferencedMessage.ReferencedVideoMessage ->
-                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
-                                ?.let { imageBitmap ->
-                                    VideoReply(imageBitmap)
-                                } ?: VideoReplyDefault(referencedMessage.fileName)
-
-                        is ReferencedMessage.ReferencedAudioMessage -> AudioReply(referencedMessage.fileName)
-                        is ReferencedMessage.ReferencedFileMessage -> FileReply(referencedMessage.fileName)
-                        is ReferencedMessage.ReferencedLocationMessage -> LocationReply(
-                            referencedMessage.name,
-                            referencedMessage.geoUri,
-                        )
-
-                        is ReferencedMessage.ReferencedUnknownMessage -> UnknownReply()
-                    }
-                },
-            )
-            Spacer(Modifier.size(5.dp))
-        }
-
-        val mentions = (textBasedRoomMessageTimelineElementViewModel.mentionsInFormattedBody
-            ?: textBasedRoomMessageTimelineElementViewModel.mentionsInMessage)
+        val mentions = (element.mentionsInFormattedBody
+            ?: element.mentionsInBody)
             .map {
                 it.key to it.value.collectAsState().value
             }.sortedByDescending { it.first.first }
 
-        val message = textBasedRoomMessageTimelineElementViewModel.formattedBody
-            ?: textBasedRoomMessageTimelineElementViewModel.message
-        val text = formatMessage(message, mentions, textBasedRoomMessageTimelineElementViewModel)
+        val message = element.formattedBody
+            ?: element.body
+        val text = formatMessage(message, mentions, element)
 
         val richTextState = rememberRichTextState()
         LaunchedEffect(text) {
             richTextState.setHtml(text)
         }
         richTextState.config.linkColor =
-            if (textBasedRoomMessageTimelineElementViewModel.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+            if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
 
         if (richTextState.toHtml().isNotBlank()) {
@@ -159,27 +133,27 @@ private fun MessageTextContent(
                 val uriHandler by remember {
                     mentionsUriHandler(
                         baseUriHandler,
-                        textBasedRoomMessageTimelineElementViewModel,
+                        element,
                         mentions.map { it.second })
                 }
 
                 MessageRichText(
                     uriHandler,
                     richTextState,
-                    textBasedRoomMessageTimelineElementViewModel.isByMe,
-                    onLongPress
+                    holder.isByMe,
+                    showActionMenu,
                 )
             } else {
                 MessageRichText(
                     LocalUriHandler.current,
                     richTextState,
-                    textBasedRoomMessageTimelineElementViewModel.isByMe,
-                    onLongPress
+                    holder.isByMe,
+                    showActionMenu,
                 )
             }
         } else {
             // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
-            Text(textBasedRoomMessageTimelineElementViewModel.message, style = MaterialTheme.typography.bodyMedium)
+            Text(element.body, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -189,7 +163,7 @@ private fun MessageRichText(
     uriHandler: UriHandler,
     state: RichTextState,
     isByMe: Boolean,
-    onLongPress: (Offset) -> Unit
+    showActionMenu: () -> Unit
 ) {
     CompositionLocalProvider(
         LocalUriHandler provides uriHandler
@@ -198,7 +172,7 @@ private fun MessageRichText(
             state = state,
             modifier = Modifier.pointerInput(Unit) {
                 detectTapGestures(
-                    onLongPress = onLongPress
+                    onLongPress = {showActionMenu() }
                 )
             },
             style = MaterialTheme.typography.bodyMedium.copy(
