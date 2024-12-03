@@ -20,7 +20,8 @@ interface VerificationStepSuccessViewModelFactory {
 }
 
 interface VerificationStepSuccessViewModel {
-    val deviceName: MutableStateFlow<String?>
+    val verifiedDeviceName: MutableStateFlow<String>
+    val verifyingDeviceName: MutableStateFlow<String?>
     fun ok()
 }
 
@@ -30,11 +31,17 @@ open class VerificationStepSuccessViewModelImpl(
     private val onVerificationSuccessOk: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, VerificationStepSuccessViewModel {
 
-    override val deviceName = MutableStateFlow(fromDeviceId)
+    private val deviceId = matrixClient.deviceId
+
+    override val verifiedDeviceName: MutableStateFlow<String> = MutableStateFlow(deviceId)
+    override val verifyingDeviceName = MutableStateFlow(fromDeviceId)
 
     init {
         coroutineScope.launch {
-            deviceName.value =
+            verifiedDeviceName.value = matrixClient.api.device.getDevice(deviceId).fold(
+                onSuccess = { it.displayName ?: deviceId }, onFailure = { deviceId }
+            )
+            verifyingDeviceName.value =
                 fromDeviceId?.let {
                     matrixClient.api.device.getDevice(fromDeviceId).fold(
                         onSuccess = { it.displayName ?: fromDeviceId }, onFailure = { fromDeviceId }
