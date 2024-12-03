@@ -58,14 +58,14 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
 
             val cut = fileBasedMessageViewModel()
             var downloadResult: ByteArray? = null
-            cut.download { download ->
+            cut.downloadMedia { download ->
                 downloadResult = download.toByteArray()
             }
 
             eventually(3.seconds) {
                 downloadResult shouldBe file
-                cut.downloadError.value shouldBe null
-                cut.downloadSuccessful.value shouldBe true
+                cut.downloadMediaError.value shouldBe null
+                cut.downloadMediaSuccessful.value shouldBe true
             }
 
             cancelNeverEndingCoroutines()
@@ -77,14 +77,14 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
 
             val cut = fileBasedMessageViewModel()
             var downloadResult: ByteArray? = null
-            cut.download { download ->
+            cut.downloadMedia { download ->
                 downloadResult = download.toByteArray()
             }
 
             eventually(3.seconds) {
                 downloadResult shouldBe null
-                cut.downloadError.value shouldBe "Download failed: Oh no!"
-                cut.downloadSuccessful.value shouldBe false
+                cut.downloadMediaError.value shouldBe "Download failed: Oh no!"
+                cut.downloadMediaSuccessful.value shouldBe false
             }
 
             cancelNeverEndingCoroutines()
@@ -99,15 +99,15 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
 
             val cut = fileBasedMessageViewModel()
             var downloadResult: ByteArray? = null
-            cut.download { download ->
+            cut.downloadMedia { download ->
                 downloadResult = download.toByteArray()
             }
 
             delay(100.milliseconds)
             downloadResult shouldBe null
-            cut.downloadError.value shouldBe null
-            cut.downloadSuccessful.value shouldBe null
-            cut.downloadProgress.value shouldBe null
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaSuccessful.value shouldBe null
+            cut.downloadMediaProgress.value shouldBe null
 
             cancelNeverEndingCoroutines()
         }
@@ -132,6 +132,5 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
                 url = "mxc://localhost/unencrypted123456",
                 file = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf())
             ),
-            onOpenMedia = { _, _ -> }
         ) {}
 }

@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import net.folivo.trixnity.core.model.RoomId
@@ -16,7 +15,6 @@ interface NoticeRoomMessageTimelineElementViewModelFactory : TimelineElementView
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): RoomMessageTimelineElementViewModel.TextBased.Notice? =
         NoticeRoomMessageTimelineElementViewModelImpl(
             viewModelContext,

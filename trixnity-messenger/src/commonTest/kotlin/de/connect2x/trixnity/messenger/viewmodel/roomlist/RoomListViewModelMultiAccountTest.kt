@@ -854,20 +854,20 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     }
 
     private fun containRoomListElementViewModelsFor(roomIds: List<RoomId>) =
-        KoMatcher<List<RoomListElement>> { list ->
+        KoMatcher<List<RoomListElementViewModel>> { list ->
             MatcherResult(
                 roomIds.all { roomId ->
-                    list.any { element -> element.viewModel.roomId == roomId }
+                    list.any { element -> element.roomId == roomId }
                 },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 })

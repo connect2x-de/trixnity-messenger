@@ -255,7 +255,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 cut.elements.value.size shouldBe 3
             }
 
-            val memberListElementViewModel = cut.elements.value[1].second
+            val memberListElementViewModel = cut.elements.value[1]
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
 
@@ -324,7 +324,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 cut.elements.value.size shouldBe 3
             }
 
-            val memberListElementViewModel = cut.elements.value[1].second
+            val memberListElementViewModel = cut.elements.value[1]
             val roomUser =
                 userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
 
@@ -558,20 +558,20 @@ class MemberListViewModelTest : ShouldSpec() {
     }
 
     private fun containSortedMemberListElementViewModelsFor(userIds: List<UserId>) =
-        Matcher<List<Pair<UserId, MemberListElementViewModel>>> { resultList ->
+        Matcher<List<MemberListElementViewModel>> { resultList ->
             MatcherResult(
                 userIds.foldIndexed(true) { index, acc, userId ->
-                    val (_, vm) = resultList.getOrElse(index) { Pair(null, null) }
+                    val vm = resultList.getOrElse(index) { null }
                     acc && (vm?.userId == userId)
                 },
                 {
-                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, (_, vm) ->
+                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
                         acc + vm.userId
                     }
                 },
                 {
-                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, (userId, _) ->
-                        acc + userId
+                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
+                        acc + vm.userId
                     }
                 }
             )

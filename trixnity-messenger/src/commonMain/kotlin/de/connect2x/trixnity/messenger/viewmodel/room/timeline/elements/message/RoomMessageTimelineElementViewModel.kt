@@ -7,8 +7,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlinx.coroutines.flow.StateFlow
+import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.ByteArrayFlow
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
     sealed interface TextBased<C : RoomMessageEventContent.TextBased> : RoomMessageTimelineElementViewModel<C> {
@@ -48,16 +48,18 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val size: String?
         val mimeType: String?
 
-        /**
-         * Usually opens a full screen preview.
-         */
-        fun open()
+        val media: StateFlow<PlatformMedia?>
+        val mediaInMemory: StateFlow<ByteArray?>
+        val loadMediaProgress: StateFlow<FileTransferProgressElement?>
+        val loadMediaError: StateFlow<String?>
+        fun loadMedia()
+        fun loadMediaInMemory()
 
-        val downloadProgress: StateFlow<FileTransferProgressElement?>
-        val downloadSuccessful: StateFlow<Boolean?>
-        val downloadError: StateFlow<String?>
-        fun download(processFile: suspend (ByteArrayFlow) -> Unit)
-        fun cancelDownload()
+        val downloadMediaProgress: StateFlow<FileTransferProgressElement?>
+        val downloadMediaSuccessful: StateFlow<Boolean?>
+        val downloadMediaError: StateFlow<String?>
+        fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit)
+        fun cancelDownloadMedia()
 
         interface File : FileBased<RoomMessageEventContent.FileBased.File>
 

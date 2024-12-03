@@ -1078,11 +1078,6 @@ abstract class I18n(
         DE - "Datei konnte nicht gelesen werden"
     }
 
-    fun mediaCouldNotBeDecrypted() = translate {
-        EN - "File could not be decrypted"
-        DE - "Datei konnte nicht entschlüsselt werden"
-    }
-
     fun mediaCanNotBePreviewed() = translate {
         EN - "File can not be previewed."
         DE - "Datei kann nicht angezeigt werden."

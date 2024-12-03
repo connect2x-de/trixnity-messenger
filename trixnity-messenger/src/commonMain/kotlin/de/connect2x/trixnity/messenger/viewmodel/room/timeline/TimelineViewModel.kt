@@ -23,7 +23,6 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
@@ -107,7 +106,6 @@ interface TimelineViewModelFactory {
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
-        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
         return TimelineViewModelImpl(
@@ -116,7 +114,6 @@ interface TimelineViewModelFactory {
             isBackButtonVisible,
             onShowSettings,
             onBack,
-            onOpenMedia,
             onOpenMention
         )
     }
@@ -216,7 +213,6 @@ class TimelineViewModelImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
-    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
@@ -548,7 +544,6 @@ class TimelineViewModelImpl(
             onMessageEdited = ::onMessageEdited,
             onMessageRepliedTo = ::onMessageRepliedTo,
             onMessageReportTo = ::onShowReportMessageModal,
-            onOpenMedia = onOpenMedia,
             onOpenMention = onOpenMention,
         ).also {
             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
@@ -613,7 +608,6 @@ class TimelineViewModelImpl(
                         transactionId = transactionId,
                         formattedDate = formattedDate,
                         formattedTime = formattedTime,
-                        onOpenMedia = onOpenMedia,
                         onOpenMention = onOpenMention,
                     ).also {
                         outboxElementHolderViewModelCache[transactionId] = OutboxElementWrapper(

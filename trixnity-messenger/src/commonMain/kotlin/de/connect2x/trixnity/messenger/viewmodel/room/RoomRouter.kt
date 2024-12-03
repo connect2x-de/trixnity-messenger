@@ -11,8 +11,6 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaUserCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +47,6 @@ class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
-    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : RoomRouter {
@@ -76,7 +73,6 @@ class RoomRouterImpl(
                     selectedRoomId = RoomId(roomConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
                     onRoomBack = onCloseRoom,
-                    onOpenMedia = onOpenMedia,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,
                 ).also {

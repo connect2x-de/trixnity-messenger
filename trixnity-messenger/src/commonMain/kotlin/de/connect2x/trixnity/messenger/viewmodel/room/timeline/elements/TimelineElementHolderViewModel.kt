@@ -96,7 +96,6 @@ interface TimelineElementHolderViewModelFactory {
         onMessageRepliedTo: (EventId) -> Unit,
         onMessageReportTo: (EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
@@ -114,7 +113,6 @@ interface TimelineElementHolderViewModelFactory {
             onMessageRepliedTo = onMessageRepliedTo,
             onMessageReportTo = onMessageReportTo,
             onOpenMention = onOpenMention,
-            onOpenMedia = onOpenMedia,
         )
 
     companion object : TimelineElementHolderViewModelFactory
@@ -178,7 +176,6 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageRepliedTo: (EventId) -> Unit,
     private val onMessageReportTo: (EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
-    private val onOpenMedia: OpenMediaCallback,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val config = get<MatrixMessengerConfiguration>()
 
@@ -272,7 +269,6 @@ class TimelineElementHolderViewModelImpl(
                 roomId,
                 EventIdOrTransactionId(eventId),
                 onOpenMention,
-                onOpenMedia,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -292,7 +288,6 @@ class TimelineElementHolderViewModelImpl(
                     roomId,
                     repliedEventId,
                     onOpenMention,
-                    onOpenMedia
                 )
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)

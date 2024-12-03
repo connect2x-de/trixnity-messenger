@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger
 
-import MediaViewModelFactory
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -41,9 +40,6 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.media.ImageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.media.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -249,7 +245,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
         }
     },
     ::connectingViewModels,
-    ::filesViewModels,
     ::syncViewModels,
     ::roomListViewModels,
     ::settingsViewModels,
@@ -298,13 +293,6 @@ private fun connectingViewModels() = module {
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
     single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
     single<RegisterNewAccountViewModelFactory> { RegisterNewAccountViewModelFactory }
-}
-
-private fun filesViewModels() = module {
-    single<ImageViewModelFactory> { ImageViewModelFactory }
-    single<VideoViewModelFactory> { VideoViewModelFactory }
-    single<PdfDocumentViewModelFactory> { PdfDocumentViewModelFactory }
-    single<MediaViewModelFactory> { MediaViewModelFactory }
 }
 
 private fun syncViewModels() = module {

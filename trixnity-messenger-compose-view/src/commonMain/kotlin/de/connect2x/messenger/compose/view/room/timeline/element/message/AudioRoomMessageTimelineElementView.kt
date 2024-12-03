@@ -73,7 +73,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 @Composable
 internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased.Audio, showActionMenu: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = element.downloadSuccessful.collectAsState()
+    val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
 
     BoxWithConstraints(Modifier.padding(top = 10.dp)) {
         Row {
@@ -91,7 +91,7 @@ internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased
                                 onTap = {
                                     element.open()
                                 },
-                               onLongPress = { showActionMenu() },
+                                onLongPress = { showActionMenu() },
                             )
                         }
                         .buttonPointerModifier())

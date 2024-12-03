@@ -22,7 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElement
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
@@ -739,7 +739,7 @@ class MainViewModelTest : ShouldSpec() {
                                         override val error: MutableStateFlow<String?> = MutableStateFlow(null)
                                         override val errorType: MutableStateFlow<ErrorType> =
                                             MutableStateFlow(ErrorType.JUST_DISMISS)
-                                        override val elements: StateFlow<List<RoomListElement>> =
+                                        override val elements: StateFlow<List<RoomListElementViewModel>> =
                                             MutableStateFlow(emptyList())
                                         override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
                                             emptyMap()

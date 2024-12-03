@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.ImageSizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
@@ -27,12 +26,10 @@ interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): RoomMessageTimelineElementViewModel.FileBased.Image? =
         ImageRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
-            onOpenMedia
         )
 
     override val supports: KClass<FileBased.Image>
@@ -44,9 +41,8 @@ interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
 class ImageRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Image,
-    onOpenMedia: OpenMediaCallback,
 ) : RoomMessageTimelineElementViewModel.FileBased.Image,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(viewModelContext, content, onOpenMedia) {
+    FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(viewModelContext, content) {
 
     private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val thumbnails = get<Thumbnails>()

@@ -14,6 +14,7 @@ import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +28,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
+import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -64,17 +66,16 @@ class DownloadManagerTest : ShouldSpec() {
                 mediaServiceMock.getMedia(eq("mxc://localhost/ABCDEFGH"), any(), any())
             } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
+            var resultFile: PlatformMedia? = null
 
-            val result = cut.startDownloadAsync(
+            cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
                 progress,
-                success
-            ).await()
+            ) { resultFile = it }.await().getOrThrow()
 
-            result.getOrNull()?.toByteArray() shouldBe "test".encodeToByteArray()
+            resultFile?.toByteArray() shouldBe "test".encodeToByteArray()
         }
 
         should("download encrypted file") {
@@ -90,17 +91,16 @@ class DownloadManagerTest : ShouldSpec() {
                 mediaServiceMock.getEncryptedMedia(eq(encryptedFile), any(), any())
             } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
+            var resultFile: PlatformMedia? = null
 
-            val result = cut.startDownloadAsync(
+            cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", file = encryptedFile),
                 "file.pdf",
-                progress,
-                success
-            ).await()
+                progress
+            ) { resultFile = it }.await().getOrThrow()
 
-            result.getOrNull()?.toByteArray() shouldBe "test".encodeToByteArray()
+            resultFile?.toByteArray() shouldBe "test".encodeToByteArray()
         }
 
         should("track progress of download") {
@@ -121,15 +121,14 @@ class DownloadManagerTest : ShouldSpec() {
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
+            var resultFile: PlatformMedia? = null
 
             val result = cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
-                progress,
-                success
-            )
+                progress
+            ) { resultFile = it }
             val internalProgress = internalProgressState.filterNotNull().first()
 
             internalProgress.value = FileTransferProgress(300, 1000)
@@ -144,7 +143,7 @@ class DownloadManagerTest : ShouldSpec() {
 
             withContext(Dispatchers.Default) {
                 delay(600)
-                success.value shouldBe true
+                resultFile shouldNotBe null
             }
 
             result.await()
@@ -168,15 +167,14 @@ class DownloadManagerTest : ShouldSpec() {
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
+            var resultFile: PlatformMedia? = null
 
             val result = cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
                 progress,
-                success
-            )
+            ) { resultFile = it }
             val internalProgress = internalProgressState.filterNotNull().first()
 
             internalProgress.value = FileTransferProgress(300, 1000)

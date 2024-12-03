@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +27,6 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     ): RoomViewModel {
@@ -37,7 +35,6 @@ interface RoomViewModelFactory {
             roomId = selectedRoomId,
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
-            onOpenMedia = onOpenMedia,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
         )
@@ -60,7 +57,6 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenMedia: OpenMediaCallback,
     onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
@@ -84,7 +80,6 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenMedia = onOpenMedia,
         onOpenMention = onOpenMention
     )
 

@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import net.folivo.trixnity.core.model.RoomId
@@ -16,12 +15,10 @@ interface AudioRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): RoomMessageTimelineElementViewModel.FileBased.Audio? =
         AudioRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
-            onOpenMedia
         )
 
     override val supports: KClass<FileBased.Audio>
@@ -33,8 +30,7 @@ interface AudioRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
 class AudioRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Audio,
-    onOpenMedia: OpenMediaCallback,
 ) : RoomMessageTimelineElementViewModel.FileBased.Audio,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(viewModelContext, content, onOpenMedia) {
+    FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(viewModelContext, content) {
     override val duration: Long? = content.info?.duration
 }

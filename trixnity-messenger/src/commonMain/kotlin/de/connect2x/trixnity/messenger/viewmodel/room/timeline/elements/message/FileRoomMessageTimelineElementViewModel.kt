@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import net.folivo.trixnity.core.model.RoomId
@@ -17,12 +16,10 @@ interface FileRoomMessageTimelineElementViewModelFactory : TimelineElementViewMo
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): RoomMessageTimelineElementViewModel.FileBased.File? =
         FileRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
-            onOpenMedia
         )
 
     override val supports: KClass<FileBased.File>
@@ -34,6 +31,5 @@ interface FileRoomMessageTimelineElementViewModelFactory : TimelineElementViewMo
 class FileRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.File,
-    onOpenMedia: OpenMediaCallback,
 ) : RoomMessageTimelineElementViewModel.FileBased.File,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.File>(viewModelContext, content, onOpenMedia)
+    FileBasedRoomMessageTimelineElementViewModel<FileBased.File>(viewModelContext, content)

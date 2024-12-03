@@ -50,7 +50,6 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate: String,
         formattedTime: String,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): OutboxElementHolderViewModel {
         return OutboxElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
@@ -61,7 +60,6 @@ interface OutboxElementHolderViewModelFactory {
             formattedDate = formattedDate,
             formattedTime = formattedTime,
             onOpenMention = onOpenMention,
-            onOpenMedia = onOpenMedia
         )
     }
 
@@ -91,7 +89,6 @@ class OutboxElementHolderViewModelImpl(
     override val formattedDate: String,
     override val formattedTime: String,
     onOpenMention: OpenMentionCallback,
-    onOpenMedia: OpenMediaCallback,
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
     private val i18n = get<I18n>()
@@ -119,7 +116,6 @@ class OutboxElementHolderViewModelImpl(
                 roomId,
                 EventIdOrTransactionId(transactionId),
                 onOpenMention,
-                onOpenMedia,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -140,7 +136,6 @@ class OutboxElementHolderViewModelImpl(
                 roomId,
                 repliedEventId,
                 onOpenMention,
-                onOpenMedia
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 

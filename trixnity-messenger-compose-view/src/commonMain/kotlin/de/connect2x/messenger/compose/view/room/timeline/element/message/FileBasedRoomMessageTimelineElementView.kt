@@ -42,13 +42,13 @@ fun FileBasedRoomMessageTimelineElementView(
 ) {
     val i18n = DI.current.get<I18nView>()
 
-    val error = element.downloadError.collectAsState().value
+    val error = element.downloadMediaError.collectAsState().value
     val saveDialogOpen = remember { mutableStateOf(false) }
     if (saveDialogOpen.value) SaveFileDialog(
         element.name,
         element.mimeType,
         error,
-        element::download,
+        element::downloadMedia,
         { saveDialogOpen.value = false },
     )
 
@@ -91,7 +91,7 @@ internal fun FileBasedView(
     showActionMenu: () -> Unit,
     content: @Composable ColumnScope.(onSave: () -> Unit) -> Unit
 ) {
-    val downloadProgressElement = element.downloadProgress.collectAsState()
+    val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
 
     Box(
@@ -132,7 +132,7 @@ internal fun FileBasedView(
         Box(Modifier.height(40.dp)) {
             DownloadProgress(
                 it,
-                { element.cancelDownload() },
+                { element.cancelDownloadMedia() },
                 Color.DarkGray
             )
         }

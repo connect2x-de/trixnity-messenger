@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
+import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.ByteArrayFlow
 import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger { }
@@ -27,7 +27,7 @@ interface DownloadManager {
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        processFile: suspend (ByteArrayFlow) -> Unit,
+        processFile: suspend (PlatformMedia) -> Unit,
     ): Deferred<Result<Unit>>
 }
 
@@ -47,7 +47,7 @@ class DownloadManagerImpl(
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        processFile: suspend (ByteArrayFlow) -> Unit,
+        processFile: suspend (PlatformMedia) -> Unit,
     ): Deferred<Result<Unit>> {
         log.debug { "add $fileName to current downloads" }
         val download = Download(fileName, content.info?.size, progress)

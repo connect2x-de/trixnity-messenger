@@ -34,7 +34,6 @@ interface RedactedTimelineElementViewModelFactory : TimelineElementViewModelFact
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback
     ): RedactedTimelineElementViewModel? =
         if (
             eventIdOrTransactionId is EventIdOrTransactionId.EventId

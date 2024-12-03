@@ -15,7 +15,6 @@ interface TimelineElementViewModelFactorySelector {
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): TimelineElementViewModel<*>
 }
 
@@ -36,7 +35,6 @@ class TimelineElementViewModelFactorySelectorImpl(
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): TimelineElementViewModel<*> {
         if (content == null)
             return encryptedWaitTimelineElementViewModelFactory.create(
@@ -57,7 +55,6 @@ class TimelineElementViewModelFactorySelectorImpl(
                         roomId = roomId,
                         eventId = eventId,
                         onOpenMention = onOpenMention,
-                        onOpenMedia = onOpenMedia
                     )
                     ?: TimelineElementViewModel.Empty
             }

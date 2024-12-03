@@ -13,6 +13,5 @@ interface TimelineElementViewModelFactory<C : RoomEventContent> {
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): TimelineElementViewModel<C>?
 }

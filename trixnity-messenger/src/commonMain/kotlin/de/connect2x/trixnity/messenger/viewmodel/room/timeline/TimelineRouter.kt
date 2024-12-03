@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +46,6 @@ class TimelineRouterImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onRoomBack: () -> Unit,
-    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineRouter {
 
@@ -74,7 +72,6 @@ class TimelineRouterImpl(
                     isBackButtonVisible = isBackButtonVisible,
                     onShowSettings = onShowSettings,
                     onBack = onRoomBack,
-                    onOpenMedia = onOpenMedia,
                     onOpenMention = onOpenMention,
                 )
             )

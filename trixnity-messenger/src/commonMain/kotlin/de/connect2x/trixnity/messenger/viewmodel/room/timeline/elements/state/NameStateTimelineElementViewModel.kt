@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
@@ -32,7 +31,6 @@ interface NameStateTimelineElementViewModelFactory : TimelineElementViewModelFac
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): NameStateTimelineElementViewModel? =
         if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
             NameStateTimelineElementViewModelImpl(

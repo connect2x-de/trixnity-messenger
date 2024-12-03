@@ -54,7 +54,7 @@ private fun MessageFile(
     onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = element.downloadSuccessful.collectAsState()
+    val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
 
     Row(
         Modifier.clickable { onSave() }

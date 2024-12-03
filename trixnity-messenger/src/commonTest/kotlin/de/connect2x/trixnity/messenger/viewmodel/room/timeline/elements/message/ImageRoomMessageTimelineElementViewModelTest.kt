@@ -136,7 +136,6 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             content = RoomMessageEventContent.FileBased.Image(""),
-            onOpenMedia = mock(),
         )
     }
 }

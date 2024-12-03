@@ -772,7 +772,6 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             roomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
             onBack = mock(),
-            onOpenMedia = mock(),
             onShowSettings = mock(),
             onOpenMention = mock(),
         )

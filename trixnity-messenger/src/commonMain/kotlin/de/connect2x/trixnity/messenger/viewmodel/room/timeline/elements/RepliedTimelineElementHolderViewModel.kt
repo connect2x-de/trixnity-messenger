@@ -49,7 +49,6 @@ interface RepliedTimelineElementHolderViewModelFactory {
         roomId: RoomId,
         eventId: EventId,
         onOpenMention: OpenMentionCallback,
-        onOpenMedia: OpenMediaCallback,
     ): RepliedTimelineElementHolderViewModel =
         RepliedTimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
@@ -57,7 +56,6 @@ interface RepliedTimelineElementHolderViewModelFactory {
             roomId = roomId,
             eventId = eventId,
             onOpenMention = onOpenMention,
-            onOpenMedia = onOpenMedia,
         )
 
     companion object : RepliedTimelineElementHolderViewModelFactory
@@ -94,7 +92,6 @@ class RepliedTimelineElementHolderViewModelImpl(
     protected val roomId: RoomId,
     override val eventId: EventId,
     private val onOpenMention: OpenMentionCallback,
-    private val onOpenMedia: OpenMediaCallback,
 ) : RepliedTimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val config = get<MatrixMessengerConfiguration>()
 
@@ -133,7 +130,6 @@ class RepliedTimelineElementHolderViewModelImpl(
                 roomId,
                 EventIdOrTransactionId(eventId),
                 onOpenMention,
-                onOpenMedia,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
