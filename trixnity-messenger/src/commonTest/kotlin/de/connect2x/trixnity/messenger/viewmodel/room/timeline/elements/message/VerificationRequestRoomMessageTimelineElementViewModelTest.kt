@@ -1,11 +1,10 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
@@ -17,7 +16,6 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +23,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -34,14 +31,12 @@ import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.Timeout
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -51,7 +46,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class UserVerificationViewModelTest : ShouldSpec() {
+class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() {
     override fun timeout(): Long = 2_000
 
     private val thisRoom = RoomId("room", "localhost")
@@ -74,7 +69,6 @@ class UserVerificationViewModelTest : ShouldSpec() {
     val ready: ActiveVerificationState.Ready = ActiveVerificationState.Ready("bla", setOf(), null, null, {})
 
     init {
-        Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             resetMocks(matrixClientMock, roomServiceMock, activeVerification, verificationViewModel, activeVerification)
             every { matrixClientMock.di } returns koinApplication {
@@ -86,26 +80,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
             }.koin
             every { matrixClientMock.userId } returns me
         }
-
-        should("show 'from us' when verification request targeted at other user") {
-            everySuspend {
-                activeVerifications.getActiveVerification(any(), eq(thisRoom), eq(timelineEventId))
-            } returns activeVerification
-            val cut = userVerificationViewModel(
-                verificationRequestMessageEventContent.copy(
-                    to = UserId("other", "localhost")
-                )
-            )
-
-            cut.sender.value.name shouldBe "us"
-        }
-
-        should("show other user's name when the request is targeted at us") {
-            val cut = userVerificationViewModel(verificationRequestMessageEventContent.copy(to = me))
-
-            cut.sender.first { it.name == "username" }
-        }
-
+        
         should("show as active when the verification has not timed out and is not done or cancelled") {
             every { activeVerification.state } returns MutableStateFlow(ready)
             everySuspend {
@@ -163,9 +138,9 @@ class UserVerificationViewModelTest : ShouldSpec() {
                         emit(
                             flowOf(
                                 TimelineEvent(
-                                    event = MessageEvent(
+                                    event = ClientEvent.RoomEvent.MessageEvent(
                                         content = VerificationCancelEventContent(
-                                            code = Timeout,
+                                            code = VerificationCancelEventContent.Code.Timeout,
                                             reason = "",
                                             relatesTo = RelatesTo.Reference(timelineEventId),
                                             transactionId = null
@@ -250,8 +225,8 @@ class UserVerificationViewModelTest : ShouldSpec() {
                         emit(
                             flowOf(
                                 TimelineEvent(
-                                    event = MessageEvent(
-                                        content = MegolmEncryptedMessageEventContent(
+                                    event = ClientEvent.RoomEvent.MessageEvent(
+                                        content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
                                             ciphertext = "",
                                             senderKey = Key.Curve25519Key(
                                                 value = "",
@@ -267,7 +242,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                                     ),
                                     content = Result.success(
                                         VerificationCancelEventContent(
-                                            code = Timeout,
+                                            code = VerificationCancelEventContent.Code.Timeout,
                                             reason = "",
                                             relatesTo = RelatesTo.Reference(timelineEventId),
                                             transactionId = "",
@@ -323,7 +298,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
                                 timelineEventMessage(
                                     otherEventId,
                                     VerificationCancelEventContent(
-                                        code = Timeout,
+                                        code = VerificationCancelEventContent.Code.Timeout,
                                         reason = "",
                                         relatesTo = RelatesTo.Reference(timelineEventId),
                                         transactionId = null
@@ -341,7 +316,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
 
     private fun userVerificationViewModel(
         verificationRequestMessageEventContent: RoomMessageEventContent.VerificationRequest
-    ): UserVerificationViewModelImpl {
+    ): VerificationRequestRoomMessageTimelineElementViewModelImpl {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
@@ -359,27 +334,20 @@ class UserVerificationViewModelTest : ShouldSpec() {
                     }
                 })
         }.koin
-        return UserVerificationViewModelImpl(
+        return VerificationRequestRoomMessageTimelineElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
                 userId = me,
                 coroutineContext = Dispatchers.Unconfined
             ),
-            timelineEvent = null,
-            content = verificationRequestMessageEventContent,
-            invitation = MutableStateFlow(""),
-            formattedDate = "",
-            showDateAbove = false,
-            formattedTime = null,
-            sender = MutableStateFlow(UserInfoElement("username", UserId("username:matrix.org"))),
-            selectedRoomId = thisRoom,
-            timelineEventId = timelineEventId,
+            roomId = thisRoom,
+            eventId = timelineEventId,
         )
     }
 
     private fun timelineEvent(eventId: EventId) = TimelineEvent(
-        event = StateEvent(
+        event = ClientEvent.RoomEvent.StateEvent(
             content = MemberEventContent(membership = Membership.JOIN),
             id = eventId,
             sender = me,
@@ -397,7 +365,7 @@ class UserVerificationViewModelTest : ShouldSpec() {
         eventId: EventId,
         messageEventContent: MessageEventContent,
     ) = TimelineEvent(
-        event = MessageEvent(
+        event = ClientEvent.RoomEvent.MessageEvent(
             content = messageEventContent,
             id = eventId,
             sender = me,
