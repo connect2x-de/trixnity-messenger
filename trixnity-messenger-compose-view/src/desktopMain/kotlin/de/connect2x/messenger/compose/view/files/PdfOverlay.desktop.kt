@@ -5,11 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,6 +35,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -50,24 +49,13 @@ private val log = KotlinLogging.logger { }
 
 @Composable
 actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
-    val i18nView = DI.current.get<I18nView>()
+    val i18n = DI.current.get<I18nView>()
     val pageCacheSize = max(2f, min(16f, 8f / scale)).toInt()
     val media = documentViewModel.document.collectAsState()
-    val error = documentViewModel.error.collectAsState()
     val filename = documentViewModel.fileName
     var document by remember { mutableStateOf<Pair<PDDocument, PDFRenderer>?>(null) }
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
     var documentWidth: Int? by remember { mutableStateOf(null) }
-
-    val errorText = error.value
-    if (errorText != null) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize().padding(32.dp),
-        ) { Text(errorText) }
-        return
-    }
 
     val renderCache by remember {
         mutableStateOf<MutableMap<String, Pair<Long, ImageBitmap>>>(mutableMapOf())
@@ -94,14 +82,20 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
     val lazyListState = rememberLazyListState()
     val horizontalScroll = rememberScrollState()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .onSizeChanged { viewSize = it }
+    Box(Modifier
+        .fillMaxSize()
+        .onSizeChanged { viewSize = it }
     ) {
         val documentData = document?.first
         val renderer = document?.second
-        if (viewSize != IntSize.Zero && documentWidth != null && documentData != null && renderer != null) {
+        if (documentData?.numberOfPages == 0) CenteredElement {
+            Text(i18n.fileOverlayPreviewNotSupported())
+        }
+        else if (viewSize != IntSize.Zero
+            && documentWidth != null
+            && documentData != null
+            && renderer != null
+        ) {
             val dwidth: Float = documentWidth?.toFloat() ?: 1f
             val maxDpi = 1f / dwidth * 64f * 3600f
             val newDpi = (viewSize.width / dwidth * scale / density * 64f).coerceAtMost(maxDpi)
@@ -133,7 +127,7 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
                             }
                         Image(
                             bitmap = img,
-                            contentDescription = i18nView.fileOverlayPdfPageDescriptor(pageId),
+                            contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                             modifier = Modifier
                                 .background(color = Color.White) // Avoid performance drops on transparent images.
                                 .width(viewSize.width.dp / density * scale - 16.dp),
@@ -142,11 +136,7 @@ actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
                     }
                 }
             )
-        } else Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize(),
-        ) {
+        } else CenteredElement {
             CircularProgressIndicator(Modifier.size(32.dp))
         }
         HorizontalScrollbar(

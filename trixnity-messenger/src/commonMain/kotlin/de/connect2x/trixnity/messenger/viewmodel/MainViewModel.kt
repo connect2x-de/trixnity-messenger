@@ -20,7 +20,6 @@ import de.connect2x.trixnity.messenger.viewmodel.media.MediaRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
@@ -49,7 +48,6 @@ import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -95,8 +93,8 @@ interface MainViewModel {
 
     fun setSinglePane(isSinglePane: Boolean)
     fun openMedia(
-        file: RoomMessageEventContent.FileBased,
-        userId: UserId
+        userId: UserId,
+        content: RoomMessageEventContent.FileBased,
     )
 
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
@@ -523,54 +521,27 @@ open class MainViewModelImpl(
     }
 
     override fun openMedia(
-        file: RoomMessageEventContent.FileBased,
         userId: UserId,
+        content: RoomMessageEventContent.FileBased,
     ) {
-        when (type) {
-            OpenModalType.IMAGE -> coroutineScope.launch {
-                mediaRouter.openImage(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
+        when (content) {
+            is RoomMessageEventContent.FileBased.Image -> coroutineScope.launch {
+                mediaRouter.openImage(userId, content)
             }
 
-            OpenModalType.VIDEO -> coroutineScope.launch {
-                mediaRouter.openVideo(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
+            is RoomMessageEventContent.FileBased.Video -> coroutineScope.launch {
+                mediaRouter.openVideo(userId, content)
             }
 
-            OpenModalType.PDF -> coroutineScope.launch {
-                mediaRouter.openPdf(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
+            is RoomMessageEventContent.FileBased.File -> coroutineScope.launch {
+                when (content.info?.mimeType) {
+                    "application/pdf" -> mediaRouter.openPdf(userId, content)
+                    "text/markdown" -> mediaRouter.openMarkdown(userId, content)
+                    "text/plain" -> mediaRouter.openText(userId, content)
+                }
             }
 
-            OpenModalType.TEXT -> coroutineScope.launch {
-                mediaRouter.openText(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
-            }
-
-            OpenModalType.MARKDOWN -> coroutineScope.launch {
-                mediaRouter.openMarkdown(
-                    mxcUrl,
-                    encryptedFile,
-                    fileName,
-                    userId,
-                )
-            }
+            else -> {}
         }
     }
 
@@ -733,12 +704,9 @@ class PreviewMainViewModel : MainViewModel {
         this.isSinglePane.value = isSinglePane
     }
 
-    override fun openFile(
-        type: OpenModalType,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
-        userId: UserId
+    override fun openMedia(
+        userId: UserId,
+        content: RoomMessageEventContent.FileBased,
     ) {
     }
 

@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ManualFileDescriptor
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -126,13 +126,19 @@ class SendAttachmentViewModelImpl(
                     log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
                 }
                 if (imageByteArray != null) {
-                    get<ProcessImageUpload>().invoke(imageByteArray, file.mimeType ?: Image.PNG)
-                        .toByteArrayFlow()
+                    get<ProcessImageUpload>().invoke(
+                        imageByteArray,
+                        file.mimeType ?: Image.PNG, // TODO: check if defaulting to PNG isn't causing any issues
+                    ).toByteArrayFlow()
                 } else {
                     file.content
                 }
             } else if (isImage == true) {
-                log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
+                log.debug {
+                    "Uploaded image ${file.fileName} couldn't be processed" +
+                            " because it exceeds file size limits," +
+                            " it will be sent without processing"
+                }
                 file.content
             } else {
                 file.content
@@ -149,13 +155,18 @@ class SendAttachmentViewModelImpl(
                     when {
                         isImage ?: false -> {
                             log.debug { "send an image" }
-                            val (width, height) = getImageDimensions(byteArrayFlow)
+                            val size = file.fileSize
+                            val (width, height) = if (size == null || size <= messengerConfiguration.maxMediaSizeInMemory)
+                                getImageDimensions(
+                                    byteArrayFlow,
+                                    messengerConfiguration.maxMediaSizeInMemory
+                                ) else Pair(null, null)
                             image(
                                 body = file.fileName,
                                 fileName = file.fileName,
                                 image = byteArrayFlow,
                                 type = file.mimeType,
-                                size = file.fileSize,
+                                size = size,
                                 width = width,
                                 height = height,
                             )
@@ -210,7 +221,7 @@ class SendAttachmentViewModelImpl(
 class PreviewSendAttachmentViewModel() : SendAttachmentViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val sendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val file: FileDescriptor = ManualFileDescriptor(
+    override val file: FileDescriptor = BasicFileDescriptor(
         fileName = "",
         fileSize = null,
         mimeType = null,

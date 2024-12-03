@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMediaCallback
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 
 
 private val log = KotlinLogging.logger {}
@@ -86,9 +84,7 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenMedia = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
-            onOpenMedia(type, mxcUrl, encryptedFile, fileName, userId)
-        },
+        onOpenMedia = onOpenMedia,
         onOpenMention = onOpenMention
     )
 

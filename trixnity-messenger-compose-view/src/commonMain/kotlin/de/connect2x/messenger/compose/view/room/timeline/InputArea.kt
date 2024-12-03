@@ -86,6 +86,7 @@ import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlinx.coroutines.delay
 import okio.FileSystem
@@ -219,6 +220,8 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
 
     val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState().value
 
+    val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     LaunchedEffect(shouldFocus) {
         if (shouldFocus != null) {
             focusRequester.requestFocus()
@@ -261,7 +264,7 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
                             }
 
                             ((it.isCtrlPressed || it.isMetaPressed) && it.key == Key.V) -> { // MacOS: Meta == Command?
-                                val clipboardFile = fileSystem?.let { it1 -> getClipboardFile(it1) }
+                                val clipboardFile = fileSystem?.let { it1 -> getClipboardFile(it1, maxAttachmentSize) }
                                 val fileContent = clipboardFile?.getOrNull()
                                 if (fileContent != null) {
                                     inputAreaViewModel.onAttachmentFileSelect(fileContent)

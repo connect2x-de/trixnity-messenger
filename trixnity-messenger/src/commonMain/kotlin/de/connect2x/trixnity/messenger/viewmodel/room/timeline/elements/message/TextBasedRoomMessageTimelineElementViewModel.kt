@@ -108,9 +108,10 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map { it?.content },
         ) { room, aliases ->
             room?.toRoomInfoElement(
+                config.avatarMaxSize,
+                initials,
                 matrixClient,
                 forceAlias?.full ?: aliases?.alias?.full ?: aliases?.aliases?.firstOrNull()?.full ?: room.roomId.full,
-                initials,
             )
         }
 

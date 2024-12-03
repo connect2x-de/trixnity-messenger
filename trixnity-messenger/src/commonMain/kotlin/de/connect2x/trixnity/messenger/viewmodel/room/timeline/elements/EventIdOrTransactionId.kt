@@ -1,9 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import kotlin.jvm.JvmInline
 import net.folivo.trixnity.core.model.EventId as TrixnityEventId
 
 sealed interface EventIdOrTransactionId {
+    @JvmInline
     value class EventId(val eventId: TrixnityEventId) : EventIdOrTransactionId
+
+    @JvmInline
     value class TransactionId(val transactionId: String) : EventIdOrTransactionId
 
     fun eventIdOrNull() = if (this is EventId) eventId else null

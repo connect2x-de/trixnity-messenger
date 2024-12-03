@@ -11,7 +11,6 @@ import de.connect2x.messenger.compose.view.common.InfoPopup
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 interface MessageInfoView {
     @Composable
@@ -32,7 +31,6 @@ fun MessageInfo(
 }
 
 class MessageInfoViewImpl : MessageInfoView {
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Composable
     override fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
@@ -53,6 +51,7 @@ class MessageInfoViewImpl : MessageInfoView {
                 infoOpen.value = false
             },
             readers = readers,
+            reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
         )
     }
 }

@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
-import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
@@ -22,7 +22,7 @@ val DefaultCopyMultiMessengerSingletons = CopyMultiMessengerSingletons { from: S
     to.single<SendLogToDevs> { from.get() }
     val urlHandler = from.getOrNull<UrlHandler>()
     if (urlHandler != null) to.single<UrlHandler> { urlHandler }
-    val sharedFileHandler = from.getOrNull<SharedFileHandler>()
-    if (sharedFileHandler != null) to.single<SharedFileHandler> { sharedFileHandler }
+    val sharedDataHandler = from.getOrNull<SharedDataHandler>()
+    if (sharedDataHandler != null) to.single<SharedDataHandler> { sharedDataHandler }
 }
 

@@ -11,5 +11,6 @@ expect fun InfoPopup(
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     readers: List<UserInfoElement>,
+    reactors: Map<String, List<UserInfoElement>>,
     modifier: Modifier = Modifier,
 )

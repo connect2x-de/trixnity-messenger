@@ -6,19 +6,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 
 @Composable
-actual fun EmojiPopup(
+actual fun TimelinePopup(
     isOpen: Boolean,
-    focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    onSelect: (String) -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
+    content: @Composable () -> Unit
 ) {
     if (isOpen) {
         Popup(
@@ -34,7 +32,7 @@ actual fun EmojiPopup(
                 tonalElevation = 4.dp,
                 shape = MaterialTheme.shapes.medium
             ) {
-                EmojiSelector(onSelect, focusRequester)
+                content()
             }
         }
     }

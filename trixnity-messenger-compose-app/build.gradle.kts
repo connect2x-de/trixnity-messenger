@@ -165,6 +165,9 @@ compose {
                     dockName = appName
                     iconFile.set(project.file("src/desktopMain/resources/logo.icns"))
                 }
+                linux {
+                    modules("jdk.security.auth")
+                }
             }
         }
     }

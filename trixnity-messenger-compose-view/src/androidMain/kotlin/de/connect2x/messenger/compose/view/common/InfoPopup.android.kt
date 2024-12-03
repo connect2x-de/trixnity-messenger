@@ -6,6 +6,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -15,12 +16,13 @@ actual fun InfoPopup(
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     readers: List<UserInfoElement>,
+    reactors: Map<String, List<UserInfoElement>>,
     modifier: Modifier
 ) {
     val sheetState = rememberModalBottomSheetState()
     if (isOpen) {
         ModalBottomSheet(onDismiss, modifier, sheetState) {
-            Info(readers, focusRequester)
+            ReactionsAndReadByInfo(reactors, focusRequester, readers)
         }
     }
 }

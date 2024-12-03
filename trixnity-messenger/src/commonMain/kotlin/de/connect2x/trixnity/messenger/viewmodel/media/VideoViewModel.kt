@@ -2,36 +2,25 @@ package de.connect2x.trixnity.messenger.viewmodel.media
 
 import MediaViewModel
 import MediaViewModelImpl
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaType
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
-import org.koin.core.component.get
 
 
 interface VideoViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        mxcUrl: String,
-        encryptedFile: EncryptedFile?,
-        fileName: String,
+        content: RoomMessageEventContent.FileBased.Video,
         onCloseVideo: () -> Unit,
+        onDownload: () -> Unit,
     ): VideoViewModel = VideoViewModelImpl(
         viewModelContext,
-        mxcUrl,
-        encryptedFile,
-        fileName,
+        content,
         onCloseVideo,
+        onDownload
     )
 
     companion object : VideoViewModelFactory
@@ -43,26 +32,17 @@ interface VideoViewModel : MediaViewModel {
 
 open class VideoViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    mxcUrl: String,
-    encryptedFile: EncryptedFile?,
-    override val fileName: String,
+    content: RoomMessageEventContent.FileBased.Video,
     override val onCloseMedia: () -> Unit,
+    onDownload: () -> Unit,
 ) : MediaViewModelImpl(
     viewModelContext,
-    mxcUrl,
-    encryptedFile,
-    fileName,
-    OpenModalType.VIDEO,
+    content,
+    OpenMediaType.VIDEO,
     onCloseMedia,
+    onDownload
 ), VideoViewModel {
-    val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val video = mediaDataFlow.map {
-        it?.limitSize(maxPreviewSize)?.catch { e ->
-            if (e.cause is MaxByteFlowSizeException) {
-                error.value = i18n.mediaTooLargeForPreview()
-            } else error.value = i18n.mediaCanNotBePreviewed()
-        }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val video = mediaDataFlow
 }
 
 class PreviewVideoViewModel : VideoViewModel {
@@ -70,9 +50,11 @@ class PreviewVideoViewModel : VideoViewModel {
     override val mediaDataFlow = MutableStateFlow(null) // TODO: video data
     override val video = mediaDataFlow
     override val error = MutableStateFlow<String?>(null)
-    override val mediaType = OpenModalType.VIDEO
+    override val mediaType = OpenMediaType.VIDEO
     override val progress = MutableStateFlow(null)
     override val fileName = "video.png"
+    override val fileSize: Long? = 0
     override fun cancelMediaDownload() {}
     override fun closeMedia() {}
+    override fun downloadMedia() {}
 }

@@ -28,8 +28,6 @@ import de.connect2x.messenger.compose.view.files.ImageOverlayView
 import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
 import de.connect2x.messenger.compose.view.files.PdfOverlayView
 import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
-import de.connect2x.messenger.compose.view.files.ShareFilesView
-import de.connect2x.messenger.compose.view.files.ShareFilesViewImpl
 import de.connect2x.messenger.compose.view.files.VideoOverlayView
 import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
@@ -153,8 +151,6 @@ import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileView
 import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileViewImpl
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchView
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchViewImpl
-import de.connect2x.messenger.compose.view.roomlist.header.ShowSpacesView
-import de.connect2x.messenger.compose.view.roomlist.header.ShowSpacesViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.InviteView
 import de.connect2x.messenger.compose.view.roomlist.room.InviteViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerView
@@ -211,6 +207,8 @@ import de.connect2x.messenger.compose.view.settings.ProfileSettingsView
 import de.connect2x.messenger.compose.view.settings.ProfileSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.messenger.compose.view.settings.UserSettingsViewImpl
+import de.connect2x.messenger.compose.view.sharing.ShareDataView
+import de.connect2x.messenger.compose.view.sharing.ShareDataViewImpl
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
 import de.connect2x.messenger.compose.view.theme.Theme
@@ -312,7 +310,7 @@ fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
     single<PdfOverlayView> { PdfOverlayViewImpl() }
-    single<ShareFilesView> { ShareFilesViewImpl() }
+    single<ShareDataView> { ShareDataViewImpl() }
 }
 
 fun profileViewModule() = module {
@@ -334,7 +332,6 @@ fun roomListHeaderViewModule() = module {
     single<AccountDataView> { AccountDataViewImpl() }
     single<AccountAvatarView> { AccountAvatarViewImpl() }
     single<CloseProfileView> { CloseProfileViewImpl() }
-    single<ShowSpacesView> { ShowSpacesViewImpl() }
     single<ShowSearchView> { ShowSearchViewImpl() }
     single<AccountOptionsView> { AccountOptionsViewImpl() }
 }

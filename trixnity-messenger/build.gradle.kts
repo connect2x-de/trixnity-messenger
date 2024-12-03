@@ -128,17 +128,20 @@ kotlin {
         }
         iosMain {
             dependencies {
-//                implementation(libs.ktor.client.drawin)
+                implementation(libs.ktor.client.darwin) // since with iOS projects, we cannot include the engine, we select it here
             }
         }
         jsMain {
             dependencies {
                 implementation(libs.trixnity.client.repository.indexeddb)
                 implementation(libs.trixnity.client.media.opfs)
+                implementation(libs.trixnity.client.media.indexeddb)
                 api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
                 implementation(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
+                implementation(npm("pdfjs-dist", libs.versions.pdfjs.get()))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
+                implementation(libs.ktor.client.js) // since there is only 1 engine in web, we select it here
             }
         }
         val jvmAndNativeTest by creating {
@@ -221,9 +224,9 @@ skie {
     }
 }
 
-//if (isCI) {
+if (isCI) {
     kmmbridge {
         mavenPublishArtifacts()
         spm()
     }
-//}
+}

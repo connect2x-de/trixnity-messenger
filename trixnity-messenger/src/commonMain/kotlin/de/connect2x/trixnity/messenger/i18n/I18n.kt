@@ -1090,7 +1090,7 @@ abstract class I18n(
 
     fun mediaTooLargeForPreview() = translate {
         EN - "File is too large for previewing. Try downloading it instead."
-        DE - "Datei ist zu groß für die Vorschau. Versuchen Sie es stattdessen herunterzuladen."
+        DE - "Datei ist zu groß für die Vorschau. Versuchen Sie stattdessen, die Datei herunterzuladen."
     }
 
     fun updateNotificationSettingsError(error: String) = translate {

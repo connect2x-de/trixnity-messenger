@@ -10,6 +10,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @Composable
@@ -18,6 +19,7 @@ actual fun InfoPopup(
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     readers: List<UserInfoElement>,
+    reactors: Map<String, List<UserInfoElement>>,
     modifier: Modifier
 ) {
     if (isOpen) {
@@ -29,12 +31,12 @@ actual fun InfoPopup(
             ),
         ) {
             Surface(
-                Modifier.size(320.dp, 240.dp),
+                Modifier.size(320.dp, 400.dp),
                 shadowElevation = 4.dp,
                 tonalElevation = 4.dp,
                 shape = MaterialTheme.shapes.medium
             ) {
-                Info(readers, focusRequester)
+                ReactionsAndReadByInfo(reactors, focusRequester, readers)
             }
         }
     }

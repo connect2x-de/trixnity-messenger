@@ -8,10 +8,9 @@ import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.EventContent
 import org.koin.core.component.get
 
 
@@ -31,77 +30,17 @@ class MediaRouter(
         when (config) {
             is Config.None -> Wrapper.None
 
-            is Config.Video -> Wrapper.Video(
-                viewModelContext.get<VideoViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    onCloseVideo = ::closeMedia,
-                )
-            )
-
-            is Config.Image -> Wrapper.Image(
-                viewModelContext.get<ImageViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    onCloseImage = ::closeMedia,
-                )
-            )
-
-            is Config.PdfDocument -> Wrapper.Pdf(
-                viewModelContext.get<PdfDocumentViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    onCloseDocument = ::closeMedia,
-                )
-            )
-
-            is Config.TextDocument -> Wrapper.Text(
+            is Config.Media -> Wrapper.Media(
                 viewModelContext.get<MediaViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileType = OpenModalType.TEXT,
-                    onCloseMedia = ::closeMedia,
-                )
-            )
-
-            is Config.MarkdownDocument -> Wrapper.Markdown(
-                viewModelContext.get<MediaViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
-                    mxcUrl = config.mxcUrl,
-                    encryptedFile = config.encryptedFile,
-                    fileName = config.fileName,
-                    fileType = OpenModalType.MARKDOWN,
+                    content = config.content,
                     onCloseMedia = ::closeMedia,
                 )
             )
         }
 
-    suspend fun openVideo(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Video(mxcUrl, encryptedFile, fileName, userId))
-    }
-
-    suspend fun openImage(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.Image(mxcUrl, encryptedFile, fileName, userId))
-    }
-
-    suspend fun openPdf(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.PdfDocument(mxcUrl, encryptedFile, fileName, userId))
-    }
-
-    suspend fun openText(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.TextDocument(mxcUrl, encryptedFile, fileName, userId))
-    }
-
-    suspend fun openMarkdown(mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String, userId: UserId) {
-        navigation.replaceAllSuspending(Config.MarkdownDocument(mxcUrl, encryptedFile, fileName, userId))
+    suspend fun openMedia(userId: UserId, content: EventContent) {
+        navigation.replaceAllSuspending(Config.Media(userId, content))
     }
 
     fun closeMedia() {
@@ -113,55 +52,17 @@ class MediaRouter(
     @Serializable
     sealed class Config {
         @Serializable
-        data class Video(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val userId: UserId,
-        ) : Config()
-
-        @Serializable
-        data class Image(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val userId: UserId,
-        ) : Config()
-
-        @Serializable
-        data class PdfDocument(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val userId: UserId,
-        ) : Config()
-
-        @Serializable
-        data class TextDocument(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val userId: UserId,
-        ) : Config()
-
-        @Serializable
-        data class MarkdownDocument(
-            val mxcUrl: String,
-            val encryptedFile: EncryptedFile?,
-            val fileName: String,
-            val userId: UserId,
-        ) : Config()
-
-        @Serializable
         data object None : Config()
+
+        @Serializable
+        data class Media(
+            val userId: UserId,
+            val content: EventContent,
+        ) : Config()
     }
 
     sealed class Wrapper {
-        class Video(val viewModel: VideoViewModel) : Wrapper()
-        class Image(val viewModel: ImageViewModel) : Wrapper()
-        class Pdf(val viewModel: PdfDocumentViewModel) : Wrapper()
-        class Markdown(val viewModel: MediaViewModel) : Wrapper()
-        class Text(val viewModel: MediaViewModel) : Wrapper()
         data object None : Wrapper()
+        class Media(val viewModel: MediaViewModel) : Wrapper()
     }
 }
