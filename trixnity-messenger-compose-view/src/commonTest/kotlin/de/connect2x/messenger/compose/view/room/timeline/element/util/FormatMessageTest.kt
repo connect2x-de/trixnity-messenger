@@ -119,4 +119,15 @@ class FormatMessageTest {
             "<a href=\"https://matrix.org\">Matrix Website</a>".formatLinks()
         )
     }
+
+    @Test
+    fun shouldFormatUrlWithEscapedAmpersand() {
+        val link = "https://duckduckgo.com/?q=html+escaping+ampersand&amp;ia=web"
+        val formattedLink = link.formatLinks()
+
+        assertEquals(
+            "<a href=\"${link}\">${link}</a>",
+            formattedLink,
+        )
+    }
 }
