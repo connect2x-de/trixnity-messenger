@@ -41,13 +41,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,7 +91,7 @@ interface MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
         overlay: @Composable BoxScope.() -> Unit = {},
-        content: @Composable () -> Unit,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
 }
 
@@ -104,7 +103,7 @@ fun MessageBubble(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: @Composable BoxScope.() -> Unit = {},
-    content: @Composable () -> Unit,
+    content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
         .create(holder, element, showDate, needsMaxWidth, additionalContextActions, overlay, content)
@@ -120,7 +119,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable () -> Unit,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val redactionInProgress =
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
@@ -171,9 +170,10 @@ fun MessageBubbleContainer(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     overlay: @Composable BoxScope.() -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
+    val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
     val infoOpen = remember { mutableStateOf(false) }
     val reactionsOpen = remember { mutableStateOf(false) }
@@ -196,7 +196,9 @@ fun MessageBubbleContainer(
                     true
                 })
             .pointerInput(holder) { // key is important to react to changes
-                detectTapGestures(onLongPress = onLongPress) // in case the child element has no tap / click detection, we can use this
+                detectTapGestures(onLongPress = {
+                    showActionMenu.value = true
+                }) // in case the child element has no tap / click detection, we can use this
                 size
             }
     ) {
@@ -222,7 +224,7 @@ fun MessageBubbleContainer(
                 color = messageBackground
             ) {
                 Box(Modifier.fillMaxSize()) {
-                    MessageBubbleContent(holder, showDate, needsMaxWidth, content)
+                    MessageBubbleContent(holder, showDate, needsMaxWidth, { showActionMenu.value = true }, content)
                     MessageOverlay(
                         hoverMessage,
                         overlay,
@@ -246,6 +248,7 @@ fun MessageBubbleContainer(
         ActionMenu(
             holder,
             hoverMessage,
+            showActionMenu,
             { infoOpen.value = true },
             { reactionsOpen.value = true },
             additionalContextActions,
@@ -270,7 +273,8 @@ fun MessageBubbleContent(
     holder: BaseTimelineElementHolderViewModel,
     showDate: Boolean,
     needsMaxWidth: Boolean,
-    content: @Composable () -> Unit,
+    showActionMenu: () -> Unit,
+    content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
 
@@ -316,7 +320,7 @@ fun MessageBubbleContent(
 
             if (needsMaxWidth) {
                 // FIXME insert Reply here?
-                content()
+                content(showActionMenu)
                 if (showDate) {
                     Row(
                         Modifier.align(Alignment.End).padding(5.dp),
@@ -344,7 +348,7 @@ fun MessageBubbleContent(
                 }
             } else {
                 Layout(content = {
-                    content()
+                    content(showActionMenu)
                     if (showDate) {
                         holder.formattedTime.let {
                             Row(
@@ -434,6 +438,7 @@ fun MessageBubbleContent(
 fun BoxScope.ActionMenu(
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
+    showActionMenu: MutableState<Boolean>,
     onInfo: () -> Unit,
     onReact: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
@@ -441,8 +446,6 @@ fun BoxScope.ActionMenu(
     val i18n = DI.current.get<I18nView>()
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(false)
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var isContextMenuOpen by remember { mutableStateOf(false) }
 
     if (Platform.current.isMobile) {
         val onClose = {
@@ -450,14 +453,14 @@ fun BoxScope.ActionMenu(
                 bottomSheetState.hide()
             }.invokeOnCompletion {
                 if (!bottomSheetState.isVisible)
-                    showBottomSheet = false
+                    showActionMenu.value = false
             }
             Unit
         }
-        if (showBottomSheet) {
+        if (showActionMenu.value) {
             ModalBottomSheet(
                 sheetState = bottomSheetState,
-                onDismissRequest = { showBottomSheet = false },
+                onDismissRequest = { showActionMenu.value = false },
             ) {
                 Column(
                     Modifier
@@ -476,7 +479,7 @@ fun BoxScope.ActionMenu(
         }
     } else { // not mobile
         val onClose = {
-            isContextMenuOpen = false
+            showActionMenu.value = false
         }
         Box(
             Modifier
@@ -495,7 +498,7 @@ fun BoxScope.ActionMenu(
                 Box(
                     Modifier
                         .background(Color.Black.copy(alpha = 0.1f))
-                        .clickable { isContextMenuOpen = isContextMenuOpen.not() }
+                        .clickable { showActionMenu.value = showActionMenu.value.not() }
                         .pointerHoverIcon(PointerIcon.Hand)
                         .indication(
                             indication = null,
@@ -506,8 +509,8 @@ fun BoxScope.ActionMenu(
                 }
             }
             DropdownMenu(
-                expanded = isContextMenuOpen,
-                onDismissRequest = { isContextMenuOpen = false },
+                expanded = showActionMenu.value,
+                onDismissRequest = { showActionMenu.value = false },
                 offset = DpOffset(0.dp, 0.dp),
                 modifier = Modifier.background(MaterialTheme.colorScheme.background)
                     .sizeIn(maxWidth = 300.dp),

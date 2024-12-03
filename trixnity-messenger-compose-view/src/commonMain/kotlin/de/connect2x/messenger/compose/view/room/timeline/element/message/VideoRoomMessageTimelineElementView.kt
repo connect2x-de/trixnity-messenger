@@ -70,8 +70,8 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             }
-        ) {
-            MessageVideo(holder, element)
+        ) { showMenuAction ->
+            MessageVideo(holder, element, showMenuAction)
         }
     }
 }
@@ -79,7 +79,8 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 @Composable
 internal fun ColumnScope.MessageVideo(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased.Video
+    element: RoomMessageTimelineElementViewModel.FileBased.Video,
+    showMenuAction: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
@@ -99,7 +100,7 @@ internal fun ColumnScope.MessageVideo(
                             .heightIn(64.dp, videoMessageViewModel.getHeight(400f).dp) // FIXME getHeight?
                             .widthIn(64.dp, 400.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .openVideoOnTouch(element, onLongPress)
+                            .openVideoOnTouch(element) { showMenuAction() }
                             .buttonPointerModifier(),
                         contentScale = ContentScale.FillBounds
                     )
@@ -109,7 +110,7 @@ internal fun ColumnScope.MessageVideo(
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
-                            .openVideoOnTouch(element, onLongPress)
+                            .openVideoOnTouch(element) { showMenuAction() }
                             .buttonPointerModifier(),
                         tint = Color.DarkGray,
                     )
@@ -124,7 +125,7 @@ internal fun ColumnScope.MessageVideo(
 @Composable
 private fun Modifier.openVideoOnTouch(
     element: RoomMessageTimelineElementViewModel.FileBased.Video,
-    onLongPress: (Offset) -> Unit
+    showMenuAction: () -> Unit,
 ): Modifier {
     return this.then(pointerInput(Unit) {
         detectTapGestures(
@@ -133,7 +134,7 @@ private fun Modifier.openVideoOnTouch(
                 //if (uploadProgress != null && uploadProgress.percent >= 1.0f)
                 element.open()
             },
-            onLongPress = onLongPress,
+            onLongPress = { showMenuAction() },
         )
     })
 }

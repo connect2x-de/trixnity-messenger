@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import de.connect2x.messenger.compose.view.DI
@@ -26,7 +25,7 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTi
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.Location,
     ) {
-        MessageLocation(holder, element, onLongPress)
+        MessageLocation(holder, element)
     }
 }
 
@@ -34,23 +33,30 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTi
 fun MessageLocation(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.Location,
-    onLongPress: (Offset) -> Unit
 ) {
-    if (Platform.current.isDesktop) {
-        // on Desktop it makes sense to select text and copy it;
-        // on Android, this will consume long tap events, which we use for the context menu
-        SelectionContainer {
-            MessageLocationContent(element, onLongPress)
+    MessageBubble(
+        holder,
+        element,
+        showDate = true,
+        needsMaxWidth = false,
+        additionalContextActions = {},
+    ) { showMenuAction ->
+        if (Platform.current.isDesktop) {
+            // on Desktop it makes sense to select text and copy it;
+            // on Android, this will consume long tap events, which we use for the context menu
+            SelectionContainer {
+                MessageLocationContent(element, showMenuAction)
+            }
+        } else {
+            MessageLocationContent(element, showMenuAction)
         }
-    } else {
-        MessageLocationContent(element, onLongPress)
     }
 }
 
 @Composable
 internal fun MessageLocationContent(
     element: RoomMessageTimelineElementViewModel.Location,
-    onLongPress: (Offset) -> Unit
+    showMenuAction: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
@@ -65,7 +71,7 @@ internal fun MessageLocationContent(
         onClick = {
             uriHandler.openUri(geoUrl)
         },
-        onLongPress = onLongPress,
+        onLongPress = { showMenuAction() },
         style = MaterialTheme.typography.bodySmall
     )
 }

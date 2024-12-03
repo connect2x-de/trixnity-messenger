@@ -43,7 +43,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Audio
+        element: RoomMessageTimelineElementViewModel.FileBased.Audio,
     ) {
         FileBasedRoomMessageTimelineElementView(
             holder,
@@ -63,15 +63,15 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             }
-        ) {
-            MessageAudio(element)
+        ) { showActionMenu ->
+            MessageAudio(element, showActionMenu)
         }
     }
 
 }
 
 @Composable
-internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased.Audio, showActionMenu: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = element.downloadSuccessful.collectAsState()
 
@@ -91,7 +91,7 @@ internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased
                                 onTap = {
                                     element.open()
                                 },
-                                onLongPress = onLongPress,
+                               onLongPress = { showActionMenu() },
                             )
                         }
                         .buttonPointerModifier())

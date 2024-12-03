@@ -24,7 +24,14 @@ class EncryptedErrorRoomMessageTimelineElementView : TimelineElementView<Encrypt
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptedErrorTimelineElementViewModel
     ) {
-        EncryptedError()
+        MessageBubble(
+            holder,
+            element,
+            showDate = true,
+            needsMaxWidth = false,
+        ) { _ ->
+            EncryptedError()
+        }
     }
 
 }

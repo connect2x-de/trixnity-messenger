@@ -16,7 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
@@ -41,16 +40,6 @@ fun FileBasedRoomMessageTimelineElementView(
     overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable ColumnScope.(onSave: () -> Unit) -> Unit,
 ) {
-    // FIXME where to put this? is this really the only way?
-    // small hack: as gesture detection (onTap) in children disable detection of gestures in parent components, we have
-    // to propagate all gestures to one child where all detection takes place
-    val showMenu = remember { mutableStateOf(false) }
-    val onLongPress: (Offset) -> Unit = remember {
-        { _: Offset ->
-            showMenu.value = true
-        }
-    }
-
     val i18n = DI.current.get<I18nView>()
 
     val error = element.downloadError.collectAsState().value
@@ -88,8 +77,8 @@ fun FileBasedRoomMessageTimelineElementView(
 
         },
         overlay,
-    ) {
-        FileBasedView(holder, element, saveDialogOpen, content)
+    ) { showActionMenu ->
+        FileBasedView(holder, element, saveDialogOpen, showActionMenu, content)
     }
 
 }
@@ -99,6 +88,7 @@ internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     saveDialogOpen: MutableState<Boolean>,
+    showActionMenu: () -> Unit,
     content: @Composable ColumnScope.(onSave: () -> Unit) -> Unit
 ) {
     val downloadProgressElement = element.downloadProgress.collectAsState()
@@ -113,7 +103,7 @@ internal fun FileBasedView(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = { element.open() },
-                        onLongPress = onLongPress,
+                        onLongPress = { showActionMenu() },
                     )
                 }
                 .padding(10.dp)

@@ -45,7 +45,6 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         ) { onSave ->
             MessageFile(element, onSave)
         }
-
     }
 }
 

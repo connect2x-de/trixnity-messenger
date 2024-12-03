@@ -63,8 +63,8 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             },
-        ) {
-            MessageImage(holder, element)
+        ) { showActionMenu ->
+            MessageImage(holder, element, showActionMenu)
         }
     }
 }
@@ -72,12 +72,13 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 @Composable
 internal fun ColumnScope.MessageImage(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased.Image
+    element: RoomMessageTimelineElementViewModel.FileBased.Image,
+    showActionMenu: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
     image?.let {
-        MessageImageImpl(it, holder, element)
-    } ?: MessageImageFallback(element)
+        MessageImageImpl(it, holder, element, showActionMenu)
+    } ?: MessageImageFallback(element, showActionMenu)
 }
 
 @OptIn(ExperimentalResourceApi::class)
@@ -85,7 +86,8 @@ internal fun ColumnScope.MessageImage(
 internal fun ColumnScope.MessageImageImpl(
     image: ByteArray,
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased.Image
+    element: RoomMessageTimelineElementViewModel.FileBased.Image,
+    showActionMenu: () -> Unit
 ) {
     val showSender = holder.showSender.collectAsState().value
     Image(
@@ -107,7 +109,7 @@ internal fun ColumnScope.MessageImageImpl(
                     onTap = {
                         element.open()
                     },
-                    onLongPress = onLongPress,
+                    onLongPress = { showActionMenu() },
                 )
             }
             .buttonPointerModifier(),
@@ -118,6 +120,7 @@ internal fun ColumnScope.MessageImageImpl(
 @Composable
 internal fun ColumnScope.MessageImageFallback(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
+    showActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     Icon(
@@ -129,7 +132,7 @@ internal fun ColumnScope.MessageImageFallback(
                     onTap = {
                         element.open()
                     },
-                    onLongPress = onLongPress,
+                    onLongPress = { showActionMenu() },
                 )
             }
             .size(64.dp)

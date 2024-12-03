@@ -13,7 +13,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
@@ -35,40 +34,31 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased.Text, // FIXME RoomMessageTimelineElementViewModel.TextBased<*>,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
 ) {
     MessageBubble(
         holder,
         element,
         showDate = true,
         needsMaxWidth = true, // FIXME ?
-        // FIXME context menu actions
-    ) {
-        MessageText(holder, element)
-    }
-}
-
-@Composable
-private fun MessageText(
-    holder: BaseTimelineElementHolderViewModel,
-    textBasedRoomMessageTimelineElementViewModel: RoomMessageTimelineElementViewModel.TextBased.Text,
-) {
-    if (Platform.current.isDesktop) {
-        // on Desktop it makes sense to select text and copy it;
-        // on Android, this will consume long tap events, which we use for the context menu
-        SelectionContainer {
-            MessageTextContent(holder, textBasedRoomMessageTimelineElementViewModel)
+    ) { showActionMenu ->
+        if (Platform.current.isDesktop) {
+            // on Desktop, it makes sense to select text and copy it;
+            // on Android, this will consume long tap events, which we use for the context menu
+            SelectionContainer {
+                MessageTextContent(holder, element, showActionMenu)
+            }
+        } else {
+            MessageTextContent(holder, element, showActionMenu)
         }
-    } else {
-        MessageTextContent(holder, textBasedRoomMessageTimelineElementViewModel)
     }
 }
-
 
 @Composable
 private fun MessageTextContent(
     holder: BaseTimelineElementHolderViewModel,
-    textBasedRoomMessageTimelineElementViewModel: RoomMessageTimelineElementViewModel.TextBased.Text,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    showActionMenu: () -> Unit,
 ) {
 //    val referencedMessage = holder.repliedElement.collectAsState().value // FIXME in parent element?
 
@@ -119,15 +109,15 @@ private fun MessageTextContent(
 //            Spacer(Modifier.size(5.dp))
 //        }
 
-        val mentions = (textBasedRoomMessageTimelineElementViewModel.mentionsInFormattedBody
-            ?: textBasedRoomMessageTimelineElementViewModel.mentionsInBody)
+        val mentions = (element.mentionsInFormattedBody
+            ?: element.mentionsInBody)
             .map {
                 it.key to it.value.collectAsState().value
             }.sortedByDescending { it.first.first }
 
-        val message = textBasedRoomMessageTimelineElementViewModel.formattedBody
-            ?: textBasedRoomMessageTimelineElementViewModel.body
-        val text = formatMessage(message, mentions, textBasedRoomMessageTimelineElementViewModel)
+        val message = element.formattedBody
+            ?: element.body
+        val text = formatMessage(message, mentions, element)
 
         val richTextState = rememberRichTextState()
         LaunchedEffect(text) {
@@ -143,7 +133,7 @@ private fun MessageTextContent(
                 val uriHandler by remember {
                     mentionsUriHandler(
                         baseUriHandler,
-                        textBasedRoomMessageTimelineElementViewModel,
+                        element,
                         mentions.map { it.second })
                 }
 
@@ -151,19 +141,19 @@ private fun MessageTextContent(
                     uriHandler,
                     richTextState,
                     holder.isByMe,
-                    onLongPress
+                    showActionMenu,
                 )
             } else {
                 MessageRichText(
                     LocalUriHandler.current,
                     richTextState,
                     holder.isByMe,
-                    onLongPress
+                    showActionMenu,
                 )
             }
         } else {
             // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
-            Text(textBasedRoomMessageTimelineElementViewModel.body, style = MaterialTheme.typography.bodyMedium)
+            Text(element.body, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -173,7 +163,7 @@ private fun MessageRichText(
     uriHandler: UriHandler,
     state: RichTextState,
     isByMe: Boolean,
-    onLongPress: (Offset) -> Unit
+    showActionMenu: () -> Unit
 ) {
     CompositionLocalProvider(
         LocalUriHandler provides uriHandler
@@ -182,7 +172,7 @@ private fun MessageRichText(
             state = state,
             modifier = Modifier.pointerInput(Unit) {
                 detectTapGestures(
-                    onLongPress = onLongPress
+                    onLongPress = {showActionMenu() }
                 )
             },
             style = MaterialTheme.typography.bodyMedium.copy(
