@@ -314,13 +314,14 @@ a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put
 On the JVM (not Android) the root path can be overridden by setting an environment variable
 named `TRIXNITY_MESSENGER_ROOT_PATH`.
 
-## Snapshot builds
+## Snapshot / Dev builds
 
-Snapshot are published on each commit to main.
-Append `-SNAPSHOT-COMMIT_SHORT_SHA` to the current version. You can find
-the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/commits/main).
+Snapshot are published on each commit to main (usually after a merge request is approved and merged).
+Append `-DEV-<increasing_number>` to the current version. You can find
+the released versions [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/packages).
+
 You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
-maven repositories, which contains SNAPSHOT versions of Trixnity.
+maven repositories, which contains DEV versions of Trixnity.
 
 ## Local builds
 
