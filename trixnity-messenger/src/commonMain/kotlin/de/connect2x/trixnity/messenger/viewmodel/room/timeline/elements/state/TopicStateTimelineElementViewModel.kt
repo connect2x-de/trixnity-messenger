@@ -31,7 +31,7 @@ interface TopicStateTimelineElementViewModelFactory : TimelineElementViewModelFa
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): RoomTopicChangeStatusViewModel? =
+    ): TopicStateTimelineElementViewModel? =
         if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
             TopicStateTimelineElementViewModelImpl(
                 viewModelContext,
@@ -47,7 +47,7 @@ interface TopicStateTimelineElementViewModelFactory : TimelineElementViewModelFa
     companion object : TopicStateTimelineElementViewModelFactory
 }
 
-interface RoomTopicChangeStatusViewModel : State<TopicEventContent> {
+interface TopicStateTimelineElementViewModel : State<TopicEventContent> {
     val changeMessage: StateFlow<String?>
 }
 
@@ -56,7 +56,7 @@ class TopicStateTimelineElementViewModelImpl(
     content: TopicEventContent,
     roomId: RoomId,
     eventId: EventId,
-) : RoomTopicChangeStatusViewModel, MatrixClientViewModelContext by viewModelContext {
+) : TopicStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     override val changeMessage =
         flow {
             val timelineEvent = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
