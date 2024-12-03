@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
@@ -229,7 +230,13 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             content = {
                 Column {
                     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
-                    Text(i18n.selfVerificationMethodsTitle())
+                    val methodsLoaded = selfVerificationViewModel.verificationMethodsLoaded.collectAsState().value
+                    if (methodsLoaded) {
+                        Text(i18n.selfVerificationMethodsTitle())
+                    } else {
+                        Text(i18n.selfVerificationWaitingForMethods())
+                        LoadingSpinner()
+                    }
                     Spacer(Modifier.size(10.dp))
 
                     selfVerificationMethods.value.forEachIndexed { _, method ->
@@ -279,31 +286,45 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             else -> Box {}
                         }
                     }
+                    if (methodsLoaded) {
+                        EntryContainer(
+                            header = {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    i18n.commonWarning(),
+                                    Modifier.size(16.dp),
+                                    MaterialTheme.colorScheme.error
+                                )
+                                SmallSpacer()
+                                Text(
+                                    i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            },
+                            description = {
+                                Text(buildAnnotatedString {
+                                    append("${i18n.selfVerificationResetRecoveryKey()}. ")
+                                    pushStyle(SpanStyle(fontWeight = Bold))
+                                    append("${i18n.commonWarning().capitalize(Locale.current)}: ")
+                                    append(i18n.selfVerificationResetRecoveryKeyDescription())
+                                    pop()
+                                })
+                            },
+                            onClick = {
+                                selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+                            },
+                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+                        )
+                    }
                     EntryContainer(
                         header = {
-                            Icon(Icons.Default.Warning, i18n.commonWarning(), Modifier.size(16.dp), MaterialTheme.colorScheme.error)
-                            SmallSpacer()
-                            Text(
-                                i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.error,
+                            Icon(
+                                Icons.Default.Warning,
+                                i18n.commonWarning(),
+                                Modifier.size(16.dp),
+                                MaterialTheme.colorScheme.error
                             )
-                        },
-                        description = {
-                            Text(buildAnnotatedString {
-                                append("${i18n.selfVerificationResetRecoveryKey()}. ")
-                                pushStyle(SpanStyle(fontWeight = Bold))
-                                append("${i18n.commonWarning().capitalize(Locale.current)}: ")
-                                append(i18n.selfVerificationResetRecoveryKeyDescription())
-                                pop()
-                            })
-                        },
-                        onClick = { selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey },
-                        selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                    )
-                    EntryContainer(
-                        header = {
-                            Icon(Icons.Default.Warning, i18n.commonWarning(), Modifier.size(16.dp), MaterialTheme.colorScheme.error)
                             SmallSpacer()
                             Text(
                                 i18n.redoSelfVerificationContinueWithoutVerification(),

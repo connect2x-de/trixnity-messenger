@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Color handling utils
+- Only show option for recovery key reset in self verification when verification methods are loaded
 
 ### Deprecated
 
