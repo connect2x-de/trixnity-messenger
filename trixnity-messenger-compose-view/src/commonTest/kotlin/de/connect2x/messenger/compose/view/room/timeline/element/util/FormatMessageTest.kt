@@ -130,4 +130,15 @@ class FormatMessageTest {
             formattedLink,
         )
     }
+
+    @Test
+    fun shouldFormatUrlWithSemicolon() {
+        val link = "https://exampleformytest.com/bla;blubb"
+        val formattedLink = link.formatLinks()
+
+        assertEquals(
+            "<a href=\"${link}\">${link}</a>",
+            formattedLink,
+        )
+    }
 }
