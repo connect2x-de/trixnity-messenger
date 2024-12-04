@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Color handling utils
+- Changed `RoomSettingsMemberListElement` interfaces to allow more flexibility
 
 ### Deprecated
 

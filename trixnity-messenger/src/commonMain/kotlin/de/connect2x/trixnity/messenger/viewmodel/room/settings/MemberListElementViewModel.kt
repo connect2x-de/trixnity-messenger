@@ -50,7 +50,7 @@ interface MemberListElementViewModelFactory {
         roomUser: RoomUser,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId
-    ): MemberListElementViewModelImpl {
+    ): MemberListElementViewModel {
         return MemberListElementViewModelImpl(
             viewModelContext = viewModelContext,
             roomUser = roomUser,
