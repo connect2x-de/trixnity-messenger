@@ -66,6 +66,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Encrypte
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
@@ -365,6 +366,7 @@ private fun timelineElementViewModels() = module {
 
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
     single<OutboxElementHolderViewModelFactory> { OutboxElementHolderViewModelFactory }
+    single<RepliedTimelineElementHolderViewModelFactory> { RepliedTimelineElementHolderViewModelFactory }
 }
 
 private fun roomViewModels() = module {
