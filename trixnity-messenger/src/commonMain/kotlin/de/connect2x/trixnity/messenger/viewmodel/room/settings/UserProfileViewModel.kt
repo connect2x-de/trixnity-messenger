@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
@@ -159,7 +160,8 @@ class UserProfileViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
-    // private val roomUser = matrixClient.user.getById(roomId, userId)
+    private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay=1)
 
     override val memberOptionsOpen = MutableStateFlow(false)
 
@@ -170,10 +172,10 @@ class UserProfileViewModelImpl(
     override val banUserWarningOpen = MutableStateFlow(false)
     override val unbanUserWarningOpen = MutableStateFlow(false)
 
-    override val membershipReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, userId)
+    override val membershipReason: StateFlow<String?> = roomUser
         .mapLatest { it?.event?.content?.reason }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val membership: StateFlow<Membership?> = matrixClient.user.getById(selectedRoomId, userId)
+    override val membership: StateFlow<Membership?> = roomUser
         .mapLatest { it?.membership }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -210,7 +212,7 @@ class UserProfileViewModelImpl(
             .create(
                 viewModelContext = viewModelContext.childContext("changePowerLevel-${userId.full}"),
                 powerLevel = powerLevel,
-                userId = userId,
+                roomUser = roomUser,
                 error = error,
                 selectedRoomId = selectedRoomId,
                 closeMemberOptions = ::closeMemberOptions
@@ -247,7 +249,7 @@ class UserProfileViewModelImpl(
             }
         }
 
-        member = matrixClient.user.getById(selectedRoomId, userId).mapNotNull {
+        member = roomUser.mapNotNull {
             it?.let { roomUser ->
                 roomUserOriginalName.value = roomUser.originalName
 
