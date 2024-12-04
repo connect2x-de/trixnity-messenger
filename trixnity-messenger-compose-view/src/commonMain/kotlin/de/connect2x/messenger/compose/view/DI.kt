@@ -127,8 +127,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationView
 import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.message.MessageBubbleView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.MessageBubbleViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListView

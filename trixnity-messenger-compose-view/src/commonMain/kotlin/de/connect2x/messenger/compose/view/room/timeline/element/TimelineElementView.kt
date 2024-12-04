@@ -9,5 +9,11 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
 
     @Composable
-    fun create(holder: BaseTimelineElementHolderViewModel, element: V)
+    fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: V)
+
+    @Composable
+    fun createReplyInTimeline(element: V)
+
+    @Composable
+    fun createReplyInSendMessage(element: V)
 }

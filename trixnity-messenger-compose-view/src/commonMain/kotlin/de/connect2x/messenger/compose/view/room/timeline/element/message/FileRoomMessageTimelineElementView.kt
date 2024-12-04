@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -36,7 +38,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.File
     ) {
@@ -46,10 +48,20 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
             MessageFile(element, onSave)
         }
     }
+
+    @Composable
+    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+        ReplyFile(element)
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+        ReplyFile(element)
+    }
 }
 
 @Composable
-private fun MessageFile(
+internal fun MessageFile(
     element: RoomMessageTimelineElementViewModel.FileBased.File,
     onSave: () -> Unit,
 ) {
@@ -85,5 +97,19 @@ private fun MessageFile(
                 Color.DarkGray
             )
         }
+    }
+}
+
+@Composable
+internal fun ReplyFile(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+    val i18n = DI.get<I18nView>()
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            Icons.Default.Attachment,
+            i18n.commonAttachment(),
+            Modifier.size(30.dp),
+            tint = Color.DarkGray,
+        )
+        FileName(element.name)
     }
 }

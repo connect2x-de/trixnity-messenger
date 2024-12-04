@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -31,14 +32,17 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
+import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -47,7 +51,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.FileBased.Video::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Video,
     ) {
@@ -72,6 +76,16 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         ) { showMenuAction ->
             MessageVideo(holder, element, showMenuAction)
         }
+    }
+
+    @Composable
+    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+        ReplyVideo(element)
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+        ReplyVideo(element)
     }
 }
 
@@ -136,4 +150,36 @@ private fun Modifier.openVideoOnTouch(
             onLongPress = { showMenuAction() },
         )
     })
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+internal fun ReplyVideo(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+    val i18n = DI.get<I18nView>()
+    val videoImage = element.thumbnail.collectAsState().value
+    videoImage?.let { videoImage ->
+        Box {
+            Image(
+                videoImage.decodeToImageBitmap(),
+                "",
+                Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Fit,
+            )
+            Icon(
+                MaterialTheme.messengerIcons.typeVideo,
+                i18n.commonVideo(),
+                Modifier.size(25.dp).align(Alignment.Center),
+                tint = Color.DarkGray,
+            )
+        }
+    } ?: run {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                MaterialTheme.messengerIcons.typeVideo,
+                i18n.commonVideo(),
+                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
+            )
+            FileName(element.name)
+        }
+    }
 }

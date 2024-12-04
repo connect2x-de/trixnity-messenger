@@ -14,7 +14,7 @@ class AvatarStateTimelineElementView : TimelineElementView<AvatarStateTimelineEl
     override val supports: KClass<AvatarStateTimelineElementViewModel> = AvatarStateTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: AvatarStateTimelineElementViewModel
     ) {

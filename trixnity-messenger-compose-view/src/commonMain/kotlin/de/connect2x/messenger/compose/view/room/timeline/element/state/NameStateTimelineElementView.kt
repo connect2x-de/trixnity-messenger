@@ -14,7 +14,7 @@ class NameStateTimelineElementView: TimelineElementView<NameStateTimelineElement
     override val supports: KClass<NameStateTimelineElementViewModel> = NameStateTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: NameStateTimelineElementViewModel
     ) {

@@ -41,7 +41,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.FileBased.Audio::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Audio,
     ) {
@@ -66,6 +66,16 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         ) { showActionMenu ->
             MessageAudio(element, showActionMenu)
         }
+    }
+
+    @Composable
+    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+        ReplyMessageAudio(element)
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+        ReplyMessageAudio(element)
     }
 
 }
@@ -121,5 +131,19 @@ internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased
                 )
             }
         }
+    }
+}
+
+@Composable
+internal fun ReplyMessageAudio(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+    val i18n = DI.get<I18nView>()
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            MaterialTheme.messengerIcons.typeAudio,
+            i18n.commonAudio(),
+            Modifier.size(30.dp),
+            tint = Color.DarkGray,
+        )
+        FileName(element.name)
     }
 }

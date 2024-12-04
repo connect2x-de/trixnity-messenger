@@ -19,6 +19,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
@@ -28,7 +29,7 @@ class EncryptedWaitRoomMessageTimelineElementView : TimelineElementView<Encrypte
     override val supports: KClass<EncryptedWaitTimelineElementViewModel> = EncryptedWaitTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel
     ) {
@@ -42,10 +43,19 @@ class EncryptedWaitRoomMessageTimelineElementView : TimelineElementView<Encrypte
         }
     }
 
+    @Composable
+    override fun createReplyInTimeline(element: EncryptedWaitTimelineElementViewModel) {
+        EncryptedMessage()
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(element: EncryptedWaitTimelineElementViewModel) {
+        EncryptedMessage()
+    }
 }
 
 @Composable
-private fun EncryptedMessage() {
+internal fun EncryptedMessage() {
     val i18n = DI.get<I18nView>()
     Row(Modifier.padding(10.dp)) {
         Icon(

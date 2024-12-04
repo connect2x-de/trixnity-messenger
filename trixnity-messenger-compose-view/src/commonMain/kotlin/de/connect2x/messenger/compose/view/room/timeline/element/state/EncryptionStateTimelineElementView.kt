@@ -14,7 +14,7 @@ class EncryptionStateTimelineElementView: TimelineElementView<EncryptionStateTim
     override val supports: KClass<EncryptionStateTimelineElementViewModel> = EncryptionStateTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel
     ) {
