@@ -27,8 +27,7 @@ interface DownloadManager {
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        processFile: suspend (PlatformMedia) -> Unit,
-    ): Deferred<Result<Unit>>
+    ): Deferred<Result<PlatformMedia>>
 }
 
 // TODO should have platform implementations in future (Background Job in Android for example)
@@ -47,8 +46,7 @@ class DownloadManagerImpl(
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        processFile: suspend (PlatformMedia) -> Unit,
-    ): Deferred<Result<Unit>> {
+    ): Deferred<Result<PlatformMedia>> {
         log.debug { "add $fileName to current downloads" }
         val download = Download(fileName, content.info?.size, progress)
         _downloads.value += download
@@ -76,9 +74,6 @@ class DownloadManagerImpl(
                     encryptedFile != null -> matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
                     url != null -> matrixClient.media.getMedia(url, trixnityProgress)
                     else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
-                }.mapCatching {
-                    log.debug { "process file $fileName" }
-                    processFile(it)
                 }.onSuccess {
                     log.debug { "successfully downloaded $fileName" }
                 }.onFailure {

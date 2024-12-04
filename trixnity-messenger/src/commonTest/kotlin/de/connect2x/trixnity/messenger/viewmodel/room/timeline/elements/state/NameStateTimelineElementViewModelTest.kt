@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -10,6 +8,7 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -39,7 +38,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class NameStateTimelineElementViewModelTest : ShouldSpec() {
@@ -55,8 +53,8 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
+        coroutineTestScope = true
         beforeTest {
-            coroutineTestScope = true
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -86,7 +84,6 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
         should("display who changed the room's name (with reference to the old name)") {
             val cut = roomNameChangeStatusViewModel(
                 oldName = "old name",
-                coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
@@ -99,7 +96,7 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
 
         should("display who changed the room's name without the old name if not set") {
             val cut =
-                roomNameChangeStatusViewModel(coroutineContext = coroutineContext)
+                roomNameChangeStatusViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
@@ -110,7 +107,7 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes") {
-            val cut = roomNameChangeStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomNameChangeStatusViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
             cut.changeMessage.first() shouldBe """Bob has changed the name of the group to 'new name'"""
@@ -124,7 +121,7 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("react to changes of room's direct value") {
-            val cut = roomNameChangeStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomNameChangeStatusViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
             cut.changeMessage.first() shouldBe """Bob has changed the name of the group to 'new name'"""
@@ -138,9 +135,8 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend fun roomNameChangeStatusViewModel(
+    private suspend fun TestScope.roomNameChangeStatusViewModel(
         oldName: String? = null,
-        coroutineContext: CoroutineContext,
     ): NameStateTimelineElementViewModel {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
@@ -169,11 +165,9 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
         )
         every { roomServiceMock.getTimelineEvent(roomId, eventId) } returns flowOf(timelineEvent)
         return NameStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             content = timelineEvent.event.content as NameEventContent,
             roomId = roomId,

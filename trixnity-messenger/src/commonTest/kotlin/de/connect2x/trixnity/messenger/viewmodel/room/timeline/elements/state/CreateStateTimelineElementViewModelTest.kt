@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -10,6 +8,7 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,7 +35,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class CreateStateTimelineElementViewModelTest : ShouldSpec() {
@@ -52,8 +50,8 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
+        coroutineTestScope = true
         beforeTest {
-            coroutineTestScope = true
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -97,7 +95,7 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("show indicator for room creation") {
-            val cut = roomCreatedStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomCreatedStatusViewModel()
             val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
@@ -108,7 +106,7 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes`") {
-            val cut = roomCreatedStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomCreatedStatusViewModel()
             val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
             cut.message.value shouldBe "Bob has created the group"
@@ -124,11 +122,11 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
 
         should("react to room's direct changes") {
             val isDirectFlow = MutableStateFlow(false)
-            val cut = roomCreatedStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomCreatedStatusViewModel()
             val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
             cut.message.value shouldBe "Bob has created the group"
-            
+
             isDirectFlow.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
@@ -139,9 +137,7 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend fun roomCreatedStatusViewModel(
-        coroutineContext: CoroutineContext
-    ): CreateStateTimelineElementViewModelImpl {
+    private suspend fun TestScope.roomCreatedStatusViewModel(): CreateStateTimelineElementViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
             modules(
@@ -149,11 +145,9 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
             )
         }.koin
         return CreateStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             roomId,
             eventId

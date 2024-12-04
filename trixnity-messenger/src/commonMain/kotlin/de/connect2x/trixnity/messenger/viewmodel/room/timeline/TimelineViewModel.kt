@@ -892,7 +892,7 @@ class TimelineViewModelImpl(
         matrixClient.api.room.setReadMarkers(
             roomId = roomId,
             read = if (readMarkerIsPublic) eventId else null,
-            privateRead = if (readMarkerIsPublic) null else eventId,
+            privateRead = eventId,
         ).onFailure { log.error(it) { "cannot set read marker for event $eventId" } }
             .onSuccess { log.debug { "successfully set read marker for message: $eventId" } }
     }

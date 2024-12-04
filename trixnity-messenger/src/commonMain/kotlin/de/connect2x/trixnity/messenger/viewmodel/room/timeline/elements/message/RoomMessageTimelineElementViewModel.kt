@@ -52,8 +52,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val mediaInMemory: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>
-        fun loadMedia()
-        fun loadMediaInMemory()
+        fun loadMedia(inMemory: Boolean)
+        fun cancelLoadMedia()
 
         val downloadMediaProgress: StateFlow<FileTransferProgressElement?>
         val downloadMediaSuccessful: StateFlow<Boolean?>

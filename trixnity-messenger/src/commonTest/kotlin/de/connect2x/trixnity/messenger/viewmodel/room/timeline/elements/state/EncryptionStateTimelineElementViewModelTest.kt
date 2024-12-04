@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -10,8 +8,8 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +31,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
@@ -49,8 +46,8 @@ class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
+        coroutineTestScope = true
         beforeTest {
-            coroutineTestScope = true
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -94,18 +91,18 @@ class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("display who enabled to end-to-end encryption") {
-            val cut = roomEncryptionEnabledViewModel(coroutineContext = coroutineContext)
+            val cut = roomEncryptionEnabledViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
             cut.changeMessage.value shouldBe "Bob enabled end-to-end encryption"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
         should("react to username changes") {
-            val cut = roomEncryptionEnabledViewModel(coroutineContext = coroutineContext)
+            val cut = roomEncryptionEnabledViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
             cut.changeMessage.value shouldBe "Bob enabled end-to-end encryption"
 
             senderName.value = "Bobby"
@@ -117,19 +114,15 @@ class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun roomEncryptionEnabledViewModel(
-        coroutineContext: CoroutineContext
-    ): EncryptionStateTimelineElementViewModel =
+    private fun TestScope.roomEncryptionEnabledViewModel(): EncryptionStateTimelineElementViewModel =
         EncryptionStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
                         createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
                     )
                 }.koin,
                 userId = UserId("user1", "server"),
-                coroutineContext = coroutineContext
             ),
             roomId = roomId,
             eventId = eventId,

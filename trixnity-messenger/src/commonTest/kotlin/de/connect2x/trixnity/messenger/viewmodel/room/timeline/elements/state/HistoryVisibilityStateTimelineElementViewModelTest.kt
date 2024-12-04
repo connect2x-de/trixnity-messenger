@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -10,15 +8,12 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.core.test.TestScope
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -36,7 +31,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class HistoryVisibilityStateTimelineElementViewModelTest : ShouldSpec() {
@@ -49,8 +43,8 @@ class HistoryVisibilityStateTimelineElementViewModelTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     init {
+        coroutineTestScope = true
         beforeTest {
-            coroutineTestScope = true
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -88,12 +82,11 @@ class HistoryVisibilityStateTimelineElementViewModelTest : ShouldSpec() {
                         ),
                         newHistoryVisibilityEventContent = newHistoryVisibilityEvent
                     ),
-                coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
 
-            cut.changeMessage.value shouldBe """Bob has changed the history visibility of the group from 'FIXME' to 'FIXME'"""
+            cut.changeMessage.value shouldBe """bob has changed the history visibility of the chat from 'invited' to 'shared'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -104,34 +97,29 @@ class HistoryVisibilityStateTimelineElementViewModelTest : ShouldSpec() {
             val cut =
                 historyVisibilityChangeStatusViewModel(
                     timelineEvent = mockTimelineEvent(newHistoryVisibilityEventContent = newHistoryVisibilityEvent),
-                    coroutineContext = coroutineContext
                 )
             val subscriberJob = launch { cut.changeMessage.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
 
-            cut.changeMessage.value shouldBe """Bob has changed the history visibility of the group to 'FIXME'"""
+            cut.changeMessage.value shouldBe """bob has changed the history visibility of the chat to 'shared'"""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
     }
 
-    private suspend fun historyVisibilityChangeStatusViewModel(
+    private fun TestScope.historyVisibilityChangeStatusViewModel(
         timelineEvent: TimelineEvent,
-        coroutineContext: CoroutineContext,
     ): HistoryVisibilityStateTimelineElementViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
             )
         }.koin
         return HistoryVisibilityStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             content = timelineEvent.event.content as HistoryVisibilityEventContent,
             roomId = roomId,
@@ -146,9 +134,9 @@ class HistoryVisibilityStateTimelineElementViewModelTest : ShouldSpec() {
         val timelineEvent = TimelineEvent(
             event = ClientEvent.RoomEvent.StateEvent(
                 HistoryVisibilityEventContent(historyVisibility = newHistoryVisibilityEventContent),
-                id = EventId(""),
-                sender = UserId(""),
-                roomId = RoomId(""),
+                id = eventId,
+                sender = userId,
+                roomId = roomId,
                 originTimestamp = 0L,
                 unsigned = previousHistoryVisibilityEvent,
                 stateKey = ""

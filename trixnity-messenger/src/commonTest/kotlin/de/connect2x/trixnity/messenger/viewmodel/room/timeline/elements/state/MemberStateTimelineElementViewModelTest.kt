@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -12,6 +10,7 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,7 +33,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberStateTimelineElementViewModelTest : ShouldSpec() {
@@ -50,8 +48,8 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
+        coroutineTestScope = true
         beforeTest {
-            coroutineTestScope = true
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -119,7 +117,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     displayName = "I have changed!",
                     previousMemberEventContent = memberEventContent(displayName = "I am the original"),
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -136,7 +134,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     avatarUrl = "mxc://localhost/new_url",
                     previousMemberEventContent = memberEventContent(avatarUrl = "mxc://localhost/boring_old_url"),
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -154,7 +152,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.JOIN,
                     previousMemberEventContent = null,
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -171,7 +169,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.LEAVE,
                     previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -188,7 +186,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.BAN,
                     previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
                     stateKey = "@mallory:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -205,7 +203,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.INVITE,
                     previousMemberEventContent = null,
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -221,7 +219,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.KNOCK,
                     previousMemberEventContent = null,
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -237,7 +235,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.INVITE,
                     previousMemberEventContent = null,
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -258,7 +256,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = Membership.JOIN,
                     previousMemberEventContent = null,
                     stateKey = "@bob:localhost",
-                ), coroutineContext = coroutineContext
+                ),
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
@@ -274,9 +272,8 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun memberStatusViewModel(
+    private fun TestScope.memberStatusViewModel(
         timelineEvent: TimelineEvent,
-        coroutineContext: CoroutineContext,
     ): MemberStateTimelineElementViewModelImpl {
         val di = koinApplication {
             modules(
@@ -284,11 +281,9 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
             )
         }.koin
         return MemberStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             content = timelineEvent.content as MemberEventContent,
             roomId = roomId,

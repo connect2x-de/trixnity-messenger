@@ -1,10 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.DownloadManager
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -14,6 +13,7 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -53,8 +53,8 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
 
         should("download a file and process result") {
             every {
-                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
-            } returns async { Result.success(Unit) }
+                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+            } returns async { Result.success(InMemoryPlatformMedia(file)) }
 
             val cut = fileBasedMessageViewModel()
             var downloadResult: ByteArray? = null
@@ -72,7 +72,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
         }
         should("download a file and set Result to 'failure' if not successful") {
             every {
-                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
+                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
             } returns async { Result.failure(RuntimeException("Oh no!")) }
 
             val cut = fileBasedMessageViewModel()
@@ -91,7 +91,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
         }
         should("download a file and reset everything if the download is cancelled") {
             every {
-                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any(), any())
+                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
             } returns async {
                 delay(5.seconds)
                 Result.failure(RuntimeException("Oh no!"))
@@ -113,10 +113,9 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun fileBasedMessageViewModel(): FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File> =
+    private fun TestScope.fileBasedMessageViewModel(): FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File> =
         object : FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File>(
-            MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
                         createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +

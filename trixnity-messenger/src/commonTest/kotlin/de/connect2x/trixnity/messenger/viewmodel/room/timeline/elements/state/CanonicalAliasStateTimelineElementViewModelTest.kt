@@ -1,11 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -15,14 +13,11 @@ import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -41,7 +36,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -104,7 +98,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias1,
                     aliases = setOf(alias2, alias3)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -126,7 +119,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias1,
                     aliases = setOf(alias2)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -148,7 +140,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias1,
                     aliases = setOf(alias2)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -170,7 +161,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = null,
                     aliases = setOf(alias2, alias1, alias3)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -192,7 +182,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = null,
                     aliases = setOf(alias1, alias3)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -214,7 +203,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias2,
                     aliases = setOf(alias1, alias3, alias4)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -236,7 +224,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias2,
                     aliases = setOf(alias1, alias3, alias4, alias5)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -262,7 +249,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias2,
                     aliases = setOf(alias1, alias3)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -284,7 +270,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias2,
                     aliases = setOf(alias1, alias3)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -309,7 +294,6 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
                     alias = alias2,
                     aliases = setOf(alias1, alias3)
                 ),
-                coroutineContext = coroutineContext
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
 
@@ -322,12 +306,10 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend fun roomAliasChangeStatusViewModel(
+    private suspend fun TestScope.roomAliasChangeStatusViewModel(
         eventContent: CanonicalAliasEventContent,
         previousEventContent: CanonicalAliasEventContent,
-        coroutineContext: CoroutineContext,
     ): CanonicalAliasStateTimelineElementViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
@@ -350,11 +332,9 @@ class CanonicalAliasStateTimelineElementViewModelTest : ShouldSpec() {
             )
         )
         return CanonicalAliasStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             content = eventContent,
             roomId,

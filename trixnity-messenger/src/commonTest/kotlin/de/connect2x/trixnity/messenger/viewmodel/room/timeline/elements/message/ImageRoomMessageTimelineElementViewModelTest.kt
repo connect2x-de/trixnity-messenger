@@ -1,9 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -17,6 +15,7 @@ import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,7 +29,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -59,7 +57,7 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
                 )
             } returns "thumbnail".encodeToByteArray()
 
-            val cut = imageMessageViewModel(coroutineContext)
+            val cut = imageMessageViewModel()
             launch { cut.thumbnail.collect {} }
 
             eventually(2.seconds) {
@@ -85,7 +83,7 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
                 }
             }
 
-            val cut = imageMessageViewModel(coroutineContext)
+            val cut = imageMessageViewModel()
             launch { cut.thumbnail.collect {} }
 
             continually(400.milliseconds) {
@@ -110,7 +108,7 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
                 )
             } returns null
 
-            val cut = imageMessageViewModel(coroutineContext)
+            val cut = imageMessageViewModel()
             launch { cut.thumbnail.collect {} }
 
             eventually(1.seconds) {
@@ -121,10 +119,9 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun imageMessageViewModel(coroutineContext: CoroutineContext): ImageRoomMessageTimelineElementViewModelImpl {
+    private fun TestScope.imageMessageViewModel(): ImageRoomMessageTimelineElementViewModelImpl {
         return ImageRoomMessageTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
                         createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
@@ -133,7 +130,6 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext,
             ),
             content = RoomMessageEventContent.FileBased.Image(""),
         )

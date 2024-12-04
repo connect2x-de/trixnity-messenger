@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -10,6 +8,7 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -40,7 +39,6 @@ import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class TopicStateTimelineElementViewModelTest : ShouldSpec() {
@@ -56,8 +54,8 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
+        coroutineTestScope = true
         beforeTest {
-            coroutineTestScope = true
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -87,7 +85,6 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
         should("display who changed the room's topic (with reference to the old topic)") {
             val cut = roomTopicChangeStatusViewModel(
                 oldTopic = "old topic",
-                coroutineContext = coroutineContext,
             )
             val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
@@ -100,7 +97,7 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
 
         should("display who changed the room's topic without the old topic if not set") {
             val cut =
-                roomTopicChangeStatusViewModel(coroutineContext = coroutineContext)
+                roomTopicChangeStatusViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
@@ -111,7 +108,7 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("react to username changes") {
-            val cut = roomTopicChangeStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomTopicChangeStatusViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
             cut.changeMessage.first() shouldBe """Bob has changed the topic of the group to 'new topic'"""
@@ -125,7 +122,7 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("react to changes of room's direct value") {
-            val cut = roomTopicChangeStatusViewModel(coroutineContext = coroutineContext)
+            val cut = roomTopicChangeStatusViewModel()
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
             cut.changeMessage.first() shouldBe """Bob has changed the topic of the group to 'new topic'"""
@@ -139,9 +136,8 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend fun roomTopicChangeStatusViewModel(
+    private suspend fun TestScope.roomTopicChangeStatusViewModel(
         oldTopic: String? = null,
-        coroutineContext: CoroutineContext,
     ): NameStateTimelineElementViewModel {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
@@ -170,11 +166,9 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
         )
         every { roomServiceMock.getTimelineEvent(roomId, eventId) } returns flowOf(timelineEvent)
         return NameStateTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             content = timelineEvent.event.content as NameEventContent,
             roomId = roomId,
