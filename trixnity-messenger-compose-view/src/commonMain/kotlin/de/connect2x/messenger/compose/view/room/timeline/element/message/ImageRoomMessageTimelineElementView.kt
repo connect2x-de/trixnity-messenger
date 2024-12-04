@@ -25,8 +25,8 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
@@ -65,8 +65,8 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             },
-        ) { showActionMenu ->
-            MessageImage(holder, element, showActionMenu)
+        ) { showActionMenu, onSave ->
+            MessageImage(holder, element, showActionMenu, onSave)
         }
     }
 
@@ -85,12 +85,13 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 internal fun ColumnScope.MessageImage(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
-    showActionMenu: () -> Unit
+    showActionMenu: () -> Unit,
+    onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
     image?.let {
-        MessageImageImpl(it, holder, element, showActionMenu)
-    } ?: MessageImageFallback(element, showActionMenu)
+        MessageImageImpl(it, holder, element, showActionMenu, onSave)
+    } ?: MessageImageFallback(element, showActionMenu, onSave)
 }
 
 @OptIn(ExperimentalResourceApi::class)
@@ -99,7 +100,8 @@ internal fun ColumnScope.MessageImageImpl(
     image: ByteArray,
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
-    showActionMenu: () -> Unit
+    showActionMenu: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val showSender = holder.showSender.collectAsState().value
     Image(
@@ -119,7 +121,8 @@ internal fun ColumnScope.MessageImageImpl(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        element.open()
+                        // FIXME overlay
+                        onSave()
                     },
                     onLongPress = { showActionMenu() },
                 )
@@ -133,6 +136,7 @@ internal fun ColumnScope.MessageImageImpl(
 internal fun ColumnScope.MessageImageFallback(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     showActionMenu: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     Icon(
@@ -142,7 +146,7 @@ internal fun ColumnScope.MessageImageFallback(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        element.open()
+                        onSave()
                     },
                     onLongPress = { showActionMenu() },
                 )

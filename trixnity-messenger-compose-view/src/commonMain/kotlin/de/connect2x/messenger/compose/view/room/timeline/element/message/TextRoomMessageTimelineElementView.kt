@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlin.reflect.KClass
 
-// FIXME into DI
 class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.TextBased.Text> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.TextBased.Text> =
         RoomMessageTimelineElementViewModel.TextBased.Text::class

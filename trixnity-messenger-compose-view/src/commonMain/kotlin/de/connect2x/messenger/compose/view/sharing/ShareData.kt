@@ -41,9 +41,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -66,8 +66,6 @@ import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
-import net.folivo.trixnity.utils.toByteArray
-import org.koin.core.component.get
 
 interface ShareDataView {
     @Composable
@@ -86,7 +84,7 @@ class ShareDataViewImpl : ShareDataView {
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
         val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
-        val allRooms by viewModel.roomList.sortedRoomListElementViewModels.collectAsState()
+        val allRooms by viewModel.roomList.elements.collectAsState()
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
         val sending by viewModel.sending.collectAsState()
         val enabled = selectedRoomId != null && !sending
@@ -148,11 +146,11 @@ class ShareDataViewImpl : ShareDataView {
                     } else {
                         LazyColumn(Modifier.fillMaxSize(), state) {
                             items(
-                                allRooms, { (roomId, _) -> roomId.full }) { roomListElement ->
+                                allRooms, { it.roomId.full }) { roomListElement ->
                                 RoomListElementContainer(
                                     roomListElement.roomId,
                                     viewModel.roomList,
-                                    roomListElement.viewModel,
+                                    roomListElement,
                                 )
                             }
                         }

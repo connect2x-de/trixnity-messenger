@@ -63,8 +63,8 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             }
-        ) { showActionMenu ->
-            MessageAudio(element, showActionMenu)
+        ) { showActionMenu, onSave ->
+            MessageAudio(element, showActionMenu, onSave)
         }
     }
 
@@ -81,7 +81,11 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 }
 
 @Composable
-internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased.Audio, showActionMenu: () -> Unit) {
+internal fun MessageAudio(
+    element: RoomMessageTimelineElementViewModel.FileBased.Audio,
+    showActionMenu: () -> Unit,
+    onSave: () -> Unit,
+) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
 
@@ -98,9 +102,7 @@ internal fun MessageAudio(element: RoomMessageTimelineElementViewModel.FileBased
                         .size(64.dp)
                         .pointerInput(Unit) {
                             detectTapGestures(
-                                onTap = {
-                                    element.open()
-                                },
+                                onTap = { onSave() },
                                 onLongPress = { showActionMenu() },
                             )
                         }

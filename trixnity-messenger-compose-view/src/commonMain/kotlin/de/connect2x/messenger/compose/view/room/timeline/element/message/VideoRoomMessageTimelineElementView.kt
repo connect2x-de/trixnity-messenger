@@ -73,8 +73,8 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             }
-        ) { showMenuAction ->
-            MessageVideo(holder, element, showMenuAction)
+        ) { showMenuAction, onSave ->
+            MessageVideo(holder, element, showMenuAction, onSave)
         }
     }
 
@@ -94,6 +94,7 @@ internal fun ColumnScope.MessageVideo(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Video,
     showMenuAction: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
@@ -110,10 +111,10 @@ internal fun ColumnScope.MessageVideo(
                         it,
                         "",
                         Modifier
-                            .heightIn(64.dp, videoMessageViewModel.getHeight(400f).dp) // FIXME getHeight?
+                            .heightIn(64.dp, 400.dp) // FIXME getHeight? videoMessageViewModel.getHeight(400f).dp
                             .widthIn(64.dp, 400.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .openVideoOnTouch(element) { showMenuAction() }
+                            .openVideoOnTouch(element, onSave, showMenuAction)
                             .buttonPointerModifier(),
                         contentScale = ContentScale.FillBounds
                     )
@@ -123,7 +124,7 @@ internal fun ColumnScope.MessageVideo(
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
-                            .openVideoOnTouch(element) { showMenuAction() }
+                            .openVideoOnTouch(element, onSave, showMenuAction)
                             .buttonPointerModifier(),
                         tint = Color.DarkGray,
                     )
@@ -139,14 +140,11 @@ internal fun ColumnScope.MessageVideo(
 private fun Modifier.openVideoOnTouch(
     element: RoomMessageTimelineElementViewModel.FileBased.Video,
     showMenuAction: () -> Unit,
+    onSave: () -> Unit,
 ): Modifier {
     return this.then(pointerInput(Unit) {
         detectTapGestures(
-            onTap = {
-                //Since openVideo only starts the saveDialog currently, restricting it doesn't make sense yet
-                //if (uploadProgress != null && uploadProgress.percent >= 1.0f)
-                element.open()
-            },
+            onTap = { onSave() },
             onLongPress = { showMenuAction() },
         )
     })

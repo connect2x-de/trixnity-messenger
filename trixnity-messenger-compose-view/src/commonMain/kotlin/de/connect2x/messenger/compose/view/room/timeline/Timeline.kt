@@ -183,7 +183,6 @@ class TimelineViewImpl : TimelineView {
                                     ) { viewModel ->
                                         TimelineElementHolder(
                                             viewModel,
-                                            timelineViewModel,
                                         )
                                     }
                                     stickyHeader(date) {

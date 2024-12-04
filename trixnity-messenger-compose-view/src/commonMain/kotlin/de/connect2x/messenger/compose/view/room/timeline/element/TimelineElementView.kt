@@ -12,8 +12,8 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: V)
 
     @Composable
-    fun createReplyInTimeline(element: V)
+    fun createReplyInTimeline(element: V) {}
 
     @Composable
-    fun createReplyInSendMessage(element: V)
+    fun createReplyInSendMessage(element: V) {}
 }

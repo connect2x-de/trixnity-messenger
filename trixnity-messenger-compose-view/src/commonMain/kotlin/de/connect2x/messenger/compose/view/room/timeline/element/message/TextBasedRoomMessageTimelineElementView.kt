@@ -87,7 +87,7 @@ private fun MessageTextContent(
 
         val message = element.formattedBody
             ?: element.body
-        val text = formatMessage(message, mentions, element)
+        val text = formatMessage(message, mentions, holder, element)
 
         val richTextState = rememberRichTextState()
         LaunchedEffect(text) {

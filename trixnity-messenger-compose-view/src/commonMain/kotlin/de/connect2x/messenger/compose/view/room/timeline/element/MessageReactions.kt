@@ -104,6 +104,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
                     val reactionEvents = reactions[reaction].orEmpty()
                     MessageReactionButton(
                         reaction = reaction,
+                        reactionEvents = reactionEvents,
                         count = reactionEvents.size,
                         myReaction = reactionEvents.firstOrNull { it.isMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,

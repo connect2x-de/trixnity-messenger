@@ -35,13 +35,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType
 
 interface ReplyToAreaView {
     @Composable
@@ -71,7 +69,7 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
                     )
                     // FIXME how to get a Holder here?
                     ReplyToPill(replyToViewModel!!) {
-                        timelineElementViewSelector.createReplyInSendMessage()
+//                        timelineElementViewSelector.createReplyInSendMessage()
                     }
                 }
             }

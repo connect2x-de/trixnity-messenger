@@ -35,13 +35,14 @@ class MessageInfoViewImpl : MessageInfoView {
     override fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         infoOpen: MutableState<Boolean>,
-        modifier: Modifier
+        modifier: Modifier,
     ) {
         if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
             return
         }
 
         var readers = timelineElementHolderViewModel.isReadBy.collectAsState().value ?: emptyList()
+        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
         val focusRequester = remember { FocusRequester() }
 
         InfoPopup(

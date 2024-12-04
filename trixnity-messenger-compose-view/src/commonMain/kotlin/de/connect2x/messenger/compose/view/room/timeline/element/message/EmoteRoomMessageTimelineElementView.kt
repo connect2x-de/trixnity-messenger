@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlin.reflect.KClass
 
-// FIXME into DI
 class EmoteRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.TextBased.Emote> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.TextBased.Emote> =
         RoomMessageTimelineElementViewModel.TextBased.Emote::class
