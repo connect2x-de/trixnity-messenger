@@ -121,13 +121,12 @@ class CreateStateTimelineElementViewModelTest : ShouldSpec() {
         }
 
         should("react to room's direct changes") {
-            val isDirectFlow = MutableStateFlow(false)
             val cut = roomCreatedStatusViewModel()
             val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
             cut.message.value shouldBe "Bob has created the group"
 
-            isDirectFlow.value = true
+            isDirect.value = true
             testCoroutineScheduler.advanceUntilIdle()
 
             cut.message.value shouldBe "Bob has created the chat"

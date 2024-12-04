@@ -107,7 +107,7 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.message.collect {} }
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.message.value shouldBe "message has been deleted by Test User"
+            cut.message.value shouldBe "message has been deleted by Other User"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()

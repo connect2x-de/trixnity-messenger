@@ -119,7 +119,7 @@ class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
             viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("user1", "server") to matrixClientMock))
                     )
                 }.koin,
                 userId = UserId("user1", "server"),

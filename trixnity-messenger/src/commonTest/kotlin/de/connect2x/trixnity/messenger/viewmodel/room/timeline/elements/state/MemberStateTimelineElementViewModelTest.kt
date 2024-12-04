@@ -139,7 +139,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
 
-            cut.changeMessage.value shouldBe "Bob has changed the avatar image"
+            cut.changeMessage.value shouldBe "Sender has changed the avatar image"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -191,7 +191,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
 
-            cut.changeMessage.value shouldBe "Mallory has been removed by User1 from the group"
+            cut.changeMessage.value shouldBe "Mallory has been removed by Sender from the group"
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -208,7 +208,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
             val subscriberJob = launch { cut.changeMessage.collect {} }
             advanceUntilIdle()
 
-            cut.changeMessage.value shouldBe "Bob has been invited by User1"
+            cut.changeMessage.value shouldBe "Bob has been invited by Sender"
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -285,7 +285,7 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                 di = di,
                 userId = UserId("test", "server"),
             ),
-            content = timelineEvent.content as MemberEventContent,
+            content = timelineEvent.event.content as MemberEventContent,
             roomId = roomId,
             eventId = eventId,
         )
@@ -319,9 +319,9 @@ class MemberStateTimelineElementViewModelTest : ShouldSpec() {
                     membership = membership,
                     isDirect = isDirect,
                 ),
-                id = EventId(""),
-                sender = UserId(""),
-                roomId = RoomId(""),
+                id = eventId,
+                sender = sender,
+                roomId = roomId,
                 originTimestamp = 0L,
                 unsigned = UnsignedRoomEventData.UnsignedStateEventData(
                     previousContent = previousMemberEventContent,

@@ -35,7 +35,6 @@ import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -138,7 +137,7 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
 
     private suspend fun TestScope.roomTopicChangeStatusViewModel(
         oldTopic: String? = null,
-    ): NameStateTimelineElementViewModel {
+    ): TopicStateTimelineElementViewModel {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
             modules(
@@ -165,12 +164,12 @@ class TopicStateTimelineElementViewModelTest : ShouldSpec() {
             gap = null,
         )
         every { roomServiceMock.getTimelineEvent(roomId, eventId) } returns flowOf(timelineEvent)
-        return NameStateTimelineElementViewModelImpl(
+        return TopicStateTimelineElementViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
             ),
-            content = timelineEvent.event.content as NameEventContent,
+            content = timelineEvent.event.content as TopicEventContent,
             roomId = roomId,
             eventId = eventId,
         )
