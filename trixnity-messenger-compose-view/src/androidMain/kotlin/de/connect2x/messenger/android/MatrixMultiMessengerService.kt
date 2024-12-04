@@ -12,7 +12,7 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
-import de.connect2x.trixnity.messenger.util.SharedFileHandler
+import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -97,21 +97,17 @@ class MatrixMessengerServiceConnection : ServiceConnection {
     val matrixMultiMessenger = _matrixMultiMessenger.asStateFlow()
 
     // If we get the share files intent before the service connection is established, cache them
-    private var sharedFiles = MutableStateFlow<List<SharedFile>?>(null)
+    private var sharedData = MutableStateFlow<SharedIntentData?>(null)
 
-    fun onShareFiles(context: Context, sharedFiles: List<SharedFile>?) {
-        this.sharedFiles.value = sharedFiles
-        _matrixMultiMessenger.value?.activeMatrixMessenger?.value?.let { useCachedFiles(context, it) }
+    fun onShareData(context: Context, sharedFiles: SharedIntentData?) {
+        this.sharedData.value = sharedFiles
+        _matrixMultiMessenger.value?.activeMatrixMessenger?.value?.let { useCachedData(context, it) }
     }
 
-    private fun useCachedFiles(context: Context, messenger: MatrixMessenger) {
-        sharedFiles.getAndUpdate { null }?.let { files ->
+    private fun useCachedData(context: Context, messenger: MatrixMessenger) {
+        sharedData.getAndUpdate { null }?.let { data ->
             val i18n = messenger.di.get<I18n>()
-            messenger.di.get<SharedFileHandler>().onShare(
-                files.map {
-                    it.toFileDescriptor(context, i18n)
-                }
-            )
+            messenger.di.get<SharedDataHandler>().onShare(data.toSharedData(context, i18n))
         }
     }
 
@@ -127,7 +123,7 @@ class MatrixMessengerServiceConnection : ServiceConnection {
                 log.debug { "matrixMultiMessenger found" }
                 _matrixMultiMessenger.value = it
                 it?.activeMatrixMessenger?.filterNotNull()?.collectLatest {
-                    useCachedFiles(service, it)
+                    useCachedData(service, it)
                 }
             }
         }.invokeOnCompletion { _matrixMultiMessenger.value = null }

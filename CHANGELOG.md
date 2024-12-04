@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add ability to share plain and formatted text
+- Add ability to share url with icon
+
 ### Changed
 
 - Color handling utils
@@ -19,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- Format links with escaped ampersand (`&amp;`)
+- Format links with semicolon (`https://abc.xyz/a;b;c`)
 
 ### Security
 

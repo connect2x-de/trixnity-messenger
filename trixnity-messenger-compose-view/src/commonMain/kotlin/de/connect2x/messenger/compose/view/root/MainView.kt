@@ -48,6 +48,6 @@ class MainViewImpl : MainView {
         AccountSetupSwitch(mainViewModel)
         SelfVerificationSwitch(mainViewModel)
         DeviceVerificationSwitch(mainViewModel)
-        ShareFilesSwitch(mainViewModel)
+        ShareDataSwitch(mainViewModel)
     }
 }
