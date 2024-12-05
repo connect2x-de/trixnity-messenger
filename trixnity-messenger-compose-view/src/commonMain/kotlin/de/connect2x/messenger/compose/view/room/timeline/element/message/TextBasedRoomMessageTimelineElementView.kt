@@ -2,8 +2,14 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +31,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -60,54 +67,17 @@ private fun MessageTextContent(
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
     showActionMenu: () -> Unit,
 ) {
-//    val referencedMessage = holder.repliedElement.collectAsState().value // FIXME in parent element?
-
     val i18n = DI.get<I18nView>()
 
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
-        // FIXME own View?
-//        if (textBasedRoomMessageTimelineElementViewModel is NoticeMessageViewModel) {
-//            Row {
-//                Icon(Icons.Filled.SmartToy, i18n.automated())
-//                Text(i18n.automated())
-//            }
-//
-//            Spacer(Modifier.size(5.dp))
-//        }
+        if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
+            Row {
+                Icon(Icons.Filled.SmartToy, i18n.automated())
+                Text(i18n.automated())
+            }
 
-//        if (referencedMessage != null) {
-//            val sender = referencedMessage.sender
-//            ReferencedMessagePill(
-//                senderName = sender.name,
-//                senderNameColor = MaterialTheme.messengerColors.getUserColor(sender.userId),
-//                content = {
-//                    when (referencedMessage) {
-//                        is ReferencedMessage.ReferencedTextMessage -> TextReply(referencedMessage.messageShortened())
-//                        is ReferencedMessage.ReferencedImageMessage ->
-//                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
-//                                ?.let { imageBitmap ->
-//                                    ImageReply(imageBitmap)
-//                                } ?: ImageReplyDefault(referencedMessage.fileName)
-//
-//                        is ReferencedMessage.ReferencedVideoMessage ->
-//                            referencedMessage.thumbnail?.let { imageBitmapFromBytes(it) }
-//                                ?.let { imageBitmap ->
-//                                    VideoReply(imageBitmap)
-//                                } ?: VideoReplyDefault(referencedMessage.fileName)
-//
-//                        is ReferencedMessage.ReferencedAudioMessage -> AudioReply(referencedMessage.fileName)
-//                        is ReferencedMessage.ReferencedFileMessage -> FileReply(referencedMessage.fileName)
-//                        is ReferencedMessage.ReferencedLocationMessage -> LocationReply(
-//                            referencedMessage.name,
-//                            referencedMessage.geoUri,
-//                        )
-//
-//                        is ReferencedMessage.ReferencedUnknownMessage -> UnknownReply()
-//                    }
-//                },
-//            )
-//            Spacer(Modifier.size(5.dp))
-//        }
+            Spacer(Modifier.size(5.dp))
+        }
 
         val mentions = (element.mentionsInFormattedBody
             ?: element.mentionsInBody)
@@ -117,7 +87,7 @@ private fun MessageTextContent(
 
         val message = element.formattedBody
             ?: element.body
-        val text = formatMessage(message, mentions, element)
+        val text = formatMessage(message, mentions, holder, element)
 
         val richTextState = rememberRichTextState()
         LaunchedEffect(text) {

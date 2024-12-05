@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -24,8 +25,9 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
+import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -40,7 +42,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Image,
     ) {
@@ -63,9 +65,19 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             },
-        ) { showActionMenu ->
-            MessageImage(holder, element, showActionMenu)
+        ) { showActionMenu, onSave ->
+            MessageImage(holder, element, showActionMenu, onSave)
         }
+    }
+
+    @Composable
+    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+        ReplyImage(element)
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+        ReplyImage(element)
     }
 }
 
@@ -73,12 +85,13 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 internal fun ColumnScope.MessageImage(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
-    showActionMenu: () -> Unit
+    showActionMenu: () -> Unit,
+    onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
     image?.let {
-        MessageImageImpl(it, holder, element, showActionMenu)
-    } ?: MessageImageFallback(element, showActionMenu)
+        MessageImageImpl(it, holder, element, showActionMenu, onSave)
+    } ?: MessageImageFallback(element, showActionMenu, onSave)
 }
 
 @OptIn(ExperimentalResourceApi::class)
@@ -87,7 +100,8 @@ internal fun ColumnScope.MessageImageImpl(
     image: ByteArray,
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
-    showActionMenu: () -> Unit
+    showActionMenu: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val showSender = holder.showSender.collectAsState().value
     Image(
@@ -107,7 +121,8 @@ internal fun ColumnScope.MessageImageImpl(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        element.open()
+                        // FIXME overlay
+                        onSave()
                     },
                     onLongPress = { showActionMenu() },
                 )
@@ -121,6 +136,7 @@ internal fun ColumnScope.MessageImageImpl(
 internal fun ColumnScope.MessageImageFallback(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     showActionMenu: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     Icon(
@@ -130,7 +146,7 @@ internal fun ColumnScope.MessageImageFallback(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        element.open()
+                        onSave()
                     },
                     onLongPress = { showActionMenu() },
                 )
@@ -139,5 +155,30 @@ internal fun ColumnScope.MessageImageFallback(
             .buttonPointerModifier()
     )
     FileName(element.name)
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+internal fun ReplyImage(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+    val i18n = DI.get<I18nView>()
+    val image = element.thumbnail.collectAsState().value
+
+    image?.let { image ->
+        Image(
+            image.decodeToImageBitmap(),
+            "",
+            Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Fit
+        )
+    } ?: run {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                MaterialTheme.messengerIcons.typeImage,
+                i18n.commonImage(),
+                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
+            )
+            FileName(element.name)
+        }
+    }
 }
 

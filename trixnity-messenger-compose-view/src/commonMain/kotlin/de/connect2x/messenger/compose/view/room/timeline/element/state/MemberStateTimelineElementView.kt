@@ -14,7 +14,7 @@ class MemberStateTimelineElementView : TimelineElementView<MemberStateTimelineEl
     override val supports: KClass<MemberStateTimelineElementViewModel> = MemberStateTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: MemberStateTimelineElementViewModel
     ) {

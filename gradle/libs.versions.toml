@@ -17,6 +17,7 @@ kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
 decompose = "3.2.2" # https://github.com/arkivanov/Decompose/releases
+essenty = "2.2.1" # https://github.com/arkivanov/Decompose/releases (bound to decompose version)
 kotlinxDatetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "4.0.0" # https://github.com/InsertKoinIO/koin/tags
 ktor = "3.0.1" # https://github.com/ktorio/ktor/releases
@@ -69,6 +70,7 @@ trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref
 trixnity-client-media = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
 trixnity-client-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+essenty = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
 sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
 sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }

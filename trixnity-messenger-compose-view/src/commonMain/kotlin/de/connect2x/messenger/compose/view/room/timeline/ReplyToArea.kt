@@ -35,12 +35,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyType
 
 interface ReplyToAreaView {
     @Composable
@@ -56,6 +55,7 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
     @Composable
     override fun ColumnScope.create(replyToViewModel: ReplyToViewModel?) {
         val i18n = DI.get<I18nView>()
+        val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
         val replyTo = replyToViewModel?.replyTo?.collectAsState()?.value
         val isMobile = Platform.current.isMobile
 
@@ -67,24 +67,9 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
                         i18n.replyTo(),
                         modifier = Modifier.padding(horizontal = if (isMobile) 10.dp else 15.dp),
                     )
+                    // FIXME how to get a Holder here?
                     ReplyToPill(replyToViewModel!!) {
-                        when (replyTo) {
-                            is ReplyType.TextReply -> TextReply(replyTo.text, maxLines = 2)
-                            is ReplyType.ImageReply ->
-                                replyTo.thumbnail?.let { imageBitmapFromBytes(it) }?.let { imageBitmap ->
-                                    ImageReply(imageBitmap)
-                                } ?: ImageReplyDefault(replyTo.fileName)
-
-                            is ReplyType.VideoReply ->
-                                replyTo.thumbnail?.let { imageBitmapFromBytes(it) }?.let { imageBitmap ->
-                                    VideoReply(imageBitmap)
-                                } ?: VideoReplyDefault(replyTo.fileName)
-
-                            is ReplyType.AudioReply -> AudioReply(replyTo.fileName)
-                            is ReplyType.FileReply -> FileReply(replyTo.fileName)
-                            is ReplyType.LocationReply -> LocationReply(replyTo.body, replyTo.geoUri)
-                            else -> UnknownReply()
-                        }
+//                        timelineElementViewSelector.createReplyInSendMessage()
                     }
                 }
             }

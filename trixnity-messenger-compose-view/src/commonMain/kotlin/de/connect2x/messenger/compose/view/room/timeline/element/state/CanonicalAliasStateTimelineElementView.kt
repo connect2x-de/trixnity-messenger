@@ -15,7 +15,7 @@ class CanonicalAliasStateTimelineElementView : TimelineElementView<CanonicalAlia
         CanonicalAliasStateTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: CanonicalAliasStateTimelineElementViewModel
     ) {

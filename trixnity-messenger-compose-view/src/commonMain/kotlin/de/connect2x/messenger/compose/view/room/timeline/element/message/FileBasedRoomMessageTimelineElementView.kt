@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -38,7 +39,7 @@ fun FileBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     overlay: @Composable BoxScope.() -> Unit = {},
-    content: @Composable ColumnScope.(onSave: () -> Unit) -> Unit,
+    content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
 
@@ -89,7 +90,7 @@ internal fun FileBasedView(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     saveDialogOpen: MutableState<Boolean>,
     showActionMenu: () -> Unit,
-    content: @Composable ColumnScope.(onSave: () -> Unit) -> Unit
+    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, onSave: () -> Unit) -> Unit
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
@@ -102,7 +103,6 @@ internal fun FileBasedView(
             Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = { element.open() },
                         onLongPress = { showActionMenu() },
                     )
                 }
@@ -110,7 +110,7 @@ internal fun FileBasedView(
                 .buttonPointerModifier()
         ) {
             // content based on the actual file
-            content {
+            content(showActionMenu) {
                 saveDialogOpen.value = true
             }
         }

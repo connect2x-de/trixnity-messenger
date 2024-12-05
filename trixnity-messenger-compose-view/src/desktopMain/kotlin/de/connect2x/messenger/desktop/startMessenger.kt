@@ -34,5 +34,5 @@ fun startMessenger(
         ?.split("=")?.last()?.toBoolean()
         ?: false
 
-    messengerApp(matrixMultiMessenger, lifecycle, urlHandler, isDebug)
+    messengerApp(matrixMultiMessenger, lifecycle, urlHandler)
 }

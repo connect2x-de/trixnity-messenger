@@ -15,7 +15,7 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
         HistoryVisibilityStateTimelineElementViewModel::class
 
     @Composable
-    override fun create(
+    override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel
     ) {
