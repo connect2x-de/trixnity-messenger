@@ -750,7 +750,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        onMessageEditFinished: (EventId) -> Unit,
+                                        onMessageReplaceFinished: (EventId) -> Unit,
                                         onMessageReplyToFinished: (EventId) -> Unit,
                                         onShowAttachmentSendView: (file: FileDescriptor) -> Unit
                                     ): InputAreaViewModel {

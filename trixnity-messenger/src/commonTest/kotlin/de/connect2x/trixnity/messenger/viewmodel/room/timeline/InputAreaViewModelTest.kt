@@ -21,7 +21,6 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beInstanceOf
@@ -939,8 +938,8 @@ Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>"""
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext,
             ),
-            selectedRoomId = roomId,
-            onMessageEditFinished = onMessageEditFinishedMock,
+            roomId = roomId,
+            onMessageReplaceFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,
             onShowAttachmentSendView = mock(),
         )

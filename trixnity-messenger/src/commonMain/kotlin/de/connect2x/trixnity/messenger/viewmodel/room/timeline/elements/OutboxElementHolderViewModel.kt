@@ -111,7 +111,7 @@ class OutboxElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
-                childContext("element", lifecycle),
+                childContextWithOwnLifecycle(lifecycle),
                 Result.success(outboxMessage.content),
                 roomId,
                 EventIdOrTransactionId(transactionId),
@@ -131,7 +131,7 @@ class OutboxElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             repliedTimelineElementHolderViewModelFactory.create(
-                childContext("repliedElement", lifecycle),
+                childContextWithOwnLifecycle(lifecycle),
                 matrixClient.room.getTimelineEvent(roomId, repliedEventId),
                 roomId,
                 repliedEventId,

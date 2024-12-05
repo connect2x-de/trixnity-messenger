@@ -12,14 +12,14 @@ private val log = KotlinLogging.logger { }
 interface ReportToMessageViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        roomId: RoomId,
         eventId: EventId,
-        selectedRoomId: RoomId,
-        onShowReportMessageDialog: (EventId) -> Unit,
-        onMessageReportFinished: (EventId) -> Unit,
+        onShowReportMessageDialog: (RoomId, EventId) -> Unit,
+        onMessageReportFinished: () -> Unit,
     ): ReportMessageViewModel {
         return ReportMessageViewModelImpl(
             viewModelContext,
-            selectedRoomId,
+            roomId,
             eventId,
             onMessageReportFinished,
         )
@@ -37,9 +37,9 @@ interface ReportMessageViewModel {
 
 open class ReportMessageViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val selectedRoomId: RoomId,
+    private val roomId: RoomId,
     eventId: EventId,
-    private val onReportMessageFinished: (EventId) -> Unit,
+    private val onReportMessageFinished: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ReportMessageViewModel {
 
 
@@ -48,9 +48,9 @@ open class ReportMessageViewModelImpl(
 
     override fun submitReportToMessage() {
         coroutineScope.launch {
-            log.info { "Message report to roomId: ${selectedRoomId} eventId: ${eventId.value}" }
+            log.info { "Message report to roomId: ${roomId} eventId: ${eventId.value}" }
             matrixClient.api.room.reportEvent(
-                roomId = selectedRoomId,
+                roomId = roomId,
                 eventId = eventId.value,
                 reason = messageReportReason.value
             ).fold(onSuccess = {
@@ -64,7 +64,7 @@ open class ReportMessageViewModelImpl(
 
     override fun closeReportMessageDialog() {
         messageReportReason.value = null
-        onReportMessageFinished(eventId.value)
+        onReportMessageFinished()
     }
 }
 

@@ -1,7 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.decompose.InternalDecomposeApi
 import com.arkivanov.decompose.childContext
+import com.arkivanov.decompose.lifecycle.MergedLifecycle
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -21,9 +24,9 @@ interface ViewModelContext : KoinComponent, ComponentContext {
      * This should be used carefully, because it can lead to leaks when not used on the top level.
      */
     val coroutineScope: CoroutineScope
-    fun childContext(key: String, lifecycle: Lifecycle? = null): ViewModelContext
+    fun childContext(key: String): ViewModelContext
     fun childContext(componentContext: ComponentContext): ViewModelContext
-    fun childContext(key: String, lifecycle: Lifecycle? = null, userId: UserId): MatrixClientViewModelContext
+    fun childContext(key: String, userId: UserId): MatrixClientViewModelContext
 
     fun childContext(componentContext: ComponentContext, userId: UserId): MatrixClientViewModelContext
 }
@@ -32,8 +35,13 @@ interface MatrixClientViewModelContext : ViewModelContext {
     val matrixClient: MatrixClient
     val userId: UserId
 
-    override fun childContext(key: String, lifecycle: Lifecycle?): MatrixClientViewModelContext
+    override fun childContext(key: String): MatrixClientViewModelContext
     override fun childContext(componentContext: ComponentContext): MatrixClientViewModelContext
+
+    /**
+     * TODO This is just a temporary workaround until decompose allows to destroy children.
+     */
+    fun childContextWithOwnLifecycle(lifecycle: Lifecycle): MatrixClientViewModelContext
 }
 
 val ViewModelContext.i18n: I18n
@@ -55,7 +63,7 @@ open class ViewModelContextImpl(
 
     override fun getKoin(): Koin = di
 
-    override fun childContext(key: String, lifecycle: Lifecycle?): ViewModelContext {
+    override fun childContext(key: String): ViewModelContext {
         val componentContext = this as ComponentContext
         return childContext(componentContext.childContext(key, lifecycle))
     }
@@ -68,7 +76,7 @@ open class ViewModelContextImpl(
         )
     }
 
-    override fun childContext(key: String, lifecycle: Lifecycle?, userId: UserId): MatrixClientViewModelContext {
+    override fun childContext(key: String, userId: UserId): MatrixClientViewModelContext {
         val componentContext = this as ComponentContext
         return childContext(componentContext.childContext(key, lifecycle), userId)
     }
@@ -91,10 +99,14 @@ open class MatrixClientViewModelContextImpl(
 ) : MatrixClientViewModelContext, ViewModelContextImpl(di, componentContext, coroutineContext) {
     override val matrixClient by lazy { getMatrixClient(userId) }
 
-    override fun childContext(key: String, lifecycle: Lifecycle?): MatrixClientViewModelContext {
+    override fun childContext(key: String): MatrixClientViewModelContext {
         val componentContext = this as ComponentContext
         return childContext(componentContext.childContext(key, lifecycle))
     }
+
+    @OptIn(InternalDecomposeApi::class)
+    override fun childContextWithOwnLifecycle(lifecycle: Lifecycle): MatrixClientViewModelContext =
+        childContext(DefaultComponentContext(MergedLifecycle(this.lifecycle, lifecycle)))
 
     override fun childContext(componentContext: ComponentContext): MatrixClientViewModelContext {
         return MatrixClientViewModelContextImpl(

@@ -57,7 +57,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecur
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModelFactory
@@ -394,7 +393,6 @@ private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
-    single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }

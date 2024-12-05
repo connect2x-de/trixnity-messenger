@@ -99,7 +99,7 @@ open class MemberListViewModelImpl(
                         lifecycle.start()
                         get<MemberListElementViewModelFactory>()
                             .create(
-                                viewModelContext = childContext("element-${userId.full}", lifecycle),
+                                viewModelContext = childContextWithOwnLifecycle(lifecycle),
                                 roomUser,
                                 error = error,
                                 selectedRoomId = selectedRoomId,

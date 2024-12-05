@@ -308,25 +308,25 @@ class TimelineViewModelImpl(
         get<InputAreaViewModelFactory>().create(
             viewModelContext = childContext("inputAreaViewModel"),
             selectedRoomId = roomId,
-            onMessageEditFinished = ::onMessageEditFinished,
-            onMessageReplyToFinished = ::onMessageReplyToFinished,
+            onMessageReplaceFinished = ::onMessageReplaceFinished,
+            onMessageReplyFinished = ::onMessageReplyFinished,
             onShowAttachmentSendView = ::onShowAttachmentSendView,
+            onOpenMention = onOpenMention,
         )
 
     private val reportMessageRouter: ReportMessageRouter = ReportMessageRouterImpl(
         viewModelContext = viewModelContext,
-        roomId = roomId,
         onShowReportMessageDialog = ::showReportMessageDialog,
         onReportMessageDialogDismiss = ::onReportMessageDialogDismiss
     )
 
-    internal fun onReportMessageDialogDismiss(eventId: EventId) = coroutineScope.launch {
-        log.trace { "Closing report popup dialog: $eventId" }
+    internal fun onReportMessageDialogDismiss() = coroutineScope.launch {
+        log.trace { "Closing report popup dialog" }
         reportMessageRouter.closeReportMessage()
     }
 
-    internal fun showReportMessageDialog(eventId: EventId) = coroutineScope.launch {
-        reportMessageRouter.showReportMessage(eventId)
+    internal fun showReportMessageDialog(roomId: RoomId, eventId: EventId) = coroutineScope.launch {
+        reportMessageRouter.showReportMessage(roomId, eventId)
     }
 
     override val reportMessageStack = reportMessageRouter.stack
@@ -530,7 +530,7 @@ class TimelineViewModelImpl(
             formatTime(Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone))
 
         val viewModel = get<TimelineElementHolderViewModelFactory>().create(
-            viewModelContext = childContext("timeline-$eventId", lifecycleRegistry),
+            viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
             key = key,
             timelineEventFlow = timelineEventFlow,
             roomId = roomId,
@@ -541,9 +541,9 @@ class TimelineViewModelImpl(
             canLoadBefore = canLoadBefore,
             canLoadAfter = canLoadAfter,
             getReceipts = ::getReceipts,
-            onMessageEdited = ::onMessageEdited,
-            onMessageRepliedTo = ::onMessageRepliedTo,
-            onMessageReportTo = ::onShowReportMessageModal,
+            onMessageReplace = ::onMessageReplace,
+            onMessageReply = ::onMessageReply,
+            onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
         ).also {
             // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
@@ -601,7 +601,7 @@ class TimelineViewModelImpl(
                     val lifecycleRegistry = LifecycleRegistry()
                     lifecycleRegistry.start()
                     get<OutboxElementHolderViewModelFactory>().create(
-                        viewModelContext = childContext("outbox-${transactionId}", lifecycleRegistry),
+                        viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
                         key = transactionId,
                         outboxMessageFlow = outboxMessage,
                         selectedRoomId = roomId,
@@ -634,9 +634,9 @@ class TimelineViewModelImpl(
         sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
     }
 
-    private fun onShowReportMessageModal(eventId: EventId) = coroutineScope.launch {
+    private fun onShowReportMessageModal(roomId: RoomId, eventId: EventId) = coroutineScope.launch {
         log.debug { "report to message $eventId" }
-        reportMessageRouter.showReportMessage(eventId)
+        reportMessageRouter.showReportMessage(roomId, eventId)
     }
 
     private fun closeAttachmentSendView() {
@@ -644,27 +644,27 @@ class TimelineViewModelImpl(
         jumpToEndOfTimeline()
     }
 
-    private fun onMessageEdited(eventId: EventId) {
+    private fun onMessageReplace(roomId: RoomId, eventId: EventId) {
         timelineElements.value
-            .filterNot { it.viewModel.eventId.full == eventId.full }
-            .forEach { it.viewModel.endEdit() }
-        inputAreaViewModel.editMessage(eventId)
+            .filterNot { it.eventId == eventId && it.roomId == roomId }
+            .forEach { it.viewModel.endReplace() }
+        inputAreaViewModel.editMessage(roomId, eventId)
     }
 
-    private fun onMessageEditFinished(eventId: EventId) {
-        timelineElements.value.firstOrNull { it.key == eventId.full }?.viewModel?.endEdit()
+    private fun onMessageReplaceFinished(roomId: RoomId, eventId: EventId) {
+        timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }?.viewModel?.endReplace()
             ?: log.warn { "try to end edit of timeline event that is not present ($eventId)" }
     }
 
-    private fun onMessageRepliedTo(eventId: EventId) {
+    private fun onMessageReply(roomId: RoomId, eventId: EventId) {
         timelineElements.value
-            .filterNot { it.viewModel.eventId.full == eventId.full }
-            .forEach { it.viewModel.endReplyTo() }
-        inputAreaViewModel.replyToMessage(eventId)
+            .filterNot { it.eventId == eventId && it.roomId == roomId }
+            .forEach { it.viewModel.endReply() }
+        inputAreaViewModel.replyToMessage(roomId, eventId)
     }
 
-    private fun onMessageReplyToFinished(eventId: EventId) {
-        timelineElements.value.firstOrNull { it.key == eventId.full }?.viewModel?.endReplyTo()
+    private fun onMessageReplyFinished(roomId: RoomId, eventId: EventId) {
+        timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }?.viewModel?.endReply()
             ?: log.warn { "try to end reply to timeline event that is not present (${eventId})" }
     }
 

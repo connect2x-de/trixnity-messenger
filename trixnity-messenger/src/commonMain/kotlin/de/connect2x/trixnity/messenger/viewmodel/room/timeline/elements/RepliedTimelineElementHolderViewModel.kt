@@ -125,7 +125,7 @@ class RepliedTimelineElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
-                childContext("element", lifecycle),
+                childContextWithOwnLifecycle(lifecycle),
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),

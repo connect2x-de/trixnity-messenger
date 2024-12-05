@@ -1,10 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.start
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -12,14 +19,18 @@ import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -46,6 +57,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -87,16 +99,18 @@ interface InputAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onMessageEditFinished: (EventId) -> Unit,
-        onMessageReplyToFinished: (EventId) -> Unit,
+        onMessageReplaceFinished: (RoomId, EventId) -> Unit,
+        onMessageReplyFinished: (RoomId, EventId) -> Unit,
         onShowAttachmentSendView: (file: FileDescriptor) -> Unit,
+        onOpenMention: OpenMentionCallback,
     ): InputAreaViewModel {
         return InputAreaViewModelImpl(
             viewModelContext,
             selectedRoomId,
-            onMessageEditFinished,
-            onMessageReplyToFinished,
+            onMessageReplaceFinished,
+            onMessageReplyFinished,
             onShowAttachmentSendView,
+            onOpenMention,
         )
     }
 
@@ -110,16 +124,16 @@ interface InputAreaViewModel {
     val showAttachmentSelectDialog: StateFlow<Boolean>
     val hasShownAttachmentSelectDialog: SharedFlow<Boolean>
     val isEdit: StateFlow<Boolean>
-    val replyToViewModel: StateFlow<ReplyToViewModel?>
+    val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?>
     val isReplyTo: StateFlow<Boolean>
     val listOfMentions: StateFlow<List<Username>>
     val listOfMentionsLoading: StateFlow<Boolean?>
     val useMarkdown: StateFlow<Boolean>
 
     /**
-     * The UI should focus the input area whenever this value changes to a non-null value.
+     * The UI should focus the input area whenever this emits a value.
      */
-    val shouldFocus: StateFlow<String?>
+    val shouldFocus: Flow<Unit>
 
     /**
      * The UI should set this value, so that mentions, etc. can be computed everywhere. When left to `null`, only the
@@ -134,43 +148,44 @@ interface InputAreaViewModel {
     fun selectAttachment()
     fun closeAttachmentDialog()
     fun onAttachmentFileSelect(file: FileDescriptor)
-    fun editMessage(eventId: EventId)
+    fun editMessage(roomId: RoomId, eventId: EventId)
     fun cancelEdit()
-    fun replyToMessage(eventId: EventId)
+    fun replyToMessage(roomId: RoomId, eventId: EventId)
     fun cancelReplyTo()
 }
 
 @OptIn(FlowPreview::class)
 open class InputAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val selectedRoomId: RoomId,
-    private val onMessageEditFinished: (EventId) -> Unit,
-    private val onMessageReplyFinished: (EventId) -> Unit,
+    private val roomId: RoomId,
+    private val onMessageReplaceFinished: (RoomId, EventId) -> Unit,
+    private val onMessageReplyFinished: (RoomId, EventId) -> Unit,
     private val onShowAttachmentSendView: (file: FileDescriptor) -> Unit,
+    private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
-        matrixClient.user.canSendEvent<RoomMessageEventContent>(selectedRoomId)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        matrixClient.user.canSendEvent<RoomMessageEventContent>(roomId)
+            .stateIn(coroutineScope, WhileSubscribed(), false)
     override val message = MutableStateFlow("")
     override val isSendEnabled: StateFlow<Boolean> =
-        message.map { it.isNotBlank() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        message.map { it.isNotBlank() }.stateIn(coroutineScope, WhileSubscribed(), false)
     override val showAttachmentSelectDialog = MutableStateFlow(false)
 
     private val isTyping = MutableStateFlow(false)
     private val isStillTyping = MutableStateFlow(uuid4())
 
-    private val _shouldFocus: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val shouldFocus: StateFlow<String?> = _shouldFocus.asStateFlow()
-    private val editMode: MutableStateFlow<EventId?> = MutableStateFlow(null)
+    private val _shouldFocus: MutableSharedFlow<Unit> = MutableSharedFlow()
+    override val shouldFocus: Flow<Unit> = _shouldFocus.asSharedFlow()
+    private val currentReplace: MutableStateFlow<Pair<RoomId, EventId>?> = MutableStateFlow(null)
     override val isEdit: StateFlow<Boolean> =
-        editMode.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
+        currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
+    private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
     override val isReplyTo: StateFlow<Boolean> =
-        replyToViewModel.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
     override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _listOfMentionsLoading = MutableStateFlow<Boolean?>(null)
     override val listOfMentionsLoading: StateFlow<Boolean?> = _listOfMentionsLoading.asStateFlow()
@@ -194,7 +209,7 @@ open class InputAreaViewModelImpl(
             }
         }
     }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+        .stateIn(coroutineScope, WhileSubscribed(), emptyList())
 
     init {
         coroutineScope.launch {
@@ -214,16 +229,16 @@ open class InputAreaViewModelImpl(
     }
 
     override val hasShownAttachmentSelectDialog =
-        showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
+        showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
 
     override fun addNewlineToMessage() {
         message.value += "\n"
-        _shouldFocus.value = uuid4().toString()
+        _shouldFocus.tryEmit(Unit)
     }
 
     override fun addToMessage(additional: String) {
         message.value += additional
-        _shouldFocus.value = uuid4().toString()
+        _shouldFocus.tryEmit(Unit)
     }
 
     override fun selectMention(username: Username) {
@@ -251,7 +266,6 @@ open class InputAreaViewModelImpl(
                 message.value =
                     (lines.take(lineInWhichCursorIs) + replacedLine + lines.drop(lines.size - lineInWhichCursorIs + 1))
                         .joinToString("\n") { it }
-                _shouldFocus.value = uuid4().toString()
             }
         } else {
             val lastMention = message.value.substringAfterLast("@")
@@ -263,9 +277,9 @@ open class InputAreaViewModelImpl(
                         "@",
                         "${username.userId.full} "
                     )
-                _shouldFocus.value = uuid4().toString()
             }
         }
+        _shouldFocus.tryEmit(Unit)
     }
 
 
@@ -274,7 +288,6 @@ open class InputAreaViewModelImpl(
         if (isSendEnabled.replayCache.lastOrNull() == true) {
             val text = message.value
             coroutineScope.launch {
-                val editedEvent = editMode.value
                 val mentions = MatrixRegex.findMentions(text)
                 val mentionLinks = mentions
                     .mapValues { (_, mention) ->
@@ -283,7 +296,7 @@ open class InputAreaViewModelImpl(
                         val anchorContent: String
                         when (mention) {
                             is Mention.Event -> {
-                                val roomId = mention.roomId ?: selectedRoomId
+                                val roomId = mention.roomId ?: roomId
                                 matrixUri = "https://matrix.to/#/${roomId.full}/${mention.eventId.full}"
                                 anchorContent = mention.label ?: matrixUri
                             }
@@ -294,7 +307,7 @@ open class InputAreaViewModelImpl(
                                         ?.content?.run { alias ?: aliases?.firstOrNull() }
                                 matrixUri =
                                     if (alias != null) "https://matrix.to/#/${alias.full}"
-                                    else "https://matrix.to/#/${selectedRoomId.full}"
+                                    else "https://matrix.to/#/${roomId.full}"
                                 anchorContent = mention.label ?: alias?.full ?: mention.roomId.full
                             }
 
@@ -304,7 +317,7 @@ open class InputAreaViewModelImpl(
                             }
 
                             is Mention.User -> {
-                                val userName = matrixClient.user.getById(selectedRoomId, mention.userId).first()?.name
+                                val userName = matrixClient.user.getById(roomId, mention.userId).first()?.name
                                 matrixUri = "https://matrix.to/#/${mention.userId.full}"
                                 anchorContent = mention.label ?: userName ?: mention.userId.full
                             }
@@ -324,39 +337,26 @@ open class InputAreaViewModelImpl(
                     } else it
                 }
 
-                if (editedEvent != null) {
-                    log.debug { "send message (edit)" }
-                    matrixClient.room.sendMessage(selectedRoomId) {
-                        replace(editedEvent)
-                        mentions(mentionedUsers)
-                        text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
-                    }
-                    editMode.value = null
-                    _shouldFocus.value = null
-                    onMessageEditFinished(editedEvent)
-                } else {
-                    val viewModel = replyToViewModel.value
-                    if (viewModel != null) {
-                        log.debug { "send message (reply)" }
-                        val event =
-                            matrixClient.room.getTimelineEvent(selectedRoomId, viewModel.eventId).filterNotNull()
-                                .first()
-                        matrixClient.room.sendMessage(selectedRoomId) {
+                val replacedEvent = currentReplace.value
+                val repliedEvent = currentReply.value
+                log.debug { "send message" }
+                matrixClient.room.sendMessage(roomId) {
+                    when {
+                        replacedEvent != null -> replace(replacedEvent.second)
+                        repliedEvent != null -> {
+                            val event =
+                                matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
+                                    .filterNotNull()
+                                    .first()
                             reply(event)
-                            mentions(mentionedUsers)
-                            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
-                        }
-                        replyToViewModel.value = null
-                        _shouldFocus.value = null
-                        onMessageReplyFinished(viewModel.eventId)
-                    } else {
-                        log.debug { "send message" }
-                        matrixClient.room.sendMessage(selectedRoomId) {
-                            mentions(mentionedUsers)
-                            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
                         }
                     }
+                    mentions(mentionedUsers)
+                    text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
                 }
+                currentReplace.value = null
+                replacedEvent?.also { onMessageReplaceFinished(it.first, it.second) }
+                repliedEvent?.also { onMessageReplyFinished(it.first, it.second) }
             }
             message.value = ""
         }
@@ -375,16 +375,16 @@ open class InputAreaViewModelImpl(
         onShowAttachmentSendView(file)
     }
 
-    override fun editMessage(eventId: EventId) {
+    override fun editMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "edit message $eventId" }
         coroutineScope.launch {
-            matrixClient.room.getTimelineEvent(selectedRoomId, eventId).firstOrNull()?.content?.getOrNull()
+            matrixClient.room.getTimelineEvent(roomId, eventId).firstOrNull()?.content?.getOrNull()
                 ?.let { roomEventContent ->
                     when (roomEventContent) {
                         is TextBased -> {
-                            editMode.value = eventId
+                            currentReplace.value = roomId to eventId
                             message.value = roomEventContent.bodyWithoutFallback
-                            _shouldFocus.value = eventId.full
+                            _shouldFocus.tryEmit(Unit)
                         }
 
                         else -> log.warn { "cannot edit anything besides TextBased" }
@@ -394,27 +394,53 @@ open class InputAreaViewModelImpl(
     }
 
     override fun cancelEdit() {
-        val editedValue = editMode.value
-        if (editedValue != null) {
-            editMode.value = null
+        val currentReplaceValue = currentReplace.value
+        if (currentReplaceValue != null) {
+            currentReplace.value = null
             message.value = ""
-            _shouldFocus.value = null
-            onMessageEditFinished(editedValue)
+            onMessageReplaceFinished(currentReplaceValue.first, currentReplaceValue.second)
         }
     }
 
-    override fun replyToMessage(eventId: EventId) {
+    private data class TimelineElementViewModelWrapper(
+        val viewModel: TimelineElementViewModel<*>,
+        val lifecycle: LifecycleRegistry,
+    )
+
+    private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
+    private val repliedElementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
+    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
+        currentReply.map { roomIdAndEventId ->
+            if (roomIdAndEventId == null) return@map null
+            val (roomId, eventId) = roomIdAndEventId
+            repliedElementCache.value?.lifecycle?.destroy()
+            val eventContent = matrixClient.room.getTimelineEvent(roomId, eventId).first()?.event?.content
+            if (eventContent !is MessageEventContent) return@map null
+            val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
+            if (repliedEventId == null) return@map null
+            val lifecycle = LifecycleRegistry()
+            lifecycle.start()
+            repliedTimelineElementHolderViewModelFactory.create(
+                childContextWithOwnLifecycle(lifecycle),
+                matrixClient.room.getTimelineEvent(roomId, repliedEventId),
+                roomId,
+                repliedEventId,
+                onOpenMention,
+            )
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override fun replyToMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
-        replyToViewModel.value = get<ReplyToViewModelFactory>()
-            .create(this@InputAreaViewModelImpl, selectedRoomId, eventId, ::cancelReplyTo)
-        _shouldFocus.value = eventId.full
+        currentReply.value = roomId to eventId
+        _shouldFocus.tryEmit(Unit)
     }
 
     override fun cancelReplyTo() {
-        val repliedToEvent = replyToViewModel.value?.eventId
-        replyToViewModel.value = null
-        _shouldFocus.value = null
-        repliedToEvent?.let { onMessageReplyFinished(it) }
+        val currentReplyValue = currentReply.value
+        if (currentReplyValue != null) {
+            currentReply.value = null
+            onMessageReplyFinished(currentReplyValue.first, currentReplyValue.second)
+        }
     }
 
 
@@ -439,7 +465,7 @@ open class InputAreaViewModelImpl(
     }
 
     private suspend fun listOfUsers(search: String): List<Username> {
-        val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
+        val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load
         val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
         return allUsers
             .entries.asFlow()
@@ -482,7 +508,7 @@ open class InputAreaViewModelImpl(
 
             try {
                 if (messengerSettings[userId].first()?.base?.typingIsPublic == true) {
-                    matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, true, 30_000)
+                    matrixClient.api.room.setTyping(roomId, matrixClient.userId, true, 30_000)
                 }
             } catch (exc: Exception) {
                 log.error(exc) { "Something went wrong while setting typing to true" }
@@ -497,7 +523,7 @@ open class InputAreaViewModelImpl(
                 return
             }
             isTyping.value = false
-            matrixClient.api.room.setTyping(selectedRoomId, matrixClient.userId, typing = false)
+            matrixClient.api.room.setTyping(roomId, matrixClient.userId, typing = false)
         } catch (exc: Exception) {
             log.error(exc) { "Something went wrong while setting typing to false" }
         }
@@ -510,10 +536,10 @@ class PreviewInputViewModel() : InputAreaViewModel {
     override val isSendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasShownAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val shouldFocus: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val shouldFocus: Flow<Unit> = emptyFlow()
     override val isEdit: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val isReplyTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val replyToViewModel: MutableStateFlow<ReplyToViewModel?> = MutableStateFlow(null)
     override val listOfMentions: MutableStateFlow<List<Username>> = MutableStateFlow(emptyList())
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
@@ -540,13 +566,13 @@ class PreviewInputViewModel() : InputAreaViewModel {
     override fun onAttachmentFileSelect(file: FileDescriptor) {
     }
 
-    override fun editMessage(eventId: EventId) {
+    override fun editMessage(roomId: RoomId, eventId: EventId) {
     }
 
     override fun cancelEdit() {
     }
 
-    override fun replyToMessage(eventId: EventId) {
+    override fun replyToMessage(roomId: RoomId, eventId: EventId) {
     }
 
     override fun cancelReplyTo() {

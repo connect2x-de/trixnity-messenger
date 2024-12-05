@@ -62,7 +62,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.replyMessage(),
-                    action = ::replyTo,
+                    action = ::reply,
                 )
             )
         }
@@ -70,7 +70,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.editMessage(),
-                    action = ::edit,
+                    action = ::replace,
                 )
             )
         }

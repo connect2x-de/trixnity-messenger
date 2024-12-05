@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.sharing
 
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -11,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -72,7 +70,7 @@ class SharedDataViewModelImpl(
 
     private val roomListViewModelFactory = get<RoomListViewModelFactory>()
     override val roomList: RoomListViewModel = roomListViewModelFactory.create(
-        viewModelContext.childContext("roomlist", LifecycleRegistry()),
+        viewModelContext.childContext("roomlist"),
         selectedRoomId = selectedRoomId,
         onRoomSelected = { _, roomId -> _selectedRoomId.update { if (it == roomId) null else roomId } },
         onStartCreateNewRoom = { },

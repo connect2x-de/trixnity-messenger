@@ -92,9 +92,9 @@ interface TimelineElementHolderViewModelFactory {
         canLoadBefore: Flow<Boolean>,
         canLoadAfter: Flow<Boolean>,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
-        onMessageEdited: (EventId) -> Unit,
-        onMessageRepliedTo: (EventId) -> Unit,
-        onMessageReportTo: (EventId) -> Unit,
+        onMessageReplace: (RoomId, EventId) -> Unit,
+        onMessageReply: (RoomId, EventId) -> Unit,
+        onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
@@ -109,9 +109,9 @@ interface TimelineElementHolderViewModelFactory {
             canLoadBefore = canLoadBefore,
             canLoadAfter = canLoadAfter,
             getReceipts = getReceipts,
-            onMessageEdited = onMessageEdited,
-            onMessageRepliedTo = onMessageRepliedTo,
-            onMessageReportTo = onMessageReportTo,
+            onMessageReplace = onMessageReplace,
+            onMessageReply = onMessageReply,
+            onMessageReport = onMessageReport,
             onOpenMention = onOpenMention,
         )
 
@@ -143,11 +143,11 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val highlight: StateFlow<Boolean>
 
-    fun edit()
-    fun endEdit()
+    fun replace()
+    fun endReplace()
     fun redact()
-    fun replyTo()
-    fun endReplyTo()
+    fun reply()
+    fun endReply()
     fun report()
     fun addReaction(reaction: String)
     fun removeReaction(reaction: ReactionEvent)
@@ -172,9 +172,9 @@ class TimelineElementHolderViewModelImpl(
     canLoadBefore: Flow<Boolean>,
     canLoadAfter: Flow<Boolean>,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
-    private val onMessageEdited: (EventId) -> Unit,
-    private val onMessageRepliedTo: (EventId) -> Unit,
-    private val onMessageReportTo: (EventId) -> Unit,
+    private val onMessageReplace: (RoomId, EventId) -> Unit,
+    private val onMessageReply: (RoomId, EventId) -> Unit,
+    private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val config = get<MatrixMessengerConfiguration>()
@@ -264,7 +264,7 @@ class TimelineElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
-                childContext("element", lifecycle),
+                childContextWithOwnLifecycle(lifecycle),
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),
@@ -475,14 +475,14 @@ class TimelineElementHolderViewModelImpl(
         }
         .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override fun edit() {
+    override fun replace() {
         _editInProgress.value = true
         coroutineScope.launch {
-            timelineEventFlow.first().eventId.let { onMessageEdited(it) }
+            timelineEventFlow.first().let { onMessageReplace(it.roomId, it.eventId) }
         }
     }
 
-    override fun endEdit() {
+    override fun endReplace() {
         _editInProgress.value = false
     }
 
@@ -490,10 +490,7 @@ class TimelineElementHolderViewModelImpl(
         timelineEventFlow
             .filterNotNull()
             .flatMapLatest { timelineEvent ->
-                matrixClient.user.canRedactEvent(
-                    timelineEvent.roomId,
-                    timelineEvent.eventId
-                )
+                matrixClient.user.canRedactEvent(timelineEvent.roomId, timelineEvent.eventId)
             }
             .collectLatest { send(it) }
     }.stateIn(coroutineScope, WhileSubscribed(), false)
@@ -534,20 +531,20 @@ class TimelineElementHolderViewModelImpl(
         }
     }
 
-    override fun replyTo() {
+    override fun reply() {
         _replyToInProgress.value = true
         coroutineScope.launch {
-            onMessageRepliedTo(eventId)
+            onMessageReply(roomId, eventId)
         }
     }
 
-    override fun endReplyTo() {
+    override fun endReply() {
         _replyToInProgress.value = false
     }
 
     override fun report() {
         coroutineScope.launch {
-            onMessageReportTo(eventId)
+            onMessageReport(roomId, eventId)
         }
     }
 
@@ -609,11 +606,11 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> =
         MutableStateFlow(emptyMap())
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override fun edit() {}
-    override fun endEdit() {}
+    override fun replace() {}
+    override fun endReplace() {}
     override fun redact() {}
-    override fun replyTo() {}
-    override fun endReplyTo() {}
+    override fun reply() {}
+    override fun endReply() {}
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
@@ -655,11 +652,11 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val reactions: StateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> =
         MutableStateFlow(emptyMap())
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override fun edit() {}
-    override fun endEdit() {}
+    override fun replace() {}
+    override fun endReplace() {}
     override fun redact() {}
-    override fun replyTo() {}
-    override fun endReplyTo() {}
+    override fun reply() {}
+    override fun endReply() {}
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}

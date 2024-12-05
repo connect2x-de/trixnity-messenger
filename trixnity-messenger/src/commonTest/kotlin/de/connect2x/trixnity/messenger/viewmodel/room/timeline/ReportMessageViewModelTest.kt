@@ -197,7 +197,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext,
             ),
-            selectedRoomId = roomId,
+            roomId = roomId,
             eventId = EventId("0"),
             onReportMessageFinished = onMessageReportFinished,
         )
