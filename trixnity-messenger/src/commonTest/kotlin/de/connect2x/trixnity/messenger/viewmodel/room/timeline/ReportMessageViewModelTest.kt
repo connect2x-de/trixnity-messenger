@@ -66,7 +66,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
 
     private lateinit var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
-    private val onMessageReportFinished = mock<Function1<EventId, Unit>>()
+    private val onMessageReportFinished = mock<Function0<Unit>>()
 
 
     init {
@@ -140,7 +140,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
             every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(
                 aliceRoomUser
             )
-            every { onMessageReportFinished.invoke(any()) } returns Unit
+            every { onMessageReportFinished.invoke() } returns Unit
 
             everySuspend {
                 roomsApiClientMock.reportEvent(
@@ -165,7 +165,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
             cut.submitReportToMessage()
 
             verify {
-                onMessageReportFinished.invoke(messageEvent.id)
+                onMessageReportFinished.invoke()
             }
 
 

@@ -65,7 +65,7 @@ open class ViewModelContextImpl(
 
     override fun childContext(key: String): ViewModelContext {
         val componentContext = this as ComponentContext
-        return childContext(componentContext.childContext(key, lifecycle))
+        return childContext(componentContext.childContext(key))
     }
 
     override fun childContext(componentContext: ComponentContext): ViewModelContext {
@@ -78,7 +78,7 @@ open class ViewModelContextImpl(
 
     override fun childContext(key: String, userId: UserId): MatrixClientViewModelContext {
         val componentContext = this as ComponentContext
-        return childContext(componentContext.childContext(key, lifecycle), userId)
+        return childContext(componentContext.childContext(key), userId)
     }
 
     override fun childContext(componentContext: ComponentContext, userId: UserId): MatrixClientViewModelContext {
@@ -101,7 +101,7 @@ open class MatrixClientViewModelContextImpl(
 
     override fun childContext(key: String): MatrixClientViewModelContext {
         val componentContext = this as ComponentContext
-        return childContext(componentContext.childContext(key, lifecycle))
+        return childContext(componentContext.childContext(key))
     }
 
     @OptIn(InternalDecomposeApi::class)

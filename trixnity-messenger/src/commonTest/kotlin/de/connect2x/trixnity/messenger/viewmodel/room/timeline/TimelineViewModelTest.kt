@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -687,9 +688,10 @@ class TimelineViewModelTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        onMessageReplaceFinished: (EventId) -> Unit,
-                                        onMessageReplyToFinished: (EventId) -> Unit,
-                                        onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                                        onMessageReplaceFinished: (RoomId, EventId) -> Unit,
+                                        onMessageReplyFinished: (RoomId, EventId) -> Unit,
+                                        onShowAttachmentSendView: (FileDescriptor) -> Unit,
+                                        onOpenMention: OpenMentionCallback
                                     ): InputAreaViewModel {
                                         return inputAreaViewModelMock
                                     }
