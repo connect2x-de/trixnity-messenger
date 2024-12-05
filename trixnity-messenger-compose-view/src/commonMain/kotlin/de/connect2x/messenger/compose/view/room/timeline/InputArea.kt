@@ -106,10 +106,10 @@ class InputAreaViewImpl : InputAreaView {
     @Composable
     override fun create(inputAreaViewModel: InputAreaViewModel) {
         val i18n = DI.get<I18nView>()
-        val isReplyTo = inputAreaViewModel.isReplyTo.collectAsState().value
+        val isReplyTo = inputAreaViewModel.isReply.collectAsState().value
         val replyToViewModel = inputAreaViewModel.replyToViewModel.collectAsState().value
         val canSendMessages = inputAreaViewModel.isAllowedToSendMessages.collectAsState().value
-        val isEdit = inputAreaViewModel.isEdit.collectAsState().value
+        val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val isMobile = Platform.current.isMobile
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
@@ -236,12 +236,14 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
             .weight(1.0f, fill = true)
     ) {
         if (showUploadError.value != null) {
-            ErrorDialog(errorMessage = when (showUploadError.value) {
+            ErrorDialog(
+                errorMessage = when (showUploadError.value) {
                 is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
                 is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
                 else -> i18n.uploadFileErrorUnknown()
             },
-            dismissAction = { showUploadError.value = null }, title = i18n.uploadFileErrorTitle())
+                dismissAction = { showUploadError.value = null }, title = i18n.uploadFileErrorTitle()
+            )
         }
         BasicTextField(
             modifier = Modifier
@@ -413,7 +415,7 @@ fun EditButton(inputAreaViewModel: InputAreaViewModel) {
     val isMobile = Platform.current.isMobile
     Button(
         onClick = {
-            inputAreaViewModel.cancelEdit()
+            inputAreaViewModel.cancelReplace()
         },
         modifier = Modifier // padding on desktop: 4.dp is 10.dp - 6.dp (border of text field)
             .padding(start = if (isMobile) 2.dp else 4.dp, end = if (isMobile) 8.dp else 10.dp)

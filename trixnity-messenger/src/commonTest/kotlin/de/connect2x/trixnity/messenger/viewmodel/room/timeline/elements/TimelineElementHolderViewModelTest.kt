@@ -58,5 +58,22 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 TODO()
             }
         }
+        context(TimelineElementHolderViewModel::hasUnreadMarker.name) {
+            should("show the unread marker") {
+                TODO()
+            }
+            should("remove the unread marker when changed") {
+                TODO()
+            }
+            should("not show the unread marker, when not set to this element") {
+                TODO()
+            }
+            should("not show the unread marker, when one of the next events is by us") {
+                TODO()
+            }
+            should("not show the unread marker, when none of the next events is supported") {
+                TODO()
+            }
+        }
     }
 }

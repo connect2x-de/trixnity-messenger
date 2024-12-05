@@ -21,17 +21,16 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.core.*
-import korlibs.io.async.async
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
@@ -57,6 +56,7 @@ import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -228,22 +228,28 @@ class InputAreaViewModelTest : ShouldSpec() {
 
         should("show the original message text and focus the input area when a message is edited") {
             val cut = inputAreaViewModel(coroutineContext)
+            var shouldFocusCalled = false
+            val shouldFocusJob = launch {
+                cut.shouldFocus.collect {
+                    shouldFocusCalled = true
+                }
+            }
             val subscriberJob = subscribe(cut)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
+                cut.isReplace.value shouldBe false
                 cut.message.value shouldBe ""
             }
 
-            val shouldFocus = async { cut.shouldFocus.first() }
-            cut.editMessage(roomId, eventId)
+            cut.replaceMessage(roomId, eventId)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe true
+                cut.isReplace.value shouldBe true
                 cut.message.value shouldBe "Hello"
-                shouldFocus.isActive shouldBe false
+                shouldFocusCalled shouldBe true
             }
 
+            shouldFocusJob.cancel()
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -252,17 +258,17 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.editMessage(roomId, eventId)
+            cut.replaceMessage(roomId, eventId)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe true
+                cut.isReplace.value shouldBe true
             }
 
             cut.message.value = "Hello World!"
             cut.sendMessage()
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
+                cut.isReplace.value shouldBe false
                 cut.message.value shouldBe ""
             }
 
@@ -278,16 +284,16 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.editMessage(roomId, eventId)
+            cut.replaceMessage(roomId, eventId)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe true
+                cut.isReplace.value shouldBe true
             }
 
-            cut.cancelEdit()
+            cut.cancelReplace()
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
+                cut.isReplace.value shouldBe false
                 cut.message.value shouldBe ""
             }
 
@@ -363,6 +369,7 @@ class InputAreaViewModelTest : ShouldSpec() {
         }
 
         should("set 'is not typing' when the message is deleted (i_e_, it is empty again)") {
+            println("+++++++++++++")
             var setTypingCancelWasCalled = false
             everySuspend {
                 roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
@@ -382,6 +389,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 setTypingCancelWasCalled shouldBe false
             }
+            delay(100.milliseconds)
 
             cut.message.value = ""
 
@@ -413,6 +421,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 setTypingCancelWasCalled shouldBe false
             }
+            delay(100.milliseconds)
 
             cut.sendMessage()
 
@@ -902,8 +911,8 @@ Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>"""
         launch { cut.isAllowedToSendMessages.collect() }
         launch { cut.isSendEnabled.collect() }
         launch { cut.showAttachmentSelectDialog.collect() }
-        launch { cut.isEdit.collect() }
-        launch { cut.isReplyTo.collect() }
+        launch { cut.isReplace.collect() }
+        launch { cut.isReply.collect() }
         launch { cut.listOfMentions.collect() }
     }
 }

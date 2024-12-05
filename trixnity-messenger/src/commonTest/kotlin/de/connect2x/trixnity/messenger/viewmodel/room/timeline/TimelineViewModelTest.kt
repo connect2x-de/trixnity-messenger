@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.setMain
@@ -235,13 +234,12 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("World")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 val cut = timelineViewModel(mock())
-                cut.elements.first { it.size == 2 }
+                cut.elements waitForSize 2
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "1",
+                    lastVisibleElement = "$roomId-1",
                     windowIsFocused = true
                 )
                 delay(200) // give the viewmodel time to compute derived values
@@ -252,8 +250,8 @@ class TimelineViewModelTest : ShouldSpec() {
                     }
                 }
 
-                cut.elements.first { it.size == 3 }
-                cut.elements.value.last().key shouldBe "2"
+                cut.elements waitForSize 3
+                cut.elements.value.last().key shouldBe "$roomId-2"
             }
             should("only show outbox messages of this room") {
                 outboxMessagesFlow.value =
@@ -282,7 +280,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("Hello")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 val cut = timelineViewModel()
 
                 cut.elements waitForSize 2  // 1 message + 1 outbox message
@@ -309,7 +306,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("Hello")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 val cut = timelineViewModel()
                 cut.elements waitForSize 2
@@ -337,11 +333,10 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("Hello")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 continually(2.seconds) {
                     cut.elements.first() shouldHaveSize 1
-                    cut.elements.first()[0].key shouldBe "transactionId-1"
+                    cut.elements.first()[0].key shouldBe "$roomId-transactionId-1"
                 }
             }
         }
@@ -357,7 +352,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 val cut = timelineViewModel()
                 withClue(lazy { "timelineElementViewModels size was ${cut.elements.value.size}, expected 11" }) {
@@ -367,7 +361,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 // timeline starts at the end (no read messages) -> [9..19] are shown, if first visible is in the first 10 -> load before
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "9",
+                    lastVisibleElement = "$roomId-9",
                     windowIsFocused = true
                 )
                 cut.elements waitForSize 20
@@ -383,14 +377,13 @@ class TimelineViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 val cut = timelineViewModel()
                 cut.elements waitForSize 11
 
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "8",// [9..19], see above
+                    lastVisibleElement = "$roomId-8",// [9..19], see above
                     windowIsFocused = true
                 )
                 continually(1.seconds) {
@@ -408,7 +401,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 timelineMock.fullyReadEventIndex.value = 0
 
                 val cut = timelineViewModel()
@@ -417,7 +409,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 // fully read events is set -> start at beginning -> [0..10], 9 is in last messages -> load after
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "9",
+                    lastVisibleElement = "$roomId-9",
                     windowIsFocused = true
                 )
                 cut.elements waitForSize 20
@@ -433,7 +425,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 timelineMock.fullyReadEventIndex.value = 0
 
                 val cut = timelineViewModel()
@@ -442,7 +433,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 // see above, [0..10], 1 is at beginning -> do NOT load after
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "1",
+                    lastVisibleElement = "$roomId-1",
                     windowIsFocused = true
                 )
                 continually(1.seconds) {
@@ -462,7 +453,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         }
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 val cut = timelineViewModel()
                 cut.elements waitForSize 10
@@ -485,16 +475,15 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("latest")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 timelineMock.fullyReadEventIndex.value = 0
 
                 val cut = timelineViewModel()
                 cut.elements waitForSize 11
-                cut.elements.value.last().key shouldBe "10"
+                cut.elements.value.last().key shouldBe "$roomId-10"
 
                 cut.jumpToEndOfTimeline()
                 cut.elements waitForSize 11
-                cut.elements.first { it.last().key == "11" }
+                cut.elements.first { it.last().key == "$roomId-11" }
             }
         }
         context(TimelineViewModel::leaveRoom.name) {
@@ -536,13 +525,12 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("Hello!")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 val cut = timelineViewModel()
                 cut.elements waitForSize 1
                 val coroutineScope = CoroutineScope(Dispatchers.Default)
                 val scrollToCalled =
                     cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
-                scrollToCalled.map { it.size }.firstWithClue { 1 } // initial scroll ("0")
+                scrollToCalled.map { it.size }.firstWithClue(1) // initial scroll ("0")
 
                 outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
@@ -553,7 +541,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     ),
                 )
                 cut.elements waitForSize 2
-                scrollToCalled.first { it == listOf("0", "transactionId-1") }
+                scrollToCalled.firstWithClue(listOf("$roomId-0", "$roomId-transactionId-1"))
                 outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
                         transactionId = "transactionId-1",
@@ -569,7 +557,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     )
                 )
                 cut.elements waitForSize 3
-                scrollToCalled.onEach { println(it) }.first { it == listOf("0", "transactionId-1", "transactionId-2") }
+                scrollToCalled.firstWithClue(listOf("$roomId-0", "$roomId-transactionId-1", "$roomId-transactionId-2"))
 
                 coroutineScope.cancel()
             }
@@ -580,13 +568,12 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("Hello!")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 val cut = timelineViewModel()
 
                 cut.elements waitForSize 1
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "0",
+                    lastVisibleElement = "$roomId-0",
                     windowIsFocused = true
                 )
                 delay(200) // give the viewmodel time to compute derived values
@@ -603,7 +590,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
 
                 cut.elements waitForSize 2
-                scrollToCalled.first { it == listOf("1") }
+                scrollToCalled.firstWithClue(listOf("$roomId-1"))
 
                 coroutineScope.cancel()
             }
@@ -617,14 +604,13 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("World!")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
                 val cut = timelineViewModel()
 
                 cut.elements waitForSize 2
 
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "0",
+                    lastVisibleElement = "$roomId-0",
                     windowIsFocused = true
                 )
                 delay(500.milliseconds) // give scrollTo time to be cleared
@@ -640,7 +626,6 @@ class TimelineViewModelTest : ShouldSpec() {
                         text("Dino!")
                     }
                 }
-                timelineMock.mockRoomServiceTimelineEventCalls()
 
                 continually(500.milliseconds) {
                     scrollToCalled.value.shouldBeEmpty()
@@ -708,19 +693,5 @@ class TimelineViewModelTest : ShouldSpec() {
             onBack = onBackMock,
             onOpenMention = mock(),
         )
-    }
-
-    private fun TimelineMock.mockRoomServiceTimelineEventCalls() {
-        every { // fallback
-//            println("!!!!!!!!!!!!!!!") // just for debugging tests
-//            println("getPreviousTimelineEvent call with ${(it[0] as TimelineEvent).eventId} has not been handled explicitly")
-//            println("!!!!!!!!!!!!!!!")
-            roomServiceMock.getPreviousTimelineEvent(any(), any())
-        } returns null
-        eventsInStore.value.reversed().windowed(2, partialWindows = true) { window ->
-            every {
-                roomServiceMock.getPreviousTimelineEvent(eq(window[0].value), any())
-            } returns window.getOrNull(1)
-        }
     }
 }
