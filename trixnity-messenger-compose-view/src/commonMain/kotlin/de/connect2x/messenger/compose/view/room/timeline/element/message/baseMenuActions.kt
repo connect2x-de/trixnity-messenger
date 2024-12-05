@@ -42,7 +42,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
     return buildList {
-        if (this is TimelineElementHolderViewModel) {
+        if (this@baseMenuActions is TimelineElementHolderViewModel) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.infoMessage(),
@@ -50,7 +50,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is TimelineElementHolderViewModel && canBeReactedTo) {
+        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeReactedTo) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.reactMessage(),
@@ -58,7 +58,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is TimelineElementHolderViewModel && canBeRepliedTo) {
+        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeRepliedTo) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.replyMessage(),
@@ -66,7 +66,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is TimelineElementHolderViewModel && canBeEdited) {
+        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeEdited) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.editMessage(),
@@ -74,7 +74,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is TimelineElementHolderViewModel && canBeRedacted) {
+        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeRedacted) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.redactMessage(),
@@ -82,7 +82,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is TimelineElementHolderViewModel && canBeReportedTo) {
+        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeReportedTo) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.reportMessage(),
@@ -90,7 +90,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is OutboxElementHolderViewModel && canRetrySend) {
+        if (this@baseMenuActions is OutboxElementHolderViewModel && canRetrySend) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.retrySendMessage(),
@@ -98,7 +98,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this is OutboxElementHolderViewModel && canAbortSend) {
+        if (this@baseMenuActions is OutboxElementHolderViewModel && canAbortSend) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.abortSendMessage(),

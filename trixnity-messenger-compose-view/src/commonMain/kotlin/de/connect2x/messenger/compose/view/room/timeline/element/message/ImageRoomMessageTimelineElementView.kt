@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -107,6 +108,7 @@ internal fun ColumnScope.MessageImageImpl(
         image.decodeToImageBitmap(),
         "",
         Modifier
+            .padding(1.dp)
             .heightIn(
                 50.dp,
                 with(LocalDensity.current) { 300.dp }) // FIXME magic number
@@ -127,7 +129,7 @@ internal fun ColumnScope.MessageImageImpl(
                 )
             }
             .buttonPointerModifier(),
-        contentScale = ContentScale.Fit,
+        contentScale = ContentScale.FillHeight,
     )
 }
 

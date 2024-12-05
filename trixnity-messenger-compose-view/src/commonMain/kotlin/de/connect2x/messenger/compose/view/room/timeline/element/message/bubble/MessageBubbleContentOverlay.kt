@@ -20,23 +20,25 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 @Composable
 fun BoxScope.MessageBubbleContentOverlay(
     hoverMessage: State<Boolean>,
-    overlay: @Composable BoxScope.() -> Unit
+    overlay: (@Composable BoxScope.() -> Unit)?
 ) {
-    AnimatedVisibility(
-        hoverMessage.value,
-        Modifier
-            .align(Alignment.BottomStart)
-            .padding(5.dp),
-        enter = fadeIn(),
-        exit = fadeOut(),
-    ) {
-        Box(
+    overlay?.let { overlay ->
+        AnimatedVisibility(
+            hoverMessage.value,
             Modifier
-                .clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.messengerColors.metaDataPreviewBackground)
-                .padding(6.dp)
+                .align(Alignment.BottomStart)
+                .padding(5.dp),
+            enter = fadeIn(),
+            exit = fadeOut(),
         ) {
-            overlay()
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.messengerColors.metaDataPreviewBackground)
+                    .padding(6.dp)
+            ) {
+                overlay()
+            }
         }
     }
 }

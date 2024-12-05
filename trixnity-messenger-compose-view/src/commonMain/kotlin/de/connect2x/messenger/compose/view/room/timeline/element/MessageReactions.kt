@@ -147,7 +147,7 @@ private val buttonModifier = Modifier.buttonPointerModifier()
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
-    reactionEvents: Set<TimelineElementHolderViewModel. ReactionEvent>,
+    reactionEvents: Set<TimelineElementHolderViewModel.ReactionEvent>,
     count: Int,
     myReaction: TimelineElementHolderViewModel.ReactionEvent?,
     onAddReaction: (reaction: String) -> Unit,

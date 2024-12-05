@@ -18,6 +18,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.update
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.KoinApplication
@@ -54,10 +56,9 @@ internal fun InitMessengerPreview(
     }
 }
 
-private fun createKoinApplication(): KoinApplication {
+fun createKoinApplication(): KoinApplication {
     val koinApplication = koinApplication {
         modules(
-            composeViewModule(),
             module {
                 single<I18nView> { object : I18nView(DefaultLanguages, get(), get(), get()) {} }
                 single<MatrixMessengerConfiguration> {
@@ -69,6 +70,8 @@ private fun createKoinApplication(): KoinApplication {
                 single<GetSystemLang> {
                     GetSystemLang { "de" }
                 }
+                single<Languages> { DefaultLanguages }
+                single<TimeZone> { TimeZone.currentSystemDefault() }
                 single<MatrixMessengerSettingsHolder> {
                     val settingsHolder: MutableStateFlow<MatrixMessengerSettings?> =
                         MutableStateFlow(MatrixMessengerSettings(mapOf("preferredLang" to JsonPrimitive("en"))))
@@ -89,6 +92,7 @@ private fun createKoinApplication(): KoinApplication {
                     CloseApp { }
                 }
             },
+            composeViewModule(),
         )
         logger(PrintLogger(level = Level.DEBUG))
     }

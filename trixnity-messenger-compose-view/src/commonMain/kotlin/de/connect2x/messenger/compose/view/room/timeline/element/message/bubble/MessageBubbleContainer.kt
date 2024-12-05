@@ -9,13 +9,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,8 +30,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.pointerMoveFilter
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
@@ -41,15 +38,15 @@ fun MessageBubbleContainer(
     holder: BaseTimelineElementHolderViewModel,
     showDate: Boolean,
     needsMaxWidth: Boolean,
+    infoOpen: MutableState<Boolean>,
+    reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
-    overlay: @Composable BoxScope.() -> Unit,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
-    val infoOpen = remember { mutableStateOf(false) }
-    val reactionsOpen = remember { mutableStateOf(false) }
 
     val messageBackground =
         when {
@@ -95,9 +92,9 @@ fun MessageBubbleContainer(
                 }
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = messageBackground
+                    color = messageBackground,
                 ) {
-                    Box(Modifier.fillMaxSize()) {
+                    Box {
                         MessageBubbleContent(holder, showDate, needsMaxWidth, { showActionMenu.value = true }, content)
                         MessageBubbleContentOverlay(
                             hoverMessage,
@@ -128,18 +125,6 @@ fun MessageBubbleContainer(
                 additionalContextActions,
             )
         }
-
-        MessageInfo(
-            holder,
-            infoOpen,
-            modifier = Modifier.padding(start = 8.dp),
-        )
-
-        MessageReactions(
-            holder,
-            reactionsOpen,
-            modifier = Modifier.padding(start = 8.dp),
-        )
     }
 }
 

@@ -37,7 +37,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 fun FileBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    overlay: @Composable BoxScope.() -> Unit = {},
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -94,24 +94,18 @@ internal fun FileBasedView(
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
 
-    Box(
+    Column(
         Modifier
-            .padding(10.dp)
-    ) {
-        Column(
-            Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = { showActionMenu() },
-                    )
-                }
-                .padding(10.dp)
-                .buttonPointerModifier()
-        ) {
-            // content based on the actual file
-            content(showActionMenu) {
-                saveDialogOpen.value = true
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { showActionMenu() },
+                )
             }
+            .buttonPointerModifier()
+    ) {
+        // content based on the actual file
+        content(showActionMenu) {
+            saveDialogOpen.value = true
         }
     }
 

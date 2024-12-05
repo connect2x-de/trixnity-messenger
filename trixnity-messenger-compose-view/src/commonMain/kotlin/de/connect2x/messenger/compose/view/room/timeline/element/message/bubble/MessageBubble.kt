@@ -12,16 +12,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoDelete
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
+import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
@@ -34,7 +37,7 @@ interface MessageBubbleView {
         showDate: Boolean, // FIXME do we really need that? What is the use case?
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
-        overlay: @Composable BoxScope.() -> Unit = {},
+        overlay: (@Composable BoxScope.() -> Unit)? = null,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
 }
@@ -46,7 +49,7 @@ fun MessageBubble(
     showDate: Boolean,
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
-    overlay: @Composable BoxScope.() -> Unit = {},
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
@@ -54,7 +57,6 @@ fun MessageBubble(
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
@@ -62,13 +64,16 @@ class MessageBubbleViewImpl : MessageBubbleView {
         showDate: Boolean,
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
-        overlay: @Composable BoxScope.() -> Unit,
+        overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val redactionInProgress =
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
+
+        val infoOpen = remember { mutableStateOf(false) }
+        val reactionsOpen = remember { mutableStateOf(false) }
 
         // FIXME downloads already in children?
 
@@ -97,11 +102,25 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         holder,
                         showDate,
                         needsMaxWidth,
+                        infoOpen,
+                        reactionsOpen,
                         additionalContextActions,
                         overlay,
                         content,
                     )
                 }
+
+                MessageInfo(
+                    holder,
+                    infoOpen,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+
+                MessageReactions(
+                    holder,
+                    reactionsOpen,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
             }
         }
     }
