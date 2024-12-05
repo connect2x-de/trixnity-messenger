@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
@@ -32,6 +33,7 @@ import net.folivo.trixnity.client.store.RoomUserReceipts
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -173,7 +175,7 @@ class TimelineMock(
     roomServiceMock: RoomService,
 ) {
     private val timelineBuilder = TimelineBuilder(room, roomServiceMock)
-    val eventsInStore: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
+    val eventsInStore: MutableStateFlow<List<StateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
     val loadBeforeCalledCount = MutableStateFlow(0)
     val loadAfterCalledCount = MutableStateFlow(0)
     fun addEvents(block: TimelineBuilder.() -> Unit) {
@@ -265,14 +267,16 @@ class TimelineBuilder(
     private val roomServiceMock: RoomService,
 ) {
     private val roomId = room.value.roomId
-    private val timelineEvents: MutableList<MutableStateFlow<TimelineEvent>> = mutableListOf()
+    private val timelineEvents: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
 
-    fun build() = timelineEvents.toList()
+    fun build(): List<StateFlow<TimelineEvent>> {
+        return timelineEvents.value
+    }
 
     private var idCounter = 0
 
     operator fun RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> {
-        val previousTimelineEvent = timelineEvents.lastOrNull()
+        val previousTimelineEvent = timelineEvents.value.lastOrNull()
         val newTimelineEvent = MutableStateFlow(
             TimelineEvent(
                 event = this,
@@ -284,12 +288,22 @@ class TimelineBuilder(
         every {
             roomServiceMock.getTimelineEvent(roomId, id, any())
         } returns newTimelineEvent
+        every {
+            roomServiceMock.getTimelineEvents(roomId, id, GetEvents.Direction.FORWARDS, any())
+        } returns timelineEvents.transform {
+            it.dropWhile { it.value.eventId != id }.forEach { emit(it) }
+        }
+        every {
+            roomServiceMock.getTimelineEvents(roomId, id, GetEvents.Direction.BACKWARDS, any())
+        } returns timelineEvents.transform {
+            it.reversed().dropWhile { it.value.eventId != id }.forEach { emit(it) }
+        }
 
         previousTimelineEvent?.update {
             it.copy(nextEventId = this.id)
         }
         room.update { it.copy(lastEventId = this.id, lastRelevantEventId = this.id) }
-        timelineEvents += newTimelineEvent
+        timelineEvents.value += newTimelineEvent
         return newTimelineEvent
     }
 

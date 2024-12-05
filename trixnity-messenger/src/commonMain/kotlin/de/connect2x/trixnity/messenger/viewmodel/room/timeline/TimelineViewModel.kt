@@ -437,7 +437,7 @@ class TimelineViewModelImpl(
                 log.error { "could not load start point of timeline" }
             }
             timelineStartFrom.emit(initTimelineFrom)
-            scheduleScrollTo(initTimelineFrom.full)
+            scheduleScrollTo(initTimelineFrom.asKey(roomId))
         }
     }
 
@@ -457,7 +457,7 @@ class TimelineViewModelImpl(
                         val lastEventId =
                             matrixClient.room.getById(roomId).map { it?.lastEventId }.filterNotNull().first()
                         timelineStartFrom.emit(lastEventId)
-                        scheduleScrollTo(diff.last())
+                        scheduleScrollTo(diff.last().asKey(roomId))
                     }
                     transactionIdsNew
                 }.collect()
@@ -511,7 +511,8 @@ class TimelineViewModelImpl(
         val roomId = timelineEvent.roomId
         val eventId = timelineEvent.eventId
         val sender = timelineEvent.sender
-        val key = timelineEvent.event.unsigned?.transactionId ?: eventId.full
+        val key = timelineEvent.event.unsigned?.transactionId?.asKey(timelineEvent.roomId)
+            ?: eventId.asKey(timelineEvent.roomId)
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
@@ -602,9 +603,9 @@ class TimelineViewModelImpl(
                     lifecycleRegistry.start()
                     get<OutboxElementHolderViewModelFactory>().create(
                         viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
-                        key = transactionId,
+                        key = transactionId.asKey(roomId),
                         outboxMessageFlow = outboxMessage,
-                        selectedRoomId = roomId,
+                        roomId = roomId,
                         transactionId = transactionId,
                         formattedDate = formattedDate,
                         formattedTime = formattedTime,
@@ -648,7 +649,7 @@ class TimelineViewModelImpl(
         timelineElements.value
             .filterNot { it.eventId == eventId && it.roomId == roomId }
             .forEach { it.viewModel.endReplace() }
-        inputAreaViewModel.editMessage(roomId, eventId)
+        inputAreaViewModel.replaceMessage(roomId, eventId)
     }
 
     private fun onMessageReplaceFinished(roomId: RoomId, eventId: EventId) {
@@ -660,7 +661,7 @@ class TimelineViewModelImpl(
         timelineElements.value
             .filterNot { it.eventId == eventId && it.roomId == roomId }
             .forEach { it.viewModel.endReply() }
-        inputAreaViewModel.replyToMessage(roomId, eventId)
+        inputAreaViewModel.replyMessage(roomId, eventId)
     }
 
     private fun onMessageReplyFinished(roomId: RoomId, eventId: EventId) {
@@ -839,8 +840,8 @@ class TimelineViewModelImpl(
         val lastVisibleTimelineElementKey = viewState.value?.lastVisibleElement
         val lastEventKey = lastEventId?.let {
             matrixClient.room.getTimelineEvent(roomId, it)
-                .first()?.event?.unsigned?.transactionId
-                ?: it.full
+                .first().let { it?.event?.unsigned?.transactionId?.asKey(it.roomId) }
+                ?: it.asKey(roomId)
         }
 
         val lastVisibleTimelineElementIndex =
@@ -866,7 +867,7 @@ class TimelineViewModelImpl(
             val lastEventKey =
                 matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull()
                     .first()
-                    .run { event.unsigned?.transactionId ?: eventId.full }
+                    .run { event.unsigned?.transactionId?.asKey(event.roomId) ?: eventId.asKey(event.roomId) }
             scheduleScrollTo(lastEventKey)
         }
     }
@@ -976,6 +977,9 @@ class TimelineViewModelImpl(
         takeWhileInclusive { it.key != key }
             .reversed()
             .firstNotNullOfOrNull { if (it is TimelineElementHolderViewModel) it.eventId else null }
+
+    private fun EventId.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + full
+    private fun String.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + this
 }
 
 class PreviewTimelineViewModel : TimelineViewModel {

@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -34,7 +33,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -123,9 +121,9 @@ interface InputAreaViewModel {
     val isSendEnabled: StateFlow<Boolean>
     val showAttachmentSelectDialog: StateFlow<Boolean>
     val hasShownAttachmentSelectDialog: SharedFlow<Boolean>
-    val isEdit: StateFlow<Boolean>
+    val isReplace: StateFlow<Boolean>
+    val isReply: StateFlow<Boolean>
     val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?>
-    val isReplyTo: StateFlow<Boolean>
     val listOfMentions: StateFlow<List<Username>>
     val listOfMentionsLoading: StateFlow<Boolean?>
     val useMarkdown: StateFlow<Boolean>
@@ -148,10 +146,10 @@ interface InputAreaViewModel {
     fun selectAttachment()
     fun closeAttachmentDialog()
     fun onAttachmentFileSelect(file: FileDescriptor)
-    fun editMessage(roomId: RoomId, eventId: EventId)
-    fun cancelEdit()
-    fun replyToMessage(roomId: RoomId, eventId: EventId)
-    fun cancelReplyTo()
+    fun replaceMessage(roomId: RoomId, eventId: EventId)
+    fun cancelReplace()
+    fun replyMessage(roomId: RoomId, eventId: EventId)
+    fun cancelReply()
 }
 
 @OptIn(FlowPreview::class)
@@ -176,15 +174,15 @@ open class InputAreaViewModelImpl(
     override val showAttachmentSelectDialog = MutableStateFlow(false)
 
     private val isTyping = MutableStateFlow(false)
-    private val isStillTyping = MutableStateFlow(uuid4())
+    private val isStillTyping = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    private val _shouldFocus: MutableSharedFlow<Unit> = MutableSharedFlow()
+    private val _shouldFocus: MutableSharedFlow<Unit> = MutableSharedFlow(extraBufferCapacity = 1)
     override val shouldFocus: Flow<Unit> = _shouldFocus.asSharedFlow()
     private val currentReplace: MutableStateFlow<Pair<RoomId, EventId>?> = MutableStateFlow(null)
-    override val isEdit: StateFlow<Boolean> =
+    override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
     private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
-    override val isReplyTo: StateFlow<Boolean> =
+    override val isReply: StateFlow<Boolean> =
         currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
     override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
     private val _listOfMentionsLoading = MutableStateFlow<Boolean?>(null)
@@ -219,11 +217,8 @@ open class InputAreaViewModelImpl(
         }
         coroutineScope.launch {
             message.collect {
-                if (it == "") {
-                    userIsNotTyping()
-                } else {
-                    typing()
-                }
+                if (it.isEmpty()) userIsNotTyping()
+                else typing()
             }
         }
     }
@@ -375,25 +370,25 @@ open class InputAreaViewModelImpl(
         onShowAttachmentSendView(file)
     }
 
-    override fun editMessage(roomId: RoomId, eventId: EventId) {
+    override fun replaceMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "edit message $eventId" }
         coroutineScope.launch {
-            matrixClient.room.getTimelineEvent(roomId, eventId).firstOrNull()?.content?.getOrNull()
+            matrixClient.room.getTimelineEvent(roomId, eventId).first()?.content?.getOrNull()
                 ?.let { roomEventContent ->
                     when (roomEventContent) {
                         is TextBased -> {
                             currentReplace.value = roomId to eventId
                             message.value = roomEventContent.bodyWithoutFallback
-                            _shouldFocus.tryEmit(Unit)
+                            _shouldFocus.emit(Unit)
                         }
 
                         else -> log.warn { "cannot edit anything besides TextBased" }
                     }
-                } ?: log.warn { "cannot get timeline event $eventId" }
+                } ?: log.warn { "cannot get timeline event content of $eventId" }
         }
     }
 
-    override fun cancelEdit() {
+    override fun cancelReplace() {
         val currentReplaceValue = currentReplace.value
         if (currentReplaceValue != null) {
             currentReplace.value = null
@@ -429,13 +424,13 @@ open class InputAreaViewModelImpl(
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override fun replyToMessage(roomId: RoomId, eventId: EventId) {
+    override fun replyMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
         currentReply.value = roomId to eventId
         _shouldFocus.tryEmit(Unit)
     }
 
-    override fun cancelReplyTo() {
+    override fun cancelReply() {
         val currentReplyValue = currentReply.value
         if (currentReplyValue != null) {
             currentReply.value = null
@@ -508,13 +503,15 @@ open class InputAreaViewModelImpl(
 
             try {
                 if (messengerSettings[userId].first()?.base?.typingIsPublic == true) {
+                    // TODO after 30_000s is set to false on server, but not re-set to true by client again!
+                    //  maybe consider using something like `lastTyping: StateFlow<Instant>` instead of 2 fields (isTyping, isStillTyping)
                     matrixClient.api.room.setTyping(roomId, matrixClient.userId, true, 30_000)
                 }
             } catch (exc: Exception) {
                 log.error(exc) { "Something went wrong while setting typing to true" }
             }
         }
-        isStillTyping.value = uuid4()
+        isStillTyping.emit(Unit)
     }
 
     private suspend fun userIsNotTyping() {
@@ -537,9 +534,9 @@ class PreviewInputViewModel() : InputAreaViewModel {
     override val showAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasShownAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val shouldFocus: Flow<Unit> = emptyFlow()
-    override val isEdit: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isReplace: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
-    override val isReplyTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isReply: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val listOfMentions: MutableStateFlow<List<Username>> = MutableStateFlow(emptyList())
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val currentCursorPosition: MutableStateFlow<Int?> = MutableStateFlow(null)
@@ -566,15 +563,15 @@ class PreviewInputViewModel() : InputAreaViewModel {
     override fun onAttachmentFileSelect(file: FileDescriptor) {
     }
 
-    override fun editMessage(roomId: RoomId, eventId: EventId) {
+    override fun replaceMessage(roomId: RoomId, eventId: EventId) {
     }
 
-    override fun cancelEdit() {
+    override fun cancelReplace() {
     }
 
-    override fun replyToMessage(roomId: RoomId, eventId: EventId) {
+    override fun replyMessage(roomId: RoomId, eventId: EventId) {
     }
 
-    override fun cancelReplyTo() {
+    override fun cancelReply() {
     }
 }
