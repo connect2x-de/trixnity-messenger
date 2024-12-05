@@ -38,7 +38,7 @@ class OverlayViewSelectorImpl(val factories: List<OverlayView<*>>) : OverlayView
                 ?: run {
                     val foundFactory =
                         factories.firstOrNull {
-                            it.supports.isInstance(timelineElementViewModelClass) && (
+                            it.supports.isInstance(element) && (
                                     element is RoomMessageTimelineElementViewModel.FileBased<*> &&
                                             it.supportedMimeTypes?.contains(element.mimeType) != false ||
                                             element !is RoomMessageTimelineElementViewModel.FileBased<*>

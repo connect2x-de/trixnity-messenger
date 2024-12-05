@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
@@ -32,6 +31,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
+import org.koin.core.logger.PrintLogger
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -45,7 +46,6 @@ internal fun InitMessengerPreview(
     CompositionLocalProvider(
         Platform provides PlatformType.ANDROID,
         IsFocused provides true,
-        IsDebug provides false,
         DI provides koinApplication.koin,
     ) {
         MessengerTheme(typography = MaterialTheme.typography) { // TODO we have to disable our own typography here, since there is a bug in compose resources (https://github.com/JetBrains/compose-multiplatform/pull/4965)
@@ -90,6 +90,7 @@ private fun createKoinApplication(): KoinApplication {
                 }
             },
         )
+        logger(PrintLogger(level = Level.DEBUG))
     }
     if (KoinPlatformTools.defaultContext().getOrNull() == null) {
         startKoin(koinApplication)

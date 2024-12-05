@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageAddReactionButton
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionButton
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
@@ -107,6 +109,7 @@ private fun PreviewTheme(content: @Composable () -> Unit) {
 @Preview
 @Composable
 fun MessageReactionPreview() {
+    val initials = DI.get<Initials>()
     PreviewTheme {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
@@ -122,7 +125,6 @@ fun MessageReactionPreview() {
                             userId = UserId("@martin:local"),
                         ),
                         isMe = false,
-                        timestamp = null,
                     )
                 ),
                 count = 3,
@@ -140,11 +142,10 @@ fun MessageReactionPreview() {
                             userId = UserId("@jan:local"),
                         ),
                         isMe = false,
-                        timestamp = null,
                     )
                 ),
                 count = 2,
-                myReaction = previewReactionEvent("username", isMe = false),
+                myReaction = previewReactionEvent("username", initials, isMe = false),
                 onAddReaction = { },
                 onRemoveReaction = { },
             )
@@ -161,6 +162,7 @@ fun MessageReactionPreview() {
 @Preview
 @Composable
 fun MessageReactionWrappingPreview() {
+    val initials = DI.get<Initials>()
     PreviewTheme {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
@@ -180,7 +182,7 @@ fun MessageReactionWrappingPreview() {
                 reaction = "\uD83D\uDC4D",
                 reactionEvents = setOf(),
                 count = 2,
-                myReaction = previewReactionEvent("username", isMe = false),
+                myReaction = previewReactionEvent("username", initials, isMe = false),
                 onAddReaction = { },
                 onRemoveReaction = { },
             )

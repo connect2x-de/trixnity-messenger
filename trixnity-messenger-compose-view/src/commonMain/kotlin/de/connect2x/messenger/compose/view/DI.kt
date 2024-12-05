@@ -75,8 +75,6 @@ import de.connect2x.messenger.compose.view.room.timeline.InputAreaView
 import de.connect2x.messenger.compose.view.room.timeline.InputAreaViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.LocationReplyView
 import de.connect2x.messenger.compose.view.room.timeline.LocationReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.ReplyToAreaView
-import de.connect2x.messenger.compose.view.room.timeline.ReplyToAreaViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.RoomHeaderView
 import de.connect2x.messenger.compose.view.room.timeline.RoomHeaderViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ScrollToEndButtonView
@@ -107,7 +105,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementSelectorImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
@@ -389,7 +387,7 @@ fun timelineViewModule() = module {
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementView() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementView() }
     overlayView<ImageOverlayView2> { ImageOverlayView2() }
-    single<TimelineElementViewSelector> { TimelineElementSelectorImpl(getAll()) }
+    single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
 
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }
@@ -401,7 +399,7 @@ fun timelineViewModule() = module {
     single<MessageInfoView> { MessageInfoViewImpl() }
 //    single<UserVerificationView> { UserVerificationViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
-    single<ReplyToAreaView> { ReplyToAreaViewImpl() }
+//    single<ReplyToAreaView> { ReplyToAreaViewImpl() }
     single<TextReplyView> { TextReplyViewImpl() }
     single<ImageReplyView> { ImageReplyViewImpl() }
     single<ImageReplyDefaultView> { ImageReplyDefaultViewImpl() }

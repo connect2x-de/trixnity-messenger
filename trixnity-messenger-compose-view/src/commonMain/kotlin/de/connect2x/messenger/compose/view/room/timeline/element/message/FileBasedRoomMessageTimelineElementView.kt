@@ -32,7 +32,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 
 @Composable
 fun FileBasedRoomMessageTimelineElementView(
@@ -60,7 +59,7 @@ fun FileBasedRoomMessageTimelineElementView(
         needsMaxWidth = true, // FIXME ?
         additionalContextActions = { onClose ->
             // name
-            val nameAndSize = "${element.name}:" + (element.size?.let { " " + formatSize(it.toLong()) } ?: "")
+            val nameAndSize = "${element.name}:" + (element.size ?: "")
             Tooltip(
                 { TooltipText(nameAndSize) }
             ) {

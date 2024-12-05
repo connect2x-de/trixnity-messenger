@@ -34,7 +34,7 @@ fun TimelineElementSelector(
     with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element) }
 }
 
-class TimelineElementSelectorImpl(private val factories: List<TimelineElementView<*>>) : TimelineElementViewSelector {
+class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) : TimelineElementViewSelector {
     private val factoryMapping =
         MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, TimelineElementView<TimelineElementViewModel<*>>>>(
             emptyMap()
@@ -106,7 +106,7 @@ class TimelineElementSelectorImpl(private val factories: List<TimelineElementVie
             factoryMapping.value[timelineElementViewModelClass]
                 ?: run {
                     val foundFactory =
-                        factories.firstOrNull { it.supports.isInstance(timelineElementViewModelClass) }
+                        factories.firstOrNull { it.supports.isInstance(element) }
                     if (foundFactory == null) return@run null
                     @Suppress("UNCHECKED_CAST")
                     foundFactory as TimelineElementView<TimelineElementViewModel<*>>

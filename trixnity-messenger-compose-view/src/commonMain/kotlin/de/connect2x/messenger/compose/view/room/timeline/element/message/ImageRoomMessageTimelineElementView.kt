@@ -32,7 +32,6 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
@@ -58,7 +57,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                         color = MaterialTheme.messengerColors.metaDataPreview,
                     )
                     Text(
-                        " (${element.size?.let { formatSize(it.toLong()) }})",
+                        " (${element.size})",
                         modifier = Modifier.weight(1.0f, false),
                         color = MaterialTheme.messengerColors.metaDataPreview,
                         maxLines = 1,

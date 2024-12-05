@@ -80,7 +80,7 @@ fun MessageBubbleContent(
             }
 
             if (needsMaxWidth) {
-                RepliedElement(holder)
+//                RepliedElement(holder)
                 // FIXME insert Reply here?
                 content(showActionMenu)
                 if (showDate) {

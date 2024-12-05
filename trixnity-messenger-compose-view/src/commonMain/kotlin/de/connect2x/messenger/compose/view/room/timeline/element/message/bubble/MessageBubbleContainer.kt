@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,74 +58,76 @@ fun MessageBubbleContainer(
             else -> MaterialTheme.colorScheme.secondary
         }
 
-    Box(
-        Modifier
-            .pointerMoveFilter(
-                onEnter = {
-                    hoverMessage.value = true
-                    true
-                }, onExit = {
-                    hoverMessage.value = false
-                    true
-                })
-            .pointerInput(holder) { // key is important to react to changes
-                detectTapGestures(onLongPress = {
-                    showActionMenu.value = true
-                }) // in case the child element has no tap / click detection, we can use this
-                size
-            }
-    ) {
-        Row {
-            val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
-            if (holder.isByMe.not()) {
-                if (isFirstInUserSequence) {
+    Column {
+        Box(
+            Modifier
+                .pointerMoveFilter(
+                    onEnter = {
+                        hoverMessage.value = true
+                        true
+                    }, onExit = {
+                        hoverMessage.value = false
+                        true
+                    })
+                .pointerInput(holder) { // key is important to react to changes
+                    detectTapGestures(onLongPress = {
+                        showActionMenu.value = true
+                    }) // in case the child element has no tap / click detection, we can use this
+                    size
+                }
+        ) {
+            Row {
+                val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
+                if (holder.isByMe.not()) {
+                    if (isFirstInUserSequence) {
+                        Box(
+                            Modifier
+                                .background(
+                                    messageBackground,
+                                    shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
+                                )
+                                .requiredWidth(8.dp)
+                                .fillMaxHeight()
+                        )
+                    } else {
+                        Spacer(Modifier.requiredWidth(8.dp))
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = messageBackground
+                ) {
+                    Box(Modifier.fillMaxSize()) {
+                        MessageBubbleContent(holder, showDate, needsMaxWidth, { showActionMenu.value = true }, content)
+                        MessageBubbleContentOverlay(
+                            hoverMessage,
+                            overlay,
+                        )
+                    }
+                }
+                if (holder.isByMe && isFirstInUserSequence) {
                     Box(
                         Modifier
                             .background(
                                 messageBackground,
-                                shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
+                                shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
                             )
-                            .requiredWidth(8.dp)
+                            .zIndex(-1f)
                             .fillMaxHeight()
-                    )
-                } else {
-                    Spacer(Modifier.requiredWidth(8.dp))
-                }
-            }
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = messageBackground
-            ) {
-                Box(Modifier.fillMaxSize()) {
-                    MessageBubbleContent(holder, showDate, needsMaxWidth, { showActionMenu.value = true }, content)
-                    MessageBubbleContentOverlay(
-                        hoverMessage,
-                        overlay,
+                        // no width and no padding, as really wide messages will push this to the max amount (we only use padding in the Timeline)
                     )
                 }
             }
-            if (holder.isByMe && isFirstInUserSequence) {
-                Box(
-                    Modifier
-                        .background(
-                            messageBackground,
-                            shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
-                        )
-                        .zIndex(-1f)
-                        .fillMaxHeight()
-                    // no width and no padding, as really wide messages will push this to the max amount (we only use padding in the Timeline)
-                )
-            }
-        }
 
-        MessageBubbleActionMenu(
-            holder,
-            hoverMessage,
-            showActionMenu,
-            { infoOpen.value = true },
-            { reactionsOpen.value = true },
-            additionalContextActions,
-        )
+            MessageBubbleActionMenu(
+                holder,
+                hoverMessage,
+                showActionMenu,
+                { infoOpen.value = true },
+                { reactionsOpen.value = true },
+                additionalContextActions,
+            )
+        }
 
         MessageInfo(
             holder,
