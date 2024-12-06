@@ -188,18 +188,28 @@ class TimelineElementHolderViewModelImpl(
     override val hasLoadingIndicatorAfter =
         canLoadAfter.stateIn(coroutineScope, WhileSubscribed(), false)
 
+    private val previousSupportedTimelineEvent = coroutineScope.async(start = CoroutineStart.LAZY) {
+        matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
+            .drop(1)
+            .map { it.first() }
+            .firstOrNull { timelineEvent ->
+                timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
+            }
+    }
+    private val nextSupportedTimelineEvent = coroutineScope.async(start = CoroutineStart.LAZY) {
+        matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
+            .drop(1)
+            .map { it.first() }
+            .firstOrNull { timelineEvent ->
+                timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
+            }
+    }
+
     override val hasUnreadMarker: StateFlow<Boolean> =
         matrixClient.room.getAccountData<FullyReadEventContent>(roomId).transformLatest { fullyReadEvent ->
             if (fullyReadEvent?.eventId == eventId) {
                 log.trace { "start compute unread marker at $eventId" }
-                matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
-                    .first { timelineEventFlow ->
-                        val timelineEvent = timelineEventFlow.first()
-                        val isByMe = timelineEvent.event.sender == matrixClient.userId
-                        val origEventContent = timelineEvent.event.content
-                        timelineElementViewModelFactorySelector.supports(origEventContent)
-                                && isByMe.not()
-                    }
+                nextSupportedTimelineEvent.await()
                 log.debug { "enable unread marker at $eventId" }
                 emit(true)
             } else emit(false)
@@ -291,15 +301,6 @@ class TimelineElementHolderViewModelImpl(
                 )
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
-
-    private val previousSupportedTimelineEvent = coroutineScope.async(start = CoroutineStart.LAZY) {
-        matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
-            .drop(1)
-            .map { it.first() }
-            .firstOrNull { timelineEvent ->
-                timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
-            }
-    }
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         flow {

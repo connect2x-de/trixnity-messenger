@@ -24,7 +24,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.originTimestamp
@@ -69,7 +68,6 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
         gap = null,
     )
 
-    private val room = MutableStateFlow<Room>(Room(roomId))
     private val receipts = MutableStateFlow<Map<EventId, Set<UserId>>>(mapOf())
 
     init {
@@ -102,7 +100,6 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     )
                 )
             }
-            room.value = Room(roomId)
             every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
             receipts.value = mapOf()
         }
@@ -188,7 +185,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 cancelNeverEndingCoroutines()
             }
             should("be false when room is direct (showSender)") {
-                timeline(roomServiceMock, roomId, room = room) {
+                val timeline = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = bob) {
                         text("Hi!")
                     }
@@ -200,7 +197,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 advanceUntilIdle()
                 cut.showSender.value shouldBe true
 
-                room.update { it.copy(isDirect = true) }
+                timeline.room.update { it.copy(isDirect = true) }
                 advanceUntilIdle()
                 cut.showSender.value shouldBe false
 
@@ -494,30 +491,118 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
         }
         context(TimelineElementHolderViewModel::hasUnreadMarker.name) {
-            should("show the unread marker") {
-                TODO()
+            should("show the unread marker when event is set") {
+                val timeline = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hi!")
+                    }
+                    +messageEvent(sender = bob) {
+                        text("Hi!")
+                    }
+                }
+                val cut = cut(EventId("0"))
+
+                async { cut.hasUnreadMarker.collect() }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe false
+
+                timeline.fullyReadEventIndex.value = 0
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe true
+
                 cancelNeverEndingCoroutines()
             }
-            should("remove the unread marker when changed") {
-                TODO()
+            should("show the unread marker when subsequent event is added") {
+                val timeline = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hi!")
+                    }
+                }
+                val cut = cut(EventId("0"))
+
+                timeline.fullyReadEventIndex.value = 0
+                async { cut.hasUnreadMarker.collect() }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe false
+
+                timeline.addEvents {
+                    +messageEvent(sender = bob) {
+                        text("Hi!")
+                    }
+                }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe true
+
                 cancelNeverEndingCoroutines()
             }
-            should("not show the unread marker, when not set to this element") {
-                TODO()
+            should("remove the unread marker when marker removed") {
+                val timeline = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hi!")
+                    }
+                    +messageEvent(sender = bob) {
+                        text("Hi!")
+                    }
+                }
+                val cut = cut(EventId("0"))
+
+                timeline.fullyReadEventIndex.value = 0
+                async { cut.hasUnreadMarker.collect() }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe true
+
+                timeline.fullyReadEventIndex.value = 1
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe false
+
                 cancelNeverEndingCoroutines()
             }
-            should("not show the unread marker, when one of the next events is by us") {
-                TODO()
+            should("not show the unread marker, when no subsequent event") {
+                val timeline = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hi!")
+                    }
+                }
+                val cut = cut(EventId("0"))
+
+                timeline.fullyReadEventIndex.value = 0
+                async { cut.hasUnreadMarker.collect() }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe false
                 cancelNeverEndingCoroutines()
             }
             should("not show the unread marker, when none of the next events is supported") {
-                TODO()
+                val timeline = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hi!")
+                    }
+                }
+                val cut = cut(EventId("0"))
+
+                timeline.fullyReadEventIndex.value = 0
+                async { cut.hasUnreadMarker.collect() }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe false
+
+                timeline.addEvents {
+                    // should be ignored
+                    +MessageEvent(
+                        content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                        id = EventId("dino"),
+                        sender = bob,
+                        roomId = roomId,
+                        originTimestamp = 1234,
+                    )
+                }
+                advanceUntilIdle()
+                cut.hasUnreadMarker.value shouldBe false
+
                 cancelNeverEndingCoroutines()
             }
         }
     }
 
-    private fun TestScope.cut(): TimelineElementHolderViewModel {
+    private fun TestScope.cut(eventId: EventId = this@TimelineElementHolderViewModelTest.eventId): TimelineElementHolderViewModel {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))

@@ -8,14 +8,16 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
@@ -130,7 +132,6 @@ fun timeline(
     roomServiceMock: RoomService,
     roomId: RoomId,
     pageSize: Int = 20,
-    room: MutableStateFlow<Room> = MutableStateFlow(Room(roomId)),
     block: TimelineBuilder.() -> Unit,
 ): TimelineMock {
     val fullyReadMock = every {
@@ -139,6 +140,7 @@ fun timeline(
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
     fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
 
+    val room = MutableStateFlow(Room(roomId))
     every { roomServiceMock.getById(roomId) } returns room
 
     val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
@@ -160,7 +162,7 @@ fun timeline(
 }
 
 class TimelineMock(
-    room: MutableStateFlow<Room>,
+    val room: MutableStateFlow<Room>,
     val fullyReadEventIndex: MutableStateFlow<Int?>,
     roomServiceMock: RoomService,
 ) {
@@ -265,6 +267,7 @@ class TimelineBuilder(
 
     private var idCounter = 0
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     operator fun TimelineEvent.unaryPlus(): MutableStateFlow<TimelineEvent> {
         val previousTimelineEvent = timelineEvents.value.lastOrNull()
         val newTimelineEvent = MutableStateFlow(this.copy(previousEventId = previousTimelineEvent?.value?.eventId))
@@ -273,13 +276,30 @@ class TimelineBuilder(
         } returns newTimelineEvent
         every {
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS, any())
-        } returns timelineEvents.transform {
-            it.dropWhile { it.value.eventId != eventId }.forEach { emit(it) }
+        } returns channelFlow {
+            val alreadyEmittedEvents = mutableSetOf<EventId>()
+            timelineEvents.collectLatest {
+                it.dropWhile { it.value.eventId != eventId }
+                    .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
+                    .forEach {
+                        alreadyEmittedEvents.add(it.value.eventId)
+                        send(it)
+                    }
+            }
         }
         every {
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any())
-        } returns timelineEvents.transform {
-            it.reversed().dropWhile { it.value.eventId != eventId }.forEach { emit(it) }
+        } returns channelFlow {
+            val alreadyEmittedEvents = mutableSetOf<EventId>()
+            timelineEvents.collectLatest {
+                it.reversed()
+                    .dropWhile { it.value.eventId != eventId }
+                    .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
+                    .forEach {
+                        alreadyEmittedEvents.add(it.value.eventId)
+                        send(it)
+                    }
+            }
         }
 
         previousTimelineEvent?.update {
