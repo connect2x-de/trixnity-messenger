@@ -95,7 +95,9 @@ class SelfVerificationRouter(
         }
 
     fun redoSelfVerification(userId: UserId) {
-        navigation.launchPush(viewModelContext.coroutineScope, Config.RedoSelfVerification(userId))
+        if (messengerSettings.value.base.accounts.all { it.value.base.accountSetupFinished }) {
+            navigation.launchPush(viewModelContext.coroutineScope, Config.RedoSelfVerification(userId))
+        }
     }
 
     val messengerSettings = get<MatrixMessengerSettingsHolder>()

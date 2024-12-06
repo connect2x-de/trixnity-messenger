@@ -249,7 +249,7 @@ open class MainViewModelImpl(
         }
 
         startSync()
-        possiblyStartSelfVerification()
+        //possiblyStartSelfVerification()
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
