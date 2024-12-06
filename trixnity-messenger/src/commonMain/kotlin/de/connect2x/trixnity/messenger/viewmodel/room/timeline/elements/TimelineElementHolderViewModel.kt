@@ -13,9 +13,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -39,7 +40,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.flatten
@@ -125,7 +125,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val hasLoadingIndicatorBefore: StateFlow<Boolean>
     val hasLoadingIndicatorAfter: StateFlow<Boolean>
 
-    val isRead: StateFlow<Boolean>
+    val isRead: StateFlow<Boolean?>
     val isReadBy: StateFlow<List<UserInfoElement>?>
 
     val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
@@ -292,15 +292,19 @@ class TimelineElementHolderViewModelImpl(
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
+    private val previousSupportedTimelineEvent = coroutineScope.async(start = CoroutineStart.LAZY) {
+        matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
+            .drop(1)
+            .map { it.first() }
+            .firstOrNull { timelineEvent ->
+                timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
+            }
+    }
+
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         flow {
-            val timelineEvent = matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
-                .drop(1)
-                .map { it.first() }
-                .firstOrNull { timelineEvent ->
-                    timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
-                }
-            emit(timelineEvent?.sender != senderUserId)
+            val previousSupportedTimelineEvent = previousSupportedTimelineEvent.await()
+            emit(previousSupportedTimelineEvent?.sender != senderUserId)
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val sender: StateFlow<UserInfoElement?> =
@@ -319,93 +323,78 @@ class TimelineElementHolderViewModelImpl(
 
     override val showBigGapBefore: StateFlow<Boolean?> =
         flow {
-            val isFirstInUserSequence = isFirstInUserSequence.filterNotNull().first()
-            if (isFirstInUserSequence) emit(true)
-            else {
-                val previousSupportedTimelineEvent =
-                    matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
-                        .drop(1)
-                        .map { it.first() }
-                        .firstOrNull { timelineEvent ->
-                            val origEventContent = timelineEvent.event.content
-                            timelineElementViewModelFactorySelector.supports(origEventContent)
-                        }
-                if (previousSupportedTimelineEvent == null) emit(false)
-                else {
-                    val previousTimestamp =
-                        Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
-                    val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
-                    if (thisTimestamp - previousTimestamp > 1.hours) emit(true)
-                    else emit(false)
+            val previousSupportedTimelineEvent = previousSupportedTimelineEvent.await()
+            emit(
+                when {
+                    previousSupportedTimelineEvent?.sender != senderUserId -> true
+                    else -> {
+                        val previousTimestamp =
+                            Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
+                        val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
+                        thisTimestamp - previousTimestamp > 1.hours
+                    }
                 }
-            }
+            )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isByMe: Boolean = senderUserId == userId
 
 
     private sealed interface IsReadSearchResult {
+        data object Unread : IsReadSearchResult
         data class Read(val readBy: Set<UserId>) : IsReadSearchResult
-        data class RoomUpgraded(val roomId: RoomId, val eventId: EventId) : IsReadSearchResult
     }
 
     private fun isReadSearch(roomId: RoomId, eventId: EventId): Flow<IsReadSearchResult> =
         getReceipts(roomId).transformLatest { receipts ->
+            log.trace { "isReadSearch: roomId=$roomId eventId=$eventId receipts=$receipts" }
             matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
                 .collect {
                     val timelineEvent = it.first()
                     val sender = timelineEvent.sender
                     val currentEventId = timelineEvent.eventId
                     val currentRoomId = timelineEvent.roomId
-                    val foundReceipts = receipts[currentEventId].orEmpty() - sender
+                    val foundReceipts = receipts[currentEventId].orEmpty() - sender - userId
                     when {
                         foundReceipts.isNotEmpty() -> emit(IsReadSearchResult.Read(foundReceipts))
                         sender != senderUserId && sender != userId -> emit(IsReadSearchResult.Read(setOf(sender)))
                         timelineEvent.roomId != roomId ->
-                            emit(IsReadSearchResult.RoomUpgraded(currentRoomId, currentEventId))
+                            emitAll(isReadSearch(currentRoomId, currentEventId)) // recursive!
 
-                        else -> {}
+                        else -> emit(IsReadSearchResult.Unread)
                     }
                 }
         }
 
-    private tailrec suspend fun suspendUntilRead(roomId: RoomId, eventId: EventId): Boolean =
-        when (val result = isReadSearch(roomId, eventId).first()) {
-            is IsReadSearchResult.Read -> true
-            is IsReadSearchResult.RoomUpgraded -> suspendUntilRead(result.roomId, result.eventId)
-        }
-
-    override val isRead: StateFlow<Boolean> =
+    override val isRead: StateFlow<Boolean?> =
         flow {
-            suspendUntilRead(roomId, eventId)
-            emit(true)
+            isReadSearch(roomId, eventId).onEach {
+                when (it) {
+                    is IsReadSearchResult.Read -> emit(true)
+                    IsReadSearchResult.Unread -> emit(false)
+                }
+            }.first { it is IsReadSearchResult.Read }
         }.stateIn(coroutineScope, WhileSubscribed(), false)
-
-    private fun isReadBy(
-        roomId: RoomId,
-        eventId: EventId,
-    ): Flow<UserId> =
-        flow {
-            var result: IsReadSearchResult.RoomUpgraded? = null
-            while (currentCoroutineContext().isActive) {
-                val (nextRoomId, nextEventId) = if (result != null) result.roomId to result.eventId else roomId to eventId
-                result = isReadSearch(nextRoomId, nextEventId)
-                    .onEach { if (it is IsReadSearchResult.Read) it.readBy.forEach { userId -> emit(userId) } }
-                    .filterIsInstance<IsReadSearchResult.RoomUpgraded>()
-                    .first()
-            }
-        }
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
         flow {
             val cumulatedReads = mutableSetOf<UserId>()
-            isReadBy(roomId, eventId)
+            isReadSearch(roomId, eventId)
                 .collect {
-                    cumulatedReads.add(it)
-                    emit(cumulatedReads.toSet())
+                    when (it) {
+                        is IsReadSearchResult.Read -> {
+                            cumulatedReads.addAll(it.readBy)
+                            emit(cumulatedReads.toList())
+                        }
+
+                        IsReadSearchResult.Unread -> {
+                            if (cumulatedReads.isEmpty()) emit(cumulatedReads.toList())
+                        }
+                    }
                 }
         }.flatMapLatest { userIds ->
-            combine(userIds.map { userId -> matrixClient.user.getById(roomId, userId) }) { roomUsers ->
+            if (userIds.isEmpty()) flowOf(emptyList())
+            else combine(userIds.map { userId -> matrixClient.user.getById(roomId, userId) }) { roomUsers ->
                 roomUsers.mapNotNull { user ->
                     if (user == null) return@mapNotNull null
                     user.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
