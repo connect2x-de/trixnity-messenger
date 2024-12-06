@@ -205,13 +205,16 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                 }
             },
             backButton = {
+                val isSetup = selfVerificationViewModel.isSetup.collectAsState().value
                 Custom {
-                    OutlinedButton(
-                        modifier = Modifier.buttonPointerModifier(),
-                        onClick = {
-                            selfVerificationViewModel.close()
-                        }) {
-                        Text(i18n.commonBack())
+                    if (isSetup) {
+                        OutlinedButton(
+                            modifier = Modifier.buttonPointerModifier(),
+                            onClick = {
+                                selfVerificationViewModel.close()
+                            }) {
+                            Text(i18n.commonBack())
+                        }
                     }
                 }
             }

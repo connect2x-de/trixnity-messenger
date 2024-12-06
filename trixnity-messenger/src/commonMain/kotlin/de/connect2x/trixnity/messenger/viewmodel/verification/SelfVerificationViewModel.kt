@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -56,6 +57,8 @@ interface SelfVerificationViewModel {
     val passphraseWrong: MutableStateFlow<Boolean>
     val error: MutableStateFlow<String?>
     val isVerified: StateFlow<Boolean?>
+    val verificationMethodsLoaded: StateFlow<Boolean>
+    val isSetup: StateFlow<Boolean>
 
     fun waitForAvailableVerificationMethods()
     fun launchVerification(selfVerificationMethod: SelfVerificationMethod)
@@ -94,6 +97,17 @@ open class SelfVerificationViewModelImpl(
             .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest { it }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
+    override val verificationMethodsLoaded: StateFlow<Boolean> = selfVerificationMethods.map { !it.isEmpty() }.stateIn(
+        coroutineScope,
+        SharingStarted.WhileSubscribed(), false
+    )
+
+    override val isSetup =
+        get<MatrixMessengerSettingsHolder>().map { it.base.accounts[userId]?.base?.accountSetupFinished == false }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.WhileSubscribed(), false
+            )
 
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {
@@ -241,7 +255,6 @@ open class SelfVerificationViewModelImpl(
     }
 
     override fun close() {
-        println("closing with ${!showVerificationHelp.value}")
         onCloseSelfVerification(!showVerificationHelp.value)
     }
 

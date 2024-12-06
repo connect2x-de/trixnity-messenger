@@ -34,9 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
+import de.connect2x.messenger.compose.view.common.Wizard
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
+import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -57,39 +58,51 @@ fun DeviceVerificationRequest(verificationStepRequestViewModel: VerificationStep
     val deviceDisplayName = verificationStepRequestViewModel.deviceDisplayName.collectAsState().value
     val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
 
-    Column {
-        theirDisplayName?.let {
-            Text(i18n.deviceVerificationInitiatedBy(it))
-        }
-        Text(i18n.deviceVerificationToAccount(deviceDisplayName))
-        Spacer(Modifier.size(20.dp))
-        Row(Modifier.fillMaxWidth()) {
-            Spacer(Modifier.weight(1.0f, fill = true))
-            Button(verificationStepRequestViewModel::next, Modifier.buttonPointerModifier()) {
-                Text(i18n.commonNext().capitalize(Locale.current))
+    val step = WizardStep(
+        id = "DEVICE_VERIFICATION_WIZARD_REQUEST",
+        title = { i18n.deviceVerification() },
+        content = {
+            Column {
+                theirDisplayName?.let {
+                    Text(i18n.deviceVerificationInitiatedBy(it))
+                }
+                Text(i18n.deviceVerificationToAccount(deviceDisplayName))
+                Spacer(Modifier.size(20.dp))
+            }
+        },
+        nextButton = {
+            Custom {
+                Button(verificationStepRequestViewModel::next, Modifier.buttonPointerModifier()) {
+                    Text(i18n.commonNext().capitalize(Locale.current))
+                }
             }
         }
-    }
+    )
+    Wizard(listOf(step))
 }
 
 @Composable
 fun DeviceVerificationWaitForOther(cancelAction: (() -> Unit)? = null) {
     val i18n = DI.get<I18nView>()
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        LoadingSpinner()
-        Spacer(Modifier.size(20.dp))
-        Text(i18n.verificationWait())
-        cancelAction?.let {
-            MessengerModalButtonRow(
-                {
-                    CloseModalButton(
-                        caption = i18n.commonCancel(),
-                        closeModalAction = cancelAction,
-                    )
+    val step = WizardStep(
+        id = "DEVICE_VERIFICATION_WIZARD_WAIT",
+        title = { i18n.deviceVerification() },
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                LoadingSpinner()
+                Spacer(Modifier.size(20.dp))
+                Text(i18n.verificationWait())
+            }
+        },
+        additionalButton = {
+            cancelAction?.let {
+                Button(onClick = cancelAction, Modifier.buttonPointerModifier()) {
+                    Text(i18n.commonCancel())
                 }
-            )
+            }
         }
-    }
+    )
+    Wizard(listOf(step))
 }
 
 @Composable
@@ -97,40 +110,63 @@ fun SelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificati
     val verificationMethods = selectVerificationMethodViewModel.verificationMethods
     val selectedVerificationMethod =
         remember { mutableStateOf(verificationMethods.firstOrNull()?.first) }
-    Column {
-        verificationMethods.forEach { (verificationMethod, explanation) ->
-            if (selectVerificationMethodViewModel.hasSelection) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { selectedVerificationMethod.value = verificationMethod }
-                ) {
-                    RadioButton(
-                        selected = selectedVerificationMethod.value == verificationMethod,
-                        onClick = { selectedVerificationMethod.value = verificationMethod },
-                    )
-                    Text(
-                        text = explanation,
+
+    val i18n = DI.get<I18nView>()
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_SELECT",
+        title = { i18n.deviceVerification() },
+        content = {
+            Column {
+                verificationMethods.forEach { (verificationMethod, explanation) ->
+                    if (selectVerificationMethodViewModel.hasSelection) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { selectedVerificationMethod.value = verificationMethod }
+                        ) {
+                            RadioButton(
+                                selected = selectedVerificationMethod.value == verificationMethod,
+                                onClick = { selectedVerificationMethod.value = verificationMethod },
+                            )
+                            Text(
+                                text = explanation,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = explanation,
+                        )
+                    }
+                }
+
+            }
+        },
+        additionalButton = {
+            OkButton {
+                selectedVerificationMethod.value?.let {
+                    selectVerificationMethodViewModel.acceptVerificationMethod(
+                        it
                     )
                 }
-            } else {
-                Text(
-                    text = explanation,
-                )
             }
-        }
-        Spacer(Modifier.size(20.dp))
-        OkButton { selectedVerificationMethod.value?.let { selectVerificationMethodViewModel.acceptVerificationMethod(it) } }
-    }
+        })
+    Wizard(listOf(step))
 }
 
 @Composable
 fun AcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
     val i18n = DI.get<I18nView>()
-    Column {
-        Text(i18n.verificationStartEmoji())
-        Spacer(Modifier.size(20.dp))
-        OkButton(acceptSasStartViewModel::accept)
-    }
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_ACCEPT",
+        title = { i18n.deviceVerification() },
+        content = {
+            Column {
+                Text(i18n.verificationStartEmoji())
+            }
+        },
+        additionalButton = { OkButton(acceptSasStartViewModel::accept) }
+
+    )
+    Wizard(listOf(step))
 
 }
 
@@ -139,142 +175,180 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
     val i18n = DI.get<I18nView>()
     val emojis = verificationStepCompareViewModel.emojis
     val decimals = verificationStepCompareViewModel.decimals
-    Column(Modifier.fillMaxWidth().align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-        if (emojis.isNotEmpty()) {
-            Text(i18n.verificationEmojiComparison())
-            Spacer(Modifier.size(20.dp))
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                Row(
-                    Modifier.align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    emojis.take(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_COMPARE",
+        title = { i18n.deviceVerification() },
+        content = {
+            Column(
+                Modifier.fillMaxWidth().align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (emojis.isNotEmpty()) {
+                    Text(i18n.verificationEmojiComparison())
+                    Spacer(Modifier.size(20.dp))
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        Row(
+                            Modifier.align(Alignment.Center),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            emojis.take(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
+                        }
+                    }
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        Row(
+                            Modifier.align(Alignment.Center),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            emojis.drop(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
+                        }
+                    }
+                } else {
+                    Text(i18n.verificationNumberComparison())
+                    Spacer(Modifier.size(20.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        decimals.take(2).map { Number(it) }
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        decimals.drop(2).map { Number(it) }
+                    }
                 }
             }
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                Row(
-                    Modifier.align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+        },
+        nextButton = {
+            Custom {
+                Button(
+                    verificationStepCompareViewModel::accept,
+                    Modifier.buttonPointerModifier().weight(1.0f, fill = false)
                 ) {
-                    emojis.drop(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
+                    Text(i18n.verificationMatch())
                 }
             }
-        } else {
-            Text(i18n.verificationNumberComparison())
-            Spacer(Modifier.size(20.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround) {
-                decimals.take(2).map { Number(it) }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround) {
-                decimals.drop(2).map { Number(it) }
-            }
-        }
-        Spacer(Modifier.size(20.dp))
-        Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-            Button(
-                verificationStepCompareViewModel::decline,
-                Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text(i18n.verificationNotMatch(), color = Color.White)
-            }
-            Spacer(Modifier.size(20.dp))
-            Button(
-                verificationStepCompareViewModel::accept,
-                Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-            ) {
-                Text(i18n.verificationMatch())
+        },
+        backButton = {
+            Custom {
+                Button(
+                    verificationStepCompareViewModel::decline,
+                    Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(i18n.verificationNotMatch(), color = Color.White)
+                }
             }
         }
-    }
+    )
+    Wizard(listOf(step))
 }
 
 @Composable
 fun DeviceVerificationSuccess(verificationStepSuccessViewModel: VerificationStepSuccessViewModel) {
     val i18n = DI.get<I18nView>()
     val deviceName = verificationStepSuccessViewModel.deviceName.collectAsState().value ?: i18n.commonUnknown()
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(i18n.verificationSuccess(deviceName))
-            Icon(Icons.Default.CheckCircle, i18n.commonSuccess(), tint = MaterialTheme.messengerColors.success)
-        }
-        Spacer(Modifier.size(20.dp))
-        OkButton(verificationStepSuccessViewModel::ok)
-    }
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_SUCCESS",
+        title = { i18n.deviceVerification() },
+        content = {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(i18n.verificationSuccess(deviceName))
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        i18n.commonSuccess(),
+                        tint = MaterialTheme.messengerColors.success
+                    )
+                }
+            }
+        },
+        additionalButton = {
+            OkButton(verificationStepSuccessViewModel::ok)
+        })
+    Wizard(listOf(step))
 }
 
 @Composable
 fun VerificationRejected(
     verificationStepRejectedViewModel: VerificationStepRejectedViewModel,
     deviceVerification: Boolean = true,
-    isEmbedded: Boolean = false
 ) {
     val i18n = DI.get<I18nView>()
-    Column {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                Icons.Default.Cancel,
-                i18n.commonCancelled(),
-                Modifier.size(50.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Text(text = i18n.verificationRejected(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
-        }
-        if (deviceVerification && !isEmbedded) {
-            Spacer(Modifier.size(20.dp))
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_REJECTED",
+        title = { if (deviceVerification) i18n.deviceVerification() else i18n.userVerification() },
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    Icons.Default.Cancel,
+                    i18n.commonCancelled(),
+                    Modifier.size(50.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Text(text = i18n.verificationRejected(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
+            }
+        },
+        additionalButton = {
             OkButton(verificationStepRejectedViewModel::ok)
         }
-    }
+    )
+    Wizard(listOf(step))
 }
 
 @Composable
 fun VerificationTimeout(
     verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
     deviceVerification: Boolean = true,
-    isEmbedded: Boolean = false
 ) {
     val i18n = DI.get<I18nView>()
-    Column {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                Icons.Default.Cancel,
-                i18n.commonCancelled(),
-                Modifier.size(50.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Text(i18n.verificationTimeout(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
-        }
-        if (deviceVerification && !isEmbedded) {
-            Spacer(Modifier.size(20.dp))
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_TIMEOUT",
+        title = { if (deviceVerification) i18n.deviceVerification() else i18n.userVerification() },
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    Icons.Default.Cancel,
+                    i18n.commonCancelled(),
+                    Modifier.size(50.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Text(i18n.verificationTimeout(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
+            }
+        },
+        additionalButton = {
             OkButton(verificationStepTimeoutViewModel::ok)
         }
-    }
+    )
+    Wizard(listOf(step))
 }
 
 @Composable
 fun VerificationCancelled(
     verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
     deviceVerification: Boolean = true,
-    isEmbedded: Boolean = false
 ) {
     val i18n = DI.get<I18nView>()
-    Column {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                Icons.Default.Cancel,
-                i18n.commonCancelled(),
-                Modifier.size(50.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Text(text = i18n.verificationCancelled(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
-        }
-        if (deviceVerification && !isEmbedded) {
-            Spacer(Modifier.size(20.dp))
-            OkButton(verificationStepCancelledViewModel::ok)
-        }
-    }
+    val step = WizardStep(
+        id = "VERIFICATION_WIZARD_CANCELLED",
+        title = { if (deviceVerification) i18n.deviceVerification() else i18n.userVerification() },
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    Icons.Default.Cancel,
+                    i18n.commonCancelled(),
+                    Modifier.size(50.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Text(text = i18n.verificationCancelled(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
+            }
+        },
+        additionalButton = { OkButton(verificationStepCancelledViewModel::ok) }
+    )
+    Wizard(listOf(step))
 }
 
 @Composable

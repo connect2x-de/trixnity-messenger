@@ -384,6 +384,7 @@ open class VerificationViewModelImpl(
                 try {
                     activeVerification.cancel()
                 } catch (exc: Exception) {
+                    println("catched $exc")
                     onCloseVerification()
                 }
             }
