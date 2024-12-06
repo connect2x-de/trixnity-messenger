@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -37,6 +38,8 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -383,10 +386,24 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext
             ),
-            userId = userId,
+            _roomUser = MutableStateFlow(
+                RoomUser(
+                    roomId,
+                    userId,
+                    userId.full,
+                    event = StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId("$1234"),
+                        userId,
+                        roomId,
+                        0,
+                        null,
+                        "key"
+                    )
+                )
+            ),
             error = MutableStateFlow(""),
             selectedRoomId = roomId,
-            closeMemberOptions = closeMemberOptions,
             powerLevel = powerLevel,
         )
     }

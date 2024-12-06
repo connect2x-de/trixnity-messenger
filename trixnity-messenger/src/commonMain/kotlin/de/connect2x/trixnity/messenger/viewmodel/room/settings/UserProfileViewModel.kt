@@ -1,22 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.ADMIN
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.MODERATOR
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.USER
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
@@ -38,7 +38,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -65,9 +64,8 @@ interface UserProfileViewModelFactory {
 
 interface UserProfileViewModel {
     val userId: UserId
-    val member: StateFlow<MemberElement?>
+    val userInfo: StateFlow<UserInfoElement?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
-    val memberOptionsOpen: StateFlow<Boolean>
     val error: StateFlow<String?>
     val membershipReason: StateFlow<String?>
     val membership: StateFlow<Membership?>
@@ -76,9 +74,12 @@ interface UserProfileViewModel {
     val kickUserWarningTitle: StateFlow<String>
     val iHavePowerToKickUser: StateFlow<Boolean>
     val banUserWarningOpen: StateFlow<Boolean>
+    val membershipChanging: StateFlow<Boolean>
     val iHavePowerToBanUser: StateFlow<Boolean>
+    val banReason: MutableStateFlow<String>
     val unbanUserWarningOpen: StateFlow<Boolean>
     val iHavePowerToUnbanUser: StateFlow<Boolean>
+    val unbanReason: MutableStateFlow<String>
     val role: StateFlow<Role>
     val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
@@ -88,82 +89,32 @@ interface UserProfileViewModel {
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
 
-    fun openMemberOptions()
-    fun closeMemberOptions()
     fun openKickUserWarning()
     fun closeKickUserWarning()
-    fun kickUser(userId: UserId)
+    fun kickUser()
     fun openBanUserWarning()
     fun closeBanUserWarning()
-    fun banUser(reason: String?)
+    fun banUser()
     fun openUnbanUserWarning()
     fun closeUnbanUserWarning()
-    fun unbanUser(reason: String?)
+    fun unbanUser()
     fun blockUser()
     fun unblockUser()
 
     fun back()
     fun errorDismiss()
-
-    enum class Role {
-        USER {
-            override fun getMinPowerLevel() = 0L
-        },
-        MODERATOR {
-            override fun getMinPowerLevel() = 50L
-        },
-        ADMIN {
-            override fun getMinPowerLevel() = 100L
-        };
-
-        abstract fun getMinPowerLevel(): Long
-    }
-
-    data class MemberElement(
-        val image: ByteArray?,
-        val displayName: String,
-        val userId: String,
-        val initials: String
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-
-            other as MemberElement
-
-            if (image != null) {
-                if (other.image == null) return false
-                if (!image.contentEquals(other.image)) return false
-            } else if (other.image != null) return false
-            if (displayName != other.displayName) return false
-            if (userId != other.userId) return false
-            if (initials != other.initials) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = image?.contentHashCode() ?: 0
-            result = 31 * result + displayName.hashCode()
-            result = 31 * result + userId.hashCode()
-            result = 31 * result + initials.hashCode()
-            return result
-        }
-    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserProfileViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    userId: UserId,
+    override val userId: UserId,
     override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay=1)
-
-    override val memberOptionsOpen = MutableStateFlow(false)
 
     override val kickUserWarningOpen = MutableStateFlow(false)
     override val kickUserWarningMessage = MutableStateFlow("")
@@ -187,21 +138,26 @@ class UserProfileViewModelImpl(
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val member: StateFlow<UserProfileViewModel.MemberElement?>
-    override val role = MutableStateFlow(USER)
+    override val userInfo: StateFlow<UserInfoElement?>
+    override val role = MutableStateFlow(Role.USER)
     override val showRole = MutableStateFlow(false)
     override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
     override val showPowerLevel = MutableStateFlow(false)
+
+    private val _membershipChanging =  MutableStateFlow(false)
+    override val membershipChanging: StateFlow<Boolean> = _membershipChanging
 
     override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val iHavePowerToBanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val banReason: MutableStateFlow<String> = MutableStateFlow("")
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canUnbanUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val unbanReason: MutableStateFlow<String> = MutableStateFlow("")
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -214,8 +170,7 @@ class UserProfileViewModelImpl(
                 powerLevel = powerLevel,
                 roomUser = roomUser,
                 error = error,
-                selectedRoomId = selectedRoomId,
-                closeMemberOptions = ::closeMemberOptions
+                selectedRoomId = selectedRoomId
             )
     override val presence = matrixClient.user.userPresence.map { it[userId]?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
@@ -244,32 +199,32 @@ class UserProfileViewModelImpl(
         coroutineScope.launch {
             matrixClient.user.getPowerLevel(selectedRoomId, userId).collect { powerLevel ->
                 role.value = getPowerRole(powerLevel)
-                showRole.value = !(role.value == USER)
+                showRole.value = role.value != Role.USER
                 showPowerLevel.value = role.value.getMinPowerLevel() != powerLevel
             }
         }
 
-        member = roomUser.mapNotNull {
+        userInfo = roomUser.mapNotNull {
             it?.let { roomUser ->
                 roomUserOriginalName.value = roomUser.originalName
 
-                UserProfileViewModel.MemberElement(
+                UserInfoElement(
+                    roomUser.name,
+                    roomUser.userId,
+                    initials.compute(roomUser.name),
                     getImage(
                         matrixClient,
                         roomUser
                     ),
-                    roomUser.name,
-                    roomUser.userId.full,
-                    initials.compute(roomUser.name),
                 )
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
-    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
+    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): Flow<ByteArray>? {
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = { it.toByteArray() },
+                onSuccess = { it },
                 onFailure = { null }
             )
         }
@@ -281,14 +236,6 @@ class UserProfileViewModelImpl(
 
     override fun errorDismiss() {
         error.value = null
-    }
-
-    override fun openMemberOptions() {
-        memberOptionsOpen.value = true
-    }
-
-    override fun closeMemberOptions() {
-        memberOptionsOpen.value = false
     }
 
     override fun openKickUserWarning() {
@@ -315,19 +262,24 @@ class UserProfileViewModelImpl(
         unbanUserWarningOpen.value = false
     }
 
-    override fun kickUser(userId: UserId) {
+    override fun kickUser() {
         coroutineScope.launch {
+            if (_membershipChanging.getAndUpdate { true }) {
+                error.value = i18n.userProfileMembershipChanging()
+                return@launch
+            }
+
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListKickUserErrorOffline()
             } else {
                 matrixClient.api.room.kickUser(
                     selectedRoomId,
-                    userId = userId,
+                    userId,
                     null,
                     null
                 ).fold(
                     onSuccess = {
-                        closeMemberOptions()
+                        error.value = null
                     },
                     onFailure = {
                         if (it is CancellationException) {
@@ -338,11 +290,16 @@ class UserProfileViewModelImpl(
                     }
                 )
             }
-        }
+        }.invokeOnCompletion { _membershipChanging.value = false }
     }
 
-    override fun banUser(reason: String?) {
+    override fun banUser() {
         coroutineScope.launch {
+            if (_membershipChanging.getAndUpdate { true }) {
+                error.value = i18n.userProfileMembershipChanging()
+                return@launch
+            }
+
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberBanUserErrorOffline()
                 return@launch
@@ -356,10 +313,11 @@ class UserProfileViewModelImpl(
             matrixClient.api.room.banUser(
                 roomId = selectedRoomId,
                 userId = userId,
-                reason = reason
+                reason = banReason.value.ifBlank { null },
             ).fold(
                 onSuccess = {
-                    closeMemberOptions()
+                    banReason.value = ""
+                    error.value = null
                 },
                 onFailure = {
                     if (it is CancellationException) {
@@ -370,12 +328,19 @@ class UserProfileViewModelImpl(
                     error.value = i18n.settingsRoomMemberBanUserError()
                 }
             )
+        }.invokeOnCompletion {
+            _membershipChanging.value = false
         }
     }
 
-    override fun unbanUser(reason: String?) {
+    override fun unbanUser() {
         val roomUserId = userId
         coroutineScope.launch {
+            if (_membershipChanging.getAndUpdate { true }) {
+                error.value = i18n.userProfileMembershipChanging()
+                return@launch
+            }
+
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberUnbanUserErrorOffline()
                 return@launch
@@ -390,10 +355,10 @@ class UserProfileViewModelImpl(
             matrixClient.api.room.unbanUser(
                 roomId = selectedRoomId,
                 userId = roomUserId,
-                reason = reason
+                reason = unbanReason.value.ifBlank { null },
             ).fold(
                 onSuccess = {
-                    closeMemberOptions()
+                    unbanReason.value = ""
                     error.value = null
                 },
                 onFailure = {
@@ -405,7 +370,7 @@ class UserProfileViewModelImpl(
                     error.value = i18n.settingsRoomMemberUnbanUserError()
                 }
             )
-        }
+        }.invokeOnCompletion { _membershipChanging.value = false }
     }
 
     override fun blockUser() {
@@ -436,9 +401,9 @@ class UserProfileViewModelImpl(
 
     private fun getPowerRole(powerLevel: Long): Role {
         return when {
-            powerLevel >= ADMIN.getMinPowerLevel() -> ADMIN
-            powerLevel >= MODERATOR.getMinPowerLevel() -> MODERATOR
-            else -> USER
+            powerLevel >= Role.ADMIN.getMinPowerLevel() -> Role.ADMIN
+            powerLevel >= Role.MODERATOR.getMinPowerLevel() -> Role.MODERATOR
+            else -> Role.USER
         }
     }
 }

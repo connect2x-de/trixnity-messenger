@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
@@ -23,7 +24,6 @@ interface ChangePowerLevelViewModelFactory {
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
         roomUser: SharedFlow<RoomUser?>,
-        closeMemberOptions: () -> Unit,
     ): ChangePowerLevelViewModel {
         return ChangePowerLevelViewModelImpl(
             viewModelContext,
@@ -31,7 +31,6 @@ interface ChangePowerLevelViewModelFactory {
             error,
             selectedRoomId,
             roomUser,
-            closeMemberOptions,
         )
     }
 
@@ -44,7 +43,7 @@ interface ChangePowerLevelViewModel {
     val canSetRoleToAdmin: StateFlow<Boolean>
     val canSetRoleToModerator: StateFlow<Boolean>
 
-    val changingRoleWarningDialogOpen: StateFlow<MemberListElementViewModel.Role?>
+    val changingRoleWarningDialogOpen: StateFlow<Role?>
     val changingPowerLevelDialogOpen: StateFlow<Boolean>
 
     val showPowerLevelHelp: StateFlow<Boolean>
@@ -53,7 +52,7 @@ interface ChangePowerLevelViewModel {
 
     val changingPowerLevelDialogInput: MutableStateFlow<InputWrapper>
 
-    fun openChangingRoleWarningDialog(role: MemberListElementViewModel.Role)
+    fun openChangingRoleWarningDialog(role: Role)
     fun closeChangingRoleWarningDialog()
 
     fun openChangingPowerLevelDialog()
@@ -73,6 +72,20 @@ interface ChangePowerLevelViewModel {
         val value: String = "",
         val errorId: String? = null
     )
+
+    enum class Role {
+        USER {
+            override fun getMinPowerLevel() = 0L
+        },
+        MODERATOR {
+            override fun getMinPowerLevel() = 50L
+        },
+        ADMIN {
+            override fun getMinPowerLevel() = 100L
+        };
+
+        abstract fun getMinPowerLevel(): Long
+    }
 }
 
 open class ChangePowerLevelViewModelImpl(
@@ -81,7 +94,6 @@ open class ChangePowerLevelViewModelImpl(
     val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
     private val _roomUser: SharedFlow<RoomUser?>,
-    private val closeMemberOptions: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
     private val targetUser = userId
     private val roomUser = _roomUser.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -96,44 +108,44 @@ open class ChangePowerLevelViewModelImpl(
 
     override val canSetRoleToUser =
         combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (maxPowerLevel, currentPowerLevel) ->
-            currentPowerLevel != MemberListElementViewModel.Role.USER.getMinPowerLevel() && (maxPowerLevel
-                ?: -1) >= MemberListElementViewModel.Role.USER.getMinPowerLevel()
+            currentPowerLevel != Role.USER.getMinPowerLevel() && (maxPowerLevel
+                ?: -1) >= Role.USER.getMinPowerLevel()
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val canSetRoleToAdmin =
         combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (maxPowerLevel, currentPowerLevel) ->
-            currentPowerLevel != MemberListElementViewModel.Role.ADMIN.getMinPowerLevel() && (maxPowerLevel
-                ?: -1) >= MemberListElementViewModel.Role.ADMIN.getMinPowerLevel()
+            currentPowerLevel != Role.ADMIN.getMinPowerLevel() && (maxPowerLevel
+                ?: -1) >= Role.ADMIN.getMinPowerLevel()
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val canSetRoleToModerator =
         combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (maxPowerLevel, currentPowerLevel) ->
-            currentPowerLevel != MemberListElementViewModel.Role.MODERATOR.getMinPowerLevel() && (maxPowerLevel
-                ?: -1) >= MemberListElementViewModel.Role.MODERATOR.getMinPowerLevel()
+            currentPowerLevel != Role.MODERATOR.getMinPowerLevel() && (maxPowerLevel
+                ?: -1) >= Role.MODERATOR.getMinPowerLevel()
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val changingRoleWarningDialogOpen =
-        MutableStateFlow<MemberListElementViewModel.Role?>(null)
+        MutableStateFlow<Role?>(null)
 
     override val changingPowerLevelDialogOpen = MutableStateFlow(false)
 
     override val changingPowerLevelDialogInput =
-        MutableStateFlow(ChangePowerLevelViewModel.InputWrapper())
+        MutableStateFlow(InputWrapper())
 
     override val showPowerLevelHelp = MutableStateFlow(false)
 
     override fun setRoleToUser() =
-        setUserToPowerLevel(MemberListElementViewModel.Role.USER.getMinPowerLevel())
+        setUserToPowerLevel(Role.USER.getMinPowerLevel())
 
     override fun setRoleToModerator() =
-        setUserToPowerLevel(MemberListElementViewModel.Role.MODERATOR.getMinPowerLevel())
+        setUserToPowerLevel(Role.MODERATOR.getMinPowerLevel())
 
     override fun setRoleToAdmin() =
-        setUserToPowerLevel(MemberListElementViewModel.Role.ADMIN.getMinPowerLevel())
+        setUserToPowerLevel(Role.ADMIN.getMinPowerLevel())
 
     override fun setPowerLevelTo(level: Long) = setUserToPowerLevel(level)
 
-    override fun openChangingRoleWarningDialog(role: MemberListElementViewModel.Role) {
+    override fun openChangingRoleWarningDialog(role: Role) {
         changingRoleWarningDialogOpen.value = role
     }
 
@@ -174,7 +186,7 @@ open class ChangePowerLevelViewModelImpl(
                 )
                     .fold(
                         onSuccess = {
-                            closeMemberOptions()
+                            error.value = null
                         },
                         onFailure = {
                             if (it is CancellationException) {

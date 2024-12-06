@@ -7,9 +7,8 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.ADMIN
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -67,8 +66,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room", "localhost")
 
-    private val memberElementAlice =
-        MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
+    private val memberElementAlice = UserInfoElement("Alice", alice, "A")
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
@@ -217,7 +215,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
-                    cut.role.first { it != USER } shouldBe ADMIN
+                    cut.role.first { it != Role.USER } shouldBe Role.ADMIN
                     cancelNeverEndingCoroutines()
                 }
 
@@ -237,7 +235,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
-                    cut.role.first { it != USER } shouldBe MODERATOR
+                    cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
                     cancelNeverEndingCoroutines()
                 }
                 should("show role name in view") {
@@ -258,7 +256,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
                     val cut = memberListElementViewModel(coroutineContext, roomUserBob)
-                    cut.role.value shouldBe USER
+                    cut.role.value shouldBe Role.USER
                     cancelNeverEndingCoroutines()
                 }
                 should("do not show role name in view") {

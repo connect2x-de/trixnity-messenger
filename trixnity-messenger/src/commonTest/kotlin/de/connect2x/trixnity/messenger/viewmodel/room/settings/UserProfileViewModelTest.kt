@@ -8,9 +8,8 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.ADMIN
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.MODERATOR
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel.Role.USER
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -74,7 +73,7 @@ class UserProfileViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room", "localhost")
 
     private val memberElementAlice =
-        UserProfileViewModel.MemberElement(null, "Alice", alice.full, "A")
+        UserInfoElement("Alice", alice, "A", null )
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
@@ -213,7 +212,7 @@ class UserProfileViewModelTest : ShouldSpec() {
 
             testCoroutineScheduler.advanceTimeBy(200)
 
-            cut.member.value shouldBe null
+            cut.userInfo.value shouldBe null
 
             cancelNeverEndingCoroutines()
         }
@@ -224,11 +223,11 @@ class UserProfileViewModelTest : ShouldSpec() {
 
             val cut = userProfileViewModel(coroutineContext, alice)
 
-            launch { cut.member.collect() }
+            launch { cut.userInfo.collect() }
 
             testCoroutineScheduler.advanceTimeBy(200)
 
-            cut.member.value shouldBe memberElementAlice
+            cut.userInfo.value shouldBe memberElementAlice
 
             cancelNeverEndingCoroutines()
         }
@@ -251,14 +250,14 @@ class UserProfileViewModelTest : ShouldSpec() {
                 } returns Result.success(Unit)
 
                 val cut = userProfileViewModel(coroutineContext, alice)
-                cut.kickUser(alice)
+                cut.kickUser()
                 testCoroutineScheduler.advanceTimeBy(100.milliseconds)
 
                 cut.error.value shouldBe ""
                 verifySuspend {
                     roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
                 }
-                cut.memberOptionsOpen.value shouldBe false
+                cut.kickUserWarningOpen.value shouldBe false
                 cancelNeverEndingCoroutines()
 
             }
@@ -267,7 +266,7 @@ class UserProfileViewModelTest : ShouldSpec() {
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
                 val cut = userProfileViewModel(coroutineContext, alice)
-                cut.kickUser(alice)
+                cut.kickUser()
 
                 testCoroutineScheduler.advanceTimeBy(100.milliseconds)
                 // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
@@ -288,7 +287,7 @@ class UserProfileViewModelTest : ShouldSpec() {
                         Result.failure(RuntimeException("Oh nooo"))
 
                 val cut = userProfileViewModel(coroutineContext, alice)
-                cut.kickUser(alice)
+                cut.kickUser()
 
                 testCoroutineScheduler.advanceTimeBy(100.milliseconds)
                 // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
@@ -315,7 +314,7 @@ class UserProfileViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
                     val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.role.first { it != USER } shouldBe ADMIN
+                    cut.role.first { it != Role.USER } shouldBe Role.ADMIN
                     cancelNeverEndingCoroutines()
                 }
 
@@ -335,7 +334,7 @@ class UserProfileViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
                     val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.role.first { it != USER } shouldBe MODERATOR
+                    cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
                     cancelNeverEndingCoroutines()
                 }
                 should("show role name in view") {
@@ -356,7 +355,7 @@ class UserProfileViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
                     val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.role.value shouldBe USER
+                    cut.role.value shouldBe Role.USER
                     cancelNeverEndingCoroutines()
                 }
                 should("do not show role name in view") {
