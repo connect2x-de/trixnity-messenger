@@ -249,7 +249,7 @@ open class MainViewModelImpl(
         }
 
         startSync()
-        //possiblyStartSelfVerification()
+        possiblyStartSelfVerification()
         startActiveVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
@@ -342,7 +342,7 @@ open class MainViewModelImpl(
                                     is VerificationService.SelfVerificationMethods.CrossSigningEnabled -> {
                                         if (selfVerificationMethods.methods.isNotEmpty()) {
                                             log.debug { "start self verification for $userId" }
-                                            selfVerificationRouter.showSelfVerification(userId)
+                                            //selfVerificationRouter.showSelfVerification(userId)
                                         } else {
                                             log.debug { "no self verification methods available for $userId" }
                                             selfVerificationRouter.closeSelfVerification(userId)

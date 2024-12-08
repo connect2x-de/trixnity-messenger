@@ -85,7 +85,6 @@ class AccountSetupRouter(
 
     fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
         if (stack.active.configuration is Config.ShowAccountSetup && (stack.active.configuration as Config.ShowAccountSetup).userId == userId) {
-            println("value is now $completedVerification")
             this.completedVerification.value = completedVerification
         }
     }
