@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Color handling utils
 - Changed `RoomSettingsMemberListElement` interfaces to allow more flexibility
 - Updated documentation on how to use the framework from SwiftUI
+- In single account mode make the profile banner open the user profile
 - Only show option for recovery key reset in self verification when verification methods are loaded
 
 ### Deprecated

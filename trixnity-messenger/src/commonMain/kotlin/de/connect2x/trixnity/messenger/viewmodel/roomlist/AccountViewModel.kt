@@ -29,11 +29,14 @@ interface AccountViewModelFactory {
         onAccountSelected: (UserId?) -> Unit,
         onUserSettingsSelected: () -> Unit,
         onShowAppInfo: () -> Unit,
-    ): AccountViewModel {
-        return AccountViewModelImpl(
-            viewModelContext, onAccountSelected, onUserSettingsSelected, onShowAppInfo
-        )
-    }
+        onShowProfile: () -> Unit,
+    ): AccountViewModel = AccountViewModelImpl(
+        viewModelContext,
+        onAccountSelected,
+        onUserSettingsSelected,
+        onShowAppInfo,
+        onShowProfile,
+    )
 
     companion object : AccountViewModelFactory
 }
@@ -52,8 +55,9 @@ interface AccountViewModel {
     val isSingleAccount: StateFlow<Boolean>
 
     fun selectActiveAccount(userId: UserId?)
-    fun userSettings()
-    fun appInfo()
+    fun openUserSettings()
+    fun openUserProfile()
+    fun openAppInfo()
 }
 
 open class AccountViewModelImpl(
@@ -61,6 +65,7 @@ open class AccountViewModelImpl(
     private val onAccountSelected: (UserId?) -> Unit,
     private val onUserSettingsSelected: () -> Unit,
     private val onShowAppInfo: () -> Unit,
+    private val onShowProfile: () -> Unit,
 ) : ViewModelContext by viewModelContext, AccountViewModel {
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -84,13 +89,19 @@ open class AccountViewModelImpl(
         }
     }
 
-    override fun userSettings() {
+    override fun openUserSettings() {
         coroutineScope.launch {
             onUserSettingsSelected()
         }
     }
 
-    override fun appInfo() {
+    override fun openUserProfile() {
+        coroutineScope.launch {
+            onShowProfile()
+        }
+    }
+
+    override fun openAppInfo() {
         coroutineScope.launch {
             onShowAppInfo()
         }
@@ -125,14 +136,8 @@ class PreviewAccountViewModel : AccountViewModel {
     )
     override val activeAccount: MutableStateFlow<UserId?> = MutableStateFlow(null)
     override val isSingleAccount: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
-    override fun selectActiveAccount(userId: UserId?) {
-    }
-
-    override fun userSettings() {
-    }
-
-    override fun appInfo() {
-    }
-
+    override fun selectActiveAccount(userId: UserId?) {}
+    override fun openUserSettings() {}
+    override fun openUserProfile() {}
+    override fun openAppInfo() {}
 }

@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -77,6 +76,7 @@ class SharedDataViewModelImpl(
         onRoomSelected = { _, roomId -> _selectedRoomId.update { if (it == roomId) null else roomId } },
         onStartCreateNewRoom = { },
         onUserSettingsSelected = { },
+        onUserProfileSelected = { },
         onOpenAppInfo = { },
         onSendLogs = { },
         onOpenAccountsOverview = { },

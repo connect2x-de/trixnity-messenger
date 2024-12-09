@@ -18,10 +18,9 @@ import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
+
 private val log = KotlinLogging.logger { }
 
-
-@OptIn(ExperimentalCoroutinesApi::class)
 class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
     private val onCloseCrossDeviceVerification: () -> Unit,
