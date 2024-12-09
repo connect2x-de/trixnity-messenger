@@ -259,8 +259,10 @@ fun UserVerificationAcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewMo
 @Composable
 fun BoxScope.UserVerificationCompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
     val i18n = DI.current.get<I18nView>()
-    CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
     Column(Modifier.fillMaxWidth().align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box {
+            CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
+        }
         Spacer(Modifier.size(20.dp))
         Row(horizontalArrangement = Arrangement.SpaceEvenly) {
             Button(
@@ -303,33 +305,33 @@ fun UserVerificationRejected(
     }
 }
 
-    @Composable
-    fun UserVerificationTimeout(
-        verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
-    ) {
-        Column {
-            VerificationTimeoutContent(false)
-            Spacer(Modifier.size(20.dp))
-            OkButton(verificationStepTimeoutViewModel::ok)
-        }
+@Composable
+fun UserVerificationTimeout(
+    verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
+) {
+    Column {
+        VerificationTimeoutContent(false)
+        Spacer(Modifier.size(20.dp))
+        OkButton(verificationStepTimeoutViewModel::ok)
     }
+}
 
-    @Composable
-    fun UserVerificationCancelled(
-        verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
-    ) {
-        Column {
-            VerificationCancelledContent(false)
-            Spacer(Modifier.size(20.dp))
-            OkButton(verificationStepCancelledViewModel::ok)
-        }
+@Composable
+fun UserVerificationCancelled(
+    verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
+) {
+    Column {
+        VerificationCancelledContent(false)
+        Spacer(Modifier.size(20.dp))
+        OkButton(verificationStepCancelledViewModel::ok)
     }
+}
 
-    @Composable
-    fun UserVerificationAcceptedByOtherClient() {
-        val i18n = DI.get<I18nView>()
-        Text(i18n.userVerificationOtherDevice())
-    }
+@Composable
+fun UserVerificationAcceptedByOtherClient() {
+    val i18n = DI.get<I18nView>()
+    Text(i18n.userVerificationOtherDevice())
+}
 
 @Composable
 private fun OkButton(onClick: () -> Unit) {

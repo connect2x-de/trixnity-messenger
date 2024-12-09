@@ -332,10 +332,7 @@ open class MainViewModelImpl(
                                     }
 
                                     is VerificationService.SelfVerificationMethods.CrossSigningEnabled -> {
-                                        if (selfVerificationMethods.methods.isNotEmpty()) {
-                                            log.debug { "start self verification for $userId" }
-                                            //selfVerificationRouter.showSelfVerification(userId)
-                                        } else {
+                                        if (selfVerificationMethods.methods.isEmpty()) {
                                             log.debug { "no self verification methods available for $userId" }
                                             selfVerificationRouter.closeSelfVerification(userId)
                                         }
