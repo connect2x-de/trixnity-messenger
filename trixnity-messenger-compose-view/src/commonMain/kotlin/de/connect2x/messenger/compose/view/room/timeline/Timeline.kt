@@ -105,18 +105,22 @@ class TimelineViewImpl : TimelineView {
                 val uiState by remember {
                     derivedStateOf {
                         val visibleItems = listState.layoutInfo.visibleItemsInfo
-                        val firstVisible = visibleItems.firstOrNull {
-                            // we want the last element in the timeline only if it is completely visible (compose considers even
-                            // 1 pixel of an element as "in view" which is not what we want)
-                            it.index == 0 && it.offset == 0 || it.index > 0
-                        }?.let {
-                            val key = it.key
-                            key as? String
-                        }
-                        val lastVisible = visibleItems.lastOrNull()?.let {
-                            val key = it.key
-                            key as? String
-                        }
+                        println(visibleItems.map { it.key })
+                        val firstVisible =
+                            visibleItems.firstOrNull {
+                                // we want the last element in the timeline only if it is completely visible (compose considers even
+                                // 1 pixel of an element as "in view" which is not what we want)
+                                (it.key as? String)?.startsWith('!') == true &&
+                                        it.index == 0 && it.offset == 0 || it.index > 0
+                            }?.let {
+                                val key = it.key
+                                key as? String
+                            }
+                        val lastVisible = visibleItems.lastOrNull { (it.key as? String)?.startsWith('!') == true }
+                            ?.let {
+                                val key = it.key
+                                key as? String
+                            }
                         if (firstVisible != null && lastVisible != null)
                             TimelineViewModel.ViewState(firstVisible, lastVisible, isFocused)
                         else null

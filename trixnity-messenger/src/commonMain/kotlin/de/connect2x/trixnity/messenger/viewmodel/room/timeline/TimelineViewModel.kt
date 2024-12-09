@@ -707,7 +707,7 @@ class TimelineViewModelImpl(
                     elements,
                     viewState.map { it?.lastVisibleElement }.distinctUntilChanged()
                 ) { timelineElementViewModels, firstVisibleTimelineElement ->
-                    log.trace { "loadMoreBefore (check) : ${timelineElementViewModels.map { it.key }}, firstVisible: $firstVisibleTimelineElement" }
+                    log.trace { "continuouslyLoadBefore (check) : ${timelineElementViewModels.map { it.key }}, firstVisible: $firstVisibleTimelineElement" }
                     val indexOfFirstVisibleTimelineElement =
                         timelineElementViewModels.indexOfFirst { it.key == firstVisibleTimelineElement }
                     if (indexOfFirstVisibleTimelineElement in 0..9) {
@@ -730,7 +730,7 @@ class TimelineViewModelImpl(
                 ) { changedTimelineElementViewModels, changedLastVisibleTimelineElement ->
                     changedTimelineElementViewModels to changedLastVisibleTimelineElement
                 }.collectLatest { (timelineElementViewModels, lastVisibleTimelineElement) ->
-                    log.debug { "loadMoreAfter (check) : ${timelineElementViewModels.map { it.key }}, lastVisible: $lastVisibleTimelineElement" }
+                    log.debug { "continuouslyLoadAfter (check) : ${timelineElementViewModels.map { it.key }}, lastVisible: $lastVisibleTimelineElement" }
                     val indexOfLastVisibleTimelineElement =
                         timelineElementViewModels.indexOfFirst { it.key == lastVisibleTimelineElement }
                     if (indexOfLastVisibleTimelineElement >= 0 &&
