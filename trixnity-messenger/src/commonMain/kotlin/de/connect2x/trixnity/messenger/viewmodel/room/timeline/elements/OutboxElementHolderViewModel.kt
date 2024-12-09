@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.sender
@@ -149,14 +151,20 @@ class OutboxElementHolderViewModelImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val isFirstInUserSequence: StateFlow<Boolean?> =
-        matrixClient.room.getOutbox(roomId).flatMapLatest { outbox ->
-            if (outbox.firstOrNull()?.first()?.transactionId != transactionId) return@flatMapLatest flowOf(false)
+        combine(
             matrixClient.room.getLastTimelineEvents(roomId).filterNotNull()
                 .mapLatest { lastTimelineEvents ->
                     lastTimelineEvents.map { it.first() }.firstOrNull { timelineEvent ->
                         timelineElementViewModelFactorySelector.supports(timelineEvent.event.content)
-                    }?.sender == userId
-                }
+                    }
+                },
+            matrixClient.room.getOutbox(roomId).flatten(),
+        ) { lastTimelineEvent, outbox ->
+            val lastTimelineEventTransactionId = lastTimelineEvent?.event?.unsigned?.transactionId
+            val firstOutboxTransactionId =
+                outbox.firstOrNull { it.transactionId != lastTimelineEventTransactionId }?.transactionId
+            log.trace { "transactionId=$transactionId, lastTimelineEventTransactionId=$lastTimelineEventTransactionId, firstOutboxTransactionId=$firstOutboxTransactionId, sender=${lastTimelineEvent?.sender}" }
+            firstOutboxTransactionId == transactionId && lastTimelineEvent?.sender != userId
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)

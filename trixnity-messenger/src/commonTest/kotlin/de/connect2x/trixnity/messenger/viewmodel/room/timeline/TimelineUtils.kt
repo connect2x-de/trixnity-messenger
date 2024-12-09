@@ -12,6 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -144,6 +145,10 @@ fun timeline(
     every { roomServiceMock.getById(roomId) } returns room
 
     val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
+    every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns
+            timelineMock.eventsInStore.map { it.lastOrNull() }
+    every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
+            timelineMock.eventsInStore.map { it.reversed().asFlow() }
     every {
         roomServiceMock.getTimeline(
             eq(roomId),
