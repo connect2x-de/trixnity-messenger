@@ -26,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +48,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.map
 
 
 private val log = KotlinLogging.logger {}
@@ -72,7 +70,7 @@ class TimelineViewImpl : TimelineView {
         val isFocused = IsFocused.current
         // because layout is reversed
         val timelineElementHolderViewModels = remember {
-            timelineViewModel.elements.map { it.reversed() }
+            timelineViewModel.elements
         }.collectAsState(listOf()).value
         val timelineElementViewModelGrouped = remember(timelineElementHolderViewModels) {
             timelineElementHolderViewModels.groupBy { it.formattedDate }
@@ -95,17 +93,9 @@ class TimelineViewImpl : TimelineView {
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
 
-                val (scrollTo, setScrollTo) = remember { mutableStateOf<String?>(null) }
-                LaunchedEffect(Unit) {
-                    timelineViewModel.scrollTo.collect {
-                        setScrollTo(it)
-                    }
-                }
-
                 val uiState by remember {
                     derivedStateOf {
                         val visibleItems = listState.layoutInfo.visibleItemsInfo
-                        println(visibleItems.map { it.key })
                         val firstVisible =
                             visibleItems.firstOrNull {
                                 // we want the last element in the timeline only if it is completely visible (compose considers even
@@ -130,13 +120,12 @@ class TimelineViewImpl : TimelineView {
                     timelineViewModel.viewState.value = uiState
                 }
 
-                LaunchedEffect(scrollTo, timelineElementHolderViewModels) {
-                    if (scrollTo != null) {
+                LaunchedEffect(timelineElementHolderViewModels) {
+                    timelineViewModel.scrollTo.collect { scrollTo ->
                         log.debug { "scrolling to $scrollTo (ids: ${timelineElementHolderViewModels.joinToString { it.key }})" }
                         val index = timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
                         if (index >= 0) {
                             listState.animateScrollToItem(index)
-                            setScrollTo(null)
                         }
                     }
                 }
@@ -176,11 +165,13 @@ class TimelineViewImpl : TimelineView {
                                     end = if (this@BoxWithConstraints.maxWidth.value > 1000) 80.dp else 18.dp, // 10 + 8, since we cannot add a padding or Spacer at the end
                                 ),
                                 state = listState,
-                                reverseLayout = true, // FIXME do we really need that?
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
                                 timelineElementViewModelGrouped.forEach { (date, viewModels) ->
+                                    stickyHeader(date) {
+                                        DateStickyHeader(date)
+                                    }
                                     items(
                                         viewModels,
                                         key = { it.key }
@@ -188,9 +179,6 @@ class TimelineViewImpl : TimelineView {
                                         TimelineElementHolder(
                                             viewModel,
                                         )
-                                    }
-                                    stickyHeader(date) {
-                                        DateStickyHeader(date)
                                     }
                                 }
                             }
@@ -228,7 +216,7 @@ class TimelineViewImpl : TimelineView {
                         VerticalScrollbar(
                             Modifier.align(Alignment.CenterEnd),
                             listState,
-                            true,
+                            false,
                         )
                     }
                 }
