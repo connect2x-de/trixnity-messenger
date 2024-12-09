@@ -705,9 +705,9 @@ class TimelineViewModelImpl(
             timeline.filterNotNull().collectLatest { timeline ->
                 combine(
                     elements,
-                    viewState.map { it?.lastVisibleElement }.distinctUntilChanged()
+                    viewState.map { it?.firstVisibleElement }.distinctUntilChanged()
                 ) { timelineElementViewModels, firstVisibleTimelineElement ->
-                    log.trace { "loadMoreBefore (check) : ${timelineElementViewModels.map { it.key }}, firstVisible: $firstVisibleTimelineElement" }
+                    log.trace { "continuouslyLoadBefore (check) : ${timelineElementViewModels.map { it.key }}, firstVisible: $firstVisibleTimelineElement" }
                     val indexOfFirstVisibleTimelineElement =
                         timelineElementViewModels.indexOfFirst { it.key == firstVisibleTimelineElement }
                     if (indexOfFirstVisibleTimelineElement in 0..9) {
@@ -730,7 +730,7 @@ class TimelineViewModelImpl(
                 ) { changedTimelineElementViewModels, changedLastVisibleTimelineElement ->
                     changedTimelineElementViewModels to changedLastVisibleTimelineElement
                 }.collectLatest { (timelineElementViewModels, lastVisibleTimelineElement) ->
-                    log.debug { "loadMoreAfter (check) : ${timelineElementViewModels.map { it.key }}, lastVisible: $lastVisibleTimelineElement" }
+                    log.debug { "continuouslyLoadAfter (check) : ${timelineElementViewModels.map { it.key }}, lastVisible: $lastVisibleTimelineElement" }
                     val indexOfLastVisibleTimelineElement =
                         timelineElementViewModels.indexOfFirst { it.key == lastVisibleTimelineElement }
                     if (indexOfLastVisibleTimelineElement >= 0 &&
@@ -798,7 +798,7 @@ class TimelineViewModelImpl(
                         elements.indexOfFirst { it.key == firstVisibleTimelineElement }
                     log.debug { "dropBefore (check): indexOfFirstVisibleTimelineElement: $indexOfFirstVisibleTimelineElement" }
                     if (indexOfFirstVisibleTimelineElement > 100) {
-                        val dropBeforeElement = elements[indexOfFirstVisibleTimelineElement - 50]
+                        val dropBeforeElement = elements[indexOfFirstVisibleTimelineElement - 20]
                         val change = timeline.dropBefore(
                             dropBeforeElement.roomId,
                             dropBeforeElement.eventId,
@@ -823,7 +823,7 @@ class TimelineViewModelImpl(
                     if (indexOfLastVisibleTimelineElement >= 0 &&
                         indexOfLastVisibleTimelineElement < (elements.size - 100)
                     ) {
-                        val dropAfterElement = elements[indexOfLastVisibleTimelineElement + 50]
+                        val dropAfterElement = elements[indexOfLastVisibleTimelineElement + 20]
                         val change = timeline.dropAfter(
                             dropAfterElement.roomId,
                             dropAfterElement.eventId,
