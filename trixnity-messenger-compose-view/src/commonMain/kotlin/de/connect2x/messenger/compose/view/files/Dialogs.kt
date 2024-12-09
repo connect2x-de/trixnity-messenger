@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -27,15 +28,14 @@ expect fun SaveFileDialog(
 
 @Composable
 expect fun LoadFileDialog(
+    availableTypes: List<FilePickerType>,
     onFileSelect: (FileDescriptor) -> Unit,
     onCloseLoadFileDialog: () -> Unit,
-    mode: LoadFileMode,
 )
 
-enum class LoadFileMode {
-    AnyFile,
-    Picture,
-}
+expect fun filterFilePickerOptionsByAvailability(
+    vararg availablePickerTypes: FilePickerType,
+): List<FilePickerType>
 
 @Composable
 fun DownloadErrorAlertDialog(

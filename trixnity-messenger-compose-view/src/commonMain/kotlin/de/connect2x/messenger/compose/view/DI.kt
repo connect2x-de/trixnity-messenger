@@ -2,6 +2,8 @@ package de.connect2x.messenger.compose.view
 
 import de.connect2x.messenger.compose.view.common.AdaptiveDialog
 import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
+import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionView
+import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
 import de.connect2x.messenger.compose.view.common.MatrixUsernameViewImpl
 import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountView
@@ -310,6 +312,7 @@ fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
     single<PdfOverlayView> { PdfOverlayViewImpl() }
+    single<FilePickerTypeSelectionView> { FilePickerTypeSelectionViewImpl() }
     single<ShareDataView> { ShareDataViewImpl() }
 }
 
