@@ -43,6 +43,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -280,7 +281,8 @@ class TimelineViewModelImpl(
             timelineElements
         }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
-    override val scrollTo: MutableSharedFlow<String> = MutableSharedFlow()
+    override val scrollTo: MutableSharedFlow<String> =
+        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_LATEST)
 
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
 
