@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
@@ -49,7 +48,6 @@ class AccountSetupRouter(
                     ),
                     ::onSetupClose,
                     onStartVerification,
-                    completedVerification
                 )
             )
         }
@@ -71,15 +69,18 @@ class AccountSetupRouter(
 
     fun startSetup(userId: UserId) {
         log.debug { "Starting Account setup for $userId" }
-        completedVerification.value = null
-        navigation.launchPush(coroutineScope, Config.ShowAccountSetup(userId, completedVerification))
+        navigation.launchPush(coroutineScope, Config.ShowAccountSetup(userId))
     }
 
-    private val completedVerification = MutableStateFlow<Boolean?>(null)
 
     fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
-        if (stack.active.configuration is Config.ShowAccountSetup && (stack.active.configuration as Config.ShowAccountSetup).userId == userId) {
-            this.completedVerification.value = completedVerification
+        if (stack.active.configuration is Config.ShowAccountSetup &&
+            (stack.active.configuration as Config.ShowAccountSetup).userId == userId &&
+            stack.active.instance is Wrapper.ShowAccountSetup
+        ) {
+            (stack.active.instance as Wrapper.ShowAccountSetup).viewModel.changeVerificationCompleteStatus(
+                completedVerification
+            )
         }
     }
 
@@ -92,7 +93,7 @@ class AccountSetupRouter(
     @Serializable
     sealed class Config {
         @Serializable
-        data class ShowAccountSetup(val userId: UserId, val isVerifying: MutableStateFlow<Boolean?>) : Config()
+        data class ShowAccountSetup(val userId: UserId) : Config()
 
         @Serializable
         data object None : Config()

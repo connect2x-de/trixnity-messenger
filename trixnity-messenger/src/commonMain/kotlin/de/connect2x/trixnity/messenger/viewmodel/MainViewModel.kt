@@ -90,6 +90,7 @@ interface MainViewModel {
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
+    fun showSelfVerification(userId: UserId)
 
     fun setSinglePane(isSinglePane: Boolean)
     fun openMedia(
@@ -343,6 +344,10 @@ open class MainViewModelImpl(
                 }
             }
         }
+    }
+
+    override fun showSelfVerification(userId: UserId) {
+        selfVerificationRouter.showSelfVerification(userId)
     }
 
     private fun onOpenSelfVerification(userId: UserId) {
@@ -689,6 +694,9 @@ class PreviewMainViewModel : MainViewModel {
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun start() {
+    }
+
+    override fun showSelfVerification(userId: UserId) {
     }
 
     override fun closeDetailsAndShowList() {
