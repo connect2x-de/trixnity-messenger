@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -16,7 +17,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.combine
@@ -137,7 +137,7 @@ class RepliedTimelineElementHolderViewModelImpl(
 
     private val senderUserId =
         timelineEventFlow.map { it?.sender }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
     override val sender: StateFlow<UserInfoElement?> =
         flow {
             emitAll(
@@ -145,18 +145,18 @@ class RepliedTimelineElementHolderViewModelImpl(
                     user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
                 }
             )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> =
         matrixClient.room.getById(roomId)
             .filterNotNull()
             .map { it.isDirect }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isByMe: StateFlow<Boolean?> =
         flow {
             emit(senderUserId.filterNotNull().first() == userId)
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }
 
 class PreviewRepliedTimelineElementViewModel1 : RepliedTimelineElementHolderViewModel {

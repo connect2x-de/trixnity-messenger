@@ -548,11 +548,7 @@ class TimelineViewModelImpl(
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
-        ).also {
-            // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-            // is needed in the UI for initial position of read marker
-            it.element.first { viewModel -> viewModel != null } // FIXME
-        }
+        )
         return TimelineElementWrapper(
             key = key,
             roomId = roomId,
@@ -618,9 +614,6 @@ class TimelineViewModelImpl(
                             it,
                             lifecycleRegistry
                         )
-                        // is used to make sure the viewmodel (and thus the UI representation) for outbox messages is instantly visible to avoid 'jumping' in the timeline
-                        // is needed in the UI for initial position of read marker
-                        it.element.first { viewModel -> viewModel != null } // FIXME
                     }
                 }
         }.also {

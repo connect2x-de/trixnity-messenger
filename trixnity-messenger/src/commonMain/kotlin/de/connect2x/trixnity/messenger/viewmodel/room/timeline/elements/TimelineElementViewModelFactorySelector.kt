@@ -9,7 +9,7 @@ import net.folivo.trixnity.utils.concurrentMutableMap
 import kotlin.reflect.KClass
 
 interface TimelineElementViewModelFactorySelector {
-    suspend fun supports(content: RoomEventContent): Boolean
+    suspend fun supports(content: Result<RoomEventContent>?): Boolean
 
     suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -29,7 +29,8 @@ class TimelineElementViewModelFactorySelectorImpl(
     private val factoryMapping =
         concurrentMutableMap<KClass<out RoomEventContent>, TimelineElementViewModelFactory<RoomEventContent>>()
 
-    override suspend fun supports(content: RoomEventContent): Boolean = findFactory(content) != null
+    override suspend fun supports(content: Result<RoomEventContent>?): Boolean =
+        content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })
 
     override suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -78,7 +79,6 @@ class TimelineElementViewModelFactorySelectorImpl(
     }
 
     private fun replaceEventsShouldNotBeRendered(content: RoomEventContent): Boolean {
-        println(content)
         return content is MessageEventContent && content.relatesTo is RelatesTo.Replace
     }
 }

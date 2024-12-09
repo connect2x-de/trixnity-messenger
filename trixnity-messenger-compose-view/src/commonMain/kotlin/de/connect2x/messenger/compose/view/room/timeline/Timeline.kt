@@ -26,7 +26,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,9 +47,15 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 
 private val log = KotlinLogging.logger {}
@@ -68,12 +76,40 @@ class TimelineViewImpl : TimelineView {
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
         val isFocused = IsFocused.current
-        // because layout is reversed
-        val timelineElementHolderViewModels = remember {
-            timelineViewModel.elements
-        }.collectAsState(listOf()).value
-        val timelineElementViewModelGrouped = remember(timelineElementHolderViewModels) {
+
+        var timelineElementHolderViewModels by remember {
+            mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
+        }
+        val timelineElementViewModelGrouped by derivedStateOf {
             timelineElementHolderViewModels.groupBy { it.formattedDate }
+        }
+
+        LaunchedEffect(Unit) {
+            timelineViewModel.elements.collect { elements ->
+                log.trace { "wait for elements to be ready" }
+                coroutineScope {
+                    elements.forEach { element ->
+                        launch { element.element.filterNotNull().first() }
+                        launch { element.isFirstInUserSequence.filterNotNull().first() }
+                        launch { element.showSender.filterNotNull().first() }
+                        launch { element.showBigGapBefore.filterNotNull().first() }
+                        when (element) {
+                            is TimelineElementHolderViewModel -> {
+                                launch { element.hasUnreadMarker.filterNotNull().first() }
+                                launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
+                                launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
+                                launch { element.isRead.filterNotNull().first() }
+                                launch { element.reactions.filterNotNull().first() }
+                                launch { element.isReplaced.filterNotNull().first() }
+                            }
+
+                            is OutboxElementHolderViewModel -> {}
+                        }
+                    }
+                }
+                log.trace { "finished wait for elements to be ready" }
+                timelineElementHolderViewModels = elements
+            }
         }
 
         val error = timelineViewModel.error.collectAsState().value
@@ -150,8 +186,9 @@ class TimelineViewImpl : TimelineView {
                     ) {
                         val canScrollToEnd by remember {
                             derivedStateOf {
-                                val index = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
-                                index != null && index != 0
+                                val totalItemsCount = listState.layoutInfo.totalItemsCount
+                                val index = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                                index != null && index != (totalItemsCount - 1)
                             }
                         }
 
