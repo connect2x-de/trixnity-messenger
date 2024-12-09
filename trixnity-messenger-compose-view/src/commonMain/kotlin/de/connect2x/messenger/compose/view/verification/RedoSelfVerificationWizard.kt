@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.common.Wizard
@@ -24,17 +25,17 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModel
 
-interface RedoSelfVerificationModalView {
+interface RedoSelfVerificationWizardView {
     @Composable
     fun create(redoSelfVerificationViewModel: RedoSelfVerificationViewModel)
 }
 
 @Composable
-fun RedoSelfVerificationModal(redoSelfVerificationViewModel: RedoSelfVerificationViewModel) {
-    DI.get<RedoSelfVerificationModalView>().create(redoSelfVerificationViewModel)
+fun RedoSelfVerificationWizard(redoSelfVerificationViewModel: RedoSelfVerificationViewModel) {
+    DI.get<RedoSelfVerificationWizardView>().create(redoSelfVerificationViewModel)
 }
 
-class RedoSelfVerificationModalViewImpl : RedoSelfVerificationModalView {
+class RedoSelfVerificationWizardViewImpl : RedoSelfVerificationWizardView {
     @Composable
     override fun create(redoSelfVerificationViewModel: RedoSelfVerificationViewModel) {
         val i18n = DI.get<I18nView>()
@@ -72,7 +73,7 @@ class RedoSelfVerificationModalViewImpl : RedoSelfVerificationModalView {
             },
             nextButton = {
                 Custom {
-                    Button(onClick = redoSelfVerificationViewModel::startSelfVerification) {
+                    Button(onClick = redoSelfVerificationViewModel::startSelfVerification, Modifier.buttonPointerModifier()) {
                         Text(i18n.redoSelfVerificationRedo())
                     }
                 }
