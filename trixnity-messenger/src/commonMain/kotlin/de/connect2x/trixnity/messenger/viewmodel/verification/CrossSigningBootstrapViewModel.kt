@@ -24,7 +24,7 @@ private val log = KotlinLogging.logger { }
 interface CrossSigningBootstrapViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onClose: () -> Unit,
+        onClose: (UserId) -> Unit,
     ): CrossSigningBootstrapViewModel = CrossSigningBootstrapViewModelImpl(
         viewModelContext, onClose
     )
@@ -51,7 +51,7 @@ interface CrossSigningBootstrapViewModel {
 
 open class CrossSigningBootstrapViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val onClose: () -> Unit,
+    private val onClose: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, CrossSigningBootstrapViewModel {
 
     override val recoveryKey = MutableStateFlow<String?>(null)
@@ -100,7 +100,7 @@ open class CrossSigningBootstrapViewModelImpl(
     }
 
     override fun close() {
-        onClose()
+        onClose(userId)
     }
 
     override fun closeMessenger() {

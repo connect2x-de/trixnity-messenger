@@ -15,16 +15,12 @@ interface AccountSetupViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
-        onStartCrossSigningBootstrap: (userId: UserId) -> Unit,
-        onCloseCrossDeviceVerification: () -> Unit,
         onStartVerification: (UserId, Boolean) -> Unit,
         completedVerification: MutableStateFlow<Boolean?>
     ): AccountSetupViewModel {
         return AccountSetupViewModelImpl(
             viewModelContext,
             onWizardClose,
-            onStartCrossSigningBootstrap,
-            onCloseCrossDeviceVerification,
             onStartVerification,
             completedVerification
         )
@@ -35,7 +31,6 @@ interface AccountSetupViewModelFactory {
 
 interface AccountSetupViewModel {
     fun closeAccountSetup()
-    fun closeCrossDeviceVerification()
     fun startVerification()
     val completedVerification: MutableStateFlow<Boolean?>
     val userId: UserId
@@ -46,8 +41,6 @@ interface AccountSetupViewModel {
 class AccountSetupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
-    val onStartCrossSigningBootstrap: (UserId) -> Unit,
-    val onCloseCrossDeviceVerification: () -> Unit,
     val onStartVerification: (UserId, Boolean) -> Unit,
     override val completedVerification: MutableStateFlow<Boolean?>
 ) :
@@ -61,15 +54,7 @@ class AccountSetupViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
-    private fun startCrossSigningBootstrap() {
-        log.debug { "Start cross signing bootstrap from AccountBootstrapping" }
-        onStartCrossSigningBootstrap(userId)
-    }
 
-    override fun closeCrossDeviceVerification() {
-        log.debug { "Close device Verification from AccountBootstrapping" }
-        onCloseCrossDeviceVerification()
-    }
 
     private val startedVerification = MutableStateFlow(false)
     override fun startVerification() {

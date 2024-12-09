@@ -133,9 +133,10 @@ class SelfVerificationRouter(
         }
     }
 
-    private fun closeCrossSigningBootstrap() = viewModelContext.coroutineScope.launch {
+    private fun closeCrossSigningBootstrap(userId: UserId) = viewModelContext.coroutineScope.launch {
         log.debug { "close cross signing bootstrap view" }
         bootstrapStarted.value = false
+        onCloseSelfVerification(userId, true)
         navigation.popSuspending(onComplete = { log.debug { "close bootstrap completed: $it" } })
     }
 

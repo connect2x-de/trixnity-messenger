@@ -197,19 +197,11 @@ open class MainViewModelImpl(
     private val accountSetupRouter: AccountSetupRouter =
         AccountSetupRouter(
             viewModelContext,
-            onStartCrossSigningBootstrap = ::showCrossSigningBootstrap,
-            onCloseCrossDeviceVerification = verificationRouter::closeVerification,
             onStartVerification = selfVerificationRouter::showSelfVerification
         )
 
     override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
         accountSetupRouter.stack
-
-    private fun showCrossSigningBootstrap(userId: UserId) {
-        coroutineScope.launch {
-            selfVerificationRouter.showCrossSigningBootstrap(userId)
-        }
-    }
 
     private fun backPressHandler() {
         if (mediaRouter.isMediaOpen()) {

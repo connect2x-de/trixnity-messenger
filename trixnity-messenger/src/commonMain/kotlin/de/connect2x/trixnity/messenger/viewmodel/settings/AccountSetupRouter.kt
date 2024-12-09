@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -23,8 +22,6 @@ private val log = KotlinLogging.logger { }
 
 class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
-    private val onCloseCrossDeviceVerification: () -> Unit,
-    private val onStartCrossSigningBootstrap: (userId: UserId) -> Unit,
     private val onStartVerification: (UserId, Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
 
@@ -51,8 +48,6 @@ class AccountSetupRouter(
                         componentContext, userId = config.userId
                     ),
                     ::onSetupClose,
-                    onStartCrossSigningBootstrap,
-                    onCloseCrossDeviceVerification,
                     onStartVerification,
                     completedVerification
                 )
