@@ -526,10 +526,10 @@ class TimelineViewModelTest : ShouldSpec() {
                     }
                 }
                 val cut = timelineViewModel()
-                cut.elements waitForSize 1
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
                 val scrollToCalled =
                     cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
+                cut.elements waitForSize 1
+                val coroutineScope = CoroutineScope(Dispatchers.Default)
                 scrollToCalled.map { it.size }.firstWithClue(1) // initial scroll ("0")
 
                 outboxMessagesFlow.value = listOf(

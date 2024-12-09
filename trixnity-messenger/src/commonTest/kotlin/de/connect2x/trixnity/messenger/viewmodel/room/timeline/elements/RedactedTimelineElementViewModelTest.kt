@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
@@ -10,14 +8,11 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.core.test.TestScope
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
@@ -34,7 +29,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class)
 class RedactedTimelineElementViewModelTest : ShouldSpec() {
@@ -70,11 +64,9 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimelineEvent(roomId, eventId)
             } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = null)
-            val cut = redactedMessageViewModel(
-                coroutineContext = coroutineContext,
-            )
+            val cut = cut()
             val subscriberJob = launch { cut.message.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
 
             cut.message.value shouldBe "This message has been deleted"
 
@@ -85,11 +77,9 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimelineEvent(roomId, eventId)
             } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = ourUserId)
-            val cut = redactedMessageViewModel(
-                coroutineContext = coroutineContext,
-            )
+            val cut = cut()
             val subscriberJob = launch { cut.message.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
 
             cut.message.value shouldBe "You deleted this message"
 
@@ -101,11 +91,9 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
                 roomServiceMock.getTimelineEvent(roomId, eventId)
             } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = someUserId)
 
-            val cut = redactedMessageViewModel(
-                coroutineContext = coroutineContext,
-            )
+            val cut = cut()
             val subscriberJob = launch { cut.message.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+            advanceUntilIdle()
 
             cut.message.value shouldBe "message has been deleted by Other User"
 
@@ -116,21 +104,16 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
 
 
     @OptIn(ExperimentalStdlibApi::class)
-    private suspend fun redactedMessageViewModel(
-        coroutineContext: CoroutineContext,
-    ): RedactedTimelineElementViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+    private fun TestScope.cut(): RedactedTimelineElementViewModelImpl {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(ourUserId to matrixClientMock))
             )
         }.koin
         return RedactedTimelineElementViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = ourUserId,
-                coroutineContext = coroutineContext
             ),
             roomId = roomId,
             eventId = eventId

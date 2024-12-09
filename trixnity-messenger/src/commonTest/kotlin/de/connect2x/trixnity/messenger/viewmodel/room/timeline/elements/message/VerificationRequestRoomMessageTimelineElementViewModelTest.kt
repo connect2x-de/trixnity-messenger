@@ -1,8 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
@@ -17,10 +21,9 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -45,7 +48,7 @@ import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
+    override fun timeout(): Long = 5_000
 
     private val thisRoom = RoomId("room", "localhost")
     private val timelineEventId = EventId("event-0")
@@ -61,9 +64,6 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
 
     val activeVerification = mock<ActiveVerification>()
 
-    val verificationRequestMessageEventContent: RoomMessageEventContent.VerificationRequest =
-        RoomMessageEventContent.VerificationRequest("bla", UserId("bla"), setOf())
-
     val ready: ActiveVerificationState.Ready = ActiveVerificationState.Ready("bla", setOf(), null, null, {})
 
     init {
@@ -77,6 +77,11 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
                 )
             }.koin
             every { matrixClientMock.userId } returns me
+            every {
+                roomServiceMock.getTimelineEvent(eq(thisRoom), eq(timelineEventId), any())
+            } returns MutableStateFlow(
+                timelineEvent(timelineEventId)
+            )
         }
 
         should("show as active when the verification has not timed out and is not done or cancelled") {
@@ -86,7 +91,9 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
             } returns activeVerification
             val cut = userVerificationViewModel()
 
-            cut.isActive.first { it }
+            cut.isActive.firstWithClue(true)
+
+            cancelNeverEndingCoroutines()
         }
 
         should("show as inactive when verification has timed out") {
@@ -99,7 +106,9 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
             } returns null
             val cut = userVerificationViewModel()
 
-            cut.isActive.first { it.not() }
+            cut.isActive.firstWithClue(false)
+
+            cancelNeverEndingCoroutines()
         }
 
         should("show as inactive when the verification has not timed out, but is done or cancelled") {
@@ -113,7 +122,9 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
             } returns activeVerification
             val cut = userVerificationViewModel()
 
-            cut.isActive.first { it.not() }
+            cut.isActive.firstWithClue(false)
+
+            cancelNeverEndingCoroutines()
         }
 
         should("search for correct end event for an inactive verification") {
@@ -124,13 +135,6 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
                     eq(timelineEventId)
                 )
             } returns null
-            every {
-                roomServiceMock.getTimelineEvent(
-                    eq(thisRoom), eq(timelineEventId), any(),
-                )
-            } returns MutableStateFlow(
-                timelineEvent(timelineEventId)
-            )
             every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns
                     flow {
                         emit(
@@ -159,8 +163,10 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
 
             val cut = userVerificationViewModel()
 
-            cut.reachedEndState.filterNotNull().first { it.first.not() }
-            cut.reachedEndState.filterNotNull().first { it.second == "Timeout" }
+            cut.reachedEndState.map { it?.first }.firstWithClue(false)
+            cut.reachedEndState.map { it?.second }.firstWithClue("Timeout")
+
+            cancelNeverEndingCoroutines()
         }
 
         should("interpret the end state as 'cancelled' when the corresponding end event for an inactive verification cannot be found in the next 40 messages") {
@@ -196,12 +202,13 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
 
             val cut = userVerificationViewModel()
 
-            cut.reachedEndState.first { it?.first == false }
-            cut.reachedEndState.first { it?.second == "Cancelled" }
+            cut.reachedEndState.map { it?.first }.firstWithClue(false)
+            cut.reachedEndState.map { it?.second }.firstWithClue("Cancelled")
+
+            cancelNeverEndingCoroutines()
         }
 
-        should("consider encrypted timeline events in the search for end events of inactive verification")
-        {
+        should("consider encrypted timeline events in the search for end events of inactive verification") {
             everySuspend {
                 activeVerifications.getActiveVerification(
                     eq(matrixClientMock),
@@ -256,11 +263,12 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
 
             val cut = userVerificationViewModel()
 
-            cut.reachedEndState.filterNotNull().first { it.first.not() }
+            cut.reachedEndState.map { it?.first }.firstWithClue(false)
+
+            cancelNeverEndingCoroutines()
         }
 
-        should("ignore end events of other verifications")
-        {
+        should("ignore end events of other verifications") {
             everySuspend {
                 activeVerifications.getActiveVerification(
                     eq(matrixClientMock),
@@ -308,7 +316,9 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
 
             val cut = userVerificationViewModel()
 
-            cut.reachedEndState.filterNotNull().first { it.first.not() }
+            cut.reachedEndState.map { it?.first }.firstWithClue(false)
+
+            cancelNeverEndingCoroutines()
         }
     }
 
@@ -331,9 +341,11 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
                 })
         }.koin
         return VerificationRequestRoomMessageTimelineElementViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
+            viewModelContext = MatrixClientViewModelContextImpl(
+                componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = di,
                 userId = me,
+                coroutineContext = coroutineContext,
             ),
             roomId = thisRoom,
             eventId = timelineEventId,

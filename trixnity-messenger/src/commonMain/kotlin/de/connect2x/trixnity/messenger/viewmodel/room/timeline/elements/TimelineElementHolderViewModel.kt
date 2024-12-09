@@ -346,6 +346,15 @@ class TimelineElementHolderViewModelImpl(
         data class Read(val readBy: Set<UserId>) : IsReadSearchResult
     }
 
+    /**
+     * TODO This algorithm has a few issues (mostly edge cases):
+     *   - Ressource consumption: Too many same re-computations are done for each element.
+     *     For example when far away from the last event and only ourself wrote messages.
+     *   - Wrong results: On membership change depending on history visibility we may getting wrong results.
+     *     For example when A sends a message and B joins, B may not be able to read at all but is marked as reader.
+     *   Possible solution: lazily calculate Map<EventId,Set<UserId>> (sorted) in TimelineViewModel, which can be iterated through.
+     *   This List must also forget "old" events, when not needed anymore and consider membership changes depending on history visibility.
+     */
     private fun isReadSearch(roomId: RoomId, eventId: EventId): Flow<IsReadSearchResult> =
         getReceipts(roomId).transformLatest { receipts ->
             log.trace { "isReadSearch: roomId=$roomId eventId=$eventId receipts=$receipts" }
@@ -374,7 +383,7 @@ class TimelineElementHolderViewModelImpl(
                     is IsReadSearchResult.Read -> emit(true)
                     IsReadSearchResult.Unread -> emit(false)
                 }
-            }.first { it is IsReadSearchResult.Read }
+            }.firstOrNull { it is IsReadSearchResult.Read }
         }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
