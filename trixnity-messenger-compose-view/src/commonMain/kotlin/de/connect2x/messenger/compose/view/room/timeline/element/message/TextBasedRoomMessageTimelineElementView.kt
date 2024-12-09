@@ -47,7 +47,7 @@ fun TextBasedRoomMessageTimelineElementView(
         holder,
         element,
         showDate = true,
-        needsMaxWidth = true, // FIXME ?
+        needsMaxWidth = false, // FIXME ?
     ) { showActionMenu ->
         if (Platform.current.isDesktop) {
             // on Desktop, it makes sense to select text and copy it;

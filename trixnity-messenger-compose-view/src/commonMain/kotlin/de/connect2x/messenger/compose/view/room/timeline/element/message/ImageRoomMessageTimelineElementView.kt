@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -16,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -32,7 +35,6 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
@@ -58,7 +60,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                         color = MaterialTheme.messengerColors.metaDataPreview,
                     )
                     Text(
-                        " (${element.size?.let { formatSize(it.toLong()) }})",
+                        " (${element.size})",
                         modifier = Modifier.weight(1.0f, false),
                         color = MaterialTheme.messengerColors.metaDataPreview,
                         maxLines = 1,
@@ -89,15 +91,14 @@ internal fun ColumnScope.MessageImage(
     onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
-    image?.let {
+    image?.toImageBitmap()?.let {
         MessageImageImpl(it, holder, element, showActionMenu, onSave)
     } ?: MessageImageFallback(element, showActionMenu, onSave)
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 internal fun ColumnScope.MessageImageImpl(
-    image: ByteArray,
+    image: ImageBitmap,
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     showActionMenu: () -> Unit,
@@ -105,9 +106,10 @@ internal fun ColumnScope.MessageImageImpl(
 ) {
     val showSender = holder.showSender.collectAsState().value
     Image(
-        image.decodeToImageBitmap(),
+        image,
         "",
         Modifier
+            .padding(1.dp)
             .heightIn(
                 50.dp,
                 with(LocalDensity.current) { 300.dp }) // FIXME magic number
@@ -128,7 +130,7 @@ internal fun ColumnScope.MessageImageImpl(
                 )
             }
             .buttonPointerModifier(),
-        contentScale = ContentScale.Fit,
+        contentScale = ContentScale.FillHeight,
     )
 }
 

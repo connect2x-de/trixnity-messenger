@@ -107,7 +107,6 @@ class InputAreaViewImpl : InputAreaView {
     override fun create(inputAreaViewModel: InputAreaViewModel) {
         val i18n = DI.get<I18nView>()
         val isReplyTo = inputAreaViewModel.isReply.collectAsState().value
-        val replyToViewModel = inputAreaViewModel.replyToViewModel.collectAsState().value
         val canSendMessages = inputAreaViewModel.isAllowedToSendMessages.collectAsState().value
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val isMobile = Platform.current.isMobile
@@ -118,7 +117,7 @@ class InputAreaViewImpl : InputAreaView {
             Column(Modifier.fillMaxWidth()) {
                 HorizontalDivider(Modifier.fillMaxWidth())
                 if (isReplyTo) {
-                    ReplyToArea(replyToViewModel)
+//                    ReplyToArea(repliedElement)
                 }
                 if (emojisOpen.value) {
                     Box(Modifier.heightIn(max = 100.dp)) {
@@ -218,7 +217,7 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
     val interactionSource = remember { MutableInteractionSource() }
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
-    val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState().value
+    val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState(true).value
 
     val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
@@ -338,7 +337,7 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
 fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
     val message = inputAreaViewModel.message.collectAsStateForTextField().value
-    val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState().value
+    val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState(true).value
     val focusRequester = remember { FocusRequester() }
     val textFieldValue = remember {
         mutableStateOf(

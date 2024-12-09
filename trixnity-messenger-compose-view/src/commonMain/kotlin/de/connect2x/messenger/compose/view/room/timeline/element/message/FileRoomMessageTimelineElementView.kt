@@ -16,10 +16,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +29,6 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.overlay.OverlaySelector
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlin.reflect.KClass
@@ -49,8 +44,8 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     ) {
         FileBasedRoomMessageTimelineElementView(
             holder, element,
-        ) { showActionMenu, onSave ->
-            MessageFile(element, showActionMenu, onSave)
+        ) { showActionMenu, openOverlay ->
+            MessageFile(element, showActionMenu, openOverlay)
         }
     }
 
@@ -69,19 +64,18 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
 internal fun MessageFile(
     element: RoomMessageTimelineElementViewModel.FileBased.File,
     showActionMenu: () -> Unit,
-    onSave: () -> Unit,
+    openOverlay: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
-    var openOverlay by remember { mutableStateOf(false) }
-
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = { openOverlay = true },
+                onTap = {openOverlay() },
                 onLongPress = { showActionMenu() },
             )
         }
+            .padding(10.dp)
     ) {
         Box(
             Modifier
@@ -96,7 +90,9 @@ internal fun MessageFile(
             buildAnnotatedString {
                 append(element.name)
                 pushStyle(SpanStyle(Color.Gray))
+                append(" (")
                 append(element.size)
+                append(")")
             },
             Modifier.align(Alignment.CenterVertically)
         )
@@ -108,12 +104,6 @@ internal fun MessageFile(
                 Modifier.align(Alignment.CenterVertically),
                 Color.DarkGray
             )
-        }
-    }
-
-    if (openOverlay) {
-        OverlaySelector(element, onSave) {
-            openOverlay = false
         }
     }
 }

@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.files
+package de.connect2x.messenger.compose.view.room.timeline.element.message.details
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -45,12 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CenteredElement
-import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.media.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.utils.ByteArrayFlow
 import simpleVerticalScrollbar
@@ -58,19 +56,25 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-
 private val log = KotlinLogging.logger {}
 
 @Composable
-actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
+actual fun PDFReader(
+    element: RoomMessageTimelineElementViewModel.FileBased.File,
+    scale: Float
+) {
     val i18n = DI.current.get<I18n>()
     val i18nView = DI.current.get<I18nView>()
-    val document = documentViewModel.documentFlow.collectAsState().value
+    val document = element.media.collectAsState().value
     var reader by remember { mutableStateOf<PdfRender?>(null) }
-    val filename = documentViewModel.fileName
+    val filename = element.name
     val context = LocalContext.current
     val density = LocalDensity.current.density
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
+
+    LaunchedEffect(Unit) {
+        element.loadMedia(false)
+    }
 
     DisposableEffect(Unit) {
         onDispose {

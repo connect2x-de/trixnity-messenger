@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.files
+package de.connect2x.messenger.compose.view.room.timeline.element.message.details
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -10,7 +10,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 private var oldPosition: Offset? = null // TODO include in composable
 
 @OptIn(ExperimentalComposeUiApi::class)
-actual fun mouseEventsForImageOverlay(
+actual fun mouseEventsForImageElementDetails(
     maxWidth: Float,
     maxHeight: Float,
     maxBoundsImage: Offset,

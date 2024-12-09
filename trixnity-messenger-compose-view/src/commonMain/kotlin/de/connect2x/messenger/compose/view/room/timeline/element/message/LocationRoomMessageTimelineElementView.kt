@@ -50,7 +50,6 @@ fun MessageLocation(
         element,
         showDate = true,
         needsMaxWidth = false,
-        additionalContextActions = {},
     ) { showMenuAction ->
         if (Platform.current.isDesktop) {
             // on Desktop it makes sense to select text and copy it;

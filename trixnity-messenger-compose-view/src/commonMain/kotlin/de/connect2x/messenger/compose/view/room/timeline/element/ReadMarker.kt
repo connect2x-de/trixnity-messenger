@@ -11,7 +11,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -42,7 +41,7 @@ class ReadMarkerViewImpl : ReadMarkerView {
     ) {
         val i18n = DI.get<I18nView>()
         if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
-            val isRead by timelineElementHolderViewModel.isRead.collectAsState()
+            val isRead = timelineElementHolderViewModel.isRead.collectAsState().value == true
             val isByMe = timelineElementHolderViewModel.isByMe
             if (isByMe) {
                 Box(

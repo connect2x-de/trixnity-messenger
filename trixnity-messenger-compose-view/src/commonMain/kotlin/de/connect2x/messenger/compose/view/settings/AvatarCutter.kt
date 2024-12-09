@@ -41,7 +41,7 @@ import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
@@ -70,7 +70,7 @@ class AvatarCutterViewImpl : AvatarCutterView {
 
         byteArray?.let {
             LaunchedEffect(true) {
-                bitmap = imageBitmapFromBytes(byteArray)
+                bitmap = byteArray.toImageBitmap()
             }
 
             bitmap?.let { bitmap ->

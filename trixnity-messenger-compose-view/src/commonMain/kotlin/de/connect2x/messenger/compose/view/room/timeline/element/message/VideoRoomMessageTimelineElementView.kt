@@ -29,7 +29,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.common.SmallSpacer
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -106,7 +106,7 @@ internal fun ColumnScope.MessageVideo(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 //Uncomment this once video thumbnails are supported
-                thumbnail?.let { imageBitmapFromBytes(it) }?.let {
+                thumbnail?.toImageBitmap()?.let {
                     Image(
                         it,
                         "",

@@ -13,8 +13,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -27,18 +29,18 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 
 @Composable
 fun FileBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    overlay: @Composable BoxScope.() -> Unit = {},
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -57,10 +59,10 @@ fun FileBasedRoomMessageTimelineElementView(
         holder,
         element,
         showDate = true,
-        needsMaxWidth = true, // FIXME ?
+        needsMaxWidth = true,
         additionalContextActions = { onClose ->
             // name
-            val nameAndSize = "${element.name}:" + (element.size?.let { " " + formatSize(it.toLong()) } ?: "")
+            val nameAndSize = "${element.name}:" + (element.size ?: "")
             Tooltip(
                 { TooltipText(nameAndSize) }
             ) {
@@ -90,29 +92,26 @@ internal fun FileBasedView(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     saveDialogOpen: MutableState<Boolean>,
     showActionMenu: () -> Unit,
-    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, onSave: () -> Unit) -> Unit
+    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
 
-    Box(
+    var openElementDetails by remember { mutableStateOf(false) }
+
+    Column(
         Modifier
-            .padding(10.dp)
-    ) {
-        Column(
-            Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = { showActionMenu() },
-                    )
-                }
-                .padding(10.dp)
-                .buttonPointerModifier()
-        ) {
-            // content based on the actual file
-            content(showActionMenu) {
-                saveDialogOpen.value = true
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { openElementDetails = true },
+                    onLongPress = { showActionMenu() },
+                )
             }
+            .buttonPointerModifier()
+    ) {
+        // content based on the actual file
+        content(showActionMenu) {
+            openElementDetails = true
         }
     }
 
@@ -137,6 +136,12 @@ internal fun FileBasedView(
             )
         }
         Spacer(Modifier.size(10.dp))
+    }
+
+    if (openElementDetails) {
+        ElementDetailsSelector(element, { saveDialogOpen.value = true }) {
+            openElementDetails = false
+        }
     }
 
 }
