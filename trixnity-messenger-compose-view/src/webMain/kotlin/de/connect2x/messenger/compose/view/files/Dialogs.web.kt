@@ -3,6 +3,10 @@ package de.connect2x.messenger.compose.view.files
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.FilePickerType
+import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -11,6 +15,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.core.PickerType.Image
+import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
 import net.folivo.trixnity.utils.ByteArrayFlow
 import web.dom.document
 import web.file.File
@@ -38,21 +44,22 @@ private val log = KotlinLogging.logger {}
  */
 @Composable
 actual fun LoadFileDialog(
+    availableTypes: List<FilePickerType>,
     onFileSelect: (FileDescriptor) -> Unit,
     onCloseLoadFileDialog: () -> Unit,
-    mode: LoadFileMode,
 ) {
     val i18n = DI.get<I18nView>()
     LaunchedEffect(Unit) {
         FileKit.pickFile(
-            type = when (mode) {
-                LoadFileMode.Picture -> PickerType.Image
+            type = when {
+                availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> Image
+                availableTypes.size == 1 && availableTypes.first() == IMAGE_AND_VIDEO_FILE -> ImageAndVideo
                 else -> PickerType.File()
             },
             mode = PickerMode.Single,
             title = i18n.fileDialogTitleLoad(),
-            initialDirectory = when (mode) {
-                LoadFileMode.Picture -> "pictures"
+            initialDirectory = when {
+                availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> "pictures"
                 else -> "downloads"
             },
         )?.let { file ->
@@ -68,6 +75,15 @@ actual fun LoadFileDialog(
             onCloseLoadFileDialog()
         }
     }
+}
+
+actual fun filterFilePickerOptionsByAvailability(
+    vararg availablePickerTypes: FilePickerType,
+): List<FilePickerType> {
+    val supportedTypes = listOf(
+        IMAGE_FILE, IMAGE_AND_VIDEO_FILE, ATTACHMENT_FILE,
+    )
+    return availablePickerTypes.filter { supportedTypes.contains(it) }
 }
 
 /**

@@ -2253,6 +2253,21 @@ abstract class I18nView(
         DE - "Bild hochladen"
     }
 
+    fun fileDialogLoadImageOrVideoButton() = translate {
+        EN - "Upload image or video"
+        DE - "Bild oder Video hochladen"
+    }
+
+    fun fileDialogTakeImageButton() = translate {
+        EN - "Capture image"
+        DE - "Bild aufnehmen"
+    }
+
+    fun fileDialogTakeVideoButton() = translate {
+        EN - "Capture video"
+        DE - "Video aufnehmen"
+    }
+
     fun fileDialogSaveDescription() = translate {
         EN - "Download File"
         DE - "Datei herunterladen"
@@ -2261,6 +2276,11 @@ abstract class I18nView(
     fun fileDialogDownloadErrorSave() = translate {
         EN - "Download failed"
         DE - "Download fehlgeschlagen"
+    }
+
+    fun cameraDialogAlertNoPermission() = translate {
+        EN - "Please check the permissions of the camera"
+        DE - "Bitte die Berechtigungen der Kamera prüfen"
     }
 
     fun commonAccept() = translate {
@@ -2499,7 +2519,6 @@ abstract class I18nView(
         EN - "Cancel"
         DE - "Abbrechen"
     }
-
 
     fun uploadFileErrorTitle() = translate {
         DE - "Beim Hochladen der Datei ist ein Fehler aufgetreten"

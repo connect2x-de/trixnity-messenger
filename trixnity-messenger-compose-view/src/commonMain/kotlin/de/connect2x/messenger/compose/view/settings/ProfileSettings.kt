@@ -47,12 +47,14 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EditButton
 import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
-import de.connect2x.messenger.compose.view.files.LoadFileMode
+import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvailability
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
@@ -74,9 +76,12 @@ class ProfileSettingsViewImpl : ProfileSettingsView {
     override fun create(profileViewModel: ProfileViewModel) {
         val openAvatarCutter = profileViewModel.openAvatarCutter.collectAsState().value
         if (openAvatarCutter != null) LoadFileDialog(
+            filterFilePickerOptionsByAvailability(
+                IMAGE_FILE,
+                PHOTO_CAPTURE,
+            ),
             { profileViewModel.openAvatarCutter(openAvatarCutter, it) },
             { profileViewModel.closeAvatarCutter() },
-            LoadFileMode.Picture,
         )
         ProfileOverview(profileViewModel)
     }

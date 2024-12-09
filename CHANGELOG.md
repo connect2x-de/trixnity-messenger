@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add ability to share plain and formatted text
 - Add ability to share url with icon
+- Camera capture as a file selection option
 
 ### Changed
 
