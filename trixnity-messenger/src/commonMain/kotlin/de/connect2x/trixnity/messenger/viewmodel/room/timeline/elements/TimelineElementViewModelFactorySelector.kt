@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.utils.concurrentMutableMap
 import kotlin.reflect.KClass
 
@@ -62,6 +64,8 @@ class TimelineElementViewModelFactorySelectorImpl(
     }
 
     private suspend fun findFactory(content: RoomEventContent): TimelineElementViewModelFactory<RoomEventContent>? {
+        if (replaceEventsShouldNotBeRendered(content)) return null
+
         val contentClass = content::class
         return factoryMapping.read { get(contentClass) }
             ?: run {
@@ -71,5 +75,10 @@ class TimelineElementViewModelFactorySelectorImpl(
                 foundFactory as TimelineElementViewModelFactory<RoomEventContent>
                 factoryMapping.write { getOrPut(contentClass) { foundFactory } }
             }
+    }
+
+    private fun replaceEventsShouldNotBeRendered(content: RoomEventContent): Boolean {
+        println(content)
+        return content is MessageEventContent && content.relatesTo is RelatesTo.Replace
     }
 }

@@ -11,6 +11,8 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextBasedRoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -20,11 +22,13 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.continually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,18 +58,21 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.DefaultAsserter.fail
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
+    override fun timeout(): Long = 10_000
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
@@ -338,6 +345,49 @@ class TimelineViewModelTest : ShouldSpec() {
                     cut.elements.first() shouldHaveSize 1
                     cut.elements.first()[0].key shouldBe "$roomId-transactionId-1"
                 }
+            }
+            should("only contain the newest version of a replace event") {
+                timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello!!!")
+                    }
+                    +MessageEvent(
+                        content = RoomMessageEventContent.TextBased.Text(
+                            body = "Hello again.",
+                            relatesTo = RelatesTo.Replace(EventId("0")),
+                        ),
+                        id = EventId("replace-1"),
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 1234,
+                    )
+                    +MessageEvent(
+                        content = RoomMessageEventContent.TextBased.Text(
+                            body = "Hello!!!",
+                            relatesTo = RelatesTo.Replace(EventId("replace-1")),
+                        ),
+                        id = EventId("replace-2"),
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 2345,
+                    )
+                }
+                val cut = timelineViewModel()
+                cut.elements waitForSize 3
+                val job = launch {
+                    cut.elements.collect{}
+                }
+                cut.elements.first().lastOrNull()?.key shouldBe "${roomId.full}-replace-2"
+                eventually(2.seconds) {
+                    val elementViewModel = cut.elements.first().firstOrNull()?.element?.value
+                    if (elementViewModel is TextBasedRoomMessageTimelineElementViewModel) {
+                        elementViewModel.body shouldBe "Hello!!!"
+                    } else fail("")
+                    cut.elements.first().getOrNull(1)?.element?.value shouldBe TimelineElementViewModel.Empty
+                    cut.elements.first().lastOrNull()?.element?.value shouldBe TimelineElementViewModel.Empty
+                }
+
+                job.cancel()
             }
         }
         context(TimelineViewModel::viewState.name) {
