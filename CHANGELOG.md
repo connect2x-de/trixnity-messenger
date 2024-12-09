@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation on how to use the framework from SwiftUI
 - In single account mode make the profile banner open the user profile
 - Only show option for recovery key reset in self verification when verification methods are loaded
+- Only show verification banner in RoomList, when the selected Account isn't verified
+- Change RedoSelfVerification to Wizard Framework
+- don't start verification on startup, start it via the setup or the banner in the roomlist instead
 
 ### Deprecated
 
