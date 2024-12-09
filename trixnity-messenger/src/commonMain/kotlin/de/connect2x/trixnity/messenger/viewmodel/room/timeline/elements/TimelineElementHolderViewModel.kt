@@ -14,12 +14,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
@@ -186,31 +186,24 @@ class TimelineElementHolderViewModelImpl(
     override val hasLoadingIndicatorAfter =
         canLoadAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    private val previousSupportedTimelineEvent = coroutineScope.async(start = CoroutineStart.LAZY) {
-        matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
-            .drop(1)
-            .map { it.first() }
-            .firstOrNull { timelineEvent ->
-                timelineElementViewModelFactorySelector.supports(timelineEvent.content)
-            }
-    }
-    private val nextSupportedTimelineEvent = coroutineScope.async(start = CoroutineStart.LAZY) {
-        matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
-            .drop(1)
-            .map { it.first() }
-            .firstOrNull { timelineEvent ->
-                timelineElementViewModelFactorySelector.supports(timelineEvent.content)
-            }
-    }
+    private val previousSupportedTimelineEvent =
+        timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
+            matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
+                .drop(1)
+        ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    private val nextSupportedTimelineEvent =
+        timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
+            matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
+                .drop(1)
+        ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val hasUnreadMarker: StateFlow<Boolean> =
-        matrixClient.room.getAccountData<FullyReadEventContent>(roomId).transformLatest { fullyReadEvent ->
+        matrixClient.room.getAccountData<FullyReadEventContent>(roomId).flatMapLatest { fullyReadEvent ->
             if (fullyReadEvent?.eventId == eventId) {
                 log.trace { "start compute unread marker at $eventId" }
-                nextSupportedTimelineEvent.await()
-                log.debug { "enable unread marker at $eventId" }
-                emit(true)
-            } else emit(false)
+                nextSupportedTimelineEvent.map { it != null }
+            } else flowOf(false)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReplaced: StateFlow<Boolean> =
@@ -301,9 +294,8 @@ class TimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, Eagerly, null)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
-        flow {
-            val previousSupportedTimelineEvent = previousSupportedTimelineEvent.await()
-            emit(previousSupportedTimelineEvent?.sender != senderUserId)
+        previousSupportedTimelineEvent.map { timelineEvent ->
+            timelineEvent?.sender != senderUserId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val sender: StateFlow<UserInfoElement?> =
@@ -321,19 +313,16 @@ class TimelineElementHolderViewModelImpl(
             }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
-        flow {
-            val previousSupportedTimelineEvent = previousSupportedTimelineEvent.await()
-            emit(
-                when {
-                    previousSupportedTimelineEvent?.sender != senderUserId -> true
-                    else -> {
-                        val previousTimestamp =
-                            Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
-                        val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
-                        thisTimestamp - previousTimestamp > 1.hours
-                    }
+        previousSupportedTimelineEvent.map { timelineEvent ->
+            when {
+                timelineEvent?.sender != senderUserId -> true
+                else -> {
+                    val previousTimestamp =
+                        Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                    val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
+                    thisTimestamp - previousTimestamp > 1.hours
                 }
-            )
+            }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isByMe: Boolean = senderUserId == userId

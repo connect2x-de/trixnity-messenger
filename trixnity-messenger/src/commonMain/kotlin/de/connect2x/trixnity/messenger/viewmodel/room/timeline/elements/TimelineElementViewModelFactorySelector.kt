@@ -1,6 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RoomEventContent
@@ -9,7 +16,7 @@ import net.folivo.trixnity.utils.concurrentMutableMap
 import kotlin.reflect.KClass
 
 interface TimelineElementViewModelFactorySelector {
-    suspend fun supports(content: Result<RoomEventContent>?): Boolean
+    fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?>
 
     suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -29,7 +36,17 @@ class TimelineElementViewModelFactorySelectorImpl(
     private val factoryMapping =
         concurrentMutableMap<KClass<out RoomEventContent>, TimelineElementViewModelFactory<RoomEventContent>>()
 
-    override suspend fun supports(content: Result<RoomEventContent>?): Boolean =
+    override fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?> =
+        flow {
+            timelineEvents.collect { timelineEvent ->
+                timelineEvent
+                    .map { supports(it.content) }
+                    .onEach { if (it) emitAll(timelineEvent) else emit(null) }
+                    .first { !it }
+            }
+        }
+
+    private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
         content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })
 
     override suspend fun create(
