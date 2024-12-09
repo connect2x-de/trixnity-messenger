@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.AdaptiveDialog
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
@@ -220,9 +220,8 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
     var image by remember { mutableStateOf<ImageBitmap?>(null) }
 
     LaunchedEffect(icon) {
-        icon
-            ?.let { it.content.limitedByteArrayOrNull(maxMediaSize) }
-            ?.also { image = imageBitmapFromBytes(it) }
+        icon?.content?.limitedByteArrayOrNull(maxMediaSize)
+            ?.also { image = it.toImageBitmap() }
     }
 
     Row(

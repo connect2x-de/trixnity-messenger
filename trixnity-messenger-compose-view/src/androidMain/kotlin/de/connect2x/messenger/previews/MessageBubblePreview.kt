@@ -2,6 +2,7 @@ package de.connect2x.messenger.previews
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.TextBasedRoomMessageTimelineElementView
 import de.connect2x.messenger.previews.util.InitMessengerPreview
@@ -87,13 +88,52 @@ fun ImageMessageBubblePreview() {
         override fun loadMedia(inMemory: Boolean) {}
         override fun cancelLoadMedia() {}
         override val downloadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
-        override val downloadMediaSuccessful: StateFlow<Boolean?> = MutableStateFlow(null)
+        override val downloadMediaSuccessful: StateFlow<Boolean?> = MutableStateFlow(true)
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
     }
     InitMessengerPreview {
         ImageRoomMessageTimelineElementView().createInTimeline(
+            holder,
+            element,
+        )
+    }
+}
+
+@Preview
+@Composable
+fun FileMessageBubblePreview() {
+    val holder = PreviewTimelineElementViewModel1()
+    holder.showSender.value = true
+    holder.sender.value = UserInfoElement(
+        name = "Martin",
+        userId = UserId("@martin:localhost")
+    )
+    holder.isFirstInUserSequence.value = true
+    holder.showBigGapBefore.value = true
+    val element = object : RoomMessageTimelineElementViewModel.FileBased.File {
+        override val name: String = "kiwi.txt"
+        override val description: String? = "A file."
+        override val size: String? = "465kb"
+        override val mimeType: String? = "text/plain"
+        override val media: StateFlow<PlatformMedia?> =
+            MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
+        override val mediaInMemory: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
+        override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
+        override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
+        override fun loadMedia(inMemory: Boolean) {}
+        override fun cancelLoadMedia() {}
+        override val downloadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(
+            FileTransferProgressElement(0.33f, "280kb/465")
+        )
+        override val downloadMediaSuccessful: StateFlow<Boolean?> = MutableStateFlow(true)
+        override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
+        override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
+        override fun cancelDownloadMedia() {}
+    }
+    InitMessengerPreview {
+        FileRoomMessageTimelineElementView().createInTimeline(
             holder,
             element,
         )

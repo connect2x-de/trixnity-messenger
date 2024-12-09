@@ -33,7 +33,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.ErrorView
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
@@ -83,7 +83,7 @@ class SendAttachmentViewImpl : SendAttachmentView {
                         isImage ?: false -> {
                             if (fileContent != null) {
                                 LaunchedEffect(isImage) {
-                                    imageBitmap = imageBitmapFromBytes(fileContent)
+                                    imageBitmap = fileContent.toImageBitmap()
                                 }
                                 imageBitmap?.let {
                                     Image(

@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -89,15 +91,14 @@ internal fun ColumnScope.MessageImage(
     onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
-    image?.let {
+    image?.toImageBitmap()?.let {
         MessageImageImpl(it, holder, element, showActionMenu, onSave)
     } ?: MessageImageFallback(element, showActionMenu, onSave)
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 internal fun ColumnScope.MessageImageImpl(
-    image: ByteArray,
+    image: ImageBitmap,
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     showActionMenu: () -> Unit,
@@ -105,7 +106,7 @@ internal fun ColumnScope.MessageImageImpl(
 ) {
     val showSender = holder.showSender.collectAsState().value
     Image(
-        image.decodeToImageBitmap(),
+        image,
         "",
         Modifier
             .padding(1.dp)

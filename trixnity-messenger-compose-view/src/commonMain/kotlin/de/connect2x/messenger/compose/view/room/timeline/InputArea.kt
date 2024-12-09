@@ -107,7 +107,6 @@ class InputAreaViewImpl : InputAreaView {
     override fun create(inputAreaViewModel: InputAreaViewModel) {
         val i18n = DI.get<I18nView>()
         val isReplyTo = inputAreaViewModel.isReply.collectAsState().value
-        val replyToViewModel = inputAreaViewModel.replyToViewModel.collectAsState().value
         val canSendMessages = inputAreaViewModel.isAllowedToSendMessages.collectAsState().value
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val isMobile = Platform.current.isMobile

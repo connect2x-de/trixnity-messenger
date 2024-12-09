@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.room.timeline.element.message.overlay
+package de.connect2x.messenger.compose.view.room.timeline.element.message.details
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -6,32 +6,35 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
-interface OverlayViewSelector {
+private val log = KotlinLogging.logger {}
+
+interface ElementDetailsViewSelector {
     @Composable
-    fun createOverlay(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit)
+    fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit)
 }
 
 @Composable
-fun OverlaySelector(
+fun ElementDetailsSelector(
     element: TimelineElementViewModel<*>,
     onSave: () -> Unit,
     onClose: () -> Unit,
 ) {
-    with(DI.get<OverlayViewSelector>()) { createOverlay(element, onSave, onClose) }
+    with(DI.get<ElementDetailsViewSelector>()) { create(element, onSave, onClose) }
 }
 
-class OverlayViewSelectorImpl(val factories: List<OverlayView<*>>) : OverlayViewSelector {
+class ElementDetailsViewSelectorImpl(val factories: List<ElementDetailsView<*>>) : ElementDetailsViewSelector {
     private val factoryMapping =
-        MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, OverlayView<TimelineElementViewModel<*>>>>(
+        MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, ElementDetailsView<TimelineElementViewModel<*>>>>(
             emptyMap()
         )
 
     @Composable
-    override fun createOverlay(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit) {
+    override fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit) {
         val timelineElementViewModelClass = element::class
         val factory = remember {
             factoryMapping.value[timelineElementViewModelClass]
@@ -46,13 +49,16 @@ class OverlayViewSelectorImpl(val factories: List<OverlayView<*>>) : OverlayView
                         }
                     if (foundFactory == null) return@run null
                     @Suppress("UNCHECKED_CAST")
-                    foundFactory as OverlayView<TimelineElementViewModel<*>>
+                    foundFactory as ElementDetailsView<TimelineElementViewModel<*>>
                     factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
                     foundFactory
                 }
         }
         factory?.create(element, onSave, onClose)
-            ?: onSave() // in case we show no overlay, we directly save
+            ?: run { // in case we show no overlay, we directly save
+                log.warn { "no overlay found for ${element::class.qualifiedName} -> directly save" }
+                onSave()
+            }
     }
 
 }

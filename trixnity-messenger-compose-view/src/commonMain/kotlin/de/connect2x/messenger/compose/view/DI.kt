@@ -105,9 +105,9 @@ import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EncryptedErrorRoomMessageTimelineElementView
@@ -120,8 +120,11 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.TextRoo
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.message.overlay.ImageOverlayView2
-import de.connect2x.messenger.compose.view.room.timeline.element.message.overlay.OverlayView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelectorImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ImageElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.PdfElementDetailsView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListView
@@ -371,9 +374,9 @@ inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementView<*>>()
 
-inline fun <reified F : OverlayView<*>> Module.overlayView(
+inline fun <reified F : ElementDetailsView<*>> Module.elementDetailsView(
     noinline definition: Scope.(ParametersHolder) -> F
-) = single<F>(named<F>(), definition = definition).bind<OverlayView<*>>()
+) = single<F>(named<F>(), definition = definition).bind<ElementDetailsView<*>>()
 
 fun timelineViewModule() = module {
     timelineElementView<AudioRoomMessageTimelineElementView> { AudioRoomMessageTimelineElementView() }
@@ -386,8 +389,10 @@ fun timelineViewModule() = module {
     timelineElementView<NoticeRoomMessageTimelineElementView> { NoticeRoomMessageTimelineElementView() }
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementView() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementView() }
-    overlayView<ImageOverlayView2> { ImageOverlayView2() }
+    elementDetailsView<ImageElementDetailsView> { ImageElementDetailsView() }
+    elementDetailsView<PdfElementDetailsView> { PdfElementDetailsView() }
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
+    single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
 
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }

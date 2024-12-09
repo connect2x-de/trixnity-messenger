@@ -13,8 +13,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -27,6 +29,7 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -56,7 +59,7 @@ fun FileBasedRoomMessageTimelineElementView(
         holder,
         element,
         showDate = true,
-        needsMaxWidth = true, // FIXME ?
+        needsMaxWidth = true,
         additionalContextActions = { onClose ->
             // name
             val nameAndSize = "${element.name}:" + (element.size ?: "")
@@ -89,15 +92,18 @@ internal fun FileBasedView(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     saveDialogOpen: MutableState<Boolean>,
     showActionMenu: () -> Unit,
-    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, onSave: () -> Unit) -> Unit
+    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
+
+    var openElementDetails by remember { mutableStateOf(false) }
 
     Column(
         Modifier
             .pointerInput(Unit) {
                 detectTapGestures(
+                    onTap = { openElementDetails = true },
                     onLongPress = { showActionMenu() },
                 )
             }
@@ -105,7 +111,7 @@ internal fun FileBasedView(
     ) {
         // content based on the actual file
         content(showActionMenu) {
-            saveDialogOpen.value = true
+            openElementDetails = true
         }
     }
 
@@ -130,6 +136,12 @@ internal fun FileBasedView(
             )
         }
         Spacer(Modifier.size(10.dp))
+    }
+
+    if (openElementDetails) {
+        ElementDetailsSelector(element, { saveDialogOpen.value = true }) {
+            openElementDetails = false
+        }
     }
 
 }

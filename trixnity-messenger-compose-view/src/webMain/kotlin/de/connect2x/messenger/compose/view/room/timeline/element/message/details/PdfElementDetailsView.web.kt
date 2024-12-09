@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.files
+package de.connect2x.messenger.compose.view.room.timeline.element.message.details
 
 import SimpleVerticalScrollbarState
 import androidx.compose.foundation.horizontalScroll
@@ -46,16 +46,14 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.toHex
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.format
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.browser.document
-import org.w3c.dom.Element
-import org.w3c.dom.get
 import simpleVerticalScrollbar
+import web.dom.Element
+import web.dom.document
 import kotlin.math.max
 import kotlin.math.min
-
 
 private val log = KotlinLogging.logger {}
 
@@ -72,10 +70,13 @@ private val log = KotlinLogging.logger {}
  * @property scale works just like for the other viewers and is handled internally.
  */
 @Composable
-actual fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float) {
+actual fun PDFReader(
+    element: RoomMessageTimelineElementViewModel.FileBased.File,
+    scale: Float
+) {
     val i18nView = DI.current.get<I18nView>()
-    val media = documentViewModel.document.collectAsState().value
-    val filename = documentViewModel.fileName
+    val media = element.media.collectAsState().value
+    val filename = element.name
     var frameSize by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var pageSize by remember { mutableStateOf(DpSize(420.dp, 600.dp)) }
     val density = LocalDensity.current.density
