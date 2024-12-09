@@ -84,6 +84,7 @@ class RoomListRouter(
                     onRoomSelected = onRoomSelected,
                     onStartCreateNewRoom = ::onStartCreateNewRoom,
                     onUserSettingsSelected = ::onOpenUserSettings,
+                    onUserProfileSelected = ::onShowProfile,
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
                     onOpenAccountsOverview = ::onOpenAccountsOverview,

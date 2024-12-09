@@ -1143,6 +1143,7 @@ class RoomListViewModelTest : ShouldSpec() {
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
+                                onUserProfileSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit
                             ): AccountViewModel {
                                 return object : AccountViewModel {
@@ -1160,10 +1161,13 @@ class RoomListViewModelTest : ShouldSpec() {
                                         onAccountSelected(userId) // needed to influence RoomListViewModel
                                     }
 
-                                    override fun userSettings() {
+                                    override fun openUserSettings() {
                                     }
 
-                                    override fun appInfo() {
+                                    override fun openUserProfile() {
+                                    }
+
+                                    override fun openAppInfo() {
                                     }
                                 }
                             }
@@ -1182,6 +1186,7 @@ class RoomListViewModelTest : ShouldSpec() {
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
             onUserSettingsSelected = mock(),
+            onUserProfileSelected = mock(),
             onOpenAppInfo = mock(),
             onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
