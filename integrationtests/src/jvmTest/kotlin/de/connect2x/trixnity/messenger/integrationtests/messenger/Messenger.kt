@@ -65,7 +65,6 @@ suspend fun MatrixMessengerWithRoot.login(
     val mainViewModel = main.viewModel
     mainViewModel.accountSetupRouterStack.waitFor(AccountSetupRouter.Wrapper.ShowAccountSetup::class).viewModel.closeAccountSetup()
     mainViewModel.accountSetupRouterStack.waitFor(AccountSetupRouter.Wrapper.None::class)
-    mainViewModel.showSelfVerification(UserId(username))
     val verification = withTimeoutOrNull(15.seconds) {
         mainViewModel.selfVerificationStack.toFlow().first { childStack ->
             log.debug { " active: ${childStack.active.instance}" }
@@ -74,14 +73,14 @@ suspend fun MatrixMessengerWithRoot.login(
     }
     if (verification == null) {
         mainViewModel.showSelfVerification(UserId(username))
-        val mainVerificationView = mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.View::class)
+        val verificationView = mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.View::class)
         if (recoveryKey != null) {
-            selfVerify(mainVerificationView, recoveryKey)
+            selfVerify(verificationView, recoveryKey)
             mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.None::class)
             log.info { "self verification done successfully" }
         } else {
             if (otherMessenger != null) {
-                selfVerify(mainVerificationView, mainViewModel, otherMessenger.root)
+                selfVerify(verificationView, mainViewModel, otherMessenger.root)
             } else {
                 log.error { "cannot self verify without recovery key or other device" }
                 throw IllegalStateException("cannot self verify without recovery key or other device")
