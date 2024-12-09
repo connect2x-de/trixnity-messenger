@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -30,8 +31,8 @@ import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsSelector
-import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
+import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -62,13 +63,13 @@ fun FileBasedRoomMessageTimelineElementView(
         needsMaxWidth = true,
         additionalContextActions = { onClose ->
             // name
-            val nameAndSize = "${element.name}:" + (element.size ?: "")
             Tooltip(
-                { TooltipText(nameAndSize) }
+                { TooltipText("${element.name} " + (element.size ?: "")) } // full name
             ) {
-                OverflowingFileInfo(
-                    nameAndSize,
+                Text(
+                    "${shortenFileName(element)} ${element.size ?: ""}", // shortened name
                     modifier = Modifier.padding(5.dp),
+                    maxLines = 1,
                 )
             }
             HorizontalDivider()

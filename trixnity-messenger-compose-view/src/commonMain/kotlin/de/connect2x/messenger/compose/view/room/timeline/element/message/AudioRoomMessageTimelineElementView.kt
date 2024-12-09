@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -27,12 +26,12 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -51,15 +50,9 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "${element.duration?.let { formatDuration(it.milliseconds) }} ",
-                        Modifier.weight(0.6f, false),
+                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
+                        color = MaterialTheme.messengerColors.metaDataPreview,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                    )
-                    Text(
-                        "(${element.size?.let { formatSize(it.toLong()) }})", Modifier.weight(1.0f, false),
-                        color = MaterialTheme.messengerColors.metaDataPreview,
                     )
                 }
             }

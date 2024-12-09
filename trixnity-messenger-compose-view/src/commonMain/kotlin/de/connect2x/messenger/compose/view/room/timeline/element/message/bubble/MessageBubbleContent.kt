@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.IntrinsicMeasurable
+import androidx.compose.ui.layout.IntrinsicMeasureScope
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -46,7 +54,7 @@ fun MessageBubbleContent(
         color = MaterialTheme.colorScheme.outline,
         shape = RoundedCornerShape(8.dp),
     ) else Modifier
-    Row {
+    Row(Modifier.fillMaxWidth()) {
         if (sendError != null) {
             Icon(
                 Icons.Default.Warning, "send error",
@@ -56,7 +64,7 @@ fun MessageBubbleContent(
         Column(
             Modifier
                 .padding(0.dp)
-                .weight(1.0f, fill = false)
+                .weight(1.0f, fill = needsMaxWidth.not())
                 .then(highlighted)
         ) {
             val showSender = holder.showSender.collectAsState().value == true
@@ -89,8 +97,6 @@ fun MessageBubbleContent(
                     ) {
                         holder.formattedTime.let {
                             Box(
-//                                modifier = Modifier
-//                                    .fillMaxHeight(),
                                 contentAlignment = Alignment.BottomEnd
                             ) {
                                 Text(
@@ -108,78 +114,102 @@ fun MessageBubbleContent(
 //                                                }
                 }
             } else {
-                Layout(content = {
-                    content(showActionMenu)
-                    if (showDate) {
-                        holder.formattedTime.let {
-                            Row(
-                                modifier = Modifier.padding(
-                                    start = 5.dp,
-                                    end = 5.dp,
-                                    bottom = 5.dp
-                                ),
-                                verticalAlignment = Alignment.Bottom,
-                            ) {
-                                if (holder is TimelineElementHolderViewModel) {
-                                    val isReplaced = holder.isReplaced.collectAsState()
-                                    if (isReplaced.value)
-                                        Text(
-                                            i18n.messageBubbleEdited(),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            modifier = Modifier.paddingFromBaseline(0.dp)
-                                                .padding(end = 2.dp),
-                                            maxLines = 1,
-                                        )
+                Layout(
+                    content = {
+                        content(showActionMenu)
+                        if (showDate) {
+                            holder.formattedTime.let {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        start = 5.dp,
+                                        end = 5.dp,
+                                        bottom = 5.dp
+                                    ),
+                                    verticalAlignment = Alignment.Bottom,
+                                ) {
+                                    if (holder is TimelineElementHolderViewModel) {
+                                        val isReplaced = holder.isReplaced.collectAsState()
+                                        if (isReplaced.value)
+                                            Text(
+                                                i18n.messageBubbleEdited(),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                modifier = Modifier.paddingFromBaseline(0.dp)
+                                                    .padding(end = 2.dp),
+                                                maxLines = 1,
+                                            )
+                                    }
+                                    Text(
+                                        it,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.paddingFromBaseline(0.dp),
+                                        maxLines = 1,
+                                    )
+                                    ReadMarker(holder)
                                 }
-                                Text(
-                                    it,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.paddingFromBaseline(0.dp),
-                                    maxLines = 1,
-                                )
-                                ReadMarker(holder)
                             }
                         }
-                    }
-                }) { elements, constraints ->
-                    val spacing = 10.dp.roundToPx()
-                    val message = elements[0].measure(constraints)
-                    val date = elements.getOrNull(1)?.measure(constraints)
+                    },
+                    measurePolicy = object : MeasurePolicy {
+                        val spacing = 10.dp
+                        override fun MeasureScope.measure(
+                            measurables: List<Measurable>,
+                            constraints: Constraints
+                        ): MeasureResult {
+                            val spacing = spacing.roundToPx()
+                            val message = measurables[0].measure(constraints)
+                            val date = measurables.getOrNull(1)?.measure(constraints)
 
-                    date?.let {
-                        if (message.width + spacing + date.width < constraints.maxWidth) {
-                            // add extra padding to bottom that is missing otherwise
-                            val height = message.height + 10.dp.roundToPx()
-                            layout(
-                                width = message.width + spacing + date.width,
-                                height = height,
+                            return date?.let {
+                                if (message.width + spacing + date.width < constraints.maxWidth) {
+                                    // add extra padding to bottom that is missing otherwise
+                                    val height = message.height + 10.dp.roundToPx()
+                                    layout(
+                                        width = message.width + spacing + date.width,
+                                        height = height,
+                                    ) {
+                                        message.place(0, 0)
+                                        date.place(
+                                            message.width + spacing,
+                                            height - date.height
+                                        )
+                                    }
+                                } else {
+                                    layout(
+                                        width = constraints.maxWidth,
+                                        height = message.height + date.height
+                                    ) {
+                                        message.place(0, 0)
+                                        date.place(
+                                            constraints.maxWidth - date.width,
+                                            message.height
+                                        )
+                                    }
+                                }
+                            } ?: layout(
+                                message.width,
+                                message.height
                             ) {
                                 message.place(0, 0)
-                                date.place(
-                                    message.width + spacing,
-                                    height - date.height
-                                )
-                            }
-                        } else {
-                            layout(
-                                width = constraints.maxWidth,
-                                height = message.height + date.height
-                            ) {
-                                message.place(0, 0)
-                                date.place(
-                                    constraints.maxWidth - date.width,
-                                    message.height
-                                )
                             }
                         }
-                    } ?: layout(
-                        message.width,
-                        message.height
-                    ) {
-                        message.place(0, 0)
-                    }
-                }
+
+                        override fun IntrinsicMeasureScope.minIntrinsicWidth(
+                            measurables: List<IntrinsicMeasurable>,
+                            height: Int
+                        ): Int {
+                            val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
+                            return measurables.sumOf { it.minIntrinsicWidth(height) } + spacing
+                        }
+
+                        override fun IntrinsicMeasureScope.maxIntrinsicWidth(
+                            measurables: List<IntrinsicMeasurable>,
+                            height: Int
+                        ): Int {
+                            val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
+                            return measurables.sumOf { it.maxIntrinsicWidth(height) } + spacing
+                        }
+                    })
             }
 
             if (sendError != null) {

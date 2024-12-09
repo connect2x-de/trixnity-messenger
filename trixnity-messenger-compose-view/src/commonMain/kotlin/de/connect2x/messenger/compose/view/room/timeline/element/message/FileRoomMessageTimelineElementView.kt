@@ -44,8 +44,8 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     ) {
         FileBasedRoomMessageTimelineElementView(
             holder, element,
-        ) { showActionMenu, openOverlay ->
-            MessageFile(element, showActionMenu, openOverlay)
+        ) { showActionMenu, onSave ->
+            MessageFile(element, showActionMenu, onSave)
         }
     }
 
@@ -64,14 +64,14 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
 internal fun MessageFile(
     element: RoomMessageTimelineElementViewModel.FileBased.File,
     showActionMenu: () -> Unit,
-    openOverlay: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = {openOverlay() },
+                onTap = {onSave() },
                 onLongPress = { showActionMenu() },
             )
         }

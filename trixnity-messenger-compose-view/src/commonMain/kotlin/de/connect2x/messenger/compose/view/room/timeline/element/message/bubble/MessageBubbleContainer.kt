@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -94,7 +96,7 @@ fun MessageBubbleContainer(
                     shape = RoundedCornerShape(8.dp),
                     color = messageBackground,
                 ) {
-                    Box {
+                    Box(modifier = Modifier.width(IntrinsicSize.Max)) {
                         MessageBubbleContent(holder, showDate, needsMaxWidth, { showActionMenu.value = true }, content)
                         MessageBubbleContentOverlay(
                             hoverMessage,

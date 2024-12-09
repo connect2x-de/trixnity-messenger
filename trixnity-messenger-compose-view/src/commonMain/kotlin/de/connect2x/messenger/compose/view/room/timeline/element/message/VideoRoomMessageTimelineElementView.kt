@@ -33,14 +33,13 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.util.OverflowingFileInfo
+import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
-import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
@@ -60,16 +59,10 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             element,
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OverflowingFileInfo(
-                        element.name,
-                        modifier = Modifier.weight(0.6f, false),
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                    )
                     Text(
-                        ": ${element.duration?.let { formatDuration(it.milliseconds) }} " +
-                                "(${element.size?.let { formatSize(it.toLong()) }})",
-                        Modifier.weight(0.4f, false),
+                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
                         color = MaterialTheme.messengerColors.metaDataPreview,
+                        maxLines = 1,
                     )
                 }
             }
