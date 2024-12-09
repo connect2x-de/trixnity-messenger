@@ -257,5 +257,4 @@ open class SelfVerificationViewModelImpl(
     override fun close() {
         onCloseSelfVerification(!showVerificationHelp.value)
     }
-
 }

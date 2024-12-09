@@ -520,8 +520,8 @@ class MainViewModelTest : ShouldSpec() {
                 )
             )
 
-            cut.selfVerificationRouter.showSelfVerification(UserId("test", "server"), true)
-            cut.selfVerificationRouter.showSelfVerification(UserId("test2", "server"), true)
+            cut.selfVerificationRouter.showSelfVerification(user1, true)
+            cut.selfVerificationRouter.showSelfVerification(user2, true)
 
             eventually(2.seconds) {
                 val configuration = cut.selfVerificationStack.value.active.configuration

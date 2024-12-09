@@ -1,10 +1,6 @@
 package de.connect2x.messenger.compose.view.verification
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -73,7 +69,10 @@ class RedoSelfVerificationWizardViewImpl : RedoSelfVerificationWizardView {
             },
             nextButton = {
                 Custom {
-                    Button(onClick = redoSelfVerificationViewModel::startSelfVerification, Modifier.buttonPointerModifier()) {
+                    Button(
+                        onClick = redoSelfVerificationViewModel::startSelfVerification,
+                        Modifier.buttonPointerModifier()
+                    ) {
                         Text(i18n.redoSelfVerificationRedo())
                     }
                 }

@@ -54,9 +54,8 @@ class AccountSetupViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
-
-
     private val startedVerification = MutableStateFlow(false)
+
     override fun startVerification() {
         if (!startedVerification.value) {
             onStartVerification(userId, true)
