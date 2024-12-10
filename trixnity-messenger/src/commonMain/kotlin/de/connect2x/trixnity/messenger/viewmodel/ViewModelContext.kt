@@ -29,6 +29,11 @@ interface ViewModelContext : KoinComponent, ComponentContext {
     fun childContext(key: String, userId: UserId): MatrixClientViewModelContext
 
     fun childContext(componentContext: ComponentContext, userId: UserId): MatrixClientViewModelContext
+
+    /**
+     * TODO This is just a temporary workaround until decompose allows to destroy children.
+     */
+    fun childContextWithOwnLifecycle(lifecycle: Lifecycle, userId: UserId): MatrixClientViewModelContext
 }
 
 interface MatrixClientViewModelContext : ViewModelContext {
@@ -89,6 +94,10 @@ open class ViewModelContextImpl(
             coroutineContext
         )
     }
+
+    @OptIn(InternalDecomposeApi::class)
+    override fun childContextWithOwnLifecycle(lifecycle: Lifecycle, userId: UserId): MatrixClientViewModelContext =
+        childContext(DefaultComponentContext(MergedLifecycle(this.lifecycle, lifecycle)), userId)
 }
 
 open class MatrixClientViewModelContextImpl(

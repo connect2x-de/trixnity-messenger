@@ -97,12 +97,17 @@ class TimelineViewImpl : TimelineView {
                         launch { element.isFirstInUserSequence.filterNotNull().first() }
                         launch { element.showSender.filterNotNull().first() }
                         launch { element.showBigGapBefore.filterNotNull().first() }
+                        launch {
+                            val job = launch { element.repliedElement.filterNotNull().first() }
+                            val isReply = element.isReply.filterNotNull().first()
+                            if (!isReply) job.cancel()
+                        }
                         when (element) {
                             is TimelineElementHolderViewModel -> {
                                 launch { element.hasUnreadMarker.filterNotNull().first() }
                                 launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
                                 launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
-                                launch { element.isRead.filterNotNull().first() }
+                                if (element.isByMe) launch { element.isRead.filterNotNull().first() }
                                 launch { element.reactions.filterNotNull().first() }
                                 launch { element.isReplaced.filterNotNull().first() }
                             }

@@ -937,7 +937,7 @@ class TimelineViewModelImpl(
                                         .groupBy { it.first }
                                         .mapValues { it.value.map { it.second }.toSet() }
                                 }.distinctUntilChanged()
-                                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
                         }
                     }
             )

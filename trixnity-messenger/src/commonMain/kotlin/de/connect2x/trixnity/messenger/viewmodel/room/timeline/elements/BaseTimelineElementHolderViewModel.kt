@@ -15,6 +15,11 @@ sealed interface BaseTimelineElementHolderViewModel {
     val element: StateFlow<TimelineElementViewModel<*>?>
 
     /**
+     * Is going to have an repliedElement.
+     */
+    val isReply: StateFlow<Boolean?>
+
+    /**
      * Can be an element that is replied to or a thread.
      */
     val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?>

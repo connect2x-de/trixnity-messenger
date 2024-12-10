@@ -275,6 +275,17 @@ class TimelineElementHolderViewModelImpl(
             }
         }.stateIn(coroutineScope, Eagerly, null)
 
+    override val isReply: StateFlow<Boolean?> = flow {
+        val eventContent = timelineEventFlow.first().event.content
+        if (eventContent !is MessageEventContent) {
+            emit(false)
+            return@flow
+        }
+        val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
+        if (repliedEventId == null) emit(false)
+        else emit(true)
+    }.stateIn(coroutineScope, Lazily, null)
+
     override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
         flow {
             // we don't need to subscribe for changes or manage the child lifecycle as a reply cannot be changed in Matrix.
@@ -291,7 +302,7 @@ class TimelineElementHolderViewModelImpl(
                     onOpenMention,
                 )
             )
-        }.stateIn(coroutineScope, Eagerly, null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->
@@ -576,6 +587,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val sender: MutableStateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
+    override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(
         PreviewRepliedTimelineElementViewModel1()
     )
@@ -632,6 +644,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)

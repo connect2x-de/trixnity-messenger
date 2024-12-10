@@ -118,6 +118,14 @@ class OutboxElementHolderViewModelImpl(
             }
         }.stateIn(coroutineScope, Eagerly, null)
 
+    override val isReply: StateFlow<Boolean?> =
+        outboxMessageFlow.map { outboxMessage ->
+            if (outboxMessage == null) return@map false
+            val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId
+            if (repliedEventId == null) return@map false
+            else return@map true
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+
     private val repliedElementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
     override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
         outboxMessageFlow.map { outboxMessage ->
@@ -134,7 +142,7 @@ class OutboxElementHolderViewModelImpl(
                 repliedEventId,
                 onOpenMention,
             )
-        }.stateIn(coroutineScope, Eagerly, null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private val initials = get<Initials>()
     override val sender: StateFlow<UserInfoElement?> =
