@@ -93,6 +93,7 @@ class TimelineViewImpl : TimelineView {
                 log.trace { "wait for elements to be ready" }
                 coroutineScope {
                     elements.forEach { element ->
+                        // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
                         launch { element.element.filterNotNull().first() }
                         launch { element.isFirstInUserSequence.filterNotNull().first() }
                         launch { element.showSender.filterNotNull().first() }
