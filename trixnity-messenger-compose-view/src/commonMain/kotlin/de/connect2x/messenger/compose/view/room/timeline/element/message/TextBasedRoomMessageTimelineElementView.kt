@@ -45,7 +45,6 @@ fun TextBasedRoomMessageTimelineElementView(
 ) {
     MessageBubble(
         holder,
-        element,
         needsMaxWidth = false,
     ) { showActionMenu ->
         if (Platform.current.isDesktop) {
@@ -141,7 +140,7 @@ private fun MessageRichText(
             state = state,
             modifier = Modifier.pointerInput(Unit) {
                 detectTapGestures(
-                    onLongPress = {showActionMenu() }
+                    onLongPress = { showActionMenu() }
                 )
             },
             style = MaterialTheme.typography.bodyMedium.copy(

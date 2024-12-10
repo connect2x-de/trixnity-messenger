@@ -27,13 +27,11 @@ import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 
 interface MessageBubbleView {
     @Composable
     fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
         overlay: (@Composable BoxScope.() -> Unit)? = null,
@@ -44,21 +42,19 @@ interface MessageBubbleView {
 @Composable
 fun MessageBubble(
     holder: BaseTimelineElementHolderViewModel,
-    element: TimelineElementViewModel<*>,
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
-        .create(holder, element, needsMaxWidth, additionalContextActions, overlay, content)
+        .create(holder, needsMaxWidth, additionalContextActions, overlay, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         overlay: (@Composable BoxScope.() -> Unit)?,

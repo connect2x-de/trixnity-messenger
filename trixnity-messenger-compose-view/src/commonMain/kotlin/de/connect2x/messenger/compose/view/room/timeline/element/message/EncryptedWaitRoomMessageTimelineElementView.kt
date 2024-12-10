@@ -35,7 +35,6 @@ class EncryptedWaitRoomMessageTimelineElementView : TimelineElementView<Encrypte
     ) {
         MessageBubble(
             holder,
-            element,
             needsMaxWidth = false,
         ) { _ ->
             EncryptedMessage()
