@@ -46,7 +46,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 
-class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
+class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 

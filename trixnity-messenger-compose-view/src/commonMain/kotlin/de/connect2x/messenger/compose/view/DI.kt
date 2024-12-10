@@ -124,11 +124,11 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.Unknown
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelectorImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ImageElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.PdfElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ImageTimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.PdfTimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.CreateStateTimelineElementView
@@ -383,9 +383,9 @@ inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementView<*>>()
 
-inline fun <reified F : ElementDetailsView<*>> Module.elementDetailsView(
+inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDetailsView(
     noinline definition: Scope.(ParametersHolder) -> F
-) = single<F>(named<F>(), definition = definition).bind<ElementDetailsView<*>>()
+) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
 
 // FIXME VerificationRequestRoomMessageTimelineElementViewModel missing
 fun timelineViewModule() = module {
@@ -409,8 +409,8 @@ fun timelineViewModule() = module {
     timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementView() }
     timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementView() }
     timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementView() }
-    elementDetailsView<ImageElementDetailsView> { ImageElementDetailsView() }
-    elementDetailsView<PdfElementDetailsView> { PdfElementDetailsView() }
+    timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
+    timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
 

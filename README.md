@@ -339,7 +339,20 @@ class CatMessageTimelineElementViewModelImpl(
 Define the UI (you may skip that when you don't use compose-view):
 
 ```kotlin
-// FIXME
+class CatMessageMessageTimelineElementView : TimelineElementView<CatMessageTimelineElementViewModel> {
+    override val supports: KClass<CatMessageTimelineElementViewModel> =
+        CatMessageTimelineElementViewModel::class
+
+    @Composable
+    override fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: CatMessageTimelineElementViewModel,
+    ) {
+        Text("isPurring=${element.isPurring}", style = MaterialTheme.typography.bodyMedium)
+    }
+
+    // ...
+}
 ```
 
 Next, add it to the DI:
@@ -348,11 +361,15 @@ Next, add it to the DI:
 fun catEventModule() = modules {
     single<EventContentSerializerMappings> { catEventContentSerializerMappings }
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
+    timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
 }
 
 // add the modules to the matrix messenger:
 moduleFactories += ::catEventModule
 ```
+
+If your custom event should support a full screen details view, you may also implement `TimelineElementDetailsView` and
+add it to the DI using `timelineElementDetailsView<CatTimelineElementDetailsView> { CatTimelineElementDetailsView() }`
 
 ## Export room
 

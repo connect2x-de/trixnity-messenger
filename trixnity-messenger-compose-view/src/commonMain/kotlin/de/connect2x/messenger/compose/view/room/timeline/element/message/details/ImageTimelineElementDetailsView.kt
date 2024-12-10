@@ -54,7 +54,8 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 
-class ImageElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.Image> {
+class ImageTimelineElementDetailsView :
+    TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.Image> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Image> =
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 

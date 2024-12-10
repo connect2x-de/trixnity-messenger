@@ -24,7 +24,7 @@ fun ElementDetailsSelector(
     with(DI.get<ElementDetailsViewSelector>()) { create(element, onSave, onClose) }
 }
 
-class ElementDetailsViewSelectorImpl(val factories: List<ElementDetailsView<*>>) : ElementDetailsViewSelector {
+class ElementDetailsViewSelectorImpl(val factories: List<TimelineElementDetailsView<*>>) : ElementDetailsViewSelector {
     @Composable
     override fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit) {
         val factory = remember {
@@ -36,7 +36,7 @@ class ElementDetailsViewSelectorImpl(val factories: List<ElementDetailsView<*>>)
             if (foundFactory == null) null
             else {
                 @Suppress("UNCHECKED_CAST")
-                foundFactory as ElementDetailsView<TimelineElementViewModel<*>>
+                foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
             }
         }
         factory?.create(element, onSave, onClose)
