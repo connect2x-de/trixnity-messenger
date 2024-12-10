@@ -194,12 +194,10 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
 @Composable
 fun DeviceVerificationSuccess(verificationStepSuccessViewModel: VerificationStepSuccessViewModel) {
     val i18n = DI.get<I18nView>()
-    val verifiedDeviceName = verificationStepSuccessViewModel.verifiedDeviceName.collectAsState().value
-    val verifyingDeviceName = verificationStepSuccessViewModel.verifyingDeviceName.collectAsState().value ?: i18n.commonUnknown()
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(i18n.verificationSuccess(verifiedDeviceName, verifyingDeviceName))
+            Text(i18n.verificationSuccess())
             Icon(Icons.Default.CheckCircle, i18n.commonSuccess(), tint = MaterialTheme.messengerColors.success)
         }
         Spacer(Modifier.size(20.dp))
