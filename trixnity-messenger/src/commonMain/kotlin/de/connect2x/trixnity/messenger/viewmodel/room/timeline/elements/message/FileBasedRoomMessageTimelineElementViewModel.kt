@@ -91,7 +91,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     }
 
     override fun cancelLoadMedia() {
-        activeLoadMedia.value?.cancel()
+        activeLoadMedia.value?.cancel("Cancelled by user.")
     }
 
     private val _downloadMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)

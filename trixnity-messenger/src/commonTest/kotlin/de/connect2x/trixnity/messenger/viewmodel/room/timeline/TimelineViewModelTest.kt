@@ -23,7 +23,6 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -404,14 +403,12 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
 
                 val cut = timelineViewModel()
-                withClue(lazy { "timelineElementViewModels size was ${cut.elements.value.size}, expected 11" }) {
-                    cut.elements.first { it.size == 11 }
-                }
+                cut.elements waitForSize 11
 
                 // timeline starts at the end (no read messages) -> [9..19] are shown, if first visible is in the first 10 -> load before
                 cut.viewState.value = TimelineViewModel.ViewState(
-                    firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "$roomId-9",
+                    firstVisibleElement = "$roomId-9",
+                    lastVisibleElement = "notRelevant",
                     windowIsFocused = true
                 )
                 cut.elements waitForSize 20
