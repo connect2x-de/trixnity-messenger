@@ -306,6 +306,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 cut.isRead.value shouldBe false
 
                 timeline.addEvents {
+                    // should be ignored
+                    +messageEvent(sender = alice) {
+                        text("Hi!")
+                    }
                     +messageEvent(sender = bob) {
                         text("Hi!")
                     }

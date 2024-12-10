@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -30,12 +32,10 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
@@ -344,34 +344,35 @@ class TimelineElementHolderViewModelImpl(
      */
     private fun isReadSearch(roomId: RoomId, eventId: EventId): Flow<IsReadSearchResult> =
         getReceipts(roomId).transformLatest { receipts ->
-            log.trace { "isReadSearch: roomId=$roomId eventId=$eventId receipts=$receipts" }
+            log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
             matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
                 .collect {
                     val timelineEvent = it.first()
                     val sender = timelineEvent.sender
                     val currentEventId = timelineEvent.eventId
                     val currentRoomId = timelineEvent.roomId
-                    val foundReceipts = receipts[currentEventId].orEmpty() - sender - userId
+                    val foundReaders = buildSet {
+                        addAll(receipts[currentEventId].orEmpty())
+                        add(sender)
+                        remove(senderUserId)
+                        remove(userId)
+                    }
                     when {
-                        foundReceipts.isNotEmpty() -> emit(IsReadSearchResult.Read(foundReceipts))
-                        sender != senderUserId && sender != userId -> emit(IsReadSearchResult.Read(setOf(sender)))
-                        timelineEvent.roomId != roomId ->
-                            emitAll(isReadSearch(currentRoomId, currentEventId)) // recursive!
-
+                        foundReaders.isNotEmpty() -> emit(IsReadSearchResult.Read(foundReaders))
+                        currentRoomId != roomId -> emitAll(isReadSearch(currentRoomId, currentEventId)) // recursive!
                         else -> emit(IsReadSearchResult.Unread)
                     }
                 }
         }
 
     override val isRead: StateFlow<Boolean?> =
-        flow {
-            isReadSearch(roomId, eventId).onEach {
-                when (it) {
-                    is IsReadSearchResult.Read -> emit(true)
-                    IsReadSearchResult.Unread -> emit(false)
-                }
-            }.firstOrNull { it is IsReadSearchResult.Read }
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        isReadSearch(roomId, eventId).map {
+            when (it) {
+                is IsReadSearchResult.Read -> true
+                IsReadSearchResult.Unread -> false
+            }
+        }.takeWhileInclusive { !it }
+            .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
         flow {

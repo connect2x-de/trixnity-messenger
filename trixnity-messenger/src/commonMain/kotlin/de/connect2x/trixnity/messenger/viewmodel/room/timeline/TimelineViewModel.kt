@@ -927,7 +927,6 @@ class TimelineViewModelImpl(
                         getOrPut(roomId) {
                             matrixClient.user.getAllReceipts(roomId)
                                 .flattenNotNull()
-                                .filterNotNull()
                                 .map { receipts ->
                                     receipts
                                         .mapNotNull { (key, value) ->
@@ -938,7 +937,7 @@ class TimelineViewModelImpl(
                                         .groupBy { it.first }
                                         .mapValues { it.value.map { it.second }.toSet() }
                                 }.distinctUntilChanged()
-                                .shareIn(coroutineScope, WhileSubscribed())
+                                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
                         }
                     }
             )

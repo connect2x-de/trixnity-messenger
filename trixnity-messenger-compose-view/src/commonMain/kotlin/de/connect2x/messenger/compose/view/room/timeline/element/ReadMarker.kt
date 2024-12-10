@@ -41,9 +41,9 @@ class ReadMarkerViewImpl : ReadMarkerView {
     ) {
         val i18n = DI.get<I18nView>()
         if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
-            val isRead = timelineElementHolderViewModel.isRead.collectAsState().value == true
             val isByMe = timelineElementHolderViewModel.isByMe
             if (isByMe) {
+                val isRead = timelineElementHolderViewModel.isRead.collectAsState().value == true
                 Box(
                     Modifier
                         .size(MaterialTheme.typography.labelSmall.dp)
