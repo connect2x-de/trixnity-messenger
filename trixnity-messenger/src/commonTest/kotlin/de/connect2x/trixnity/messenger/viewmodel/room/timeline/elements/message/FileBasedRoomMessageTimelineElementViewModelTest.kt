@@ -15,6 +15,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -65,7 +66,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             eventually(3.seconds) {
                 downloadResult shouldBe file
                 cut.downloadMediaError.value shouldBe null
-                cut.downloadMediaSuccessful.value shouldBe true
+                cut.downloadMedia shouldNotBe null
             }
 
             cancelNeverEndingCoroutines()
@@ -84,7 +85,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             eventually(3.seconds) {
                 downloadResult shouldBe null
                 cut.downloadMediaError.value shouldBe "Download failed: Oh no!"
-                cut.downloadMediaSuccessful.value shouldBe false
+                cut.downloadMedia shouldBe null
             }
 
             cancelNeverEndingCoroutines()
@@ -93,7 +94,6 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             every {
                 downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
             } returns async {
-                delay(5.seconds)
                 Result.failure(RuntimeException("Oh no!"))
             }
 
@@ -106,7 +106,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             delay(100.milliseconds)
             downloadResult shouldBe null
             cut.downloadMediaError.value shouldBe null
-            cut.downloadMediaSuccessful.value shouldBe null
+            cut.downloadMedia shouldBe null
             cut.downloadMediaProgress.value shouldBe null
 
             cancelNeverEndingCoroutines()

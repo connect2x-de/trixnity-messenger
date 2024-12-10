@@ -88,6 +88,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             } catch (exc: CancellationException) {
                 _loadMediaProgress.value = null
                 _loadMediaError.value = null
+                _loadMedia.value = null
             }
         }.invokeOnCompletion {
             activeLoadMedia.value = null
@@ -137,6 +138,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             } catch (exc: CancellationException) {
                 _downloadProgress.value = null
                 _downloadError.value = null
+                _downloadMedia.value = null
             }
         }.invokeOnCompletion {
             activeDownloadMedia.value = null
