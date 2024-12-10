@@ -19,8 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,10 +46,16 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.toHex
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.format
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
+import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
 import simpleVerticalScrollbar
+import web.blob.Blob
 import web.dom.Element
 import web.dom.document
 import kotlin.math.max
@@ -71,12 +77,11 @@ private val log = KotlinLogging.logger {}
  */
 @Composable
 actual fun PDFReader(
-    element: RoomMessageTimelineElementViewModel.FileBased.File,
-    scale: Float
+    media: PlatformMedia,
+    scale: Float,
+    onError: (String?) -> Unit,
 ) {
     val i18nView = DI.current.get<I18nView>()
-    val media = element.media.collectAsState().value
-    val filename = element.name
     var frameSize by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var pageSize by remember { mutableStateOf(DpSize(420.dp, 600.dp)) }
     val density = LocalDensity.current.density
@@ -100,10 +105,36 @@ actual fun PDFReader(
     }
     var isReaderLoading by remember { mutableStateOf(false) }
     var reader by remember { mutableStateOf<PdfReader?>(null) }
-    if (
-        media != null && reader == null && !isReaderLoading) {
+
+    val (temporaryFile, setTemporaryFile) = remember { mutableStateOf<Blob?>(null) }
+    val (deleteTemporaryFile, setDeleteTemporaryFile) = remember { mutableStateOf<(suspend () -> Unit)?>(null) }
+    LaunchedEffect(Unit) {
+        val temporaryFileResult =
+            (media as? OpfsPlatformMedia)?.getTemporaryFile()
+                ?: (media as IndexeddbPlatformMedia).getTemporaryFile()
+        if (temporaryFileResult.isSuccess) {
+            val newTemporaryFile = temporaryFileResult.getOrThrow()
+            when (newTemporaryFile) {
+                is OpfsPlatformMedia.TemporaryFile -> {
+                    setTemporaryFile(newTemporaryFile.file)
+                    setDeleteTemporaryFile(newTemporaryFile::delete)
+                }
+
+                is IndexeddbPlatformMedia.TemporaryFile -> {
+                    setTemporaryFile(newTemporaryFile.file)
+                    setDeleteTemporaryFile(newTemporaryFile::delete)
+                }
+            }
+        } else {
+            onError(temporaryFileResult.exceptionOrNull()?.message)
+        }
+    }
+    DisposableEffect(Unit) {
+        @OptIn(DelicateCoroutinesApi::class)
+        onDispose { GlobalScope.launch { deleteTemporaryFile?.invoke() } }
+    }
+    if (temporaryFile != null && reader == null && !isReaderLoading) {
         try {
-            log.debug { "loading pdf: $filename" }
             isReaderLoading = true
             val lib = try {
                 // This needs to be invoked in order for lib to be resolved.
@@ -112,7 +143,7 @@ actual fun PDFReader(
                 js.globals.globalThis.pdfjsLib
             }
             lib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs"
-            lib.getDocument(media).promise.then { pdf ->
+            lib.getDocument(temporaryFile).promise.then { pdf ->
                 val numPages: Int = pdf._pdfInfo.numPages
                 log.debug { "pdf loaded of $numPages pages" }
                 reader = PdfReader(pdf, numPages)
@@ -120,8 +151,7 @@ actual fun PDFReader(
                 Unit
             }.catch { reason ->
                 isReaderLoading = false
-                renderError = if (reason is Throwable) reason else
-                    Exception("failed to initialize pdf reader $reason")
+                renderError = reason as? Throwable ?: Exception("failed to initialize pdf reader $reason")
                 isReaderLoading = false
                 Unit
             }

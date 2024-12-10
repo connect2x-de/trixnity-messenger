@@ -131,7 +131,7 @@ class TimelineViewImpl : TimelineView {
                     }
                 }
                 val listState =
-                    rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
+                    rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else timelineElementHolderViewModels.size - 1)
 
                 val uiState by remember {
                     derivedStateOf {

@@ -80,7 +80,7 @@ fun ImageMessageBubblePreview() {
         override val description: String? = null
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
-        override val media: StateFlow<PlatformMedia?> =
+        override val loadMedia: StateFlow<PlatformMedia?> =
             MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
         override val mediaInMemory: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
@@ -117,7 +117,7 @@ fun FileMessageBubblePreview() {
         override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
-        override val media: StateFlow<PlatformMedia?> =
+        override val loadMedia: StateFlow<PlatformMedia?> =
             MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
         override val mediaInMemory: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)

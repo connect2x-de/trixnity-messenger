@@ -48,17 +48,16 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val size: String?
         val mimeType: String?
 
-        val media: StateFlow<PlatformMedia?>
-        val mediaInMemory: StateFlow<ByteArray?>
+        val loadMedia: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>
-        fun loadMedia(inMemory: Boolean)
+        fun loadMedia()
         fun cancelLoadMedia()
 
+        val downloadMedia: StateFlow<PlatformMedia?>
         val downloadMediaProgress: StateFlow<FileTransferProgressElement?>
-        val downloadMediaSuccessful: StateFlow<Boolean?>
         val downloadMediaError: StateFlow<String?>
-        fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit)
+        fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit = { })
         fun cancelDownloadMedia()
 
         interface File : FileBased<RoomMessageEventContent.FileBased.File>

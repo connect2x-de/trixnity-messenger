@@ -59,7 +59,7 @@ class ImageElementDetailsView : ElementDetailsView<RoomMessageTimelineElementVie
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
-    override val supportedMimeTypes: List<String>? = listOf(
+    override val supportedMimeTypes: List<String> = listOf(
         "image/jpeg",
         "image/png",
         "image/bmp",
@@ -75,7 +75,7 @@ class ImageElementDetailsView : ElementDetailsView<RoomMessageTimelineElementVie
     ) {
         val i18n = DI.get<I18nView>()
         // FIXME this API is confusing
-        val media = element.mediaInMemory.collectAsState().value
+        val media = element.loadMedia.collectAsState().value
         val progress = element.loadMediaProgress.collectAsState().value
         val error = element.loadMediaError.collectAsState().value
 
@@ -86,7 +86,7 @@ class ImageElementDetailsView : ElementDetailsView<RoomMessageTimelineElementVie
         val maxBoundsImage = remember { mutableStateOf(Offset(0f, 0f)) }
 
         LaunchedEffect(Unit) {
-            element.loadMedia(true)
+            element.loadMedia()
         }
 
         ElementDetailsDialog(onClose) {

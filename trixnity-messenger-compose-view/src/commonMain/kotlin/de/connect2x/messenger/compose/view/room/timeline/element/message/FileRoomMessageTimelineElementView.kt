@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +32,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
 class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.File> {
@@ -67,11 +69,11 @@ internal fun MessageFile(
     onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
+    val downloadSuccessful = remember { element.downloadMedia.map { it != null } }.collectAsState(false)
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = {onSave() },
+                onTap = { onSave() },
                 onLongPress = { showActionMenu() },
             )
         }
