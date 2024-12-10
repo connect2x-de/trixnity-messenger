@@ -38,7 +38,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
 
     private val _loadMedia: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-    override val loadMedia: StateFlow<ByteArray?> = _loadMedia.asStateFlow()
+    override val loadMediaResult: StateFlow<ByteArray?> = _loadMedia.asStateFlow()
     private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow<FileTransferProgressElement?>(null)
     override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = _loadMediaProgress.asStateFlow()
@@ -95,7 +95,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     }
 
     private val _downloadMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
-    override val downloadMedia: StateFlow<PlatformMedia?> = _downloadMedia.asStateFlow()
+    override val downloadMediaResult: StateFlow<PlatformMedia?> = _downloadMedia.asStateFlow()
     private val _downloadMediaProgress = MutableStateFlow<FileTransferProgressElement?>(null)
     override val downloadMediaProgress = _downloadMediaProgress.asStateFlow()
     private val _downloadMediaError = MutableStateFlow<String?>(null)

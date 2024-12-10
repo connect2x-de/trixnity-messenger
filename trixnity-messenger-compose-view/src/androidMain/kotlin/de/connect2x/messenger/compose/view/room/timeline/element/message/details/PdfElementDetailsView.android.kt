@@ -1,11 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.details
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.pdf.PdfRenderer
-import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.os.ParcelFileDescriptor.MODE_READ_ONLY
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -27,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,21 +36,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import net.folivo.trixnity.utils.ByteArrayFlow
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import simpleVerticalScrollbar
-import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
@@ -60,56 +57,41 @@ private val log = KotlinLogging.logger {}
 
 @Composable
 actual fun PDFReader(
-    element: RoomMessageTimelineElementViewModel.FileBased.File,
-    scale: Float
+    media: PlatformMedia,
+    scale: Float,
+    onError: (String?) -> Unit,
 ) {
-    val i18n = DI.current.get<I18n>()
     val i18nView = DI.current.get<I18nView>()
-    val document = element.loadMedia.collectAsState().value
     var reader by remember { mutableStateOf<PdfRender?>(null) }
-    val filename = element.name
-    val context = LocalContext.current
     val density = LocalDensity.current.density
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
 
+    val (temporaryFile, setTemporaryFile) = remember { mutableStateOf<OkioPlatformMedia.TemporaryFile?>(null) }
     LaunchedEffect(Unit) {
-        element.loadMedia(false)
+        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
+        if (temporaryFileResult.isSuccess) {
+            val newTemporaryFile = temporaryFileResult.getOrThrow()
+            try {
+                setTemporaryFile(newTemporaryFile)
+                reader = PdfRender(
+                    fileDescriptor = ParcelFileDescriptor.open(newTemporaryFile.path.toFile(), MODE_READ_ONLY),
+                )
+            } catch (exception: Exception) {
+                onError(exception.message)
+            }
+        } else {
+            onError(temporaryFileResult.exceptionOrNull()?.message)
+        }
     }
-
     DisposableEffect(Unit) {
+        @OptIn(DelicateCoroutinesApi::class)
         onDispose {
+            GlobalScope.launch { temporaryFile?.delete() }
             reader?.close()
         }
     }
 
     var readerError by remember { mutableStateOf<String?>(null) }
-    var forceReloadFile by remember { mutableStateOf(false) }
-
-    if (reader == null && document != null) LaunchedEffect(filename, forceReloadFile) {
-        val tempForceReload = forceReloadFile
-        forceReloadFile = false
-        readerError = null
-        saveToCache(
-            context, document, filename, tempForceReload,
-            onCompletion = {
-                try {
-                    reader = PdfRender(
-                        fileDescriptor = context.contentResolver
-                            .openFileDescriptor(it, "r")!!,
-                    )
-                } catch (e: Exception) {
-                    reader = null
-                    forceReloadFile = true
-                    readerError = i18n.mediaCouldNotBeRead()
-                    // TODO: check file hash to avoid endless reload loops for broken files
-                }
-            },
-            onFailure = {
-                reader = null
-                readerError = i18n.mediaCouldNotBeRead()
-            },
-        )
-    }
 
     Box(
         Modifier
@@ -173,40 +155,6 @@ actual fun PDFReader(
         } ?: CenteredElement {
             CircularProgressIndicator(Modifier.size(32.dp))
         }
-    }
-}
-
-private suspend fun saveToCache(
-    context: Context,
-    bytes: ByteArrayFlow,
-    fileName: String,
-    forceReload: Boolean = false,
-    onCompletion: (Uri) -> Unit,
-    onFailure: ((Throwable) -> Unit)?,
-) {
-    var uri: Uri? = null
-    try {
-        val tempFileName = "$fileName.temp"
-        val file = File(context.cacheDir, tempFileName)
-        file.toUri().let {
-            uri = it // Keep uri reference so it can be removed on failure.
-            if (!file.exists() || forceReload) {
-                context.contentResolver.openOutputStream(it)?.use { stream ->
-                    // TODO: use stream.writeBytes once Trixnity SDK allows for it.
-                    bytes.collect { bytes ->
-                        stream.write(bytes)
-                    }
-                }
-            }
-            onCompletion(it)
-        }
-    } catch (e: Exception) {
-        try {
-            context.contentResolver.delete(uri!!, null, null)
-        } catch (_: Exception) {
-        }
-        log.error { e }
-        onFailure?.let { it(e) }
     }
 }
 

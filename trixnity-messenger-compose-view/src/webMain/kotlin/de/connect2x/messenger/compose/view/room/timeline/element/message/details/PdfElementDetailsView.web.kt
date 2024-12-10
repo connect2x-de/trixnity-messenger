@@ -58,6 +58,7 @@ import simpleVerticalScrollbar
 import web.blob.Blob
 import web.dom.Element
 import web.dom.document
+import web.url.URL
 import kotlin.math.max
 import kotlin.math.min
 
@@ -114,16 +115,45 @@ actual fun PDFReader(
                 ?: (media as IndexeddbPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
             val newTemporaryFile = temporaryFileResult.getOrThrow()
+            lateinit var blob: Blob
             when (newTemporaryFile) {
                 is OpfsPlatformMedia.TemporaryFile -> {
                     setTemporaryFile(newTemporaryFile.file)
                     setDeleteTemporaryFile(newTemporaryFile::delete)
+                    blob = newTemporaryFile.file
                 }
 
                 is IndexeddbPlatformMedia.TemporaryFile -> {
                     setTemporaryFile(newTemporaryFile.file)
                     setDeleteTemporaryFile(newTemporaryFile::delete)
+                    blob = newTemporaryFile.file
                 }
+            }
+
+            try {
+                isReaderLoading = true
+                val lib = try {
+                    // This needs to be invoked in order for lib to be resolved.
+                    externals.pdfjs.globalThis.pdfjsViewer
+                } catch (_: Throwable) {
+                    js.globals.globalThis.pdfjsLib
+                }
+                lib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs"
+                lib.getDocument(URL.createObjectURL(blob)).promise.then { pdf ->
+                    val numPages: Int = pdf._pdfInfo.numPages
+                    log.debug { "pdf loaded of $numPages pages" }
+                    reader = PdfReader(pdf, numPages)
+                    isReaderLoading = false
+                    Unit
+                }.catch { reason ->
+                    isReaderLoading = false
+                    renderError = reason as? Throwable ?: Exception("failed to initialize pdf reader $reason")
+                    isReaderLoading = false
+                    Unit
+                }
+            } catch (e: Exception) {
+                isReaderLoading = false
+                renderError = Exception("failed to initialize pdf reader!", e)
             }
         } else {
             onError(temporaryFileResult.exceptionOrNull()?.message)
@@ -131,38 +161,8 @@ actual fun PDFReader(
     }
     DisposableEffect(Unit) {
         @OptIn(DelicateCoroutinesApi::class)
-        onDispose { GlobalScope.launch { deleteTemporaryFile?.invoke() } }
-    }
-    if (temporaryFile != null && reader == null && !isReaderLoading) {
-        try {
-            isReaderLoading = true
-            val lib = try {
-                // This needs to be invoked in order for lib to be resolved.
-                externals.pdfjs.globalThis.pdfjsViewer
-            } catch (_: Throwable) {
-                js.globals.globalThis.pdfjsLib
-            }
-            lib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs"
-            lib.getDocument(temporaryFile).promise.then { pdf ->
-                val numPages: Int = pdf._pdfInfo.numPages
-                log.debug { "pdf loaded of $numPages pages" }
-                reader = PdfReader(pdf, numPages)
-                isReaderLoading = false
-                Unit
-            }.catch { reason ->
-                isReaderLoading = false
-                renderError = reason as? Throwable ?: Exception("failed to initialize pdf reader $reason")
-                isReaderLoading = false
-                Unit
-            }
-        } catch (e: Exception) {
-            isReaderLoading = false
-            renderError = Exception("failed to initialize pdf reader!", e)
-        }
-    }
-
-    DisposableEffect(Unit) {
         onDispose {
+            GlobalScope.launch { deleteTemporaryFile?.invoke() }
             clearAllPageCanvases()
             removeViewerFrame()
         }

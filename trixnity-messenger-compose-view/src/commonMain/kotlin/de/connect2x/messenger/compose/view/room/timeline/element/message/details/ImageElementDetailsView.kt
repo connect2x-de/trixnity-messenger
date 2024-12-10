@@ -74,7 +74,7 @@ class ImageElementDetailsView : ElementDetailsView<RoomMessageTimelineElementVie
         onClose: () -> Unit,
     ) {
         val i18n = DI.get<I18nView>()
-        val media = element.loadMedia.collectAsState().value
+        val media = element.loadMediaResult.collectAsState().value
         val progress = element.loadMediaProgress.collectAsState().value
         val error = element.loadMediaError.collectAsState().value
 

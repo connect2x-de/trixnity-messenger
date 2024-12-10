@@ -66,7 +66,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             eventually(1.seconds) {
                 downloadResult shouldBe file
                 cut.downloadMediaError.value shouldBe null
-                cut.downloadMedia shouldNotBe null
+                cut.downloadMediaResult shouldNotBe null
             }
 
             cancelNeverEndingCoroutines()
@@ -85,7 +85,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             eventually(1.seconds) {
                 downloadResult shouldBe null
                 cut.downloadMediaError.value shouldBe "Download failed: Oh no!"
-                cut.downloadMedia.value shouldBe null
+                cut.downloadMediaResult.value shouldBe null
             }
 
             cancelNeverEndingCoroutines()
@@ -109,7 +109,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             eventually(1.seconds) {
                 downloadResult shouldBe null
                 cut.downloadMediaError.value shouldBe null
-                cut.downloadMedia.value shouldBe null
+                cut.downloadMediaResult.value shouldBe null
                 cut.downloadMediaProgress.value shouldBe null
             }
 

@@ -41,7 +41,7 @@ class ElementDetailsViewSelectorImpl(val factories: List<ElementDetailsView<*>>)
         }
         factory?.create(element, onSave, onClose)
             ?: run { // in case we show no overlay, we directly save
-                log.warn { "no overlay found for ${element::class.qualifiedName} -> directly save" }
+                log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
                 onSave()
             }
     }

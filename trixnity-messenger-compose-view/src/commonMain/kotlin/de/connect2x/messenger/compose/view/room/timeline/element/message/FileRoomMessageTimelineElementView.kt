@@ -69,7 +69,7 @@ internal fun MessageFile(
     onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = remember { element.downloadMedia.map { it != null } }.collectAsState(false)
+    val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(

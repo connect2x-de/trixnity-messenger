@@ -82,7 +82,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     private fun warn(element: TimelineElementViewModel<*>) {
         log.warn {
-            "There are no registered views for ${element::class.qualifiedName}. " +
+            "There are no registered views for ${element::class.simpleName}. " +
                     "This can be a missing view in the DI or might be an element that should not be " +
                     "visible in the timeline."
         }

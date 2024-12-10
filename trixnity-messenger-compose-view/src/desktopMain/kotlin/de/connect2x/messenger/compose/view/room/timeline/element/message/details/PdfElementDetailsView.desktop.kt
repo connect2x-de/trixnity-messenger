@@ -67,13 +67,6 @@ actual fun PDFReader(
         mutableStateOf<MutableMap<String, Pair<Long, ImageBitmap>>>(mutableMapOf())
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            document?.first?.close()
-            renderCache.clear()
-            document = null
-        }
-    }
     val (temporaryFile, setTemporaryFile) = remember { mutableStateOf<OkioPlatformMedia.TemporaryFile?>(null) }
     LaunchedEffect(Unit) {
         val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()

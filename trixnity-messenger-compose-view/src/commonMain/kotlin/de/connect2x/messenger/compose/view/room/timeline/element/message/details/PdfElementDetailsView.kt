@@ -61,7 +61,7 @@ class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewM
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
-        val media = element.downloadMedia.collectAsState().value
+        val media = element.downloadMediaResult.collectAsState().value
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         var zoom by remember { mutableStateOf(1.0f) }
