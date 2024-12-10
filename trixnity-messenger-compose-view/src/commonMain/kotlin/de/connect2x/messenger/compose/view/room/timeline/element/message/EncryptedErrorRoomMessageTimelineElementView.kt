@@ -27,7 +27,6 @@ class EncryptedErrorRoomMessageTimelineElementView : TimelineElementView<Encrypt
     ) {
         MessageBubble(
             holder,
-            element,
             needsMaxWidth = false,
         ) { _ ->
             EncryptedError()

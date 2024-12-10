@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +39,7 @@ import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import net.folivo.trixnity.client.media.PlatformMedia
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.math.ceil
 import kotlin.math.max
@@ -48,7 +50,7 @@ class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewM
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
-    override val supportedMimeTypes: List<String>? = listOf(
+    override val supportedMimeTypes: List<String> = listOf(
         "application/pdf",
     )
 
@@ -59,15 +61,17 @@ class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewM
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
-        // FIXME does not work
-        val media = element.media.collectAsState()
-        val progress = element.loadMediaProgress.collectAsState().value
-        val error = element.loadMediaError.collectAsState().value
+        val media = element.downloadMedia.collectAsState().value
+        val progress = element.downloadMediaProgress.collectAsState().value
+        val (error, setError) = remember { mutableStateOf<String?>(null) }
         var zoom by remember { mutableStateOf(1.0f) }
         val i18n = DI.current.get<I18nView>()
 
         LaunchedEffect(Unit) {
-            element.loadMedia(true)
+            element.downloadMedia()
+        }
+        LaunchedEffect(Unit) {
+            element.downloadMediaError.collect { setError(it) }
         }
 
         ElementDetailsDialog(onClose) {
@@ -92,7 +96,7 @@ class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewM
                             }
                             Button(
                                 modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
-                                onClick = { element.downloadMedia { onSave() } }
+                                onClick = { onSave() }
                             ) {
                                 Text(i18n.downloadMessage())
                             }
@@ -125,25 +129,38 @@ class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewM
                             .weight(1f)
                             .focusable()
                     ) {
-                        // FIXME is this still correct?
-                        if (media.value != null) {
-                            PDFReader(element, zoom)
-                        } else if (progress != null) {
-                            DownloadProgress(progress, element::cancelDownloadMedia)
-                        } else {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeFile,
-                                    i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally)
-                                )
-                                if (error != null) {
+                        when {
+                            error != null -> {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                                ) {
+                                    Icon(
+                                        MaterialTheme.messengerIcons.typeFile,
+                                        i18n.commonFile(),
+                                        Modifier.size(96.dp).align(Alignment.CenterHorizontally)
+                                    )
                                     Text(error)
-                                } else Text(i18n.fileCouldNotBeLoaded())
+                                }
+                            }
+
+                            progress != null -> {
+                                DownloadProgress(progress, element::cancelDownloadMedia)
+                            }
+
+                            media != null -> PDFReader(media, zoom) {
+                                setError(it ?: i18n.fileCouldNotBeLoaded())
+                            }
+
+                            else -> {
+                                Column(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
                     }
@@ -154,4 +171,4 @@ class PdfElementDetailsView : ElementDetailsView<RoomMessageTimelineElementViewM
 }
 
 @Composable
-expect fun PDFReader(element: RoomMessageTimelineElementViewModel.FileBased.File, scale: Float = 1f)
+expect fun PDFReader(media: PlatformMedia, scale: Float = 1f, onError: (String?) -> Unit)

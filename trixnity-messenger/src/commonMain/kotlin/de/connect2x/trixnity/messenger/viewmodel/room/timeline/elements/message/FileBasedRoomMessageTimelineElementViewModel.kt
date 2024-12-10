@@ -36,10 +36,9 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
-    private val _media: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
-    override val media: StateFlow<PlatformMedia?> = _media.asStateFlow()
-    private val _mediaInMemory: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-    override val mediaInMemory: StateFlow<ByteArray?> = _mediaInMemory.asStateFlow()
+
+    private val _loadMedia: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
+    override val loadMedia: StateFlow<ByteArray?> = _loadMedia.asStateFlow()
     private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> =
         MutableStateFlow<FileTransferProgressElement?>(null)
     override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = _loadMediaProgress.asStateFlow()
@@ -54,11 +53,11 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         }
     }
 
-    override fun loadMedia(inMemory: Boolean) {
+    override fun loadMedia() {
         activeLoadMedia.value?.cancel("new load media started")
 
-        _media.value = null
-        _mediaInMemory.value = null
+        _downloadMedia.value = null
+        _loadMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
 
@@ -73,19 +72,15 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             try {
                 resultAsync.await()
                     .onSuccess {
-                        if (inMemory) {
-                            val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-                            _mediaInMemory.value = it.limitSize(maxMediaSize).catch { e ->
-                                if (e.cause is MaxByteFlowSizeException) {
-                                    _loadMediaError.value = i18n.mediaTooLargeForPreview()
-                                } else {
-                                    _loadMediaError.value = i18n.mediaCanNotBePreviewed()
-                                }
-                                _loadMediaProgress.value = null
-                            }.toByteArray()
-                        } else {
-                            _media.value = it
-                        }
+                        val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+                        _loadMedia.value = it.limitSize(maxMediaSize).catch { e ->
+                            if (e.cause is MaxByteFlowSizeException) {
+                                _loadMediaError.value = i18n.mediaTooLargeForPreview()
+                            } else {
+                                _loadMediaError.value = i18n.mediaCanNotBePreviewed()
+                            }
+                            _loadMediaProgress.value = null
+                        }.toByteArray()
                         _loadMediaError.value = null
                     }.onFailure {
                         _loadMediaError.value = i18n.mediaCouldNotBeRead()
@@ -103,10 +98,10 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         activeLoadMedia.value?.cancel()
     }
 
+    private val _downloadMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
+    override val downloadMedia: StateFlow<PlatformMedia?> = _downloadMedia.asStateFlow()
     private val _downloadProgress = MutableStateFlow<FileTransferProgressElement?>(null)
     override val downloadMediaProgress = _downloadProgress.asStateFlow()
-    private val _downloadSuccessful = MutableStateFlow<Boolean?>(null)
-    override val downloadMediaSuccessful = _downloadSuccessful.asStateFlow()
     private val _downloadError = MutableStateFlow<String?>(null)
     override val downloadMediaError = _downloadError.asStateFlow()
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
@@ -114,8 +109,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {
         activeDownloadMedia.value?.cancel("new download started")
 
+        _downloadMedia.value = null
         _downloadProgress.value = null
-        _downloadSuccessful.value = null
         _downloadError.value = null
 
         coroutineScope.launch {
@@ -131,18 +126,16 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     .mapCatching {
                         log.debug { "process file" }
                         processFile(it)
+                        it
                     }
                     .onSuccess {
-                        _downloadSuccessful.value = true
                         _downloadError.value = null
-
+                        _downloadMedia.value = it
                     }.onFailure {
-                        _downloadSuccessful.value = false
                         _downloadError.value = i18n.downloadFailed(it.message)
                     }
             } catch (exc: CancellationException) {
                 _downloadProgress.value = null
-                _downloadSuccessful.value = null
                 _downloadError.value = null
             }
         }.invokeOnCompletion {

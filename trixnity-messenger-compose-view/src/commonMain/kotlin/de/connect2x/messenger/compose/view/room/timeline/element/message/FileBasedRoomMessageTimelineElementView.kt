@@ -58,7 +58,6 @@ fun FileBasedRoomMessageTimelineElementView(
 
     MessageBubble(
         holder,
-        element,
         needsMaxWidth = true,
         additionalContextActions = { onClose ->
             // name

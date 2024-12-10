@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +33,7 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
+import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -80,7 +82,7 @@ internal fun MessageAudio(
     onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = element.downloadMediaSuccessful.collectAsState()
+    val downloadSuccessful = remember { element.downloadMedia.map { it != null } }.collectAsState(false)
 
     BoxWithConstraints(Modifier.padding(top = 10.dp)) {
         Row {

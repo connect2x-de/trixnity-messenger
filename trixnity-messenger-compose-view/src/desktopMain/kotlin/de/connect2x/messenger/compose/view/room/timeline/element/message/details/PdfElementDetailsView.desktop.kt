@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,9 +37,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import net.folivo.trixnity.utils.toByteArray
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
 import simpleVerticalScrollbar
@@ -51,23 +53,18 @@ private val log = KotlinLogging.logger { }
 
 @Composable
 actual fun PDFReader(
-    element: RoomMessageTimelineElementViewModel.FileBased.File,
-    scale: Float
+    media: PlatformMedia,
+    scale: Float,
+    onError: (String?) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
     val pageCacheSize = max(2f, min(16f, 8f / scale)).toInt()
-    val media = element.media.collectAsState()
-    val filename = element.name
     var document by remember { mutableStateOf<Pair<PDDocument, PDFRenderer>?>(null) }
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
     var documentWidth: Int? by remember { mutableStateOf(null) }
 
     val renderCache by remember {
         mutableStateOf<MutableMap<String, Pair<Long, ImageBitmap>>>(mutableMapOf())
-    }
-
-    LaunchedEffect(Unit) {
-        element.loadMedia(inMemory = true)
     }
 
     DisposableEffect(Unit) {
@@ -77,16 +74,31 @@ actual fun PDFReader(
             document = null
         }
     }
-
-    LaunchedEffect(document) {
-        if (document == null)
-            media.value?.let { platformMedia ->
-                val bytes = platformMedia.toByteArray()
-                val documentData = org.apache.pdfbox.Loader.loadPDF(bytes)
-                document = Pair(documentData, PDFRenderer(documentData))
+    val (temporaryFile, setTemporaryFile) = remember { mutableStateOf<OkioPlatformMedia.TemporaryFile?>(null) }
+    LaunchedEffect(Unit) {
+        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
+        if (temporaryFileResult.isSuccess) {
+            val newTemporaryFile = temporaryFileResult.getOrThrow()
+            try {
+                val documentData = org.apache.pdfbox.Loader.loadPDF(newTemporaryFile.path.toFile())
+                val renderer = PDFRenderer(documentData)
+                document = Pair(documentData, renderer)
+                documentWidth = renderer.renderImage(0)?.width
+                setTemporaryFile(newTemporaryFile)
+            } catch (exception: Exception) {
+                onError(exception.message)
             }
-        else if (documentWidth == null) {
-            documentWidth = document?.second?.renderImage(0)?.width
+        } else {
+            onError(temporaryFileResult.exceptionOrNull()?.message)
+        }
+    }
+    DisposableEffect(Unit) {
+        @OptIn(DelicateCoroutinesApi::class)
+        onDispose {
+            GlobalScope.launch { temporaryFile?.delete() }
+            document?.first?.close()
+            renderCache.clear()
+            document = null
         }
     }
 
@@ -122,7 +134,7 @@ actual fun PDFReader(
                 state = lazyListState,
                 content = {
                     items(count = documentData.numberOfPages, key = { it }) { pageId ->
-                        val cacheKey = "$filename:$pageId:${newDpi.toInt()}"
+                        val cacheKey = "$pageId:${newDpi.toInt()}"
                         val img = renderCache[cacheKey]?.second
                             ?: renderer.renderImageWithDPI(pageId, newDpi).let {
                                 val img = it.toComposeImageBitmap()
@@ -134,7 +146,7 @@ actual fun PDFReader(
                                 }
                                 renderCache[cacheKey] = Pair<Long, ImageBitmap>(System.currentTimeMillis(), img)
                                 renderCache.toList().sortedBy { it.second.first }
-                                    .subList(0, Math.max(0, renderCache.size - pageCacheSize))
+                                    .subList(0, 0.coerceAtLeast(renderCache.size - pageCacheSize))
                                     .forEach { renderCache.remove(it.first) }
                                 img
                             }

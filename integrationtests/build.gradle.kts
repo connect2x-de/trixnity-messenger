@@ -8,7 +8,7 @@ kotlin {
     jvmToolchain(kotlinJvm.toInt())
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget =  kotlinJvm
+            kotlinOptions.jvmTarget = kotlinJvm
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -25,7 +25,7 @@ kotlin {
             dependencies {
                 implementation(projects.trixnityMessenger)
                 implementation(libs.trixnity.client)
-                implementation(libs.trixnity.client.exposed)
+                implementation(libs.trixnity.client.repository.exposed)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(kotlin("test"))
                 implementation(libs.kotest.common)

@@ -65,7 +65,7 @@ actual fun PDFReader(
 ) {
     val i18n = DI.current.get<I18n>()
     val i18nView = DI.current.get<I18nView>()
-    val document = element.media.collectAsState().value
+    val document = element.loadMedia.collectAsState().value
     var reader by remember { mutableStateOf<PdfRender?>(null) }
     val filename = element.name
     val context = LocalContext.current

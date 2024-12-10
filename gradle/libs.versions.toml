@@ -66,8 +66,12 @@ androidTestMonitor = "1.7.2" # https://developer.android.com/jetpack/androidx/re
 [libraries]
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
 trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref = "trixnity" }
-trixnity-client-media = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
-trixnity-client-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
+trixnity-client-repository-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
+trixnity-client-repository-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
+trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
+trixnity-client-media-okio = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
+trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
+trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 essenty = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
@@ -95,10 +99,6 @@ kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-trixnity-client-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
-trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
-trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
-trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
