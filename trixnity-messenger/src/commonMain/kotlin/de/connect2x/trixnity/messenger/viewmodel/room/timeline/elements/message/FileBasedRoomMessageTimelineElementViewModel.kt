@@ -36,7 +36,6 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
-    // FIXME everything as not mutable
     private val _media: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
     override val media: StateFlow<PlatformMedia?> = _media.asStateFlow()
     private val _mediaInMemory: MutableStateFlow<ByteArray?> = MutableStateFlow(null)

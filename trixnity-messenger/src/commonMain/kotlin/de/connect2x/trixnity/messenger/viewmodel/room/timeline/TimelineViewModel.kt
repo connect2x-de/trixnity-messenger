@@ -282,7 +282,7 @@ class TimelineViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override val scrollTo: MutableSharedFlow<String> =
-        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_LATEST)
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_LATEST)
 
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
 

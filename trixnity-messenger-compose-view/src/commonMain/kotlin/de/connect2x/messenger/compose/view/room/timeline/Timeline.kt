@@ -76,6 +76,10 @@ class TimelineViewImpl : TimelineView {
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
         val isFocused = IsFocused.current
+        var scrollTo by remember { mutableStateOf<String?>(null) }
+        LaunchedEffect(Unit) {
+            timelineViewModel.scrollTo.collect { scrollTo = it }
+        }
 
         var timelineElementHolderViewModels by remember {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
@@ -156,12 +160,13 @@ class TimelineViewImpl : TimelineView {
                     timelineViewModel.viewState.value = uiState
                 }
 
-                LaunchedEffect(timelineElementHolderViewModels) {
-                    timelineViewModel.scrollTo.collect { scrollTo ->
-                        log.debug { "scrolling to $scrollTo (ids: ${timelineElementHolderViewModels.joinToString { it.key }})" }
+                LaunchedEffect(scrollTo, timelineElementHolderViewModels) {
+                    if (scrollTo != null) {
                         val index = timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
                         if (index >= 0) {
+                            log.debug { "scrolling to $scrollTo" }
                             listState.animateScrollToItem(index)
+                            scrollTo = null
                         }
                     }
                 }
