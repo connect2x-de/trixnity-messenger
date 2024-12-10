@@ -94,6 +94,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             every {
                 downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
             } returns async {
+                delay(5.seconds)
                 Result.failure(RuntimeException("Oh no!"))
             }
 
@@ -104,6 +105,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             }
 
             delay(100.milliseconds)
+            cut.cancelDownloadMedia()
             downloadResult shouldBe null
             cut.downloadMediaError.value shouldBe null
             cut.downloadMedia shouldBe null

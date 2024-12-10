@@ -56,7 +56,6 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override fun loadMedia() {
         activeLoadMedia.value?.cancel("new load media started")
 
-        _downloadMedia.value = null
         _loadMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
@@ -81,14 +80,10 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                             }
                             _loadMediaProgress.value = null
                         }.toByteArray()
-                        _loadMediaError.value = null
                     }.onFailure {
                         _loadMediaError.value = i18n.mediaCouldNotBeRead()
                     }
             } catch (exc: CancellationException) {
-                _loadMediaProgress.value = null
-                _loadMediaError.value = null
-                _loadMedia.value = null
             }
         }.invokeOnCompletion {
             activeLoadMedia.value = null
@@ -101,25 +96,25 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val _downloadMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
     override val downloadMedia: StateFlow<PlatformMedia?> = _downloadMedia.asStateFlow()
-    private val _downloadProgress = MutableStateFlow<FileTransferProgressElement?>(null)
-    override val downloadMediaProgress = _downloadProgress.asStateFlow()
-    private val _downloadError = MutableStateFlow<String?>(null)
-    override val downloadMediaError = _downloadError.asStateFlow()
+    private val _downloadMediaProgress = MutableStateFlow<FileTransferProgressElement?>(null)
+    override val downloadMediaProgress = _downloadMediaProgress.asStateFlow()
+    private val _downloadMediaError = MutableStateFlow<String?>(null)
+    override val downloadMediaError = _downloadMediaError.asStateFlow()
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
 
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {
         activeDownloadMedia.value?.cancel("new download started")
 
         _downloadMedia.value = null
-        _downloadProgress.value = null
-        _downloadError.value = null
+        _downloadMediaProgress.value = null
+        _downloadMediaError.value = null
 
         coroutineScope.launch {
             val resultAsync = downloadManager.startDownloadAsync(
                 viewModelContext.matrixClient,
                 content,
                 name,
-                _downloadProgress,
+                _downloadMediaProgress,
             )
             activeDownloadMedia.value = resultAsync
             try {
@@ -130,15 +125,11 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                         it
                     }
                     .onSuccess {
-                        _downloadError.value = null
                         _downloadMedia.value = it
                     }.onFailure {
-                        _downloadError.value = i18n.downloadFailed(it.message)
+                        _downloadMediaError.value = i18n.downloadFailed(it.message)
                     }
             } catch (exc: CancellationException) {
-                _downloadProgress.value = null
-                _downloadError.value = null
-                _downloadMedia.value = null
             }
         }.invokeOnCompletion {
             activeDownloadMedia.value = null
