@@ -12,9 +12,9 @@ import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
@@ -39,6 +39,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.milliseconds
 
 class OutboxElementHolderViewModelTest : ShouldSpec() {
 
@@ -112,7 +113,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 }
                 val cut = cut()
                 async { cut.isFirstInUserSequence.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.isFirstInUserSequence.value shouldBe true
 
                 cancelNeverEndingCoroutines()
@@ -133,7 +134,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 )
                 val cut = cut()
                 async { cut.isFirstInUserSequence.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.isFirstInUserSequence.value shouldBe true
 
                 cancelNeverEndingCoroutines()
@@ -146,7 +147,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 }
                 val cut = cut()
                 async { cut.isFirstInUserSequence.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.isFirstInUserSequence.value shouldBe false
 
                 cancelNeverEndingCoroutines()
@@ -167,7 +168,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 )
                 val cut = cut()
                 async { cut.isFirstInUserSequence.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.isFirstInUserSequence.value shouldBe false
 
                 cancelNeverEndingCoroutines()
@@ -183,7 +184,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 val cut = cut()
 
                 async { cut.showSender.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.showSender.value shouldBe true
 
                 cancelNeverEndingCoroutines()
@@ -197,7 +198,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 val cut = cut()
 
                 async { cut.showSender.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.showSender.value shouldBe false
 
                 cancelNeverEndingCoroutines()
@@ -211,11 +212,11 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 val cut = cut()
 
                 async { cut.showSender.collect() }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.showSender.value shouldBe true
 
                 timeline.room.update { it.copy(isDirect = true) }
-                advanceUntilIdle()
+                delay(500.milliseconds)
                 cut.showSender.value shouldBe false
 
                 cancelNeverEndingCoroutines()

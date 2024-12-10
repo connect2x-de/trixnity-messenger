@@ -1,10 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
 import dev.mokkery.answering.calls
@@ -15,14 +14,17 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.TestScope
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -36,7 +38,7 @@ import net.folivo.trixnity.core.model.push.PushRuleSet
 import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -126,12 +128,18 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
         }
 
         should("get settings") {
-            val cut = createCut(coroutineContext)
+            val cut = createCut()
             cut.accountSettings.firstWithClue(sampleSettings)
+
+            cancelNeverEndingCoroutines()
         }
         should("update settings") {
-            val cut = createCut(coroutineContext)
-            cut.accountSettings.firstWithClue(sampleSettings)
+            val cut = createCut()
+            launch { cut.accountSettings.collect { } }
+
+            delay(500.milliseconds)
+            cut.accountSettings.value shouldBe sampleSettings
+
             val newSettings = sampleSettings.copy(
                 sound = sampleSettings.sound.copy(
                     call = true,
@@ -141,15 +149,16 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
                 ),
                 keywords = setOf("alice2")
             )
-
             cut.updateAccountSettings(newSettings)
 
             cut.accountSettingsIsUpdating.value shouldBe true
             continueHandlePushRuleRequest.value = true
             cut.accountSettingsIsUpdating.value shouldBe true
 
+            delay(500.milliseconds) // server sets data!
             pushRulesEventContentState.value = newSettings.toPushRuleSet(userId)
-            cut.accountSettingsIsUpdating.firstWithClue(false)
+            delay(500.milliseconds)
+            cut.accountSettingsIsUpdating.value shouldBe false
 
             verifySuspend {
                 pushApiClientMock.setPushRule(
@@ -186,9 +195,11 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
                 )
             }
             cut.accountSettingsUpdateError.value shouldBe null
+
+            cancelNeverEndingCoroutines()
         }
         should("update settings with timeout") {
-            val cut = createCut(coroutineContext)
+            val cut = createCut()
             cut.accountSettings.firstWithClue(sampleSettings)
             val newSettings = sampleSettings.copy(
                 sound = sampleSettings.sound.copy(
@@ -210,19 +221,19 @@ class NotificationSettingsSingleAccountViewModelBaseTest : ShouldSpec() {
             cut.accountSettingsIsUpdating.firstWithClue(false, 11.seconds)
             testCoroutineScheduler.currentTime shouldBeGreaterThanOrEqual 10_000
             cut.accountSettingsUpdateError.value shouldContain "timeout"
+
+            cancelNeverEndingCoroutines()
         }
     }
 
-    private fun createCut(coroutineContext: CoroutineContext): NotificationSettingsSingleAccountViewModelBase {
+    private fun TestScope.createCut(): NotificationSettingsSingleAccountViewModelBase {
         val di = koinApplication {
             modules(createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)))
         }.koin
         return NotificationSettingsSingleAccountViewModelBaseImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = userId,
-                coroutineContext = coroutineContext
             )
         )
     }
