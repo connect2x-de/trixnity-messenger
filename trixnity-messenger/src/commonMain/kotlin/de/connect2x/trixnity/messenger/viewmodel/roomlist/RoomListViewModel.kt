@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
@@ -329,8 +328,8 @@ class RoomListViewModelImpl(
                             val lifecycleRegistry = LifecycleRegistry()
                             lifecycleRegistry.start()
                             viewModelContext.get<RoomListElementViewModelFactory>().create(
-                                viewModelContext = childContext(
-                                    "roomListElement-${roomId.full}",
+                                viewModelContext = childContextWithOwnLifecycle(
+                                    lifecycle = lifecycleRegistry,
                                     userId = userId,
                                 ),
                                 roomId,
@@ -339,7 +338,7 @@ class RoomListViewModelImpl(
                                 elementCache[roomId] = RoomListElementViewModelWrapper(it, lifecycleRegistry)
                             }
                         }
-                    }.toList()
+                }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
         syncState = matrixClients.flatMapLatest { matrixClients ->
