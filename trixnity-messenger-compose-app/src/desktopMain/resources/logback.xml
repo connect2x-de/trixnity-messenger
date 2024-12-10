@@ -25,6 +25,7 @@
 
     <logger name="Exposed" level="INFO"/>
     <logger name="de.connect2x" level="DEBUG"/>
+    <logger name="de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel" level="TRACE"/>
     <logger name="net.folivo.trixnity" level="DEBUG"/>
     <logger name="net.folivo.trixnity.client.store.cache.ObservableCacheStatistic" level="INFO"/>
 

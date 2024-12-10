@@ -26,7 +26,6 @@ kotest = "6.0.0.M1" # https://github.com/kotest/kotest/releases
 jna = "5.15.0" # https://github.com/java-native-access/jna/tags
 okio = "3.9.1" # https://square.github.io/okio/changelog
 uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
-korge = "4.0.10" # https://github.com/korlibs/korge/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.53" # https://www.npmjs.com/package/@zip.js/zip.js
@@ -90,7 +89,6 @@ kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 uuid = { module = "com.benasher44:uuid", version.ref = "uuid" }
-korge = { module = "com.soywiz.korlibs.korim:korim", version.ref = "korge" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }

@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 
