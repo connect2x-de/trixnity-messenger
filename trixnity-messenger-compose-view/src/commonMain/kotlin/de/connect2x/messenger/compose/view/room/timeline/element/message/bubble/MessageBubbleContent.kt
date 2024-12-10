@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +36,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxEl
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 @Composable
 fun MessageBubbleContent(
@@ -48,6 +49,9 @@ fun MessageBubbleContent(
 
     val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
+    val showSender = holder.showSender.collectAsState().value == true
+    val sender = holder.sender.collectAsState().value
+    val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value
 
     val highlighted = if (highlight) Modifier.border(
         width = 3.dp,
@@ -67,28 +71,29 @@ fun MessageBubbleContent(
                 .weight(1.0f, fill = needsMaxWidth.not())
                 .then(highlighted)
         ) {
-            val showSender = holder.showSender.collectAsState().value == true
-            val sender = holder.sender.collectAsState().value
-
-            if (showSender && sender != null) { // FIXME placeholder?
+            if (showSender) {
                 Box(
                     Modifier
-                        .padding(start = 10.dp, end = 10.dp, top = 10.dp)
+                        .padding(start = 10.dp, end = 10.dp, top = 5.dp)
                 ) {
-                    Text(
-                        text = sender.name,
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            color = MaterialTheme.messengerColors.getUserColor(
-                                sender.userId
-                            )
-                        ),
-                    )
+                    if (sender != null) {
+                        Text(
+                            text = sender.name,
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = MaterialTheme.messengerColors.getUserColor(
+                                    sender.userId
+                                )
+                            ),
+                        )
+                    } else {
+                        CircularProgressIndicator(Modifier.size(20.dp))
+                    }
                 }
             }
 
+            RepliedElement(holder)
+
             if (needsMaxWidth) {
-//                RepliedElement(holder)
-                // FIXME insert Reply here?
                 content(showActionMenu)
                 if (showDate) {
                     Row(
@@ -109,9 +114,6 @@ fun MessageBubbleContent(
                         }
                         ReadMarker(holder)
                     }
-//                                                if (holder.formattedTime == null) {  FIXME
-//                                                    Spacer(Modifier.defaultMinSize(minWidth = 45.dp))
-//                                                }
                 }
             } else {
                 Layout(
@@ -127,17 +129,14 @@ fun MessageBubbleContent(
                                     ),
                                     verticalAlignment = Alignment.Bottom,
                                 ) {
-                                    if (holder is TimelineElementHolderViewModel) {
-                                        val isReplaced = holder.isReplaced.collectAsState()
-                                        if (isReplaced.value)
-                                            Text(
-                                                i18n.messageBubbleEdited(),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                modifier = Modifier.paddingFromBaseline(0.dp)
-                                                    .padding(end = 2.dp),
-                                                maxLines = 1,
-                                            )
-                                    }
+                                    if (isReplaced == true)
+                                        Text(
+                                            i18n.messageBubbleEdited(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.paddingFromBaseline(0.dp)
+                                                .padding(end = 2.dp),
+                                            maxLines = 1,
+                                        )
                                     Text(
                                         it,
                                         style = MaterialTheme.typography.labelSmall,

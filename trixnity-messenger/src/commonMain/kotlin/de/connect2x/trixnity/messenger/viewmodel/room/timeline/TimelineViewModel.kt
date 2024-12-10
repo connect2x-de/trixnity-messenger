@@ -990,7 +990,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()
-    override val inputAreaViewModel: InputAreaViewModel = PreviewInputViewModel()
+    override val inputAreaViewModel: InputAreaViewModel = PreviewInputAreaViewModel()
     override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = MutableValue(
         ChildStack(
             configuration = Config.None,

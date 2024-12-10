@@ -22,6 +22,11 @@ abstract class I18nView(
     timeZone: TimeZone,
 ) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
 
+    fun commonContextMenu() = translate {
+        EN - "context menu"
+        DE - "Kontextmenü"
+    }
+
     fun commonInactive() = translate {
         EN - "inactive"
         DE - "inaktiv"
