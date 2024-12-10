@@ -387,7 +387,6 @@ inline fun <reified F : ElementDetailsView<*>> Module.elementDetailsView(
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<F>(named<F>(), definition = definition).bind<ElementDetailsView<*>>()
 
-// FIXME redacted missing
 fun timelineViewModule() = module {
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementView() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementView() }

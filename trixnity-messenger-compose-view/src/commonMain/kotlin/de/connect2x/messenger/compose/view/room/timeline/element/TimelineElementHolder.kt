@@ -64,14 +64,10 @@ fun TimelineElementHolderSwitch(
     val element = timelineElementHolderViewModel.element.collectAsState().value
 
     when (element) {
-        null -> {
-            // FIXME placeholder
-        }
-
         is TimelineElementViewModel.Message<*>, is TimelineElementViewModel.State<*> -> {
             TimelineElementSelector(timelineElementHolderViewModel, element)
         }
 
-        TimelineElementViewModel.Empty -> {}
+        TimelineElementViewModel.Empty, null -> {}
     }
 }
