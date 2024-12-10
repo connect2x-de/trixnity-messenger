@@ -40,7 +40,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 @Composable
 fun MessageBubbleContent(
     holder: BaseTimelineElementHolderViewModel,
-    showDate: Boolean,
     needsMaxWidth: Boolean,
     showActionMenu: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
@@ -52,6 +51,7 @@ fun MessageBubbleContent(
     val showSender = holder.showSender.collectAsState().value == true
     val sender = holder.sender.collectAsState().value
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value
+    val hasRepliedElement = holder.repliedElement.collectAsState().value != null
 
     val highlighted = if (highlight) Modifier.border(
         width = 3.dp,
@@ -93,59 +93,56 @@ fun MessageBubbleContent(
 
             RepliedElement(holder)
 
-            if (needsMaxWidth) {
+            // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
+            if (needsMaxWidth || hasRepliedElement) {
                 content(showActionMenu)
-                if (showDate) {
-                    Row(
-                        Modifier.align(Alignment.End).padding(5.dp),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        holder.formattedTime.let {
-                            Box(
-                                contentAlignment = Alignment.BottomEnd
-                            ) {
-                                Text(
-                                    it,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.paddingFromBaseline(0.dp),
-                                    maxLines = 1,
-                                )
-                            }
+                Row(
+                    Modifier.align(Alignment.End).padding(5.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    holder.formattedTime.let {
+                        Box(
+                            contentAlignment = Alignment.BottomEnd
+                        ) {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.paddingFromBaseline(0.dp),
+                                maxLines = 1,
+                            )
                         }
-                        ReadMarker(holder)
                     }
+                    ReadMarker(holder)
                 }
             } else {
                 Layout(
                     content = {
                         content(showActionMenu)
-                        if (showDate) {
-                            holder.formattedTime.let {
-                                Row(
-                                    modifier = Modifier.padding(
-                                        start = 5.dp,
-                                        end = 5.dp,
-                                        bottom = 5.dp
-                                    ),
-                                    verticalAlignment = Alignment.Bottom,
-                                ) {
-                                    if (isReplaced == true)
-                                        Text(
-                                            i18n.messageBubbleEdited(),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            modifier = Modifier.paddingFromBaseline(0.dp)
-                                                .padding(end = 2.dp),
-                                            maxLines = 1,
-                                        )
+                        holder.formattedTime.let {
+                            Row(
+                                modifier = Modifier.padding(
+                                    start = 5.dp,
+                                    end = 5.dp,
+                                    bottom = 5.dp
+                                ),
+                                verticalAlignment = Alignment.Bottom,
+                            ) {
+                                if (isReplaced == true)
                                     Text(
-                                        it,
+                                        i18n.messageBubbleEdited(),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.paddingFromBaseline(0.dp),
+                                        modifier = Modifier.paddingFromBaseline(0.dp)
+                                            .padding(end = 2.dp),
                                         maxLines = 1,
                                     )
-                                    ReadMarker(holder)
-                                }
+                                Text(
+                                    it,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.paddingFromBaseline(0.dp),
+                                    maxLines = 1,
+                                )
+                                ReadMarker(holder)
                             }
                         }
                     },
@@ -207,6 +204,20 @@ fun MessageBubbleContent(
                         ): Int {
                             val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
                             return measurables.sumOf { it.maxIntrinsicWidth(height) } + spacing
+                        }
+
+                        override fun IntrinsicMeasureScope.minIntrinsicHeight(
+                            measurables: List<IntrinsicMeasurable>,
+                            width: Int
+                        ): Int {
+                            return measurables.sumOf { it.minIntrinsicHeight(width) }
+                        }
+
+                        override fun IntrinsicMeasureScope.maxIntrinsicHeight(
+                            measurables: List<IntrinsicMeasurable>,
+                            width: Int
+                        ): Int {
+                            return measurables.sumOf { it.maxIntrinsicHeight(width) }
                         }
                     })
             }

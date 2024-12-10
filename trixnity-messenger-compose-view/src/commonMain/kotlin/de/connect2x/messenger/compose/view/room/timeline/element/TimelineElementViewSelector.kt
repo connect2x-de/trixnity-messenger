@@ -5,8 +5,6 @@ import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +32,8 @@ fun TimelineElementSelector(
     with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element) }
 }
 
-class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) : TimelineElementViewSelector {
+class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) :
+    TimelineElementViewSelector {
     private val factoryMapping =
         MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, TimelineElementView<TimelineElementViewModel<*>>>>(
             emptyMap()
@@ -45,64 +44,28 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>
     ) {
-        when (element) {
-            is EncryptedWaitTimelineElementViewModel -> {
-                // FIXME
-            }
-
-            is EncryptedErrorTimelineElementViewModel -> {
-                // FIXME
-            }
-
-            else -> {
-                val factory = selectFactory(element)
-                factory?.createInTimeline(holder, element) ?: warn(element)
-            }
-        }
+        val factory = selectFactory(element)
+        factory?.createInTimeline(holder, element) ?: warn(element)
     }
 
     @Composable
     override fun createReplyInTimeline(
         element: TimelineElementViewModel<*>
     ) {
-        when (element) {
-            is EncryptedWaitTimelineElementViewModel -> {
-                // FIXME
-            }
-
-            is EncryptedErrorTimelineElementViewModel -> {
-                // FIXME
-            }
-
-            else -> {
-                val factory = selectFactory(element)
-                factory?.createReplyInTimeline(element) ?: warn(element)
-            }
-        }
+        val factory = selectFactory(element)
+        factory?.createReplyInTimeline(element) ?: warn(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: TimelineElementViewModel<*>) {
-        when (element) {
-            is EncryptedWaitTimelineElementViewModel -> {
-                // FIXME
-            }
-
-            is EncryptedErrorTimelineElementViewModel -> {
-                // FIXME
-            }
-
-            else -> {
-                val factory = selectFactory(element)
-                factory?.createReplyInSendMessage(element) ?: warn(element)
-            }
-        }
+        val factory = selectFactory(element)
+        factory?.createReplyInSendMessage(element) ?: warn(element)
     }
 
     @Composable
     private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? {
         val timelineElementViewModelClass = element::class
-        val factory = remember {
+        val factory = remember(element) {
             factoryMapping.value[timelineElementViewModelClass]
                 ?: run {
                     val foundFactory =

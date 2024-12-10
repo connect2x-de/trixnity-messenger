@@ -48,7 +48,6 @@ fun MessageLocation(
     MessageBubble(
         holder,
         element,
-        showDate = true,
         needsMaxWidth = false,
     ) { showMenuAction ->
         if (Platform.current.isDesktop) {

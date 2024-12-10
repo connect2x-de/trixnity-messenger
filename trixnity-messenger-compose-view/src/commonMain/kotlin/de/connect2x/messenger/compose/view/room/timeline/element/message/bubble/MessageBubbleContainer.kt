@@ -38,7 +38,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 @Composable
 fun MessageBubbleContainer(
     holder: BaseTimelineElementHolderViewModel,
-    showDate: Boolean,
     needsMaxWidth: Boolean,
     infoOpen: MutableState<Boolean>,
     reactionsOpen: MutableState<Boolean>,
@@ -97,7 +96,7 @@ fun MessageBubbleContainer(
                     color = messageBackground,
                 ) {
                     Box(modifier = Modifier.width(IntrinsicSize.Max)) {
-                        MessageBubbleContent(holder, showDate, needsMaxWidth, { showActionMenu.value = true }, content)
+                        MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
                         MessageBubbleContentOverlay(
                             hoverMessage,
                             overlay,

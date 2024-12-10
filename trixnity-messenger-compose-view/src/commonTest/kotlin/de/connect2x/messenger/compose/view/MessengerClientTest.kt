@@ -36,7 +36,6 @@ class MessengerClientTest {
                         CompositionLocalProvider(
                             Platform provides platformType(),
                             IsFocused provides true,
-                            IsDebug provides false,
                             DI provides matrixMultiMessenger.di,
                             ShowProfileCreation provides showProfileCreation,
                         ) {
@@ -49,7 +48,6 @@ class MessengerClientTest {
                         CompositionLocalProvider(
                             Platform provides platformType(),
                             IsFocused provides false,
-                            IsDebug provides false,
                             DI provides matrixMessenger.di,
                         ) {
                             MessengerTheme {
@@ -65,7 +63,7 @@ class MessengerClientTest {
             val i18n = matrixMultiMessenger.di.get<I18nView>()
             val config = matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>()
 
-            // FIXME assertions
+            // TODO assertions
         }
     }
 }

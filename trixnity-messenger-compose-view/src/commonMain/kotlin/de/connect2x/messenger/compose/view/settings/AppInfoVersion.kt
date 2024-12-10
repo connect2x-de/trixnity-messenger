@@ -5,7 +5,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
-// TODO TIM
 interface AppInfoVersionView {
     @Composable
     fun create(appInfoViewModel: AppInfoViewModel)

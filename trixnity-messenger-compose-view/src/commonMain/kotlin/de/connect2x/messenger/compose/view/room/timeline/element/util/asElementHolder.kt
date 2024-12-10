@@ -9,12 +9,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 
 @Composable
 internal fun BaseTimelineElementHolderViewModel.asOutboxElementHolder(): OutboxElementHolderViewModel? =
-    remember(this) { // FIXME extension function asOutbox()
+    remember(this) {
         this as? OutboxElementHolderViewModel
     }
 
 @Composable
 internal fun BaseTimelineElementHolderViewModel.asTimelineElementHolder(): TimelineElementHolderViewModel? =
-    remember(this) { // FIXME extension function asOutbox()
+    remember(this) {
         this as? TimelineElementHolderViewModel
     }

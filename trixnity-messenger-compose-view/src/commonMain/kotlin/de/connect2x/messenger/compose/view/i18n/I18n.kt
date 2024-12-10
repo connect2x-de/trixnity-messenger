@@ -1632,6 +1632,11 @@ abstract class I18nView(
         DE - "Dieser Tresor kann zudem mit einem individuellen Generalschlüssel (im Bild: \"RecoveryKey\") geöffnet werden. Um im Falle eines Geräteverlusts diesen Tresor auf einem neuen Gerät öffnen zu können, wird Ihnen der Generalschlüssel im nächsten Schritt ausgehändigt."
     }
 
+    fun bootstrapVault() = translate {
+        EN - "vault"
+        DE - "Tresor"
+    }
+
     fun bootstrapRecoveryKeyVaultCreation() = translate {
         EN - "Message vault is being created"
         DE - "Nachrichtentresor wird angelegt"
@@ -1645,6 +1650,11 @@ abstract class I18nView(
     fun bootstrapRecoveryKeyTitle() = translate {
         EN - "Recovery key"
         DE - "Schlüsselübergabe"
+    }
+
+    fun bootstrapRecoveryKey() = translate {
+        EN - "recovery key"
+        DE - "Generalschlüssel"
     }
 
     fun bootstrapRecoveryKeyHandling() = translate {
