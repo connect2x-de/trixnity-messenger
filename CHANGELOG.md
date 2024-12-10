@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `RoomSettingsMemberListElement` interfaces to allow more flexibility
 - Updated documentation on how to use the framework from SwiftUI
 - In single account mode make the profile banner open the user profile
+- Use `XDG_DATA_HOME` on linux
 
 ### Deprecated
 
