@@ -117,7 +117,7 @@ class InputAreaViewImpl : InputAreaView {
             Column(Modifier.fillMaxWidth()) {
                 HorizontalDivider(Modifier.fillMaxWidth())
                 if (isReplyTo) {
-//                    ReplyToArea(repliedElement)
+                    ReplyToArea(inputAreaViewModel)
                 }
                 if (emojisOpen.value) {
                     Box(Modifier.heightIn(max = 100.dp)) {

@@ -55,7 +55,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -404,22 +403,18 @@ open class InputAreaViewModelImpl(
 
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
     private val repliedElementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
-    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
+    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = // FIXME add test!
         currentReply.map { roomIdAndEventId ->
             if (roomIdAndEventId == null) return@map null
             val (roomId, eventId) = roomIdAndEventId
             repliedElementCache.value?.lifecycle?.destroy()
-            val eventContent = matrixClient.room.getTimelineEvent(roomId, eventId).first()?.event?.content
-            if (eventContent !is MessageEventContent) return@map null
-            val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-            if (repliedEventId == null) return@map null
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             repliedTimelineElementHolderViewModelFactory.create(
                 childContextWithOwnLifecycle(lifecycle),
-                matrixClient.room.getTimelineEvent(roomId, repliedEventId),
+                matrixClient.room.getTimelineEvent(roomId, eventId),
                 roomId,
-                repliedEventId,
+                eventId,
                 onOpenMention,
             )
         }.stateIn(coroutineScope, WhileSubscribed(), null)
@@ -527,7 +522,7 @@ open class InputAreaViewModelImpl(
     }
 }
 
-class PreviewInputViewModel() : InputAreaViewModel {
+class PreviewInputAreaViewModel() : InputAreaViewModel {
     override val isAllowedToSendMessages: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val message: MutableStateFlow<String> = MutableStateFlow("")
     override val isSendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)

@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -92,7 +91,7 @@ internal fun ColumnScope.MessageVideo(
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
 
-    BoxWithConstraints(Modifier.padding(top = 10.dp)) {
+    Box(Modifier.padding(top = 10.dp)) {
         Row {
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -109,7 +108,7 @@ internal fun ColumnScope.MessageVideo(
                             .clip(RoundedCornerShape(8.dp))
                             .openVideoOnTouch(element, onSave, showMenuAction)
                             .buttonPointerModifier(),
-                        contentScale = ContentScale.FillBounds
+                        contentScale = ContentScale.Fit
                     )
                 } ?: run {
                     Icon(

@@ -35,7 +35,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
-// FIXME TIM
 interface CreateNewGroupView {
     @Composable
     fun create(createNewGroupViewModel: CreateNewGroupViewModel)

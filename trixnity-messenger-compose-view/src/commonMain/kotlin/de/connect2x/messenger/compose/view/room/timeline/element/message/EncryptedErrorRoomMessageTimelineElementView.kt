@@ -28,7 +28,6 @@ class EncryptedErrorRoomMessageTimelineElementView : TimelineElementView<Encrypt
         MessageBubble(
             holder,
             element,
-            showDate = true,
             needsMaxWidth = false,
         ) { _ ->
             EncryptedError()
@@ -53,7 +52,7 @@ internal fun EncryptedError() {
     Text(
         i18n.messageContentNoDecryption(),
         Modifier.padding(10.dp),
-        style = MaterialTheme.typography.bodySmall, // FIXME alpha?
+        style = MaterialTheme.typography.bodySmall,
         fontStyle = FontStyle.Italic,
     )
 }

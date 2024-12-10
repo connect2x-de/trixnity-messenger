@@ -75,6 +75,8 @@ import de.connect2x.messenger.compose.view.room.timeline.InputAreaView
 import de.connect2x.messenger.compose.view.room.timeline.InputAreaViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.LocationReplyView
 import de.connect2x.messenger.compose.view.room.timeline.LocationReplyViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.ReplyToAreaView
+import de.connect2x.messenger.compose.view.room.timeline.ReplyToAreaViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.RoomHeaderView
 import de.connect2x.messenger.compose.view.room.timeline.RoomHeaderViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ScrollToEndButtonView
@@ -125,6 +127,14 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.details
 import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ImageElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.details.PdfElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.CreateStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.EncryptionStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.HistoryVisibilityStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.MemberStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.NameStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListView
@@ -307,9 +317,6 @@ fun connectingViewModule() = module {
 }
 
 fun filesViewModule() = module {
-//    single<ImageOverlayView> { ImageOverlayViewImpl() }
-//    single<VideoOverlayView> { VideoOverlayViewImpl() }
-//    single<PdfOverlayView> { PdfOverlayViewImpl() }
     single<ShareDataView> { ShareDataViewImpl() }
 }
 
@@ -390,6 +397,14 @@ fun timelineViewModule() = module {
     timelineElementView<NoticeRoomMessageTimelineElementView> { NoticeRoomMessageTimelineElementView() }
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementView() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementView() }
+    timelineElementView<AvatarStateTimelineElementView> { AvatarStateTimelineElementView() }
+    timelineElementView<CanonicalAliasStateTimelineElementView> { CanonicalAliasStateTimelineElementView() }
+    timelineElementView<CreateStateTimelineElementView> { CreateStateTimelineElementView() }
+    timelineElementView<EncryptionStateTimelineElementView> { EncryptionStateTimelineElementView() }
+    timelineElementView<HistoryVisibilityStateTimelineElementView> { HistoryVisibilityStateTimelineElementView() }
+    timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementView() }
+    timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementView() }
+    timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementView() }
     elementDetailsView<ImageElementDetailsView> { ImageElementDetailsView() }
     elementDetailsView<PdfElementDetailsView> { PdfElementDetailsView() }
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
@@ -405,7 +420,7 @@ fun timelineViewModule() = module {
     single<MessageInfoView> { MessageInfoViewImpl() }
 //    single<UserVerificationView> { UserVerificationViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
-//    single<ReplyToAreaView> { ReplyToAreaViewImpl() }
+    single<ReplyToAreaView> { ReplyToAreaViewImpl() }
     single<TextReplyView> { TextReplyViewImpl() }
     single<ImageReplyView> { ImageReplyViewImpl() }
     single<ImageReplyDefaultView> { ImageReplyDefaultViewImpl() }

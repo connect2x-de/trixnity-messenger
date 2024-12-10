@@ -34,7 +34,6 @@ interface MessageBubbleView {
     fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-        showDate: Boolean, // FIXME do we really need that? What is the use case?
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
         overlay: (@Composable BoxScope.() -> Unit)? = null,
@@ -46,14 +45,13 @@ interface MessageBubbleView {
 fun MessageBubble(
     holder: BaseTimelineElementHolderViewModel,
     element: TimelineElementViewModel<*>,
-    showDate: Boolean,
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
-        .create(holder, element, showDate, needsMaxWidth, additionalContextActions, overlay, content)
+        .create(holder, element, needsMaxWidth, additionalContextActions, overlay, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -61,7 +59,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-        showDate: Boolean,
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         overlay: (@Composable BoxScope.() -> Unit)?,
@@ -74,8 +71,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
 
         val infoOpen = remember { mutableStateOf(false) }
         val reactionsOpen = remember { mutableStateOf(false) }
-
-        // FIXME downloads already in children?
 
         BoxWithConstraints(
             Modifier.fillMaxWidth()
@@ -100,7 +95,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
                     }
                     MessageBubbleContainer(
                         holder,
-                        showDate,
                         needsMaxWidth,
                         infoOpen,
                         reactionsOpen,

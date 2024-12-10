@@ -116,7 +116,7 @@ fun BoxScope.MessageBubbleActionMenu(
                             interactionSource = MutableInteractionSource()
                         )
                 ) {
-                    Icon(Icons.Default.ExpandMore, "Kontextmenü", tint = Color.White)     // FIXME i18n
+                    Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
                 }
             }
             DropdownMenu(

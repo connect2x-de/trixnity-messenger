@@ -104,22 +104,17 @@ internal fun ColumnScope.MessageImageImpl(
         "",
         Modifier
             .align(Alignment.CenterHorizontally)
-            .padding(1.dp)
+            .padding(3.dp)
             .fillMaxWidth()
             .heightIn(
                 50.dp,
-                with(LocalDensity.current) { 300.dp }) // FIXME magic number
+                with(LocalDensity.current) { 300.dp })
             .clip(
-                if (showSender == true) {
-                    RoundedCornerShape(0.dp)
-                } else {
-                    RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp)
-                }
+                RoundedCornerShape(8.dp)
             )
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        // FIXME overlay
                         onSave()
                     },
                     onLongPress = { showActionMenu() },

@@ -575,7 +575,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val sender: MutableStateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
+    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(
+        PreviewRepliedTimelineElementViewModel1()
+    )
     override val hasUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)

@@ -46,7 +46,6 @@ fun TextBasedRoomMessageTimelineElementView(
     MessageBubble(
         holder,
         element,
-        showDate = true,
         needsMaxWidth = false,
     ) { showActionMenu ->
         if (Platform.current.isDesktop) {

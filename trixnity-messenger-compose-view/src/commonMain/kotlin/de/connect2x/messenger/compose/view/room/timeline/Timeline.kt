@@ -112,7 +112,7 @@ class TimelineViewImpl : TimelineView {
                     }
                 }
                 log.trace { "finished wait for elements to be ready" }
-                timelineElementHolderViewModels = elements
+                timelineElementHolderViewModels = elements.reversed()
             }
         }
 
@@ -136,7 +136,7 @@ class TimelineViewImpl : TimelineView {
                 val uiState by remember {
                     derivedStateOf {
                         val visibleItems = listState.layoutInfo.visibleItemsInfo
-                        val firstVisible =
+                        val lastVisible =
                             visibleItems.firstOrNull {
                                 // we want the last element in the timeline only if it is completely visible (compose considers even
                                 // 1 pixel of an element as "in view" which is not what we want)
@@ -146,7 +146,7 @@ class TimelineViewImpl : TimelineView {
                                 val key = it.key
                                 key as? String
                             }
-                        val lastVisible = visibleItems.lastOrNull { (it.key as? String)?.startsWith('!') == true }
+                        val firstVisible = visibleItems.lastOrNull { (it.key as? String)?.startsWith('!') == true }
                             ?.let {
                                 val key = it.key
                                 key as? String
@@ -191,9 +191,8 @@ class TimelineViewImpl : TimelineView {
                     ) {
                         val canScrollToEnd by remember {
                             derivedStateOf {
-                                val totalItemsCount = listState.layoutInfo.totalItemsCount
-                                val index = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-                                index != null && index != (totalItemsCount - 1)
+                                val index = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
+                                index != null && index != 0
                             }
                         }
 
@@ -207,13 +206,11 @@ class TimelineViewImpl : TimelineView {
                                     end = if (this@BoxWithConstraints.maxWidth.value > 1000) 80.dp else 18.dp, // 10 + 8, since we cannot add a padding or Spacer at the end
                                 ),
                                 state = listState,
+                                reverseLayout = true,
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
                                 timelineElementViewModelGrouped.forEach { (date, viewModels) ->
-                                    stickyHeader(date) {
-                                        DateStickyHeader(date)
-                                    }
                                     items(
                                         viewModels,
                                         key = { it.key }
@@ -222,8 +219,17 @@ class TimelineViewImpl : TimelineView {
                                             viewModel,
                                         )
                                     }
+                                    item("date-$date") {
+                                        DateStickyHeader(date)
+                                    }
                                 }
                             }
+                            listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
+                                ?.let { layoutInfo ->
+                                    timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {
+                                        DateStickyHeader(it.formattedDate)
+                                    }
+                                }
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             if (draggedFile != null) {
                                 Box(
@@ -258,7 +264,7 @@ class TimelineViewImpl : TimelineView {
                         VerticalScrollbar(
                             Modifier.align(Alignment.CenterEnd),
                             listState,
-                            false,
+                            reverseLayout = true,
                         )
                     }
                 }
