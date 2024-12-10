@@ -28,7 +28,6 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,6 +42,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -375,7 +375,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 val cut = timelineViewModel()
                 cut.elements waitForSize 3
                 val job = launch {
-                    cut.elements.collect{}
+                    cut.elements.collect {}
                 }
                 cut.elements.first().lastOrNull()?.key shouldBe "${roomId.full}-replace-2"
                 eventually(2.seconds) {

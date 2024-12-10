@@ -14,7 +14,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import korlibs.io.async.async
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf

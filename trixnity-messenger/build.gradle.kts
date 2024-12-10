@@ -87,7 +87,6 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.uuid)
-                implementation(libs.korge)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.skie.annotations)

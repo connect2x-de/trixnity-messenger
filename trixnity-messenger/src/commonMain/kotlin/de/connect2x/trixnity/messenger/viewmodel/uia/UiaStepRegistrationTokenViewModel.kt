@@ -7,10 +7,10 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenVie
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelPreview.PreviewMode.FILLED
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelPreview.PreviewMode.SUBMITTING
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.async.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import net.folivo.trixnity.core.ErrorResponse
