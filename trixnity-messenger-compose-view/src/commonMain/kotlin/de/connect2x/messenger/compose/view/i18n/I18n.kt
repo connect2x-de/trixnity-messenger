@@ -1872,9 +1872,9 @@ abstract class I18nView(
         DE - "Sie passen nicht zueinander"
     }
 
-    fun verificationSuccess(deviceName: String) = translate {
-        EN - "Device '$deviceName' was verified successfully."
-        DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschaltet werden."
+    fun verificationSuccess() = translate {
+        EN - "The verification has been successful."
+        DE - "Die Freischaltung war erfolgreich."
     }
 
     fun verificationSuccessThisDevice() = translate {
