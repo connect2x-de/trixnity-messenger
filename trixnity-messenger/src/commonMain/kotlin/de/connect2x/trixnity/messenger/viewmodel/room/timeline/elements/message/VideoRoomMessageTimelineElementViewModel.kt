@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.ImageSizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
@@ -60,9 +59,4 @@ class VideoRoomMessageTimelineElementViewModelImpl(
 
     override val width: Int? = content.info?.width
     override val height: Int? = content.info?.height
-
-    override fun getDimensions(maxWidth: Int, maxHeight: Int): Pair<Int, Int>? =
-        if (width == null || height == null) null
-        else ImageSizeComputations.getHeight(width, maxWidth, height, maxHeight) to
-                ImageSizeComputations.getWidth(width, maxWidth, height, maxHeight)
 }

@@ -66,7 +66,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                 }
             },
         ) { showActionMenu, onSave ->
-            MessageImage(holder, element, showActionMenu, onSave)
+            MessageImage(element, showActionMenu, onSave)
         }
     }
 
@@ -83,26 +83,22 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 
 @Composable
 internal fun ColumnScope.MessageImage(
-    holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     showActionMenu: () -> Unit,
     onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
     image?.toImageBitmap()?.let {
-        MessageImageImpl(it, holder, element, showActionMenu, onSave)
+        MessageImageImpl(it, showActionMenu, onSave)
     } ?: MessageImageFallback(element, showActionMenu, onSave)
 }
 
 @Composable
 internal fun ColumnScope.MessageImageImpl(
     image: ImageBitmap,
-    holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased.Image,
     showActionMenu: () -> Unit,
     onSave: () -> Unit,
 ) {
-    val showSender = holder.showSender.collectAsState().value
     Image(
         image,
         "",

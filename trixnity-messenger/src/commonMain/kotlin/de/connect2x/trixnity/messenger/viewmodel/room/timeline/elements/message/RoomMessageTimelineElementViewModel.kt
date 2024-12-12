@@ -66,7 +66,6 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val thumbnail: StateFlow<ByteArray?>
             val width: Int?
             val height: Int?
-            fun getDimensions(maxWidth: Int, maxHeight: Int): Pair<Int, Int>?
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
@@ -78,7 +77,6 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val thumbnail: StateFlow<ByteArray?>
             val width: Int?
             val height: Int?
-            fun getDimensions(maxWidth: Int, maxHeight: Int): Pair<Int, Int>?
         }
     }
 
