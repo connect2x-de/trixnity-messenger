@@ -23,10 +23,16 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModel
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
 class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel> {
     override val supports: KClass<RedactedTimelineElementViewModel> = RedactedTimelineElementViewModel::class
+
+    override suspend fun waitFor(element: RedactedTimelineElementViewModel) {
+        element.message.filterNotNull().first()
+    }
 
     @Composable
     override fun createInTimeline(

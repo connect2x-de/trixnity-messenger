@@ -6,7 +6,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
@@ -61,5 +61,5 @@ class EncryptionStateTimelineElementViewModelImpl(
                         i18n.roomEncryptionEnabled(userInfo?.name ?: timelineEvent.sender.full)
                     }
             )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }

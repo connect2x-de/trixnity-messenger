@@ -12,6 +12,10 @@ class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     override val supports: KClass<RoomMessageTimelineElementViewModel.TextBased.Text> =
         RoomMessageTimelineElementViewModel.TextBased.Text::class
 
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

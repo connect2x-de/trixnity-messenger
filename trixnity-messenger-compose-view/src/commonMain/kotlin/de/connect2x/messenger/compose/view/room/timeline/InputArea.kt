@@ -217,12 +217,10 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
     val interactionSource = remember { MutableInteractionSource() }
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
-    val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState(true).value
-
     val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    LaunchedEffect(shouldFocus) {
-        if (shouldFocus != null) {
+    LaunchedEffect(Unit) {
+        inputAreaViewModel.shouldFocus.collect { value ->
             focusRequester.requestFocus()
             selection.value = TextRange(message.value.length)
         }
@@ -237,10 +235,10 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
         if (showUploadError.value != null) {
             ErrorDialog(
                 errorMessage = when (showUploadError.value) {
-                is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
-                is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
-                else -> i18n.uploadFileErrorUnknown()
-            },
+                    is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
+                    is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
+                    else -> i18n.uploadFileErrorUnknown()
+                },
                 dismissAction = { showUploadError.value = null }, title = i18n.uploadFileErrorTitle()
             )
         }
@@ -337,7 +335,6 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
 fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
     val message = inputAreaViewModel.message.collectAsStateForTextField().value
-    val shouldFocus = inputAreaViewModel.shouldFocus.collectAsState(true).value
     val focusRequester = remember { FocusRequester() }
     val textFieldValue = remember {
         mutableStateOf(
@@ -367,8 +364,8 @@ fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
             if (textFieldValue.value.selection.length == 0) textFieldValue.value.selection.start else null
     }
 
-    LaunchedEffect(shouldFocus) {
-        if (shouldFocus != null) {
+    LaunchedEffect(Unit) {
+        inputAreaViewModel.shouldFocus.collect {
             focusRequester.requestFocus()
         }
     }

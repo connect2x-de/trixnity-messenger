@@ -12,6 +12,10 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override val supports: KClass<RoomMessageTimelineElementViewModel.TextBased.Emote> =
         RoomMessageTimelineElementViewModel.TextBased.Emote::class
 
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.TextBased.Emote) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

@@ -6,13 +6,17 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.room
@@ -58,6 +62,7 @@ class MemberStateTimelineElementViewModelImpl(
     roomId: RoomId,
     eventId: EventId,
 ) : MemberStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val changeMessage =
         flow {
             val timelineEventSnapshot = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
@@ -67,6 +72,8 @@ class MemberStateTimelineElementViewModelImpl(
                     matrixClient.room.getById(roomId).filterNotNull().map { it.isDirect },
                     matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull(),
                 ) { userInfo, isDirect, timelineEvent ->
+                    Triple(userInfo, isDirect, timelineEvent)
+                }.flatMapLatest { (userInfo, isDirect, timelineEvent) ->
                     val event = timelineEvent.event
                     require(event is StateEvent)
 
@@ -76,27 +83,27 @@ class MemberStateTimelineElementViewModelImpl(
                         if (content.membership != previousContent.membership) {
                             membershipChanged(event, content, name, isDirect)
                         } else if (content.avatarUrl != previousContent.avatarUrl) {
-                            i18n.eventChangeAvatar(name)
+                            flowOf(i18n.eventChangeAvatar(name))
                         } else if (content.displayName != previousContent.displayName) {
-                            i18n.eventChangeDisplayName(previousContent.displayName, content.displayName)
+                            flowOf(i18n.eventChangeDisplayName(previousContent.displayName, content.displayName))
                         } else if (previousContent.isDirect != isDirect) {
-                            i18n.eventChangeDirectRoom(isDirect)
+                            flowOf(i18n.eventChangeDirectRoom(isDirect))
                         } else {
-                            null
+                            flowOf(null)
                         }
                     } else {
                         membershipChanged(event, content, name, isDirect)
                     }
                 }
             )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    private suspend fun membershipChanged(
+    private fun membershipChanged(
         event: StateEvent<*>,
         content: MemberEventContent,
         username: String,
         isDirect: Boolean
-    ): String {
+    ): Flow<String> {
         val groupOrChatDative =
             if (isDirect) i18n.eventChangeChatDative()
             else i18n.eventChangeGroupDative()
@@ -104,16 +111,16 @@ class MemberStateTimelineElementViewModelImpl(
             if (isDirect) i18n.eventChangeChatAccusative()
             else i18n.eventChangeGroupAccusative()
         val thisUserId = UserId(event.stateKey)
-        val thisUsername = matrixClient.user.getById(event.roomId, thisUserId)
+        return matrixClient.user.getById(event.roomId, thisUserId)
             .map { user -> user?.name ?: thisUserId.full }
-            .stateIn(coroutineScope)
-
-        return when (content.membership) {
-            Membership.INVITE -> i18n.eventChangeInvite(thisUsername.value, username)
-            Membership.JOIN -> i18n.eventChangeJoin(thisUsername.value, groupOrChatDative)
-            Membership.LEAVE -> i18n.eventChangeLeave(thisUsername.value, groupOrChatAccusative)
-            Membership.BAN -> i18n.eventChangeBan(thisUsername.value, username, groupOrChatDative)
-            Membership.KNOCK -> i18n.eventChangeKnock(thisUsername.value, groupOrChatDative)
-        }
+            .map { thisUsername ->
+                when (content.membership) {
+                    Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username)
+                    Membership.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
+                    Membership.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
+                    Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative)
+                    Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative)
+                }
+            }
     }
 }

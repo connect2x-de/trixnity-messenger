@@ -18,6 +18,10 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTim
     override val supports: KClass<RoomMessageTimelineElementViewModel.Unknown> =
         RoomMessageTimelineElementViewModel.Unknown::class
 
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.Unknown) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

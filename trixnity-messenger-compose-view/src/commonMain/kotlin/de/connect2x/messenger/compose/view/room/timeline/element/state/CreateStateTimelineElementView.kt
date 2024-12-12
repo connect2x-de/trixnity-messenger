@@ -8,10 +8,16 @@ import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.CreateStateTimelineElementViewModel
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
-class CreateStateTimelineElementView: TimelineElementView<CreateStateTimelineElementViewModel> {
+class CreateStateTimelineElementView : TimelineElementView<CreateStateTimelineElementViewModel> {
     override val supports: KClass<CreateStateTimelineElementViewModel> = CreateStateTimelineElementViewModel::class
+
+    override suspend fun waitFor(element: CreateStateTimelineElementViewModel) {
+        element.message.filterNotNull().first()
+    }
 
     @Composable
     override fun createInTimeline(

@@ -8,12 +8,16 @@ import kotlin.reflect.KClass
 interface TimelineElementView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
 
+    suspend fun waitFor(element: V)
+
     @Composable
     fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: V)
 
     @Composable
-    fun createReplyInTimeline(element: V) {}
+    fun createReplyInTimeline(element: V) {
+    }
 
     @Composable
-    fun createReplyInSendMessage(element: V) {}
+    fun createReplyInSendMessage(element: V) {
+    }
 }

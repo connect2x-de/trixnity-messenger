@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.room.timeline.element.message.details
+package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

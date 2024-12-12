@@ -44,6 +44,10 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Image> =
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

@@ -129,6 +129,17 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
+            should("be true when first event at all") {
+                timeline(roomServiceMock, roomId) {
+                    +timelineEvent
+                }
+                val cut = cut()
+                async { cut.isFirstInUserSequence.collect() }
+                advanceUntilIdle()
+                cut.isFirstInUserSequence.value shouldBe true
+
+                cancelNeverEndingCoroutines()
+            }
             should("false when not first in a user sequence") {
                 timeline(roomServiceMock, roomId) {
                     (1..4).forEach {

@@ -41,6 +41,10 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Audio> =
         RoomMessageTimelineElementViewModel.FileBased.Audio::class
 
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

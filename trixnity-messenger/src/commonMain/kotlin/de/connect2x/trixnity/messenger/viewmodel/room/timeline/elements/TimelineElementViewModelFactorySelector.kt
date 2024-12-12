@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -44,7 +45,8 @@ class TimelineElementViewModelFactorySelectorImpl(
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
             }
-        }
+            emit(null) // if start of timeline reached
+        }.distinctUntilChanged()
 
     private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
         content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })

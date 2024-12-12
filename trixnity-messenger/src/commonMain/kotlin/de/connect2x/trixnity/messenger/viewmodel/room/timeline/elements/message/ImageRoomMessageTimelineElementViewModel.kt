@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
@@ -55,7 +55,7 @@ class ImageRoomMessageTimelineElementViewModelImpl(
 
     override val thumbnail: StateFlow<ByteArray?> = flow {
         emit(thumbnailLoad.await())
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val width: Int? = content.info?.width
     override val height: Int? = content.info?.height

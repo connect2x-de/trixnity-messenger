@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.room.timeline.element.message.details
+package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,6 +43,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
 import simpleVerticalScrollbar
@@ -73,7 +74,7 @@ actual fun PDFReader(
         if (temporaryFileResult.isSuccess) {
             val newTemporaryFile = temporaryFileResult.getOrThrow()
             try {
-                val documentData = org.apache.pdfbox.Loader.loadPDF(newTemporaryFile.path.toFile())
+                val documentData = Loader.loadPDF(newTemporaryFile.path.toFile())
                 val renderer = PDFRenderer(documentData)
                 document = Pair(documentData, renderer)
                 documentWidth = renderer.renderImage(0)?.width

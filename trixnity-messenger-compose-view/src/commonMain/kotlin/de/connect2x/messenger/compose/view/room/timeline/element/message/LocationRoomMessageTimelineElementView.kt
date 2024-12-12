@@ -21,6 +21,10 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTi
     override val supports: KClass<RoomMessageTimelineElementViewModel.Location> =
         RoomMessageTimelineElementViewModel.Location::class
 
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.Location) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

@@ -19,6 +19,10 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     override val supports: KClass<EncryptedErrorTimelineElementViewModel> =
         EncryptedErrorTimelineElementViewModel::class
 
+    override suspend fun waitFor(element: EncryptedErrorTimelineElementViewModel) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

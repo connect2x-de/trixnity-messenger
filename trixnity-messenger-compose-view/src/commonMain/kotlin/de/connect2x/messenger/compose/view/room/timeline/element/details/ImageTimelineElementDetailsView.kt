@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.room.timeline.element.message.details
+package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

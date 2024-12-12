@@ -9,11 +9,15 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewSelector {
+    suspend fun waitFor(element: TimelineElementViewModel<*>)
+
     @Composable
     fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>)
 
@@ -39,12 +43,20 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
             emptyMap()
         )
 
+    override suspend fun waitFor(element: TimelineElementViewModel<*>) {
+        val factory = selectFactory(element)
+        withTimeoutOrNull(2.seconds) {
+            factory?.waitFor(element)
+            Unit
+        } ?: log.warn { "waited for more then 2 seconds for ${element::class.simpleName}" }
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>
     ) {
-        val factory = selectFactory(element)
+        val factory = rememberSelectFactory(element)
         factory?.createInTimeline(holder, element) ?: warn(element)
     }
 
@@ -52,32 +64,32 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
     override fun createReplyInTimeline(
         element: TimelineElementViewModel<*>
     ) {
-        val factory = selectFactory(element)
+        val factory = rememberSelectFactory(element)
         factory?.createReplyInTimeline(element) ?: warn(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: TimelineElementViewModel<*>) {
-        val factory = selectFactory(element)
+        val factory = rememberSelectFactory(element)
         factory?.createReplyInSendMessage(element) ?: warn(element)
     }
 
     @Composable
+    private fun rememberSelectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? =
+        remember(element) { selectFactory(element) }
+
     private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? {
         val timelineElementViewModelClass = element::class
-        val factory = remember(element) {
-            factoryMapping.value[timelineElementViewModelClass]
-                ?: run {
-                    val foundFactory =
-                        factories.firstOrNull { it.supports.isInstance(element) }
-                    if (foundFactory == null) return@run null
-                    @Suppress("UNCHECKED_CAST")
-                    foundFactory as TimelineElementView<TimelineElementViewModel<*>>
-                    factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
-                    foundFactory
-                }
-        }
-        return factory
+        return factoryMapping.value[timelineElementViewModelClass]
+            ?: run {
+                val foundFactory =
+                    factories.firstOrNull { it.supports.isInstance(element) }
+                if (foundFactory == null) return@run null
+                @Suppress("UNCHECKED_CAST")
+                foundFactory as TimelineElementView<TimelineElementViewModel<*>>
+                factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
+                foundFactory
+            }
     }
 
     private fun warn(element: TimelineElementViewModel<*>) {
@@ -87,4 +99,5 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
                     "visible in the timeline."
         }
     }
+
 }

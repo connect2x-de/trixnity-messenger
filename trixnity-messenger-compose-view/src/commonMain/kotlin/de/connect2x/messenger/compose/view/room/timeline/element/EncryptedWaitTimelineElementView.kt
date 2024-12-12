@@ -27,6 +27,10 @@ import kotlin.reflect.KClass
 class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel> {
     override val supports: KClass<EncryptedWaitTimelineElementViewModel> = EncryptedWaitTimelineElementViewModel::class
 
+    override suspend fun waitFor(element: EncryptedWaitTimelineElementViewModel) {
+        // no-op (has default size)
+    }
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

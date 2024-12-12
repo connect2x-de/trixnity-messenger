@@ -113,6 +113,10 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelectorImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
@@ -124,11 +128,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.Unknown
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelector
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ElementDetailsViewSelectorImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.ImageTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.PdfTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.CreateStateTimelineElementView
@@ -410,7 +409,8 @@ fun timelineViewModule() = module {
     timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementView() }
     timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementView() }
     timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
-    timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
+    // TODO enable when fixed and all platforms supported
+    // timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
 

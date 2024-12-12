@@ -7,12 +7,12 @@ import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -72,12 +72,12 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                                     ?: UserInfoElement(mention.userId.full, mention.userId)
                             )
                         }
-                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                        .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
                     is Mention.Room -> parseRoom(mention.roomId, matrixClient, initials)
                         .map { info ->
                             info?.let { TimelineElementMention.Room(info) }
-                        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
                     is Mention.RoomAlias ->
                         flow {
@@ -87,13 +87,13 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                                         info?.let { TimelineElementMention.Room(info) }
                                     }
                             )
-                        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
                     is Mention.Event -> parseRoom(mention.roomId ?: roomId, matrixClient, initials)
                         .flatMapLatest { roomInfo ->
                             if (roomInfo == null) flowOf(null)
                             else flowOf(TimelineElementMention.Event(EventInfoElement(mention.eventId), roomInfo))
-                        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
                 }
             }
 

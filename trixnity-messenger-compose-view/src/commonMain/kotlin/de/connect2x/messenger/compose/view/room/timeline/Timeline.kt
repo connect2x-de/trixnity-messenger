@@ -45,6 +45,7 @@ import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -75,6 +76,7 @@ class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
+        val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
         val isFocused = IsFocused.current
         var scrollTo by remember { mutableStateOf<String?>(null) }
         LaunchedEffect(Unit) {
@@ -94,7 +96,10 @@ class TimelineViewImpl : TimelineView {
                 coroutineScope {
                     elements.forEach { element ->
                         // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
-                        launch { element.element.filterNotNull().first() }
+                        launch {
+                            val element = element.element.filterNotNull().first()
+                            timelineElementViewSelector.waitFor(element)
+                        }
                         launch { element.isFirstInUserSequence.filterNotNull().first() }
                         launch { element.showSender.filterNotNull().first() }
                         launch { element.showBigGapBefore.filterNotNull().first() }
