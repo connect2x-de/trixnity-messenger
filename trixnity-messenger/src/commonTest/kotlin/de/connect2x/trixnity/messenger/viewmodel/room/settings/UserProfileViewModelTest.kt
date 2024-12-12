@@ -30,7 +30,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -66,6 +65,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class UserProfileViewModelTest : ShouldSpec() {
+    override fun timeout(): Long = 4_000
 
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -233,144 +233,157 @@ class UserProfileViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        context("kicking an user") {
-            beforeTest {
-                every {
-                    userServiceMock.getPowerLevel(eq(roomId), any())
-                } returns MutableStateFlow(50)
-            }
+        // TODO: normally one could use the context("...") method, however
+        // when setting the dispatcher in an outer beforeTest scope like here
+        // (Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher])))
+        // this seems to misbehave in inner contexts: https://github.com/kotest/kotest/issues/3577
 
-            should("return to room settings after kicking an user") {
-                everySuspend {
-                    roomsApiClientMock.kickUser(
-                        eq(roomId),
-                        eq(alice),
-                        eqNull(),
-                        eqNull()
-                    )
-                } returns Result.success(Unit)
+        // CONTEXT_START: "kicking an user"
 
-                val cut = userProfileViewModel(coroutineContext, alice)
-                cut.kickUser()
-                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
-
-                cut.error.value shouldBe null
-                verifySuspend {
-                    roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
-                }
-                cut.kickUserWarningOpen.value shouldBe false
-                cancelNeverEndingCoroutines()
-
-            }
-
-            should("show an error message when trying to kick an user and we are not connected") {
-                syncStateMocker returns MutableStateFlow(SyncState.ERROR)
-
-                val cut = userProfileViewModel(coroutineContext, alice)
-                cut.kickUser()
-
-                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
-                // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
-
-                cut.error.value shouldNotBe null
-                cancelNeverEndingCoroutines()
-            }
-
-            should("show an error message when kicking an user fails") {
-                everySuspend {
-                    roomsApiClientMock.kickUser(
-                        eq(roomId),
-                        eq(alice),
-                        eqNull(),
-                        eqNull()
-                    )
-                } returns
-                        Result.failure(RuntimeException("Oh nooo"))
-
-                val cut = userProfileViewModel(coroutineContext, alice)
-                cut.kickUser()
-
-                testCoroutineScheduler.advanceTimeBy(100.milliseconds)
-                // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
-
-                cut.error.value shouldNotBe null
-                cancelNeverEndingCoroutines()
-            }
+        beforeTest {
+            every {
+                userServiceMock.getPowerLevel(eq(roomId), any())
+            } returns MutableStateFlow(50)
         }
 
-        context("role computation for the member list") {
-            beforeTest {
-                every {
-                    userServiceMock.getPowerLevel(eq(roomId), eq(alice))
-                } returns MutableStateFlow(50)
+        should("return to room settings after kicking an user") {
+            everySuspend {
+                roomsApiClientMock.kickUser(
+                    eq(roomId),
+                    eq(alice),
+                    eqNull(),
+                    eqNull()
+                )
+            } returns Result.success(Unit)
 
-                every {
-                    userServiceMock.getPowerLevel(eq(roomId), eq(me))
-                } returns MutableStateFlow(50)
+            val cut = userProfileViewModel(coroutineContext, alice)
+            cut.kickUser()
+            testCoroutineScheduler.advanceUntilIdle()
+
+            cut.error.value shouldBe null
+            verifySuspend {
+                roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
             }
+            cut.kickUserWarningOpen.value shouldBe false
+            cancelNeverEndingCoroutines()
 
-            context("Member is admin") {
-                should("return the role: admin") {
-                    every {
-                        userServiceMock.getPowerLevel(roomId, bob)
-                    } returns MutableStateFlow(100)
-                    val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.role.first { it != Role.USER } shouldBe Role.ADMIN
-                    cancelNeverEndingCoroutines()
-                }
-
-                should("show role name in view") {
-                    every {
-                        userServiceMock.getPowerLevel(roomId, bob)
-                    } returns MutableStateFlow(100)
-                    val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.showRole.first { it } shouldBe true
-                    cancelNeverEndingCoroutines()
-
-                }
-            }
-            context("Member is moderator") {
-                should("return the role: moderator") {
-                    every {
-                        userServiceMock.getPowerLevel(roomId, bob)
-                    } returns MutableStateFlow(50)
-                    val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
-                    cancelNeverEndingCoroutines()
-                }
-                should("show role name in view") {
-                    every {
-                        userServiceMock.getPowerLevel(roomId, bob)
-                    } returns MutableStateFlow(50)
-                    val cut = userProfileViewModel(coroutineContext, bob)
-                    delay(100)
-                    cut.showRole.first { it } shouldBe true
-                    cancelNeverEndingCoroutines()
-                }
-
-            }
-
-            context("Member is a normal user") {
-                should("return the role: user") {
-                    every {
-                        userServiceMock.getPowerLevel(roomId, bob)
-                    } returns MutableStateFlow(0)
-                    val cut = userProfileViewModel(coroutineContext, bob)
-                    cut.role.value shouldBe Role.USER
-                    cancelNeverEndingCoroutines()
-                }
-                should("do not show role name in view") {
-                    every {
-                        userServiceMock.getPowerLevel(roomId, bob)
-                    } returns MutableStateFlow(0)
-                    val cut = userProfileViewModel(coroutineContext, bob)
-                    delay(50)
-                    cut.showRole.value shouldBe false
-                    cancelNeverEndingCoroutines()
-                }
-            }
         }
 
+        should("show an error message when trying to kick an user and we are not connected") {
+            syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+
+            val cut = userProfileViewModel(coroutineContext, alice)
+            cut.kickUser()
+
+            testCoroutineScheduler.advanceTimeBy(100.milliseconds)
+            // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
+
+            cut.error.value shouldNotBe null
+            cancelNeverEndingCoroutines()
+        }
+
+        should("show an error message when kicking an user fails") {
+            everySuspend {
+                roomsApiClientMock.kickUser(
+                    eq(roomId),
+                    eq(alice),
+                    eqNull(),
+                    eqNull()
+                )
+            } returns
+                    Result.failure(RuntimeException("Oh nooo"))
+
+            val cut = userProfileViewModel(coroutineContext, alice)
+            cut.kickUser()
+
+            testCoroutineScheduler.advanceTimeBy(100.milliseconds)
+            // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
+
+            cut.error.value shouldNotBe null
+            cancelNeverEndingCoroutines()
+        }
+
+        // CONTEXT_END: "kicking an user"
+
+        // CONTEXT_START: "role computation for the member list"
+
+        beforeTest {
+            every {
+                userServiceMock.getPowerLevel(eq(roomId), eq(alice))
+            } returns MutableStateFlow(50)
+
+            every {
+                userServiceMock.getPowerLevel(eq(roomId), eq(me))
+            } returns MutableStateFlow(50)
+        }
+
+        // CONTEXT_START: "Member is admin"
+
+        should("return the role: admin") {
+            every {
+                userServiceMock.getPowerLevel(roomId, bob)
+            } returns MutableStateFlow(100)
+            val cut = userProfileViewModel(coroutineContext, bob)
+            cut.role.first { it != Role.USER } shouldBe Role.ADMIN
+            cancelNeverEndingCoroutines()
+        }
+
+        should("show role name in view") {
+            every {
+                userServiceMock.getPowerLevel(roomId, bob)
+            } returns MutableStateFlow(100)
+            val cut = userProfileViewModel(coroutineContext, bob)
+            cut.showRole.first { it } shouldBe true
+            cancelNeverEndingCoroutines()
+        }
+
+        // CONTEXT_END: "Member is admin"
+
+        // CONTEXT_START: "Member is moderator"
+
+        should("return the role: moderator") {
+            every {
+                userServiceMock.getPowerLevel(roomId, bob)
+            } returns MutableStateFlow(50)
+            val cut = userProfileViewModel(coroutineContext, bob)
+            cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
+            cancelNeverEndingCoroutines()
+        }
+        should("show role name in view") {
+            every {
+                userServiceMock.getPowerLevel(roomId, bob)
+            } returns MutableStateFlow(50)
+            val cut = userProfileViewModel(coroutineContext, bob)
+            testCoroutineScheduler.advanceTimeBy(100)
+            cut.showRole.first { it } shouldBe true
+            cancelNeverEndingCoroutines()
+        }
+
+        // CONTEXT_END: "Member is moderator"
+
+        // CONTEXT_START: "Member is a normal user"
+
+        should("return the role: user") {
+            every {
+                userServiceMock.getPowerLevel(roomId, bob)
+            } returns MutableStateFlow(0)
+            val cut = userProfileViewModel(coroutineContext, bob)
+            cut.role.value shouldBe Role.USER
+            cancelNeverEndingCoroutines()
+        }
+        should("do not show role name in view") {
+            every {
+                userServiceMock.getPowerLevel(roomId, bob)
+            } returns MutableStateFlow(0)
+            val cut = userProfileViewModel(coroutineContext, bob)
+            testCoroutineScheduler.advanceTimeBy(50)
+            cut.showRole.value shouldBe false
+            cancelNeverEndingCoroutines()
+        }
+
+        // CONTEXT_END: "Member is a normal user"
+
+        // CONTEXT_END: "role computation for the member list"
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
@@ -386,9 +399,10 @@ class UserProfileViewModelTest : ShouldSpec() {
         )
     }
 
-    private fun userProfileViewModel(
+    private suspend fun userProfileViewModel(
         coroutineContext: CoroutineContext, userId: UserId
     ): UserProfileViewModelImpl {
+        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return UserProfileViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
