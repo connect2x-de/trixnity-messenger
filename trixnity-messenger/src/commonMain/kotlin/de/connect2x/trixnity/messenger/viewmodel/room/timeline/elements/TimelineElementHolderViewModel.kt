@@ -295,7 +295,7 @@ class TimelineElementHolderViewModelImpl(
             if (repliedEventId == null) return@flow
             emit(
                 repliedTimelineElementHolderViewModelFactory.create(
-                    childContext("repliedElement"),
+                    childContext("repliedElement-$eventId"),
                     matrixClient.room.getTimelineEvent(roomId, repliedEventId),
                     roomId,
                     repliedEventId,

@@ -53,10 +53,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 private val log = KotlinLogging.logger {}
@@ -93,7 +94,7 @@ class TimelineViewImpl : TimelineView {
         LaunchedEffect(Unit) {
             timelineViewModel.elements.collect { elements ->
                 log.trace { "wait for elements to be ready" }
-                coroutineScope {
+                withContext(Dispatchers.Default) {
                     elements.forEach { element ->
                         // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
                         launch {
