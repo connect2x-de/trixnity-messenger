@@ -47,7 +47,6 @@ interface RoomRouter {
 class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
-    private val showedUserId: MutableStateFlow<UserId?>,
     private val onCloseRoom: () -> Unit,
     private val onOpenModal: OpenModalUserCallback,
     private val onOpenMention: OpenMentionCallback,
@@ -75,7 +74,6 @@ class RoomRouterImpl(
                     viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
-                    showedUserId = showedUserId,
                     onRoomBack = onCloseRoom,
                     onOpenModal = onOpenModal,
                     onOpenMention = onOpenMention,

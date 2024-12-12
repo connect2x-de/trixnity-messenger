@@ -3,7 +3,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.navigate
 import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -27,8 +29,12 @@ private val log = KotlinLogging.logger {}
 
 interface SettingsRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+
     suspend fun showSettings()
     suspend fun closeSettings()
+
+    suspend fun showUserProfile(userId: UserId)
+
     fun isShown(): Boolean
 
     sealed class Wrapper {
@@ -61,7 +67,6 @@ interface SettingsRouter {
 class SettingsRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val showedUserId: MutableStateFlow<UserId?>,
     private val onSettingsBack: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
@@ -76,20 +81,6 @@ class SettingsRouterImpl(
             key = "SettingsRouter",
             childFactory = ::createSettingsChild,
         )
-
-
-    init {
-        viewModelContext.coroutineScope.launch {
-            showedUserId.collect {
-                when (it) {
-                    null -> closeUserProfile()
-                    else -> {
-                        showUserProfile(roomId, it)
-                    }
-                }
-            }
-        }
-    }
 
     private fun createSettingsChild(
         settingsConfig: Config,
@@ -167,16 +158,13 @@ class SettingsRouterImpl(
         settingsNavigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun showUserProfile(roomId: RoomId, userId: UserId) {
+    override suspend fun showUserProfile(userId: UserId) {
         settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ViewProfile(roomId, userId))
     }
 
     private fun closeUserProfile() {
-        settingsNavigation.popWhile {
-            it != Config.Settings
-        }
-
-        showedUserId.value = null
+        settingsNavigation.launchPop(viewModelContext.coroutineScope)
+        if (stack.value.active.configuration is Config.None) onSettingsBack()
     }
 
     override fun isShown(): Boolean = stack.value.active.configuration !is Config.None

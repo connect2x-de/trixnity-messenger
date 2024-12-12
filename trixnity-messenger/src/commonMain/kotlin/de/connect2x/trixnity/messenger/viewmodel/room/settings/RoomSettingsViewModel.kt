@@ -30,7 +30,7 @@ interface RoomSettingsViewModelFactory {
         onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-        onShowUserProfile: (RoomId, UserId) -> Unit,
+        onShowUserProfile: suspend (UserId) -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
@@ -84,7 +84,7 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    private val onOpenUserProfile: (RoomId, UserId) -> Unit,
+    private val onOpenUserProfile: suspend (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -223,7 +223,9 @@ class RoomSettingsViewModelImpl(
     }
 
     override fun showUserProfile(userId: UserId) {
-        onOpenUserProfile(selectedRoomId, userId)
+        coroutineScope.launch {
+            onOpenUserProfile(userId)
+        }
     }
 }
 

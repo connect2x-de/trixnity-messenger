@@ -10,6 +10,7 @@ import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.settings.settingsView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
@@ -117,7 +118,6 @@ open class MainViewModelImpl(
     override val isBackButtonVisible = MutableStateFlow(true)
     override val isSinglePane = MutableStateFlow(false)
     override val showRoom = MutableStateFlow(false)
-    private val showedUserId: MutableStateFlow<UserId?> = MutableStateFlow(null)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
@@ -153,7 +153,6 @@ open class MainViewModelImpl(
         RoomRouterImpl(
             viewModelContext = viewModelContext,
             isBackButtonVisible = isBackButtonVisible,
-            showedUserId = showedUserId,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenModal = ::openModal,
             onOpenMention = ::openMention,
@@ -194,8 +193,6 @@ open class MainViewModelImpl(
     private fun backPressHandler() {
         if (mediaRouter.isMediaOpen()) {
             mediaRouter.closeMedia()
-        } else if (showedUserId.value != null) {
-            showedUserId.value = null
         } else if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {
@@ -540,14 +537,14 @@ open class MainViewModelImpl(
     override fun openMention(userId: UserId, messageMention: MessageMention) {
         when (messageMention) {
             is MessageMention.User -> {
-                val user = messageMention.user.userId
-                showedUserId.value = messageMention.user.userId
-                log.warn { "UserView to display $user not implemented yet" }
+                val userId = messageMention.user.userId
+                // handling for user mentions is done in a lower level, see RoomViewModel
+                log.warn { "Unhandled MessageMention.User for $userId" }
             }
 
             is MessageMention.Room -> {
-                log.debug { "Opening Room ${messageMention.room.roomId}" }
                 val roomId = messageMention.room.roomId
+                log.debug { "Opening Room $roomId" }
                 onRoomSelected(userId, roomId)
             }
 

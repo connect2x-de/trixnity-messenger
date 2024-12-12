@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalUserCall
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,6 @@ interface RoomViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
-        showedUserId: MutableStateFlow<UserId?>,
         onRoomBack: () -> Unit,
         onOpenModal: OpenModalUserCallback,
         onOpenMention: OpenMentionCallback,
@@ -41,7 +41,6 @@ interface RoomViewModelFactory {
             roomId = selectedRoomId,
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
-            showedUserId = showedUserId,
             onOpenModal = onOpenModal,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
@@ -66,9 +65,8 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    private val showedUserId: MutableStateFlow<UserId?>,
     onOpenModal: OpenModalUserCallback,
-    onOpenMention: OpenMentionCallback,
+    private val onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
@@ -84,7 +82,6 @@ open class RoomViewModelImpl(
         viewModelContext = viewModelContext,
         roomId = roomId,
         onRoomBack = onRoomBack,
-        showedUserId = showedUserId,
         onSettingsBack = ::onSettingsBack,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
@@ -97,7 +94,7 @@ open class RoomViewModelImpl(
         onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
             onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
         },
-        onOpenMention = onOpenMention
+        onOpenMention = ::openMention
     )
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
@@ -149,17 +146,31 @@ open class RoomViewModelImpl(
         }
     }
 
-    internal fun onSettingsBack() = coroutineScope.launch {
-        if (showedUserId.value != null) {
-            showedUserId.value = null
-        } else {
-            settingsRouter.closeSettings()
-            timelineRouter.showTimeline(roomId)
+    private fun openMention(userId: UserId, mention: MessageMention) {
+        when (mention) {
+            is MessageMention.User -> {
+                onShowUserProfile(mention.user.userId)
+            }
+            else -> onOpenMention(userId, mention)
         }
+    }
+
+    internal fun onSettingsBack() = coroutineScope.launch {
+        settingsRouter.closeSettings()
+        timelineRouter.showTimeline(roomId)
     }
 
     internal fun onShowSettings() = coroutineScope.launch {
         settingsRouter.showSettings()
+        if (isTwoPane.value) {
+            timelineRouter.closeTimeline()
+        } else {
+            timelineRouter.showTimeline(roomId)
+        }
+    }
+
+    internal fun onShowUserProfile(userId: UserId) = coroutineScope.launch {
+        settingsRouter.showUserProfile(userId)
         if (isTwoPane.value) {
             timelineRouter.closeTimeline()
         } else {
