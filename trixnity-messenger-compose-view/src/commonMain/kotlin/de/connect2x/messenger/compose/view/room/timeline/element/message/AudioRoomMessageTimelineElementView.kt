@@ -2,10 +2,10 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -88,7 +88,12 @@ internal fun MessageAudio(
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
 
-    BoxWithConstraints(Modifier.padding(top = 10.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Row {
             Column(
                 verticalArrangement = Arrangement.Center,
