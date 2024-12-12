@@ -8,10 +8,13 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18nBase
 import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.util.SharedData
+import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.module
 
+@Suppress("UNUSED")
 abstract class I18nView(
     lang: Languages,
     messengerSettings: MatrixMessengerSettingsHolder,
@@ -279,6 +282,16 @@ abstract class I18nView(
         DE - "Logo"
     }
 
+    fun commonWelcome() = translate {
+        EN - "Welcome"
+        DE - "Willkommen"
+    }
+
+    fun commonConfirm() = translate {
+        EN - "confirm"
+        DE - "bestätigen"
+    }
+
     fun commonOptionalReason() = translate {
         EN - "Reason (optional)"
         DE - "Grund (optional)"
@@ -289,9 +302,19 @@ abstract class I18nView(
         DE - "ausklappen"
     }
 
+    fun commonAll() = translate {
+        EN - "All"
+        DE - "Alle"
+    }
+
     fun commonCollapse() = translate {
         EN - "collapse"
         DE - "einklappen"
+    }
+
+    fun commonSkip() = translate {
+        EN - "skip"
+        DE - "überspringen"
     }
 
     fun ban() = translate {
@@ -614,6 +637,16 @@ abstract class I18nView(
         DE - "weiter"
     }
 
+    fun uiaMsisdnTitle() = translate {
+        EN - "Phone number authentication"
+        DE - "Autorisierung mit Telefonnummer"
+    }
+
+    fun uiaEmailTitle() = translate {
+        EN - "Email authentication"
+        DE - "E-Mail Autorisierung"
+    }
+
     fun addMatrixClientCreateMatrixAccount() = translate {
         EN - "Creation of your Matrix account"
         DE - "Einrichtung Ihres Matrix Kontos"
@@ -722,6 +755,11 @@ abstract class I18nView(
     fun videoCouldNotBeLoaded() = translate {
         EN - "Video could not be loaded."
         DE - "Video konnte nicht geladen werden."
+    }
+
+    fun fileCouldNotBeLoaded() = translate {
+        EN - "File could not be loaded."
+        DE - "Datei konnte nicht geladen werden."
     }
 
     fun addMembers() = translate {
@@ -921,6 +959,16 @@ abstract class I18nView(
     fun userSearchSearchPeople() = translate {
         EN - "search people"
         DE - "suche Personen"
+    }
+
+    fun messageInfoReadBy() = translate {
+        EN - "Read by"
+        DE - "Gelesen von"
+    }
+
+    fun messageInfoReactions() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
     }
 
     fun userSearchNameOrMatrixId() = translate {
@@ -1153,16 +1201,6 @@ abstract class I18nView(
         DE - "Alle Konten"
     }
 
-    fun accountDeactivateFilter() = translate {
-        EN - "deactivate filter"
-        DE - "Filter deaktivieren"
-    }
-
-    fun accountSelectFilter() = translate {
-        EN - "select filter"
-        DE - "Filter auswählen"
-    }
-
     fun accountDeactivateSearch() = translate {
         EN - "deactivate search"
         DE - "Suche ausschalten"
@@ -1261,11 +1299,6 @@ abstract class I18nView(
     fun roomListCreateRoom() = translate {
         EN - "Create a new chat or group"
         DE - "Neuen Chat oder Gruppe anlegen"
-    }
-
-    fun roomListNoFilter() = translate {
-        EN - "no filter"
-        DE - "kein Filter"
     }
 
     fun roomListSearch() = translate {
@@ -1591,15 +1624,15 @@ abstract class I18nView(
 
     fun privacyReadMarkerIsPublicExplanation() = translate {
         EN - "Others can see which messages you have read"
-        DE - "Andere Nutzer können sehen, welche Nachrichten sie bereits gelesen haben"
+        DE - "Andere Nutzer können sehen, welche Nachrichten Sie bereits gelesen haben"
     }
 
-    fun typingIsPublic() = translate {
+    fun privacyTypingIsPublic() = translate {
         EN - "Typing Indicators"
-        DE - "Tippindikatoren"
+        DE - "Tipp-Indikatoren"
     }
 
-    fun typingIsPublicExplanation() = translate {
+    fun privacyTypingIsPublicExplanation() = translate {
         EN - "Others can see when you type a message"
         DE - "Andere Nutzer können sehen, wenn Sie eine neue Nachricht schreiben"
     }
@@ -1695,8 +1728,8 @@ abstract class I18nView(
     }
 
     fun bootstrapFinished() = translate {
-        EN - "Your account is now set up."
-        DE - "Ihr Konto ist nun eingerichtet."
+        EN - "Your recovery key is now set up."
+        DE - "Ihr Generalschlüssel ist nun eingerichtet."
     }
 
     fun deviceVerificationTitle() = translate {
@@ -1859,6 +1892,11 @@ abstract class I18nView(
         DE - "Generalschlüssel zurücksetzen"
     }
 
+    fun selfVerificationResetRecoveryKeyDescription() = translate {
+        EN - "This will lead to you losing access to all past messages."
+        DE - "Durch diesen Schritt verlieren Sie Zugriff auf alle ihre vergangenen Nachrichten."
+    }
+
     fun verificationWait() = translate {
         EN - "Wait for input on other device."
         DE - "Warte auf Eingabe an anderem Gerät."
@@ -1889,24 +1927,34 @@ abstract class I18nView(
         DE - "Sie passen nicht zueinander"
     }
 
-    fun verificationSuccess(deviceName: String) = translate {
-        EN - "Device '$deviceName' was verified successfully."
-        DE - "Das Gerät '$deviceName' konnte erfolgreich freigeschalten werden."
+    fun verificationSuccess() = translate {
+        EN - "The verification has been successful."
+        DE - "Die Freischaltung war erfolgreich."
+    }
+
+    fun verificationSuccessThisDevice() = translate {
+        EN - "This device was verified successfully."
+        DE - "Dieses Gerät konnte erfolgreich freigeschaltet werden."
     }
 
     fun verificationRejected(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein."
+        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein. ${verificationTryAgain()}"
     }
 
     fun verificationTimeout(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached."
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten."
+        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten. ${verificationTryAgain()}"
     }
 
     fun verificationCancelled(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} has been cancelled."
-        DE - "${type.capitalize(Locale.current)} wurde abgebrochen."
+        EN - "${type.capitalize(Locale.current)} has been cancelled. ${verificationTryAgain()}"
+        DE - "${type.capitalize(Locale.current)} wurde abgebrochen. ${verificationTryAgain()}"
+    }
+
+    fun verificationTryAgain() = translate {
+        EN - "Please try again or choose a different verification method."
+        DE - "Bitte versuchen Sie es erneut oder wählen sie eine andere Verifikationsmethode."
     }
 
     fun deviceVerification() = translate {
@@ -1965,8 +2013,8 @@ abstract class I18nView(
     }
 
     fun fileOverlayPreviewNotSupported() = translate {
-        EN - "File preview not supported"
-        DE - "Datei-Vorschau nicht verfügbar"
+        EN - "File preview not supported. Please download the file instead."
+        DE - "Datei-Vorschau nicht verfügbar. Bitte laden Sie die Datei stattdessen herunter."
     }
 
     fun fileOverlayPdfPageDescriptor(pageId: Int) = translate {
@@ -2119,6 +2167,11 @@ abstract class I18nView(
         DE - "Reagieren"
     }
 
+    fun reactorListMessage() = translate {
+        EN - "Reactions"
+        DE - "Reaktionen"
+    }
+
     fun infoMessage() = translate {
         EN - "Info"
         DE - "Info"
@@ -2249,9 +2302,34 @@ abstract class I18nView(
         DE - "Bild hochladen"
     }
 
+    fun fileDialogLoadImageOrVideoButton() = translate {
+        EN - "Upload image or video"
+        DE - "Bild oder Video hochladen"
+    }
+
+    fun fileDialogTakeImageButton() = translate {
+        EN - "Capture image"
+        DE - "Bild aufnehmen"
+    }
+
+    fun fileDialogTakeVideoButton() = translate {
+        EN - "Capture video"
+        DE - "Video aufnehmen"
+    }
+
+    fun fileDialogSaveDescription() = translate {
+        EN - "Download File"
+        DE - "Datei herunterladen"
+    }
+
     fun fileDialogDownloadErrorSave() = translate {
         EN - "Download failed"
         DE - "Download fehlgeschlagen"
+    }
+
+    fun cameraDialogAlertNoPermission() = translate {
+        EN - "Please check the permissions of the camera"
+        DE - "Bitte die Berechtigungen der Kamera prüfen"
     }
 
     fun commonAccept() = translate {
@@ -2438,6 +2516,84 @@ abstract class I18nView(
         DE - "Die Aktivierung der Verschlüsselung des Chats kann nicht rückgängig gemacht werden."
         EN - "The activation of the encryption of the chat cannot be revoked."
     }
+
+    fun accountSetupWizardExplanationMessage() = translate {
+        DE - "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
+        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
+    }
+
+    fun accountSetupWizardFinishSetup() = translate {
+        DE - "Ist alles nach Ihren Wünschen eingestellt?"
+        EN - "Is everything configured to your liking?"
+    }
+
+    fun accountSetupWizardFinishSetupTitle() = translate {
+        DE - "Einrichtung abschließen"
+        EN - "Finish setup"
+    }
+
+    fun accountSetupWizardReset() = translate {
+        DE - "Setup zurücksetzen"
+        EN - "Reset setup"
+    }
+
+    fun shareDataTitle(data: SharedData) = when (data) {
+        is SharedData.PlainText -> translate {
+            EN - "Sharing Text"
+            DE - "Teile Text"
+        }
+
+        is SharedData.SingleFile -> translate {
+            EN - "Sharing 1 file"
+            DE - "Teile 1 Datei"
+        }
+
+        is SharedData.MultipleFiles -> translate {
+            EN - "Sharing ${data.files.size} files"
+            DE - "Teile ${data.files.size} Dateien"
+        }
+
+        is SharedData.Url -> translate {
+            EN - "Sharing URL"
+            DE - "Teile URL"
+        }
+    }
+
+    fun shareFilesTitle(count: Int) = translate {
+        EN - "Sharing $count files"
+        DE - "Teile $count Dateien"
+    }
+
+    fun shareFilesCancel() = translate {
+        EN - "Cancel"
+        DE - "Abbrechen"
+    }
+
+    fun uploadFileErrorTitle() = translate {
+        DE - "Beim Hochladen der Datei ist ein Fehler aufgetreten"
+        EN - "An error occurred during the upload of the file"
+    }
+
+    fun uploadFileErrorUnknown() = translate {
+        DE - "Ein unbekannter Uploadfehler is aufgetreten."
+        EN - "An unknown upload error has occurred."
+    }
+
+    fun uploadFileErrorNotPasteable() = translate {
+        DE - "Die Inhalte der ausgewählten Datei können nicht hochgeladen werden."
+        EN - "The contents of the selected file can't be uploaded."
+    }
+
+    fun uploadFileErrorFileListEmpty() = translate {
+        DE - "Die ausgewählte Dateiliste ist leer."
+        EN - "The selected file list is empty."
+    }
+
+    fun filePreviewErrorTooBig(maxUploadSize: Long) = translate {
+        DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße von ${formatSize(maxUploadSize)}."
+        EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
+    }
+
 
     fun roomNoEncryptionFound() = translate {
         EN - "No encryption found"

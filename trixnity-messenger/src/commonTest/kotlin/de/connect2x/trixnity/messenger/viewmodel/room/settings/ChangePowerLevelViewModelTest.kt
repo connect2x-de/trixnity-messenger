@@ -17,13 +17,11 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.setMain
@@ -44,6 +42,7 @@ import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class ChangePowerLevelViewModelTest : ShouldSpec() {
@@ -133,7 +132,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
-                testCoroutineScheduler.advanceUntilIdle()
+                delay(100.milliseconds)
 
                 cut.error.value shouldBe null
                 verifySuspend {
@@ -156,7 +155,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
-                testCoroutineScheduler.advanceUntilIdle()
+                delay(100.milliseconds)
 
                 cut.error.value shouldNotBe null
                 cancelNeverEndingCoroutines()
@@ -177,7 +176,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
-                testCoroutineScheduler.advanceUntilIdle()
+                delay(100.milliseconds)
 
                 cut.error.value shouldNotBe null
                 cancelNeverEndingCoroutines()
@@ -209,7 +208,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
-                testCoroutineScheduler.advanceUntilIdle()
+                delay(100.milliseconds)
 
                 cut.error.value shouldBe null
                 verifySuspend {
@@ -231,7 +230,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
-                testCoroutineScheduler.advanceUntilIdle()
+                delay(100.milliseconds)
 
                 cut.error.value shouldNotBe null
                 cancelNeverEndingCoroutines()
@@ -252,7 +251,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
-                testCoroutineScheduler.advanceUntilIdle()
+                delay(100.milliseconds)
 
                 cut.error.value shouldNotBe null
                 cancelNeverEndingCoroutines()
@@ -350,7 +349,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
         userId: UserId,
         powerLevel: StateFlow<Long>,
     ): ChangePowerLevelViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        Dispatchers.setMain(Dispatchers.Unconfined)
         return ChangePowerLevelViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),

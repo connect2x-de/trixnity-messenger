@@ -32,7 +32,9 @@ fun getAppPath(appId: String) =
             }
 
             OS.LINUX -> {
-                System.getenv("HOME").toPath()
-                    .resolve(".$appId")
+                val dataHome = System.getenv("XDG_DATA_HOME")?.toPath()
+                    ?: System.getenv("HOME").toPath().resolve(".local").resolve("share")
+
+                dataHome.resolve(appId)
             }
         }

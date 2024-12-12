@@ -56,6 +56,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Video>(),
                     any(),
+                    any()
                 )
             } returns "thumbnail".encodeToByteArray()
 
@@ -74,6 +75,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
                 thumbnailsMock.loadThumbnail(
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                     any(),
                 )
             } calls {
@@ -101,6 +103,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
                 thumbnailsMock.loadThumbnail(
                     eq(matrixClientMock),
                     any<RoomMessageEventContent.FileBased.Video>(),
+                    any(),
                     any(),
                 )
             } returns null
@@ -141,7 +144,7 @@ class VideoMessageViewModelTest : ShouldSpec() {
             showSender = MutableStateFlow(true),
             sender = MutableStateFlow(UserInfoElement("User1", UserId("user1:localhost"))),
             invitation = flowOf(null),
-            onOpenModal = mock(),
+            onOpenMedia = mock(),
             mediaUploadProgress = MutableStateFlow(null)
         )
     }

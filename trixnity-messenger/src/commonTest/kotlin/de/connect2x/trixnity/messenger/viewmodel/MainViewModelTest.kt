@@ -26,7 +26,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElement
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.SpaceViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
@@ -41,6 +40,7 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.should
@@ -231,6 +231,12 @@ class MainViewModelTest : ShouldSpec() {
             everySuspend { matrixClientMock2.startSync() } returns Unit
             everySuspend { matrixClientMock2.cancelSync(any()) } returns Unit
             every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+                it.copy(
+                    accountSetupFinished = true
+                )
+            }
+
         }
 
         afterTest {
@@ -528,7 +534,38 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("skip initial sync when initial sync is alreaddy done") {
+        should("not show self verification when at least one account isn't bootstrapped") {
+            selfVerificationMethods returns MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(
+                            UserId(""),
+                            setOf(),
+                        ) { _, _ -> Result.failure(RuntimeException()) },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key()
+                        )
+                    )
+                )
+            )
+            everySuspend {
+                matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            } returns Result.success(Unit)
+
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+                it.copy(
+                    accountSetupFinished = false
+                )
+            }
+            val cut = mainViewModel()
+
+            continually(2.seconds) { cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>() }
+        }
+
+        should("skip initial sync when initial sync is already done") {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
@@ -692,6 +729,7 @@ class MainViewModelTest : ShouldSpec() {
                                     onRoomSelected: (UserId, RoomId) -> Unit,
                                     onStartCreateNewRoom: (UserId) -> Unit,
                                     onUserSettingsSelected: () -> Unit,
+                                    onUserProfileSelected: () -> Unit,
                                     onOpenAppInfo: () -> Unit,
                                     onSendLogs: () -> Unit,
                                     onOpenAccountsOverview: () -> Unit,
@@ -711,11 +749,6 @@ class MainViewModelTest : ShouldSpec() {
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-                                        override val spaces: StateFlow<List<SpaceViewModel>> = MutableStateFlow(
-                                            emptyList()
-                                        )
-                                        override val activeSpace: MutableStateFlow<RoomId?> = MutableStateFlow(null)
-                                        override val showSpaces: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
                                             MutableStateFlow(true)
                                         override val unverifiedAccounts: StateFlow<List<UserId>> =
@@ -730,10 +763,13 @@ class MainViewModelTest : ShouldSpec() {
                                             override fun selectActiveAccount(userId: UserId?) {
                                             }
 
-                                            override fun userSettings() {
+                                            override fun openUserSettings() {
                                             }
 
-                                            override fun appInfo() {
+                                            override fun openUserProfile() {
+                                            }
+
+                                            override fun openAppInfo() {
                                             }
                                         }
 

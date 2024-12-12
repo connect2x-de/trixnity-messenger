@@ -66,6 +66,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class UserProfileViewModelTest : ShouldSpec() {
+
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
@@ -385,10 +386,9 @@ class UserProfileViewModelTest : ShouldSpec() {
         )
     }
 
-    private suspend fun userProfileViewModel(
+    private fun userProfileViewModel(
         coroutineContext: CoroutineContext, userId: UserId
     ): UserProfileViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return UserProfileViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),

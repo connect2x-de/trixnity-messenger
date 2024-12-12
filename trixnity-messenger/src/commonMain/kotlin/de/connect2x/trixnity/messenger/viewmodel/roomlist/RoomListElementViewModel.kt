@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -12,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +51,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 
@@ -157,12 +158,17 @@ open class RoomListElementViewModelImpl(
         roomNameCalculations.getRoomName(roomId, matrixClient, formatted = false)
             .map { initials.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val roomImage: StateFlow<ByteArray?> =
         roomFlow.map { room ->
             room.avatarUrl?.let { avatarUrl ->
                 matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     .fold(
-                        onSuccess = { it.toByteArray() },
+                        onSuccess = {
+                            it.limitedByteArrayOrNull(maxAvatarSize) {
+                                log.error { "Room avatar for ${room.roomId} exceeds max preview size, so it's not displayed" }
+                            }
+                        },
                         onFailure = {
                             log.error(it) { "Cannot load user avatar." }
                             null

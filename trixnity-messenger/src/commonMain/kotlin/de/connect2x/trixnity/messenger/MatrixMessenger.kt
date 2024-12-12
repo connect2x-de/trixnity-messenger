@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.job
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import org.koin.core.Koin
@@ -31,20 +31,12 @@ import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger {}
 
-interface MatrixMessenger {
+interface MatrixMessenger : AutoCloseable {
     companion object
 
     val di: Koin
 
     val notificationCount: StateFlow<Long>
-
-    /**
-     * Stop this [MatrixMessenger] and its [CoroutineScope].
-     * It should be called to clean up all resources used by [MatrixMessenger].
-     *
-     * After calling this, this instance should not be used anymore!
-     */
-    suspend fun stop()
 }
 
 class MatrixMessengerImpl private constructor(
@@ -67,7 +59,7 @@ class MatrixMessengerImpl private constructor(
                     single<CoroutineScope> { coroutineScope }
                     single { config }.bind<MatrixMessengerBaseConfiguration>()
                 })
-                modules(config.modules)
+                modules(config.modulesFactories.map { it.invoke() })
             }.koin
             val settingsHolder = di.getAll<SettingsHolder<*>>()
             settingsHolder.forEach {
@@ -93,12 +85,13 @@ class MatrixMessengerImpl private constructor(
         }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0L)
     }
 
-    override suspend fun stop() {
+    override fun close() {
         di.get<CoroutineScope>().apply {
             cancel("stopped MatrixMessenger")
-            coroutineContext.job.join()
         }
-        di.get<MatrixClients>().value.values.forEach { it.stop() }
+        di.get<MatrixClients>().value.values.forEach { it.close() }
+        if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null)
+            di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
     }
 }
 

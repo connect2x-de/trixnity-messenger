@@ -11,7 +11,7 @@ import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Wizard
-import de.connect2x.messenger.compose.view.common.WizardNextButton
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -54,7 +54,7 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             content = {
                 AddMatrixAccount(viewModel)
             },
-            nextButton = WizardNextButton.None, // user selects preferred login method directly
+            nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
         )
 
         is PasswordLoginViewModel -> WizardStep(
@@ -71,15 +71,17 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
             },
-            nextButton = WizardNextButton.Custom {
-                val state = viewModel.addMatrixAccountState.collectAsState().value
-                val canLogin = viewModel.canLogin.collectAsState().value
-                Button(
-                    enabled = canLogin && state !is AddMatrixAccountState.Connecting,
-                    onClick = { viewModel.tryLogin() },
-                    modifier = Modifier.buttonPointerModifier(enabled = canLogin)
-                ) {
-                    Text(i18n.login())
+            nextButton = {
+                WizardNavigationButton.Custom {
+                    val state = viewModel.addMatrixAccountState.collectAsState().value
+                    val canLogin = viewModel.canLogin.collectAsState().value
+                    Button(
+                        enabled = canLogin && state !is AddMatrixAccountState.Connecting,
+                        onClick = { viewModel.tryLogin() },
+                        modifier = Modifier.buttonPointerModifier(enabled = canLogin)
+                    ) {
+                        Text(i18n.login())
+                    }
                 }
             }
         )
@@ -98,16 +100,18 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
             },
-            nextButton = WizardNextButton.Custom {
-                val state = viewModel.addMatrixAccountState.collectAsState().value
-                val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
-                val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
-                Button(
-                    enabled = canLogin,
-                    onClick = { viewModel.tryLogin() },
-                    modifier = Modifier.buttonPointerModifier(enabled = canLogin)
-                ) {
-                    Text(i18n.login())
+            nextButton = {
+                WizardNavigationButton.Custom {
+                    val state = viewModel.addMatrixAccountState.collectAsState().value
+                    val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
+                    val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
+                    Button(
+                        enabled = canLogin,
+                        onClick = { viewModel.tryLogin() },
+                        modifier = Modifier.buttonPointerModifier(enabled = canLogin)
+                    ) {
+                        Text(i18n.login())
+                    }
                 }
             },
         )
@@ -126,14 +130,16 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
             },
-            nextButton = WizardNextButton.Custom {
-                val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
-                Button(
-                    enabled = canRegisterNewUser,
-                    onClick = { viewModel.register() },
-                    modifier = Modifier.buttonPointerModifier(enabled = canRegisterNewUser)
-                ) {
-                    Text(i18n.register())
+            nextButton = {
+                WizardNavigationButton.Custom {
+                    val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
+                    Button(
+                        enabled = canRegisterNewUser,
+                        onClick = { viewModel.register() },
+                        modifier = Modifier.buttonPointerModifier(enabled = canRegisterNewUser)
+                    ) {
+                        Text(i18n.register())
+                    }
                 }
             },
         )

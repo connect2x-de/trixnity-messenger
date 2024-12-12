@@ -20,11 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
-import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.SmartToy
-import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
@@ -35,7 +32,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,7 +60,7 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
-import de.connect2x.messenger.compose.view.files.SaveDialog
+import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -83,6 +79,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMess
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
@@ -343,7 +340,6 @@ private fun InboxMessageImage(
     imageMessageViewModel: ImageMessageViewModel,
     onLongPress: (Offset) -> Unit
 ) {
-    val i18n = DI.get<I18nView>()
     val uploadProgress = imageMessageViewModel.uploadProgress.collectAsState(null)
     val image = imageMessageViewModel.thumbnail.collectAsState()
 
@@ -379,7 +375,16 @@ private fun MessageImage(
     onLongPress: (Offset) -> Unit,
 ) {
     val showSender = imageMessageViewModel.showSender.collectAsState()
-
+    val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
+    if (saveFileDialogOpen) {
+        SaveFileDialog(
+            imageMessageViewModel.fileName,
+            imageMessageViewModel.fileMimeType,
+            imageMessageViewModel.downloadError.collectAsState().value,
+            imageMessageViewModel::downloadFile,
+            imageMessageViewModel::closeSaveFileDialog
+        )
+    }
     Image(
         image,
         "",
@@ -412,13 +417,23 @@ private fun MessageImageFallback(
     imageMessageViewModel: ImageMessageViewModel,
     onLongPress: (Offset) -> Unit
 ) {
+    val saveFileDialogOpen = imageMessageViewModel.saveFileDialogOpen.collectAsState().value
+    if (saveFileDialogOpen) {
+        SaveFileDialog(
+            imageMessageViewModel.fileName,
+            imageMessageViewModel.fileMimeType,
+            imageMessageViewModel.downloadError.collectAsState().value,
+            imageMessageViewModel::downloadFile,
+            imageMessageViewModel::closeSaveFileDialog
+        )
+    }
     val i18n = DI.get<I18nView>()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(start = 30.dp)
     ) {
         Icon(
-            Icons.Default.Image,
+            MaterialTheme.messengerIcons.typeImage,
             i18n.commonImage(),
             Modifier
                 .pointerInput(Unit) {
@@ -449,7 +464,7 @@ fun MessageVideo(
     val uploadProgress = videoMessageViewModel.uploadProgress.collectAsState().value
     val downloadSuccessful = videoMessageViewModel.downloadSuccessful.collectAsState()
     val error = videoMessageViewModel.downloadError.collectAsState().value
-    if (saveFileDialogOpen.value) SaveDialog(
+    if (saveFileDialogOpen.value) SaveFileDialog(
         videoMessageViewModel.fileName,
         videoMessageViewModel.fileMimeType,
         error,
@@ -463,7 +478,8 @@ fun MessageVideo(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                thumbnail.value?.let { imageBitmapFromBytes(it) }?.let {
+                //Uncomment this once video thumbnails are supported
+                /*thumbnail.value?.let { imageBitmapFromBytes(it) }?.let {
                     Image(
                         it,
                         "",
@@ -475,9 +491,9 @@ fun MessageVideo(
                             .buttonPointerModifier(),
                         contentScale = ContentScale.FillBounds
                     )
-                } ?: run {
+                } ?: */run {
                     Icon(
-                        Icons.Default.VideoFile,
+                        MaterialTheme.messengerIcons.typeVideo,
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
@@ -518,11 +534,12 @@ private fun Modifier.openVideoOnTouch(
     videoMessageViewModel: VideoMessageViewModel,
     onLongPress: (Offset) -> Unit
 ): Modifier {
-    val uploadProgress = videoMessageViewModel.uploadProgress.collectAsState().value
     return this.then(pointerInput(Unit) {
         detectTapGestures(
             onTap = {
-                if (uploadProgress != null && uploadProgress.percent >= 1.0f) videoMessageViewModel.openVideo()
+                //Since openVideo only starts the saveDialog currently, restricting it doesn't make sense yet
+                //if (uploadProgress != null && uploadProgress.percent >= 1.0f)
+                videoMessageViewModel.openVideo()
             },
             onLongPress = onLongPress,
         )
@@ -541,7 +558,7 @@ private fun MessageAudio(
     val downloadSuccessful = audioMessageViewModel.downloadSuccessful.collectAsState()
     val uploadProgress = audioMessageViewModel.uploadProgress.collectAsState().value
     val error = audioMessageViewModel.downloadError.collectAsState().value
-    if (saveFileDialogOpen.value) SaveDialog(
+    if (saveFileDialogOpen.value) SaveFileDialog(
         audioMessageViewModel.fileName,
         audioMessageViewModel.fileMimeType,
         error,
@@ -556,7 +573,7 @@ private fun MessageAudio(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(start = 30.dp),
             ) {
-                Icon(Icons.Default.AudioFile, i18n.commonAudio(),
+                Icon(MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio(),
                     modifier = Modifier
                         .size(64.dp)
                         .pointerInput(Unit) {
@@ -620,7 +637,7 @@ private fun MessageFile(
     val downloadSuccessful = fileMessageViewModel.downloadSuccessful.collectAsState()
     val uploadProgress = fileMessageViewModel.uploadProgress.collectAsState().value
     val error = fileMessageViewModel.downloadError.collectAsState().value
-    if (saveFileDialogOpen.value) SaveDialog(
+    if (saveFileDialogOpen.value) SaveFileDialog(
         fileMessageViewModel.fileName,
         fileMessageViewModel.fileMimeType,
         error,
@@ -731,4 +748,4 @@ fun MessageLocationContent(viewmodel: LocationMessageViewModel, onLongPress: (Of
 }
 
 internal val urlRegex =
-    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)")
+    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;]*)")

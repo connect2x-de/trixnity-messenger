@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.LoadStoreException
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.util.getOrNull
@@ -14,8 +15,9 @@ interface StoreFailureViewModelFactory {
         viewModelContext: ViewModelContext,
         userId: UserId,
         exception: LoadStoreException,
+        onDeletionFinished: () -> Unit,
     ): StoreFailureViewModel {
-        return StoreFailureViewModelImpl(viewModelContext, userId, exception)
+        return StoreFailureViewModelImpl(viewModelContext, userId, exception, onDeletionFinished)
     }
 
     companion object : StoreFailureViewModelFactory
@@ -31,6 +33,7 @@ open class StoreFailureViewModelImpl(
     viewModelContext: ViewModelContext,
     private val userId: UserId,
     exception: LoadStoreException,
+    private val onDeletionFinished: () -> Unit,
 ) : ViewModelContext by viewModelContext, StoreFailureViewModel {
 
     override val deleteEnabled = exception is LoadStoreException.StoreAccessException
@@ -40,10 +43,13 @@ open class StoreFailureViewModelImpl(
     }
 
     private val deleteAccountData by inject<DeleteAccountData>()
+    private val settings by inject<MatrixMessengerSettingsHolder>()
 
     override fun deleteDb() {
         coroutineScope.launch {
             deleteAccountData(userId)
+            settings.delete(userId)
+            onDeletionFinished()
         }
     }
 }

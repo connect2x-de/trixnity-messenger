@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.Avatar
+import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -92,34 +93,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         }
                     }
                     users.map { user ->
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable { clickedUser.value = user }
-                                .buttonPointerModifier()) {
-                            Row(
-                                Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Avatar(user.image, user.initials)
-                                Spacer(Modifier.size(10.dp))
-                                Column {
-                                    Text(
-                                        user.displayName,
-                                        maxLines = 1,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                    Text(
-                                        user.userId.full,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.labelMedium,
-                                    )
-                                }
-                            }
-                        }
-                        HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
+                        UserElement(user, onClick = { clickedUser.value = user })
                     }
                 }
                 if (shouldScroll) {
@@ -134,4 +108,41 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
             clickedUser.value?.let { userClickReaction(it) }
         }
     }
+}
+
+@Composable
+private fun UserElement(
+    user: SearchUserElement,
+    onClick: () -> Unit
+) {
+    val presence by user.presence.collectAsState()
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .buttonPointerModifier()) {
+        Row(
+            Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AvatarWithPresence(user.image, user.initials, presence)
+            Spacer(Modifier.size(10.dp))
+            Column {
+                Text(
+                    user.displayName,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.labelLarge,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    user.userId.full,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
+        }
+    }
+    HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
 }

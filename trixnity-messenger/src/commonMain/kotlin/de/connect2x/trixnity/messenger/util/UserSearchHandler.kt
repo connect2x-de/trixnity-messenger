@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -30,7 +31,8 @@ class DefaultUserSearchHandler(
     private val client: MatrixClient,
     private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
     private val limit: Long? = 100,
-    private val filterNot: (UserId) -> Boolean = { false }
+    private val maxAvatarSize : Long,
+    private val filterNot: (UserId) -> Boolean = { false },
 ) : UserSearchHandler {
     companion object {
         // Pattern that matches MXIDs without case sensitivity
@@ -56,9 +58,9 @@ class DefaultUserSearchHandler(
                 if (mxidPattern.matches(it)) it.lowercase()
                 else it
             }
-            .collect {
+            .scopedCollectLatest {
                 waitForUserResults.value = true
-                foundUsers.value = search.searchUsers(client, it, limit, filterNot)
+                foundUsers.value = search.searchUsers(client, it, limit, filterNot, this, maxAvatarSize)
                 waitForUserResults.value = false
             }
     }

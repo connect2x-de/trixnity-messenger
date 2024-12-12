@@ -55,7 +55,7 @@ class AccountOptionsViewImpl : AccountOptionsView {
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     },
-                    accountViewModel::userSettings,
+                    accountViewModel::openUserSettings,
                     Modifier.buttonPointerModifier(),
                     contentPadding = PaddingValues(horizontal = 10.dp)
                 )
@@ -74,7 +74,7 @@ class AccountOptionsViewImpl : AccountOptionsView {
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     },
-                    accountViewModel::appInfo,
+                    accountViewModel::openAppInfo,
                     Modifier.buttonPointerModifier(),
                     contentPadding = PaddingValues(horizontal = 10.dp)
                 )

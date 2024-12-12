@@ -1,13 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +32,10 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
+
+private val log = KotlinLogging.logger {}
 
 interface MemberListElementViewModelFactory {
     fun create(
@@ -38,7 +43,7 @@ interface MemberListElementViewModelFactory {
         roomUser: RoomUser,
         selectedRoomId: RoomId,
         onShowUserProfile: (UserId) -> Unit
-    ): MemberListElementViewModelImpl {
+    ): MemberListElementViewModel {
         return MemberListElementViewModelImpl(
             viewModelContext = viewModelContext,
             roomUser = roomUser,
@@ -131,10 +136,13 @@ class MemberListElementViewModelImpl(
         onShowUserProfile(userId)
     }
 
-    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): Flow<ByteArray>? {
+    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArrayFlow? {
+        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = { it },
+                onSuccess = {
+                    it.limitSize(maxAvatarSize)
+                },
                 onFailure = { null }
             )
         }

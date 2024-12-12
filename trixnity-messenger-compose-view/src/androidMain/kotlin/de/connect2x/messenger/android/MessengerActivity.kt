@@ -3,6 +3,7 @@ package de.connect2x.messenger.android
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +67,7 @@ class MessengerActivity : AppCompatActivity() {
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMessengerServiceConnection.bind(applicationContext)
+        onNewIntent(intent)
 
         this.backgroundSyncShouldBeRunning = false
 
@@ -101,6 +104,7 @@ class MessengerActivity : AppCompatActivity() {
                             }
                         }
                 }
+
             }
             withContext(Dispatchers.Main) {
                 setContent {
@@ -120,6 +124,16 @@ class MessengerActivity : AppCompatActivity() {
                             ) {
                                 MessengerTheme {
                                     Client(rootViewModel)
+                                }
+                                LaunchedEffect(Unit) {
+                                    val matrixMessengerStartup =
+                                        matrixMessenger.di.getOrNull<MatrixMessengerStartup>()
+                                    log.debug { "MatrixMessengerStartup: $matrixMessengerStartup" }
+                                    if (matrixMessengerStartup != null) {
+                                        matrixMessengerStartup(this@MessengerActivity)
+                                    } else {
+                                        log.info { "no MatrixMessengerStartup implementation found -> ignore" }
+                                    }
                                 }
                             }
                         }
@@ -193,8 +207,38 @@ class MessengerActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.data?.also {
-            matrixMessengerServiceConnection.matrixMultiMessenger.value?.defaultUrlHandler?.onUri(it)
+        when {
+            intent.action == Intent.ACTION_VIEW -> intent.data?.also {
+                matrixMessengerServiceConnection.matrixMultiMessenger.value?.defaultUrlHandler?.onUri(it)
+            }
+
+            intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
+                intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
+                    val uri = Uri.parse(text)
+
+                    if (uri.scheme == "http" || uri.scheme == "https") {
+                        val icon = intent.clipData?.toSequence()?.firstOrNull()?.uri
+
+                        matrixMessengerServiceConnection.onShareData(
+                            applicationContext,
+                            SharedIntentData.SharedUrl(text, icon)
+                        )
+                    } else {
+                        matrixMessengerServiceConnection.onShareData(
+                            applicationContext,
+                            SharedIntentData.SharedText(text)
+                        )
+                    }
+                }
+            }
+
+            intent.action == Intent.ACTION_SEND ||
+                    intent.action == Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let {
+                matrixMessengerServiceConnection.onShareData(
+                    applicationContext,
+                    intent.clipData?.toList()?.let(SharedIntentData::SharedItems)
+                )
+            }
         }
     }
 }

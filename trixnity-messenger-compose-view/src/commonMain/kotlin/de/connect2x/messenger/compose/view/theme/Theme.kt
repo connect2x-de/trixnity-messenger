@@ -15,6 +15,7 @@ interface Theme {
         colorScheme: ColorScheme,
         messengerColors: MessengerColors,
         messengerDpConstants: MessengerDpConstants,
+        messengerIcons: MessengerIcons,
         shapes: Shapes,
         typography: Typography,
         content: @Composable () -> Unit,
@@ -26,12 +27,13 @@ fun MessengerTheme(
     colorScheme: ColorScheme = DefaultMessengerColorScheme,
     messengerColors: MessengerColors = DefaultMessengerColors,
     messengerDpConstants: MessengerDpConstants = DefaultMessengerDpConstants,
+    messengerIcons: MessengerIcons = DefaultMessengerIcons,
     shapes: Shapes = MaterialTheme.shapes,
     typography: Typography = DI.get<ThemeTypography>().create(),
     content: @Composable () -> Unit,
 ) {
     DI.get<Theme>()
-        .create(colorScheme, messengerColors, messengerDpConstants, shapes, typography, content)
+        .create(colorScheme, messengerColors, messengerDpConstants, messengerIcons, shapes, typography, content)
 }
 
 class ThemeImpl : Theme {
@@ -40,6 +42,7 @@ class ThemeImpl : Theme {
         colorScheme: ColorScheme,
         messengerColors: MessengerColors,
         messengerDpConstants: MessengerDpConstants,
+        messengerIcons: MessengerIcons,
         shapes: Shapes,
         typography: Typography,
         content: @Composable () -> Unit,
@@ -52,6 +55,7 @@ class ThemeImpl : Theme {
             CompositionLocalProvider(
                 MessengerColorsProvider provides messengerColors,
                 MessengerDpConstantsProvider provides messengerDpConstants,
+                MessengerIconsProvider provides messengerIcons,
             ) {
                 content()
             }

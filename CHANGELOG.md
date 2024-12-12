@@ -9,9 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- use KMMBridge to publish iOS Swift and Objective-C artefacts to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- Add ability to share plain and formatted text
+- Add ability to share url with icon
+- Camera capture as a file selection option
 
 ### Changed
+
+- Color handling utils
+- Changed `RoomSettingsMemberListElement` interfaces to allow more flexibility
+- Updated documentation on how to use the framework from SwiftUI
+- In single account mode make the profile banner open the user profile
+- Use `XDG_DATA_HOME` on linux
 
 ### Deprecated
 
@@ -19,12 +27,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Don't show placeholder, when lastRelevantEventId not known.
-- Don't mark state events as relevant.
-- Wizard and modal dialog buttons are always shown on smaller screens 
-- Fix Emojis on Web
+- Format links with escaped ampersand (`&amp;`)
+- Format links with semicolon (`https://abc.xyz/a;b;c`)
+- Wrong device name displayed in verification success message
 
 ### Security
+
+## 2.4.0
+
+### Added
+
+- Show online-status when searching for users
+- Ability to see who reacted to a message
+- Make Smoketests work on Web
+- Make Smoketests work on Android
+- Added hook on Android to change the behaviour of the messenger on startup of the Activity
+- Add download button for file overlays
+- Allow configuration to not use the account setup wizard
+- Support private Browser Tabs.
+- PDF reader for web
+
+### Changed
+
+- Do not run kmmPublish on push to main
+- Automatically proceed bootstrapping without next button
+- Open video player overlay when clicking on the preview
+- Download text and markdown files when clicking on them in the timeline
+- Upgraded dependencies
+
+### Removed
+
+- Removed spaces filter as a prerequisite for grouping rooms by spaces
+
+### Fixed
+
+- Fix thumbnails not being displayed sometimes because of size limit evaluations
+- Fix headings not readable in dark mode
+- Fix RoomElement using wrong DI context
+- Fix crash when notification sound is unavailable
+- Fix nightly pipeline missing job dependency
+- Fix problem with login when an IOException has been thrown
+- Fix crash when opening file picker on linux distribution
+- Fix Cannot delete database when corrupted
+- Fix server discovery fallback hiding server discovery errors
+- Fixed scaling on mobile devices in web.
+- Fix SPM: only publish when there are changes
+
+## 2.3.7
+
+### Added
+
+- File save and upload dialog on web.
+- use KMMBridge to publish iOS Swift and Objective-C artefacts
+  to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
+- Wizard for account setup after initial login
+- Support for "share to" Intent on Android
+- support for pasting the first file of a fileList into the clipboard
+
+### Changed
+
+- Upgrade Trixnity to 4.10.0
+- Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
+- Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
+  `MatrixMultiMessengerConfiguration`
+- Button to skip verification is now part of the list of available verification methods
+- implement a cutoff for previews of media and thumbnails
+
+### Fixed
+
+- Don't show placeholder, when lastRelevantEventId not known.
+- Don't mark state events as relevant.
+- Wizard and modal dialog buttons are always shown on smaller screens
+- Fix Emojis on Web
+- Fix directory picker in room export.
+- Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet
+  supported
+- Don't show edited message as new message
+- Correct lifecycle handling on web
+- SSO support in local dev server
+- Fix Scrollbars nearly invisible in dark mode
+- text messages containing symbols not allowed in file names no longer crash the app when posted into the clipboard
 
 ## 2.3.6
 
@@ -35,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reduce flickering by showing creation time and date on outbox messages
-- Change symbol for red messages to a double cross
+- Change symbol for read messages to a double cross
 - Remove alpha channel in outbox messages.
 - Unify calculation of last relevant event in room list.
 

@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaConstants.MAX_SIZE_IMAGE_PREVIEW_BYTES
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.SizeComputations
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
 
+private val log = KotlinLogging.logger { }
 
 interface ImageMessageViewModelFactory {
     fun create(
@@ -43,7 +44,7 @@ interface ImageMessageViewModelFactory {
         showSender: Flow<Boolean>,
         sender: Flow<UserInfoElement>,
         invitation: Flow<String?>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
     ): ImageMessageViewModel = ImageMessageViewModelImpl(
         viewModelContext,
@@ -58,7 +59,7 @@ interface ImageMessageViewModelFactory {
         showSender,
         sender,
         invitation,
-        onOpenModal,
+        onOpenMedia,
         mediaUploadProgress,
     )
 
@@ -90,9 +91,9 @@ class ImageMessageViewModelImpl(
     showSender: Flow<Boolean>,
     sender: Flow<UserInfoElement>,
     invitation: Flow<String?>,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     mediaUploadProgress: MutableStateFlow<FileTransferProgress?>,
-) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenModal),
+) : ImageMessageViewModel, AbstractFileBasedMessageViewModel(viewModelContext, content, onOpenMedia),
     MatrixClientViewModelContext by viewModelContext {
     override val invitation: StateFlow<String?> =
         invitation.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -101,10 +102,13 @@ class ImageMessageViewModelImpl(
     override val showSender: StateFlow<Boolean> =
         showSender.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val thumbnailLoad = getThumbnailAsync()
+
+    private val thumbnailLoad = getThumbnailAsync(this.maxPreviewSize)
 
     override val thumbnail: StateFlow<ByteArray?> = channelFlow {
         send(thumbnailLoad.await())
@@ -125,19 +129,18 @@ class ImageMessageViewModelImpl(
     override fun getWidth(maxWidth: Float, possibleHeight: Float) =
         SizeComputations.getWidth(height, possibleHeight, width, maxWidth)
 
+
     override fun openImage() {
-        if ((fileSize ?: 0) > MAX_SIZE_IMAGE_PREVIEW_BYTES) {
-            openSaveFileDialog()
-        } else url?.let { onOpenModal(OpenModalType.IMAGE, it, encryptedFile, fileName) }
+        url?.let { onOpenMedia(content, ::openSaveFileDialog) }
     }
 
     override fun cancelThumbnailDownload() {
         thumbnailLoad.cancel()
     }
 
-    private fun getThumbnailAsync(): Deferred<ByteArray?> =
+    private fun getThumbnailAsync(maxPreviewSize: Long): Deferred<ByteArray?> =
         coroutineScope.async {
-            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow)
+            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
         }
 
 

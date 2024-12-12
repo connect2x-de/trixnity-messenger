@@ -1,13 +1,24 @@
 package de.connect2x.messenger.compose.view.files
 
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.FilePickerType
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModel
 import net.folivo.trixnity.utils.ByteArrayFlow
 
 
 @Composable
-expect fun SaveDialog(
+expect fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
@@ -16,16 +27,34 @@ expect fun SaveDialog(
 )
 
 @Composable
-expect fun LoadDialog(
+expect fun LoadFileDialog(
+    availableTypes: List<FilePickerType>,
     onFileSelect: (FileDescriptor) -> Unit,
     onCloseLoadFileDialog: () -> Unit,
-    mode: LoadFileMode,
 )
 
-@Composable
-expect fun PDFReader(documentViewModel: PdfDocumentViewModel, scale: Float = 1f)
+expect fun filterFilePickerOptionsByAvailability(
+    vararg availablePickerTypes: FilePickerType,
+): List<FilePickerType>
 
-enum class LoadFileMode {
-    AnyFile,
-    Picture,
+@Composable
+fun DownloadErrorAlertDialog(
+    error: String,
+    onCloseSaveFileDialog: () -> Unit,
+) {
+    val i18n = DI.get<I18nView>()
+    AlertDialog(
+        modifier = Modifier.defaultMinSize(minWidth = 400.dp),
+        onDismissRequest = onCloseSaveFileDialog,
+        title = { Text(i18n.fileDialogDownloadErrorSave()) },
+        dismissButton = {
+            Button(
+                onCloseSaveFileDialog,
+                Modifier.buttonPointerModifier(),
+            ) { Text(i18n.commonOk()) }
+        },
+        confirmButton = {},
+        shape = RoundedCornerShape(8.dp),
+        text = { Text(error) },
+    )
 }

@@ -1,5 +1,9 @@
 package de.connect2x.messenger.compose.view
 
+import de.connect2x.messenger.compose.view.common.AdaptiveDialog
+import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
+import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionView
+import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
 import de.connect2x.messenger.compose.view.common.MatrixUsernameViewImpl
 import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountView
@@ -151,8 +155,6 @@ import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileView
 import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileViewImpl
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchView
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchViewImpl
-import de.connect2x.messenger.compose.view.roomlist.header.ShowSpacesView
-import de.connect2x.messenger.compose.view.roomlist.header.ShowSpacesViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.InviteView
 import de.connect2x.messenger.compose.view.roomlist.room.InviteViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerView
@@ -173,8 +175,12 @@ import de.connect2x.messenger.compose.view.search.UserSearchFieldView
 import de.connect2x.messenger.compose.view.search.UserSearchFieldViewImpl
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListViewImpl
+import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepList
+import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepListImpl
 import de.connect2x.messenger.compose.view.settings.AccountsOverviewView
 import de.connect2x.messenger.compose.view.settings.AccountsOverviewViewImpl
+import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStep
+import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStepImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintView
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintViewImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoLicensesView
@@ -205,6 +211,8 @@ import de.connect2x.messenger.compose.view.settings.ProfileSettingsView
 import de.connect2x.messenger.compose.view.settings.ProfileSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.messenger.compose.view.settings.UserSettingsViewImpl
+import de.connect2x.messenger.compose.view.sharing.ShareDataView
+import de.connect2x.messenger.compose.view.sharing.ShareDataViewImpl
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
 import de.connect2x.messenger.compose.view.theme.Theme
@@ -223,10 +231,14 @@ import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationView
 import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaDummyStepView
 import de.connect2x.messenger.compose.view.uia.UiaDummyStepViewImpl
+import de.connect2x.messenger.compose.view.uia.UiaEmailIdentityStepView
+import de.connect2x.messenger.compose.view.uia.UiaEmailIdentityStepViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaFallbackFlowView
 import de.connect2x.messenger.compose.view.uia.UiaFallbackFlowViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaModalBoxView
 import de.connect2x.messenger.compose.view.uia.UiaModalBoxViewImpl
+import de.connect2x.messenger.compose.view.uia.UiaMsisdnStepView
+import de.connect2x.messenger.compose.view.uia.UiaMsisdnStepViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
@@ -275,6 +287,7 @@ fun themeViewModule(): Module = module {
 
 fun commonViewModule() = module {
     single<MatrixUsernameView> { MatrixUsernameViewImpl() }
+    single<AdaptiveDialog> { AdaptiveDialogImpl() }
 }
 
 fun rootViewModule() = module {
@@ -301,6 +314,8 @@ fun filesViewModule() = module {
     single<ImageOverlayView> { ImageOverlayViewImpl() }
     single<VideoOverlayView> { VideoOverlayViewImpl() }
     single<PdfOverlayView> { PdfOverlayViewImpl() }
+    single<FilePickerTypeSelectionView> { FilePickerTypeSelectionViewImpl() }
+    single<ShareDataView> { ShareDataViewImpl() }
 }
 
 fun profileViewModule() = module {
@@ -322,7 +337,6 @@ fun roomListHeaderViewModule() = module {
     single<AccountDataView> { AccountDataViewImpl() }
     single<AccountAvatarView> { AccountAvatarViewImpl() }
     single<CloseProfileView> { CloseProfileViewImpl() }
-    single<ShowSpacesView> { ShowSpacesViewImpl() }
     single<ShowSearchView> { ShowSearchViewImpl() }
     single<AccountOptionsView> { AccountOptionsViewImpl() }
 }
@@ -341,7 +355,7 @@ fun searchViewModule() = module {
 
 fun roomViewModule() = module {
     single<RoomListElementView> { RoomListElementViewImpl() }
-    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl()  }
+    single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
 fun roomSettingsViewModule() = module {
@@ -418,6 +432,8 @@ fun settingsViewModule() = module {
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<ProfileSettingsView> { ProfileSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
+    single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
+    single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
 }
 
 fun verificationViewModule() = module {
@@ -433,4 +449,6 @@ fun uiaViewModule() = module {
     single<UiaFallbackFlowView> { UiaFallbackFlowViewImpl() }
     single<UiaDummyStepView> { UiaDummyStepViewImpl() }
     single<UiaActionConfirmationView> { UiaActionConfirmationViewImpl() }
+    single<UiaEmailIdentityStepView> { UiaEmailIdentityStepViewImpl() }
+    single<UiaMsisdnStepView> { UiaMsisdnStepViewImpl() }
 }

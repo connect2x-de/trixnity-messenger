@@ -194,10 +194,10 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
 @Composable
 fun DeviceVerificationSuccess(verificationStepSuccessViewModel: VerificationStepSuccessViewModel) {
     val i18n = DI.get<I18nView>()
-    val deviceName = verificationStepSuccessViewModel.deviceName.collectAsState().value ?: i18n.commonUnknown()
+
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(i18n.verificationSuccess(deviceName))
+            Text(i18n.verificationSuccess())
             Icon(Icons.Default.CheckCircle, i18n.commonSuccess(), tint = MaterialTheme.messengerColors.success)
         }
         Spacer(Modifier.size(20.dp))
@@ -208,17 +208,21 @@ fun DeviceVerificationSuccess(verificationStepSuccessViewModel: VerificationStep
 @Composable
 fun VerificationRejected(
     verificationStepRejectedViewModel: VerificationStepRejectedViewModel,
-    deviceVerification: Boolean = true
+    deviceVerification: Boolean = true,
+    isEmbedded: Boolean = false
 ) {
     val i18n = DI.get<I18nView>()
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = i18n.verificationRejected(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification())
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Default.Cancel,
+                i18n.commonCancelled(),
+                Modifier.size(50.dp),
+                tint = MaterialTheme.colorScheme.error
             )
-            Icon(Icons.Default.Cancel, i18n.commonFailure(), tint = MaterialTheme.colorScheme.error)
+            Text(text = i18n.verificationRejected(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
         }
-        if (deviceVerification) {
+        if (deviceVerification && !isEmbedded) {
             Spacer(Modifier.size(20.dp))
             OkButton(verificationStepRejectedViewModel::ok)
         }
@@ -228,15 +232,21 @@ fun VerificationRejected(
 @Composable
 fun VerificationTimeout(
     verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
-    deviceVerification: Boolean = true
+    deviceVerification: Boolean = true,
+    isEmbedded: Boolean = false
 ) {
     val i18n = DI.get<I18nView>()
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Default.Cancel,
+                i18n.commonCancelled(),
+                Modifier.size(50.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
             Text(i18n.verificationTimeout(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
-            Icon(Icons.Default.Cancel, i18n.commonFailure(), tint = MaterialTheme.colorScheme.error)
         }
-        if (deviceVerification) {
+        if (deviceVerification && !isEmbedded) {
             Spacer(Modifier.size(20.dp))
             OkButton(verificationStepTimeoutViewModel::ok)
         }
@@ -246,15 +256,21 @@ fun VerificationTimeout(
 @Composable
 fun VerificationCancelled(
     verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
-    deviceVerification: Boolean = true
+    deviceVerification: Boolean = true,
+    isEmbedded: Boolean = false
 ) {
     val i18n = DI.get<I18nView>()
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Default.Cancel,
+                i18n.commonCancelled(),
+                Modifier.size(50.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
             Text(text = i18n.verificationCancelled(if (deviceVerification) i18n.deviceVerification() else i18n.userVerification()))
-            Icon(Icons.Default.Cancel, i18n.commonCancelled(), tint = MaterialTheme.colorScheme.error)
         }
-        if (deviceVerification) {
+        if (deviceVerification && !isEmbedded) {
             Spacer(Modifier.size(20.dp))
             OkButton(verificationStepCancelledViewModel::ok)
         }

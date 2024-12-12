@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -162,7 +163,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success("image".encodeToByteArray().toByteArrayFlow())
+            } returns Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))
             every { userPresenceMock.presentEventContentFlow(any(), eq(roomId)) } returns flowOf(
                 PresenceEventContent(presence = Presence.ONLINE)
             )

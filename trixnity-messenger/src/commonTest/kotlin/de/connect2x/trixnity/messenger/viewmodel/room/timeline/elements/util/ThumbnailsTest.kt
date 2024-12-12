@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -56,8 +58,9 @@ class ThumbnailsTest : ShouldSpec() {
                     any()
                 )
             } returns
-                    Result.success("encryptedThumbnail".encodeToByteArray().toByteArrayFlow())
+                    Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
             val cut = ThumbnailsImpl()
+            val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
 
             val result = cut.loadThumbnail(
                 matrixClientMock,
@@ -67,6 +70,7 @@ class ThumbnailsTest : ShouldSpec() {
                 url = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
+                maxPreviewSize
             )
 
             result shouldBe "encryptedThumbnail".encodeToByteArray()
@@ -90,9 +94,11 @@ class ThumbnailsTest : ShouldSpec() {
                     any()
                 )
             } returns
-                    Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
+                    Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
             val cut = ThumbnailsImpl()
+            val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
+
             val result = cut.loadThumbnail(
                 matrixClientMock,
                 thumbnailFile = thumbnailFile,
@@ -101,6 +107,7 @@ class ThumbnailsTest : ShouldSpec() {
                 url = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
+                maxPreviewSize
             )
 
             result shouldBe "encryptedOriginal".encodeToByteArray()
@@ -127,6 +134,8 @@ class ThumbnailsTest : ShouldSpec() {
                     Result.failure(RuntimeException("Oh no!"))
 
             val cut = ThumbnailsImpl()
+            val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
+
             val result = cut.loadThumbnail(
                 matrixClientMock,
                 thumbnailFile = thumbnailFile,
@@ -135,12 +144,13 @@ class ThumbnailsTest : ShouldSpec() {
                 url = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
+                maxPreviewSize
             )
 
             result shouldBe null
         }
 
-        should("get no thumbnail when the encrypted thumbnail could not be loaded and the original file is larger than 1MB") {
+        should("get no thumbnail when the encrypted thumbnail could not be loaded and the original file is larger than the maximum preview size") {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
             everySuspend {
                 mediaServiceMock.getEncryptedMedia(
@@ -158,8 +168,9 @@ class ThumbnailsTest : ShouldSpec() {
                     any()
                 )
             } returns
-                    Result.success("encryptedOriginal".encodeToByteArray().toByteArrayFlow())
+                    Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
+            val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
             val cut = ThumbnailsImpl()
             val result = cut.loadThumbnail(
                 matrixClientMock,
@@ -167,8 +178,9 @@ class ThumbnailsTest : ShouldSpec() {
                 thumbnailUrl = null,
                 file = originalFile,
                 url = null,
-                sizeInBytes = 5_000_000, // too large!
+                sizeInBytes = maxPreviewSize + 1, // too large!
                 thumbnailProgressFlow = MutableStateFlow(null),
+                maxPreviewSize
             )
 
             result shouldBe null
@@ -184,12 +196,14 @@ class ThumbnailsTest : ShouldSpec() {
                 )
             } calls {
                 delay(500)
-                Result.success("encryptedThumbnail".encodeToByteArray().toByteArrayFlow())
+                Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
             }
 
             val scope = CoroutineScope(Dispatchers.Default)
 
             val cut = ThumbnailsImpl()
+            val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
+
             val result = scope.async {
                 cut.loadThumbnail(
                     matrixClientMock,
@@ -199,6 +213,7 @@ class ThumbnailsTest : ShouldSpec() {
                     url = null,
                     sizeInBytes = 1_000,
                     thumbnailProgressFlow = MutableStateFlow(null),
+                    maxPreviewSize
                 )
             }
             delay(250)

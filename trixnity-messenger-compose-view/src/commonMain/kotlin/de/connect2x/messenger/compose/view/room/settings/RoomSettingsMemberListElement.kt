@@ -76,8 +76,8 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                 .clickable {
                     memberListElementViewModel.showUserProfile()
                 }
-                .buttonPointerModifier()) {
-
+                .buttonPointerModifier(),
+        ) {
             Column {
                 Row(
                     Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
@@ -91,7 +91,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                             memberListElementViewModel.userTrustLevel,
                             memberListElementViewModel.isUserBlocked,
                             memberListElementViewModel.membership,
-                            memberListElementViewModel.iHavePowerToUnbanUser
+                            memberListElementViewModel.iHavePowerToUnbanUser,
                         )
                         Spacer(Modifier.size(5.dp))
                         Text(
@@ -103,9 +103,10 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                         )
                         if (showRole || showPowerLevel) {
                             Text(
-                                text = getRoleName(role, i18n) + if (showPowerLevel) " ($powerLevel)" else "",
+                                text = getRoomSettingsMemberRoleName(role, i18n)
+                                        + if (showPowerLevel) " ($powerLevel)" else "",
                                 style = MaterialTheme.typography.labelMedium,
-                                maxLines = 1
+                                maxLines = 1,
                             )
                         }
                     }
@@ -118,7 +119,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
     }
 }
 
-private fun getRoleName(role: Role, i18n: I18nView): String {
+private fun getRoomSettingsMemberRoleName(role: Role, i18n: I18nView): String {
     return when (role) {
         Role.ADMIN -> i18n.userProfileRoleAdministrator()
         Role.MODERATOR -> i18n.userProfileRoleModerator()

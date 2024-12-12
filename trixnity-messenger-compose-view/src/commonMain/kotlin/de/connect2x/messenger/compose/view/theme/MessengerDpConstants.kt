@@ -13,6 +13,7 @@ interface MessengerDpConstants {
     val middle: Dp
     val large: Dp
     val veryLarge: Dp
+    val touchTarget: Dp
 }
 
 val DefaultMessengerDpConstants: MessengerDpConstants
@@ -43,6 +44,11 @@ val DefaultMessengerDpConstants: MessengerDpConstants
              * 80.dp
              */
             override val veryLarge = 80.dp
+
+            /**
+             * 50.dp
+             */
+            override val touchTarget = 50.dp
         }
     }
 

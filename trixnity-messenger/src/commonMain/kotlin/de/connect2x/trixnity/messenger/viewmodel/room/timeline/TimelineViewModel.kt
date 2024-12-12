@@ -84,12 +84,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.flattenNotNull
+import net.folivo.trixnity.client.flattenValues
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.Timeline
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.originalName
@@ -119,7 +122,7 @@ interface TimelineViewModelFactory {
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
         return TimelineViewModelImpl(
@@ -128,7 +131,7 @@ interface TimelineViewModelFactory {
             isBackButtonVisible,
             onShowSettings,
             onBack,
-            onOpenModal,
+            onOpenMedia,
             onOpenMention
         )
     }
@@ -219,7 +222,7 @@ class TimelineViewModelImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
-    private val onOpenModal: OpenModalCallback,
+    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
@@ -605,10 +608,10 @@ class TimelineViewModelImpl(
         val viewModel = if (existingViewModel != null) existingViewModel
         else {
             val canLoadMoreBefore = timelineState.map {
-                it.canLoadBefore && it.lastLoadedEventIdBefore == eventId
+                it.canLoadBefore && it.elements.firstOrNull()?.viewModel?.eventId == eventId
             }
             val canLoadMoreAfter = timelineState.map {
-                it.canLoadAfter && it.lastLoadedEventIdAfter == eventId
+                it.canLoadAfter && it.elements.lastOrNull()?.viewModel?.eventId == eventId
             }
                 // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
                 .debounce(300.milliseconds)
@@ -628,7 +631,7 @@ class TimelineViewModelImpl(
                 onMessageEdited = ::onMessageEdited,
                 onMessageRepliedTo = ::onMessageRepliedTo,
                 onMessageReportTo = ::onShowReportMessageModal,
-                onOpenModal = onOpenModal,
+                onOpenMedia = onOpenMedia,
                 onOpenMention = onOpenMention,
             ).also {
                 timelineEventHolderViewModelCache[eventId] = it
@@ -690,7 +693,7 @@ class TimelineViewModelImpl(
                         transactionId = transactionId,
                         showDateAboveFlow = showDateAboveFlow,
                         showChatBubbleEdgeFlow = computeShowChatBubbleEdgeFlow(transactionId),
-                        onOpenModal = onOpenModal,
+                        onOpenMedia = onOpenMedia,
                         onOpenMention = onOpenMention,
                     ).also {
                         outboxElementHolderViewModelCache[transactionId] = it
@@ -981,7 +984,7 @@ class TimelineViewModelImpl(
         return matrixClient.room.getTimelineEventReactionAggregation(selectedRoomId, eventId)
             .flatMapLatest { reactions ->
                 combine(reactions.reactions.flatMap { (_, timelineEvents) ->
-                    timelineEvents.map {timelineEvent ->
+                    timelineEvents.map { timelineEvent ->
                         matrixClient.user.getById(selectedRoomId, timelineEvent.sender)
                     }
                 }) { users ->
@@ -994,7 +997,7 @@ class TimelineViewModelImpl(
                                         name = sender.originalName ?: sender.name,
                                         userId = sender.userId,
                                         initials = Initials.compute(sender.originalName ?: sender.name),
-                                        image = null
+                                        image = sender.avatarUrl?.let { matrixClient.media.getMedia(it).getOrNull() }
                                     ),
                                     isMe = event.sender == matrixClient.userId,
                                     timestamp = Instant.fromEpochMilliseconds(event.originTimestamp)

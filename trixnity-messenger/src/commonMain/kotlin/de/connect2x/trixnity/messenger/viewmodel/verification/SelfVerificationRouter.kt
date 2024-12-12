@@ -4,6 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.backStack
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
@@ -22,7 +24,7 @@ private val log = KotlinLogging.logger { }
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
-) {
+) : ViewModelContext by viewModelContext {
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
         MutableStateFlow(setOf<UserId>()) // in case of multiple self verifications, we need to do one after another
@@ -54,7 +56,7 @@ class SelfVerificationRouter(
                             onResetRecovery = {
                                 closeSelfVerification(selfVerificationConfig.userId)
                                 viewModelContext.coroutineScope.launch {
-                                    showBootstrap(
+                                    showCrossSigningBootstrap(
                                         selfVerificationConfig.userId
                                     )
                                 }
@@ -75,14 +77,14 @@ class SelfVerificationRouter(
                     )
             )
 
-            is Config.Bootstrap -> {
-                Wrapper.Bootstrap(
-                    viewModelContext.get<BootstrapViewModelFactory>().create(
+            is Config.CrossSigningBootstrap -> {
+                Wrapper.CrossSigningBootstrap(
+                    viewModelContext.get<CrossSigningBootstrapViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(
                             componentContext,
                             selfVerificationConfig.userId,
                         ),
-                        onClose = ::closeBootstrap,
+                        onClose = ::closeCrossSigningBootstrap,
                     )
                 )
             }
@@ -92,10 +94,15 @@ class SelfVerificationRouter(
         navigation.launchPush(viewModelContext.coroutineScope, Config.RedoSelfVerification(userId))
     }
 
+    val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    val messengerConfiguration = get<MatrixMessengerConfiguration>()
+
     /** @see startSelfVerificationsQueue() **/
     fun showSelfVerification(userId: UserId) {
         log.debug { "add account to self verification queue: $userId" }
-        if (bootstrapStarted.value) {
+        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished }) {
+            log.debug { "At least one account isn't set up with the wizard, not showing self verification for $userId" }
+        } else if (bootstrapStarted.value) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
         } else {
             // do sequentially (for different accounts), so here just fill the list
@@ -112,18 +119,18 @@ class SelfVerificationRouter(
         selfVerifications.value -= userId
     }
 
-    suspend fun showBootstrap(userId: UserId) {
+    suspend fun showCrossSigningBootstrap(userId: UserId) {
         // it can happen that the bootstrap is triggered twice (initial sync, then regular sync; to avoid any
         // complications, only allow one bootstrap to be shown at the time
         if (bootstrapStarted.value.not()) { // Todo: use mutex
-            log.debug { "show bootstrap view" }
+            log.debug { "show cross signing bootstrap view" }
             bootstrapStarted.value = true
-            navigation.pushSuspending(Config.Bootstrap(userId))
+            navigation.pushSuspending(Config.CrossSigningBootstrap(userId))
         }
     }
 
-    private fun closeBootstrap() = viewModelContext.coroutineScope.launch {
-        log.debug { "close bootstrap view" }
+    private fun closeCrossSigningBootstrap() = viewModelContext.coroutineScope.launch {
+        log.debug { "close cross signing bootstrap view" }
         bootstrapStarted.value = false
         navigation.popSuspending(onComplete = { log.debug { "close bootstrap completed: $it" } })
     }
@@ -168,7 +175,7 @@ class SelfVerificationRouter(
 
         class RedoSelfVerification(val viewModel: RedoSelfVerificationViewModel) : Wrapper()
 
-        class Bootstrap(val viewModel: BootstrapViewModel) : Wrapper()
+        class CrossSigningBootstrap(val viewModel: CrossSigningBootstrapViewModel) : Wrapper()
     }
 
     @Serializable
@@ -183,6 +190,6 @@ class SelfVerificationRouter(
         data class RedoSelfVerification(val userId: UserId) : Config()
 
         @Serializable
-        data class Bootstrap(val userId: UserId) : Config()
+        data class CrossSigningBootstrap(val userId: UserId) : Config()
     }
 }

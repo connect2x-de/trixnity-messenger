@@ -3,7 +3,7 @@ package de.connect2x.messenger.compose.view.root
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import com.arkivanov.decompose.extensions.compose.stack.Children
-import de.connect2x.messenger.compose.view.verification.BootstrapWizard
+import de.connect2x.messenger.compose.view.verification.CrossSigningBootstrapWizard
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModal
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModal
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
@@ -15,7 +15,7 @@ fun SelfVerificationSwitch(mainViewModel: MainViewModel) {
         when (val child = it.instance) {
             is SelfVerificationRouter.Wrapper.View -> SelfVerificationModal(child.viewModel)
             is SelfVerificationRouter.Wrapper.RedoSelfVerification -> RedoSelfVerificationModal(child.viewModel)
-            is SelfVerificationRouter.Wrapper.Bootstrap -> BootstrapWizard(child.viewModel)
+            is SelfVerificationRouter.Wrapper.CrossSigningBootstrap -> CrossSigningBootstrapWizard(child.viewModel)
             is SelfVerificationRouter.Wrapper.None -> Box {}
         }
     }

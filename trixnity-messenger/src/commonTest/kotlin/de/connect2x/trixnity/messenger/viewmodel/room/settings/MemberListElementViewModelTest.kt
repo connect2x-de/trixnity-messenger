@@ -19,9 +19,9 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineDispatcher
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -57,6 +57,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class MemberListElementViewModelTest : ShouldSpec() {
@@ -174,9 +175,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
             every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
 
-            val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
+            val cut = memberListElementViewModel(roomUserAlice)
 
-            testCoroutineScheduler.advanceTimeBy(200)
+            delay(200)
 
             cut.member.value shouldBe null
 
@@ -187,11 +188,11 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
             every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
 
-            val cut = memberListElementViewModel(coroutineContext, roomUserAlice)
+            val cut = memberListElementViewModel(roomUserAlice)
 
             launch { cut.member.collect() }
 
-            testCoroutineScheduler.advanceTimeBy(200)
+            delay(200)
 
             cut.member.value shouldBe memberElementAlice
 
@@ -214,7 +215,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = memberListElementViewModel(roomUserBob)
                     cut.role.first { it != Role.USER } shouldBe Role.ADMIN
                     cancelNeverEndingCoroutines()
                 }
@@ -223,7 +224,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = memberListElementViewModel(roomUserBob)
                     cut.showRole.first { it } shouldBe true
                     cancelNeverEndingCoroutines()
 
@@ -234,7 +235,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = memberListElementViewModel(roomUserBob)
                     cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
                     cancelNeverEndingCoroutines()
                 }
@@ -242,7 +243,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = memberListElementViewModel(roomUserBob)
                     delay(100)
                     cut.showRole.first { it } shouldBe true
                     cancelNeverEndingCoroutines()
@@ -255,7 +256,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = memberListElementViewModel(roomUserBob)
                     cut.role.value shouldBe Role.USER
                     cancelNeverEndingCoroutines()
                 }
@@ -263,7 +264,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     every {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
-                    val cut = memberListElementViewModel(coroutineContext, roomUserBob)
+                    val cut = memberListElementViewModel(roomUserBob)
                     delay(50)
                     cut.showRole.value shouldBe false
                     cancelNeverEndingCoroutines()
@@ -275,9 +276,9 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
 
     private suspend fun memberListElementViewModel(
-        coroutineContext: CoroutineContext, roomUser: RoomUser
+        roomUser: RoomUser
     ): MemberListElementViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        Dispatchers.setMain(Dispatchers.Unconfined)
         return MemberListElementViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -287,7 +288,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext,
+                coroutineContext = currentCoroutineContext(),
             ),
             roomUser,
             selectedRoomId = roomId,

@@ -8,8 +8,7 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalType
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalUserCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaUserCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
@@ -21,7 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 
 private val log = KotlinLogging.logger {}
@@ -32,7 +31,7 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenModal: OpenModalUserCallback,
+        onOpenMedia: OpenMediaUserCallback,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     ): RoomViewModel {
@@ -41,7 +40,7 @@ interface RoomViewModelFactory {
             roomId = selectedRoomId,
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
-            onOpenModal = onOpenModal,
+            onOpenMedia = onOpenMedia,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
         )
@@ -65,7 +64,7 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenModal: OpenModalUserCallback,
+    onOpenMedia: OpenMediaUserCallback,
     private val onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
@@ -91,8 +90,8 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenModal = { type: OpenModalType, mxcUrl: String, encryptedFile: EncryptedFile?, fileName: String ->
-            onOpenModal(type, mxcUrl, encryptedFile, fileName, userId)
+        onOpenMedia = { content: RoomMessageEventContent.FileBased, onDownload: () -> Unit ->
+            onOpenMedia(content, onDownload, userId)
         },
         onOpenMention = ::openMention
     )

@@ -10,6 +10,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -49,6 +50,11 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun uiaGenericError(message: String? = commonUnknown()) = translate {
         EN - "The authorization has failed: ${message ?: commonUnknown()}"
         DE - "Die Autorisierung ist fehlgeschlagen: ${message ?: commonUnknown()}"
+    }
+
+    fun uiaFallbackNotSupported(authenticationType: AuthenticationType) = translate {
+        EN - "The authentication type ${authenticationType.name} is not supported."
+        DE - "Die Authorisierungsmethode ${authenticationType.name} wird nicht unterstützt."
     }
 
     fun uiaInvalidRegistrationToken() = translate {
@@ -1079,7 +1085,7 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
 
     fun mediaTooLargeForPreview() = translate {
         EN - "File is too large for previewing. Try downloading it instead."
-        DE - "Datei ist zu groß für die Vorschau. Versuchen Sie es stattdessen herunterzuladen."
+        DE - "Datei ist zu groß für die Vorschau. Versuchen Sie stattdessen, die Datei herunterzuladen."
     }
 
     fun updateNotificationSettingsError(error: String) = translate {

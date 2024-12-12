@@ -819,208 +819,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("consider all spaces") {
-            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
-            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
-            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(room1),
-                    spaceId1 to MutableStateFlow(space1),
-                    spaceId2 to MutableStateFlow(space2),
-                )
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
-            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-            every { roomServiceMock.getState(spaceId1, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.spaces.value shouldHaveSize 2
-            cut.spaces.value[0].name shouldBe "space and beyond"
-            cut.spaces.value[1].name shouldBe "space and beyond and beyonder"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("filter rooms by the space that is currently selected") {
-            val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
-            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
-            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
-            val space1 = Room(spaceId1, createEventContent = spaceCreateEventContent)
-            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(room1),
-                    roomId2 to MutableStateFlow(room2),
-                    roomId3 to MutableStateFlow(room3),
-                    roomId4 to MutableStateFlow(room4),
-                    spaceId1 to MutableStateFlow(space1),
-                    spaceId2 to MutableStateFlow(space2),
-                )
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
-            every { roomServiceMock.getById(spaceId1) } returns MutableStateFlow(space1)
-            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-            every { roomServiceMock.getState(spaceId1, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-
-            every {
-                roomServiceMock.getAllState(eq(spaceId2), ChildEventContent::class)
-            } returns
-                    flowOf(
-                        mapOf(
-                            roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
-                            roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
-                        )
-                    )
-
-            every { userServiceMock.getAll(spaceId1) } returns MutableStateFlow(emptyMap())
-            every { userServiceMock.getAll(spaceId2) } returns MutableStateFlow(emptyMap())
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.activeSpace.value shouldBe null
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 4
-
-            cut.activeSpace.value = spaceId1
-            cut.sortedRoomListElementViewModels.first { it.isEmpty() }
-
-            cut.activeSpace.value = spaceId2
-            cut.sortedRoomListElementViewModels.first { it.size == 2 }
-
-            cut.activeSpace.value = null
-            cut.sortedRoomListElementViewModels.first { it.size == 4 }
-
-            cut.activeSpace.value = spaceId2
-            cut.sortedRoomListElementViewModels.first { it.size == 2 }
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("also show direct rooms with people that are members of the selected space") {
-            val room1 = Room(roomId1, createEventContent = roomCreateEventContent, isDirect = true)
-            val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
-            val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
-            val room4 = Room(roomId4, createEventContent = roomCreateEventContent)
-            val space2 = Room(spaceId2, createEventContent = spaceCreateEventContent)
-            every { roomServiceMock.getAll() } returns MutableStateFlow(
-                mapOf(
-                    roomId1 to MutableStateFlow(room1),
-                    roomId2 to MutableStateFlow(room2),
-                    roomId3 to MutableStateFlow(room3),
-                    roomId4 to MutableStateFlow(room4),
-                    spaceId2 to MutableStateFlow(space2),
-                )
-            )
-            every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-            every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-            every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
-            every { roomServiceMock.getById(roomId4) } returns MutableStateFlow(room4)
-            every { roomServiceMock.getById(spaceId2) } returns MutableStateFlow(space2)
-            every { roomServiceMock.getState(spaceId2, CreateEventContent::class, "") } returns
-                    flowOf(
-                        StateEvent(
-                            CreateEventContent(
-                                creator = user1,
-                                federate = false,
-                                roomVersion = "",
-                                type = RoomType.Space,
-                            ),
-                            EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
-                        )
-                    )
-
-            every {
-                roomServiceMock.getAllState(eq(spaceId2), ChildEventContent::class)
-            } returns
-                    flowOf(
-                        mapOf(
-                            roomId2.full to flowOf(spaceChildEvent(spaceId2, roomId2)),
-                            roomId3.full to flowOf(spaceChildEvent(spaceId2, roomId3)),
-                        )
-                    )
-
-            every { userServiceMock.getAll(spaceId2) } returns
-                    MutableStateFlow(
-                        mapOf(
-                            user1 to flowOf(roomUser(spaceId2, user1)),
-                            user2 to flowOf(roomUser(spaceId2, user2)),
-                            user3 to flowOf(roomUser(spaceId2, user3))
-                        )
-                    )
-
-            val cut = roomListViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.activeSpace.value = space2.roomId
-            cut.sortedRoomListElementViewModels.first {
-                println("... $it")
-                it.size == 3
-            }
-            cut.sortedRoomListElementViewModels.value[0].roomId shouldBe roomId1
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("only show rooms, spaces and direct chats of selected account") {
+        should("only show rooms and direct chats of selected account") {
             val roomId21 = RoomId("room21", "localhost") // direct room
             val roomId22 = RoomId("room22", "localhost") // group
             val roomId23 = RoomId("room23", "localhost") // group
@@ -1227,12 +1026,6 @@ class RoomListViewModelTest : ShouldSpec() {
                 println("(1) ... ${it.map { it.roomId }}")
                 it.size == 7
             }
-            cut.activeSpace.value = spaceId2
-            cut.sortedRoomListElementViewModels.first {
-                println("spaces ... ${it.map { it.roomId }}")
-                it.size == 4 // includes direct room (room1 for test, room21 for test2)
-            }
-            cut.activeSpace.value = null
 
             cut.accountViewModel.selectActiveAccount(user2)
             testCoroutineScheduler.advanceUntilIdle()
@@ -1240,16 +1033,6 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.sortedRoomListElementViewModels.first {
                 println("(2) ... ${it.map { it.roomId }}")
                 it.size == 3
-            }
-            cut.spaces.first {
-                println("spaces... ${it.map { it.roomId }}")
-                it.size == 1
-            }
-            cut.activeSpace.value = spaceId21
-            testCoroutineScheduler.advanceUntilIdle()
-            cut.sortedRoomListElementViewModels.first {
-                println("(3) ... ${it.map { it.roomId }}")
-                it.size == 1 // only room23 is in space21
             }
 
             subscriberJob.cancel()
@@ -1340,9 +1123,6 @@ class RoomListViewModelTest : ShouldSpec() {
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
         launch { cut.searchTerm.collect() }
-        launch { cut.spaces.collect() }
-        launch { cut.activeSpace.collect() }
-        launch { cut.showSpaces.collect() }
     }
 
     private suspend fun roomListViewModel(
@@ -1363,6 +1143,7 @@ class RoomListViewModelTest : ShouldSpec() {
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
+                                onUserProfileSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit
                             ): AccountViewModel {
                                 return object : AccountViewModel {
@@ -1380,10 +1161,13 @@ class RoomListViewModelTest : ShouldSpec() {
                                         onAccountSelected(userId) // needed to influence RoomListViewModel
                                     }
 
-                                    override fun userSettings() {
+                                    override fun openUserSettings() {
                                     }
 
-                                    override fun appInfo() {
+                                    override fun openUserProfile() {
+                                    }
+
+                                    override fun openAppInfo() {
                                     }
                                 }
                             }
@@ -1402,6 +1186,7 @@ class RoomListViewModelTest : ShouldSpec() {
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
             onUserSettingsSelected = mock(),
+            onUserProfileSelected = mock(),
             onOpenAppInfo = mock(),
             onOpenAccountsOverview = mock(),
             onSendLogs = mock(),

@@ -145,9 +145,17 @@ the lifecycle of the messenger. To override the standard configuration use `Matr
 ```kotlin
 val matrixMessenger = MatrixMessenger.create {
     appName = "Dino Messenger"
+    appId = "org.example.dino.messenger"
     // ... more config ...
 }
 ```
+
+### Add HttpClientEngine
+
+Although Ktors `HttpClient`s used by Trixnity (Messenger) automatically use a `HttpClientEngine` defined in the
+classpath, it is highly recommended to explicitly set it in the configuration. Only that way, it can be shared between
+all `HttpClient` instances. Otherwise, each `HttpClient` creates a new `HttpClientEngine`, which can lead to performance
+issues on heavy usage of the SDK.
 
 ### Change the default behavior of view models
 
@@ -198,7 +206,7 @@ from `createDefaultTrixnityMessengerModules()`:
 
 ```kotlin
 val matrixMessenger = MatrixMessenger.create {
-    modules += addMatrixAccountModule()
+    modulesFactories += ::addMatrixAccountModule
 }
 ```
 
@@ -301,173 +309,19 @@ It is possible to define a completely custom `RoomExportSink` to export a room t
 a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put into the DI
 (e.g. via `singleOf(::CustomFactory).bind<ExportRoomSinkFactory>()`).
 
-## Usage from Swift (iOS or Mac)
-
-Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac applications.
-
-### Installation
-
-At this moment, the pipeline for Swift builds has not been automated in the CI (this is on our todo-list). Download the
-current
-version [here](https://gitlab.com/api/v4/projects/47538655/packages/maven/de/connect2x/trixnity-messenger-kmmbridge/1.0.8-LOCAL/trixnity-messenger-kmmbridge-1.0.8-LOCAL.zip).
-You can import the XCFramework locally into your project.
-
-### Initialization
-
-In order to use the library from Swift, always ```import trixnity_messenger``` in your files.
-
-To create an instance of Trixnity Messenger do the following:
-
-```swift
-let matrixMessenger = MatrixMessenger.companion.create()
-```
-
-Pass this view model to your root UI node, e.g., a view in SwiftUI:
-
-```swift
-var body: some Scene {
-    WindowGroup {
-        RootView(matrixMessenger.createRoot())
-    }
-}
-```
-
-### Values and Flows
-
-Trixnity Messengers provides many properties that can change over time. Two data types are used: `Value`s and `Flow`s (
-with its specializations `StateFlow` and `MutableStateFlow`). To access those values and get informed when they update,
-different helpers can be used.
-
-#### Value
-
-Values represent the changes in the routers (the data type is coming
-from [decompose](https://arkivanov.github.io/Decompose)).
-
-Use this code to get a Swift wrapper for `Value`s.
-
-```swift
-import Foundation
-import trixnity_messenger
-
-public class ObservableValue<T : AnyObject> : ObservableObject {
-    private let observableValue: Value<T>
-
-    @Published
-    var value: T
-
-    private var observer: ((T) -> Void)?
-    
-    init(_ value: Value<T>) {
-        observableValue = value
-        self.value = observableValue.value
-        observer = { [weak self] value in self?.value = value }
-        observableValue.subscribe(observer: observer!)
-    }
-
-    deinit {
-        observableValue.unsubscribe(observer: self.observer!)
-    }
-}
-```
-
-```swift
-import SwiftUI
-import trixnity_messenger
-
-@propertyWrapper struct StateValue<T : AnyObject>: DynamicProperty {
-    @ObservedObject
-    private var obj: ObservableValue<T>
-
-    var wrappedValue: T { obj.value }
-
-    init(_ value: Value<T>) {
-        obj = ObservableValue(value)
-    }
-}
-```
-
-This allows for the following code to work in SwiftUI:
-
-```swift
-struct RootView: View {
-    @StateValue
-    private var stack: ChildStack<RootRouter.Config, RootRouter.RootWrapper>
-    private var activeStack: RootRouter.RootWrapper { stack.active.instance }
-    
-    init(_ viewModel: RootViewModel) {
-        _stack = StateValue(viewModel.rootStack)
-    }
-    
-    // ...
-}
-```
-
-Now, you can access `activeStack` in your view and get the current router value all the time.
-
-#### Flows
-
-Trixnity Messenger uses [SKIE](https://skie.touchlab.co/) to generate some helper code to get nicer interfaces of Flows
-when accessing them from Swift code. To make it even easier, you can use the following helper:
-
-```swift
-func observe<T>(_ stateFlow: SkieSwiftStateFlow<T>, _ assign: (T) -> ()) async {
-  for await value in stateFlow.map({$0}) {
-      assign(value)
-  }
-}
-```
-
-For some primitive values (`Bool`, `Int`, etc.) you might want to add specializations of this method.
-
-To use flows from SwiftUI, create a wrapper of the view model you want to observe. As an example:
-
-```swift
-class AddMatrixAccountViewModelSwift: ObservableObject {
-    let delegate: AddMatrixAccountViewModel
-    @Published private(set) var serverDiscoveryState: AddMatrixAccountViewModelServerDiscoveryState
-    
-    init(delegate: AddMatrixAccountViewModel) {
-        self.delegate = delegate
-        self.serverDiscoveryState = delegate.serverDiscoveryState.value
-    }
-    
-    @MainActor
-    func activate() async {
-        await observe(delegate.serverDiscoveryState) { self.serverDiscoveryState = $0 }
-    }
-}
-```
-
-It can be initiated like this:
-
-```swift
-struct AddMatrixAccountView: View {
- 
-    @ObservedObject private var viewModel: AddMatrixAccountViewModelSwift
-    
-    init(_ addMatrixAccountViewModel: AddMatrixAccountViewModel) {
-        viewModel = AddMatrixAccountViewModelSwift(delegate: addMatrixAccountViewModel)
-    }
-    
-    // here you can access `viewModel.serverDiscoveryState` and always get the last value
-}
-.task { // this is important: activate the wrapper view model observation of the original view model
-    await viewModel.activate()
-}
-```
-
 ## Root path
 
 On the JVM (not Android) the root path can be overridden by setting an environment variable
 named `TRIXNITY_MESSENGER_ROOT_PATH`.
 
-## Snapshot builds
+## Snapshot / Dev builds
 
-Snapshot are published on each commit to main.
-Append `-SNAPSHOT-COMMIT_SHORT_SHA` to the current version. You can find
-the `COMMIT_SHORT_SHA` [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/commits/main).
+Snapshot are published on each commit to main (usually after a merge request is approved and merged).
+Append `-DEV-<increasing_number>` to the current version. You can find
+the released versions [here](https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/packages).
+
 You may also add `https://gitlab.com/api/v4/projects/26519650/packages/maven` to your
-maven repositories, which contains SNAPSHOT versions of Trixnity.
+maven repositories, which contains DEV versions of Trixnity.
 
 ## Local builds
 
@@ -481,6 +335,83 @@ and you're having issues with running `publishMavenToLocal`, build the project u
 instead and optionally invoke tasks like `publishAndroidReleasePublicationToMavenLocal`,
 `publishJvmPublicationToMavenLocal` and `publishJsPublicationToMavenLocal` if needed.
 Same goes for macOS/iOS targets.
+
+## Usage from Swift (iOS or Mac)
+
+Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac applications.
+
+### Installation
+
+You can add a dependency with Swift Package Manager: [gitlab.com/connect2x/trixnity-messenger/spm.git](gitlab.com/connect2x/trixnity-messenger/spm.git).
+
+The easiest way to get started is to look at the example
+at: [https://gitlab.com/connect2x/trixnity-messenger/example-swiftui](https://gitlab.com/connect2x/trixnity-messenger/example-swiftui)
+
+### Initialization
+
+In order to use the library from Swift, always ```import TrixnityMessenger``` in your files.
+
+You have to create a `MatrixMultiMessenger` and a `MatrixMessenger` in order to create a `RootViewModel`. Take a look
+at the example on how to achieve this.
+
+After the creation of the `RootViewModel`, you can use it inside SwiftUI Views.
+
+### Values and Flows
+
+Trixnity Messengers provides many properties that can change over time. Two data types are used: `Value`s and `Flow`s (
+with its specializations `StateFlow` and `MutableStateFlow`). To access those values and get informed when they update,
+different helpers can be used.
+
+#### Value
+
+Values represent the changes in the routers (the data type is coming
+from [decompose](https://arkivanov.github.io/Decompose)).
+
+Please refer to the example-swiftui code (`StateValue.swift` and `ObservableValue.swift`).
+
+These helpers allow for the following code to work in SwiftUI:
+
+```swift
+struct RootView: View {
+    @StateValue
+    private var stack: ChildStack<RootRouter.Config, RootRouter.Wrapper>
+    private var activeStack: RootRouter.Wrapper { stack.active.instance }
+    
+    init(_ viewModel: RootViewModel) {
+        _stack = StateValue(viewModel.stack)
+    }
+    
+    var body: some View {
+        Group {
+            switch activeStack {
+            case let addMatrixAccount as RootRouter.WrapperAddMatrixAccount:
+                AddMatrixAccountView(addMatrixAccount.viewModel)
+            // more cases ...
+            }
+        }
+    }
+}
+```
+
+#### Flows
+
+Trixnity Messenger uses [SKIE](https://skie.touchlab.co/) to generate some helper code to get nicer interfaces of Flows
+when accessing them from Swift code.
+
+It is possible to access `Flows` and its specializations in SwiftUI code. Most notably is the SwiftUI
+helper class `Observing`. E.g., it is used in the `AddMatrixAccountView` of the example:
+
+```swift
+var body: some View {
+    // ...
+    Observing(viewModel.serverDiscoveryState) { serverDiscoveryState in
+        // ...
+    }
+}
+```
+
+`Observing` takes care of all changes happening in the `Flow` and propagates changes to SwiftUI so that the UI can
+react accordingly. No other translation is needed.
 
 ## Contributions
 

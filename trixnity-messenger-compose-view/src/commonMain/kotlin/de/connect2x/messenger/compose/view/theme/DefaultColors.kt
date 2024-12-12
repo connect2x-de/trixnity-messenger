@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 
 // Light theme template (mostly used for lightness/saturation)
@@ -45,7 +46,8 @@ internal val md_theme_dark_tertiary = Color(0xFFE6E6E6)
 internal val md_theme_dark_onTertiary = Color(0xFF101010)
 internal val md_theme_dark_tertiaryContainer = Color(0xFF555555)
 internal val md_theme_dark_onTertiaryContainer = Color(0xFFE6E6E6)
-internal val md_theme_dark_error = Color(0xFF8A0D1D)
+// TODO: use https://material-foundation.github.io/material-theme-builder/
+internal val md_theme_dark_error = Color(0x66FFFFFF).compositeOver(md_theme_light_error)
 internal val md_theme_dark_errorContainer = Color(0xFFFFDAD6)
 internal val md_theme_dark_onError = Color(0xFFFFFFFF)
 internal val md_theme_dark_onErrorContainer = Color(0xFF410002)

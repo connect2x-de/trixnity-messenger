@@ -35,25 +35,29 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.contrastByLuminance
+import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
-import de.connect2x.messenger.compose.view.common.lightness
-import de.connect2x.messenger.compose.view.common.saturation
 import de.connect2x.messenger.compose.view.get
 
 interface AppearanceSettingsColorView {
     @Composable
-    fun ColumnScope.create(text: String,
-                           defaultColor: Color,
-                           color: Color,
-                           set: (Color) -> Unit)
+    fun ColumnScope.create(
+        text: String,
+        defaultColor: Color,
+        color: Color,
+        set: (Color) -> Unit
+    )
 }
 
 @Composable
-fun ColumnScope.AppearanceSettingsColor(text: String,
-                                        defaultColor: Color,
-                                        color: Color,
-                                        set: (Color) -> Unit) {
-    with(DI.get<AppearanceSettingsColorView>()) {create(text, defaultColor, color, set) }
+fun ColumnScope.AppearanceSettingsColor(
+    text: String,
+    defaultColor: Color,
+    color: Color,
+    set: (Color) -> Unit
+) {
+    with(DI.get<AppearanceSettingsColorView>()) { create(text, defaultColor, color, set) }
 }
 
 class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
@@ -72,10 +76,10 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
             Text(
                 text = "${text}: ",
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall,
             )
             Spacer(Modifier.width(5.dp))
-            AppearanceSettingsColorPreview(Color.hsl(getCurrentHue(), color.saturation, color.lightness))
+            AppearanceSettingsColorPreview(color.deriveFromHue(getCurrentHue(), 1F, 0.5F, 1F))
         }) {
             Row(
                 modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -87,7 +91,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         newHue = it
                     },
                     onValueChangeFinished = {
-                        set(Color.hsl(newHue, color.saturation, color.lightness))
+                        set(color.deriveFromHue(newHue, 1F, 0.5F, 1F))
                     },
                     valueRange = 0F..359F,
                     steps = 359,
@@ -102,7 +106,8 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
+                        tint = color.contrastByLuminance(Color.White, Color.Black),
                     )
                 }
             }

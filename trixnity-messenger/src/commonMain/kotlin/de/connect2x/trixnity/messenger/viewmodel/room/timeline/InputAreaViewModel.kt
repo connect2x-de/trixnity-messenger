@@ -1,12 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.benasher44.uuid.uuid4
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.afterNewline
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +20,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -49,7 +50,6 @@ import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.toByteArray
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
@@ -371,7 +371,7 @@ open class InputAreaViewModelImpl(
     }
 
     override fun onAttachmentFileSelect(file: FileDescriptor) {
-        log.debug { "selected $file as attachment" }
+        log.debug { "selected as attachment: ${file.fileName} of size: ${file.fileSize}" }
         onShowAttachmentSendView(file)
     }
 
@@ -440,6 +440,7 @@ open class InputAreaViewModelImpl(
 
     private suspend fun listOfUsers(search: String): List<Username> {
         val allUsers = matrixClient.user.getAll(selectedRoomId).first() // wait for all users to load
+        val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
         return allUsers
             .entries.asFlow()
             .map { users -> users.value.first() }
@@ -458,7 +459,13 @@ open class InputAreaViewModelImpl(
                     emit(
                         roomUser.avatarUrl?.let { url ->
                             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                                onSuccess = { it.toByteArray() },
+                                onSuccess = {
+                                    it.limitedByteArrayOrNull(
+                                        maxPreviewSize
+                                    ) {
+                                        log.error { "User avatar for user ${roomUser.userId} exceeds max preview limit, so it is not displayed" }
+                                    }
+                                },
                                 onFailure = { null }
                             )
                         }

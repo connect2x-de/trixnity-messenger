@@ -42,7 +42,6 @@ class AccountDataViewImpl : AccountDataView {
             ) {
                 AccountAvatar(accountViewModel)
                 CloseProfile(roomListViewModel)
-                ShowSpaces(roomListViewModel)
                 ShowSearch(roomListViewModel)
                 AccountOptions(accountViewModel, roomListViewModel)
             }

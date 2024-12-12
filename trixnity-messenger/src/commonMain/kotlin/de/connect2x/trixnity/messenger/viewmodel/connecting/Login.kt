@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.util.network.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.client.MatrixClient
@@ -109,11 +108,7 @@ private suspend fun catchLogin(
             is UnresolvedAddressException, is IllegalArgumentException ->
                 i18n.connectingErrorWrongAddress()
 
-            is IOException -> {
-                handleIoException(i18n, exc)
-            }
-
-            else -> handleCause(i18n, exc.cause ?: exc)
+            else -> handleException(i18n, exc)
         }
     }
 
@@ -131,29 +126,7 @@ private suspend fun catchLogin(
     return matrixClient
 }
 
-// HACK to circumvent https://youtrack.jetbrains.com/issue/KTOR-1372
-private suspend fun handleIoException(i18n: I18n, exc: Exception): String {
+private fun handleException(i18n: I18n, exc: Exception): String {
     log.error { exc }
-    return if (exc.message == "Connection refused" ||
-        exc.message?.startsWith("Failed to connect") == true ||
-        exc.message == "Verbindungsaufbau abgelehnt"
-    ) {
-        i18n.connectingErrorStandard(exc.message ?: i18n.commonUnknown())
-    } else if (exc.message?.startsWith("Cleartext HTTP traffic") == true) {
-        i18n.connectingErrorHttps()
-    } else {
-        handleCause(i18n, exc.cause ?: exc)
-    }
+    return i18n.connectingErrorStandard(exc.message ?: i18n.commonUnknown())
 }
-
-private suspend fun handleCause(i18n: I18n, exc: Throwable) =
-    when (exc) {
-        is UnresolvedAddressException, is IllegalArgumentException ->
-            i18n.connectingErrorWrongAddress()
-
-        is IOException -> {
-            handleIoException(i18n, exc)
-        }
-
-        else -> i18n.connectingErrorStandard(exc.message ?: i18n.commonUnknown())
-    }

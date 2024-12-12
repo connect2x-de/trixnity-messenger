@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
@@ -16,6 +15,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat.getSystemService
+import de.connect2x.trixnity.messenger.util.ActivityGetter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.Koin
 
@@ -79,7 +79,10 @@ actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Bool
     this // empty Modifier
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
-    val clipboard: ClipboardManager? = getSystemService(di.get<Context>(), ClipboardManager::class.java)
-    val clip = ClipData.newPlainText("copy", value)
-    clipboard?.setPrimaryClip(clip)
+    val context = di.getOrNull<ActivityGetter>()?.invoke()?.applicationContext
+    if (context != null) {
+        val clipboard: ClipboardManager? = getSystemService(context, ClipboardManager::class.java)
+        val clip = ClipData.newPlainText("copy", value)
+        clipboard?.setPrimaryClip(clip)
+    }
 }

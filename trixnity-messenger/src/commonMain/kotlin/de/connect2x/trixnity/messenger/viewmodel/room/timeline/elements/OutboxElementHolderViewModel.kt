@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenModalCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -20,6 +21,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
@@ -39,7 +41,7 @@ interface OutboxElementHolderViewModelFactory {
         transactionId: String,
         showDateAboveFlow: Flow<Boolean>,
         showChatBubbleEdgeFlow: Flow<Boolean>,
-        onOpenModal: OpenModalCallback,
+        onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
     ): OutboxElementHolderViewModel {
         return OutboxElementHolderViewModelImpl(
@@ -50,7 +52,7 @@ interface OutboxElementHolderViewModelFactory {
             transactionId,
             showDateAboveFlow,
             showChatBubbleEdgeFlow,
-            onOpenModal,
+            onOpenMedia,
             onOpenMention
         )
     }
@@ -76,12 +78,14 @@ open class OutboxElementHolderViewModelImpl(
     override val transactionId: String,
     showDateAboveFlow: Flow<Boolean>,
     showChatBubbleEdgeFlow: Flow<Boolean>,
-    onOpenModal: OpenModalCallback,
+    onOpenMedia: OpenMediaCallback,
     onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
     private val richRepliesComputations = get<RichRepliesComputations>()
     private val i18n = get<I18n>()
+
+    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override val timelineElementViewModel: StateFlow<BaseTimelineElementViewModel?> =
         combine(
@@ -91,7 +95,8 @@ open class OutboxElementHolderViewModelImpl(
         ) { outboxMessage, showDateAbove, showChatBubbleEdge ->
             val content = outboxMessage?.content
             val creationTime = outboxMessage?.createdAt?.toLocalDateTime(viewModelContext.get())
-            if (content is RoomMessageEventContent)
+            if (content?.relatesTo is RelatesTo.Replace) null
+            else if (content is RoomMessageEventContent)
                 when (content) {
                     is TextBased.Notice -> {
                         get<NoticeMessageViewModelFactory>().create(
@@ -102,7 +107,8 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
@@ -129,7 +135,8 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
@@ -156,7 +163,8 @@ open class OutboxElementHolderViewModelImpl(
                             referencedMessage = richRepliesComputations.getReferencedMessage(
                                 matrixClient,
                                 content.relatesTo,
-                                selectedRoomId
+                                selectedRoomId,
+                                maxPreviewSize
                             ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null),
                             message = content.bodyWithoutFallback,
                             formattedBody = content.formattedBody,
@@ -188,7 +196,7 @@ open class OutboxElementHolderViewModelImpl(
                             showSender = MutableStateFlow(false),
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             invitation = MutableStateFlow(null),
-                            onOpenModal = onOpenModal,
+                            onOpenMedia = onOpenMedia,
                             mediaUploadProgress = outboxMessage.mediaUploadProgress,
                         )
                     }
@@ -207,7 +215,7 @@ open class OutboxElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
-                            onOpenModal = onOpenModal,
+                            onOpenMedia = onOpenMedia,
                             mediaUploadProgress = outboxMessage.mediaUploadProgress
                         )
                     }
@@ -226,7 +234,7 @@ open class OutboxElementHolderViewModelImpl(
                             showChatBubbleEdge = showChatBubbleEdge,
                             showBigGap = showChatBubbleEdge,
                             invitation = MutableStateFlow(null),
-                            onOpenModal = onOpenModal,
+                            onOpenMedia = onOpenMedia,
                             mediaUploadProgress = outboxMessage.mediaUploadProgress
                         )
                     }
@@ -246,7 +254,7 @@ open class OutboxElementHolderViewModelImpl(
                             sender = MutableStateFlow(UserInfoElement("", UserId(""))),
                             invitation = MutableStateFlow(null),
                             mediaUploadProgress = outboxMessage.mediaUploadProgress,
-                            onOpenModal = onOpenModal,
+                            onOpenMedia = onOpenMedia,
                         )
                     }
 
@@ -270,7 +278,11 @@ open class OutboxElementHolderViewModelImpl(
                     is Unknown,
                     is VerificationRequest -> createNullTimelineElementViewModel()
                 } else createNullTimelineElementViewModel()
-        }.stateIn(coroutineScope, SharingStarted.Lazily, null) // we need Lazily here as otherwise this might be computed multiple times
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.Lazily,
+            null
+        ) // we need Lazily here as otherwise this might be computed multiple times
 
     private fun createNullTimelineElementViewModel() =
         NullTimelineElementViewModel(
