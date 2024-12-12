@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.flatten
@@ -354,10 +354,10 @@ class TimelineElementHolderViewModelImpl(
      *   This List must also forget "old" events, when not needed anymore and consider membership changes depending on history visibility.
      */
     private fun isReadSearch(roomId: RoomId, eventId: EventId): Flow<IsReadSearchResult> =
-        getReceipts(roomId).transformLatest { receipts ->
+        getReceipts(roomId).flatMapLatest { receipts ->
             log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
             matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
-                .collect {
+                .transform {
                     val timelineEvent = it.first()
                     val sender = timelineEvent.sender
                     val currentEventId = timelineEvent.eventId

@@ -41,18 +41,20 @@ class MessageInfoViewImpl : MessageInfoView {
             return
         }
 
-        var readers = timelineElementHolderViewModel.isReadBy.collectAsState().value ?: emptyList()
-        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
-        val focusRequester = remember { FocusRequester() }
+        if (infoOpen.value) {
+            var readers = timelineElementHolderViewModel.isReadBy.collectAsState().value ?: emptyList()
+            val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
+            val focusRequester = remember { FocusRequester() }
 
-        InfoPopup(
-            isOpen = infoOpen.value,
-            focusRequester = focusRequester,
-            onDismiss = {
-                infoOpen.value = false
-            },
-            readers = readers,
-            reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
-        )
+            InfoPopup(
+                isOpen = infoOpen.value,
+                focusRequester = focusRequester,
+                onDismiss = {
+                    infoOpen.value = false
+                },
+                readers = readers,
+                reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
+            )
+        }
     }
 }
