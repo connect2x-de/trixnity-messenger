@@ -420,7 +420,6 @@ class RoomViewModelTest : ShouldSpec() {
             isBackButtonVisible = MutableStateFlow(false),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),
-            showedUserId = MutableStateFlow(null)
         )
         return roomViewModel
     }

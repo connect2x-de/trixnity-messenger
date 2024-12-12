@@ -253,7 +253,7 @@ class UserProfileViewModelTest : ShouldSpec() {
                 cut.kickUser()
                 testCoroutineScheduler.advanceTimeBy(100.milliseconds)
 
-                cut.error.value shouldBe ""
+                cut.error.value shouldBe null
                 verifySuspend {
                     roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
                 }

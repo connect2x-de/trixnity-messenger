@@ -51,6 +51,8 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
+    private val testUser = UserId("test", "server")
+
     private val roomId = RoomId("room", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
@@ -65,9 +67,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
-    private val closeMemberOptions = mock<Function0<Unit>>()
-
-
     init {
         coroutineTestScope = true
 
@@ -78,7 +77,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 userServiceMock,
                 matrixClientServerApiMock,
                 roomsApiClientMock,
-                closeMemberOptions
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -113,17 +111,14 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             beforeTest {
                 every {
-                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                    userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(alice))
                 } returns MutableStateFlow(100L)
-
+                every {
+                    userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
+                } returns MutableStateFlow(100L)
             }
 
             should("close member options after changing the user role") {
-
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
 
                 everySuspend {
                     roomsApiClientMock.sendStateEvent(
@@ -140,7 +135,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 cut.setRoleToAdmin()
                 testCoroutineScheduler.advanceUntilIdle()
 
-                cut.error.value shouldBe ""
+                cut.error.value shouldBe null
                 verifySuspend {
                     roomsApiClientMock.sendStateEvent(
                         eq(roomId),
@@ -150,18 +145,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     )
                 }
 
-                closeMemberOptionsWasCalled shouldBe true
                 cancelNeverEndingCoroutines()
 
             }
 
             should("show an error message when trying to change a role and we are not connected") {
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
-
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
 
                 val cut = changePowerLevelViewModel(
                     coroutineContext, alice, MutableStateFlow(100L)
@@ -170,7 +159,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 testCoroutineScheduler.advanceUntilIdle()
 
                 cut.error.value shouldNotBe null
-                closeMemberOptionsWasCalled shouldBe false
                 cancelNeverEndingCoroutines()
             }
 
@@ -208,11 +196,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             should("close member options after changing the power level successfully") {
 
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
-
                 everySuspend {
                     roomsApiClientMock.sendStateEvent(
                         eq(roomId),
@@ -228,7 +211,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 cut.setPowerLevelTo(99L)
                 testCoroutineScheduler.advanceUntilIdle()
 
-                cut.error.value shouldBe ""
+                cut.error.value shouldBe null
                 verifySuspend {
                     roomsApiClientMock.sendStateEvent(
                         eq(roomId),
@@ -238,17 +221,11 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     )
                 }
 
-                closeMemberOptionsWasCalled shouldBe true
                 cancelNeverEndingCoroutines()
             }
             should("show an error message if trying to change a power level and we are not connected") {
 
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
-
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
 
                 val cut = changePowerLevelViewModel(
                     coroutineContext, alice, MutableStateFlow(100L)
@@ -257,7 +234,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 testCoroutineScheduler.advanceUntilIdle()
 
                 cut.error.value shouldNotBe null
-                closeMemberOptionsWasCalled shouldBe false
                 cancelNeverEndingCoroutines()
             }
 
@@ -380,10 +356,10 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)),
+                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)),
                     )
                 }.koin,
-                userId = UserId("test", "server"),
+                userId = userId,
                 coroutineContext = coroutineContext
             ),
             _roomUser = MutableStateFlow(
@@ -402,7 +378,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     )
                 )
             ),
-            error = MutableStateFlow(""),
+            error = MutableStateFlow(null),
             selectedRoomId = roomId,
             powerLevel = powerLevel,
         )
