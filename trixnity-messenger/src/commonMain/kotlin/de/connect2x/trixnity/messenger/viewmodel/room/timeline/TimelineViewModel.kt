@@ -43,7 +43,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -284,7 +283,7 @@ class TimelineViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override val scrollTo: MutableSharedFlow<String> =
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_LATEST)
+        MutableSharedFlow(extraBufferCapacity = 1)
 
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
 
@@ -960,7 +959,7 @@ class TimelineViewModelImpl(
 
     private fun scheduleScrollTo(key: String) {
         coroutineScope.launch {
-            val result = withTimeoutOrNull(1.seconds) {
+            val result = withTimeoutOrNull(2.seconds) {
                 elements.first { vms -> vms.any { it.key == key } }
                 log.debug { "scheduled scroll to $key" }
                 scrollTo.emit(key)

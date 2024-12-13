@@ -174,13 +174,13 @@ class TimelineViewImpl : TimelineView {
                     timelineViewModel.viewState.value = uiState
                 }
 
-                LaunchedEffect(scrollTo) {
+                LaunchedEffect(scrollTo, timelineElementHolderViewModels) {
                     if (scrollTo != null) {
                         val index = timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
                         if (index >= 0) {
                             log.debug { "scrolling to $scrollTo (index=$index)" }
-                            scrollTo = null
                             listState.animateScrollToItem(index)
+                            scrollTo = null
                         }
                     }
                 }
