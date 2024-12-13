@@ -54,10 +54,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 
 
 private val log = KotlinLogging.logger {}
@@ -96,31 +99,38 @@ class TimelineViewImpl : TimelineView {
             timelineViewModel.elements.collect { elements ->
                 log.trace { "wait for elements to be ready" }
                 withContext(Dispatchers.Default) {
-                    (elements - elementsFromLastCollect).forEach { element ->
-                        // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
-                        launch {
-                            val element = element.element.filterNotNull().first()
-                            timelineElementViewSelector.waitFor(element)
-                        }
-                        launch { element.isFirstInUserSequence.filterNotNull().first() }
-                        launch { element.showSender.filterNotNull().first() }
-                        launch { element.showBigGapBefore.filterNotNull().first() }
-                        launch {
-                            val job = launch { element.repliedElement.filterNotNull().first() }
-                            val isReply = element.isReply.filterNotNull().first()
-                            if (!isReply) job.cancel()
-                        }
-                        when (element) {
-                            is TimelineElementHolderViewModel -> {
-                                launch { element.hasUnreadMarker.filterNotNull().first() }
-                                launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
-                                launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
-                                if (element.isByMe) launch { element.isRead.filterNotNull().first() }
-                                launch { element.reactions.filterNotNull().first() }
-                                launch { element.isReplaced.filterNotNull().first() }
+                    withTimeoutOrNull(5.seconds) {
+                        (elements - elementsFromLastCollect).forEach { element ->
+                            // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
+                            launch {
+                                val element = element.element.filterNotNull().first()
+                                timelineElementViewSelector.waitFor(element)
                             }
+                            launch { element.isFirstInUserSequence.filterNotNull().first() }
+                            launch { element.showSender.filterNotNull().first() }
+                            launch { element.showBigGapBefore.filterNotNull().first() }
+                            launch {
+                                val repliedElement = async { element.repliedElement.filterNotNull().first() }
+                                val isReply = element.isReply.filterNotNull().first()
+                                if (!isReply) repliedElement.cancel()
+                                else {
+                                    timelineElementViewSelector.waitFor(
+                                        repliedElement.await().element.filterNotNull().first()
+                                    )
+                                }
+                            }
+                            when (element) {
+                                is TimelineElementHolderViewModel -> {
+                                    launch { element.hasUnreadMarker.filterNotNull().first() }
+                                    launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
+                                    launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
+                                    if (element.isByMe) launch { element.isRead.filterNotNull().first() }
+                                    launch { element.reactions.filterNotNull().first() }
+                                    launch { element.isReplaced.filterNotNull().first() }
+                                }
 
-                            is OutboxElementHolderViewModel -> {}
+                                is OutboxElementHolderViewModel -> {}
+                            }
                         }
                     }
                 }
