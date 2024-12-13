@@ -4,7 +4,7 @@ set -e
 TAG=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}' | sed 's/DEV-/alpha./g')
 git clone https://write_to_repo:"$SPM_PROJECT_ACCESS_TOKEN"@gitlab.com/connect2x/trixnity-messenger/spm
 cd spm
-if [ "$(git show-ref --tags "$TAG" --quiet)" ]; then
+if [ "$(git show-ref --tags "$TAG")" ]; then
     echo "Tag '$TAG' already exists, so do nothing."
 else
     cd ..

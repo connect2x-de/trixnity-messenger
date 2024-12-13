@@ -71,9 +71,9 @@ fun Color.contrastByLuminance(brightColor: Color, darkColor: Color): Color {
 /**
  * Sets the hue of the color while preserving the value, saturation and alpha.
  */
-fun Color.deriveFromHue(hue: Float): Color =
+fun Color.deriveFromHue(hue: Float, saturation: Float? = null, lightness: Float? = null, alpha: Float? = null): Color =
     // `hsl(..)` already normalizes the hue value.
-    Color.hsl(hue, saturation, lightness, alpha)
+    Color.hsl(hue, saturation ?: this.saturation, lightness ?: this.lightness, alpha ?: this.alpha)
 
 @OptIn(ExperimentalStdlibApi::class)
 fun Color.toHex(): String =

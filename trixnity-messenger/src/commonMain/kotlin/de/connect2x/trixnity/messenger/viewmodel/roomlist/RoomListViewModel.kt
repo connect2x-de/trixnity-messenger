@@ -12,7 +12,6 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
@@ -71,6 +70,7 @@ interface RoomListViewModelFactory {
         onRoomSelected: (UserId, RoomId) -> Unit,
         onStartCreateNewRoom: (UserId) -> Unit,
         onUserSettingsSelected: () -> Unit,
+        onUserProfileSelected: () -> Unit,
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
         onOpenAccountsOverview: () -> Unit,
@@ -82,10 +82,11 @@ interface RoomListViewModelFactory {
             onRoomSelected,
             onStartCreateNewRoom,
             onUserSettingsSelected,
+            onUserProfileSelected,
             onOpenAppInfo,
             onSendLogs,
             onOpenAccountsOverview,
-            onAccountSelected
+            onAccountSelected,
         )
     }
 
@@ -136,6 +137,7 @@ class RoomListViewModelImpl(
     private val onRoomSelected: (UserId, RoomId) -> Unit,
     private val onCreateNewRoom: (UserId) -> Unit,
     onUserSettingsSelected: () -> Unit,
+    onUserProfileSelected: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
@@ -168,7 +170,6 @@ class RoomListViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
     private val i18n = get<I18n>()
     private val roomName = get<RoomName>()
-    private val initials = get<Initials>()
 
     override val unverifiedAccounts = viewModelContext.matrixClients
         .flatMapLatest { clients ->
@@ -190,6 +191,7 @@ class RoomListViewModelImpl(
             onAccountSelected = { onAccountSelected() },
             onUserSettingsSelected = onUserSettingsSelected,
             onShowAppInfo = onOpenAppInfo,
+            onShowProfile = onUserProfileSelected,
         )
 
     private data class RoomListElementViewModelWrapper(

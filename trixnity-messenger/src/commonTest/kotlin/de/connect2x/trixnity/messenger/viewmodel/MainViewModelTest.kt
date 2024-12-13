@@ -731,6 +731,7 @@ class MainViewModelTest : ShouldSpec() {
                                     onRoomSelected: (UserId, RoomId) -> Unit,
                                     onStartCreateNewRoom: (UserId) -> Unit,
                                     onUserSettingsSelected: () -> Unit,
+                                    onUserProfileSelected: () -> Unit,
                                     onOpenAppInfo: () -> Unit,
                                     onSendLogs: () -> Unit,
                                     onOpenAccountsOverview: () -> Unit,
@@ -764,10 +765,13 @@ class MainViewModelTest : ShouldSpec() {
                                             override fun selectActiveAccount(userId: UserId?) {
                                             }
 
-                                            override fun userSettings() {
+                                            override fun openUserSettings() {
                                             }
 
-                                            override fun appInfo() {
+                                            override fun openUserProfile() {
+                                            }
+
+                                            override fun openAppInfo() {
                                             }
                                         }
 

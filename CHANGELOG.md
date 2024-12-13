@@ -11,16 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add ability to share plain and formatted text
 - Add ability to share url with icon
+- Camera capture as a file selection option
 
 ### Changed
 
 - Color handling utils
+- Changed `RoomSettingsMemberListElement` interfaces to allow more flexibility
+- Updated documentation on how to use the framework from SwiftUI
+- In single account mode make the profile banner open the user profile
+- Use `XDG_DATA_HOME` on linux
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Format links with escaped ampersand (`&amp;`)
+- Format links with semicolon (`https://abc.xyz/a;b;c`)
+- Wrong device name displayed in verification success message
 
 ### Security
 

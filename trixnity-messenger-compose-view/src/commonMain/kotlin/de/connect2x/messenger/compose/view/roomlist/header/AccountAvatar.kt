@@ -72,31 +72,29 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 
     if (activeAccountInfo != null) {
         Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
-            if (isSingleAccount) {
+            Button(
+                onClick = {
+                    if (isSingleAccount) accountViewModel.openUserProfile()
+                    else accountSelectionOpen.value = accountSelectionOpen.value.not()
+                },
+                modifier = Modifier.buttonPointerModifier(),
+                contentPadding = PaddingValues(0.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            ) {
                 AvatarArea(activeAccountInfo)
-            } else {
-                Button(
-                    onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
-                    modifier = Modifier.buttonPointerModifier(),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                if (isSingleAccount.not()) DropdownMenu(
+                    expanded = accountSelectionOpen.value,
+                    onDismissRequest = { accountSelectionOpen.value = false },
+                    offset = DpOffset(0.dp, 0.dp),
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
                 ) {
-                    AvatarArea(activeAccountInfo)
-
-                    DropdownMenu(
-                        expanded = accountSelectionOpen.value,
-                        onDismissRequest = { accountSelectionOpen.value = false },
-                        offset = DpOffset(0.dp, 0.dp),
-                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                    ) {
-                        SelectAccountHeader(i18n.accountChangeAccount())
-                        AllAccountsMenuItem(accountViewModel)
-                        accountViewModel.accounts.value
-                            .filterNot { account -> account.userId == activeAccount }
-                            .forEach { account ->
-                                AccountMenuItem(account, accountViewModel::selectActiveAccount)
-                            }
-                    }
+                    SelectAccountHeader(i18n.accountChangeAccount())
+                    AllAccountsMenuItem(accountViewModel)
+                    accountViewModel.accounts.value
+                        .filterNot { account -> account.userId == activeAccount }
+                        .forEach { account ->
+                            AccountMenuItem(account, accountViewModel::selectActiveAccount)
+                        }
                 }
             }
         }

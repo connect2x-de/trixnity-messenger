@@ -3,6 +3,10 @@ package de.connect2x.messenger.compose.view.files
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.FilePickerType
+import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -12,6 +16,8 @@ import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.FileKit
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.core.PickerType.Image
+import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
@@ -50,16 +56,17 @@ actual fun SaveFileDialog(
 
 @Composable
 actual fun LoadFileDialog(
+    availableTypes: List<FilePickerType>,
     onFileSelect: (FileDescriptor) -> Unit,
     onCloseLoadFileDialog: () -> Unit,
-    mode: LoadFileMode,
 ) {
     val i18n = DI.get<I18nView>()
     val fileSystem = DI.get<FileSystem>()
     val launcher = rememberFilePickerLauncher(
-        type = when (mode) {
-            LoadFileMode.Picture -> PickerType.Image
-            LoadFileMode.AnyFile -> PickerType.File()
+        type = when {
+            availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> Image
+            availableTypes.size == 1 && availableTypes.first() == IMAGE_AND_VIDEO_FILE -> ImageAndVideo
+            else -> PickerType.File()
         },
         mode = PickerMode.Single,
         title = i18n.fileDialogTitleLoad(),
@@ -76,4 +83,13 @@ actual fun LoadFileDialog(
     LaunchedEffect(Unit) { // To be safe, wrap the `launch` call.
         launcher.launch()
     }
+}
+
+actual fun filterFilePickerOptionsByAvailability(
+    vararg availablePickerTypes: FilePickerType,
+): List<FilePickerType> {
+    val supportedTypes = listOf(
+        IMAGE_FILE, IMAGE_AND_VIDEO_FILE, ATTACHMENT_FILE,
+    )
+    return availablePickerTypes.filter { supportedTypes.contains(it) }
 }

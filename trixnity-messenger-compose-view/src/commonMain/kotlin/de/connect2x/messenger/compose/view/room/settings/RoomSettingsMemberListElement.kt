@@ -104,15 +104,14 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val membership = memberListElementViewModel.membership.collectAsState().value
         val membershipReason = memberListElementViewModel.membershipReason.collectAsState().value
         var bannedMemberReasonOpen by remember { mutableStateOf(false) }
-
         Box(
             Modifier
                 .fillMaxWidth()
                 .clickable {
                     clickedUser.value = memberElement; memberListElementViewModel.openMemberOptions()
                 }
-                .buttonPointerModifier()) {
-
+                .buttonPointerModifier(),
+        ) {
             Column {
                 Row(
                     Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
@@ -126,7 +125,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                             memberListElementViewModel.userTrustLevel,
                             memberListElementViewModel.isUserBlocked,
                             memberListElementViewModel.membership,
-                            memberListElementViewModel.iHavePowerToUnbanUser
+                            memberListElementViewModel.iHavePowerToUnbanUser,
                         )
                         Spacer(Modifier.size(5.dp))
                         Text(
@@ -138,9 +137,10 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                         )
                         if (showRole || showPowerLevel) {
                             Text(
-                                text = getRoleName(role, i18n) + if (showPowerLevel) " ($powerLevel)" else "",
+                                text = getRoomSettingsMemberRoleName(role, i18n)
+                                        + if (showPowerLevel) " ($powerLevel)" else "",
                                 style = MaterialTheme.typography.labelMedium,
-                                maxLines = 1
+                                maxLines = 1,
                             )
                         }
                         if (!membershipReason.isNullOrBlank() && membership == Membership.BAN) {
@@ -153,7 +153,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                     }
                 }
                 if (memberElement != null && memberOptionsOpen && memberElement == clickedUser.value) {
-                    MemberOptions(memberListElementViewModel, memberUserId, clickedUser)
+                    RoomSettingsMemberOptions(memberListElementViewModel, memberUserId, clickedUser)
                 }
                 if (bannedMemberReasonOpen) {
                     Column(
@@ -177,123 +177,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
 }
 
 @Composable
-fun ChangingRoleWarning(memberListElementViewModel: MemberListElementViewModel, role: Role) {
-    val i18n = DI.get<I18nView>()
-    val newRole = getRoleName(role, i18n)
-    val oldRole = getRoleName(memberListElementViewModel.role.collectAsState().value, i18n)
-    val username = memberListElementViewModel.member.collectAsState().value?.displayName ?: i18n.commonUnknown()
-
-    WarningDialog(
-        title = i18n.memberListChangeRole(username, oldRole, newRole),
-        message = { Text(i18n.memberListChangeRoleWarning()) },
-        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
-        confirmButtonText = when (role) {
-            ADMIN -> i18n.memberListChangeTo(i18n.memberListRoleAdministrator())
-            MODERATOR -> i18n.memberListChangeTo(i18n.memberListRoleModerator())
-            USER -> i18n.memberListChangeTo(i18n.memberListRoleUser())
-        },
-        dismissAction = { memberListElementViewModel.changePowerLevelViewModel.closeChangingRoleWarningDialog() },
-        confirmAction = {
-            when (role) {
-                ADMIN -> memberListElementViewModel.changePowerLevelViewModel.setRoleToAdmin()
-                MODERATOR -> memberListElementViewModel.changePowerLevelViewModel.setRoleToModerator()
-                USER -> memberListElementViewModel.changePowerLevelViewModel.setRoleToUser()
-            }
-            memberListElementViewModel.changePowerLevelViewModel.closeChangingRoleWarningDialog()
-        }
-    )
-}
-
-@Composable
-fun ChangingPowerLevel(memberListElementViewModel: MemberListElementViewModel) {
-    val i18n = DI.get<I18nView>()
-    val changePowerLevelInput =
-        memberListElementViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsStateForTextField().value
-    val showPowerLevelHelp =
-        memberListElementViewModel.changePowerLevelViewModel.showPowerLevelHelp.collectAsState().value
-
-    MessengerDialog(
-        onDismissRequest = { memberListElementViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
-        text = {
-            val state = rememberScrollState()
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth().verticalScroll(state)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1F, false).fillMaxWidth(),
-                        text = i18n.memberListChangePowerLevel(),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    IconButton(
-                        onClick = { if (showPowerLevelHelp) memberListElementViewModel.changePowerLevelViewModel.closePowerLevelHelp() else memberListElementViewModel.changePowerLevelViewModel.openPowerLevelHelp() },
-                        Modifier.buttonPointerModifier()
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
-                    }
-                }
-                Spacer(Modifier.size(10.dp))
-                OutlinedTextField(
-                    value = changePowerLevelInput.value,
-                    onValueChange = {
-                        memberListElementViewModel.changePowerLevelViewModel.onPowerLevelEntered(
-                            it
-                        )
-                    },
-                    isError = changePowerLevelInput.errorId != null,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 1
-                )
-                Spacer(Modifier.size(5.dp))
-                changePowerLevelInput.errorId?.let {
-                    Spacer(Modifier.size(5.dp))
-                    Text(color = MaterialTheme.colorScheme.error, text = it)
-                }
-                Spacer(Modifier.size(10.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        { memberListElementViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
-                        Modifier.buttonPointerModifier().weight(0.4f)
-                    ) {
-                        Text(i18n.commonCancel().capitalize(Locale.current))
-                    }
-                    Spacer(Modifier.size(15.dp))
-                    Button(
-                        enabled = changePowerLevelInput.errorId == null && changePowerLevelInput.value != "",
-                        onClick = {
-                            memberListElementViewModel.changePowerLevelViewModel.setPowerLevelTo(
-                                changePowerLevelInput.value.toLong()
-                            )
-                            memberListElementViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
-                        },
-                        modifier = Modifier.buttonPointerModifier().weight(0.4f)
-                    ) { Text(text = i18n.memberListChangePowerLevel(), textAlign = TextAlign.Center) }
-                }
-                if (showPowerLevelHelp) {
-                    Column(modifier = Modifier.align(alignment = Alignment.Start)) {
-                        Spacer(Modifier.size(15.dp))
-                        Text(i18n.memberListNote(), style = MaterialTheme.typography.labelMedium)
-                        Spacer(Modifier.size(5.dp))
-                        Text(text = i18n.memberListNoteText())
-                    }
-                }
-            }
-        }
-    )
-}
-
-
-@Composable
-private fun MemberOptions(
+fun RoomSettingsMemberOptions(
     memberListElementViewModel: MemberListElementViewModel,
     userId: UserId,
     clickedUser: MutableState<MemberListElementViewModel.MemberElement?>
@@ -313,22 +197,16 @@ private fun MemberOptions(
         memberListElementViewModel.changePowerLevelViewModel.changingRoleWarningDialogOpen.collectAsState().value
     val changingPowerLevelOpen =
         memberListElementViewModel.changePowerLevelViewModel.changingPowerLevelDialogOpen.collectAsState().value
-
     val maxPowerLevel =
         memberListElementViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState().value
-
     val kickUserWarningOpen =
         memberListElementViewModel.kickUserWarningOpen.collectAsState().value
-
     val banUserWarningOpen =
         memberListElementViewModel.banUserWarningOpen.collectAsState().value
-
     val unbanUserWarningOpen =
         memberListElementViewModel.unbanUserWarningOpen.collectAsState().value
-
     val isUserBlocked = memberListElementViewModel.isUserBlocked.collectAsState().value
     val blockingInProgress = memberListElementViewModel.blockingInProgress.collectAsState().value
-
     val membership = memberListElementViewModel.membership.collectAsState().value
 
     DropdownMenu(
@@ -475,18 +353,15 @@ private fun MemberOptions(
             }
         }
     }
-    if (kickUserWarningOpen) KickUserWarning(memberListElementViewModel, userId)
-    if (banUserWarningOpen) BanUserWarning(memberListElementViewModel)
-    if (unbanUserWarningOpen) UnbanUserWarning(memberListElementViewModel)
-    if (changingRoleWarningOpen != null) ChangingRoleWarning(
-        memberListElementViewModel,
-        changingRoleWarningOpen
-    )
-    if (changingPowerLevelOpen) ChangingPowerLevel(memberListElementViewModel)
+    if (kickUserWarningOpen) RoomSettingsMemberKickUserWarning(memberListElementViewModel, userId)
+    if (banUserWarningOpen) RoomSettingsMemberBanUserWarning(memberListElementViewModel)
+    if (unbanUserWarningOpen) RoomSettingsMemberUnbanUserWarning(memberListElementViewModel)
+    changingRoleWarningOpen?.let { RoomSettingsMemberChangingRoleWarning(memberListElementViewModel, it) }
+    if (changingPowerLevelOpen) RoomSettingsMemberChangingPowerLevel(memberListElementViewModel)
 }
 
 @Composable
-fun KickUserWarning(
+fun RoomSettingsMemberKickUserWarning(
     memberListElementViewModel: MemberListElementViewModel,
     userId: UserId
 ) {
@@ -510,7 +385,7 @@ fun KickUserWarning(
 }
 
 @Composable
-fun BanUserWarning(
+fun RoomSettingsMemberBanUserWarning(
     memberListElementViewModel: MemberListElementViewModel,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -541,7 +416,7 @@ fun BanUserWarning(
 }
 
 @Composable
-fun UnbanUserWarning(
+fun RoomSettingsMemberUnbanUserWarning(
     memberListElementViewModel: MemberListElementViewModel,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -571,7 +446,123 @@ fun UnbanUserWarning(
     )
 }
 
-private fun getRoleName(role: Role, i18n: I18nView): String {
+@Composable
+fun RoomSettingsMemberChangingRoleWarning(memberListElementViewModel: MemberListElementViewModel, role: Role) {
+    val i18n = DI.get<I18nView>()
+    val newRole = getRoomSettingsMemberRoleName(role, i18n)
+    val oldRole = getRoomSettingsMemberRoleName(memberListElementViewModel.role.collectAsState().value, i18n)
+    val username = memberListElementViewModel.member.collectAsState().value?.displayName ?: i18n.commonUnknown()
+
+    WarningDialog(
+        title = i18n.memberListChangeRole(username, oldRole, newRole),
+        message = { Text(i18n.memberListChangeRoleWarning()) },
+        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
+        confirmButtonText = when (role) {
+            ADMIN -> i18n.memberListChangeTo(i18n.memberListRoleAdministrator())
+            MODERATOR -> i18n.memberListChangeTo(i18n.memberListRoleModerator())
+            USER -> i18n.memberListChangeTo(i18n.memberListRoleUser())
+        },
+        dismissAction = { memberListElementViewModel.changePowerLevelViewModel.closeChangingRoleWarningDialog() },
+        confirmAction = {
+            when (role) {
+                ADMIN -> memberListElementViewModel.changePowerLevelViewModel.setRoleToAdmin()
+                MODERATOR -> memberListElementViewModel.changePowerLevelViewModel.setRoleToModerator()
+                USER -> memberListElementViewModel.changePowerLevelViewModel.setRoleToUser()
+            }
+            memberListElementViewModel.changePowerLevelViewModel.closeChangingRoleWarningDialog()
+        }
+    )
+}
+
+
+@Composable
+fun RoomSettingsMemberChangingPowerLevel(memberListElementViewModel: MemberListElementViewModel) {
+    val i18n = DI.get<I18nView>()
+    val changePowerLevelInput =
+        memberListElementViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsStateForTextField().value
+    val showPowerLevelHelp =
+        memberListElementViewModel.changePowerLevelViewModel.showPowerLevelHelp.collectAsState().value
+
+    MessengerDialog(
+        onDismissRequest = { memberListElementViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
+        text = {
+            val state = rememberScrollState()
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth().verticalScroll(state)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1F, false).fillMaxWidth(),
+                        text = i18n.memberListChangePowerLevel(),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    IconButton(
+                        onClick = { if (showPowerLevelHelp) memberListElementViewModel.changePowerLevelViewModel.closePowerLevelHelp() else memberListElementViewModel.changePowerLevelViewModel.openPowerLevelHelp() },
+                        Modifier.buttonPointerModifier()
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
+                    }
+                }
+                Spacer(Modifier.size(10.dp))
+                OutlinedTextField(
+                    value = changePowerLevelInput.value,
+                    onValueChange = {
+                        memberListElementViewModel.changePowerLevelViewModel.onPowerLevelEntered(
+                            it
+                        )
+                    },
+                    isError = changePowerLevelInput.errorId != null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1
+                )
+                Spacer(Modifier.size(5.dp))
+                changePowerLevelInput.errorId?.let {
+                    Spacer(Modifier.size(5.dp))
+                    Text(color = MaterialTheme.colorScheme.error, text = it)
+                }
+                Spacer(Modifier.size(10.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        { memberListElementViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
+                        Modifier.buttonPointerModifier().weight(0.4f)
+                    ) {
+                        Text(i18n.commonCancel().capitalize(Locale.current))
+                    }
+                    Spacer(Modifier.size(15.dp))
+                    Button(
+                        enabled = changePowerLevelInput.errorId == null && changePowerLevelInput.value != "",
+                        onClick = {
+                            memberListElementViewModel.changePowerLevelViewModel.setPowerLevelTo(
+                                changePowerLevelInput.value.toLong()
+                            )
+                            memberListElementViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
+                        },
+                        modifier = Modifier.buttonPointerModifier().weight(0.4f)
+                    ) { Text(text = i18n.memberListChangePowerLevel(), textAlign = TextAlign.Center) }
+                }
+                if (showPowerLevelHelp) {
+                    Column(modifier = Modifier.align(alignment = Alignment.Start)) {
+                        Spacer(Modifier.size(15.dp))
+                        Text(i18n.memberListNote(), style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.size(5.dp))
+                        Text(text = i18n.memberListNoteText())
+                    }
+                }
+            }
+        }
+    )
+}
+
+fun getRoomSettingsMemberRoleName(role: Role, i18n: I18nView): String {
     return when (role) {
         ADMIN -> i18n.memberListRoleAdministrator()
         MODERATOR -> i18n.memberListRoleModerator()

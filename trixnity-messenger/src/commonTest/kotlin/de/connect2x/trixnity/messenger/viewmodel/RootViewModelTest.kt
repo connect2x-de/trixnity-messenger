@@ -122,6 +122,7 @@ class RootViewModelTest : ShouldSpec() {
                                         viewModelContext: ViewModelContext,
                                         onAccountSelected: (UserId?) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
+                                        onUserProfileSelected: () -> Unit,
                                         onShowAppInfo: () -> Unit
                                     ): AccountViewModel = accountViewModelMock
                                 }
@@ -134,6 +135,7 @@ class RootViewModelTest : ShouldSpec() {
                                         onRoomSelected: (UserId, RoomId) -> Unit,
                                         onStartCreateNewRoom: (UserId) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
+                                        onUserProfileSelected: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
                                         onOpenAccounts: () -> Unit,

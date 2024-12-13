@@ -74,12 +74,16 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EmojiSelector
 import de.connect2x.messenger.compose.view.common.ErrorDialog
+import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
+import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
-import de.connect2x.messenger.compose.view.files.LoadFileMode
 import de.connect2x.messenger.compose.view.files.NotPasteableException
+import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvailability
 import de.connect2x.messenger.compose.view.files.getClipboardFile
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.getOrNull
@@ -133,11 +137,8 @@ class InputAreaViewImpl : InputAreaView {
                     if (canSendMessages) {
                         EmojiButton(emojisOpen)
 
-                        if (isMobile) {
-                            InputAreaMobile(inputAreaViewModel)
-                        } else {
-                            InputAreaDesktop(inputAreaViewModel)
-                        }
+                        if (isMobile) InputAreaMobile(inputAreaViewModel)
+                        else InputAreaDesktop(inputAreaViewModel)
 
                         if (isEdit) {
                             EditButton(inputAreaViewModel)
@@ -482,9 +483,14 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
     if (showAttachmentDialog) LoadFileDialog(
+        filterFilePickerOptionsByAvailability(
+            ATTACHMENT_FILE,
+            IMAGE_AND_VIDEO_FILE,
+            PHOTO_CAPTURE,
+            VIDEO_CAPTURE,
+        ),
         inputAreaViewModel::onAttachmentFileSelect,
         inputAreaViewModel::closeAttachmentDialog,
-        LoadFileMode.AnyFile,
     )
     AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
         CompositionLocalProvider(
