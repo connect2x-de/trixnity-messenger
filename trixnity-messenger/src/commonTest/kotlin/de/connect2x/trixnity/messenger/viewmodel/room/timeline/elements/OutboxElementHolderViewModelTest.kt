@@ -96,131 +96,127 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             every { roomServiceMock.getOutbox(roomId) } returns outbox.map { it.map { flowOf(it) } }
         }
 
-        context(OutboxElementHolderViewModel::isFirstInUserSequence.name) {
-            should("be true when last timeline event is not by us") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
-                    // should be ignored
-                    +MessageEvent(
-                        content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
-                        id = EventId("dino"),
-                        sender = us,
-                        roomId = roomId,
-                        originTimestamp = 1234,
-                    )
+        should("isFirstInUserSequence: be true when last timeline event is not by us") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
                 }
-                val cut = cut()
-                async { cut.isFirstInUserSequence.collect() }
-                delay(500.milliseconds)
-                cut.isFirstInUserSequence.value shouldBe true
-
-                cancelNeverEndingCoroutines()
-            }
-            should("ignore other outbox messages with transactionId same as last timeline event") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = bob, transactionId = "t0") {
-                        text("Hi!")
-                    }
-                }
-                outbox.value = listOf(
-                    RoomOutboxMessage(
-                        roomId = roomId,
-                        transactionId = "t0",
-                        content = TextBased.Text("Hi!"),
-                        createdAt = Instant.fromEpochMilliseconds(123456799L),
-                    ), outboxMessage
+                // should be ignored
+                +MessageEvent(
+                    content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                    id = EventId("dino"),
+                    sender = us,
+                    roomId = roomId,
+                    originTimestamp = 1234,
                 )
-                val cut = cut()
-                async { cut.isFirstInUserSequence.collect() }
-                delay(500.milliseconds)
-                cut.isFirstInUserSequence.value shouldBe true
-
-                cancelNeverEndingCoroutines()
             }
-            should("be false when last timeline event is by us") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = us) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut()
-                async { cut.isFirstInUserSequence.collect() }
-                delay(500.milliseconds)
-                cut.isFirstInUserSequence.value shouldBe false
+            val cut = cut()
+            async { cut.isFirstInUserSequence.collect() }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe true
 
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when not first outbox message") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = us) {
-                        text("Hi!")
-                    }
-                }
-                outbox.value = listOf(
-                    RoomOutboxMessage(
-                        roomId = roomId,
-                        transactionId = "t0",
-                        content = TextBased.Text("Hi!"),
-                        createdAt = Instant.fromEpochMilliseconds(123456799L),
-                    ), outboxMessage
-                )
-                val cut = cut()
-                async { cut.isFirstInUserSequence.collect() }
-                delay(500.milliseconds)
-                cut.isFirstInUserSequence.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
+            cancelNeverEndingCoroutines()
         }
-        context(OutboxElementHolderViewModel::showSender.name) {
-            should("be true when first in a user sequence (showSender)") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
+        should("isFirstInUserSequence: ignore other outbox messages with transactionId same as last timeline event") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob, transactionId = "t0") {
+                    text("Hi!")
                 }
-                val cut = cut()
-
-                async { cut.showSender.collect() }
-                delay(500.milliseconds)
-                cut.showSender.value shouldBe true
-
-                cancelNeverEndingCoroutines()
             }
-            should("false when not first in a user sequence (showSender)") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = us) {
-                        text("Hi!")
-                    }
+            outbox.value = listOf(
+                RoomOutboxMessage(
+                    roomId = roomId,
+                    transactionId = "t0",
+                    content = TextBased.Text("Hi!"),
+                    createdAt = Instant.fromEpochMilliseconds(123456799L),
+                ), outboxMessage
+            )
+            val cut = cut()
+            async { cut.isFirstInUserSequence.collect() }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isFirstInUserSequence: be false when last timeline event is by us") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = us) {
+                    text("Hi!")
                 }
-                val cut = cut()
-
-                async { cut.showSender.collect() }
-                delay(500.milliseconds)
-                cut.showSender.value shouldBe false
-
-                cancelNeverEndingCoroutines()
             }
-            should("be false when room is direct (showSender)") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
+            val cut = cut()
+            async { cut.isFirstInUserSequence.collect() }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isFirstInUserSequence: be false when not first outbox message") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = us) {
+                    text("Hi!")
                 }
-                val cut = cut()
-
-                async { cut.showSender.collect() }
-                delay(500.milliseconds)
-                cut.showSender.value shouldBe true
-
-                timeline.room.update { it.copy(isDirect = true) }
-                delay(500.milliseconds)
-                cut.showSender.value shouldBe false
-
-                cancelNeverEndingCoroutines()
             }
+            outbox.value = listOf(
+                RoomOutboxMessage(
+                    roomId = roomId,
+                    transactionId = "t0",
+                    content = TextBased.Text("Hi!"),
+                    createdAt = Instant.fromEpochMilliseconds(123456799L),
+                ), outboxMessage
+            )
+            val cut = cut()
+            async { cut.isFirstInUserSequence.collect() }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showSender: be true when first in a user sequence (showSender)") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.showSender.collect() }
+            delay(500.milliseconds)
+            cut.showSender.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showSender: false when not first in a user sequence (showSender)") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = us) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.showSender.collect() }
+            delay(500.milliseconds)
+            cut.showSender.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showSender: be false when room is direct (showSender)") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.showSender.collect() }
+            delay(500.milliseconds)
+            cut.showSender.value shouldBe true
+
+            timeline.room.update { it.copy(isDirect = true) }
+            delay(500.milliseconds)
+            cut.showSender.value shouldBe false
+
+            cancelNeverEndingCoroutines()
         }
     }
 

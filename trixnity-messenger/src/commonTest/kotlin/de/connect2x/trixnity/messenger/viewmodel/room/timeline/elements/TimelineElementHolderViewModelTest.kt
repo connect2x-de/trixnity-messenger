@@ -104,505 +104,493 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             receipts.value = mapOf()
         }
 
-        context(TimelineElementHolderViewModel::isFirstInUserSequence.name) {
-            should("be true when first in a user sequence") {
-                timeline(roomServiceMock, roomId) {
-                    (1..4).forEach {
-                        +messageEvent(sender = bob) {
-                            text("World-$it")
-                        }
+        should("isFirstInUserSequence: be true when first in a user sequence") {
+            timeline(roomServiceMock, roomId) {
+                (1..4).forEach {
+                    +messageEvent(sender = bob) {
+                        text("World-$it")
                     }
-                    // should be ignored
-                    +MessageEvent(
-                        content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
-                        id = EventId("dino"),
-                        sender = alice,
-                        roomId = roomId,
-                        originTimestamp = 1234,
-                    )
-                    +timelineEvent
                 }
-                val cut = cut()
-                async { cut.isFirstInUserSequence.collect() }
-                advanceUntilIdle()
-                cut.isFirstInUserSequence.value shouldBe true
+                // should be ignored
+                +MessageEvent(
+                    content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                    id = EventId("dino"),
+                    sender = alice,
+                    roomId = roomId,
+                    originTimestamp = 1234,
+                )
+                +timelineEvent
+            }
+            val cut = cut()
+            async { cut.isFirstInUserSequence.collect() }
+            advanceUntilIdle()
+            cut.isFirstInUserSequence.value shouldBe true
 
-                cancelNeverEndingCoroutines()
-            }
-            should("false when not first in a user sequence") {
-                timeline(roomServiceMock, roomId) {
-                    (1..4).forEach {
-                        +messageEvent(sender = alice) {
-                            text("World-$it")
-                        }
-                    }
-                    // should be ignored
-                    +MessageEvent(
-                        content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
-                        id = EventId("dino"),
-                        sender = bob,
-                        roomId = roomId,
-                        originTimestamp = 1234,
-                    )
-                    +timelineEvent
-                }
-                val cut = cut()
-                async { cut.isFirstInUserSequence.collect() }
-                advanceUntilIdle()
-                cut.isFirstInUserSequence.value shouldBe false
-                cancelNeverEndingCoroutines()
-            }
+            cancelNeverEndingCoroutines()
         }
-        context(TimelineElementHolderViewModel::showSender.name) {
-            should("be true when first in a user sequence (showSender)") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.showSender.collect() }
-                advanceUntilIdle()
-                cut.showSender.value shouldBe true
-
-                cancelNeverEndingCoroutines()
-            }
-            should("false when not first in a user sequence (showSender)") {
-                timeline(roomServiceMock, roomId) {
+        should("isFirstInUserSequence: false when not first in a user sequence") {
+            timeline(roomServiceMock, roomId) {
+                (1..4).forEach {
                     +messageEvent(sender = alice) {
-                        text("Hi!")
+                        text("World-$it")
                     }
-                    +timelineEvent
                 }
-                val cut = cut()
-
-                async { cut.showSender.collect() }
-                advanceUntilIdle()
-                cut.showSender.value shouldBe false
-
-                cancelNeverEndingCoroutines()
+                // should be ignored
+                +MessageEvent(
+                    content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                    id = EventId("dino"),
+                    sender = bob,
+                    roomId = roomId,
+                    originTimestamp = 1234,
+                )
+                +timelineEvent
             }
-            should("be false when room is direct (showSender)") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.showSender.collect() }
-                advanceUntilIdle()
-                cut.showSender.value shouldBe true
-
-                timeline.room.update { it.copy(isDirect = true) }
-                advanceUntilIdle()
-                cut.showSender.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
+            val cut = cut()
+            async { cut.isFirstInUserSequence.collect() }
+            advanceUntilIdle()
+            cut.isFirstInUserSequence.value shouldBe false
+            cancelNeverEndingCoroutines()
         }
-        context(TimelineElementHolderViewModel::showBigGapBefore.name) {
-            should("be true when first in a user sequence (showBigGapBefore)") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(
-                        sender = bob,
-                        sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                    ) {
-                        text("Hi!")
-                    }
-                    +timelineEvent
+        should("showSender: be true when first in a user sequence (showSender)") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
                 }
-                val cut = cut()
-
-                async { cut.showBigGapBefore.collect() }
-                advanceUntilIdle()
-                cut.showBigGapBefore.value shouldBe true
-
-                cancelNeverEndingCoroutines()
+                +timelineEvent
             }
-            should("false when not first in a user sequence (showBigGapBefore)") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(
-                        sender = alice,
-                        sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                    ) {
-                        text("Hi!")
-                    }
-                    +timelineEvent
-                }
-                val cut = cut()
+            val cut = cut()
 
-                async { cut.showBigGapBefore.collect() }
-                advanceUntilIdle()
-                cut.showBigGapBefore.value shouldBe false
+            async { cut.showSender.collect() }
+            advanceUntilIdle()
+            cut.showSender.value shouldBe true
 
-                cancelNeverEndingCoroutines()
-            }
-            should("be true when time gap is large enough") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(
-                        sender = alice,
-                        sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - 1.hours - 1.seconds
-                    ) {
-                        text("Hi!")
-                    }
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.showBigGapBefore.collect() }
-                advanceUntilIdle()
-                cut.showBigGapBefore.value shouldBe true
-
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when time gap is not large enough") {
-                timeline(roomServiceMock, roomId) {
-                    +messageEvent(
-                        sender = alice,
-                        sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - 1.hours
-                    ) {
-                        text("Hi!")
-                    }
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.showBigGapBefore.collect() }
-                advanceUntilIdle()
-                cut.showBigGapBefore.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
+            cancelNeverEndingCoroutines()
         }
-        context(TimelineElementHolderViewModel::isRead.name) {
-            should("be true when read by third user") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
+        should("showSender: false when not first in a user sequence (showSender)") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
                 }
-                val cut = cut()
-
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
-
-                receipts.value = mapOf(eventId to setOf(bob))
-                advanceUntilIdle()
-                cut.isRead.value shouldBe true
-
-                cancelNeverEndingCoroutines()
+                +timelineEvent
             }
-            should("be true when message from third user after it") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
+            val cut = cut()
 
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
+            async { cut.showSender.collect() }
+            advanceUntilIdle()
+            cut.showSender.value shouldBe false
 
-                timeline.addEvents {
-                    // should be ignored
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
-                }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe true
-
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when no on read or sent a message") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when not read by anyone and only us send message after it") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                    +messageEvent(sender = us) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut()
-
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when not read by anyone and only the same user send message after it") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut()
-
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when only we read the event") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                receipts.value = mapOf(eventId to setOf(us))
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
-            should("be false when only the sender read the event") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                receipts.value = mapOf(eventId to setOf(alice))
-                async { cut.isRead.collect() }
-                advanceUntilIdle()
-                cut.isRead.value shouldBe false
-
-                cancelNeverEndingCoroutines()
-            }
+            cancelNeverEndingCoroutines()
         }
-        context(TimelineElementHolderViewModel::isReadBy.name) {
-            should("be empty when not read") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
+        should("showSender: be false when room is direct (showSender)") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
                 }
-                val cut = cut()
-
-                async { cut.isReadBy.collect() }
-                advanceUntilIdle()
-                cut.isReadBy.value shouldBe emptyList()
-
-                cancelNeverEndingCoroutines()
+                +timelineEvent
             }
-            should("contain users from read markers") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
+            val cut = cut()
 
-                async { cut.isReadBy.collect() }
-                advanceUntilIdle()
-                cut.isReadBy.value shouldBe emptyList()
+            async { cut.showSender.collect() }
+            advanceUntilIdle()
+            cut.showSender.value shouldBe true
 
-                receipts.value = mapOf(eventId to setOf(bob))
-                advanceUntilIdle()
-                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+            timeline.room.update { it.copy(isDirect = true) }
+            advanceUntilIdle()
+            cut.showSender.value shouldBe false
 
-                cancelNeverEndingCoroutines()
-            }
-            should("contain sender of subsequent events") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.isReadBy.collect() }
-                advanceUntilIdle()
-                cut.isReadBy.value shouldBe emptyList()
-
-                timeline.addEvents {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
-                }
-                advanceUntilIdle()
-                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
-                cancelNeverEndingCoroutines()
-            }
-            should("not contain us from read marker") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.isReadBy.collect() }
-                receipts.value = mapOf(eventId to setOf(us, bob))
-                advanceUntilIdle()
-                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
-                cancelNeverEndingCoroutines()
-            }
-            should("not contain sender from read marker") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                }
-                val cut = cut()
-
-                async { cut.isReadBy.collect() }
-                receipts.value = mapOf(eventId to setOf(alice, bob))
-                advanceUntilIdle()
-                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
-                cancelNeverEndingCoroutines()
-            }
-            should("not contain us from subsequent events") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                    +messageEvent(sender = us) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut()
-
-                async { cut.isReadBy.collect() }
-                advanceUntilIdle()
-                cut.isReadBy.value shouldBe emptyList()
-
-                cancelNeverEndingCoroutines()
-            }
-            should("not contain sender from subsequent events") {
-                timeline(roomServiceMock, roomId) {
-                    +timelineEvent
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut()
-
-                async { cut.isReadBy.collect() }
-                advanceUntilIdle()
-                cut.isReadBy.value shouldBe emptyList()
-
-                cancelNeverEndingCoroutines()
-            }
+            cancelNeverEndingCoroutines()
         }
-        context(TimelineElementHolderViewModel::hasUnreadMarker.name) {
-            should("show the unread marker when event is set") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
+        should("showBigGapBefore: be true when first in a user sequence (showBigGapBefore)") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = bob,
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                ) {
+                    text("Hi!")
                 }
-                val cut = cut(EventId("0"))
-
-                async { cut.hasUnreadMarker.collect() }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe false
-
-                timeline.fullyReadEventIndex.value = 0
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe true
-
-                cancelNeverEndingCoroutines()
+                +timelineEvent
             }
-            should("show the unread marker when subsequent event is added") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
+            val cut = cut()
+
+            async { cut.showBigGapBefore.collect() }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: false when not first in a user sequence (showBigGapBefore)") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = alice,
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                ) {
+                    text("Hi!")
                 }
-                val cut = cut(EventId("0"))
-
-                timeline.fullyReadEventIndex.value = 0
-                async { cut.hasUnreadMarker.collect() }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe false
-
-                timeline.addEvents {
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
-                }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe true
-
-                cancelNeverEndingCoroutines()
+                +timelineEvent
             }
-            should("remove the unread marker when marker removed") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                    +messageEvent(sender = bob) {
-                        text("Hi!")
-                    }
+            val cut = cut()
+
+            async { cut.showBigGapBefore.collect() }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: be true when time gap is large enough") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = alice,
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - 1.hours - 1.seconds
+                ) {
+                    text("Hi!")
                 }
-                val cut = cut(EventId("0"))
-
-                timeline.fullyReadEventIndex.value = 0
-                async { cut.hasUnreadMarker.collect() }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe true
-
-                timeline.fullyReadEventIndex.value = 1
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe false
-
-                cancelNeverEndingCoroutines()
+                +timelineEvent
             }
-            should("not show the unread marker, when no subsequent event") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut(EventId("0"))
+            val cut = cut()
 
-                timeline.fullyReadEventIndex.value = 0
-                async { cut.hasUnreadMarker.collect() }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe false
-                cancelNeverEndingCoroutines()
+            async { cut.showBigGapBefore.collect() }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: be false when time gap is not large enough") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = alice,
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - 1.hours
+                ) {
+                    text("Hi!")
+                }
+                +timelineEvent
             }
-            should("not show the unread marker, when none of the next events is supported") {
-                val timeline = timeline(roomServiceMock, roomId) {
-                    +messageEvent(sender = alice) {
-                        text("Hi!")
-                    }
-                }
-                val cut = cut(EventId("0"))
+            val cut = cut()
 
-                timeline.fullyReadEventIndex.value = 0
-                async { cut.hasUnreadMarker.collect() }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe false
+            async { cut.showBigGapBefore.collect() }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe false
 
-                timeline.addEvents {
-                    // should be ignored
-                    +MessageEvent(
-                        content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
-                        id = EventId("dino"),
-                        sender = bob,
-                        roomId = roomId,
-                        originTimestamp = 1234,
-                    )
-                }
-                advanceUntilIdle()
-                cut.hasUnreadMarker.value shouldBe false
-
-                cancelNeverEndingCoroutines()
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be true when read by third user") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
             }
+            val cut = cut()
+
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            receipts.value = mapOf(eventId to setOf(bob))
+            advanceUntilIdle()
+            cut.isRead.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be true when message from third user after it") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            timeline.addEvents {
+                // should be ignored
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be false when no on read or sent a message") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be false when not read by anyone and only us send message after it") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+                +messageEvent(sender = us) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be false when not read by anyone and only the same user send message after it") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be false when only we read the event") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            receipts.value = mapOf(eventId to setOf(us))
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: be false when only the sender read the event") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            receipts.value = mapOf(eventId to setOf(alice))
+            async { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: be empty when not read") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            advanceUntilIdle()
+            cut.isReadBy.value shouldBe emptyList()
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: contain users from read markers") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            advanceUntilIdle()
+            cut.isReadBy.value shouldBe emptyList()
+
+            receipts.value = mapOf(eventId to setOf(bob))
+            advanceUntilIdle()
+            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: contain sender of subsequent events") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            advanceUntilIdle()
+            cut.isReadBy.value shouldBe emptyList()
+
+            timeline.addEvents {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            advanceUntilIdle()
+            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: not contain us from read marker") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            receipts.value = mapOf(eventId to setOf(us, bob))
+            advanceUntilIdle()
+            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: not contain sender from read marker") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            receipts.value = mapOf(eventId to setOf(alice, bob))
+            advanceUntilIdle()
+            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: not contain us from subsequent events") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+                +messageEvent(sender = us) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            advanceUntilIdle()
+            cut.isReadBy.value shouldBe emptyList()
+
+            cancelNeverEndingCoroutines()
+        }
+        should("isReadBy: not contain sender from subsequent events") {
+            timeline(roomServiceMock, roomId) {
+                +timelineEvent
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            async { cut.isReadBy.collect() }
+            advanceUntilIdle()
+            cut.isReadBy.value shouldBe emptyList()
+
+            cancelNeverEndingCoroutines()
+        }
+        should("hasUnreadMarker: show the unread marker when event is set") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut(EventId("0"))
+
+            async { cut.hasUnreadMarker.collect() }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            timeline.fullyReadEventIndex.value = 0
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("hasUnreadMarker: show the unread marker when subsequent event is added") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut(EventId("0"))
+
+            timeline.fullyReadEventIndex.value = 0
+            async { cut.hasUnreadMarker.collect() }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            timeline.addEvents {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("hasUnreadMarker remove the unread marker when marker removed") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut(EventId("0"))
+
+            timeline.fullyReadEventIndex.value = 0
+            async { cut.hasUnreadMarker.collect() }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe true
+
+            timeline.fullyReadEventIndex.value = 1
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("hasUnreadMarker not show the unread marker, when no subsequent event") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut(EventId("0"))
+
+            timeline.fullyReadEventIndex.value = 0
+            async { cut.hasUnreadMarker.collect() }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+            cancelNeverEndingCoroutines()
+        }
+        should("hasUnreadMarker not show the unread marker, when none of the next events is supported") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut(EventId("0"))
+
+            timeline.fullyReadEventIndex.value = 0
+            async { cut.hasUnreadMarker.collect() }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            timeline.addEvents {
+                // should be ignored
+                +MessageEvent(
+                    content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                    id = EventId("dino"),
+                    sender = bob,
+                    roomId = roomId,
+                    originTimestamp = 1234,
+                )
+            }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            cancelNeverEndingCoroutines()
         }
     }
 
