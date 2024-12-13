@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,7 +89,10 @@ internal fun ColumnScope.MessageImage(
     onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
-    image?.toImageBitmap()?.let {
+    val bitmap = remember(image) {
+        image?.toImageBitmap()
+    }
+    bitmap?.let {
         MessageImageImpl(it, showActionMenu, onSave)
     } ?: MessageImageFallback(element, showActionMenu, onSave)
 }

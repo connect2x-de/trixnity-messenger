@@ -49,7 +49,6 @@ fun MessageBubbleContent(
     val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
-    val sender = holder.sender.collectAsState().value
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value
     val hasRepliedElement = holder.repliedElement.collectAsState().value != null
 
@@ -76,6 +75,7 @@ fun MessageBubbleContent(
                     Modifier
                         .padding(start = 10.dp, end = 10.dp, top = 5.dp)
                 ) {
+                    val sender = holder.sender.collectAsState().value
                     if (sender != null) {
                         Text(
                             text = sender.name,

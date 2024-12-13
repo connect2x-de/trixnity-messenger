@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
@@ -48,12 +47,11 @@ class ImageRoomMessageTimelineElementViewModelImpl(
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
 
-    private val thumbnailLoad = coroutineScope.async { // TODO needs some sort of retry
-        thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
-    }
-
     override val thumbnail: StateFlow<ByteArray?> = flow {
-        emit(thumbnailLoad.await())
+        emit(
+            // TODO needs some sort of retry!
+            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
+        )
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val width: Int? = content.info?.width

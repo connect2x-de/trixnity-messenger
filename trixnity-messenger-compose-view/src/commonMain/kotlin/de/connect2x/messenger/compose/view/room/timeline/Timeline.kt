@@ -92,10 +92,11 @@ class TimelineViewImpl : TimelineView {
         }
 
         LaunchedEffect(Unit) {
+            var elementsFromLastCollect = listOf<BaseTimelineElementHolderViewModel>()
             timelineViewModel.elements.collect { elements ->
                 log.trace { "wait for elements to be ready" }
                 withContext(Dispatchers.Default) {
-                    elements.forEach { element ->
+                    (elements - elementsFromLastCollect).forEach { element ->
                         // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
                         launch {
                             val element = element.element.filterNotNull().first()
@@ -124,6 +125,7 @@ class TimelineViewImpl : TimelineView {
                     }
                 }
                 log.trace { "finished wait for elements to be ready" }
+                elementsFromLastCollect = elements
                 timelineElementHolderViewModels = elements.reversed()
             }
         }
@@ -143,7 +145,7 @@ class TimelineViewImpl : TimelineView {
                     }
                 }
                 val listState =
-                    rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else timelineElementHolderViewModels.size - 1)
+                    rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
 
                 val uiState by remember {
                     derivedStateOf {

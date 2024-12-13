@@ -252,7 +252,9 @@ class TimelineViewModelImpl(
                 matrixClient.room.getTimeline(roomId) {
                     computeTimelineElement(it)
                 }
-            newTimeline.init(startFrom)
+            newTimeline.init(startFrom, configBefore = {
+                maxSize = fetchSize
+            })
             log.debug { "finished init timeline from $startFrom" }
             newTimeline
         }.stateIn(coroutineScope, WhileSubscribed(), null)

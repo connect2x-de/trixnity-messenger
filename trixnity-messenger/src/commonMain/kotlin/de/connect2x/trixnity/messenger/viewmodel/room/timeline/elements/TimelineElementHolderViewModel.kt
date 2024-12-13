@@ -309,6 +309,7 @@ class TimelineElementHolderViewModelImpl(
             timelineEvent?.sender != senderUserId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
+    // TODO images are loaded for each holder into memory! This should be fixed.
     override val sender: StateFlow<UserInfoElement?> =
         matrixClient.user.getById(roomId, senderUserId).map { user ->
             user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
