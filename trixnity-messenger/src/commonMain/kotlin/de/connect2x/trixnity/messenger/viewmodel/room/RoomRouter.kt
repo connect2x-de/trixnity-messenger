@@ -51,6 +51,7 @@ class RoomRouterImpl(
     private val onOpenMedia: OpenMediaUserCallback,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val goToRoom: (UserId, RoomId) -> Unit,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()
@@ -78,6 +79,7 @@ class RoomRouterImpl(
                     onOpenMedia = onOpenMedia,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,
+                    goToRoom = goToRoom,
                 ).also {
                     log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }

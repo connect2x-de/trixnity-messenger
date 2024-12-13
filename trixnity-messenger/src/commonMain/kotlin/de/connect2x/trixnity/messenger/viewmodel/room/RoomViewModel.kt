@@ -34,6 +34,7 @@ interface RoomViewModelFactory {
         onOpenMedia: OpenMediaUserCallback,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        goToRoom: (UserId, RoomId) -> Unit,
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
@@ -43,6 +44,7 @@ interface RoomViewModelFactory {
             onOpenMedia = onOpenMedia,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
+            goToRoom = goToRoom,
         )
     }
 
@@ -68,6 +70,7 @@ open class RoomViewModelImpl(
     private val onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    goToRoom: (UserId, RoomId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
     override val isTwoPane = MutableStateFlow(false)
@@ -83,6 +86,7 @@ open class RoomViewModelImpl(
         onRoomBack = onRoomBack,
         onSettingsBack = ::onSettingsBack,
         onOpenAvatarCutter = onOpenAvatarCutter,
+        goToRoom = goToRoom,
     )
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(

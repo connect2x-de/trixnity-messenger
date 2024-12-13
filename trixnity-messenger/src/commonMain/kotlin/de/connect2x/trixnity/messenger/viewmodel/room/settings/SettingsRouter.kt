@@ -70,6 +70,7 @@ class SettingsRouterImpl(
     private val onSettingsBack: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val goToRoom: (UserId, RoomId) -> Unit,
 ) : SettingsRouter {
 
     private val settingsNavigation = StackNavigation<Config>()
@@ -128,6 +129,7 @@ class SettingsRouterImpl(
                     userId = settingsConfig.userId,
                     error = MutableStateFlow(null),
                     selectedRoomId = roomId,
+                    goToRoom = goToRoom,
                     onBack = ::closeUserProfile
                 )
             )

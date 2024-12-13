@@ -17,12 +17,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
@@ -34,10 +37,16 @@ import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.InitialStateEvent
+import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
+import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
@@ -49,6 +58,7 @@ interface UserProfileViewModelFactory {
         userId: UserId,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
+        goToRoom: (UserId, RoomId) -> Unit,
         onBack: () -> Unit
     ): UserProfileViewModelImpl {
         return UserProfileViewModelImpl(
@@ -56,6 +66,7 @@ interface UserProfileViewModelFactory {
             userId = userId,
             error = error,
             selectedRoomId = selectedRoomId,
+            goToRoom = goToRoom,
             onBack = onBack
         )
     }
@@ -89,6 +100,7 @@ interface UserProfileViewModel {
     val isUserBlocked: StateFlow<Boolean>
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
+    val openingChat: StateFlow<Boolean>
 
     fun openKickUserWarning()
     fun closeKickUserWarning()
@@ -104,6 +116,8 @@ interface UserProfileViewModel {
 
     fun back()
     fun errorDismiss()
+
+    fun openChat()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -112,6 +126,7 @@ class UserProfileViewModelImpl(
     override val userId: UserId,
     override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
+    private val goToRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
@@ -411,5 +426,44 @@ class UserProfileViewModelImpl(
             else -> Role.USER
         }
     }
+
+
+    override val openingChat = MutableStateFlow(false)
+
+    override fun openChat() {
+        if (openingChat.compareAndSet(expect = false, update = true)) {
+            coroutineScope.launch {
+                getOrCreateRoom()?.also { roomId ->
+                    goToRoom(matrixClient.userId, roomId)
+                } ?: run {
+                    error.value = i18n.createNewChatError()
+                }
+            }.invokeOnCompletion {
+                openingChat.update { false }
+            }
+        }
+    }
+
+    private suspend fun getOrCreateRoom() =
+        getExistingChat() ?: createNewChat()
+
+    private suspend fun getExistingChat(): RoomId? =
+        matrixClient.user.getAccountData<DirectEventContent>().firstOrNull()
+            ?.mappings
+            ?.get(userId)
+            ?.firstOrNull()
+
+    private suspend fun createNewChat(): RoomId? =
+        matrixClient.api.room.createRoom(
+            isDirect = true,
+            invite = if (userId == matrixClient.userId) setOf() else setOf(userId),
+            initialState = listOf(
+                InitialStateEvent(EncryptionEventContent(), ""),
+            ),
+            preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
+        ).fold(
+            onSuccess = { it },
+            onFailure = { log.error(it) { "could not create new direct chat" }; null }
+        )
 }
 

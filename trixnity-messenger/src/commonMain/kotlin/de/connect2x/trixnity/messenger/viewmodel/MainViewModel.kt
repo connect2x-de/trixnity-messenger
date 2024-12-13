@@ -162,6 +162,7 @@ open class MainViewModelImpl(
             onOpenMedia = ::openMedia,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
+            goToRoom = roomListRouter::goToRoom,
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 

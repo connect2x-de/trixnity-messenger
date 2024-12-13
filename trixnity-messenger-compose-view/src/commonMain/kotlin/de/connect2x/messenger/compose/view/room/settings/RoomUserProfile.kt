@@ -200,7 +200,7 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                 }
 
                 MenuElement(Modifier.clickable {
-                    TODO("Jap")
+                    userProfileViewModel.openChat()
                 }) {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
