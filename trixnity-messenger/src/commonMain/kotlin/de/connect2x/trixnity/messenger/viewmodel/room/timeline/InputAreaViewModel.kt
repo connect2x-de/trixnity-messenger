@@ -169,7 +169,7 @@ open class InputAreaViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), false)
     override val message = MutableStateFlow("")
     override val isSendEnabled: StateFlow<Boolean> =
-        message.map { it.isNotBlank() }.stateIn(coroutineScope, WhileSubscribed(), false)
+        message.map { it.isNotBlank() }.stateIn(coroutineScope, Eagerly, false)
     override val showAttachmentSelectDialog = MutableStateFlow(false)
 
     private val isTyping = MutableStateFlow(false)
@@ -278,9 +278,10 @@ open class InputAreaViewModelImpl(
 
 
     override fun sendMessage() {
-        log.debug { "try to send message (enabled: ${isSendEnabled.replayCache.lastOrNull()})" }
-        if (isSendEnabled.replayCache.lastOrNull() == true) {
+        log.trace { "try to send message" }
+        if (isSendEnabled.value == true) {
             val text = message.value
+            message.value = ""
             coroutineScope.launch {
                 val mentions = MatrixRegex.findMentions(text)
                 val mentionLinks = mentions
@@ -352,7 +353,6 @@ open class InputAreaViewModelImpl(
                 replacedEvent?.also { onMessageReplaceFinished(it.first, it.second) }
                 repliedEvent?.also { onMessageReplyFinished(it.first, it.second) }
             }
-            message.value = ""
         }
     }
 

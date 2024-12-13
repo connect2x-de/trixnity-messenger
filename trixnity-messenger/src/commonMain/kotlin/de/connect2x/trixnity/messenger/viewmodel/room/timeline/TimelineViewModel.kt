@@ -262,7 +262,7 @@ class TimelineViewModelImpl(
             .shareIn(coroutineScope, WhileSubscribed(), 1)
     private val timelineElements =
         timelineState.map { it.elements }
-            .stateIn(coroutineScope, WhileSubscribed(), listOf())
+            .stateIn(coroutineScope, Eagerly, listOf())
     private val timelineEvents =
         timelineElements.map { it.map { it.timelineEvent } }
             .stateIn(coroutineScope, Eagerly, listOf())
@@ -270,10 +270,13 @@ class TimelineViewModelImpl(
     private val readEvent = MutableStateFlow<EventId?>(null)
     private val fullyReadEvent = MutableStateFlow<EventId?>(null)
 
+    private val outbox =
+        matrixClient.room.getOutbox(roomId = roomId)
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
     override val elements: StateFlow<List<BaseTimelineElementHolderViewModel>> =
         combine(
             timelineElements,
-            matrixClient.room.getOutbox(roomId = roomId)
+            outbox,
         ) { elements, outbox ->
             log.debug { "compute timeline elements" }
             val timelineElements = elements.map { it.viewModel } +
@@ -446,11 +449,10 @@ class TimelineViewModelImpl(
 
     private fun scrollToEndOnNewOutboxElement() {
         coroutineScope.launch {
-            matrixClient.room.getOutbox().flatten()
+            outbox.flatten()
                 .scan(emptySet<String>()) { transactionIdsOld, outboxNew ->
                     val transactionIdsNew =
                         outboxNew
-                            .filter { it.roomId == roomId }
                             .filter { it.content !is ReactionEventContent }
                             .map { it.transactionId }
                             .toSet()
@@ -873,7 +875,7 @@ class TimelineViewModelImpl(
         val requestedNextReadUntil = elements.value.findLastWithEventId(key) ?: return
         val eventId =
             if (alreadyReadUntil != null) {
-                val timelineEvents = timelineEvents.first()
+                val timelineEvents = timelineEvents.value
                 val indexOfAlreadyReadUntil =
                     timelineEvents.indexOfFirst { it.first().eventId == alreadyReadUntil }
                 val indexOfRequestedNextReadUntil =
