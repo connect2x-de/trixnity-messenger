@@ -72,23 +72,19 @@ fun ImageMessageBubblePreview() {
         override val thumbnail: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val width: Int? = 40
         override val height: Int? = 40
-        override fun getDimensions(maxWidth: Int, maxHeight: Int): Pair<Int, Int>? {
-            return 800 to 800
-        }
 
         override val name: String = "kiwi.png"
         override val description: String? = null
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
-        override val loadMediaResult: StateFlow<PlatformMedia?> =
-            MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
-        override val mediaInMemory: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
+        override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
-        override fun loadMedia(inMemory: Boolean) {}
+        override fun loadMedia() {}
         override fun cancelLoadMedia() {}
+        override val downloadMediaResult: StateFlow<PlatformMedia?> =
+            MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
         override val downloadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
-        override val downloadMediaSuccessful: StateFlow<Boolean?> = MutableStateFlow(true)
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
@@ -117,17 +113,16 @@ fun FileMessageBubblePreview() {
         override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
-        override val loadMediaResult: StateFlow<PlatformMedia?> =
-            MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
-        override val mediaInMemory: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
+        override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
-        override fun loadMedia(inMemory: Boolean) {}
+        override fun loadMedia() {}
         override fun cancelLoadMedia() {}
+        override val downloadMediaResult: StateFlow<PlatformMedia?> =
+            MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
         override val downloadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(
             FileTransferProgressElement(0.33f, "280kb/465")
         )
-        override val downloadMediaSuccessful: StateFlow<Boolean?> = MutableStateFlow(true)
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
