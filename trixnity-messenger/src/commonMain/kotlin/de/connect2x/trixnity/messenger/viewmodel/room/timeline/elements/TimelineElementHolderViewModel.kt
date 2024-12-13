@@ -302,7 +302,7 @@ class TimelineElementHolderViewModelImpl(
                     onOpenMention,
                 )
             )
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+        }.stateIn(coroutineScope, Lazily, null) // only calculate once!
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->

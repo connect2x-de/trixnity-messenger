@@ -18,6 +18,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -142,7 +143,7 @@ class OutboxElementHolderViewModelImpl(
                 repliedEventId,
                 onOpenMention,
             )
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+        }.stateIn(coroutineScope, Lazily, null) // only calculate once!
 
     private val initials = get<Initials>()
     override val sender: StateFlow<UserInfoElement?> =
