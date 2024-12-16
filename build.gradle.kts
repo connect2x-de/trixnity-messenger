@@ -37,6 +37,7 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // trixnity
         maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // sysnotify
+        maven("https://git.karmakrafts.dev/api/v4/projects/307/packages/maven") // multiplatform jni TODO: remove soon
     }
 
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
