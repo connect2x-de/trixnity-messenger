@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaUserCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionWithRoomCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
@@ -51,7 +50,7 @@ class RoomRouterImpl(
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
     private val onOpenMedia: OpenMediaUserCallback,
-    private val onOpenMention: OpenMentionWithRoomCallback,
+    private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     private val goToRoom: (UserId, RoomId) -> Unit,
 ) : RoomRouter {

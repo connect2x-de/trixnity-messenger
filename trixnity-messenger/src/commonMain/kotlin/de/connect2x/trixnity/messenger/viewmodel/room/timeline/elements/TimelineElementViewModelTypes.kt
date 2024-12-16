@@ -76,7 +76,6 @@ interface TextBasedViewModel : RoomMessageViewModel {
 }
 
 typealias OpenMentionCallback = (userId: UserId, messageMention: MessageMention) -> Unit
-typealias OpenMentionWithRoomCallback = (userId: UserId, roomId: RoomId, messageMention: MessageMention) -> Unit
 
 sealed interface ReferencedMessage {
     val sender: UserInfoElement

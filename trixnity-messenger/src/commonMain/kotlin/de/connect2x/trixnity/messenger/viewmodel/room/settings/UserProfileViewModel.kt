@@ -76,6 +76,7 @@ interface UserProfileViewModelFactory {
 
 interface UserProfileViewModel {
     val userId: UserId
+    val isMyself: Boolean
     val userInfo: StateFlow<UserInfoElement?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val error: StateFlow<String?>
@@ -129,6 +130,9 @@ class UserProfileViewModelImpl(
     private val goToRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
+
+    override val isMyself = userId == matrixClient.userId
+
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -433,6 +437,10 @@ class UserProfileViewModelImpl(
     override val openingChat = MutableStateFlow(false)
 
     override fun openChat() {
+        if (isMyself) {
+            log.warn { "cannot open chat with yourself" }
+            return
+        }
         if (openingChat.compareAndSet(expect = false, update = true)) {
             coroutineScope.launch {
                 getOrCreateRoom()?.also { roomId ->
@@ -447,6 +455,10 @@ class UserProfileViewModelImpl(
     }
 
     override fun startVerification() {
+        if (isMyself) {
+            log.warn { "cannot verify yourself" }
+            return
+        }
         coroutineScope.launch {
             val request = RoomMessageEventContent.VerificationRequest(matrixClient.deviceId, userId, setOf(VerificationMethod.Sas))
             matrixClient.room.sendMessage(selectedRoomId) {

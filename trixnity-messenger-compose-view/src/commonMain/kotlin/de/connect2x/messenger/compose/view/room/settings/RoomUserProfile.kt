@@ -179,98 +179,100 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                         Text(membershipReason)
                     }
                 }
-                HorizontalDivider(Modifier.fillMaxWidth())
-                MenuElement(arrangement = Arrangement.SpaceBetween) {
-                    Row {
-                        BlockIcon()
-                        Spacer(Modifier.size(10.dp))
-                        Text(i18n.userProfileBlockUser())
-                    }
-                    Switch(
-                        checked = isUserBlocked,
-                        onCheckedChange = {
-                            if (isUserBlocked) {
-                                userProfileViewModel.unblockUser()
-                            } else {
-                                userProfileViewModel.blockUser()
-                            }
-                        },
-                        enabled = !blockingInProgress
-                    )
-                }
 
-                MenuElement(Modifier.clickable {
-                    userProfileViewModel.openChat()
-                }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        i18n.contact(),
-                        Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.size(10.dp))
-                    Text(i18n.userProfileContact())
-                }
-                MenuElement(Modifier.clickable {
-                    userProfileViewModel.startVerification()
-                }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Wysiwyg,
-                        i18n.userVerification(),
-                        Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.size(10.dp))
-                    Text(i18n.userProfileVerification())
-                }
-                HorizontalDivider(Modifier.fillMaxWidth())
-                if (
-                    canSetRoleToUser ||
-                    canSetRoleToModerator ||
-                    canSetRoleToAdmin ||
-                    (maxPowerLevel != null && maxPowerLevel != 0L)
-                ) {
-                    MenuElement(Modifier.clickable {
-                        userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
-                    }) {
-                        Icon(
-                            Icons.Filled.Verified,
-                            i18n.userProfileChangePowerLevel(),
-                            Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.size(10.dp))
-                        Text(i18n.userProfileChangePowerLevel())
-                    }
-                }
-                if (iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)) {
+                if (!userProfileViewModel.isMyself) {
+                    HorizontalDivider(Modifier.fillMaxWidth())
                     MenuElement(arrangement = Arrangement.SpaceBetween) {
                         Row {
-                            BanIcon()
+                            BlockIcon()
                             Spacer(Modifier.size(10.dp))
-                            Text(i18n.userProfileBanUser())
+                            Text(i18n.userProfileBlockUser())
                         }
                         Switch(
-                            checked = membership == Membership.BAN,
+                            checked = isUserBlocked,
                             onCheckedChange = {
-                                if (membership == Membership.BAN) {
-                                    userProfileViewModel.openUnbanUserWarning()
+                                if (isUserBlocked) {
+                                    userProfileViewModel.unblockUser()
                                 } else {
-                                    userProfileViewModel.openBanUserWarning()
+                                    userProfileViewModel.blockUser()
                                 }
                             },
-                            enabled = !membershipChanging
+                            enabled = !blockingInProgress
                         )
                     }
-                }
-                if (iHavePowerToKickUser) {
                     MenuElement(Modifier.clickable {
-                        userProfileViewModel.openKickUserWarning()
+                        userProfileViewModel.openChat()
                     }) {
                         Icon(
-                            Icons.Filled.PersonOff,
-                            i18n.userProfileRemoveUser(),
+                            Icons.AutoMirrored.Filled.Send,
+                            i18n.contact(),
                             Modifier.size(24.dp)
                         )
                         Spacer(Modifier.size(10.dp))
-                        Text(i18n.userProfileRemoveUser())
+                        Text(i18n.userProfileContact())
+                    }
+                    MenuElement(Modifier.clickable {
+                        userProfileViewModel.startVerification()
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Wysiwyg,
+                            i18n.userVerification(),
+                            Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Text(i18n.userProfileVerification())
+                    }
+                    HorizontalDivider(Modifier.fillMaxWidth())
+                    if (
+                        canSetRoleToUser ||
+                        canSetRoleToModerator ||
+                        canSetRoleToAdmin ||
+                        (maxPowerLevel != null && maxPowerLevel != 0L)
+                    ) {
+                        MenuElement(Modifier.clickable {
+                            userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
+                        }) {
+                            Icon(
+                                Icons.Filled.Verified,
+                                i18n.userProfileChangePowerLevel(),
+                                Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.size(10.dp))
+                            Text(i18n.userProfileChangePowerLevel())
+                        }
+                    }
+                    if (iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)) {
+                        MenuElement(arrangement = Arrangement.SpaceBetween) {
+                            Row {
+                                BanIcon()
+                                Spacer(Modifier.size(10.dp))
+                                Text(i18n.userProfileBanUser())
+                            }
+                            Switch(
+                                checked = membership == Membership.BAN,
+                                onCheckedChange = {
+                                    if (membership == Membership.BAN) {
+                                        userProfileViewModel.openUnbanUserWarning()
+                                    } else {
+                                        userProfileViewModel.openBanUserWarning()
+                                    }
+                                },
+                                enabled = !membershipChanging
+                            )
+                        }
+                    }
+                    if (iHavePowerToKickUser) {
+                        MenuElement(Modifier.clickable {
+                            userProfileViewModel.openKickUserWarning()
+                        }) {
+                            Icon(
+                                Icons.Filled.PersonOff,
+                                i18n.userProfileRemoveUser(),
+                                Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.size(10.dp))
+                            Text(i18n.userProfileRemoveUser())
+                        }
                     }
                 }
             }

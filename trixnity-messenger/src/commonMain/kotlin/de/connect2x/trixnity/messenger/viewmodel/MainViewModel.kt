@@ -101,7 +101,7 @@ interface MainViewModel {
         userId: UserId
     )
 
-    fun openMention(userId: UserId, roomId: RoomId, messageMention: MessageMention)
+    fun openMention(userId: UserId, messageMention: MessageMention)
 
     fun closeAccountsOverview()
 }
@@ -573,13 +573,18 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openMention(sourceUserId: UserId, sourceRoomId: RoomId, messageMention: MessageMention) {
+    override fun openMention(sourceUserId: UserId, messageMention: MessageMention) {
         when (messageMention) {
             is MessageMention.User -> {
                 // TODO: find out where the mentioned userId is located instead of assuming the mention source
                 val userId = messageMention.user.userId
+
+                val roomId = selectedRoomId.value ?: run {
+                    log.warn { "Could not open User Profile $userId, no room selected" }
+                    return
+                }
                 log.warn { "Opening User Profile $userId" }
-                onOpenUserProfile(sourceUserId, sourceRoomId, userId)
+                onOpenUserProfile(sourceUserId, roomId, userId)
             }
 
             is MessageMention.Room -> {
@@ -740,7 +745,7 @@ class PreviewMainViewModel : MainViewModel {
     ) {
     }
 
-    override fun openMention(userId: UserId, roomId: RoomId, messageMention: MessageMention) {
+    override fun openMention(userId: UserId, messageMention: MessageMention) {
     }
 
     override fun closeAccountsOverview() {
