@@ -91,7 +91,6 @@ interface MainViewModel {
     fun start()
     fun closeDetailsAndShowList()
     fun onRoomSelected(userId: UserId, id: RoomId)
-    fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, targetUserId: UserId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
 
@@ -484,7 +483,7 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, userId: UserId) {
+    private fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, userId: UserId) {
         coroutineScope.launch {
             log.debug { "onOpenUserProfile: $userId" }
             selectRoom(sourceUserId, roomId)
@@ -723,8 +722,6 @@ class PreviewMainViewModel : MainViewModel {
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         selectedRoomId.value = id
     }
-
-    override fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, targetUserId: UserId) {}
 
     override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
     }
