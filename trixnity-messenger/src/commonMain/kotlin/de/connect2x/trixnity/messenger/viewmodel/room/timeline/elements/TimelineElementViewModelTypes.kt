@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 
 interface BaseTimelineElementViewModel {
@@ -75,6 +76,7 @@ interface TextBasedViewModel : RoomMessageViewModel {
 }
 
 typealias OpenMentionCallback = (userId: UserId, messageMention: MessageMention) -> Unit
+typealias OpenMentionWithRoomCallback = (userId: UserId, roomId: RoomId, messageMention: MessageMention) -> Unit
 
 sealed interface ReferencedMessage {
     val sender: UserInfoElement

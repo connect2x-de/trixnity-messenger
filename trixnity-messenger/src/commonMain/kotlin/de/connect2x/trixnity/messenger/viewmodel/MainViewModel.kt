@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
@@ -16,6 +17,7 @@ import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.viewmodel.RootRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
@@ -89,6 +91,7 @@ interface MainViewModel {
     fun start()
     fun closeDetailsAndShowList()
     fun onRoomSelected(userId: UserId, id: RoomId)
+    fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, targetUserId: UserId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
 
@@ -99,7 +102,7 @@ interface MainViewModel {
         userId: UserId
     )
 
-    fun openMention(userId: UserId, messageMention: MessageMention)
+    fun openMention(userId: UserId, roomId: RoomId, messageMention: MessageMention)
 
     fun closeAccountsOverview()
 }
@@ -462,18 +465,32 @@ open class MainViewModelImpl(
         }
     }
 
+    private suspend fun selectRoom(userId: UserId, id: RoomId) {
+        roomRouter.showRoom(userId, id)
+        // hack for iOS, since the observe mechanism of line 236ff does not work
+        selectedRoomId.value = id
+
+        if (isSinglePane.value) {
+            roomListRouter.moveToBackStack()
+        } else {
+            roomListRouter.show()
+        }
+    }
+
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
-            roomRouter.showRoom(userId, id)
-            // hack for iOS, since the observe mechanism of line 236ff does not work
-            selectedRoomId.value = id
+            selectRoom(userId, id)
+        }
+    }
 
-            if (isSinglePane.value) {
-                roomListRouter.moveToBackStack()
-            } else {
-                roomListRouter.show()
-            }
+    override fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, userId: UserId) {
+        coroutineScope.launch {
+            log.debug { "onOpenUserProfile: $userId" }
+            selectRoom(sourceUserId, roomId)
+
+            val instance = roomRouter.stack.active.instance as? RoomRouter.Wrapper.View
+            instance?.viewModel?.showUserProfile(userId)
         }
     }
 
@@ -557,18 +574,19 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openMention(userId: UserId, messageMention: MessageMention) {
+    override fun openMention(sourceUserId: UserId, sourceRoomId: RoomId, messageMention: MessageMention) {
         when (messageMention) {
             is MessageMention.User -> {
+                // TODO: find out where the mentioned userId is located instead of assuming the mention source
                 val userId = messageMention.user.userId
-                // handling for user mentions is done in a lower level, see RoomViewModel
-                log.warn { "Unhandled MessageMention.User for $userId" }
+                log.warn { "Opening User Profile $userId" }
+                onOpenUserProfile(sourceUserId, sourceRoomId, userId)
             }
 
             is MessageMention.Room -> {
                 val roomId = messageMention.room.roomId
                 log.debug { "Opening Room $roomId" }
-                onRoomSelected(userId, roomId)
+                onRoomSelected(sourceUserId, roomId)
             }
 
             is MessageMention.Event -> {
@@ -706,6 +724,8 @@ class PreviewMainViewModel : MainViewModel {
         selectedRoomId.value = id
     }
 
+    override fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, targetUserId: UserId) {}
+
     override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
     }
 
@@ -723,7 +743,7 @@ class PreviewMainViewModel : MainViewModel {
     ) {
     }
 
-    override fun openMention(userId: UserId, messageMention: MessageMention) {
+    override fun openMention(userId: UserId, roomId: RoomId, messageMention: MessageMention) {
     }
 
     override fun closeAccountsOverview() {
