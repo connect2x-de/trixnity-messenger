@@ -57,7 +57,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Video,
     ) {
-        FileBasedRoomMessageTimelineElementView(
+        FileBasedRoomMessageTimelineElement(
             holder,
             element,
             overlay = {

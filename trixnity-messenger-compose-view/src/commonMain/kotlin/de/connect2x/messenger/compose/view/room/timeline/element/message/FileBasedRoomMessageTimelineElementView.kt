@@ -28,6 +28,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
@@ -37,24 +38,57 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
+interface FileBasedRoomMessageTimelineElementView {
+    @Composable
+    fun create(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.FileBased<*>,
+        overlay: (@Composable BoxScope.() -> Unit)? = null,
+        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+    )
+}
+
 @Composable
-fun FileBasedRoomMessageTimelineElementView(
+fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
+    DI.get<FileBasedRoomMessageTimelineElementView>()
+        .create(holder, element, overlay, content)
+}
+
+class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimelineElementView {
+    @Composable
+    override fun create(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.FileBased<*>,
+        overlay: @Composable (BoxScope.() -> Unit)?,
+        content: @Composable (ColumnScope.(() -> Unit, () -> Unit) -> Unit)
+    ) {
+        val error = element.downloadMediaError.collectAsState().value
+        val saveDialogOpen = remember { mutableStateOf(false) }
+        if (saveDialogOpen.value) SaveFileDialog(
+            element.name,
+            element.mimeType,
+            error,
+            element::downloadMedia,
+        ) { saveDialogOpen.value = false }
+
+        FileBasedRoomMessageTimelineElementMessageBuble(holder, element, saveDialogOpen, overlay, content)
+    }
+}
+
+@Composable
+fun FileBasedRoomMessageTimelineElementMessageBuble(
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    saveDialogOpen: MutableState<Boolean>,
+    overlay: @Composable (BoxScope.() -> Unit)?,
+    content: @Composable (ColumnScope.(() -> Unit, () -> Unit) -> Unit)
+) {
     val i18n = DI.current.get<I18nView>()
-
-    val error = element.downloadMediaError.collectAsState().value
-    val saveDialogOpen = remember { mutableStateOf(false) }
-    if (saveDialogOpen.value) SaveFileDialog(
-        element.name,
-        element.mimeType,
-        error,
-        element::downloadMedia,
-    ) { saveDialogOpen.value = false }
-
     MessageBubble(
         holder,
         needsMaxWidth = true,
@@ -80,7 +114,6 @@ fun FileBasedRoomMessageTimelineElementView(
     ) { showActionMenu ->
         FileBasedView(holder, element, saveDialogOpen, showActionMenu, content)
     }
-
 }
 
 @Composable
@@ -140,5 +173,4 @@ internal fun FileBasedView(
             openElementDetails = false
         }
     }
-
 }

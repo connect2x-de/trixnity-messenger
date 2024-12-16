@@ -48,7 +48,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.File
     ) {
-        FileBasedRoomMessageTimelineElementView(
+        FileBasedRoomMessageTimelineElement(
             holder, element,
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)

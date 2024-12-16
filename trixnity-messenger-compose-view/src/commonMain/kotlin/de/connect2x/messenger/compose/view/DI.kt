@@ -121,6 +121,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTi
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.LocationRoomMessageTimelineElementView
@@ -426,7 +428,7 @@ fun timelineViewModule() = module {
     single<MessageBubbleView> { MessageBubbleViewImpl() }
     single<MessageReactionsView> { MessageReactionsViewImpl() }
     single<MessageInfoView> { MessageInfoViewImpl() }
-//    single<UserVerificationView> { UserVerificationViewImpl() }
+    single<FileBasedRoomMessageTimelineElementView> { FileBasedRoomMessageTimelineElementViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
     single<ReplyToAreaView> { ReplyToAreaViewImpl() }
     single<TextReplyView> { TextReplyViewImpl() }

@@ -54,7 +54,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Image,
     ) {
-        FileBasedRoomMessageTimelineElementView(
+        FileBasedRoomMessageTimelineElement(
             holder,
             element,
             overlay = {

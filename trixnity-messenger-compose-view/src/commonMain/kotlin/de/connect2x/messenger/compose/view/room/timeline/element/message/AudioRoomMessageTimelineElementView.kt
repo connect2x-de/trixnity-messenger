@@ -50,7 +50,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Audio,
     ) {
-        FileBasedRoomMessageTimelineElementView(
+        FileBasedRoomMessageTimelineElement(
             holder,
             element,
             overlay = {
