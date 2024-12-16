@@ -361,7 +361,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 userId = userId,
                 coroutineContext = coroutineContext
             ),
-            _roomUser = MutableStateFlow(
+            roomUser = MutableStateFlow(
                 RoomUser(
                     roomId,
                     userId,

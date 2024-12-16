@@ -416,8 +416,8 @@ class UserProfileViewModelTest : ShouldSpec() {
             ),
             userId = userId,
             selectedRoomId = roomId,
-            error = MutableStateFlow(""),
-            onBack = mock()
+            onBack = mock(),
+            goToRoom = mock(),
         )
     }
 }

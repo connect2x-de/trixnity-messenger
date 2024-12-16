@@ -419,6 +419,7 @@ class RoomViewModelTest : ShouldSpec() {
             isBackButtonVisible = MutableStateFlow(false),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),
+            goToRoom = mock()
         )
         return roomViewModel
     }
