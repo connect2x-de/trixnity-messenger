@@ -148,7 +148,7 @@ class OutboxElementHolderViewModelImpl(
     private val initials = get<Initials>()
     override val sender: StateFlow<UserInfoElement?> =
         matrixClient.user.getById(roomId, userId).map { user ->
-            user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
+            user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, userId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isByMe: Boolean = true

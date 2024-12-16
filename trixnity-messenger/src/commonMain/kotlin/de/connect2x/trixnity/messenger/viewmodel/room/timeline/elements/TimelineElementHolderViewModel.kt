@@ -312,7 +312,7 @@ class TimelineElementHolderViewModelImpl(
     // TODO images are loaded for each holder into memory! This should be fixed.
     override val sender: StateFlow<UserInfoElement?> =
         matrixClient.user.getById(roomId, senderUserId).map { user ->
-            user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
+            user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, senderUserId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> =
@@ -407,7 +407,7 @@ class TimelineElementHolderViewModelImpl(
             else combine(userIds.map { userId -> matrixClient.user.getById(roomId, userId) }) { roomUsers ->
                 roomUsers.mapNotNull { user ->
                     if (user == null) return@mapNotNull null
-                    user.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
+                    user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, user.userId)
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
@@ -433,7 +433,7 @@ class TimelineElementHolderViewModelImpl(
                                                 name = sender.originalName ?: sender.name,
                                                 userId = sender.userId,
                                                 initials = initials.compute(sender.originalName ?: sender.name),
-                                                image = null
+                                                image = null // TODO
                                             ),
                                             isMe = event.sender == matrixClient.userId,
                                         )

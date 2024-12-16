@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.EventInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
@@ -67,9 +66,14 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     is Mention.User -> matrixClient.user.getById(roomId, mention.userId)
                         .map {
                             TimelineElementMention.User(
-                                it?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
                                 // TODO call api.user.getProfile as fallback
-                                    ?: UserInfoElement(mention.userId.full, mention.userId)
+                                it.toUserInfoElement(
+                                    coroutineScope,
+                                    matrixClient,
+                                    initials,
+                                    config.avatarMaxSize,
+                                    mention.userId
+                                )
                             )
                         }
                         .stateIn(coroutineScope, whileSubscribedWithTimeout, null)

@@ -138,7 +138,15 @@ open class RoomListElementViewModelImpl(
                 roomInviter.getInviter(matrixClient, roomId)?.let { inviterUserId ->
                     matrixClient.user.getById(roomId, inviterUserId)
                         .filterNotNull()
-                        .map { it.toUserInfoElement(matrixClient, initials, maxAvatarSize) }
+                        .map {
+                            it.toUserInfoElement(
+                                coroutineScope,
+                                matrixClient,
+                                initials,
+                                maxAvatarSize,
+                                inviterUserId
+                            )
+                        }
                 } ?: flowOf(null)
             } else {
                 flowOf(null)

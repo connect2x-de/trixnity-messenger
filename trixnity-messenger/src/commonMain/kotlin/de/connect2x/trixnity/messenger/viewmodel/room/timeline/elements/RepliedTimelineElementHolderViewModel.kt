@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -135,14 +136,16 @@ class RepliedTimelineElementHolderViewModelImpl(
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(5.seconds), null)
 
-    private val senderUserId =
-        timelineEventFlow.map { it?.sender }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    private val senderUserId = coroutineScope.async {
+        timelineEventFlow.map { it?.sender }.filterNotNull().first()
+    }
+
     override val sender: StateFlow<UserInfoElement?> =
         flow {
+            val userId = senderUserId.await()
             emitAll(
-                matrixClient.user.getById(roomId, senderUserId.filterNotNull().first()).map { user ->
-                    user?.toUserInfoElement(matrixClient, initials, config.avatarMaxSize)
+                matrixClient.user.getById(roomId, userId).map { user ->
+                    user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, userId)
                 }
             )
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
@@ -155,7 +158,7 @@ class RepliedTimelineElementHolderViewModelImpl(
 
     override val isByMe: StateFlow<Boolean?> =
         flow {
-            emit(senderUserId.filterNotNull().first() == userId)
+            emit(senderUserId.await() == userId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }
 
