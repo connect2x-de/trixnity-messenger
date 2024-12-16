@@ -211,7 +211,7 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                     Text(i18n.userProfileContact())
                 }
                 MenuElement(Modifier.clickable {
-                    TODO("Jap")
+                    userProfileViewModel.startVerification()
                 }) {
                     Icon(
                         Icons.AutoMirrored.Filled.Wysiwyg,

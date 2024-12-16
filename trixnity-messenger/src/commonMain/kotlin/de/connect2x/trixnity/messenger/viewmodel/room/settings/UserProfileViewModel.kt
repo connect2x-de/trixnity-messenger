@@ -37,6 +37,7 @@ import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
+import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
@@ -44,9 +45,11 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -115,6 +118,7 @@ interface UserProfileViewModel {
     fun errorDismiss()
 
     fun openChat()
+    fun startVerification()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -438,6 +442,15 @@ class UserProfileViewModelImpl(
                 }
             }.invokeOnCompletion {
                 openingChat.update { false }
+            }
+        }
+    }
+
+    override fun startVerification() {
+        coroutineScope.launch {
+            val request = RoomMessageEventContent.VerificationRequest(matrixClient.deviceId, userId, setOf(VerificationMethod.Sas))
+            matrixClient.room.sendMessage(selectedRoomId) {
+                content(request)
             }
         }
     }
