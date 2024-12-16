@@ -23,7 +23,7 @@ interface ChangePowerLevelViewModelFactory {
         powerLevel: StateFlow<Long>,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
-        roomUser: SharedFlow<RoomUser?>,
+        roomUser: StateFlow<RoomUser?>,
     ): ChangePowerLevelViewModel {
         return ChangePowerLevelViewModelImpl(
             viewModelContext,
@@ -93,10 +93,9 @@ open class ChangePowerLevelViewModelImpl(
     val powerLevel: StateFlow<Long>,
     val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
-    private val _roomUser: SharedFlow<RoomUser?>,
+    private val roomUser: StateFlow<RoomUser?>,
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
     private val targetUser = userId
-    private val roomUser = _roomUser.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val canSetPowerLevelToMax =
         matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)

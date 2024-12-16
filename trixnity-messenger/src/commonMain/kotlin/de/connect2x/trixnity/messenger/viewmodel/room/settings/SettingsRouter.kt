@@ -127,7 +127,6 @@ class SettingsRouterImpl(
                 viewModelContext.get<UserProfileViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     userId = settingsConfig.userId,
-                    error = MutableStateFlow(null),
                     selectedRoomId = roomId,
                     goToRoom = goToRoom,
                     onBack = ::closeUserProfile

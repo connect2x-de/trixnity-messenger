@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -56,7 +55,6 @@ interface UserProfileViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         userId: UserId,
-        error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
         goToRoom: (UserId, RoomId) -> Unit,
         onBack: () -> Unit
@@ -64,7 +62,6 @@ interface UserProfileViewModelFactory {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
             userId = userId,
-            error = error,
             selectedRoomId = selectedRoomId,
             goToRoom = goToRoom,
             onBack = onBack
@@ -124,13 +121,14 @@ interface UserProfileViewModel {
 class UserProfileViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val userId: UserId,
-    override val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
     private val goToRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay=1)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val kickUserWarningOpen = MutableStateFlow(false)
     override val kickUserWarningMessage = MutableStateFlow("")
