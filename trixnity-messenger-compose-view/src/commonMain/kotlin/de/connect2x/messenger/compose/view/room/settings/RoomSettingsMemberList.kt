@@ -89,7 +89,7 @@ fun MemberList(memberListViewModel: MemberListViewModel) {
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(Modifier.fillMaxWidth(), state) {
             members.forEach { memberListElementViewModel ->
-                val userId = memberListElementViewModel.userId
+                val userId = memberListElementViewModel.memberUserId
                 item(key = userId.full) {
                     RoomSettingsMemberListElement(
                         memberListViewModel,

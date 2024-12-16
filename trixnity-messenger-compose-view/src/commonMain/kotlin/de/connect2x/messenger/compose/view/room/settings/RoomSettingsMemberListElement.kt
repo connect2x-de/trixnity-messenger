@@ -99,7 +99,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val showPowerLevel = memberListElementViewModel.showPowerLevel.collectAsState().value
         val showRole = memberListElementViewModel.showRole.collectAsState().value
         val isLastMember =
-            memberListViewModel.elements.collectAsState().value.lastOrNull()?.userId == memberListElementViewModel.userId
+            memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val membership = memberListElementViewModel.membership.collectAsState().value
         val membershipReason = memberListElementViewModel.membershipReason.collectAsState().value

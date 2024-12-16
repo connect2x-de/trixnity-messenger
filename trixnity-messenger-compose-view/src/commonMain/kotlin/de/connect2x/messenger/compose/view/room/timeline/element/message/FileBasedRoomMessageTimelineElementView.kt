@@ -75,7 +75,6 @@ fun FileBasedRoomMessageTimelineElementView(
                 label = i18n.downloadMessage(),
                 action = { saveDialogOpen.value = true },
             ).render(onClose)
-
         },
         overlay,
     ) { showActionMenu ->

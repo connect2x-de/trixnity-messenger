@@ -176,7 +176,13 @@ class TimelineViewImpl : TimelineView {
                                 key as? String
                             }
                         if (firstVisible != null && lastVisible != null)
-                            TimelineViewModel.ViewState(firstVisible, lastVisible, isFocused)
+                            TimelineViewModel.ViewState(
+                                firstVisible,
+                                lastVisible,
+                                timelineElementHolderViewModels.last().key,
+                                timelineElementHolderViewModels.first().key,
+                                isFocused,
+                            )
                         else null
                     }
                 }

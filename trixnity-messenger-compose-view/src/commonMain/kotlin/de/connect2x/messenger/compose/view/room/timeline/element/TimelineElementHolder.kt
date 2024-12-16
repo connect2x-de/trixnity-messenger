@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,10 +45,10 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
                         timelineElementHolderViewModel.hasLoadingIndicatorAfter.collectAsState().value
                     val hasUnreadMarker = timelineElementHolderViewModel.hasUnreadMarker.collectAsState().value
 
-                    if (hasLoadingIndicatorBefore) LoadingSpinner()
+                    AnimatedVisibility(hasLoadingIndicatorBefore, enter = EnterTransition.None) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
-                    if (hasUnreadMarker) UnreadMessagesIndicator()
-                    if (hasLoadingIndicatorAfter) LoadingSpinner()
+                    AnimatedVisibility(hasUnreadMarker) { UnreadMessagesIndicator() }
+                    AnimatedVisibility(hasLoadingIndicatorAfter, enter = EnterTransition.None) { LoadingSpinner() }
                 }
 
                 is OutboxElementHolderViewModel -> {

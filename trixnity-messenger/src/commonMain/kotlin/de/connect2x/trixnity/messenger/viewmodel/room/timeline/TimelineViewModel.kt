@@ -188,6 +188,8 @@ interface TimelineViewModel {
     data class ViewState(
         val firstVisibleElement: String,
         val lastVisibleElement: String,
+        val firstLoadedElement: String,
+        val lastLoadedElement: String,
         val windowIsFocused: Boolean,
     )
 
@@ -508,6 +510,34 @@ class TimelineViewModelImpl(
         }
     }
 
+    private val canLoadBefore = combine(
+        timelineState,
+        viewState.map { it?.firstLoadedElement }.distinctUntilChanged()
+    ) { timelineState, firstLoadedElement ->
+        val firstElement = timelineState.elements.firstOrNull()?.key
+        val canLoadBefore = timelineState.canLoadBefore
+        log.trace { "canLoadBefore: firstElement=$firstElement, firstLoadedElement=$firstLoadedElement, canLoadBefore=$canLoadBefore" }
+        when {
+            firstLoadedElement != null && firstElement != firstLoadedElement -> firstLoadedElement
+            canLoadBefore -> firstElement
+            else -> null
+        }
+    }.shareIn(coroutineScope, WhileSubscribed())
+
+    private val canLoadAfter = combine(
+        timelineState,
+        viewState.map { it?.lastLoadedElement }.distinctUntilChanged()
+    ) { timelineState, lastLoadedElement ->
+        val firstElement = timelineState.elements.lastOrNull()?.key
+        val canLoadAfter = timelineState.canLoadAfter
+        log.trace { "canLoadBefore: firstElement=$firstElement, lastLoadedElement=$lastLoadedElement, canLoadAfter=$canLoadAfter" }
+        when {
+            lastLoadedElement != null && firstElement != lastLoadedElement -> lastLoadedElement
+            canLoadAfter -> firstElement
+            else -> null
+        }
+    }.shareIn(coroutineScope, WhileSubscribed())
+
     @OptIn(FlowPreview::class)
     private suspend fun computeTimelineElement(
         timelineEventFlow: Flow<TimelineEvent>,
@@ -521,12 +551,10 @@ class TimelineViewModelImpl(
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
-        val canLoadBefore = timelineState.map {
-            it.canLoadBefore && it.elements.firstOrNull()?.viewModel?.eventId == eventId
-        }
-        val canLoadAfter = timelineState.map {
-            it.canLoadAfter && it.elements.lastOrNull()?.viewModel?.eventId == eventId
-        }
+        val canLoadBefore = canLoadBefore.map { it == key }.distinctUntilChanged()
+            // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
+            .debounce(300.milliseconds)
+        val canLoadAfter = canLoadAfter.map { it == key }.distinctUntilChanged()
             // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
             .debounce(300.milliseconds)
 

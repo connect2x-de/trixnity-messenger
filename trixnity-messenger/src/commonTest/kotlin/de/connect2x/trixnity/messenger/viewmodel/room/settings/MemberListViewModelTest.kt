@@ -257,7 +257,7 @@ class MemberListViewModelTest : ShouldSpec() {
 
             val memberListElementViewModel = cut.elements.value[1]
             val roomUser =
-                userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
+                userServiceMock.getById(roomId, memberListElementViewModel.memberUserId) as MutableStateFlow<RoomUser?>
 
             memberListElementViewModel.banUser("Test reason")
             eventually(2.seconds) {
@@ -326,7 +326,7 @@ class MemberListViewModelTest : ShouldSpec() {
 
             val memberListElementViewModel = cut.elements.value[1]
             val roomUser =
-                userServiceMock.getById(roomId, memberListElementViewModel.userId) as MutableStateFlow<RoomUser?>
+                userServiceMock.getById(roomId, memberListElementViewModel.memberUserId) as MutableStateFlow<RoomUser?>
 
             setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.BAN))
             eventually(2.seconds) {
@@ -562,16 +562,16 @@ class MemberListViewModelTest : ShouldSpec() {
             MatcherResult(
                 userIds.foldIndexed(true) { index, acc, userId ->
                     val vm = resultList.getOrElse(index) { null }
-                    acc && (vm?.userId == userId)
+                    acc && (vm?.memberUserId == userId)
                 },
                 {
                     "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
-                        acc + vm.userId
+                        acc + vm.memberUserId
                     }
                 },
                 {
                     "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
-                        acc + vm.userId
+                        acc + vm.memberUserId
                     }
                 }
             )

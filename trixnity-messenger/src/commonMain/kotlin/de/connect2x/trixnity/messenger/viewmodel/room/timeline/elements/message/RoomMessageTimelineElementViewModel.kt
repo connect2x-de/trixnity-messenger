@@ -11,7 +11,7 @@ import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
-    sealed interface TextBased<C : RoomMessageEventContent.TextBased> : RoomMessageTimelineElementViewModel<C> {
+    interface TextBased<C : RoomMessageEventContent.TextBased> : RoomMessageTimelineElementViewModel<C> {
         /**
          * This event's message (stripped of any fallbacks for rich replies).
          */
@@ -42,7 +42,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         interface Emote : TextBased<RoomMessageEventContent.TextBased.Emote>
     }
 
-    sealed interface FileBased<C : RoomMessageEventContent.FileBased> : RoomMessageTimelineElementViewModel<C> {
+    interface FileBased<C : RoomMessageEventContent.FileBased> : RoomMessageTimelineElementViewModel<C> {
         val name: String
         val description: String?
         val size: String?
