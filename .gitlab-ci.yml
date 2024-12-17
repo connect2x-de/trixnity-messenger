@@ -184,23 +184,22 @@ test:smoketest-desktop-linux:
       :trixnity-messenger-compose-view:desktopTest
       --stacktrace
 
-# TODO
-#test:smoketest-web:
-#  stage: test
-#  interruptible: true
-#  timeout: 1h
-#  needs: [ "build:linux" ]
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME
-#  cache:
-#    - *pull-cache-linux
-#  artifacts: *artifact-reports
-#  rules:
-#    - *if-merge-request-or-main
-#  script:
-#    - ./gradlew
-#      :trixnity-messenger-compose-view:webBrowserFirefoxTest
-#      --stacktrace
+test:smoketest-web:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request-or-main
+  script:
+    - ./gradlew
+      :trixnity-messenger-compose-view:webBrowserFirefoxTest
+      --stacktrace
 
 test:smoketest-android:
   stage: test
