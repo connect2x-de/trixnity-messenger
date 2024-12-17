@@ -14,17 +14,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
@@ -83,45 +82,40 @@ private fun MessageTextContent(
                 it.key to it.value.collectAsState().value
             }.sortedByDescending { it.first.first }
 
-        val message = element.formattedBody
-            ?: element.body
+        val message = element.formattedBody ?: element.body
         val text = formatMessage(message, mentions, holder, element)
 
-        val richTextState = rememberRichTextState()
-        LaunchedEffect(text) {
-            richTextState.setHtml(text)
+        val richTextState = rememberSaveable(saver = RichTextState.Saver) {
+            RichTextState().apply {
+                setHtml(text)
+            }
         }
         richTextState.config.linkColor =
             if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
             else MaterialTheme.messengerColors.link
 
-        if (richTextState.toHtml().isNotBlank()) {
-            if (mentions.any { it.second != null }) {
-                val baseUriHandler = LocalUriHandler.current
-                val uriHandler by remember {
-                    mentionsUriHandler(
-                        baseUriHandler,
-                        element,
-                        mentions.map { it.second })
-                }
-
-                MessageRichText(
-                    uriHandler,
-                    richTextState,
-                    holder.isByMe,
-                    showActionMenu,
-                )
-            } else {
-                MessageRichText(
-                    LocalUriHandler.current,
-                    richTextState,
-                    holder.isByMe,
-                    showActionMenu,
-                )
+        if (mentions.any { it.second != null }) {
+            val baseUriHandler = LocalUriHandler.current
+            val uriHandler by remember {
+                mentionsUriHandler(
+                    baseUriHandler,
+                    element,
+                    mentions.map { it.second })
             }
+
+            MessageRichText(
+                uriHandler,
+                richTextState,
+                holder.isByMe,
+                showActionMenu,
+            )
         } else {
-            // workaround for 1st rendering cycle where nothing is displayed since the RichText's HTML is set in an effect
-            Text(element.body, style = MaterialTheme.typography.bodyMedium)
+            MessageRichText(
+                LocalUriHandler.current,
+                richTextState,
+                holder.isByMe,
+                showActionMenu,
+            )
         }
     }
 }
