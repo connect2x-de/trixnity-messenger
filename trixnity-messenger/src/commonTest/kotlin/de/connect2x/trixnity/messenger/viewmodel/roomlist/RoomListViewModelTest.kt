@@ -364,7 +364,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            val list = cut.sortedRoomListElementViewModels.onEach { println(it) }.first { it.size == 5 }
+            val list = cut.elements.onEach { println(it) }.first { it.size == 5 }
             list[0].roomId shouldBe roomId2
             list[1].roomId shouldBe roomId3
             list[2].roomId shouldBe roomId5
@@ -575,11 +575,11 @@ class RoomListViewModelTest : ShouldSpec() {
 
             cut.searchTerm.value = ""
             testCoroutineScheduler.advanceUntilIdle()
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 2
+            cut.elements.value shouldHaveSize 2
 
             cut.searchTerm.value = "  "
             testCoroutineScheduler.runCurrent()
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 2
+            cut.elements.value shouldHaveSize 2
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -607,8 +607,8 @@ class RoomListViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
 
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 2
-            cut.sortedRoomListElementViewModels.value.should(
+            cut.elements.value shouldHaveSize 2
+            cut.elements.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId2, roomId3))
             )
 
@@ -641,7 +641,7 @@ class RoomListViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
 
-            cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
+            cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -668,7 +668,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.searchTerm.value = "2"
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
-            cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
+            cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
 
             roomList.value = mapOf(
                 roomId1 to MutableStateFlow(room1),
@@ -676,7 +676,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 roomId3 to MutableStateFlow(room3),
             )
             testCoroutineScheduler.advanceUntilIdle() // no debounce, since search term stays the same
-            cut.sortedRoomListElementViewModels.value.should(
+            cut.elements.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId2, roomId3))
             )
 
@@ -706,7 +706,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.searchTerm.value = "2"
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
-            cut.sortedRoomListElementViewModels.value.should(
+            cut.elements.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId2, roomId3))
             )
 
@@ -715,7 +715,7 @@ class RoomListViewModelTest : ShouldSpec() {
                 roomId2 to MutableStateFlow(room2),
             )
             testCoroutineScheduler.advanceUntilIdle() // no debounce, since search term stays the same
-            cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
+            cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -747,7 +747,7 @@ class RoomListViewModelTest : ShouldSpec() {
 
             room3NameFlow.value = "completely different"
             testCoroutineScheduler.advanceUntilIdle() // no debounce, since search term stays the same
-            cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
+            cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -779,11 +779,11 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.searchTerm.value = "1"
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
-            cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
+            cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
 
             room3NameFlow.value = "I am number 1"
             testCoroutineScheduler.advanceUntilIdle() // no debounce, since search term stays the same
-            cut.sortedRoomListElementViewModels.value.should(
+            cut.elements.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId1, roomId3))
             )
 
@@ -813,7 +813,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 3
+            cut.elements.value shouldHaveSize 3
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -1022,7 +1022,7 @@ class RoomListViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             // all rooms, spaces, etc. are visible
-            cut.sortedRoomListElementViewModels.first {
+            cut.elements.first {
                 println("(1) ... ${it.map { it.roomId }}")
                 it.size == 7
             }
@@ -1030,7 +1030,7 @@ class RoomListViewModelTest : ShouldSpec() {
             cut.accountViewModel.selectActiveAccount(user2)
             testCoroutineScheduler.advanceUntilIdle()
             // only rooms, spaces, etc. of account 'test2' are visible
-            cut.sortedRoomListElementViewModels.first {
+            cut.elements.first {
                 println("(2) ... ${it.map { it.roomId }}")
                 it.size == 3
             }
@@ -1118,7 +1118,7 @@ class RoomListViewModelTest : ShouldSpec() {
         launch { cut.selectedRoomId.collect() }
         launch { cut.error.collect() }
         launch { cut.errorType.collect() }
-        launch { cut.sortedRoomListElementViewModels.collect() }
+        launch { cut.elements.collect() }
         launch { cut.syncStateError.collect() }
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
@@ -1195,19 +1195,20 @@ class RoomListViewModelTest : ShouldSpec() {
     }
 
     private fun containRoomListElementViewModelsFor(roomIds: List<RoomId>) =
-        KoMatcher<List<RoomListElement>> { list ->
-            MatcherResult(roomIds.all { roomId ->
-                list.any { element -> element.viewModel.roomId == roomId }
-            },
+        KoMatcher<List<RoomListElementViewModel>> { list ->
+            MatcherResult(
+                roomIds.all { roomId ->
+                    list.any { element -> element.roomId == roomId }
+                },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 })

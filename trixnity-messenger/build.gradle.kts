@@ -77,7 +77,6 @@ kotlin {
             dependencies {
                 api(libs.trixnity.client)
                 implementation(libs.trixnity.crypto.core)
-                implementation(libs.trixnity.client.media)
                 api(libs.ktor.client.logging)
                 api(libs.decompose)
                 api(libs.kotlinx.coroutines)
@@ -87,7 +86,6 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.uuid)
-                implementation(libs.korge)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.skie.annotations)
@@ -106,7 +104,8 @@ kotlin {
         val jvmAndNativeMain by creating {
             dependsOn(commonMain.get())
             dependencies {
-                implementation(libs.trixnity.client.realm)
+                implementation(libs.trixnity.client.repository.realm)
+                api(libs.trixnity.client.media.okio)
             }
         }
         jvmMain {
@@ -134,8 +133,8 @@ kotlin {
         jsMain {
             dependencies {
                 implementation(libs.trixnity.client.repository.indexeddb)
-                implementation(libs.trixnity.client.media.opfs)
-                implementation(libs.trixnity.client.media.indexeddb)
+                api(libs.trixnity.client.media.opfs)
+                api(libs.trixnity.client.media.indexeddb)
                 api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
                 implementation(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
                 implementation(npm("pdfjs-dist", libs.versions.pdfjs.get()))

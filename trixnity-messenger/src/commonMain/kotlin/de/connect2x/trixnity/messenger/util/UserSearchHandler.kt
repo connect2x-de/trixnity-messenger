@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
-import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,6 +9,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.UserId
@@ -31,7 +31,7 @@ class DefaultUserSearchHandler(
     private val client: MatrixClient,
     private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
     private val limit: Long? = 100,
-    private val maxAvatarSize : Long,
+    private val maxAvatarSize: Long,
     private val filterNot: (UserId) -> Boolean = { false },
 ) : UserSearchHandler {
     companion object {
@@ -46,7 +46,7 @@ class DefaultUserSearchHandler(
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
-        coroutineScope.launch(::searchUsers)
+        coroutineScope.launch { searchUsers() }
     }
 
     private suspend fun searchUsers() {

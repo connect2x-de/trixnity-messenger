@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
 import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
 import io.github.oshai.kotlinlogging.KotlinLogging
-import korlibs.io.async.launch
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.timeout
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.model.push.SetPushRule

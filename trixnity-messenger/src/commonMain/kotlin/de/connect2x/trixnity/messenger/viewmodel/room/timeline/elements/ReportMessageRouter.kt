@@ -10,19 +10,19 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Config
-import net.folivo.trixnity.core.model.EventId
 
 private val log = KotlinLogging.logger {}
 
 interface ReportMessageRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    suspend fun showReportMessage(eventId: EventId)
+    suspend fun showReportMessage(roomId: RoomId, eventId: EventId)
     suspend fun closeReportMessage()
 
     sealed class Wrapper {
@@ -38,16 +38,15 @@ interface ReportMessageRouter {
         data object None : Config()
 
         @Serializable
-        data class ReportMessage(val eventId: EventId) : Config()
+        data class ReportMessage(val roomId: RoomId, val eventId: EventId) : Config()
     }
 
 }
 
 class ReportMessageRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
-    private val roomId: RoomId,
-    private val onShowReportMessageDialog: (EventId) -> Unit,
-    private val onReportMessageDialogDismiss: (EventId) -> Unit,
+    private val onShowReportMessageDialog: (RoomId, EventId) -> Unit,
+    private val onReportMessageDialogDismiss: () -> Unit,
 ) : ReportMessageRouter {
 
     private val reportMessageNavigation = StackNavigation<Config>()
@@ -69,8 +68,8 @@ class ReportMessageRouterImpl(
             is Config.ReportMessage -> Wrapper.ReportMessageView(
                 viewModelContext.get<ReportToMessageViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
+                    roomId = reportConfig.roomId,
                     eventId = reportConfig.eventId,
-                    selectedRoomId = roomId,
                     onShowReportMessageDialog = onShowReportMessageDialog,
                     onMessageReportFinished = onReportMessageDialogDismiss,
                 ),
@@ -78,9 +77,9 @@ class ReportMessageRouterImpl(
 
         }
 
-    override suspend fun showReportMessage(eventId: EventId) {
+    override suspend fun showReportMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "show ReportMessage Dialog $eventId" }
-        reportMessageNavigation.bringToFrontSuspending(Config.ReportMessage(eventId))
+        reportMessageNavigation.bringToFrontSuspending(Config.ReportMessage(roomId, eventId))
     }
 
     override suspend fun closeReportMessage() {

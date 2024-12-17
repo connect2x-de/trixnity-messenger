@@ -19,24 +19,18 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
-import io.kotest.matchers.types.beInstanceOf
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
@@ -62,6 +56,7 @@ import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -85,8 +80,8 @@ class InputAreaViewModelTest : ShouldSpec() {
 
     private lateinit var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
-    private val onMessageEditFinishedMock = mock<Function1<EventId, Unit>>()
-    private val onMessageReplToFinishedMock = mock<Function1<EventId, Unit>>()
+    private val onMessageEditFinishedMock = mock<Function2<RoomId, EventId, Unit>>()
+    private val onMessageReplToFinishedMock = mock<Function2<RoomId, EventId, Unit>>()
 
     private lateinit var allRoomUsersMock: BlockingAnsweringScope<Flow<Map<UserId, Flow<RoomUser?>>?>>
 
@@ -162,8 +157,8 @@ class InputAreaViewModelTest : ShouldSpec() {
                 )
             )
             every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
-            every { onMessageEditFinishedMock.invoke(any()) } returns Unit
-            every { onMessageReplToFinishedMock.invoke(any()) } returns Unit
+            every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
+            every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
             everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
                 val roomId = it.arg<RoomId>(0)
@@ -233,22 +228,28 @@ class InputAreaViewModelTest : ShouldSpec() {
 
         should("show the original message text and focus the input area when a message is edited") {
             val cut = inputAreaViewModel(coroutineContext)
+            var shouldFocusCalled = false
+            val shouldFocusJob = launch {
+                cut.shouldFocus.collect {
+                    shouldFocusCalled = true
+                }
+            }
             val subscriberJob = subscribe(cut)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
+                cut.isReplace.value shouldBe false
                 cut.message.value shouldBe ""
-                cut.shouldFocus.value shouldBe null
             }
 
-            cut.editMessage(eventId)
+            cut.replaceMessage(roomId, eventId)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe true
+                cut.isReplace.value shouldBe true
                 cut.message.value shouldBe "Hello"
-                cut.shouldFocus.value shouldBe eventId.full
+                shouldFocusCalled shouldBe true
             }
 
+            shouldFocusJob.cancel()
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -257,23 +258,22 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.editMessage(eventId)
+            cut.replaceMessage(roomId, eventId)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe true
+                cut.isReplace.value shouldBe true
             }
 
             cut.message.value = "Hello World!"
             cut.sendMessage()
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
+                cut.isReplace.value shouldBe false
                 cut.message.value shouldBe ""
-                cut.shouldFocus.value shouldBe null
             }
 
             verify {
-                onMessageEditFinishedMock.invoke(eventId)
+                onMessageEditFinishedMock.invoke(roomId, eventId)
             }
 
             subscriberJob.cancel()
@@ -284,64 +284,21 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.editMessage(eventId)
+            cut.replaceMessage(roomId, eventId)
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe true
+                cut.isReplace.value shouldBe true
             }
 
-            cut.cancelEdit()
+            cut.cancelReplace()
 
             eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
+                cut.isReplace.value shouldBe false
                 cut.message.value shouldBe ""
-                cut.shouldFocus.value shouldBe null
             }
 
             verify {
-                onMessageEditFinishedMock.invoke(eventId)
-            }
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("reply to a selected message") {
-            val cut = inputAreaViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-
-            cut.replyToMessage(messageEvent.id)
-
-            eventually(2.seconds) {
-                cut.replyToViewModel.value shouldNot beNull()
-                cut.replyToViewModel.value?.eventId shouldBe messageEvent.id
-            }
-
-            val replyTo = cut.replyToViewModel.value?.replyTo?.filterNotNull()?.first()
-
-            eventually(2.seconds) {
-                cut.isEdit.value shouldBe false
-                replyTo.shouldNotBeNull()
-                replyTo should beInstanceOf<ReplyType.TextReply>()
-                replyTo.senderName shouldBe "Alice"
-            }
-
-            cut.message.value = "I am replying to you."
-
-            eventually(2.seconds) {
-                cut.isSendEnabled.value shouldBe true
-            }
-
-            cut.sendMessage()
-
-            eventually(4.seconds) {
-                cut.replyToViewModel.value shouldBe null
-                cut.message.value shouldBe ""
-                cut.shouldFocus.value shouldBe null
-            }
-
-            verify {
-                onMessageReplToFinishedMock.invoke(messageEvent.id)
+                onMessageEditFinishedMock.invoke(roomId, eventId)
             }
 
             subscriberJob.cancel()
@@ -412,6 +369,7 @@ class InputAreaViewModelTest : ShouldSpec() {
         }
 
         should("set 'is not typing' when the message is deleted (i_e_, it is empty again)") {
+            println("+++++++++++++")
             var setTypingCancelWasCalled = false
             everySuspend {
                 roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
@@ -431,6 +389,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 setTypingCancelWasCalled shouldBe false
             }
+            delay(100.milliseconds)
 
             cut.message.value = ""
 
@@ -462,6 +421,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 setTypingCancelWasCalled shouldBe false
             }
+            delay(100.milliseconds)
 
             cut.sendMessage()
 
@@ -939,10 +899,11 @@ Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>"""
                 userId = UserId("test", "server"),
                 coroutineContext = coroutineContext,
             ),
-            selectedRoomId = roomId,
-            onMessageEditFinished = onMessageEditFinishedMock,
+            roomId = roomId,
+            onMessageReplaceFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,
             onShowAttachmentSendView = mock(),
+            onOpenMention = mock(),
         )
     }
 
@@ -950,10 +911,8 @@ Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>"""
         launch { cut.isAllowedToSendMessages.collect() }
         launch { cut.isSendEnabled.collect() }
         launch { cut.showAttachmentSelectDialog.collect() }
-        launch { cut.isEdit.collect() }
-        launch { cut.replyToViewModel.collect() }
-        launch { cut.isReplyTo.collect() }
-        launch { cut.shouldFocus.collect() }
+        launch { cut.isReplace.collect() }
+        launch { cut.isReply.collect() }
         launch { cut.listOfMentions.collect() }
     }
 }

@@ -415,7 +415,6 @@ class RoomViewModelTest : ShouldSpec() {
             ),
             roomId = roomId,
             onRoomBack = mock(),
-            onOpenMedia = mock(),
             isBackButtonVisible = MutableStateFlow(false),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),

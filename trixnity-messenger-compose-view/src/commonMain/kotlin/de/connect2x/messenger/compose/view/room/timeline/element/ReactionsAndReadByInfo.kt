@@ -23,7 +23,7 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 fun ReactionsAndReadByInfo(
     reactors: Map<String, List<UserInfoElement>>,
     focusRequester: FocusRequester,
-    readers: List<String>
+    readers: List<UserInfoElement>
 ) {
     val i18n = DI.get<I18nView>()
     val selectedTab = remember { mutableStateOf(0) }

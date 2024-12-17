@@ -46,6 +46,8 @@ fun formatSize(sizeInByte: Long, maxSizeInByte: Long = sizeInByte): String {
     }
 }
 
+// TODO everything down below: i18n
+
 fun formatTimestamp(timestamp: Instant, clock: Clock, timeZone: TimeZone): String {
     val now = clock.now().toLocalDateTime(timeZone)
     val localDateTime = timestamp.toLocalDateTime(timeZone)

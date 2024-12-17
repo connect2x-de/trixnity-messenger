@@ -49,8 +49,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRe
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepSuccessViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
 
-// FIXME all configurable?
-
 @Composable
 fun DeviceVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
     val i18n = DI.get<I18nView>()

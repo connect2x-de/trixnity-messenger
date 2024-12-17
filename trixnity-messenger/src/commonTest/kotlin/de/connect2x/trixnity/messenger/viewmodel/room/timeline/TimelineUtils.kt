@@ -8,9 +8,13 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -32,6 +36,7 @@ import net.folivo.trixnity.client.store.RoomUserReceipts
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -136,20 +141,14 @@ fun timeline(
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
     fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
 
-    val room = MutableStateFlow(
-        Room(
-            roomId = roomId,
-            name = null,
-            avatarUrl = null,
-            isDirect = false,
-            lastEventId = null,
-            lastRelevantEventId = null,
-            unreadMessageCount = 0,
-        )
-    )
+    val room = MutableStateFlow(Room(roomId))
     every { roomServiceMock.getById(roomId) } returns room
 
     val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
+    every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns
+            timelineMock.eventsInStore.map { it.lastOrNull() }
+    every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
+            timelineMock.eventsInStore.map { it.reversed().asFlow() }
     every {
         roomServiceMock.getTimeline(
             eq(roomId),
@@ -168,12 +167,12 @@ fun timeline(
 }
 
 class TimelineMock(
-    room: MutableStateFlow<Room>,
+    val room: MutableStateFlow<Room>,
     val fullyReadEventIndex: MutableStateFlow<Int?>,
     roomServiceMock: RoomService,
 ) {
     private val timelineBuilder = TimelineBuilder(room, roomServiceMock)
-    val eventsInStore: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
+    val eventsInStore: MutableStateFlow<List<StateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
     val loadBeforeCalledCount = MutableStateFlow(0)
     val loadAfterCalledCount = MutableStateFlow(0)
     fun addEvents(block: TimelineBuilder.() -> Unit) {
@@ -181,7 +180,7 @@ class TimelineMock(
     }
 }
 
-class MockedTimeline(
+internal class MockedTimeline(
     private val pageSize: Int,
     private val timelineMock: TimelineMock,
     transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper
@@ -265,33 +264,65 @@ class TimelineBuilder(
     private val roomServiceMock: RoomService,
 ) {
     private val roomId = room.value.roomId
-    private val timelineEvents: MutableList<MutableStateFlow<TimelineEvent>> = mutableListOf()
+    private val timelineEvents: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
 
-    fun build() = timelineEvents.toList()
+    fun build(): List<StateFlow<TimelineEvent>> {
+        return timelineEvents.value
+    }
 
     private var idCounter = 0
 
-    operator fun RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> {
-        val previousTimelineEvent = timelineEvents.lastOrNull()
-        val newTimelineEvent = MutableStateFlow(
-            TimelineEvent(
-                event = this,
-                previousEventId = previousTimelineEvent?.value?.eventId,
-                nextEventId = null,
-                gap = null
-            )
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    operator fun TimelineEvent.unaryPlus(): MutableStateFlow<TimelineEvent> {
+        val previousTimelineEvent = timelineEvents.value.lastOrNull()
+        val newTimelineEvent = MutableStateFlow(this.copy(previousEventId = previousTimelineEvent?.value?.eventId))
         every {
-            roomServiceMock.getTimelineEvent(roomId, id, any())
+            roomServiceMock.getTimelineEvent(roomId, eventId, any())
         } returns newTimelineEvent
+        every {
+            roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS, any())
+        } returns channelFlow {
+            val alreadyEmittedEvents = mutableSetOf<EventId>()
+            timelineEvents.collectLatest {
+                it.dropWhile { it.value.eventId != eventId }
+                    .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
+                    .forEach {
+                        alreadyEmittedEvents.add(it.value.eventId)
+                        send(it)
+                    }
+            }
+        }
+        every {
+            roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any())
+        } returns channelFlow {
+            val alreadyEmittedEvents = mutableSetOf<EventId>()
+            timelineEvents.collectLatest {
+                it.reversed()
+                    .dropWhile { it.value.eventId != eventId }
+                    .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
+                    .forEach {
+                        alreadyEmittedEvents.add(it.value.eventId)
+                        send(it)
+                    }
+            }
+        }
 
         previousTimelineEvent?.update {
-            it.copy(nextEventId = this.id)
+            it.copy(nextEventId = eventId)
         }
-        room.update { it.copy(lastEventId = this.id, lastRelevantEventId = this.id) }
-        timelineEvents += newTimelineEvent
+        room.update { it.copy(lastEventId = eventId, lastRelevantEventId = eventId) }
+        timelineEvents.value += newTimelineEvent
         return newTimelineEvent
     }
+
+    operator fun RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> =
+        +TimelineEvent(
+            event = this,
+            previousEventId = null,
+            nextEventId = null,
+            gap = null
+        )
+
 
     infix fun MutableStateFlow<TimelineEvent>.withContent(content: Result<RoomEventContent>) {
         update { it.copy(content = content) }

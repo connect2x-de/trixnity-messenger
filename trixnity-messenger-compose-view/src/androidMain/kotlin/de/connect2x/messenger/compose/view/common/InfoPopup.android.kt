@@ -15,7 +15,7 @@ actual fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: List<String>,
+    readers: List<UserInfoElement>,
     reactors: Map<String, List<UserInfoElement>>,
     modifier: Modifier
 ) {

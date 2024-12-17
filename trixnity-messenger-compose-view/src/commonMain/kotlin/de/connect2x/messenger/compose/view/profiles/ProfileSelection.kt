@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 val ShowProfileCreation =
     compositionLocalOf<MutableState<Boolean>> { error("There is no ShowProfileCreation defined as compositionLocal") }
 
-// FIXME
 interface ProfileSelectionView {
     @Composable
     fun create(profileManager: ProfileManager)
