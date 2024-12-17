@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.0.0
+
+### Added
+
 - Add ability to share plain and formatted text
 - Add ability to share url with icon
 - Camera capture as a file selection option
@@ -22,17 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `XDG_DATA_HOME` on linux
 - New extensible faster timeline architecture
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Format links with escaped ampersand (`&amp;`)
 - Format links with semicolon (`https://abc.xyz/a;b;c`)
 - Wrong device name displayed in verification success message
-
-### Security
 
 ## 2.4.0
 
