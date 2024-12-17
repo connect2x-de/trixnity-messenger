@@ -103,6 +103,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.BACKWARDS
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
@@ -121,6 +122,7 @@ interface TimelineViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
+        onShowUserProfile: (UserId) -> Unit,
         onBack: () -> Unit,
         onOpenMedia: OpenMediaCallback,
         onOpenMention: OpenMentionCallback,
@@ -130,6 +132,7 @@ interface TimelineViewModelFactory {
             selectedRoomId,
             isBackButtonVisible,
             onShowSettings,
+            onShowUserProfile,
             onBack,
             onOpenMedia,
             onOpenMention
@@ -221,6 +224,7 @@ class TimelineViewModelImpl(
     private val selectedRoomId: RoomId,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
+    private val onShowUserProfile: (UserId) -> Unit,
     private val onBack: () -> Unit,
     private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
@@ -308,6 +312,7 @@ class TimelineViewModelImpl(
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
+            onShowUserProfile = onShowUserProfile,
         )
 
     override val inputAreaViewModel: InputAreaViewModel =

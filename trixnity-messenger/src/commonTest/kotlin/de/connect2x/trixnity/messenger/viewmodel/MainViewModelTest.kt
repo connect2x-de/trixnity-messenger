@@ -703,6 +703,7 @@ class MainViewModelTest : ShouldSpec() {
                                     onBack: () -> Unit,
                                     onVerifyUser: () -> Unit,
                                     onShowRoomSettings: () -> Unit,
+                                    onShowUserProfile: (UserId) -> Unit,
                                 ): RoomHeaderViewModel {
                                     return roomHeaderViewModelMock
                                 }

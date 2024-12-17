@@ -696,6 +696,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
+                                        onShowUserProfile: (UserId) -> Unit,
                                     ): RoomHeaderViewModel {
                                         return roomHeaderViewModelMock
                                     }
@@ -731,6 +732,7 @@ class TimelineViewModelUnreadMarkerTest : ShouldSpec() {
             onOpenMedia = mock(),
             onShowSettings = mock(),
             onOpenMention = mock(),
+            onShowUserProfile = mock(),
         )
     }
 

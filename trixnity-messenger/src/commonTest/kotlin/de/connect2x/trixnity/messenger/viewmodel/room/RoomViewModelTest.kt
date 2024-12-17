@@ -377,6 +377,7 @@ class RoomViewModelTest : ShouldSpec() {
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
+                                        onShowUserProfile: (UserId) -> Unit,
                                     ): RoomHeaderViewModel {
                                         return object : RoomHeaderViewModel {
                                             override val error: StateFlow<String?> = MutableStateFlow(null)
@@ -393,6 +394,7 @@ class RoomViewModelTest : ShouldSpec() {
                                             override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
                                             override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
                                             override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)
+                                            override val canShowUserProfile: StateFlow<Boolean> = MutableStateFlow(false)
 
                                             override fun blockUser() {}
                                             override fun unblockUser() {}
@@ -400,6 +402,8 @@ class RoomViewModelTest : ShouldSpec() {
                                             override fun showRoomSettings() {
                                                 onShowRoomSettings()
                                             }
+
+                                            override fun showUserProfile() {}
 
                                             override fun goBack() {
                                                 onBack()

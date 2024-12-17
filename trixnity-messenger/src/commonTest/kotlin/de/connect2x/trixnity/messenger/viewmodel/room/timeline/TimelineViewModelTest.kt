@@ -1012,6 +1012,7 @@ class TimelineViewModelTest : ShouldSpec() {
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
+                                        onShowUserProfile: (UserId) -> Unit,
                                     ): RoomHeaderViewModel {
                                         return roomHeaderViewModelMock
                                     }
@@ -1041,6 +1042,7 @@ class TimelineViewModelTest : ShouldSpec() {
             onBack = onBackMock,
             onOpenMedia = mock(),
             onOpenMention = mock(),
+            onShowUserProfile = mock()
         )
     }
 

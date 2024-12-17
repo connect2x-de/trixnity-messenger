@@ -15,6 +15,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -45,6 +46,7 @@ class TimelineRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
+    private val onShowUserProfile: (UserId) -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
@@ -72,6 +74,7 @@ class TimelineRouterImpl(
                     selectedRoomId = RoomId(timelineConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
                     onShowSettings = onShowSettings,
+                    onShowUserProfile = onShowUserProfile,
                     onBack = onRoomBack,
                     onOpenMedia = onOpenMedia,
                     onOpenMention = onOpenMention,
