@@ -12,6 +12,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnPause
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -237,6 +238,7 @@ class TimelineViewModelImpl(
         val lifecycle: LifecycleRegistry,
     )
 
+    private val config = get<MatrixMessengerConfiguration>()
     private val outerScope = get<CoroutineScope>()
     private val timeZone = get<TimeZone>()
 
@@ -254,7 +256,8 @@ class TimelineViewModelImpl(
                     computeTimelineElement(it)
                 }
             newTimeline.init(startFrom, configBefore = {
-                maxSize = fetchSize
+                fetchSize = config.timelineInitialSize.toLong()
+                maxSize = config.timelineInitialSize.toLong()
             })
             log.debug { "finished init timeline from $startFrom" }
             newTimeline
@@ -736,7 +739,7 @@ class TimelineViewModelImpl(
                     log.trace { "continuouslyLoadBefore (check) : ${timelineElementViewModels.map { it.key }}, firstVisible: $firstVisibleTimelineElement" }
                     val indexOfFirstVisibleTimelineElement =
                         timelineElementViewModels.indexOfFirst { it.key == firstVisibleTimelineElement }
-                    if (indexOfFirstVisibleTimelineElement in 0..9) {
+                    if (indexOfFirstVisibleTimelineElement in 0..(config.timelineBuffer - 1)) {
                         log.debug { "load more timeline events before" }
                         timeline.loadBefore()
                     }
@@ -760,7 +763,7 @@ class TimelineViewModelImpl(
                     val indexOfLastVisibleTimelineElement =
                         timelineElementViewModels.indexOfFirst { it.key == lastVisibleTimelineElement }
                     if (indexOfLastVisibleTimelineElement >= 0 &&
-                        indexOfLastVisibleTimelineElement > (timelineElementViewModels.size - 10)
+                        indexOfLastVisibleTimelineElement > (timelineElementViewModels.size - config.timelineBuffer)
                     ) {
                         val lastEventIdBeforeChange =
                             matrixClient.room.getById(roomId).map { it?.lastEventId }
@@ -823,8 +826,8 @@ class TimelineViewModelImpl(
                     val indexOfFirstVisibleTimelineElement =
                         elements.indexOfFirst { it.key == firstVisibleTimelineElement }
                     log.debug { "dropBefore (check): indexOfFirstVisibleTimelineElement: $indexOfFirstVisibleTimelineElement" }
-                    if (indexOfFirstVisibleTimelineElement > 100) {
-                        val dropBeforeElement = elements[indexOfFirstVisibleTimelineElement - 20]
+                    if (indexOfFirstVisibleTimelineElement > config.timelineMaxSize) {
+                        val dropBeforeElement = elements[indexOfFirstVisibleTimelineElement - config.timelineBuffer]
                         val change = timeline.dropBefore(
                             dropBeforeElement.roomId,
                             dropBeforeElement.eventId,
@@ -847,9 +850,9 @@ class TimelineViewModelImpl(
                         elements.indexOfFirst { it.key == lastVisibleTimelineElement }
                     log.debug { "dropAfter (check): indexOfLastVisibleTimelineElement: $indexOfLastVisibleTimelineElement, allSize=${elements.size}" }
                     if (indexOfLastVisibleTimelineElement >= 0 &&
-                        indexOfLastVisibleTimelineElement < (elements.size - 100)
+                        indexOfLastVisibleTimelineElement < (elements.size - config.timelineMaxSize)
                     ) {
-                        val dropAfterElement = elements[indexOfLastVisibleTimelineElement + 20]
+                        val dropAfterElement = elements[indexOfLastVisibleTimelineElement + config.timelineBuffer]
                         val change = timeline.dropAfter(
                             dropAfterElement.roomId,
                             dropAfterElement.eventId,
