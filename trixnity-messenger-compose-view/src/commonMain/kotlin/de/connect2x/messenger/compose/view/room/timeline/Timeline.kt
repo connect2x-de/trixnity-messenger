@@ -101,13 +101,15 @@ class TimelineViewImpl : TimelineView {
                 withContext(Dispatchers.Default) {
                     withTimeoutOrNull(5.seconds) {
                         (elements - elementsFromLastCollect).forEach { element ->
-                            // TODO wait for sender too as soon as the image in `UserInfoElement` is loaded lazily.
                             launch {
                                 val element = element.element.filterNotNull().first()
                                 timelineElementViewSelector.waitFor(element)
                             }
                             launch { element.isFirstInUserSequence.filterNotNull().first() }
-                            launch { element.showSender.filterNotNull().first() }
+                            launch {
+                                val showSender = element.showSender.filterNotNull().first()
+                                if (showSender) element.sender.filterNotNull().first()
+                            }
                             launch { element.showBigGapBefore.filterNotNull().first() }
                             launch {
                                 val repliedElement = async { element.repliedElement.filterNotNull().first() }

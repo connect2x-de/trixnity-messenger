@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +42,7 @@ interface FileBasedRoomMessageTimelineElementView {
     fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
-        overlay: (@Composable BoxScope.() -> Unit)? = null,
+        overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
 }
@@ -52,7 +51,7 @@ interface FileBasedRoomMessageTimelineElementView {
 fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    overlay: (@Composable BoxScope.() -> Unit)? = null,
+    overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
@@ -64,19 +63,19 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
-        overlay: @Composable (BoxScope.() -> Unit)?,
-        content: @Composable (ColumnScope.(() -> Unit, () -> Unit) -> Unit)
+        overlay: @Composable BoxScope.() -> Unit,
+        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
-        val saveDialogOpen = remember { mutableStateOf(false) }
-        if (saveDialogOpen.value) SaveFileDialog(
+        var saveDialogOpen by remember { mutableStateOf(false) }
+        if (saveDialogOpen) SaveFileDialog(
             element.name,
             element.mimeType,
             error,
             element::downloadMedia,
-        ) { saveDialogOpen.value = false }
+        ) { saveDialogOpen = false }
 
-        FileBasedRoomMessageTimelineElementMessageBuble(holder, element, saveDialogOpen, overlay, content)
+        FileBasedRoomMessageTimelineElementMessageBuble(holder, element, { saveDialogOpen = true }, overlay, content)
     }
 }
 
@@ -84,9 +83,9 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
 fun FileBasedRoomMessageTimelineElementMessageBuble(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    saveDialogOpen: MutableState<Boolean>,
-    overlay: @Composable (BoxScope.() -> Unit)?,
-    content: @Composable (ColumnScope.(() -> Unit, () -> Unit) -> Unit)
+    onSave: () -> Unit,
+    overlay: @Composable BoxScope.() -> Unit,
+    content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
     val i18n = DI.current.get<I18nView>()
     MessageBubble(
@@ -107,12 +106,12 @@ fun FileBasedRoomMessageTimelineElementMessageBuble(
             // download action
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.downloadMessage(),
-                action = { saveDialogOpen.value = true },
+                action = onSave,
             ).render(onClose)
         },
         overlay,
     ) { showActionMenu ->
-        FileBasedView(holder, element, saveDialogOpen, showActionMenu, content)
+        FileBasedView(holder, element, onSave, showActionMenu, content)
     }
 }
 
@@ -120,7 +119,7 @@ fun FileBasedRoomMessageTimelineElementMessageBuble(
 internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    saveDialogOpen: MutableState<Boolean>,
+    onSave: () -> Unit,
     showActionMenu: () -> Unit,
     content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
 ) {
@@ -169,7 +168,7 @@ internal fun FileBasedView(
     }
 
     if (openElementDetails) {
-        ElementDetailsSelector(element, { saveDialogOpen.value = true }) {
+        ElementDetailsSelector(element, onSave) {
             openElementDetails = false
         }
     }

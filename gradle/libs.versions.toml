@@ -1,6 +1,6 @@
 [versions]
 kotlinJvmTarget = "11"
-kotlin = "2.0.21" # https://github.com/JetBrains/kotlin/releases
+kotlin = "2.1.0" # https://github.com/JetBrains/kotlin/releases
 
 jvmTarget = "17"
 androidCompileSDK = "34"
@@ -17,11 +17,11 @@ kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
 decompose = "3.2.2" # https://github.com/arkivanov/Decompose/releases
-essenty = "2.2.1" # https://github.com/arkivanov/Decompose/releases (bound to decompose version)
+essenty = "2.2.1" # https://github.com/arkivanov/Essenty/releases (bound to decompose version)
 kotlinxDatetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "4.0.0" # https://github.com/InsertKoinIO/koin/tags
 ktor = "3.0.1" # https://github.com/ktorio/ktor/releases
-mokkery = "2.5.1" # https://github.com/lupuuss/Mokkery/releases
+mokkery = "2.6.1" # https://github.com/lupuuss/Mokkery/releases
 kotest = "6.0.0.M1" # https://github.com/kotest/kotest/releases
 jna = "5.15.0" # https://github.com/java-native-access/jna/tags
 okio = "3.9.1" # https://square.github.io/okio/changelog
@@ -29,8 +29,8 @@ uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
 dokka = "1.9.20" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.53" # https://www.npmjs.com/package/@zip.js/zip.js
-skie = "0.9.3" # https://github.com/touchlab/SKIE/releases
-kmmBridge = "1.0.1" # https://github.com/touchlab/KMMBridge/releases
+skie = "0.10.0" # https://github.com/touchlab/SKIE/releases
+kmmBridge = "1.2.0" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.20.1" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
 pdfjs = "4.8.69" # https://www.npmjs.com/package/pdfjs-dist
@@ -45,7 +45,7 @@ activity = "1.9.3" # https://developer.android.com/jetpack/androidx/releases/act
 androidGradle = "8.5.2" # https://developer.android.com/reference/tools/gradle-api
 
 # ui
-composeMultiplatform = "1.7.0" # https://github.com/JetBrains/compose-multiplatform/releases
+composeMultiplatform = "1.7.1" # https://github.com/JetBrains/compose-multiplatform/releases
 androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
 richeditor = "1.0.0-rc10" # https://github.com/MohamedRejeb/compose-rich-editor/releases
 aboutLibraries = "11.2.3" # https://github.com/mikepenz/AboutLibraries/releases

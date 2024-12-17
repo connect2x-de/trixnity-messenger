@@ -49,7 +49,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         element: RoomMessageTimelineElementViewModel.FileBased.File
     ) {
         FileBasedRoomMessageTimelineElement(
-            holder, element,
+            holder, element, {}
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }

@@ -246,6 +246,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
                     lastVisibleElement = "$roomId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 delay(200) // give the viewmodel time to compute derived values
@@ -409,6 +411,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "$roomId-9",
                     lastVisibleElement = "notRelevant",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 cut.elements waitForSize 20
@@ -431,6 +435,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
                     lastVisibleElement = "$roomId-8",// [9..19], see above
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 continually(1.seconds) {
@@ -457,6 +463,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
                     lastVisibleElement = "$roomId-9",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 cut.elements waitForSize 20
@@ -481,6 +489,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
                     lastVisibleElement = "$roomId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 continually(1.seconds) {
@@ -621,6 +631,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
                     lastVisibleElement = "$roomId-0",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 delay(200) // give the viewmodel time to compute derived values
@@ -658,6 +670,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
                     lastVisibleElement = "$roomId-0",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
                     windowIsFocused = true
                 )
                 delay(500.milliseconds) // give scrollTo time to be cleared

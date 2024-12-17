@@ -359,7 +359,7 @@ Next, add it to the DI:
 
 ```kotlin
 fun catEventModule() = modules {
-    single<EventContentSerializerMappings> { catEventContentSerializerMappings }
+    single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
 }
@@ -429,7 +429,8 @@ Trixnity Messenger can also be consumed in Swift code to build native iOS or Mac
 
 ### Installation
 
-You can add a dependency with Swift Package Manager: [gitlab.com/connect2x/trixnity-messenger/spm.git](gitlab.com/connect2x/trixnity-messenger/spm.git).
+You can add a dependency with Swift Package
+Manager: [gitlab.com/connect2x/trixnity-messenger/spm.git](gitlab.com/connect2x/trixnity-messenger/spm.git).
 
 The easiest way to get started is to look at the example
 at: [https://gitlab.com/connect2x/trixnity-messenger/example-swiftui](https://gitlab.com/connect2x/trixnity-messenger/example-swiftui)

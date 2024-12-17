@@ -86,8 +86,7 @@ fun MessageBubbleContent(
                             ),
                         )
                     } else {
-                        // TODO needs placeholder AND does not support offline szenario. This is a general problem of
-                        //  UserInfoElement, which waits for the image to load.
+                        // TODO placeholder instead
                         CircularProgressIndicator(Modifier.size(20.dp))
                     }
                 }

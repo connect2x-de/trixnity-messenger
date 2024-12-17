@@ -528,12 +528,12 @@ class TimelineViewModelImpl(
         timelineState,
         viewState.map { it?.lastLoadedElement }.distinctUntilChanged()
     ) { timelineState, lastLoadedElement ->
-        val firstElement = timelineState.elements.lastOrNull()?.key
+        val lastElement = timelineState.elements.lastOrNull()?.key
         val canLoadAfter = timelineState.canLoadAfter
-        log.trace { "canLoadBefore: firstElement=$firstElement, lastLoadedElement=$lastLoadedElement, canLoadAfter=$canLoadAfter" }
+        log.trace { "canLoadBefore: firstElement=$lastElement, lastLoadedElement=$lastLoadedElement, canLoadAfter=$canLoadAfter" }
         when {
-            lastLoadedElement != null && firstElement != lastLoadedElement -> lastLoadedElement
-            canLoadAfter -> firstElement
+            lastLoadedElement != null && lastElement != lastLoadedElement -> lastLoadedElement
+            canLoadAfter -> lastElement
             else -> null
         }
     }.shareIn(coroutineScope, WhileSubscribed())

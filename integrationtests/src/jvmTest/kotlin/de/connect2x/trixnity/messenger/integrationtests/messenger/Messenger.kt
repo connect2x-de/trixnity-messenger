@@ -312,6 +312,8 @@ suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String)
             timelineViewModel.viewState.value = TimelineViewModel.ViewState(
                 firstVisibleElement = vms.first().key,
                 lastVisibleElement = vms.last().key,
+                firstLoadedElement = vms.first().key,
+                lastLoadedElement = vms.last().key,
                 windowIsFocused = true,
             )
             vms
@@ -338,6 +340,8 @@ suspend fun MatrixMessengerWithRoot.findMessage(roomId: RoomId, message: String)
             timelineViewModel.viewState.value = TimelineViewModel.ViewState(
                 firstVisibleElement = vms.first().key,
                 lastVisibleElement = vms.last().key,
+                firstLoadedElement = vms.first().key,
+                lastLoadedElement = vms.last().key,
                 windowIsFocused = true,
             )
             vms
