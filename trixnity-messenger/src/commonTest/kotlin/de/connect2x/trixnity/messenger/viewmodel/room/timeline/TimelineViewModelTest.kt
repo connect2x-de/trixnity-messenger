@@ -4,6 +4,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
@@ -470,11 +471,12 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.elements waitForSize 20
             }
             should("not load more messages after") {
+                println("///")
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
                     }
-                    (1..19).forEach {
+                    (1..40).forEach {
                         +messageEvent(sender = alice) {
                             text("World-$it")
                         }
@@ -715,6 +717,13 @@ class TimelineViewModelTest : ShouldSpec() {
                             )
                         ) + module {
                             single { clock }
+                            single<MatrixMessengerConfiguration> {
+                                MatrixMessengerConfiguration().apply {
+                                    timelineInitialSize = 10
+                                    timelineBuffer = 10
+                                    timelineMaxSize = 100
+                                }
+                            }
                             single<RoomHeaderViewModelFactory> {
                                 object : RoomHeaderViewModelFactory {
                                     override fun create(

@@ -256,8 +256,8 @@ class TimelineViewModelImpl(
                     computeTimelineElement(it)
                 }
             newTimeline.init(startFrom, configBefore = {
-                fetchSize = config.timelineInitialSize.toLong()
-                maxSize = config.timelineInitialSize.toLong()
+                fetchSize = config.timelineInitialSize.toLong() - 1
+                maxSize = fetchSize
             })
             log.debug { "finished init timeline from $startFrom" }
             newTimeline
