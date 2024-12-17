@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -86,36 +87,39 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             .align(Alignment.CenterVertically),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box {
-                            Box(if (canShowUserProfile) Modifier.clickable { roomHeaderViewModel.showUserProfile() } else Modifier) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = if (canShowUserProfile) Modifier.clickable { roomHeaderViewModel.showUserProfile() } else Modifier
+                        ) {
+                            Box {
                                 AvatarWithPresence(
                                     roomHeaderElement.roomImage,
                                     roomHeaderElement.roomImageInitials,
                                     roomHeaderElement.presence,
                                 )
+                                if (roomHeaderElement.isPublic) {
+                                    PublicIcon()
+                                }
                             }
-                            if (roomHeaderElement.isPublic) {
-                                PublicIcon()
-                            }
-                        }
-                        Spacer(Modifier.size(5.dp))
-                        UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
-                        if (roomHeaderElement.isEncrypted.not()) {
-                            UnencryptedIcon()
                             Spacer(Modifier.size(5.dp))
-                        }
+                            UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
+                            if (roomHeaderElement.isEncrypted.not()) {
+                                UnencryptedIcon()
+                                Spacer(Modifier.size(5.dp))
+                            }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                            Column {
                                 RoomName(roomHeaderElement, isTyping)
                                 RoomTopic(roomHeaderElement)
                             }
-                            RoomExtras(roomHeaderViewModel, showSettingsButton)
                         }
+
+                        Spacer(Modifier.weight(1f))
+
+                        RoomExtras(roomHeaderViewModel, showSettingsButton)
                     }
+
+
                 }
                 HorizontalDivider(Modifier.fillMaxWidth())
             }
