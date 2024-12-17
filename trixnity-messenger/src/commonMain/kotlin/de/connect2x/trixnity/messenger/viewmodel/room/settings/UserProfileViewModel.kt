@@ -38,6 +38,7 @@ import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.client.verification
+import net.folivo.trixnity.client.verification.ActiveVerificationState
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
 import net.folivo.trixnity.core.model.RoomId
@@ -45,11 +46,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -61,7 +59,7 @@ interface UserProfileViewModelFactory {
         selectedRoomId: RoomId,
         goToRoom: (UserId, RoomId) -> Unit,
         onBack: () -> Unit
-    ): UserProfileViewModelImpl {
+    ): UserProfileViewModel {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
             userId = userId,
@@ -102,6 +100,7 @@ interface UserProfileViewModel {
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
     val openingChat: StateFlow<Boolean>
+    val verifying: StateFlow<Boolean>
 
     fun openKickUserWarning()
     fun closeKickUserWarning()
@@ -454,17 +453,39 @@ class UserProfileViewModelImpl(
         }
     }
 
+    override val verifying = MutableStateFlow(false)
+
     override fun startVerification() {
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
         }
-        coroutineScope.launch {
-            val request = RoomMessageEventContent.VerificationRequest(matrixClient.deviceId, userId, setOf(VerificationMethod.Sas))
-            matrixClient.room.sendMessage(selectedRoomId) {
-                content(request)
+        if (verifying.compareAndSet(expect = false, update = true)) {
+            coroutineScope.launch {
+                val req = matrixClient.verification.createUserVerificationRequest(userId)
+                    .fold(
+                        onSuccess = { it },
+                        onFailure = {
+                            log.error(it) { "cannot verify user $userId" }
+                            error.value = i18n.userVerificationNoMatch() // TODO
+                            return@launch
+                        }
+                    )
+
+                req.state.first(::isVerificationStateFinished)
+            }.invokeOnCompletion {
+                verifying.update { false }
             }
         }
+
+    }
+
+    private fun isVerificationStateFinished(verificationState: ActiveVerificationState) = when (verificationState) {
+        ActiveVerificationState.Done,
+        is ActiveVerificationState.Cancel,
+        ActiveVerificationState.AcceptedByOtherDevice,
+        ActiveVerificationState.Undefined -> true
+        else -> false
     }
 
     private suspend fun getOrCreateRoom() =

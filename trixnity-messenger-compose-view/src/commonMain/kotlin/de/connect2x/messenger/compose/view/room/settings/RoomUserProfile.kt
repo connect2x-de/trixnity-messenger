@@ -28,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
@@ -112,6 +113,8 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val canSetRoleToUser =
             userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
         val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
+        val openingChat = userProfileViewModel.openingChat.collectAsState().value
+        val verifying = userProfileViewModel.verifying.collectAsState().value
 
         Column(
             Modifier
@@ -206,10 +209,14 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                         Icon(
                             Icons.AutoMirrored.Filled.Send,
                             i18n.contact(),
-                            Modifier.size(24.dp)
+                            Modifier.size(24.dp),
+                            defaultColorForState(!openingChat)
                         )
                         Spacer(Modifier.size(10.dp))
-                        Text(i18n.userProfileContact())
+                        Text(
+                            text = i18n.userProfileContact(),
+                            color = defaultColorForState(!openingChat)
+                        )
                     }
                     MenuElement(Modifier.clickable {
                         userProfileViewModel.startVerification()
@@ -217,10 +224,14 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
                             i18n.userVerification(),
-                            Modifier.size(24.dp)
+                            Modifier.size(24.dp),
+                            defaultColorForState(!verifying)
                         )
                         Spacer(Modifier.size(10.dp))
-                        Text(i18n.userProfileVerification())
+                        Text(
+                            text = i18n.userProfileVerification(),
+                            color = defaultColorForState(!verifying)
+                        )
                     }
                     HorizontalDivider(Modifier.fillMaxWidth())
                     if (
@@ -557,3 +568,7 @@ private fun StatusRow(text: String, positive: Boolean = true) {
         )
     )
 }
+
+@Composable
+private fun defaultColorForState(enabled: Boolean) =
+    LocalContentColor.current.run { if (!enabled) { copy(alpha = 0.6f) } else { this } }
