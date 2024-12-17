@@ -87,8 +87,8 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
-        canLoadBefore: Flow<Boolean>,
-        canLoadAfter: Flow<Boolean>,
+        hasLoadingIndicatorBefore: Flow<Boolean>,
+        hasLoadingIndicatorAfter: Flow<Boolean>,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
@@ -104,8 +104,8 @@ interface TimelineElementHolderViewModelFactory {
             senderUserId = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
-            canLoadBefore = canLoadBefore,
-            canLoadAfter = canLoadAfter,
+            hasLoadingIndicatorBefore = hasLoadingIndicatorBefore,
+            hasLoadingIndicatorAfter = hasLoadingIndicatorAfter,
             getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
@@ -167,8 +167,8 @@ class TimelineElementHolderViewModelImpl(
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
-    canLoadBefore: Flow<Boolean>,
-    canLoadAfter: Flow<Boolean>,
+    hasLoadingIndicatorBefore: Flow<Boolean>,
+    hasLoadingIndicatorAfter: Flow<Boolean>,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
@@ -182,9 +182,9 @@ class TimelineElementHolderViewModelImpl(
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
 
     override val hasLoadingIndicatorBefore =
-        canLoadBefore.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        hasLoadingIndicatorBefore.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
     override val hasLoadingIndicatorAfter =
-        canLoadAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        hasLoadingIndicatorAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -566,7 +566,7 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun toString(): String =
-        "TimelineElementViewModel(showLoadingIndicator=${hasLoadingIndicatorBefore.value}" +
+        "TimelineElementViewModel(showLoadingIndicator=${this@TimelineElementHolderViewModelImpl.hasLoadingIndicatorBefore.value}" +
                 ", shouldShowUnreadMarker=${hasUnreadMarker.value})"
 }
 

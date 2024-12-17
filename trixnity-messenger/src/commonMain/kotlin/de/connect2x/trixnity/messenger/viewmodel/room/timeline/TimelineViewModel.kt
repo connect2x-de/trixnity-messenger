@@ -510,7 +510,7 @@ class TimelineViewModelImpl(
         }
     }
 
-    private val canLoadBefore = combine(
+    private val loadingIndicatorBefore = combine(
         timelineState,
         viewState.map { it?.firstLoadedElement }.distinctUntilChanged()
     ) { timelineState, firstLoadedElement ->
@@ -524,7 +524,7 @@ class TimelineViewModelImpl(
         }
     }.shareIn(coroutineScope, WhileSubscribed())
 
-    private val canLoadAfter = combine(
+    private val loadingIndicatorAfter = combine(
         timelineState,
         viewState.map { it?.lastLoadedElement }.distinctUntilChanged()
     ) { timelineState, lastLoadedElement ->
@@ -551,10 +551,10 @@ class TimelineViewModelImpl(
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
-        val canLoadBefore = canLoadBefore.map { it == key }.distinctUntilChanged()
+        val hasLoadingIndicatorBefore = loadingIndicatorBefore.map { it == key }.distinctUntilChanged()
             // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
             .debounce(300.milliseconds)
-        val canLoadAfter = canLoadAfter.map { it == key }.distinctUntilChanged()
+        val hasLoadingIndicatorAfter = loadingIndicatorAfter.map { it == key }.distinctUntilChanged()
             // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
             .debounce(300.milliseconds)
 
@@ -572,8 +572,8 @@ class TimelineViewModelImpl(
             sender = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
-            canLoadBefore = canLoadBefore,
-            canLoadAfter = canLoadAfter,
+            hasLoadingIndicatorBefore = hasLoadingIndicatorBefore,
+            hasLoadingIndicatorAfter = hasLoadingIndicatorAfter,
             getReceipts = ::getReceipts,
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
