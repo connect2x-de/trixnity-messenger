@@ -52,6 +52,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -102,36 +103,37 @@ class TimelineViewImpl : TimelineView {
                     withTimeoutOrNull(5.seconds) {
                         (elements - elementsFromLastCollect).forEach { element ->
                             launch {
-                                val element = element.element.filterNotNull().first()
-                                timelineElementViewSelector.waitFor(element)
-                            }
-                            launch { element.isFirstInUserSequence.filterNotNull().first() }
-                            launch {
-                                val showSender = element.showSender.filterNotNull().first()
-                                if (showSender) element.sender.filterNotNull().first()
-                            }
-                            launch { element.showBigGapBefore.filterNotNull().first() }
-                            launch {
-                                val repliedElement = async { element.repliedElement.filterNotNull().first() }
-                                val isReply = element.isReply.filterNotNull().first()
-                                if (!isReply) repliedElement.cancel()
-                                else {
-                                    timelineElementViewSelector.waitFor(
-                                        repliedElement.await().element.filterNotNull().first()
-                                    )
+                                val elementElement = element.element.filterNotNull().first()
+                                if (elementElement is TimelineElementViewModel.Empty) return@launch
+                                launch { timelineElementViewSelector.waitFor(elementElement) }
+                                launch { element.isFirstInUserSequence.filterNotNull().first() }
+                                launch {
+                                    val showSender = element.showSender.filterNotNull().first()
+                                    if (showSender) element.sender.filterNotNull().first()
                                 }
-                            }
-                            when (element) {
-                                is TimelineElementHolderViewModel -> {
-                                    launch { element.hasUnreadMarker.filterNotNull().first() }
-                                    launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
-                                    launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
-                                    if (element.isByMe) launch { element.isRead.filterNotNull().first() }
-                                    launch { element.reactions.filterNotNull().first() }
-                                    launch { element.isReplaced.filterNotNull().first() }
+                                launch { element.showBigGapBefore.filterNotNull().first() }
+                                launch {
+                                    val repliedElement = async { element.repliedElement.filterNotNull().first() }
+                                    val isReply = element.isReply.filterNotNull().first()
+                                    if (!isReply) repliedElement.cancel()
+                                    else {
+                                        timelineElementViewSelector.waitFor(
+                                            repliedElement.await().element.filterNotNull().first()
+                                        )
+                                    }
                                 }
+                                when (element) {
+                                    is TimelineElementHolderViewModel -> {
+                                        launch { element.hasUnreadMarker.filterNotNull().first() }
+                                        launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
+                                        launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
+                                        if (element.isByMe) launch { element.isRead.filterNotNull().first() }
+                                        launch { element.reactions.filterNotNull().first() }
+                                        launch { element.isReplaced.filterNotNull().first() }
+                                    }
 
-                                is OutboxElementHolderViewModel -> {}
+                                    is OutboxElementHolderViewModel -> {}
+                                }
                             }
                         }
                     }
@@ -152,9 +154,9 @@ class TimelineViewImpl : TimelineView {
                 Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             } else {
                 val unreadMarkerOnFirstLoad = remember {
-                    timelineElementHolderViewModels.indexOfLast {
+                    (timelineElementHolderViewModels.indexOfLast {
                         it is TimelineElementHolderViewModel && it.hasUnreadMarker.value
-                    }
+                    } + 1).coerceAtMost(timelineElementHolderViewModels.size - 1)
                 }
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
