@@ -1,8 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.UserId
 
 
@@ -12,18 +15,21 @@ interface VerificationStepRequestViewModelFactory {
         onRequestAccept: () -> Unit,
         theirUserId: UserId?,
         fromDeviceId: String,
-    ): VerificationStepRequestViewModel {
-        return VerificationStepRequestViewModelImpl(
-            viewModelContext, onRequestAccept, theirUserId, fromDeviceId
-        )
-    }
+    ): VerificationStepRequestViewModel = VerificationStepRequestViewModelImpl(
+        viewModelContext, onRequestAccept, theirUserId, fromDeviceId,
+    )
 
     companion object : VerificationStepRequestViewModelFactory
 }
 
 interface VerificationStepRequestViewModel {
-    val theirDisplayName: MutableStateFlow<String?>
-    val deviceDisplayName: MutableStateFlow<String>
+    val ourUserId: UserId
+    val ourDisplayName: StateFlow<String>
+    val ourDeviceDisplayName: StateFlow<String>
+    val theirUserId: UserId?
+    val theirDisplayName: StateFlow<String?>
+    val theirDeviceDisplayName: StateFlow<String>
+    val isFromOwnAccount: Boolean
 
     fun next()
 }
@@ -31,29 +37,40 @@ interface VerificationStepRequestViewModel {
 open class VerificationStepRequestViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onRequestAccept: () -> Unit,
-    theirUserId: UserId?,
-    fromDeviceId: String,
+    override val theirUserId: UserId?,
+    theirDeviceId: String,
 ) : MatrixClientViewModelContext by viewModelContext, VerificationStepRequestViewModel {
 
-    override val theirDisplayName = MutableStateFlow<String?>(null)
-    override val deviceDisplayName = MutableStateFlow(fromDeviceId)
+    override val ourUserId: UserId = userId
 
-    init {
-        coroutineScope.launch {
-            theirDisplayName.value =
-                if (matrixClient.userId == theirUserId) null
-                else theirUserId?.let {
-                    matrixClient.api.user.getDisplayName(theirUserId).fold(
-                        onSuccess = { it }, onFailure = { theirUserId.full }
-                    )
-                }
-                    ?: theirUserId?.full
-            deviceDisplayName.value =
-                matrixClient.api.device.getDevice(fromDeviceId).fold(
-                    onSuccess = { it.displayName ?: fromDeviceId }, onFailure = { fromDeviceId }
-                )
+    override val ourDisplayName: StateFlow<String> =
+        matrixClient.displayName.map { it ?: userId.full }
+            .stateIn(coroutineScope, WhileSubscribed(), userId.full)
+
+    override val theirDisplayName: StateFlow<String?> =
+        flow {
+            emit(theirUserId?.let { userId ->
+                matrixClient.api.user.getDisplayName(userId).fold({ it }, { theirUserId?.full })
+            })
         }
-    }
+            .stateIn(coroutineScope, WhileSubscribed(), theirUserId?.full)
+
+    override val ourDeviceDisplayName: StateFlow<String> =
+        flow {
+            emit(matrixClient.api.device.getDevice(matrixClient.deviceId).fold({ it }, { null }))
+        }
+            .map { it?.displayName ?: matrixClient.deviceId }
+            .stateIn(coroutineScope, WhileSubscribed(), matrixClient.deviceId)
+
+    override val theirDeviceDisplayName: StateFlow<String> =
+        flow {
+            emit(matrixClient.api.device.getDevice(theirDeviceId).fold({ it }, { null }))
+        }
+            .map { it?.displayName ?: theirDeviceId }
+            .stateIn(coroutineScope, WhileSubscribed(), theirDeviceId)
+
+    override val isFromOwnAccount: Boolean =
+        ourUserId == theirUserId
 
     override fun next() {
         onRequestAccept()
