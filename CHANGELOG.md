@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- do not reuse an existing direct room with a user that has left the room
+
 ### Deprecated
 
 ### Removed
