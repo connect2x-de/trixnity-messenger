@@ -1692,14 +1692,14 @@ abstract class I18nView(
         DE - "Ihr Generalschlüssel ist nun eingerichtet."
     }
 
-    fun deviceVerificationTitle() = translate {
-        EN - "Device verification"
-        DE - "Freischaltung für dieses Gerät"
+    fun deviceVerificationTitle(userId: UserId) = translate {
+        EN - "Device verification (account: ${userId.full})"
+        DE - "Freischaltung für dieses Gerät (Konto: ${userId.full})"
     }
 
     fun deviceVerificationInitiatedBy(username: String) = translate {
-        EN - "initiated by $username"
-        DE - "ausgelöst durch $username"
+        EN - "Verification initiated by $username"
+        DE - "Verifizierung ausgelöst durch $username"
     }
 
     fun deviceVerificationToAccount(deviceName: String) = translate {
