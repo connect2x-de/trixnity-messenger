@@ -22,6 +22,7 @@ fun RoomSettingsSwitch(
             is SettingsRouter.Wrapper.View -> RoomSettingsContainer(child.viewModel, isTwoPane)
             is SettingsRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is SettingsRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
+            is SettingsRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel)
             is SettingsRouter.Wrapper.None -> Box {}
         }.let {}
     }

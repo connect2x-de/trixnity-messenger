@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +52,7 @@ interface RoomViewModel {
     fun onRoomBack()
     fun setSinglePane(twoPane: Boolean)
     fun showSettings()
+    fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel)
 }
 
 open class RoomViewModelImpl(
@@ -80,7 +82,8 @@ open class RoomViewModelImpl(
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
         onRoomBack = onRoomBack,
-        onOpenMention = onOpenMention
+        onOpenMention = onOpenMention,
+        onOpenMetadata = ::showMessageMetadata,
     )
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
@@ -115,8 +118,14 @@ open class RoomViewModelImpl(
         onShowSettings()
     }
 
+    override fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel) {
+        coroutineScope.launch {
+            settingsRouter.showMessageMetadata(messageHolder) // TODO
+        }
+    }
+
     private fun switchToMultiPane() = coroutineScope.launch {
-        if (settingsRouter.isShown()) {
+        if (settingsRouter.isSettingsShown()) {
             timelineRouter.showTimeline(roomId)
             settingsRouter.showSettings()
         } else {
@@ -125,7 +134,7 @@ open class RoomViewModelImpl(
     }
 
     private fun switchToSinglePane() = coroutineScope.launch {
-        if (settingsRouter.isShown()) {
+        if (settingsRouter.isSettingsShown()) {
             timelineRouter.closeTimeline()
         } else {
             timelineRouter.showTimeline(roomId)
@@ -175,6 +184,6 @@ class PreviewRoomViewModel : RoomViewModel {
         isTwoPane.value = twoPane
     }
 
-    override fun showSettings() {
-    }
+    override fun showSettings() {}
+    override fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel) {}
 }

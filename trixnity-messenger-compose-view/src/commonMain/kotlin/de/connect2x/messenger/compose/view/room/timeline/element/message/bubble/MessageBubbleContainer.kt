@@ -34,6 +34,7 @@ import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 @Composable
 fun MessageBubbleContainer(
@@ -121,8 +122,11 @@ fun MessageBubbleContainer(
                 holder,
                 hoverMessage,
                 showActionMenu,
-                { infoOpen.value = true },
-                { reactionsOpen.value = true },
+                onInfo = {
+                    if (holder is TimelineElementHolderViewModel) holder.showMessageMetadata()
+//                    infoOpen.value = true
+                },
+                onReact = { reactionsOpen.value = true },
                 additionalContextActions,
             )
         }

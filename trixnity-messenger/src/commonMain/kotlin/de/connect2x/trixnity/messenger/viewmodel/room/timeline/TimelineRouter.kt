@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
@@ -47,6 +48,7 @@ class TimelineRouterImpl(
     private val onShowSettings: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
 ) : TimelineRouter {
 
     private val timelineNavigation = StackNavigation<Config>()
@@ -73,6 +75,7 @@ class TimelineRouterImpl(
                     onShowSettings = onShowSettings,
                     onBack = onRoomBack,
                     onOpenMention = onOpenMention,
+                    onOpenMetadata = onOpenMetadata,
                 )
             )
         }

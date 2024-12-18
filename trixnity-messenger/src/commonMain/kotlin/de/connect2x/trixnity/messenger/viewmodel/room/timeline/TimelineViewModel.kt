@@ -108,16 +108,16 @@ interface TimelineViewModelFactory {
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
-    ): TimelineViewModel {
-        return TimelineViewModelImpl(
-            viewModelContext,
-            roomId,
-            isBackButtonVisible,
-            onShowSettings,
-            onBack,
-            onOpenMention
-        )
-    }
+        onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
+    ): TimelineViewModel = TimelineViewModelImpl(
+        viewModelContext,
+        roomId,
+        isBackButtonVisible,
+        onShowSettings,
+        onBack,
+        onOpenMention,
+        onOpenMetadata,
+    )
 
     companion object : TimelineViewModelFactory
 }
@@ -213,10 +213,11 @@ interface TimelineViewModel {
 class TimelineViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val isBackButtonVisible: MutableStateFlow<Boolean>,
-    private val onShowSettings: () -> Unit,
+    isBackButtonVisible: MutableStateFlow<Boolean>,
+    onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
     init {
@@ -582,6 +583,7 @@ class TimelineViewModelImpl(
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
+            onOpenMetadata = onOpenMetadata,
         )
         return TimelineElementWrapper(
             key = key,

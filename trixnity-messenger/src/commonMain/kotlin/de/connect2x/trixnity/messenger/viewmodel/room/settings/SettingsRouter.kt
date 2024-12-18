@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
@@ -26,13 +27,18 @@ interface SettingsRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun showSettings()
     suspend fun closeSettings()
-    fun isShown(): Boolean
+    suspend fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel)
+    fun closeMessageMetadata()
+    fun isSettingsShown(): Boolean
+//    fun isMessageMetadataShown(): Boolean
+//    fun shownSettings(): Config
 
     sealed class Wrapper {
         data object None : Wrapper()
         class View(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
+        class MessageMetadata(val viewModel: UnifiedMessageMetadataViewModel) : Wrapper()
     }
 
     @Serializable
@@ -48,6 +54,9 @@ interface SettingsRouter {
 
         @Serializable
         data object ExportRoom : Config()
+
+        @Serializable
+        data class MessageMetadata(val messageHolder: TimelineElementHolderViewModel) : Config()
     }
 }
 
@@ -71,7 +80,7 @@ class SettingsRouterImpl(
 
     private fun createSettingsChild(
         settingsConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (settingsConfig) {
             is Config.None -> Wrapper.None
@@ -107,15 +116,39 @@ class SettingsRouterImpl(
                     onBack = ::closeExportRoom,
                 )
             )
+
+            is Config.MessageMetadata -> Wrapper.MessageMetadata(
+                viewModelContext.get<UnifiedMessageMetadataViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    message = settingsConfig.messageHolder,
+                    roomId = roomId,
+                    onBack = ::closeMessageMetadata,
+                )
+            )
         }
 
     override suspend fun showSettings() {
         log.debug { "show settings" }
-        settingsNavigation.bringToFrontSuspending(Config.Settings)
+        if (stack.value.active.configuration is Config.MessageMetadata) {
+            settingsNavigation.bringToFrontSuspending(stack.value.active.configuration)
+        } else {
+            settingsNavigation.bringToFrontSuspending(Config.Settings)
+        }
     }
 
     override suspend fun closeSettings() {
+//        close(Config.Settings)
         settingsNavigation.popWhileSuspending { it != Config.None }
+    }
+
+    private suspend fun close(config: Config) {
+        when (config) {
+            is Config.Settings,
+            is Config.MessageMetadata ->
+                settingsNavigation.popWhileSuspending { it != Config.None }
+
+            else -> {}
+        }
     }
 
     private fun showAddMembers() {
@@ -134,5 +167,22 @@ class SettingsRouterImpl(
         settingsNavigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    override fun isShown(): Boolean = stack.value.active.configuration !is Config.None
+    override suspend fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel) {
+        log.debug { "show metadata" }
+        if (!isSettingsShown()) settingsNavigation.bringToFrontSuspending(Config.MessageMetadata(messageHolder))
+        else settingsNavigation.launchBringToFront(
+            viewModelContext.coroutineScope,
+            Config.MessageMetadata(messageHolder),
+        )
+    }
+
+    override fun closeMessageMetadata() {
+        // TODO
+//        if (stack.value.active.configuration is Config.MessageMetadata) close(stack.value.active.configuration)
+        settingsNavigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    override fun isSettingsShown(): Boolean = stack.value.active.configuration !is Config.None
+//    override fun isMessageMetadataShown(): Boolean = stack.value.active.configuration is Config.MessageMetadata
+//    override fun shownSettings(): Config = stack.value.active.configuration
 }

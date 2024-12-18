@@ -94,6 +94,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
+        onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
@@ -111,6 +112,7 @@ interface TimelineElementHolderViewModelFactory {
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
             onOpenMention = onOpenMention,
+            onOpenMetadata = onOpenMetadata,
         )
 
     companion object : TimelineElementHolderViewModelFactory
@@ -150,6 +152,8 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun addReaction(reaction: String)
     fun removeReaction(reaction: ReactionEvent)
 
+    fun showMessageMetadata()
+
     data class ReactionEvent(
         val eventId: EventId,
         val sender: UserInfoElement,
@@ -174,6 +178,7 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val config = get<MatrixMessengerConfiguration>()
 
@@ -565,6 +570,10 @@ class TimelineElementHolderViewModelImpl(
         }
     }
 
+    override fun showMessageMetadata() {
+        onOpenMetadata(this)
+    }
+
     override fun toString(): String =
         "TimelineElementViewModel(showLoadingIndicator=${this@TimelineElementHolderViewModelImpl.hasLoadingIndicatorBefore.value}" +
                 ", shouldShowUnreadMarker=${hasUnreadMarker.value})"
@@ -616,6 +625,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
+    override fun showMessageMetadata() {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -663,4 +673,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
+    override fun showMessageMetadata() {}
 }
