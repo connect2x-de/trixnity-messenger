@@ -6,7 +6,7 @@ import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.TrayState
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -136,9 +136,8 @@ private suspend fun displayNotification(
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                 }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }
-                    ?.map { bytes ->
-                        bytes?.let { it -> imageBitmapFromBytes(it) }
-                    }?.getOrNull()
+                    ?.map { bytes -> bytes?.toImageBitmap() }
+                    ?.getOrNull()
                 user?.name to image
             } ?: (null to null)
 

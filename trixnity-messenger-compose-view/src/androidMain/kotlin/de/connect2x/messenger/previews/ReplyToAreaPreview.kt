@@ -8,15 +8,17 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.room.timeline.ReplyToArea
 import de.connect2x.messenger.previews.util.InitMessengerPreview
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.PreviewReplyToViewModel2
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.PreviewInputAreaViewModel
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFF)
+@Preview
 @Composable
 private fun ReplyToAreaPreview() {
     InitMessengerPreview {
         CompositionLocalProvider(Platform provides PlatformType.ANDROID) {
             Column {
-                ReplyToArea(replyToViewModel = PreviewReplyToViewModel2())
+                ReplyToArea(
+                    inputAreaViewModel = PreviewInputAreaViewModel()
+                )
             }
         }
     }

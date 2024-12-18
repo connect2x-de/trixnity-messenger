@@ -23,7 +23,6 @@ import com.arkivanov.decompose.defaultComponentContext
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
@@ -119,7 +118,6 @@ class MessengerActivity : AppCompatActivity() {
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
                                 IsFocused provides isFocused,
-                                IsDebug provides false,
                                 DI provides matrixMessenger.di,
                             ) {
                                 MessengerTheme {
@@ -145,7 +143,6 @@ class MessengerActivity : AppCompatActivity() {
                         CompositionLocalProvider(
                             Platform provides PlatformType.ANDROID,
                             IsFocused provides isFocused,
-                            IsDebug provides false,
                             DI provides matrixMultiMessenger.di,
                             ShowProfileCreation provides showProfileCreation,
                         ) {

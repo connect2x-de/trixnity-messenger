@@ -8,7 +8,7 @@ import net.folivo.trixnity.client.verification.ActiveVerification
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 
-interface ActiveVerifications {
+interface ActiveVerifications {  // TODO this as part of the DI just adds complexity
     suspend fun getActiveVerification(
         matrixClient: MatrixClient,
         roomId: RoomId?,

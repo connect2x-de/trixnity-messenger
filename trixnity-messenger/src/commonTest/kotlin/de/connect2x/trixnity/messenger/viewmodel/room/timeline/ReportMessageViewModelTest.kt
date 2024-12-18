@@ -1,9 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
@@ -15,18 +13,15 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -44,7 +39,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class)
 class ReportMessageViewModelTest : ShouldSpec() {
@@ -66,7 +61,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
 
     private lateinit var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
-    private val onMessageReportFinished = mock<Function1<EventId, Unit>>()
+    private val onMessageReportFinished = mock<Function0<Unit>>()
 
 
     init {
@@ -74,11 +69,6 @@ class ReportMessageViewModelTest : ShouldSpec() {
         val eventId = EventId("0")
         val aliceUserId = UserId("@alice:localhost")
         val aliceRoomUser = roomUser(aliceUserId, "Alice")
-        val bobRoomUser = roomUser(ourUserId, "Bob") // our == bob
-        val alvinUserId = UserId("@alvin:localhost")
-        val alvinRoomUser = roomUser(alvinUserId, "Alvin")
-        val zoopUserId = UserId("@completelyDifferent:anotherplanet")
-        val zoopRoomUser = roomUser(zoopUserId, "Zoop")
         val messageEvent = ClientEvent.RoomEvent.MessageEvent(
             content = RoomMessageEventContent.TextBased.Text("Hello"),
             id = eventId,
@@ -140,7 +130,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
             every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(
                 aliceRoomUser
             )
-            every { onMessageReportFinished.invoke(any()) } returns Unit
+            every { onMessageReportFinished.invoke() } returns Unit
 
             everySuspend {
                 roomsApiClientMock.reportEvent(
@@ -155,20 +145,18 @@ class ReportMessageViewModelTest : ShouldSpec() {
 
 
         should("Clear report reason after successfully report to message") {
-            val cut = reportToMessageViewModel(coroutineContext)
+            val cut = reportToMessageViewModel()
             val subscriberJob = subscribe(cut)
-            testCoroutineScheduler.advanceUntilIdle()
 
             cut.messageReportReason.value = "Report Reason"
-            testCoroutineScheduler.advanceUntilIdle()
+            delay(500.milliseconds)
 
             cut.submitReportToMessage()
+            delay(500.milliseconds)
 
             verify {
-                onMessageReportFinished.invoke(messageEvent.id)
+                onMessageReportFinished.invoke()
             }
-
-
             cut.messageReportReason.value shouldBe null
 
             subscriberJob.cancel()
@@ -177,11 +165,9 @@ class ReportMessageViewModelTest : ShouldSpec() {
     }
 
 
-    private suspend fun reportToMessageViewModel(coroutineContext: CoroutineContext): ReportMessageViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+    private fun TestScope.reportToMessageViewModel(): ReportMessageViewModelImpl {
         return ReportMessageViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
                         createTestDefaultTrixnityMessengerModules(
@@ -195,9 +181,8 @@ class ReportMessageViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext,
             ),
-            selectedRoomId = roomId,
+            roomId = roomId,
             eventId = EventId("0"),
             onReportMessageFinished = onMessageReportFinished,
         )

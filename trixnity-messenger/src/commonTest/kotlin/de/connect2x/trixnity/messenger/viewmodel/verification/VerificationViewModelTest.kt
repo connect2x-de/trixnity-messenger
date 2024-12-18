@@ -8,9 +8,14 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
-import dev.mokkery.*
-import dev.mokkery.answering.*
-import dev.mokkery.matcher.*
+import dev.mokkery.answering.calls
+import dev.mokkery.answering.returns
+import dev.mokkery.every
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.matcher.eq
+import dev.mokkery.mock
+import dev.mokkery.verify
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.ShouldSpec
@@ -18,7 +23,8 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
@@ -37,8 +43,8 @@ import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCanc
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VerificationViewModelTest : ShouldSpec() {
@@ -100,6 +106,7 @@ class VerificationViewModelTest : ShouldSpec() {
             every { matrixClientMock.userId } returns ownUserId
             every { matrixClientMock.deviceId } returns ownDeviceId
             every { matrixClientMock.api } returns matrixClientServerApiClientMock
+            every { matrixClientMock.displayName } returns MutableStateFlow("otherUser")
             every { matrixClientServerApiClientMock.json } returns Json
             every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
             every { matrixClientServerApiClientMock.user } returns usersApiClientMock
@@ -107,7 +114,7 @@ class VerificationViewModelTest : ShouldSpec() {
             everySuspend {
                 devicesApiClientMock.getDevice(any(), eqNull())
             } returns Result.success(Device(ownDeviceId))
-            everySuspend { usersApiClientMock.getDisplayName(any()) } returns Result.success("otherUser")
+            everySuspend { usersApiClientMock.getDisplayName(eq(otherUserId)) } returns Result.success("otherUser")
 
             every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
             every { activeVerification.theirDeviceId } returns otherDeviceId
@@ -230,7 +237,7 @@ class VerificationViewModelTest : ShouldSpec() {
 
     }
 
-    private suspend fun deviceVerificationViewModel(): VerificationViewModel {
+    private fun deviceVerificationViewModel(): VerificationViewModel {
         return VerificationViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),

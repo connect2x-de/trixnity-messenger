@@ -3,10 +3,14 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import com.arkivanov.decompose.value.Value
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.transformWhile
 import kotlin.time.Duration
 
-suspend fun <T> Flow<T>.takeWhileInclusive(pred: suspend (T) -> Boolean): Flow<T> =
+fun <T> Flow<T>.takeWhileInclusive(pred: suspend (T) -> Boolean): Flow<T> =
     transformWhile { value ->
         if (pred(value)) {
             emit(value)

@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -64,17 +63,15 @@ class DownloadManagerTest : ShouldSpec() {
                 mediaServiceMock.getMedia(eq("mxc://localhost/ABCDEFGH"), any(), any())
             } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
 
             val result = cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
                 progress,
-                success
-            ).await()
+            ).await().getOrThrow()
 
-            result.getOrNull()?.toByteArray() shouldBe "test".encodeToByteArray()
+            result.toByteArray() shouldBe "test".encodeToByteArray()
         }
 
         should("download encrypted file") {
@@ -90,17 +87,15 @@ class DownloadManagerTest : ShouldSpec() {
                 mediaServiceMock.getEncryptedMedia(eq(encryptedFile), any(), any())
             } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
 
             val result = cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", file = encryptedFile),
                 "file.pdf",
-                progress,
-                success
-            ).await()
+                progress
+            ).await().getOrThrow()
 
-            result.getOrNull()?.toByteArray() shouldBe "test".encodeToByteArray()
+            result.toByteArray() shouldBe "test".encodeToByteArray()
         }
 
         should("track progress of download") {
@@ -121,14 +116,12 @@ class DownloadManagerTest : ShouldSpec() {
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
 
             val result = cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
-                progress,
-                success
+                progress
             )
             val internalProgress = internalProgressState.filterNotNull().first()
 
@@ -142,12 +135,7 @@ class DownloadManagerTest : ShouldSpec() {
             testCoroutineScheduler.advanceTimeBy(100.milliseconds)
             progress.value shouldBe FileTransferProgressElement(1.0f, "1,0kB / 1,0kB")
 
-            withContext(Dispatchers.Default) {
-                delay(600)
-                success.value shouldBe true
-            }
-
-            result.await()
+            result.await().getOrThrow()
         }
 
         should("stop tracking progress of download when download is cancelled") {
@@ -168,14 +156,12 @@ class DownloadManagerTest : ShouldSpec() {
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
             val progress = MutableStateFlow<FileTransferProgressElement?>(null)
-            val success = MutableStateFlow(false)
 
             val result = cut.startDownloadAsync(
                 matrixClientMock,
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
                 progress,
-                success
             )
             val internalProgress = internalProgressState.filterNotNull().first()
 

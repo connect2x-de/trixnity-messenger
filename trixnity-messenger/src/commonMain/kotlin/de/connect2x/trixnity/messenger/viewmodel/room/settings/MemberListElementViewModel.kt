@@ -63,7 +63,7 @@ interface MemberListElementViewModelFactory {
 }
 
 interface MemberListElementViewModel {
-    val userId: UserId
+    val memberUserId: UserId
     val member: StateFlow<MemberElement?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val memberOptionsOpen: StateFlow<Boolean>
@@ -156,7 +156,7 @@ class MemberListElementViewModelImpl(
     private val selectedRoomId: RoomId
 ) : MatrixClientViewModelContext by viewModelContext, MemberListElementViewModel {
     override val memberOptionsOpen = MutableStateFlow(false)
-    override val userId = roomUser.userId
+    override val memberUserId = roomUser.userId
 
     override val kickUserWarningOpen = MutableStateFlow(false)
     override val kickUserWarningMessage = MutableStateFlow("")
@@ -165,10 +165,10 @@ class MemberListElementViewModelImpl(
     override val banUserWarningOpen = MutableStateFlow(false)
     override val unbanUserWarningOpen = MutableStateFlow(false)
 
-    override val membershipReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, userId)
+    override val membershipReason: StateFlow<String?> = matrixClient.user.getById(selectedRoomId, memberUserId)
         .mapLatest { it?.event?.content?.reason }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val membership: StateFlow<Membership?> = matrixClient.user.getById(selectedRoomId, userId)
+    override val membership: StateFlow<Membership?> = matrixClient.user.getById(selectedRoomId, memberUserId)
         .mapLatest { it?.membership }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -178,25 +178,26 @@ class MemberListElementViewModelImpl(
     private val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
-    override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
+    override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val member: StateFlow<MemberListElementViewModel.MemberElement?>
     override val role = MutableStateFlow(USER)
     override val showRole = MutableStateFlow(false)
-    override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, userId)
+    override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
     override val showPowerLevel = MutableStateFlow(false)
 
-    override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
+    override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val iHavePowerToBanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, userId)
+    override val iHavePowerToBanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, memberUserId)
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canUnbanUser(selectedRoomId, userId)
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val iHavePowerToUnbanUser: StateFlow<Boolean> =
+        matrixClient.user.canUnbanUser(selectedRoomId, memberUserId)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
+    override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val blockingInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -210,7 +211,7 @@ class MemberListElementViewModelImpl(
                 selectedRoomId = selectedRoomId,
                 closeMemberOptions = ::closeMemberOptions
             )
-    override val presence = matrixClient.user.userPresence.map { it[userId]?.presence ?: Presence.OFFLINE }
+    override val presence = matrixClient.user.userPresence.map { it[memberUserId]?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
 
@@ -221,7 +222,7 @@ class MemberListElementViewModelImpl(
                 isDirect.value = room?.isDirect ?: false
 
                 val displayName =
-                    (roomUserOriginalName ?: userId.full) + " (" + userId.full + ")"
+                    (roomUserOriginalName ?: memberUserId.full) + " (" + memberUserId.full + ")"
 
                 if (isDirect.value) {
                     kickUserWarningTitle.value = i18n.settingsRoomMemberListKickUserWarningTitleChat(displayName)
@@ -235,7 +236,7 @@ class MemberListElementViewModelImpl(
         }
 
         coroutineScope.launch {
-            matrixClient.user.getPowerLevel(selectedRoomId, userId).collect { powerLevel ->
+            matrixClient.user.getPowerLevel(selectedRoomId, memberUserId).collect { powerLevel ->
                 role.value = getPowerRole(powerLevel)
                 showRole.value = !(role.value == USER)
                 showPowerLevel.value = role.value.getMinPowerLevel() != powerLevel
@@ -345,7 +346,7 @@ class MemberListElementViewModelImpl(
 
             matrixClient.api.room.banUser(
                 roomId = selectedRoomId,
-                userId = userId,
+                userId = memberUserId,
                 reason = reason
             ).fold(
                 onSuccess = {
@@ -356,7 +357,7 @@ class MemberListElementViewModelImpl(
                         return@launch
                     }
 
-                    log.error(it) { "cannot ban user $userId from $selectedRoomId: ${it.message}" }
+                    log.error(it) { "cannot ban user $memberUserId from $selectedRoomId: ${it.message}" }
                     error.value = i18n.settingsRoomMemberBanUserError()
                 }
             )
@@ -402,8 +403,8 @@ class MemberListElementViewModelImpl(
         coroutineScope.launch {
             try {
                 blockingInProgress.value = true
-                userBlocking.blockUser(matrixClient, userId) {
-                    error.value = i18n.blockUserError(userId.full)
+                userBlocking.blockUser(matrixClient, memberUserId) {
+                    error.value = i18n.blockUserError(memberUserId.full)
                 }
             } finally {
                 blockingInProgress.value = false
@@ -415,8 +416,8 @@ class MemberListElementViewModelImpl(
         coroutineScope.launch {
             try {
                 blockingInProgress.value = true
-                userBlocking.unblockUser(matrixClient, userId) {
-                    error.value = i18n.settingsUnblockUserError(userId.full)
+                userBlocking.unblockUser(matrixClient, memberUserId) {
+                    error.value = i18n.settingsUnblockUserError(memberUserId.full)
                 }
             } finally {
                 blockingInProgress.value = false

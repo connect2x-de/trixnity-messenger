@@ -22,6 +22,11 @@ abstract class I18nView(
     timeZone: TimeZone,
 ) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
 
+    fun commonContextMenu() = translate {
+        EN - "context menu"
+        DE - "Kontextmenü"
+    }
+
     fun commonInactive() = translate {
         EN - "inactive"
         DE - "inaktiv"
@@ -1627,6 +1632,11 @@ abstract class I18nView(
         DE - "Dieser Tresor kann zudem mit einem individuellen Generalschlüssel (im Bild: \"RecoveryKey\") geöffnet werden. Um im Falle eines Geräteverlusts diesen Tresor auf einem neuen Gerät öffnen zu können, wird Ihnen der Generalschlüssel im nächsten Schritt ausgehändigt."
     }
 
+    fun bootstrapVault() = translate {
+        EN - "vault"
+        DE - "Tresor"
+    }
+
     fun bootstrapRecoveryKeyVaultCreation() = translate {
         EN - "Message vault is being created"
         DE - "Nachrichtentresor wird angelegt"
@@ -1640,6 +1650,11 @@ abstract class I18nView(
     fun bootstrapRecoveryKeyTitle() = translate {
         EN - "Recovery key"
         DE - "Schlüsselübergabe"
+    }
+
+    fun bootstrapRecoveryKey() = translate {
+        EN - "recovery key"
+        DE - "Generalschlüssel"
     }
 
     fun bootstrapRecoveryKeyHandling() = translate {
@@ -1677,14 +1692,14 @@ abstract class I18nView(
         DE - "Ihr Generalschlüssel ist nun eingerichtet."
     }
 
-    fun deviceVerificationTitle() = translate {
-        EN - "Device verification"
-        DE - "Freischaltung für dieses Gerät"
+    fun deviceVerificationTitle(userId: UserId) = translate {
+        EN - "Device verification (account: ${userId.full})"
+        DE - "Freischaltung für dieses Gerät (Konto: ${userId.full})"
     }
 
     fun deviceVerificationInitiatedBy(username: String) = translate {
-        EN - "initiated by $username"
-        DE - "ausgelöst durch $username"
+        EN - "Verification initiated by $username"
+        DE - "Verifizierung ausgelöst durch $username"
     }
 
     fun deviceVerificationToAccount(deviceName: String) = translate {

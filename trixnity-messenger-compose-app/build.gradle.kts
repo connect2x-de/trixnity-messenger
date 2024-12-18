@@ -37,7 +37,7 @@ val buildConfigGenerator by tasks.registering {
         val licencesString = licencesFile.readText()
             .replace("$", "\${'$'}")
             .replace(quotes, "")
-        
+
         val buildConfigString =
             """
             package $appId
@@ -145,6 +145,7 @@ compose {
             jvmArgs(
 //            "-Dapple.awt.application.appearance=system",
                 "-Xmx1G",
+                "-XX:+HeapDumpOnOutOfMemoryError",
             )
 
             buildTypes.release.proguard {
