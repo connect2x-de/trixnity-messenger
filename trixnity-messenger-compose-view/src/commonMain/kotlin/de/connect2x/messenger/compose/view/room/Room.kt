@@ -38,13 +38,14 @@ class RoomViewImpl : RoomView {
             val isSinglePane = this@BoxWithConstraints.maxWidth < TWO_PANE_THRESHOLD.dp
             roomViewModel.setSinglePane(isSinglePane)
 
-            val showSettings = roomViewModel.isShowSettings.collectAsState().value
+            val showSettings = roomViewModel.isSettingsShown.collectAsState().value
+            val showExtrasPane = roomViewModel.isExtrasShown.collectAsState().value
 
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)) {
                     RoomContentSwitch(roomViewModel.timelineStack, showSettings.not())
                 }
-                if (showSettings && !isSinglePane) {
+                if (showExtrasPane && !isSinglePane) {
                     VerticalDivider(
                         modifier = Modifier
                             .fillMaxHeight()
@@ -53,7 +54,7 @@ class RoomViewImpl : RoomView {
                     Box(modifier = Modifier.weight(SETTINGS_WEIGHT))
                 }
             }
-            if (showSettings) {
+            if (showExtrasPane) {
                 Row(modifier = Modifier.fillMaxSize()) {
                     if (!isSinglePane) {
                         Box(modifier = Modifier.weight(TIMELINE_WEIGHT))

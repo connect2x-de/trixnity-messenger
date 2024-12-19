@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
@@ -226,7 +226,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
                     }
                 }
                 should("show room list in multi-pane view") {
@@ -238,7 +238,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
                     }
                 }
             }
@@ -256,7 +256,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
                     }
                 }
 
@@ -273,7 +273,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
                     }
                 }
             }
@@ -289,7 +289,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
             }
         }
 
@@ -304,7 +304,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
             }
         }
 
@@ -319,7 +319,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
             }
         }
 
@@ -334,7 +334,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.View>()
+                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
             }
         }
     }
@@ -343,7 +343,7 @@ class RoomViewModelTest : ShouldSpec() {
         delay(100.milliseconds)
         assertSoftly {
             cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-            cut.settingsStack.value.active.instance should beOfType<SettingsRouter.Wrapper.None>()
+            cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
         }
     }
 

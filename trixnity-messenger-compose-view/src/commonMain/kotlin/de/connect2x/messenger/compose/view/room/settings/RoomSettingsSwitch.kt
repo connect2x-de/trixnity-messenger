@@ -7,11 +7,11 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 
 @Composable
 fun RoomSettingsSwitch(
-    stack: Value<ChildStack<*, SettingsRouter.Wrapper>>,
+    stack: Value<ChildStack<*, ExtrasRouter.Wrapper>>,
     isTwoPane: Boolean,
 ) {
     Children(
@@ -19,11 +19,11 @@ fun RoomSettingsSwitch(
         animation = stackAnimation(fade())
     ) {
         when (val child = it.instance) {
-            is SettingsRouter.Wrapper.View -> RoomSettingsContainer(child.viewModel, isTwoPane)
-            is SettingsRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
-            is SettingsRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
-            is SettingsRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel)
-            is SettingsRouter.Wrapper.None -> Box {}
+            is ExtrasRouter.Wrapper.View -> RoomSettingsContainer(child.viewModel, isTwoPane)
+            is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
+            is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
+            is ExtrasRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel)
+            is ExtrasRouter.Wrapper.None -> Box {}
         }.let {}
     }
 }
