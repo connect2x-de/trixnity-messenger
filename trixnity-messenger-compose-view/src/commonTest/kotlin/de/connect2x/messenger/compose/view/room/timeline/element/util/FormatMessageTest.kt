@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.util
 
+import de.connect2x.messenger.compose.view.room.timeline.element.message.formatLinks
+import de.connect2x.messenger.compose.view.room.timeline.element.message.formatMentions
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention

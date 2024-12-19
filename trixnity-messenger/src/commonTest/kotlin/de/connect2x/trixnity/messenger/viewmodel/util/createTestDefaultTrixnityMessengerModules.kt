@@ -18,6 +18,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,6 +64,7 @@ fun createTestDefaultTrixnityMessengerModules(
     single<MatrixMessengerSettingsHolder> { settings }
     if (matrixClients != null)
         single<MatrixClients> {
+            @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
             object : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
                 override suspend fun login(
                     baseUrl: Url,
