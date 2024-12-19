@@ -8,19 +8,15 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.OpenMediaUserCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 
 private val log = KotlinLogging.logger {}
@@ -31,7 +27,6 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
-        onOpenMedia: OpenMediaUserCallback,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
         goToRoom: (UserId, RoomId) -> Unit,
@@ -41,7 +36,6 @@ interface RoomViewModelFactory {
             roomId = selectedRoomId,
             onRoomBack = onRoomBack,
             isBackButtonVisible = isBackButtonVisible,
-            onOpenMedia = onOpenMedia,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
             goToRoom = goToRoom,
@@ -67,8 +61,7 @@ open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
-    onOpenMedia: OpenMediaUserCallback,
-    private val onOpenMention: OpenMentionCallback,
+    onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
     goToRoom: (UserId, RoomId) -> Unit,
@@ -80,7 +73,6 @@ open class RoomViewModelImpl(
 
     override val isShowUserProfile: StateFlow<Boolean> = MutableStateFlow(false)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val settingsRouter: SettingsRouter = SettingsRouterImpl(
         viewModelContext = viewModelContext,
         roomId = roomId,
@@ -96,10 +88,7 @@ open class RoomViewModelImpl(
         onShowSettings = ::onShowSettings,
         onShowUserProfile = ::showUserProfile,
         onRoomBack = onRoomBack,
-        onOpenMedia = { content: RoomMessageEventContent.FileBased, onDownload: () -> Unit ->
-            onOpenMedia(content, onDownload, userId)
-        },
-        onOpenMention = onOpenMention,
+        onOpenMention = onOpenMention
     )
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =

@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,26 +38,90 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 interface MessageReactionsView {
     @Composable
     fun create(
-        roomMessageViewModel: RoomMessageViewModel,
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        reactionsOpen: MutableState<Boolean>,
         modifier: Modifier
     )
 }
 
 @Composable
 fun MessageReactions(
-    roomMessageViewModel: RoomMessageViewModel,
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+    reactionsOpen: MutableState<Boolean>,
     modifier: Modifier = Modifier
 ) {
-    DI.get<MessageReactionsView>().create(roomMessageViewModel, timelineElementHolderViewModel, modifier)
+    DI.get<MessageReactionsView>().create(timelineElementHolderViewModel, reactionsOpen, modifier)
 }
+
+class MessageReactionsViewImpl : MessageReactionsView {
+    @OptIn(ExperimentalLayoutApi::class)
+    @Composable
+    override fun create(
+        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        reactionsOpen: MutableState<Boolean>,
+        modifier: Modifier
+    ) {
+        if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
+            return
+        }
+
+        val i18n = DI.current.get<I18nView>()
+        val focusRequester = remember { FocusRequester() }
+
+        val reactions by remember(timelineElementHolderViewModel) {
+            timelineElementHolderViewModel.reactions
+        }.collectAsState()
+
+        val reactionList = remember(reactions) {
+            reactions.entries.sortedByDescending { it.value.size }.map { it.key }
+        }
+
+        EmojiPopup(
+            isOpen = reactionsOpen.value,
+            focusRequester = focusRequester,
+            onDismiss = {
+                reactionsOpen.value = false
+            },
+            onSelect = {
+                reactionsOpen.value = false
+                timelineElementHolderViewModel.addReaction(it)
+            },
+            isByMe = timelineElementHolderViewModel.isByMe,
+        )
+
+        if (reactions.isNotEmpty()) {
+            FlowRow(
+                modifier,
+                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+                verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+            ) {
+                for (reaction in reactionList) {
+                    val reactionEvents = reactions[reaction].orEmpty()
+                    MessageReactionButton(
+                        reaction = reaction,
+                        reactionEvents = reactionEvents,
+                        count = reactionEvents.size,
+                        myReaction = reactionEvents.firstOrNull { it.isMe },
+                        onAddReaction = timelineElementHolderViewModel::addReaction,
+                        onRemoveReaction = timelineElementHolderViewModel::removeReaction,
+                    )
+                }
+                MessageAddReactionButton(
+                    onClick = {
+                        reactionsOpen.value = true
+                    },
+                    i18n.reactMessage()
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 internal fun MessageReactionDisplay(
@@ -82,7 +147,7 @@ private val buttonModifier = Modifier.buttonPointerModifier()
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
-    reactionEvents: Set<TimelineElementHolderViewModel. ReactionEvent>,
+    reactionEvents: Set<TimelineElementHolderViewModel.ReactionEvent>,
     count: Int,
     myReaction: TimelineElementHolderViewModel.ReactionEvent?,
     onAddReaction: (reaction: String) -> Unit,
@@ -132,72 +197,5 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
             modifier = Modifier.size(18.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-class MessageReactionsViewImpl : MessageReactionsView {
-    @OptIn(ExperimentalLayoutApi::class)
-    @Composable
-    override fun create(
-        roomMessageViewModel: RoomMessageViewModel,
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-        modifier: Modifier
-    ) {
-        if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
-            return
-        }
-
-        val i18n = DI.current.get<I18nView>()
-        val focusRequester = remember { FocusRequester() }
-        val reactionsOpen by remember(timelineElementHolderViewModel) {
-            timelineElementHolderViewModel.reactionsOpen
-        }.collectAsState()
-
-        val reactions by remember(timelineElementHolderViewModel) {
-            timelineElementHolderViewModel.reactions
-        }.collectAsState()
-
-        val reactionList = remember(reactions) {
-            reactions.entries.sortedByDescending { it.value.size }.map { it.key }
-        }
-
-        EmojiPopup(
-            isOpen = reactionsOpen,
-            focusRequester = focusRequester,
-            onDismiss = {
-                timelineElementHolderViewModel.reactionsOpen.value = false
-            },
-            onSelect = {
-                timelineElementHolderViewModel.reactionsOpen.value = false
-                timelineElementHolderViewModel.addReaction(it)
-            },
-            isByMe = roomMessageViewModel.isByMe,
-        )
-
-        if (reactions.isNotEmpty()) {
-            FlowRow(
-                modifier,
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
-            ) {
-                for (reaction in reactionList) {
-                    val reactionEvents = reactions[reaction].orEmpty()
-                    MessageReactionButton(
-                        reaction = reaction,
-                        reactionEvents = reactionEvents,
-                        count = reactionEvents.size,
-                        myReaction = reactionEvents.firstOrNull { it.isMe },
-                        onAddReaction = timelineElementHolderViewModel::addReaction,
-                        onRemoveReaction = timelineElementHolderViewModel::removeReaction,
-                    )
-                }
-                MessageAddReactionButton(
-                    onClick = {
-                        timelineElementHolderViewModel.reactionsOpen.value = true
-                    },
-                    i18n.reactMessage()
-                )
-            }
-        }
     }
 }

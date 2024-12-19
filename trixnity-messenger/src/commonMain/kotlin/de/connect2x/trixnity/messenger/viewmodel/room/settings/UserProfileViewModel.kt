@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -8,6 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -233,7 +236,7 @@ class UserProfileViewModelImpl(
                     roomUser.name,
                     roomUser.userId,
                     initials.compute(roomUser.name),
-                    getImage(
+                    getImageLazy(
                         matrixClient,
                         roomUser
                     ),
@@ -242,10 +245,19 @@ class UserProfileViewModelImpl(
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
-    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): Flow<ByteArray>? {
+    private fun getImageLazy(matrixClient: MatrixClient, user: RoomUser) = flow {
+        emit(getImage(matrixClient, user))
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
+        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = { it },
+                onSuccess = {
+                    it.limitedByteArrayOrNull(maxAvatarSize) {
+                        log.error { "User avatar for user ${user.userId} exceeds max preview size, so it is not displayed" }
+                    }
+                },
                 onFailure = { null }
             )
         }

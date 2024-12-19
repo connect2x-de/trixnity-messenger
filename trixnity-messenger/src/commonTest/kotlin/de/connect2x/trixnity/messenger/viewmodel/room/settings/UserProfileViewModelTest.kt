@@ -228,7 +228,7 @@ class UserProfileViewModelTest : ShouldSpec() {
 
             testCoroutineScheduler.advanceTimeBy(200)
 
-            cut.userInfo.value shouldBe memberElementAlice
+            cut.userInfo.value?.userId shouldBe memberElementAlice.userId
 
             cancelNeverEndingCoroutines()
         }

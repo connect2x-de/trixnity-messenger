@@ -48,7 +48,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
         val memberListViewModel = roomSettingsViewModel.memberListViewModel
         val memberListElementViewModels =
-            memberListViewModel.memberListElementViewModels.collectAsState().value
+            memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
         if (memberListElementViewModels.isEmpty()) {
@@ -82,13 +82,14 @@ fun MemberList(
     memberListViewModel: MemberListViewModel,
     onClickUser: (UserId) -> Unit,
 ) {
-    val members = memberListViewModel.memberListElementViewModels.collectAsState().value
+    val members = memberListViewModel.elements.collectAsState().value
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(Modifier.fillMaxWidth(), state) {
-            members.forEach { (userId, memberListElementViewModel) ->
+            members.forEach { memberListElementViewModel ->
+                val userId = memberListElementViewModel.memberUserId
                 item(key = userId.full) {
                     RoomSettingsMemberListElement(
                         memberListViewModel,

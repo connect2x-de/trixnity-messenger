@@ -19,7 +19,6 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import korlibs.io.async.launch
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +27,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -262,11 +262,11 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value.size shouldBe 3
+                cut.elements.value.size shouldBe 3
             }
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value should containSortedMemberListElementViewModelsFor(
+                cut.elements.value should containSortedMemberListElementViewModelsFor(
                     listOf(alice, bob, me)
                 )
             }
@@ -290,7 +290,7 @@ class MemberListViewModelTest : ShouldSpec() {
             val cut = memberListViewModel(coroutineContext)
 
             eventually(2.seconds) {
-                cut.memberListElementViewModels.value.size shouldBe 3
+                cut.elements.value.size shouldBe 3
             }
 
             eventually(2.seconds) {
@@ -413,20 +413,20 @@ class MemberListViewModelTest : ShouldSpec() {
     }
 
     private fun containSortedMemberListElementViewModelsFor(userIds: List<UserId>) =
-        Matcher<List<Pair<UserId, MemberListElementViewModel>>> { resultList ->
+        Matcher<List<MemberListElementViewModel>> { resultList ->
             MatcherResult(
                 userIds.foldIndexed(true) { index, acc, userId ->
-                    val (_, vm) = resultList.getOrElse(index) { Pair(null, null) }
-                    acc && (vm?.userId == userId)
+                    val vm = resultList.getOrElse(index) { null }
+                    acc && (vm?.memberUserId == userId)
                 },
                 {
-                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, (_, vm) ->
-                        acc + vm.userId
+                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
+                        acc + vm.memberUserId
                     }
                 },
                 {
-                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, (userId, _) ->
-                        acc + userId
+                    "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
+                        acc + vm.memberUserId
                     }
                 }
             )
@@ -453,7 +453,7 @@ class MemberListViewModelTest : ShouldSpec() {
             error = MutableStateFlow("")
         ).also {
             launch {
-                it.memberListElementViewModels.collect { }
+                it.elements.collect { }
             }
 
             launch {

@@ -66,9 +66,9 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val showPowerLevel = memberListElementViewModel.showPowerLevel.collectAsState().value
         val showRole = memberListElementViewModel.showRole.collectAsState().value
         val isLastMember =
-            memberListViewModel.memberListElementViewModels.collectAsState().value.lastOrNull()?.first == memberListElementViewModel.userId
+            memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
-        val image = memberElement?.image?.collectAsState(null)?.value
+        val image = memberElement?.image
 
         Box(
             Modifier
@@ -96,7 +96,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                         Spacer(Modifier.size(5.dp))
                         Text(
                             modifier = Modifier.fillMaxWidth().weight(1.0f, false),
-                            text = memberElement.name,
+                            text = memberElement.displayName,
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,

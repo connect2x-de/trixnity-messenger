@@ -49,19 +49,18 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRe
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepSuccessViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
 
-// FIXME all configurable?
-
 @Composable
 fun DeviceVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
     val i18n = DI.get<I18nView>()
-    val deviceDisplayName = verificationStepRequestViewModel.deviceDisplayName.collectAsState().value
     val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
-
+    val deviceDisplayName = verificationStepRequestViewModel.theirDeviceDisplayName.collectAsState().value
+    val isFromOwnAccount = verificationStepRequestViewModel.isFromOwnAccount
     Column {
-        theirDisplayName?.let {
+        if (isFromOwnAccount == false) theirDisplayName?.let {
             Text(i18n.deviceVerificationInitiatedBy(it))
+            Spacer(Modifier.size(10.dp))
         }
-        Text(i18n.deviceVerificationToAccount(deviceDisplayName))
+        Text(i18n.deviceVerificationToAccount(deviceDisplayName ?: ""))
         Spacer(Modifier.size(20.dp))
         Row(Modifier.fillMaxWidth()) {
             Spacer(Modifier.weight(1.0f, fill = true))
@@ -108,15 +107,9 @@ fun SelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificati
                         selected = selectedVerificationMethod.value == verificationMethod,
                         onClick = { selectedVerificationMethod.value = verificationMethod },
                     )
-                    Text(
-                        text = explanation,
-                    )
+                    Text(explanation)
                 }
-            } else {
-                Text(
-                    text = explanation,
-                )
-            }
+            } else Text(explanation)
         }
         Spacer(Modifier.size(20.dp))
         OkButton { selectedVerificationMethod.value?.let { selectVerificationMethodViewModel.acceptVerificationMethod(it) } }
@@ -131,7 +124,6 @@ fun AcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
         Spacer(Modifier.size(20.dp))
         OkButton(acceptSasStartViewModel::accept)
     }
-
 }
 
 @Composable
@@ -147,7 +139,7 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
                 Row(
                     Modifier.align(Alignment.Center),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceAround,
                 ) {
                     emojis.take(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
                 }
@@ -156,7 +148,7 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
                 Row(
                     Modifier.align(Alignment.Center),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceAround,
                 ) {
                     emojis.drop(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
                 }

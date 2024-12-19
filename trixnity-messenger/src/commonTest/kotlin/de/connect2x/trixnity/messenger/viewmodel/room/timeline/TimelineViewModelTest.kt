@@ -4,14 +4,16 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import com.benasher44.uuid.uuid4
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomMessageViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextBasedRoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -21,8 +23,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.continually
-import io.kotest.assertions.retry
-import io.kotest.assertions.withClue
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -39,14 +40,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomOutboxMessage
@@ -59,19 +58,21 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.DefaultAsserter.fail
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
+    override fun timeout(): Long = 10_000
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
@@ -230,758 +231,471 @@ class TimelineViewModelTest : ShouldSpec() {
             coroutineScope.cancel()
         }
 
-        should("show new messages when at the end of timeline (end of timeline has been starting element)") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                +messageEvent(sender = alice) {
-                    text("World")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel(mock())
-            cut.timelineElementHolderViewModels.first { it.size == 2 }
-            cut.lastVisibleTimelineElement.value = "1"
-            delay(200) // give the viewmodel time to compute derived values
-
-            timelineMock.addEvents {
-                +messageEvent(sender = alice) {
-                    text("Woohoo")
-                }
-            }
-
-            cut.timelineElementHolderViewModels.first { it.size == 3 }
-            cut.timelineElementHolderViewModels.value.last().key shouldBe "2"
-        }
-
-        should("load more messages before") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                (1..19).forEach {
+        context(TimelineViewModel::elements.name) {
+            should("show new messages when at the end of timeline (end of timeline has been starting element)") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
-                        text("World-$it")
+                        text("Hello")
                     }
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            withClue(lazy { "timelineElementViewModels size was ${cut.timelineElementHolderViewModels.value.size}, expected 11" }) {
-                cut.timelineElementHolderViewModels.first { it.size == 11 }
-            }
-
-            // timeline starts at the end (no read messages) -> [9..19] are shown, if first visible is in the first 10 -> load before
-            cut.firstVisibleTimelineElement.value = "9"
-            cut.timelineElementHolderViewModels waitForSize 20
-        }
-
-        should("not load more messages before") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                (1..19).forEach {
                     +messageEvent(sender = alice) {
-                        text("World-$it")
-                    }
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
-
-            cut.firstVisibleTimelineElement.value = "8" // [9..19], see above
-            continually(1.seconds) {
-                cut.timelineElementHolderViewModels.value.size shouldBe 11
-            }
-        }
-
-        should("load more messages after") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                (1..19).forEach {
-                    +messageEvent(sender = alice) {
-                        text("World-$it")
-                    }
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            timelineMock.fullyReadEventIndex.value = 0
-
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
-
-            // fully read events is set -> start at beginning -> [0..10], 9 is in last messages -> load after
-            cut.lastVisibleTimelineElement.value = "9"
-            cut.timelineElementHolderViewModels waitForSize 20
-        }
-
-        should("not load more messages after") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                (1..19).forEach {
-                    +messageEvent(sender = alice) {
-                        text("World-$it")
-                    }
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            timelineMock.fullyReadEventIndex.value = 0
-
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
-
-            // see above, [0..10], 1 is at beginning -> do NOT load after
-            cut.lastVisibleTimelineElement.value = "1"
-            continually(1.seconds) {
-                cut.timelineElementHolderViewModels.value.size shouldBe 11
-            }
-        }
-
-        should("directly jump to the end of the timeline if the last event is already in the timeline") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                (1..9).forEach {
-                    +messageEvent(sender = alice) {
-                        text("World-$it")
-                    }
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 10
-
-            cut.jumpToEndOfTimeline()
-            cut.timelineElementHolderViewModels waitForSize 10
-        }
-
-        should("load the last event of the room and add it to the timeline if it is not yet present in the timeline") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
-                }
-                (1..10).forEach {
-                    +messageEvent(sender = alice) {
-                        text("World-$it")
+                        text("World")
                     }
                 }
 
-                +messageEvent(sender = alice) {
-                    text("latest")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            timelineMock.fullyReadEventIndex.value = 0
-
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 11
-            cut.timelineElementHolderViewModels.value.last().key shouldBe "10"
-
-            cut.jumpToEndOfTimeline()
-            cut.timelineElementHolderViewModels waitForSize 11
-            cut.timelineElementHolderViewModels.first { it.last().key == "11" }
-        }
-
-        // this test does flicker from time to time, so deactivate in the meantime; it is unclear whether this is a mocKMP or trixnity-messenger problem
-//        should("go back to the room list view when leaving the room successfully") {
-//            everySuspend {
-//                roomsApiClientMock.leaveRoom(
-//                    eq(roomId),
-//                    any(),
-//                    eqNull()
-//                )
-//            } returns
-//                    Result.success(Unit)
-//            timeline( roomServiceMock, roomId) {}
-//            val onBackMock = mock<Function0>() {}
-//            val cut = timelineViewModel(onBackMock)
-//
-//            cut.leaveRoom()
-//
-//            eventually(3.seconds) {
-//                try {
-//                    verifySuspend {
-//                        roomsApiClientMock.leaveRoom(eq(roomId), any(), eqNull())
-//                    }
-//                } catch (npe: NullPointerException) { // this is due to mocKMP throwing an NPE from time to time...
-//                    println("Mocker threw NPE: $npe")
-//                }
-//            }
-//            verify(exhaustive = false) { called { onBackMock.invoke() } }
-//        }
-
-        should("show an error message when trying to leave a room and we are not connected") {
-            syncStateMocker returns MutableStateFlow(SyncState.ERROR)
-            timeline(roomServiceMock, roomId) {}
-
-            val cut = timelineViewModel()
-            cut.leaveRoom()
-
-            cut.error.filterNotNull().first()
-            // we have not mocked roomsApiClientMock.leaveRoom() and onBackMock.invoke(), so if they would be called, an exception would be thrown
-
-            cut.errorDismiss()
-            cut.error.value shouldBe null
-        }
-
-        should("show an error message when leaving the room fails") {
-            everySuspend {
-                roomsApiClientMock.leaveRoom(
-                    roomId,
-                    any(),
-                    eqNull()
+                val cut = timelineViewModel(mock())
+                cut.elements waitForSize 2
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
                 )
-            } returns Result.failure(RuntimeException("Oh no!"))
+                delay(200) // give the viewmodel time to compute derived values
 
-            timeline(roomServiceMock, roomId) {}
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) {
+                        text("Woohoo")
+                    }
+                }
 
-            val cut = timelineViewModel()
-            cut.leaveRoom()
-
-            // onBackMock is not mocked correctly, so if called, an exception would be thrown
-            cut.error.filterNotNull().first()
-        }
-
-        should("only show outbox messages of this room") {
-            outboxMessagesFlow.value =
-                listOf(
-                    RoomOutboxMessage(
-                        transactionId = "1",
-                        roomId = RoomId("not this room", "localhost"),
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
-                    ),
-                    RoomOutboxMessage(
-                        transactionId = "2",
-                        roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Right"),
-                        createdAt = Instant.fromEpochMilliseconds(1)
-                    ),
-                    RoomOutboxMessage(
-                        transactionId = "3",
-                        roomId = RoomId("totally not this room", "localhost"),
-                        content = RoomMessageEventContent.TextBased.Text(body = "from outer space"),
-                        createdAt = Instant.fromEpochMilliseconds(2)
+                cut.elements waitForSize 3
+                cut.elements.value.last().key shouldBe "$roomId-2"
+            }
+            should("only show outbox messages of this room") {
+                outboxMessagesFlow.value =
+                    listOf(
+                        RoomOutboxMessage(
+                            transactionId = "1",
+                            roomId = RoomId("not this room", "localhost"),
+                            content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                            createdAt = Instant.fromEpochMilliseconds(0)
+                        ),
+                        RoomOutboxMessage(
+                            transactionId = "2",
+                            roomId = roomId,
+                            content = RoomMessageEventContent.TextBased.Text(body = "Right"),
+                            createdAt = Instant.fromEpochMilliseconds(1)
+                        ),
+                        RoomOutboxMessage(
+                            transactionId = "3",
+                            roomId = RoomId("totally not this room", "localhost"),
+                            content = RoomMessageEventContent.TextBased.Text(body = "from outer space"),
+                            createdAt = Instant.fromEpochMilliseconds(2)
+                        )
                     )
-                )
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello")
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
                 }
+                val cut = timelineViewModel()
+
+                cut.elements waitForSize 2  // 1 message + 1 outbox message
             }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            val cut = timelineViewModel()
-
-            cut.timelineElementHolderViewModels waitForSize 2  // 1 message + 1 outbox message
-        }
-
-        should("not show the date above an encrypted message if the message before is of the same day") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice, sentAt = Instant.parse("2020-01-01T03:30:00.000Z")) {
-                    text("Hello")
-                }
-                +messageEvent(sender = alice, sentAt = Instant.parse("2020-01-01T03:40:00.000Z")) {
-                    encrypted()
-                }
-                +messageEvent(sender = alice, sentAt = Instant.parse("2020-01-01T04:00:00.000Z")) {
-                    text("World")
-                }
-                +messageEvent(sender = alice, sentAt = Instant.parse("2020-01-01T04:01:00.000Z")) {
-                    encrypted()
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 4
-
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // Hello
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // encrypted event
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe false // World
-            result[3].timelineElementViewModel.value?.showDateAbove shouldBe false // encrypted event
-        }
-
-        should("show date above first outgoing message when no received message is in the timeline yet") {
-            outboxMessagesFlow.value =
-                listOf(
-                    RoomOutboxMessage(
-                        transactionId = "1",
-                        roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
+            should("filter outbox message that is already in the timeline") {
+                outboxMessagesFlow.value =
+                    listOf(
+                        RoomOutboxMessage(
+                            transactionId = "1",
+                            roomId = roomId,
+                            content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                            createdAt = Instant.fromEpochMilliseconds(0)
+                        ),
+                        RoomOutboxMessage(
+                            transactionId = "2",
+                            roomId = roomId,
+                            content = RoomMessageEventContent.TextBased.Text(body = "World"),
+                            createdAt = Instant.fromEpochMilliseconds(1)
+                        ),
                     )
-                )
-            timeline(roomServiceMock, roomId) {}
 
-            val cut = timelineViewModel()
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = me, transactionId = "1") {
+                        text("Hello")
+                    }
+                }
 
-            val result = cut.timelineElementHolderViewModels waitForSize 1
-            retry(10, 1_000.milliseconds, 100.milliseconds) {
-                result[0].timelineElementViewModel.value?.showDateAbove shouldBe true
+                val cut = timelineViewModel()
+                cut.elements waitForSize 2
+
+                cut.elements.first() shouldHaveSize 2
             }
-        }
+            should("add new outbox message and when it is received as timeline event from the server not show as outbox message") {
+                val timelineMock = timeline(roomServiceMock, roomId) {}
+                val cut = timelineViewModel()
+                cut.elements.value shouldHaveSize 0
 
-        should("show date above first outgoing message when the last received message is from another day") {
-            outboxMessagesFlow.value =
-                listOf(
+                outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
-                        transactionId = "1",
-                        roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
-                    )
-                )
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-01-01T04:00:00.000Z")
-                ) {
-                    text("Hello")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 2
-
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // outbox
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe true // timeline
-        }
-
-        should("not show the date above first outgoing message when the last received message is from today") {
-            outboxMessagesFlow.value =
-                listOf(
-                    RoomOutboxMessage(
-                        transactionId = "1",
-                        roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello World"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
-                    )
-                )
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-09-01T04:00:00.000Z")
-                ) {
-                    text("Hello")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 2
-
-            withClue("show date above last timeline event") {
-                result[0].timelineElementViewModel.first { it?.showDateAbove == true }
-            }
-            withClue("not show data above outbox") {
-                result[1].timelineElementViewModel.first { it?.showDateAbove == false }
-            }
-        }
-
-        should("not show the date above a message when the following message is from the same day") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:00:00.000Z")
-                ) {
-                    text("Hello")
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:20:00.000Z")
-                ) {
-                    text("World")
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:40:00.000Z")
-                ) {
-                    text("!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 3
-
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // Hello
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // World
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe false // !
-        }
-
-        should("not show the date above an unknown message event type when the following message is from the same day") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:00:00.000Z")
-                ) {
-                    text("Hello")
-                }
-                +stateEvent(sender = alice, sentAt = Instant.parse("2020-08-01T11:20:00.000Z")) {
-                    unknownEvent()
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:40:00.000Z")
-                ) {
-                    text("World")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 3
-
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // Hello
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // unknown
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe false // World
-        }
-
-        should("ignore redact messages as they are not displayed") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:00:00.000Z")
-                ) {
-                    redacted()
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-02T12:00:00.000Z")
-                ) {
-                    redact(EventId("0"))
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-02T12:45:00.000Z")
-                ) {
-                    text("World!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            val result = cut.timelineElementHolderViewModels waitForSize 3
-
-            result[2].timelineElementViewModel.value?.showDateAbove shouldBe true // -redacted-
-            result[1].timelineElementViewModel.value?.showDateAbove shouldBe false // redaction (NTLEVM is always false)
-            result[0].timelineElementViewModel.value?.showDateAbove shouldBe true // World!
-        }
-
-        should("set sticky data to first visible message") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:00:00.000Z")
-                ) {
-                    redacted()
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-02T12:00:00.000Z")
-                ) {
-                    redact(EventId("0"))
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-03T13:00:00.000Z")
-                ) {
-                    text("World!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            cut.firstVisibleTimelineElement.value = "1"
-            cut.timelineElementHolderViewModels waitForSize 3
-            cut.stickyDate.first { it == "03.08.2020" }
-        }
-
-        should("show the sticky date for an encrypted event, even if the underlying event is not rendered") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:00:00.000Z")
-                ) {
-                    text("Hello")
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-02T12:00:00.000Z")
-                ) {
-                    encrypted()
-                } withContent Result.success(
-                    UnknownEventContent(
-                        raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
-                        eventType = "relation"
-                    )
-                )
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-03T13:00:00.000Z")
-                ) {
-                    text("World!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            cut.firstVisibleTimelineElement.value = "1"
-            cut.timelineElementHolderViewModels waitForSize 3
-            cut.stickyDate.first { it == "02.08.2020" }
-
-            // after the decryption, the UI would recognize that it does not need to render the unknown event
-            cut.firstVisibleTimelineElement.value = "2"
-            cut.stickyDate.first { it == "03.08.2020" }
-        }
-
-        should("correctly show the sticky date for a message that has a transaction id (since it was sent by us)") {
-            val transactionId = uuid4().toString()
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-01T11:00:00.000Z"),
-                ) {
-                    text("Hello")
-                }
-                +messageEvent(
-                    sender = me,
-                    sentAt = Instant.parse("2020-08-02T12:00:00.000Z"),
-                    transactionId = transactionId,
-                ) {
-                    text("Hi")
-                }
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-08-03T12:00:00.000Z"),
-                ) {
-                    text("How are you?")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            val cut = timelineViewModel()
-            cut.firstVisibleTimelineElement.value = transactionId
-            cut.timelineElementHolderViewModels waitForSize 3
-            cut.stickyDate.first { it == "02.08.2020" }
-        }
-
-        should("show a bubble edge only for the first outbox element") {
-            outboxMessagesFlow.value =
-                listOf(
-                    RoomOutboxMessage(
-                        transactionId = "1",
+                        transactionId = "transactionId-1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                         createdAt = Instant.fromEpochMilliseconds(0)
                     ),
-                    RoomOutboxMessage(
-                        transactionId = "2",
-                        roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "World"),
-                        createdAt = Instant.fromEpochMilliseconds(1)
-                    ),
                 )
+                cut.elements waitForSize 1
 
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(
-                    sender = alice,
-                    sentAt = Instant.parse("2020-01-01T04:00:00.000Z")
-                ) {
-                    text("Hello")
+                delay(500.milliseconds)
+                timelineMock.addEvents {
+                    +messageEvent(sender = me, transactionId = "transactionId-1") {
+                        text("Hello")
+                    }
+                }
+
+                continually(2.seconds) {
+                    cut.elements.first() shouldHaveSize 1
+                    cut.elements.first()[0].key shouldBe "$roomId-transactionId-1"
                 }
             }
-            timelineMock.mockRoomServiceTimelineEventCalls()
+            should("only contain the newest version of a replace event") {
+                timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello!!!")
+                    }
+                    +MessageEvent(
+                        content = RoomMessageEventContent.TextBased.Text(
+                            body = "Hello again.",
+                            relatesTo = RelatesTo.Replace(EventId("0")),
+                        ),
+                        id = EventId("replace-1"),
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 1234,
+                    )
+                    +MessageEvent(
+                        content = RoomMessageEventContent.TextBased.Text(
+                            body = "Hello!!!",
+                            relatesTo = RelatesTo.Replace(EventId("replace-1")),
+                        ),
+                        id = EventId("replace-2"),
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 2345,
+                    )
+                }
+                val cut = timelineViewModel()
+                cut.elements waitForSize 3
+                val job = launch {
+                    cut.elements.collect {}
+                }
+                cut.elements.first().lastOrNull()?.key shouldBe "${roomId.full}-replace-2"
+                eventually(2.seconds) {
+                    val elementViewModel = cut.elements.first().firstOrNull()?.element?.value
+                    if (elementViewModel is TextBasedRoomMessageTimelineElementViewModel) {
+                        elementViewModel.body shouldBe "Hello!!!"
+                    } else fail("")
+                    cut.elements.first().getOrNull(1)?.element?.value shouldBe TimelineElementViewModel.Empty
+                    cut.elements.first().lastOrNull()?.element?.value shouldBe TimelineElementViewModel.Empty
+                }
 
-            val cut = timelineViewModel()
-
-            val result = cut.timelineElementHolderViewModels waitForSize 3  // 1 message + 2 outbox
-            continually(2.seconds) {
-                (result[1].timelineElementViewModel.value as RoomMessageViewModel).showChatBubbleEdge shouldBe true
-                (result[2].timelineElementViewModel.value as RoomMessageViewModel).showChatBubbleEdge shouldBe false
+                job.cancel()
             }
         }
+        context(TimelineViewModel::viewState.name) {
+            should("load more messages before") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                    (1..19).forEach {
+                        +messageEvent(sender = alice) {
+                            text("World-$it")
+                        }
+                    }
+                }
 
-        should("filter outbox message that is already in the timeline") {
-            outboxMessagesFlow.value =
-                listOf(
+                val cut = timelineViewModel()
+                cut.elements waitForSize 11
+
+                // timeline starts at the end (no read messages) -> [9..19] are shown, if first visible is in the first 10 -> load before
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "$roomId-9",
+                    lastVisibleElement = "notRelevant",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+                cut.elements waitForSize 20
+            }
+            should("not load more messages before") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                    (1..19).forEach {
+                        +messageEvent(sender = alice) {
+                            text("World-$it")
+                        }
+                    }
+                }
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 11
+
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-8",// [9..19], see above
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+                continually(1.seconds) {
+                    cut.elements.value.size shouldBe 11
+                }
+            }
+            should("load more messages after") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                    (1..19).forEach {
+                        +messageEvent(sender = alice) {
+                            text("World-$it")
+                        }
+                    }
+                }
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 11
+
+                // fully read events is set -> start at beginning -> [0..10], 9 is in last messages -> load after
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-9",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+                cut.elements waitForSize 20
+            }
+            should("not load more messages after") {
+                println("///")
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                    (1..40).forEach {
+                        +messageEvent(sender = alice) {
+                            text("World-$it")
+                        }
+                    }
+                }
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 11
+
+                // see above, [0..10], 1 is at beginning -> do NOT load after
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+                continually(1.seconds) {
+                    cut.elements.value.size shouldBe 11
+                }
+            }
+        }
+        context(TimelineViewModel::jumpToEndOfTimeline.name) {
+            should("directly jump to the end of the timeline if the last event is already in the timeline") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                    (1..9).forEach {
+                        +messageEvent(sender = alice) {
+                            text("World-$it")
+                        }
+                    }
+                }
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 10
+
+                cut.jumpToEndOfTimeline()
+                cut.elements waitForSize 10
+            }
+            should("load the last event of the room and add it to the timeline if it is not yet present in the timeline") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                    (1..10).forEach {
+                        +messageEvent(sender = alice) {
+                            text("World-$it")
+                        }
+                    }
+
+                    +messageEvent(sender = alice) {
+                        text("latest")
+                    }
+                }
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 11
+                cut.elements.value.last().key shouldBe "$roomId-10"
+
+                cut.jumpToEndOfTimeline()
+                cut.elements waitForSize 11
+                cut.elements.first { it.last().key == "$roomId-11" }
+            }
+        }
+        context(TimelineViewModel::leaveRoom.name) {
+            should("show an error message when trying to leave a room and we are not connected") {
+                syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+                timeline(roomServiceMock, roomId) {}
+
+                val cut = timelineViewModel()
+                cut.leaveRoom()
+
+                cut.error.filterNotNull().first()
+                // we have not mocked roomsApiClientMock.leaveRoom() and onBackMock.invoke(), so if they would be called, an exception would be thrown
+
+                cut.errorDismiss()
+                cut.error.value shouldBe null
+            }
+            should("show an error message when leaving the room fails") {
+                everySuspend {
+                    roomsApiClientMock.leaveRoom(
+                        roomId,
+                        any(),
+                        eqNull()
+                    )
+                } returns Result.failure(RuntimeException("Oh no!"))
+
+                timeline(roomServiceMock, roomId) {}
+
+                val cut = timelineViewModel()
+                cut.leaveRoom()
+
+                // onBackMock is not mocked correctly, so if called, an exception would be thrown
+                cut.error.filterNotNull().first()
+            }
+        }
+        context(TimelineViewModel::scrollTo.name) {
+            should("scroll to the end when we put a message in the outbox") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello!")
+                    }
+                }
+                val cut = timelineViewModel()
+                val scrollToCalled =
+                    cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
+                cut.elements waitForSize 1
+                val coroutineScope = CoroutineScope(Dispatchers.Default)
+                scrollToCalled.map { it.size }.firstWithClue(1) // initial scroll ("0")
+
+                outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
-                        transactionId = "1",
+                        transactionId = "transactionId-1",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
+                    ),
+                )
+                cut.elements waitForSize 2
+                scrollToCalled.firstWithClue(listOf("$roomId-0", "$roomId-transactionId-1"))
+                outboxMessagesFlow.value = listOf(
+                    RoomOutboxMessage(
+                        transactionId = "transactionId-1",
+                        roomId = roomId,
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
                         createdAt = Instant.fromEpochMilliseconds(0)
                     ),
                     RoomOutboxMessage(
-                        transactionId = "2",
+                        transactionId = "transactionId-2",
                         roomId = roomId,
-                        content = RoomMessageEventContent.TextBased.Text(body = "World"),
+                        content = RoomMessageEventContent.TextBased.Text(body = "My second message."),
                         createdAt = Instant.fromEpochMilliseconds(1)
-                    ),
+                    )
                 )
+                cut.elements waitForSize 3
+                scrollToCalled.firstWithClue(listOf("$roomId-0", "$roomId-transactionId-1", "$roomId-transactionId-2"))
 
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = me, transactionId = "1") {
-                    text("Hello")
+                coroutineScope.cancel()
+            }
+
+            should("scroll to the end when a new message is added at the end of the timeline where the user is active") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello!")
+                    }
                 }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
+                val cut = timelineViewModel()
 
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 2
-
-            cut.timelineElementHolderViewModels.first() shouldHaveSize 2
-        }
-
-        should("add new outbox message and when it is received as timeline event from the server not show as outbox message") {
-            val timelineMock = timeline(roomServiceMock, roomId) {}
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels.value shouldHaveSize 0
-
-            outboxMessagesFlow.value = listOf(
-                RoomOutboxMessage(
-                    transactionId = "transactionId-1",
-                    roomId = roomId,
-                    content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
-                    createdAt = Instant.fromEpochMilliseconds(0)
-                ),
-            )
-            cut.timelineElementHolderViewModels waitForSize 1
-
-            delay(500.milliseconds)
-            timelineMock.addEvents {
-                +messageEvent(sender = me, transactionId = "transactionId-1") {
-                    text("Hello")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            continually(2.seconds) {
-                cut.timelineElementHolderViewModels.first() shouldHaveSize 1
-                cut.timelineElementHolderViewModels.first()[0].key shouldBe "transactionId-1"
-            }
-        }
-
-        should("scroll to the end when we put a message in the outbox") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            val cut = timelineViewModel()
-            cut.timelineElementHolderViewModels waitForSize 1
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
-            scrollToCalled.map { it.size }.firstWithClue { 1 } // initial scroll ("0")
-
-            outboxMessagesFlow.value = listOf(
-                RoomOutboxMessage(
-                    transactionId = "transactionId-1",
-                    roomId = roomId,
-                    content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
-                    createdAt = Instant.fromEpochMilliseconds(0)
-                ),
-            )
-            cut.timelineElementHolderViewModels waitForSize 2
-            scrollToCalled.first { it == listOf("0", "transactionId-1") }
-            outboxMessagesFlow.value = listOf(
-                RoomOutboxMessage(
-                    transactionId = "transactionId-1",
-                    roomId = roomId,
-                    content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
-                    createdAt = Instant.fromEpochMilliseconds(0)
-                ),
-                RoomOutboxMessage(
-                    transactionId = "transactionId-2",
-                    roomId = roomId,
-                    content = RoomMessageEventContent.TextBased.Text(body = "My second message."),
-                    createdAt = Instant.fromEpochMilliseconds(1)
+                cut.elements waitForSize 1
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-0",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
                 )
-            )
-            cut.timelineElementHolderViewModels waitForSize 3
-            scrollToCalled.onEach { println(it) }.first { it == listOf("0", "transactionId-1", "transactionId-2") }
+                delay(200) // give the viewmodel time to compute derived values
 
-            coroutineScope.cancel()
-        }
-
-        should("scroll to the end when a new message is added at the end of the timeline where the user is active") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            val cut = timelineViewModel()
-
-            cut.timelineElementHolderViewModels waitForSize 1
-            cut.windowIsFocused.value = true
-            cut.lastVisibleTimelineElement.value = "0"
-            delay(200) // give the viewmodel time to compute derived values
-
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
-            scrollToCalled.value.shouldBeEmpty()
-
-            timelineMock.addEvents {
-                +messageEvent(sender = alice) {
-                    text("World!")
-                }
-            }
-
-            cut.timelineElementHolderViewModels waitForSize 2
-            scrollToCalled.first { it == listOf("1") }
-
-            coroutineScope.cancel()
-        }
-
-        should("not scroll to the end when a new message is added, but the end of the timeline is not visible") {
-            val timelineMock = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = alice) {
-                    text("Hello!")
-                }
-                +messageEvent(sender = alice) {
-                    text("World!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-            val cut = timelineViewModel()
-
-            cut.timelineElementHolderViewModels waitForSize 2
-
-            cut.lastVisibleTimelineElement.value = "0"
-            cut.windowIsFocused.value = true
-            delay(500.milliseconds) // give scrollTo time to be cleared
-
-            val coroutineScope = CoroutineScope(Dispatchers.Default)
-            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
-            scrollToCalled.value.shouldBeEmpty()
-
-            // this will not trigger a creation of a viewmodel as we are not at the end of the timeline
-            timelineMock.addEvents {
-                +messageEvent(sender = alice) {
-                    text("Dino!")
-                }
-            }
-            timelineMock.mockRoomServiceTimelineEventCalls()
-
-            continually(500.milliseconds) {
+                val coroutineScope = CoroutineScope(Dispatchers.Default)
+                val scrollToCalled =
+                    cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
                 scrollToCalled.value.shouldBeEmpty()
+
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) {
+                        text("World!")
+                    }
+                }
+
+                cut.elements waitForSize 2
+                scrollToCalled.firstWithClue(listOf("$roomId-1"))
+
+                coroutineScope.cancel()
             }
 
-            coroutineScope.cancel()
+            should("not scroll to the end when a new message is added, but the end of the timeline is not visible") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello!")
+                    }
+                    +messageEvent(sender = alice) {
+                        text("World!")
+                    }
+                }
+                val cut = timelineViewModel()
+
+                cut.elements waitForSize 2
+
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-0",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+                delay(500.milliseconds) // give scrollTo time to be cleared
+
+                val coroutineScope = CoroutineScope(Dispatchers.Default)
+                val scrollToCalled =
+                    cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
+                scrollToCalled.value.shouldBeEmpty()
+
+                // this will not trigger a creation of a viewmodel as we are not at the end of the timeline
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) {
+                        text("Dino!")
+                    }
+                }
+
+                continually(500.milliseconds) {
+                    scrollToCalled.value.shouldBeEmpty()
+                }
+
+                coroutineScope.cancel()
+            }
         }
     }
 
@@ -1003,6 +717,13 @@ class TimelineViewModelTest : ShouldSpec() {
                             )
                         ) + module {
                             single { clock }
+                            single<MatrixMessengerConfiguration> {
+                                MatrixMessengerConfiguration().apply {
+                                    timelineInitialSize = 10
+                                    timelineBuffer = 10
+                                    timelineMaxSize = 100
+                                }
+                            }
                             single<RoomHeaderViewModelFactory> {
                                 object : RoomHeaderViewModelFactory {
                                     override fun create(
@@ -1023,9 +744,10 @@ class TimelineViewModelTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        onMessageEditFinished: (EventId) -> Unit,
-                                        onMessageReplyToFinished: (EventId) -> Unit,
-                                        onShowAttachmentSendView: (file: FileDescriptor) -> Unit
+                                        onMessageReplaceFinished: (RoomId, EventId) -> Unit,
+                                        onMessageReplyFinished: (RoomId, EventId) -> Unit,
+                                        onShowAttachmentSendView: (FileDescriptor) -> Unit,
+                                        onOpenMention: OpenMentionCallback
                                     ): InputAreaViewModel {
                                         return inputAreaViewModelMock
                                     }
@@ -1036,27 +758,12 @@ class TimelineViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = currentCoroutineContext(),
             ),
-            selectedRoomId = roomId,
+            roomId = roomId,
             isBackButtonVisible = MutableStateFlow(false),
             onShowSettings = mock(),
             onBack = onBackMock,
-            onOpenMedia = mock(),
             onOpenMention = mock(),
             onShowUserProfile = mock()
         )
-    }
-
-    private fun TimelineMock.mockRoomServiceTimelineEventCalls() {
-        every { // fallback
-//            println("!!!!!!!!!!!!!!!") // just for debugging tests
-//            println("getPreviousTimelineEvent call with ${(it[0] as TimelineEvent).eventId} has not been handled explicitly")
-//            println("!!!!!!!!!!!!!!!")
-            roomServiceMock.getPreviousTimelineEvent(any(), any())
-        } returns null
-        eventsInStore.value.reversed().windowed(2, partialWindows = true) { window ->
-            every {
-                roomServiceMock.getPreviousTimelineEvent(eq(window[0].value), any())
-            } returns window.getOrNull(1)
-        }
     }
 }

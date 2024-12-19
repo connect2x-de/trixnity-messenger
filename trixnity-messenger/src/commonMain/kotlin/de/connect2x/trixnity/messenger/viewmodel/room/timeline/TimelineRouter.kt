@@ -48,7 +48,6 @@ class TimelineRouterImpl(
     private val onShowSettings: () -> Unit,
     private val onShowUserProfile: (UserId) -> Unit,
     private val onRoomBack: () -> Unit,
-    private val onOpenMedia: OpenMediaCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineRouter {
 
@@ -71,12 +70,11 @@ class TimelineRouterImpl(
             is Config.View -> Wrapper.View(
                 viewModelContext.get<TimelineViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    selectedRoomId = RoomId(timelineConfig.roomId),
+                    roomId = RoomId(timelineConfig.roomId),
                     isBackButtonVisible = isBackButtonVisible,
                     onShowSettings = onShowSettings,
                     onShowUserProfile = onShowUserProfile,
                     onBack = onRoomBack,
-                    onOpenMedia = onOpenMedia,
                     onOpenMention = onOpenMention,
                 )
             )

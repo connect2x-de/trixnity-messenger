@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger
 
-import MediaViewModelFactory
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -39,9 +38,6 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountVi
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.files.ImageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.files.PdfDocumentViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.files.VideoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
@@ -62,39 +58,36 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopic
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReplyToViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.AudioMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineElementRules
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.DefaultTimelineEventSubViewmodelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FallbackMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.FileMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.HistoryVisibilityChangeStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ImageMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.LocationMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.MemberStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.NoticeMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAliasChangeStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomAvatarChangeStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomCreatedStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomEncryptionEnabledViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomNameChangeStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RoomTopicChangeStatusViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextMessageViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementRules
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineEventSubViewmodelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.VideoMessageViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputations
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.RichRepliesComputationsImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelectorImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.AudioRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EmoteRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.LocationRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.NoticeRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationRequestRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VideoRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.AvatarStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.CanonicalAliasStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.CreateStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.EncryptionStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.HistoryVisibilityStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
@@ -163,7 +156,13 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.ModuleFactory
+import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
+import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
+import org.koin.core.parameter.ParametersHolder
+import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
@@ -181,6 +180,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<MatrixClientConfigurationHolder> {
                 val config = get<MatrixMessengerConfiguration>()
                 val relevantTimelineEvents = get<RelevantTimelineEvents>()
+                val eventContentSerializerMappings = getAll<EventContentSerializerMappings>()
                 MatrixClientConfigurationHolder {
                     name = getOrNull<DebugName>()?.invoke()
                     setOwnMessagesAsFullyRead = true
@@ -188,6 +188,14 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =
                         { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
+                    if (eventContentSerializerMappings.isNotEmpty())
+                        modulesFactories += {
+                            module {
+                                single<EventContentSerializerMappings> {
+                                    eventContentSerializerMappings.fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
+                                }
+                            }
+                        }
                 }
             }
 
@@ -212,7 +220,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<DownloadManager> { DownloadManagerImpl() }
             single<Thumbnails> { ThumbnailsImpl() }
-            single<RichRepliesComputations> { RichRepliesComputationsImpl(get(), get()) }
             single<DirectRoom> { DirectRoomImpl() }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
             single<UserPresence> { UserPresenceImpl(get()) }
@@ -238,13 +245,11 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<SharedDataHandler> { SharedDataHandlerImpl() }
         }
     },
-    ::timelineElementModule,
     ::connectingViewModels,
-    ::filesViewModels,
     ::syncViewModels,
     ::roomListViewModels,
     ::settingsViewModels,
-    ::timelineElementsViewModels,
+    ::timelineElementViewModels,
     ::timelineViewModels,
     ::verificationViewModels,
     ::roomViewModels,
@@ -275,10 +280,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::platformProcessImageUploadModule,
 )
 
-private fun timelineElementModule() = module {
-    single<TimelineElementRules> { DefaultTimelineElementRules }
-}
-
 /*
  * Factories for view models; provide your own factory to change or enhance behaviour of existing view models
  */
@@ -293,13 +294,6 @@ private fun connectingViewModels() = module {
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
     single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
     single<RegisterNewAccountViewModelFactory> { RegisterNewAccountViewModelFactory }
-}
-
-private fun filesViewModels() = module {
-    single<ImageViewModelFactory> { ImageViewModelFactory }
-    single<VideoViewModelFactory> { VideoViewModelFactory }
-    single<PdfDocumentViewModelFactory> { PdfDocumentViewModelFactory }
-    single<MediaViewModelFactory> { MediaViewModelFactory }
 }
 
 private fun syncViewModels() = module {
@@ -331,30 +325,48 @@ private fun settingsViewModels() = module {
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
 }
 
-private fun timelineElementsViewModels() = module {
-    single<EncryptedMessageViewModelFactory> { EncryptedMessageViewModelFactory }
-    single<FileMessageViewModelFactory> { FileMessageViewModelFactory }
-    single<ImageMessageViewModelFactory> { ImageMessageViewModelFactory }
-    single<VideoMessageViewModelFactory> { VideoMessageViewModelFactory }
-    single<AudioMessageViewModelFactory> { AudioMessageViewModelFactory }
-    single<MemberStatusViewModelFactory> { MemberStatusViewModelFactory }
-    single<OutboxElementHolderViewModelFactory> { OutboxElementHolderViewModelFactory }
-    single<RedactedMessageViewModelFactory> { RedactedMessageViewModelFactory }
-    single<RoomCreatedStatusViewModelFactory> { RoomCreatedStatusViewModelFactory }
-    single<RoomEncryptionEnabledViewModelFactory> { RoomEncryptionEnabledViewModelFactory }
-    single<RoomNameChangeStatusViewModelFactory> { RoomNameChangeStatusViewModelFactory }
-    single<RoomTopicChangeStatusViewModelFactory> { RoomTopicChangeStatusViewModelFactory }
-    single<RoomAliasChangeStatusViewModelFactory> { RoomAliasChangeStatusViewModelFactory }
-    single<HistoryVisibilityChangeStatusViewModelFactory> { HistoryVisibilityChangeStatusViewModelFactory }
-    single<TextMessageViewModelFactory> { TextMessageViewModelFactory }
-    single<EmoteMessageViewModelFactory> { EmoteMessageViewModelFactory }
-    single<LocationMessageViewModelFactory> { LocationMessageViewModelFactory }
-    single<NoticeMessageViewModelFactory> { NoticeMessageViewModelFactory }
-    single<FallbackMessageViewModelFactory> { FallbackMessageViewModelFactory }
+inline fun <reified F : TimelineElementViewModelFactory<*>> Module.timelineElementViewModelFactory(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<F>(named<F>(), definition = definition).bind<TimelineElementViewModelFactory<*>>()
+
+private fun timelineElementViewModels() = module {
+    // message
+    timelineElementViewModelFactory<FileRoomMessageTimelineElementViewModelFactory> { FileRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<ImageRoomMessageTimelineElementViewModelFactory> { ImageRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<VideoRoomMessageTimelineElementViewModelFactory> { VideoRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<AudioRoomMessageTimelineElementViewModelFactory> { AudioRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<TextRoomMessageTimelineElementViewModelFactory> { TextRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<NoticeRoomMessageTimelineElementViewModelFactory> { NoticeRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<EmoteRoomMessageTimelineElementViewModelFactory> { EmoteRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<LocationRoomMessageTimelineElementViewModelFactory> { LocationRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<VerificationRequestRoomMessageTimelineElementViewModelFactory> { VerificationRequestRoomMessageTimelineElementViewModelFactory }
+
+    // state
+    timelineElementViewModelFactory<CreateStateTimelineElementViewModelFactory> { CreateStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<NameStateTimelineElementViewModelFactory> { NameStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<TopicStateTimelineElementViewModelFactory> { TopicStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<AvatarStateTimelineElementViewModelFactory> { AvatarStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<MemberStateTimelineElementViewModelFactory> { MemberStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<CanonicalAliasStateTimelineElementViewModelFactory> { CanonicalAliasStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
+
+    // common
+    timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
+
+    // select from timelineElementViewModelFactory
+    single<EncryptedWaitTimelineElementViewModelFactory> { EncryptedWaitTimelineElementViewModelFactory }
+    single<EncryptedErrorTimelineElementViewModelFactory> { EncryptedErrorTimelineElementViewModelFactory }
+    single<TimelineElementViewModelFactorySelector> {
+        TimelineElementViewModelFactorySelectorImpl(getAll(), get(), get())
+    }
+    single<TimelineElementViewModelFactorySelector> {
+        TimelineElementViewModelFactorySelectorImpl(getAll(), get(), get())
+    }
+
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
-    single<TimelineEventSubViewmodelFactory> { DefaultTimelineEventSubViewmodelFactory() }
-    single<UserVerificationViewModelFactory> { UserVerificationViewModelFactory }
-    single<RoomAvatarChangeStatusViewModelFactory> { RoomAvatarChangeStatusViewModelFactory }
+    single<OutboxElementHolderViewModelFactory> { OutboxElementHolderViewModelFactory }
+    single<RepliedTimelineElementHolderViewModelFactory> { RepliedTimelineElementHolderViewModelFactory }
 }
 
 private fun roomViewModels() = module {
@@ -383,7 +395,6 @@ private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
-    single<ReplyToViewModelFactory> { ReplyToViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }

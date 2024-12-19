@@ -35,7 +35,9 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = false,
     var defaultTypingIsPublic: Boolean = false,
 
-    var timelineAutoLoadBefore: Boolean = true,
+    var timelineBuffer: Int = 20,
+    var timelineInitialSize: Int = 20,
+    var timelineMaxSize: Int = 200,
 
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.

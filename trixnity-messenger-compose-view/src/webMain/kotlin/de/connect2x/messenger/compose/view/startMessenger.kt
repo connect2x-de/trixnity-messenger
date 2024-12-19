@@ -88,7 +88,6 @@ suspend fun startMessenger(
                     CompositionLocalProvider(
                         Platform provides PlatformType.WEB,
                         IsFocused provides windowIsFocused.collectAsState(false).value,
-                        IsDebug provides false, // FIXME
                         DI provides matrixMessenger.di,
                     ) {
                         MessengerTheme {

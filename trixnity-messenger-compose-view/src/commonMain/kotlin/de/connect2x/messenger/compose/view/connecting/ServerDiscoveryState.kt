@@ -19,7 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
@@ -79,7 +79,7 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
                             ListItem(
                                 headlineContent = { Text(i18n.loginWithSSO(type.identityProvider.name)) },
                                 leadingContent = {
-                                    val icon = type.icon?.let { imageBitmapFromBytes(it) }
+                                    val icon = type.icon?.toImageBitmap()
                                     if (icon != null)
                                         Image(
                                             icon,

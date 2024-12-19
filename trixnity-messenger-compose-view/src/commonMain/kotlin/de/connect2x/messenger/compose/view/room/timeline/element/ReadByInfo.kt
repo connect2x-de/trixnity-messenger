@@ -17,11 +17,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 
 @Composable
 fun ReadByInfo(
-    readers: List<String>, focusRequester: FocusRequester
+    readers: List<UserInfoElement>, focusRequester: FocusRequester
 ) {
     val scrollState = rememberScrollState()
 
@@ -38,7 +39,7 @@ fun ReadByInfo(
             ) {
                 readers.map {
                     Text(
-                        text = it,
+                        text = it.name,
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }

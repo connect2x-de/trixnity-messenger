@@ -67,7 +67,8 @@ class MemberListElementViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room", "localhost")
 
-    private val memberElementAlice = UserInfoElement("Alice", alice, "A")
+    private val memberElementAlice =
+        MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(

@@ -35,7 +35,7 @@ actual fun SaveFileDialog(
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val hasError = error?.isNotBlank() == true
-    if (hasError) DownloadErrorAlertDialog(error ?: "", onCloseSaveFileDialog)
+    if (hasError) DownloadErrorAlertDialog(error, onCloseSaveFileDialog)
     LaunchedEffect(hasError) {
         if (!hasError) downloadFile {
             val file = FileKit.saveFile(

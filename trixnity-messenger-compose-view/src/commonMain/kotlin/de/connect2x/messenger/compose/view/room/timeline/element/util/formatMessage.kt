@@ -5,31 +5,38 @@ import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.urlRegex
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EmoteMessageViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+
+internal val urlRegex =
+    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;]*)")
 
 @Composable
-fun formatMessage(message: String, mentions: List<Pair<IntRange, MessageMention?>>, viewmodel: TextBasedViewModel): String {
+fun formatMessage(
+    message: String,
+    mentions: List<Pair<IntRange, TimelineElementMention?>>,
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+): String {
     val i18n = DI.get<I18nView>()
     return message
         .formatMentions(mentions, i18n::eventMentionPile)
-        .handleBodyTypes(viewmodel.formattedBody != null)
+        .handleBodyTypes(element.formattedBody != null)
         .formatLinks()
         .replace("\n", "<br>")
-        .handleViewmodelTypes(viewmodel)
+        .handleViewmodelTypes(holder, element)
 }
 
 internal fun String.formatMentions(
-    mentions: List<Pair<IntRange, MessageMention?>>,
+    mentions: List<Pair<IntRange, TimelineElementMention?>>,
     eventPile: (String) -> String
 ): String =
     mentions.foldIndexed(this) { index, currentText, (range, mention) ->
         val anchorContent = when (mention) {
-            is MessageMention.Event -> eventPile(mention.room.name)
-            is MessageMention.Room -> mention.room.name
-            is MessageMention.User -> mention.user.name
+            is TimelineElementMention.Event -> eventPile(mention.room.name)
+            is TimelineElementMention.Room -> mention.room.name
+            is TimelineElementMention.User -> mention.user.name
 
             null -> null
         }
@@ -65,7 +72,10 @@ internal fun String.formatLinks(): String =
     }
 
 @Composable
-internal fun String.handleViewmodelTypes(viewmodel: TextBasedViewModel): String =
-    if (viewmodel is EmoteMessageViewModel) {
-        "${viewmodel.sender.collectAsState().value.name} $this"
+internal fun String.handleViewmodelTypes(
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>
+): String =
+    if (element is RoomMessageTimelineElementViewModel.TextBased.Emote) {
+        "${holder.sender.collectAsState().value?.name} $this"
     } else this
