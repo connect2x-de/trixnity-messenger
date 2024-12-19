@@ -38,7 +38,7 @@ kotlin {
             // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
             testRuns.create("firefox").executionTask.configure {
                 useKarma {
-                    useFirefox()
+                    useFirefoxHeadless()
                 }
             }
         }
