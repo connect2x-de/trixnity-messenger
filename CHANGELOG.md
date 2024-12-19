@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix unnecessary waiting for membership change message
 - Fix displaying the outbox only for a short moment
 - Fix message edits not displayed immediately
+- Fix unread marker is shown when sending a message
 
 ### Security
 

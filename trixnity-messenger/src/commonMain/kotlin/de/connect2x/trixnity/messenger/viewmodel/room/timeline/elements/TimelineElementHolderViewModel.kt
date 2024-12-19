@@ -203,7 +203,7 @@ class TimelineElementHolderViewModelImpl(
         matrixClient.room.getAccountData<FullyReadEventContent>(roomId).flatMapLatest { fullyReadEvent ->
             if (fullyReadEvent?.eventId == eventId) {
                 log.trace { "start compute unread marker at $eventId" }
-                nextSupportedTimelineEvent.map { it != null }
+                nextSupportedTimelineEvent.map { it != null && it.sender != userId }
             } else flowOf(false)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
