@@ -528,7 +528,30 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker remove the unread marker when marker removed") {
+        should("hasUnreadMarker: not show the unread marker when subsequent event is added but by us") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut(EventId("0"))
+
+            timeline.fullyReadEventIndex.value = 0
+            async { cut.hasUnreadMarker.collect() }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            timeline.addEvents {
+                +messageEvent(sender = us) {
+                    text("Hi!")
+                }
+            }
+            advanceUntilIdle()
+            cut.hasUnreadMarker.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("hasUnreadMarker: remove the unread marker when marker removed") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -550,7 +573,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker not show the unread marker, when no subsequent event") {
+        should("hasUnreadMarker: not show the unread marker, when no subsequent event") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -564,7 +587,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             cut.hasUnreadMarker.value shouldBe false
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker not show the unread marker, when none of the next events is supported") {
+        should("hasUnreadMarker: not show the unread marker, when none of the next events is supported") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")

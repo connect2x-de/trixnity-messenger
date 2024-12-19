@@ -310,7 +310,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         ),
                     )
 
-                val timelineMock = timeline(roomServiceMock, roomId) {
+                timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = me, transactionId = "1") {
                         text("Hello")
                     }
@@ -322,9 +322,13 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.elements.first() shouldHaveSize 2
             }
             should("add new outbox message and when it is received as timeline event from the server not show as outbox message") {
-                val timelineMock = timeline(roomServiceMock, roomId) {}
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = me, transactionId = "1") {
+                        text("Hello")
+                    }
+                }
                 val cut = timelineViewModel()
-                cut.elements.value shouldHaveSize 0
+                cut.elements waitForSize 1
 
                 outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
@@ -334,7 +338,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         createdAt = Instant.fromEpochMilliseconds(0)
                     ),
                 )
-                cut.elements waitForSize 1
+                cut.elements waitForSize 2
 
                 delay(500.milliseconds)
                 timelineMock.addEvents {
@@ -344,8 +348,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
 
                 continually(2.seconds) {
-                    cut.elements.first() shouldHaveSize 1
-                    cut.elements.first()[0].key shouldBe "$roomId-transactionId-1"
+                    cut.elements.first() shouldHaveSize 2
+                    cut.elements.first()[1].key shouldBe "$roomId-transactionId-1"
                 }
             }
             should("only contain the newest version of a replace event") {

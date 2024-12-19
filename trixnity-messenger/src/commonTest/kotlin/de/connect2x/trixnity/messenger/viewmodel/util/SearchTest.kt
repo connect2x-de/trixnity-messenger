@@ -21,6 +21,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.InternalForInheritanceCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
@@ -399,6 +400,7 @@ private enum class BlockingPresenceState {
     STARTED, FINISHED
 }
 
+@OptIn(InternalForInheritanceCoroutinesApi::class)
 private class BlockingPresenceResponse(
     private val inner: CompletableDeferred<Result<PresenceEventContent>> = CompletableDeferred(),
     val onChange: (BlockingPresenceState) -> Unit,

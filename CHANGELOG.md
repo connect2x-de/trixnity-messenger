@@ -20,8 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Smoketests on Web
-- Fixed redacted event not visible
-- Handling of temporary camera captures
+- Fix redacted event not visible
+- Fix Handling of temporary camera captures
+- Fix unnecessary waiting for membership change message
+- Fix displaying the outbox only for a short moment
+- Fix message edits not displayed immediately
+- Fix unread marker is shown when sending a message
 
 ### Security
 

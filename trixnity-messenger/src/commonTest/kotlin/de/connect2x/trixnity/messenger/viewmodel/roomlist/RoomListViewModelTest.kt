@@ -40,6 +40,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -1153,6 +1154,7 @@ class RoomListViewModelTest : ShouldSpec() {
                                         MutableStateFlow(listOf())
 
                                     override fun selectActiveAccount(userId: UserId?) {
+                                        @OptIn(DelicateCoroutinesApi::class)
                                         GlobalScope.launch {
                                             get<MatrixMessengerSettingsHolder>().update<MatrixMessengerSettingsBase>() {
                                                 it.copy(selectedAccount = userId)
