@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -78,6 +77,7 @@ interface UserProfileViewModelFactory {
 interface UserProfileViewModel {
     val userId: UserId
     val isMyself: Boolean
+    val isDirect: StateFlow<Boolean>
     val userInfo: StateFlow<UserInfoElement?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val error: StateFlow<String?>
@@ -132,7 +132,6 @@ class UserProfileViewModelImpl(
     private val goToRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
-
     override val isMyself = userId == matrixClient.userId
 
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
@@ -157,7 +156,7 @@ class UserProfileViewModelImpl(
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
 
-    private val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)

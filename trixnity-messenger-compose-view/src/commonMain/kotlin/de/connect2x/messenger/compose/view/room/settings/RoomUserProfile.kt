@@ -115,6 +115,7 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
+        val isDirect = userProfileViewModel.isDirect.collectAsState().value
 
         Column(
             Modifier
@@ -203,20 +204,22 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                             enabled = !blockingInProgress
                         )
                     }
-                    MenuElement(Modifier.clickable {
-                        userProfileViewModel.openChat()
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            i18n.contact(),
-                            Modifier.size(24.dp),
-                            defaultColorForState(!openingChat)
-                        )
-                        Spacer(Modifier.size(10.dp))
-                        Text(
-                            text = i18n.userProfileContact(),
-                            color = defaultColorForState(!openingChat)
-                        )
+                    if (!isDirect) {
+                        MenuElement(Modifier.clickable {
+                            userProfileViewModel.openChat()
+                        }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Send,
+                                i18n.contact(),
+                                Modifier.size(24.dp),
+                                defaultColorForState(!openingChat)
+                            )
+                            Spacer(Modifier.size(10.dp))
+                            Text(
+                                text = i18n.userProfileContact(),
+                                color = defaultColorForState(!openingChat)
+                            )
+                        }
                     }
                     MenuElement(Modifier.clickable {
                         userProfileViewModel.startVerification()
