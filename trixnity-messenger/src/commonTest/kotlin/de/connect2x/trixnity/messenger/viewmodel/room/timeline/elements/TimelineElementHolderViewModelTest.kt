@@ -620,6 +620,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             onMessageReply = mock(),
             onMessageReport = mock(),
             onOpenMention = mock(),
+            onOpenMetadata = mock(),
         )
     }
 }

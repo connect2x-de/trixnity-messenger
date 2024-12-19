@@ -762,6 +762,7 @@ class TimelineViewModelTest : ShouldSpec() {
             onShowSettings = mock(),
             onBack = onBackMock,
             onOpenMention = mock(),
+            onOpenMetadata = mock(),
         )
     }
 }
