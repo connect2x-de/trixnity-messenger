@@ -34,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -89,7 +90,11 @@ class RoomHeaderViewImpl : RoomHeaderView {
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = if (canShowUserProfile) Modifier.clickable { roomHeaderViewModel.showUserProfile() } else Modifier
+                            modifier = Modifier
+                                .weight(1f)
+                                .let {
+                                    if (canShowUserProfile) it.clip(MaterialTheme.shapes.extraLarge).clickable { roomHeaderViewModel.showUserProfile() } else it
+                                }
                         ) {
                             Box {
                                 AvatarWithPresence(
@@ -113,8 +118,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                 RoomTopic(roomHeaderElement)
                             }
                         }
-
-                        Spacer(Modifier.weight(1f))
 
                         RoomExtras(roomHeaderViewModel, showSettingsButton)
                     }
