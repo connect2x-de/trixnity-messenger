@@ -11,11 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- do not reuse an existing direct room with a user that has left the room
-
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+### Security
+
+## 3.0.1
+
+### Changed
+
+- Do not reuse an existing direct room with a user that has left the room
 
 ### Fixed
 
@@ -23,11 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix redacted event not visible
 - Fix Handling of temporary camera captures
 - Fix unnecessary waiting for membership change message
-- Fix displaying the outbox only for a short moment
+- Fix displaying the outbox without timeline for a short moment
 - Fix message edits not displayed immediately
 - Fix unread marker is shown when sending a message
-
-### Security
 
 ## 3.0.0
 
