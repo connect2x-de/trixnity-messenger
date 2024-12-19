@@ -30,9 +30,9 @@ interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
 
     suspend fun showSettings(roomId: RoomId)
-    suspend fun closeSettings()
     suspend fun showMessageMetadata(eventId: EventId, roomId: RoomId)
     fun isExtrasRouterShown(): Boolean
+    suspend fun closeExtrasRouter()
 
     sealed class Wrapper {
         data object None : Wrapper()
@@ -89,7 +89,7 @@ class ExtrasRouterImpl(
             settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, config)
     }
 
-    override suspend fun closeSettings() {
+    override suspend fun closeExtrasRouter() {
         log.debug { "close room settings" }
         // TODO: clear only settings items if Metadata is open?
         settingsNavigation.popWhileSuspending { it != None }

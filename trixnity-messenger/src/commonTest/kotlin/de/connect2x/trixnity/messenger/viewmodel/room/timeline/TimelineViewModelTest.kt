@@ -561,11 +561,7 @@ class TimelineViewModelTest : ShouldSpec() {
             }
             should("show an error message when leaving the room fails") {
                 everySuspend {
-                    roomsApiClientMock.leaveRoom(
-                        roomId,
-                        any(),
-                        eqNull()
-                    )
+                    roomsApiClientMock.leaveRoom(roomId, any(), eqNull())
                 } returns Result.failure(RuntimeException("Oh no!"))
 
                 timeline(roomServiceMock, roomId) {}
@@ -596,7 +592,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "transactionId-1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
+                        createdAt = Instant.fromEpochMilliseconds(0),
                     ),
                 )
                 cut.elements waitForSize 2
@@ -606,13 +602,13 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "transactionId-1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
+                        createdAt = Instant.fromEpochMilliseconds(0),
                     ),
                     RoomOutboxMessage(
                         transactionId = "transactionId-2",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "My second message."),
-                        createdAt = Instant.fromEpochMilliseconds(1)
+                        createdAt = Instant.fromEpochMilliseconds(1),
                     )
                 )
                 cut.elements waitForSize 3
@@ -635,7 +631,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     lastVisibleElement = "$roomId-0",
                     firstLoadedElement = "notRelevant",
                     lastLoadedElement = "notRelevant",
-                    windowIsFocused = true
+                    windowIsFocused = true,
                 )
                 delay(200) // give the viewmodel time to compute derived values
 
@@ -710,10 +706,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     modules(
                         createTestDefaultTrixnityMessengerModules(
                             mapOf(
-                                UserId(
-                                    "test",
-                                    "server"
-                                ) to matrixClientMock
+                                UserId("test", "server") to matrixClientMock
                             )
                         ) + module {
                             single { clock }

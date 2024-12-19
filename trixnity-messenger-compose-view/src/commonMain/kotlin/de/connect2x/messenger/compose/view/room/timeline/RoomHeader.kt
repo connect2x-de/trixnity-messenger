@@ -66,7 +66,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val isBackButtonVisible = roomHeaderViewModel.isBackButtonVisible.collectAsState().value
         val isTyping = roomHeaderViewModel.usersTyping.collectAsState().value
-
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {
                 Row(

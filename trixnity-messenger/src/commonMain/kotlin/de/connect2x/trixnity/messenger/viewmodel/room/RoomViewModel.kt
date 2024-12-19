@@ -144,7 +144,7 @@ open class RoomViewModelImpl(
     }
 
     internal fun onSettingsBack() = coroutineScope.launch {
-        extrasRouter.closeSettings()
+        extrasRouter.closeExtrasRouter()
         timelineRouter.showTimeline(roomId)
     }
 
