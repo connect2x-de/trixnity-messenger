@@ -63,7 +63,7 @@ class TimelineRouterImpl(
 
     private fun createTimelineChild(
         timelineConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (timelineConfig) {
             is Config.None -> Wrapper.None

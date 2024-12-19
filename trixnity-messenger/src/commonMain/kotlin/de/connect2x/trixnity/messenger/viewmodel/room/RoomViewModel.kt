@@ -68,10 +68,8 @@ open class RoomViewModelImpl(
 
     override val isShowSettings = MutableStateFlow(false)
 
-
     private val settingsRouter: SettingsRouter = SettingsRouterImpl(
         viewModelContext = viewModelContext,
-        roomId = roomId,
         onRoomBack = onRoomBack,
         onSettingsBack = ::onSettingsBack,
         onOpenAvatarCutter = onOpenAvatarCutter,
@@ -120,14 +118,14 @@ open class RoomViewModelImpl(
 
     override fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel) {
         coroutineScope.launch {
-            settingsRouter.showMessageMetadata(messageHolder) // TODO
+            settingsRouter.showMessageMetadata(messageHolder.eventId, roomId)
         }
     }
 
     private fun switchToMultiPane() = coroutineScope.launch {
         if (settingsRouter.isSettingsShown()) {
             timelineRouter.showTimeline(roomId)
-            settingsRouter.showSettings()
+            settingsRouter.showSettings(roomId)
         } else {
             timelineRouter.showTimeline(roomId)
         }
@@ -147,7 +145,7 @@ open class RoomViewModelImpl(
     }
 
     internal fun onShowSettings() = coroutineScope.launch {
-        settingsRouter.showSettings()
+        settingsRouter.showSettings(roomId)
         if (isTwoPane.value) {
             timelineRouter.closeTimeline()
         } else {

@@ -47,6 +47,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarV
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
@@ -373,7 +374,6 @@ private fun roomViewModels() = module {
 }
 
 private fun roomSettingsViewModels() = module {
-    single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
     single<ChangePowerLevelViewModelFactory> { ChangePowerLevelViewModelFactory }
     single<ChangeRoomAvatarViewModelFactory> { ChangeRoomAvatarViewModelFactory }
     single<MemberListElementViewModelFactory> { MemberListElementViewModelFactory }
@@ -387,12 +387,14 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsAliasViewModelFactory> { RoomSettingsAliasViewModelFactory }
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
     single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
+    single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
+    single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
+    single<MessageMetadataViewModelFactory> { MessageMetadataViewModelFactory }
 }
 
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
-    single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }

@@ -30,7 +30,7 @@ interface ChangeRoomAvatarViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        onOpenAvatarCutter: AvatarCutterCallback,
     ): ChangeRoomAvatarViewModel {
         return ChangeAvatarViewModelImpl(
             viewModelContext,
@@ -41,6 +41,8 @@ interface ChangeRoomAvatarViewModelFactory {
 
     companion object : ChangeRoomAvatarViewModelFactory
 }
+
+typealias AvatarCutterCallback = (UserId, RoomId, FileDescriptor) -> Unit
 
 interface ChangeRoomAvatarViewModel {
     val canChangeRoomAvatar: StateFlow<Boolean>
