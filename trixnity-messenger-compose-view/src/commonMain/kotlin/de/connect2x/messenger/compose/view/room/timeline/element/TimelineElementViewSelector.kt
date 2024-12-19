@@ -45,10 +45,10 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {
         val factory = selectFactory(element)
-        withTimeoutOrNull(2.seconds) {
+        withTimeoutOrNull(1.seconds) {
             factory?.waitFor(element)
             Unit
-        } ?: log.warn { "waited for more then 2 seconds for ${element::class.simpleName}" }
+        } ?: log.warn { "waited for more then 1 second for ${element::class.simpleName}" }
     }
 
     @Composable

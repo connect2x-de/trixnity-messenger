@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Smoketests on Web
-- Fixed redacted event not visible
+- Fix redacted event not visible
+- Fix unnecessary waiting for membership change message.
 
 ### Security
 
