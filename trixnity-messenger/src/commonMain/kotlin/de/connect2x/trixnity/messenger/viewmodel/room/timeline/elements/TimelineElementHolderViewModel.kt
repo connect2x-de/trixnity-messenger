@@ -161,8 +161,8 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
-    protected val timelineEventFlow: Flow<TimelineEvent>,
-    protected val roomId: RoomId,
+    timelineEventFlow: Flow<TimelineEvent>,
+    val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
     override val formattedDate: String,
@@ -175,6 +175,7 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
+    private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout)
     private val config = get<MatrixMessengerConfiguration>()
 
     private val initials = get<Initials>()
