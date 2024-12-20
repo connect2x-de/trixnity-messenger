@@ -35,9 +35,22 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = false,
     var defaultTypingIsPublic: Boolean = false,
 
+    /**
+     * The number of elements that should be loaded before and after the viewport.
+     */
     var timelineBuffer: Int = 20,
+    /**
+     * The number of elements that should be fetched from the server when not locally available.
+     */
+    var timelineFetchSize: Int = 100,
+    /**
+     * The number of elements that should be loaded initially.
+     */
     var timelineInitialSize: Int = 20,
-    var timelineMaxSize: Int = 200,
+    /**
+     * The maximum number of elements that should be kept in the timeline list (plus 2 * [timelineBuffer])
+     */
+    var timelineMaxSize: Int = 160,
 
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.

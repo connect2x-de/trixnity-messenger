@@ -475,7 +475,6 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.elements waitForSize 20
             }
             should("not load more messages after") {
-                println("///")
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -491,10 +490,10 @@ class TimelineViewModelTest : ShouldSpec() {
                 val cut = timelineViewModel()
                 cut.elements waitForSize 11
 
-                // see above, [0..10], 1 is at beginning -> do NOT load after
+                // 0 is at beginning -> do NOT load after
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "$roomId-1",
+                    lastVisibleElement = "$roomId-0",
                     firstLoadedElement = "notRelevant",
                     lastLoadedElement = "notRelevant",
                     windowIsFocused = true
@@ -506,7 +505,7 @@ class TimelineViewModelTest : ShouldSpec() {
         }
         context(TimelineViewModel::jumpToEndOfTimeline.name) {
             should("directly jump to the end of the timeline if the last event is already in the timeline") {
-                val timelineMock = timeline(roomServiceMock, roomId) {
+                timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
                     }
@@ -724,6 +723,7 @@ class TimelineViewModelTest : ShouldSpec() {
                             single<MatrixMessengerConfiguration> {
                                 MatrixMessengerConfiguration().apply {
                                     timelineInitialSize = 10
+                                    timelineFetchSize = 20
                                     timelineBuffer = 10
                                     timelineMaxSize = 100
                                 }

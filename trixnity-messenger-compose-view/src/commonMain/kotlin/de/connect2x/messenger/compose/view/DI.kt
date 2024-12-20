@@ -101,6 +101,7 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.EmptyTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoView
@@ -393,6 +394,7 @@ inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDet
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
 
 fun timelineViewModule() = module {
+    timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementView() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementView() }
     timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementView() }
