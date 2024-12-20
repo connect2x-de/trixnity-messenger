@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -77,7 +76,6 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
 }
 
 class TimelineViewImpl : TimelineView {
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()

@@ -29,9 +29,6 @@ private val log = KotlinLogging.logger {}
 interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
 
-    fun resumeExtrasRouter()
-    fun suspendExtrasRouter()
-
     suspend fun showRoomSettings(roomId: RoomId)
     suspend fun showMessageMetadata(eventId: EventId, roomId: RoomId)
     fun isExtrasRouterShown(): Boolean
@@ -84,14 +81,6 @@ class ExtrasRouterImpl(
         key = "ExtrasRouter",
         childFactory = ::createSettingsChild,
     )
-
-    override fun resumeExtrasRouter() {
-//        settingsNavigation.launchBringToFront()
-    }
-
-    override fun suspendExtrasRouter() {
-
-    }
 
     override suspend fun showRoomSettings(roomId: RoomId) {
         log.debug { "show settings for room: $roomId" }

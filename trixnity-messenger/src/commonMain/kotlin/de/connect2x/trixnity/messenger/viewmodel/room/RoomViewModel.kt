@@ -13,11 +13,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 
@@ -32,16 +32,14 @@ interface RoomViewModelFactory {
         onRoomBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    ): RoomViewModel {
-        return RoomViewModelImpl(
-            viewModelContext = viewModelContext,
-            roomId = selectedRoomId,
-            onRoomBack = onRoomBack,
-            isBackButtonVisible = isBackButtonVisible,
-            onOpenMention = onOpenMention,
-            onOpenAvatarCutter = onOpenAvatarCutter,
-        )
-    }
+    ): RoomViewModel = RoomViewModelImpl(
+        viewModelContext = viewModelContext,
+        roomId = selectedRoomId,
+        onRoomBack = onRoomBack,
+        isBackButtonVisible = isBackButtonVisible,
+        onOpenMention = onOpenMention,
+        onOpenAvatarCutter = onOpenAvatarCutter,
+    )
 
     companion object : RoomViewModelFactory
 }
@@ -49,13 +47,12 @@ interface RoomViewModelFactory {
 interface RoomViewModel {
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
     val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
-    val isSettingsShown: StateFlow<Boolean>
+    val isRoomSettingsShown: StateFlow<Boolean>
     val isExtrasShown: StateFlow<Boolean>
-    val isTwoPane: StateFlow<Boolean>
+
     fun onRoomBack()
-    fun setSinglePane(isSinglePane: Boolean)
     fun showSettings()
-    fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel)
+    fun showMessageMetadata(eventId: EventId)
 }
 
 open class RoomViewModelImpl(
@@ -67,24 +64,23 @@ open class RoomViewModelImpl(
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
-    override val isSettingsShown = MutableStateFlow(false)
+    override val isRoomSettingsShown = MutableStateFlow(false)
     override val isExtrasShown = MutableStateFlow(false)
-    override val isTwoPane = MutableStateFlow(false)
 
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
         viewModelContext = viewModelContext,
         onRoomBack = onRoomBack,
-        onSettingsBack = ::onSettingsBack,
+        onSettingsBack = ::onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(
         viewModelContext = viewModelContext,
         isBackButtonVisible = isBackButtonVisible,
-        onShowSettings = ::onShowSettings,
+        onShowSettings = ::onShowRoomSettings,
         onRoomBack = onRoomBack,
         onOpenMention = onOpenMention,
-        onOpenMetadata = ::showMessageMetadata,
+        onOpenMetadata = ::onShowMessageMetadata,
     )
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
@@ -96,7 +92,7 @@ open class RoomViewModelImpl(
         log.debug { "create RoomViewModel " + roomId.full }
         coroutineScope.launch { timelineRouter.showTimeline(roomId) }
         extrasStack.subscribe {
-            isSettingsShown.value = it.active.configuration is RoomSettings
+            isRoomSettingsShown.value = it.active.configuration is RoomSettings
             isExtrasShown.value = it.active.configuration !is None
         }
     }
@@ -106,57 +102,24 @@ open class RoomViewModelImpl(
     }
 
     override fun showSettings() {
-        onShowSettings()
+        onShowRoomSettings()
     }
 
-    override fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel) {
-        coroutineScope.launch {
-            extrasRouter.showMessageMetadata(messageHolder.eventId, roomId)
-        }
+    override fun showMessageMetadata(eventId: EventId) {
+        onShowMessageMetadata(eventId)
     }
 
-    override fun setSinglePane(isSinglePane: Boolean) {
-        if (isSinglePane != isTwoPane.value) {
-            isTwoPane.value = isSinglePane
-            if (isSinglePane) {
-                switchToSinglePane()
-            } else {
-                switchToMultiPane()
-            }
-        }
+    internal fun onShowMessageMetadata(eventId: EventId) = coroutineScope.launch {
+        extrasRouter.showMessageMetadata(eventId, roomId)
     }
 
-    private fun switchToMultiPane() = coroutineScope.launch {
-//        if (extrasRouter.isExtrasRouterShown()) {
-//            timelineRouter.showTimeline(roomId)
-//            extrasRouter.showRoomSettings(roomId)
-//        } else {
-//            timelineRouter.showTimeline(roomId)
-//        }
-    }
-
-    private fun switchToSinglePane() = coroutineScope.launch {
-//        if (extrasRouter.isExtrasRouterShown()) {
-//            timelineRouter.closeTimeline()
-//        } else {
-//            timelineRouter.showTimeline(roomId)
-//        }
-    }
-
-    internal fun onSettingsBack() = coroutineScope.launch {
-        extrasRouter.closeExtrasRouter()
-        timelineRouter.showTimeline(roomId)
-    }
-
-    internal fun onShowSettings() = coroutineScope.launch {
+    internal fun onShowRoomSettings() = coroutineScope.launch {
         extrasRouter.showRoomSettings(roomId)
-//        if (isTwoPane.value) {
-//            timelineRouter.closeTimeline()
-//        } else {
-//            timelineRouter.showTimeline(roomId)
-//        }
     }
 
+    internal fun onCloseRoomSettings() = coroutineScope.launch {
+        extrasRouter.closeExtrasRouter()
+    }
 }
 
 class PreviewRoomViewModel : RoomViewModel {
@@ -178,13 +141,9 @@ class PreviewRoomViewModel : RoomViewModel {
                 )
             )
         )
-    override val isSettingsShown: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isRoomSettingsShown: StateFlow<Boolean> = MutableStateFlow(false)
     override val isExtrasShown: StateFlow<Boolean> = MutableStateFlow(false)
-    override val isTwoPane: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun onRoomBack() {}
     override fun showSettings() {}
-    override fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel) {}
-    override fun setSinglePane(twoPane: Boolean) {
-        isTwoPane.value = twoPane
-    }
+    override fun showMessageMetadata(eventId: EventId) {}
 }

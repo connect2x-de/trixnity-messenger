@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.room.RoomSwitch
 import de.connect2x.messenger.compose.view.roomlist.RoomListSwitch
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
+
 interface MessengerView {
     @Composable
     fun create(mainViewModel: MainViewModel)
@@ -32,37 +33,30 @@ class MessengerViewImpl : MessengerView {
     @Composable
     override fun create(mainViewModel: MainViewModel) {
         val isSinglePane = mainViewModel.isSinglePane.collectAsState().value
-        val showRoom = mainViewModel.showRoom.collectAsState().value
-        if (!showRoom || !isSinglePane) {
-            Row(
-                modifier = Modifier.fillMaxSize()
+        val isRoomShown = mainViewModel.showRoom.collectAsState().value
+        Row(modifier = Modifier.fillMaxSize()) {
+
+            // Room List
+            if (!(isRoomShown && isSinglePane)) Box(
+                modifier = Modifier
+                    .weight(if (isSinglePane) 1F else ROOM_LIST_WEIGHT)
             ) {
-                Box(modifier = Modifier.weight(if (isSinglePane) 1F else ROOM_LIST_WEIGHT)) {
-                    RoomListSwitch(mainViewModel)
-                }
-                if (!isSinglePane) {
-                    VerticalDivider(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(1.dp)
-                    )
-                    Box(modifier = Modifier.weight(ROOM_WEIGHT))
-                }
+                RoomListSwitch(mainViewModel)
             }
-        }
-        if (showRoom) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                if (!isSinglePane) {
-                    Box(modifier = Modifier.weight(ROOM_LIST_WEIGHT))
-                    VerticalDivider(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(1.dp)
-                    )
-                }
-                Box(modifier = Modifier.weight(if (isSinglePane) 1F else ROOM_WEIGHT)) {
-                    RoomSwitch(mainViewModel.roomRouterStack)
-                }
+
+            // Pane Divider
+            if (isRoomShown && !isSinglePane) VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+            )
+
+            // Room Pane
+            if (isRoomShown || !isSinglePane) Box(
+                modifier = Modifier
+                    .weight(if (isSinglePane) 1F else ROOM_WEIGHT)
+            ) {
+                RoomSwitch(mainViewModel.roomRouterStack)
             }
         }
     }

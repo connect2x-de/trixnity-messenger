@@ -284,7 +284,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.setSinglePane(true)
             delay(100.milliseconds)
 
-            cut.onSettingsBack()
+            cut.onCloseRoomSettings()
             delay(100.milliseconds)
 
             assertSoftly {
@@ -299,7 +299,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.setSinglePane(false)
             delay(100.milliseconds)
 
-            cut.onSettingsBack()
+            cut.onCloseRoomSettings()
             delay(100.milliseconds)
 
             assertSoftly {
@@ -314,7 +314,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.setSinglePane(true)
             delay(100.milliseconds)
 
-            cut.onShowSettings()
+            cut.onShowRoomSettings()
             delay(100.milliseconds)
 
             assertSoftly {
@@ -329,7 +329,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.setSinglePane(false)
             delay(100.milliseconds)
 
-            cut.onShowSettings()
+            cut.onShowRoomSettings()
             delay(100.milliseconds)
 
             assertSoftly {

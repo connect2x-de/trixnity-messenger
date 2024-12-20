@@ -109,7 +109,7 @@ interface TimelineViewModelFactory {
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
-        onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
+        onOpenMetadata: (eventId: EventId) -> Unit,
     ): TimelineViewModel = TimelineViewModelImpl(
         viewModelContext,
         roomId,
@@ -218,7 +218,7 @@ class TimelineViewModelImpl(
     onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
-    private val onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
+    private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
     init {

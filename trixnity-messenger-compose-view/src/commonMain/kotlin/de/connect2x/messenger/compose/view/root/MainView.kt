@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.root
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -13,7 +12,6 @@ import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
-private val MAX_WIDTH = 1600.dp
 
 interface MainView {
     @Composable
@@ -33,7 +31,6 @@ class MainViewImpl : MainView {
         ) {
             Box(
                 Modifier.fillMaxSize()
-                    .padding(horizontal = if (maxWidth - MAX_WIDTH > 0.dp) (maxWidth - MAX_WIDTH) / 2 else 0.dp)
             ) {
                 InitialSyncSwitch(mainViewModel)
 
@@ -43,7 +40,8 @@ class MainViewImpl : MainView {
                 }
             }
         }
-//        MediaOverlaySwitch(mainViewModel) // TODO: re-enable later
+
+//        MediaOverlaySwitch(mainViewModel) // TODO: Re-enable later.
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
         AccountSetupSwitch(mainViewModel)

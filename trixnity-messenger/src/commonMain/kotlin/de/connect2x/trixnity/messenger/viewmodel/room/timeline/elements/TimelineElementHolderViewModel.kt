@@ -94,7 +94,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
-        onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
+        onOpenMetadata: (eventId: EventId) -> Unit,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
@@ -178,7 +178,7 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
-    private val onOpenMetadata: (messageHolder: TimelineElementHolderViewModel) -> Unit,
+    private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout)
     private val config = get<MatrixMessengerConfiguration>()
@@ -572,7 +572,7 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun showMessageMetadata() {
-        onOpenMetadata(this)
+        onOpenMetadata(this.eventId)
     }
 
     override fun toString(): String =
