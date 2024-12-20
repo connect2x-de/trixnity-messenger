@@ -10,13 +10,13 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 
 @Composable
-fun RoomSettingsSwitch(
+fun ExtrasPaneSwitch(
     stack: Value<ChildStack<*, ExtrasRouter.Wrapper>>,
     isTwoPane: Boolean,
 ) {
     Children(
         stack = stack,
-        animation = stackAnimation(fade())
+        animation = stackAnimation(fade()),
     ) {
         when (val child = it.instance) {
             is ExtrasRouter.Wrapper.View -> RoomSettingsContainer(child.viewModel, isTwoPane)

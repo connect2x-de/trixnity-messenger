@@ -37,13 +37,13 @@ class MainViewImpl : MainView {
             ) {
                 InitialSyncSwitch(mainViewModel)
 
-                val singlePain = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
-                LaunchedEffect(singlePain) {
-                    mainViewModel.setSinglePane(singlePain)
+                val isSinglePane = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
+                LaunchedEffect(isSinglePane) {
+                    mainViewModel.setSinglePane(isSinglePane)
                 }
             }
         }
-//        MediaOverlaySwitch(mainViewModel)
+//        MediaOverlaySwitch(mainViewModel) // TODO: re-enable later
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
         AccountSetupSwitch(mainViewModel)

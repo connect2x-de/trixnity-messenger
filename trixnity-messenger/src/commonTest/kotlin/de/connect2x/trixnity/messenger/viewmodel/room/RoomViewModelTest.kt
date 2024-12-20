@@ -226,7 +226,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
                     }
                 }
                 should("show room list in multi-pane view") {
@@ -238,7 +238,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
                     }
                 }
             }
@@ -256,7 +256,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
+                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
                     }
                 }
 
@@ -273,7 +273,7 @@ class RoomViewModelTest : ShouldSpec() {
 
                     assertSoftly {
                         cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
+                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
                     }
                 }
             }
@@ -289,7 +289,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
             }
         }
 
@@ -304,7 +304,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
             }
         }
 
@@ -319,7 +319,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
+                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
             }
         }
 
@@ -334,7 +334,7 @@ class RoomViewModelTest : ShouldSpec() {
 
             assertSoftly {
                 cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
+                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
             }
         }
     }
@@ -343,7 +343,7 @@ class RoomViewModelTest : ShouldSpec() {
         delay(100.milliseconds)
         assertSoftly {
             cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-            cut.settingsStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+            cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
         }
     }
 

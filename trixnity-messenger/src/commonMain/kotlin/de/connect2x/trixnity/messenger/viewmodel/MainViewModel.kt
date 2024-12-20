@@ -481,11 +481,8 @@ open class MainViewModelImpl(
         if (isSinglePane != this.isSinglePane.value) {
             this.isSinglePane.value = isSinglePane
             coroutineScope.launch {
-                if (isSinglePane) {
-                    switchToSinglePane()
-                } else {
-                    switchToMultiPane()
-                }
+                if (isSinglePane) switchToSinglePane()
+                else switchToMultiPane()
             }
         }
     }

@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.TWO_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSwitch
+import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneSwitch
 import de.connect2x.messenger.compose.view.room.timeline.RoomContentSwitch
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel
 
@@ -39,13 +39,13 @@ class RoomViewImpl : RoomView {
             roomViewModel.setSinglePane(isSinglePane)
 
             val showSettings = roomViewModel.isSettingsShown.collectAsState().value
-            val showExtrasPane = roomViewModel.isExtrasShown.collectAsState().value
+            val showExtras = roomViewModel.isExtrasShown.collectAsState().value
 
             Row(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)) {
+                if (!(showExtras && isSinglePane)) Box(modifier = Modifier.weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)) {
                     RoomContentSwitch(roomViewModel.timelineStack, showSettings.not())
                 }
-                if (showExtrasPane && !isSinglePane) {
+                if (showExtras && !isSinglePane) {
                     VerticalDivider(
                         modifier = Modifier
                             .fillMaxHeight()
@@ -54,7 +54,7 @@ class RoomViewImpl : RoomView {
                     Box(modifier = Modifier.weight(SETTINGS_WEIGHT))
                 }
             }
-            if (showExtrasPane) {
+            if (showExtras) {
                 Row(modifier = Modifier.fillMaxSize()) {
                     if (!isSinglePane) {
                         Box(modifier = Modifier.weight(TIMELINE_WEIGHT))
@@ -65,7 +65,7 @@ class RoomViewImpl : RoomView {
                         )
                     }
                     Box(modifier = Modifier.weight(if (isSinglePane) 1F else SETTINGS_WEIGHT)) {
-                        RoomSettingsSwitch(roomViewModel.settingsStack, isSinglePane)
+                        ExtrasPaneSwitch(roomViewModel.extrasStack, isSinglePane)
                     }
                 }
             }

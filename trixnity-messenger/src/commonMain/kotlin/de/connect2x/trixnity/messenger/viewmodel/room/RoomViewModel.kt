@@ -48,12 +48,12 @@ interface RoomViewModelFactory {
 
 interface RoomViewModel {
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
-    val settingsStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
+    val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
     val isSettingsShown: StateFlow<Boolean>
     val isExtrasShown: StateFlow<Boolean>
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
-    fun setSinglePane(twoPane: Boolean)
+    fun setSinglePane(isSinglePane: Boolean)
     fun showSettings()
     fun showMessageMetadata(messageHolder: TimelineElementHolderViewModel)
 }
@@ -89,13 +89,13 @@ open class RoomViewModelImpl(
 
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         timelineRouter.stack
-    override val settingsStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
+    override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
         extrasRouter.stack
 
     init {
         log.debug { "create RoomViewModel " + roomId.full }
         coroutineScope.launch { timelineRouter.showTimeline(roomId) }
-        settingsStack.subscribe {
+        extrasStack.subscribe {
             isSettingsShown.value = it.active.configuration is RoomSettings
             isExtrasShown.value = it.active.configuration !is None
         }
@@ -103,17 +103,6 @@ open class RoomViewModelImpl(
 
     override fun onRoomBack() {
         this.onRoomBack.invoke()
-    }
-
-    override fun setSinglePane(singlePane: Boolean) {
-        if (singlePane != isTwoPane.value) {
-            isTwoPane.value = singlePane
-            if (singlePane) {
-                switchToSinglePane()
-            } else {
-                switchToMultiPane()
-            }
-        }
     }
 
     override fun showSettings() {
@@ -126,21 +115,32 @@ open class RoomViewModelImpl(
         }
     }
 
-    private fun switchToMultiPane() = coroutineScope.launch {
-        if (extrasRouter.isExtrasRouterShown()) {
-            timelineRouter.showTimeline(roomId)
-            extrasRouter.showSettings(roomId)
-        } else {
-            timelineRouter.showTimeline(roomId)
+    override fun setSinglePane(isSinglePane: Boolean) {
+        if (isSinglePane != isTwoPane.value) {
+            isTwoPane.value = isSinglePane
+            if (isSinglePane) {
+                switchToSinglePane()
+            } else {
+                switchToMultiPane()
+            }
         }
     }
 
+    private fun switchToMultiPane() = coroutineScope.launch {
+//        if (extrasRouter.isExtrasRouterShown()) {
+//            timelineRouter.showTimeline(roomId)
+//            extrasRouter.showRoomSettings(roomId)
+//        } else {
+//            timelineRouter.showTimeline(roomId)
+//        }
+    }
+
     private fun switchToSinglePane() = coroutineScope.launch {
-        if (extrasRouter.isExtrasRouterShown()) {
-            timelineRouter.closeTimeline()
-        } else {
-            timelineRouter.showTimeline(roomId)
-        }
+//        if (extrasRouter.isExtrasRouterShown()) {
+//            timelineRouter.closeTimeline()
+//        } else {
+//            timelineRouter.showTimeline(roomId)
+//        }
     }
 
     internal fun onSettingsBack() = coroutineScope.launch {
@@ -149,12 +149,12 @@ open class RoomViewModelImpl(
     }
 
     internal fun onShowSettings() = coroutineScope.launch {
-        extrasRouter.showSettings(roomId)
-        if (isTwoPane.value) {
-            timelineRouter.closeTimeline()
-        } else {
-            timelineRouter.showTimeline(roomId)
-        }
+        extrasRouter.showRoomSettings(roomId)
+//        if (isTwoPane.value) {
+//            timelineRouter.closeTimeline()
+//        } else {
+//            timelineRouter.showTimeline(roomId)
+//        }
     }
 
 }
@@ -169,7 +169,7 @@ class PreviewRoomViewModel : RoomViewModel {
                 )
             )
         )
-    override val settingsStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
+    override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(

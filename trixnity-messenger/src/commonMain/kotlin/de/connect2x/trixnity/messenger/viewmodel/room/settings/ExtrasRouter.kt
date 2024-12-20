@@ -29,7 +29,10 @@ private val log = KotlinLogging.logger {}
 interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
 
-    suspend fun showSettings(roomId: RoomId)
+    fun resumeExtrasRouter()
+    fun suspendExtrasRouter()
+
+    suspend fun showRoomSettings(roomId: RoomId)
     suspend fun showMessageMetadata(eventId: EventId, roomId: RoomId)
     fun isExtrasRouterShown(): Boolean
     suspend fun closeExtrasRouter()
@@ -82,11 +85,20 @@ class ExtrasRouterImpl(
         childFactory = ::createSettingsChild,
     )
 
-    override suspend fun showSettings(roomId: RoomId) {
+    override fun resumeExtrasRouter() {
+//        settingsNavigation.launchBringToFront()
+    }
+
+    override fun suspendExtrasRouter() {
+
+    }
+
+    override suspend fun showRoomSettings(roomId: RoomId) {
         log.debug { "show settings for room: $roomId" }
         val config = Config.RoomSettings.MainSettings(roomId)
-        if (showRouter(config).not())
+        showRouterOrCallFallback(config) {
             settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, config)
+        }
     }
 
     override suspend fun closeExtrasRouter() {
@@ -98,15 +110,16 @@ class ExtrasRouterImpl(
     override suspend fun showMessageMetadata(eventId: EventId, roomId: RoomId) {
         log.debug { "show message metadata for event: $eventId in room: $roomId" }
         val config = MessageMetadata(eventId, roomId)
-        if (showRouter(config).not())
+        showRouterOrCallFallback(config) {
             settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, config)
+        }
     }
 
-    private suspend fun showRouter(baseConfig: Config): Boolean =
+    private suspend fun showRouterOrCallFallback(baseConfig: Config, onRouterAlreadyShown: () -> Unit) {
         if (isExtrasRouterShown().not()) {
             settingsNavigation.bringToFrontSuspending(baseConfig)
-            true
-        } else false
+        } else onRouterAlreadyShown()
+    }
 
     override fun isExtrasRouterShown(): Boolean = stack.value.active.configuration !is None
 
