@@ -50,7 +50,7 @@ fun MessageBubbleContent(
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value
-    val hasRepliedElement = holder.isReply.collectAsState().value != null
+    val hasRepliedElement = holder.isReply.collectAsState().value == true
 
     val highlighted = if (highlight) Modifier.border(
         width = 3.dp,
