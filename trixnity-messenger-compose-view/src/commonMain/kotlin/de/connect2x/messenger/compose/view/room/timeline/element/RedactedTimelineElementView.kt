@@ -62,6 +62,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
 internal fun Redacted(element: RedactedTimelineElementViewModel) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = element.message.collectAsState().value
+    val redactedAt = element.redactedAt.collectAsState().value
     Row(Modifier.padding(10.dp)) {
         Icon(
             Icons.Outlined.Delete, i18n.commonDeleted(),
@@ -70,7 +71,7 @@ internal fun Redacted(element: RedactedTimelineElementViewModel) {
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            "$formattedMessage${element.redactedAt.let { " ($it)" }}",
+            "$formattedMessage${redactedAt.let { " ($it)" }}",
             Modifier.alignByBaseline(),
             style = MaterialTheme.typography.bodySmall,
             fontStyle = FontStyle.Italic,

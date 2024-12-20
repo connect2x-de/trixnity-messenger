@@ -37,7 +37,7 @@ interface RedactedTimelineElementViewModelFactory : TimelineElementViewModelFact
     ): RedactedTimelineElementViewModel? =
         if (
             eventIdOrTransactionId is EventIdOrTransactionId.EventId
-            && content.eventType !in setOf<String>("m.room.encrypted", "m.room.message")
+            && content.eventType in setOf<String>("m.room.encrypted", "m.room.message")
         )
             RedactedTimelineElementViewModelImpl(
                 viewModelContext,

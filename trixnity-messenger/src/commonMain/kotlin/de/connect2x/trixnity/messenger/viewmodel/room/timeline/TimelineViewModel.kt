@@ -58,6 +58,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -281,7 +282,7 @@ class TimelineViewModelImpl(
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
     override val elements: StateFlow<List<BaseTimelineElementHolderViewModel>> =
         combine(
-            timelineElements,
+            timelineElements.filter { it.isNotEmpty() }, // prevent initial timeline with outbox only
             outbox,
         ) { elements, outbox ->
             log.debug { "compute timeline elements" }
