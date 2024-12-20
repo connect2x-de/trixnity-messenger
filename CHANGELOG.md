@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Format links with escaped ampersand (`&amp;`)
 - Format links with semicolon (`https://abc.xyz/a;b;c`)
 - Wrong device name displayed in verification success message
+- Overlay sometimes won't vanish when switching accounts
 
 ## 2.4.0
 
