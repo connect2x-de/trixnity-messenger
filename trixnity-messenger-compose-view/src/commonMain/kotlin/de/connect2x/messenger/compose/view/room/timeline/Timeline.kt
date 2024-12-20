@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
@@ -93,7 +92,16 @@ class TimelineViewImpl : TimelineView {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
         }
         val timelineElementViewModelGrouped by derivedStateOf {
-            timelineElementHolderViewModels.groupBy { it.formattedDate }
+            val vms = timelineElementHolderViewModels
+            buildList(vms.size) {
+                var lastDate: String? = null
+                for (index in vms.indices.reversed()) {
+                    val vm = vms[index]
+                    if (lastDate != vm.formattedDate) add(vm.formattedDate to vm)
+                    else add(null to vm)
+                    lastDate = vm.formattedDate
+                }
+            }.asReversed()
         }
 
         LaunchedEffect(Unit) {
@@ -158,7 +166,7 @@ class TimelineViewImpl : TimelineView {
                 }
                 log.trace { "finished wait for elements to be ready" }
                 elementsFromLastCollect = elements
-                timelineElementHolderViewModels = elements.reversed()
+                timelineElementHolderViewModels = elements.asReversed()
             }
         }
 
@@ -262,18 +270,14 @@ class TimelineViewImpl : TimelineView {
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
-                                timelineElementViewModelGrouped.forEach { (date, viewModels) ->
-                                    items(
-                                        viewModels,
-                                        key = { it.key }
-                                    ) { viewModel ->
-                                        TimelineElementHolder(
-                                            viewModel,
-                                        )
+                                timelineElementViewModelGrouped.forEach { (date, viewModel) ->
+                                    item(viewModel.key) {
+                                        TimelineElementHolder(viewModel)
                                     }
-                                    item("date-$date") {
-                                        DateStickyHeader(date)
-                                    }
+                                    if (date != null)
+                                        item("date-$date") {
+                                            DateStickyHeader(date)
+                                        }
                                 }
                             }
                             listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
