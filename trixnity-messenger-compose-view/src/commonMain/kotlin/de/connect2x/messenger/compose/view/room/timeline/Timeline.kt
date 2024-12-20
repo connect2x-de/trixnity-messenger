@@ -275,7 +275,7 @@ class TimelineViewImpl : TimelineView {
                                         TimelineElementHolder(viewModel)
                                     }
                                     if (date != null)
-                                        item("date-$date") {
+                                        item("date-$date-${viewModel.key}") {
                                             DateStickyHeader(date)
                                         }
                                 }
