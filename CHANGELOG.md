@@ -11,19 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgraded Trixnity to 4.11.2
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+### Security
+
+## 3.0.2
+
+### Changed
+
+- Upgraded Trixnity to 4.11.2
+
+### Fixed
+
 - Cleaned up timeline element loading/dropping to prevent some scroll-jump edge cases
 - Fixed rendering of the date in small message bubbles
 - Fixed timeline elements displayed in wrong order
-
-### Security
 
 ## 3.0.1
 
