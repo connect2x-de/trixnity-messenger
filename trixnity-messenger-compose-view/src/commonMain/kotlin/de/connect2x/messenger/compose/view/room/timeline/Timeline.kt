@@ -54,8 +54,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -100,36 +101,53 @@ class TimelineViewImpl : TimelineView {
             timelineViewModel.elements.collect { elements ->
                 log.trace { "wait for elements to be ready" }
                 withContext(Dispatchers.Default) {
-                    withTimeoutOrNull(5.seconds) {
-                        (elements - elementsFromLastCollect).forEach { element ->
-                            launch {
+                    (elements - elementsFromLastCollect).forEach { element ->
+                        val message = { "waited for element ${element.key}, but timed out: " }
+                        launch {
+                            withTimeoutOrNull(3.seconds) {
                                 val elementElement = element.element.filterNotNull().first()
-                                if (elementElement is TimelineElementViewModel.Empty) return@launch
-                                launch { timelineElementViewSelector.waitFor(elementElement) }
-                                launch { element.isFirstInUserSequence.filterNotNull().first() }
-                                launch {
+                                if (elementElement is TimelineElementViewModel.Empty) return@withTimeoutOrNull
+                                launchWithTimeoutHint(message, { "element ${elementElement::class.simpleName}" }) {
+                                    timelineElementViewSelector.waitFor(elementElement)
+                                }
+                                launchWithTimeoutHint(message, { "isFirstInUserSequence" }) {
+                                    element.isFirstInUserSequence.filterNotNull().first()
+                                }
+                                launchWithTimeoutHint(message, { "sender" }) {
                                     val showSender = element.showSender.filterNotNull().first()
                                     if (showSender) element.sender.filterNotNull().first()
                                 }
-                                launch { element.showBigGapBefore.filterNotNull().first() }
-                                launch {
-                                    val repliedElement = async { element.repliedElement.filterNotNull().first() }
+                                launchWithTimeoutHint(message, { "showBigGapBefore" }) {
+                                    element.showBigGapBefore.filterNotNull().first()
+                                }
+                                launchWithTimeoutHint(message, { "repliedElement" }) {
                                     val isReply = element.isReply.filterNotNull().first()
-                                    if (!isReply) repliedElement.cancel()
-                                    else {
+                                    if (isReply)
                                         timelineElementViewSelector.waitFor(
-                                            repliedElement.await().element.filterNotNull().first()
+                                            element.repliedElement.filterNotNull().first()
+                                                .element.filterNotNull().first()
                                         )
-                                    }
                                 }
                                 when (element) {
                                     is TimelineElementHolderViewModel -> {
-                                        launch { element.hasUnreadMarker.filterNotNull().first() }
-                                        launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
-                                        launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
-                                        if (element.isByMe) launch { element.isRead.filterNotNull().first() }
-                                        launch { element.reactions.filterNotNull().first() }
-                                        launch { element.isReplaced.filterNotNull().first() }
+                                        launchWithTimeoutHint(message, { "hasUnreadMarker" }) {
+                                            element.hasUnreadMarker.filterNotNull().first()
+                                        }
+                                        launchWithTimeoutHint(message, { "hasLoadingIndicatorBefore" }) {
+                                            element.hasLoadingIndicatorBefore.filterNotNull().first()
+                                        }
+                                        launchWithTimeoutHint(message, { "hasLoadingIndicatorAfter" }) {
+                                            element.hasLoadingIndicatorAfter.filterNotNull().first()
+                                        }
+                                        if (element.isByMe) launchWithTimeoutHint(
+                                            message,
+                                            { "isRead" }) { element.isRead.filterNotNull().first() }
+                                        launchWithTimeoutHint(message, { "reactions" }) {
+                                            element.reactions.filterNotNull().first()
+                                        }
+                                        launchWithTimeoutHint(message, { "isReplaced" }) {
+                                            element.isReplaced.filterNotNull().first()
+                                        }
                                     }
 
                                     is OutboxElementHolderViewModel -> {}
@@ -321,3 +339,12 @@ fun ReportMessageSwitch(timelineViewModel: TimelineViewModel) {
         }.let {}
     }
 }
+
+private fun CoroutineScope.launchWithTimeoutHint(message: () -> String, hint: () -> String, block: suspend () -> Unit) =
+    launch {
+        try {
+            block()
+        } catch (_: TimeoutCancellationException) {
+            log.warn { message() + hint() }
+        }
+    }

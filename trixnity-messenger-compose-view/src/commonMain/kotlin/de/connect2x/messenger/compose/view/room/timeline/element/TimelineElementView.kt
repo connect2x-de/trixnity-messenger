@@ -21,3 +21,17 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     fun createReplyInSendMessage(element: V) {
     }
 }
+
+object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.Empty> {
+    override val supports: KClass<TimelineElementViewModel.Empty>
+        get() = TimelineElementViewModel.Empty::class
+
+    override suspend fun waitFor(element: TimelineElementViewModel.Empty) {}
+
+    @Composable
+    override fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel.Empty
+    ) {
+    }
+}
