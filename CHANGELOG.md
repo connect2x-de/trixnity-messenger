@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Cleaned up timeline element loading/dropping to prevent some scroll-jump edge cases
+- Rendering of the date in small message bubbles
 
 ### Security
 
