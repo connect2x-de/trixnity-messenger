@@ -117,6 +117,7 @@ interface TimelineElementHolderViewModelFactory {
 }
 
 interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
+    val roomId: RoomId
     val eventId: EventId
 
     val hasUnreadMarker: StateFlow<Boolean>
@@ -162,7 +163,7 @@ class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
-    val roomId: RoomId,
+    override val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
     override val formattedDate: String,
@@ -572,6 +573,7 @@ class TimelineElementHolderViewModelImpl(
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
+    override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$1:localhost")
     override val key: String = eventId.full
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
@@ -620,6 +622,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
+    override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =

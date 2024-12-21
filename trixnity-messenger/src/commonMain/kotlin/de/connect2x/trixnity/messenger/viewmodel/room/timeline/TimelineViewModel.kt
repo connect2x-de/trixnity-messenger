@@ -34,6 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
@@ -55,15 +56,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -71,6 +75,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeout
@@ -452,7 +457,7 @@ class TimelineViewModelImpl(
                 log.error { "could not load start point of timeline" }
             }
             timelineStartFrom.emit(initTimelineFrom)
-            scheduleScrollTo(initTimelineFrom.asKey(roomId))
+            scrollTo.emit(initTimelineFrom.asKey(roomId))
         }
     }
 
@@ -471,7 +476,7 @@ class TimelineViewModelImpl(
                         val lastEventId =
                             matrixClient.room.getById(roomId).map { it?.lastEventId }.filterNotNull().first()
                         timelineStartFrom.emit(lastEventId)
-                        scheduleScrollTo(diff.last().asKey(roomId))
+                        scrollTo.emit(diff.last().asKey(roomId))
                     }
                     transactionIdsNew
                 }.collect()
@@ -765,18 +770,27 @@ class TimelineViewModelImpl(
             viewState.filterNotNull().first()
             timeline.filterNotNull().collectLatest { timeline ->
                 combine(
-                    timelineElements,
+                    elements,
                     visibleElements
-                ) { timelineElements, currentVisibleElements ->
+                ) { elements, currentVisibleElements ->
+                    val timelineElements = elements.filterIsInstance<TimelineElementHolderViewModel>()
                     val timelineSize = timelineElements.size
                     if (timelineSize == 0) return@combine
                     val timelineMaxSize = config.timelineMaxSize + 2 * config.timelineBuffer
 
-                    val (firstVisibleTimelineElement, lastVisibleTimelineElement) = currentVisibleElements
-                    val indexOfFirstVisibleTimelineElement =
-                        timelineElements.indexOfFirst { it.key == firstVisibleTimelineElement }
-                    val indexOfLastVisibleTimelineElement =
-                        timelineElements.indexOfLast { it.key == lastVisibleTimelineElement }
+                    val (firstVisibleElement, lastVisibleElement) = currentVisibleElements
+                    val indexOfFirstVisibleTimelineElement = // ignores outbox
+                        elements.asFlow().withIndex()
+                            .dropWhile { it.value.key != firstVisibleElement }
+                            .firstOrNull { it.value is TimelineElementHolderViewModel }
+                            ?.index
+                            ?: -1
+                    val indexOfLastVisibleTimelineElement = // ignores outbox
+                        elements.asReversedIndexedFlow()
+                            .dropWhile { it.value.key != lastVisibleElement }
+                            .firstOrNull { it.value is TimelineElementHolderViewModel }
+                            ?.index
+                            ?: -1
 
                     val isInBufferBefore = indexOfFirstVisibleTimelineElement in 0..(config.timelineBuffer - 1)
                     val isInBufferAfter = indexOfLastVisibleTimelineElement >= 0 &&
@@ -787,7 +801,7 @@ class TimelineViewModelImpl(
                             continuouslyLoad (check):
                             indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
                             indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
-                            timelineElementViewModels=${timelineElements.map { it.key }}
+                            timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
                         """.trimIndent()
                     }
 
@@ -828,16 +842,18 @@ class TimelineViewModelImpl(
 
                             if (timelineStateChange.newElements.isNotEmpty()
                                 && viewState.value?.windowIsFocused == true
-                                && indexOfLastEventIdBeforeChange <= indexOfLastVisibleTimelineElement
+                                && indexOfLastEventIdBeforeChange == indexOfLastVisibleTimelineElement
                             ) {
                                 val newLastEvent = timelineStateChange.newElements.last().key
                                 val lastVisibleTimelineEvent =
-                                    timelineElements.findLast { it.key == lastVisibleTimelineElement }
+                                    elements.findLast { it.key == lastVisibleElement }
 
                                 val currentFullyReadEvent = fullyReadEvent.value
                                 log.trace { "lastVisibleTimelineEvent=$lastVisibleTimelineEvent currentFullyReadEvent=$currentFullyReadEvent newLastEvent=$newLastEvent" }
                                 log.debug { "new timeline events has been added at the end of timeline -> scroll to end" }
-                                scheduleScrollTo(newLastEvent)
+                                scrollTo.emit(
+                                    (elements.lastOrNull() as? OutboxElementHolderViewModel)?.key ?: newLastEvent
+                                )
                                 if (lastVisibleTimelineEvent == currentFullyReadEvent) {
                                     log.debug { "new timeline events has been added at the end of timeline -> mark as fully read" }
                                     markAsRead(newLastEvent)
@@ -874,7 +890,7 @@ class TimelineViewModelImpl(
                 matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull()
                     .first()
                     .run { event.unsigned?.transactionId?.asKey(event.roomId) ?: eventId.asKey(event.roomId) }
-            scheduleScrollTo(lastEventKey)
+            scrollTo.emit(lastEventKey)
         }
     }
 
@@ -964,17 +980,6 @@ class TimelineViewModelImpl(
                     log.debug { "create new user verification with user $otherUserId" }
                     matrixClient.verification.createUserVerificationRequest(otherUserId)
                 }
-        }
-    }
-
-    private fun scheduleScrollTo(key: String) {
-        coroutineScope.launch {
-            val result = withTimeoutOrNull(2.seconds) {
-                elements.first { vms -> vms.any { it.key == key } }
-                log.debug { "scheduled scroll to $key" }
-                scrollTo.emit(key)
-            }
-            if (result == null) log.warn { "could not scroll to $key, because view model does not exist" }
         }
     }
 
