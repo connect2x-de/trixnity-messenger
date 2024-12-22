@@ -17,10 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.0.3
+
+### Fixed
+
 - Fixed various scrolling issues in timeline
 - Fixed outbox loading in timeline
-
-### Security
 
 ## 3.0.2
 
