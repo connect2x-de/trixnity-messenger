@@ -474,6 +474,42 @@ class TimelineViewModelTest : ShouldSpec() {
                 )
                 cut.elements waitForSize 20
             }
+            should("load more messages after when outbox is last message") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                }
+                timelineMock.fullyReadEventIndex.value = 0
+
+                outboxMessagesFlow.value = listOf(
+                    RoomOutboxMessage(
+                        transactionId = "transactionId-1",
+                        roomId = roomId,
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
+                    ),
+                )
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 2
+
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-transactionId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                }
+
+                cut.elements waitForSize 3
+            }
             should("not load more messages after") {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
