@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,8 +13,15 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -37,6 +45,7 @@ class SendAttachmentSendButtonViewImpl : SendAttachmentSendButtonView {
     override fun create(sendAttachmentViewModel: SendAttachmentViewModel) {
         val i18n = DI.get<I18nView>()
         val sendEnabled = sendAttachmentViewModel.sendEnabled.collectAsState().value
+        val focusRequester = remember { FocusRequester() }
         Row(
             Modifier
                 .fillMaxWidth()
@@ -47,7 +56,17 @@ class SendAttachmentSendButtonViewImpl : SendAttachmentSendButtonView {
                 onClick = { sendAttachmentViewModel.send() },
                 modifier = Modifier
                     .size(40.dp)
-                    .buttonPointerModifier(),
+                    .buttonPointerModifier()
+                    .onKeyEvent { keyEvent ->
+                        if (keyEvent.key == Key.Enter) {
+                            if (sendEnabled) {
+                                sendAttachmentViewModel.send()
+                                true
+                            } else false
+                        } else false
+                    }
+                    .focusable(true)
+                    .focusRequester(focusRequester),
                 shape = CircleShape,
                 contentPadding = PaddingValues(start = 2.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
                 enabled = sendEnabled
@@ -57,6 +76,10 @@ class SendAttachmentSendButtonViewImpl : SendAttachmentSendButtonView {
                     i18n.inputAreaSend(),
                 )
             }
+        }
+
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
         }
     }
 }
