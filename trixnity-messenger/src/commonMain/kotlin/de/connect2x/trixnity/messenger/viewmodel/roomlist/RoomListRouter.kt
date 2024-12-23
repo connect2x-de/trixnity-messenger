@@ -12,7 +12,6 @@ import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
-import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
@@ -52,7 +51,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onStartAccountSetup : (userId : UserId) -> Unit
+    private val onStartAccountSetup: (userId: UserId) -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -363,20 +362,15 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowAccountSetup (userId: UserId) {
+    private fun onShowAccountSetup(userId: UserId) {
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
             log.debug { "Reset account setup for account $userId" }
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(accountSetupFinished = false)}
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {
+                it.copy(accountSetupFinished = false)
+            }
         }
         onStartAccountSetup(userId)
-    }
-
-    suspend fun moveToBackStack() {
-        if (stack.value.active.configuration !is Config.None) {
-            log.debug { "move active view to back (push Config.None)" }
-            navigation.pushSuspending(Config.None)
-        }
     }
 
     suspend fun show() {

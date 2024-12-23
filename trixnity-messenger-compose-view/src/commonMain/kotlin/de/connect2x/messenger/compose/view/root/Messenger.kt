@@ -21,19 +21,18 @@ import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
 interface MessengerView {
     @Composable
-    fun create(mainViewModel: MainViewModel)
+    fun create(mainViewModel: MainViewModel, isSinglePane: Boolean)
 }
 
 @Composable
-fun Messenger(mainViewModel: MainViewModel) {
-    DI.get<MessengerView>().create(mainViewModel)
+fun Messenger(mainViewModel: MainViewModel, isSinglePane: Boolean) {
+    DI.get<MessengerView>().create(mainViewModel, isSinglePane)
 }
 
 class MessengerViewImpl : MessengerView {
     @Composable
-    override fun create(mainViewModel: MainViewModel) {
-        val isSinglePane = mainViewModel.isSinglePane.collectAsState().value
-        val isRoomShown = mainViewModel.showRoom.collectAsState().value
+    override fun create(mainViewModel: MainViewModel, isSinglePane: Boolean) {
+        val isRoomShown = mainViewModel.isRoomShown.collectAsState().value
         Row(modifier = Modifier.fillMaxSize()) {
 
             // Room List

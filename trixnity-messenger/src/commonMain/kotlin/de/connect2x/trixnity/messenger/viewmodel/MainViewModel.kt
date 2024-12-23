@@ -70,8 +70,7 @@ interface MainViewModelFactory {
 interface MainViewModel {
     val selectedRoomId: MutableStateFlow<RoomId?>
     val isBackButtonVisible: MutableStateFlow<Boolean>
-    val showRoom: StateFlow<Boolean>
-    val isSinglePane: MutableStateFlow<Boolean>
+    val isRoomShown: StateFlow<Boolean>
     val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>>
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
     val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>>
@@ -87,8 +86,6 @@ interface MainViewModel {
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
-
-    fun setSinglePane(isSinglePane: Boolean)
 
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
 
@@ -106,9 +103,8 @@ open class MainViewModelImpl(
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
-    override val isBackButtonVisible = MutableStateFlow(true)
-    override val isSinglePane = MutableStateFlow(false)
-    override val showRoom = MutableStateFlow(false)
+    override val isBackButtonVisible = MutableStateFlow(true) // TODO: Check if value is set correctly.
+    override val isRoomShown = MutableStateFlow(false)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
@@ -160,7 +156,7 @@ open class MainViewModelImpl(
     init {
         coroutineScope.launch {
             roomRouterStack.subscribe {
-                showRoom.value = it.active.instance !is RoomRouter.Wrapper.None
+                isRoomShown.value = it.active.instance !is RoomRouter.Wrapper.None
             }
             selfVerificationTrigger.onInvoke.collect {
                 log.debug { "triggered self verification for user: $it" }
@@ -199,7 +195,9 @@ open class MainViewModelImpl(
     }
 
     private fun backPressHandler() {
-        if (roomRouter.isShown() && isSinglePane.value) {
+        if (roomRouter.isShown()
+//            && isSinglePane.value
+        ) {
             closeDetailsAndShowList()
         } else {
             getOrNull<MinimizeApp>()?.invoke()
@@ -449,14 +447,10 @@ open class MainViewModelImpl(
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
             roomRouter.showRoom(userId, id)
-            // hack for iOS, since the observe mechanism of line 236ff does not work
+            // TODO: What hack exactly? Comment seems outdated!
+            // Hack for iOS: Since the observe mechanism of line 236ff does not work.
             selectedRoomId.value = id
-
-            if (isSinglePane.value) {
-                roomListRouter.moveToBackStack()
-            } else {
-                roomListRouter.show()
-            }
+            roomListRouter.show()
         }
     }
 
@@ -474,33 +468,8 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun setSinglePane(isSinglePane: Boolean) {
-        log.debug { "set single pane: $isSinglePane" }
-        isBackButtonVisible.value = isSinglePane
-
-        if (isSinglePane != this.isSinglePane.value) {
-            this.isSinglePane.value = isSinglePane
-            coroutineScope.launch {
-                if (isSinglePane) switchToSinglePane()
-                else switchToMultiPane()
-            }
-        }
-    }
-
     override fun closeAccountsOverview() {
         roomListRouter.closeAccountsOverview()
-    }
-
-    private suspend fun switchToMultiPane() {
-        roomListRouter.show()
-    }
-
-    private suspend fun switchToSinglePane() {
-        if (roomRouter.isShown()) {
-            roomListRouter.moveToBackStack()
-        } else {
-            roomListRouter.show()
-        }
     }
 
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
@@ -557,7 +526,6 @@ open class MainViewModelImpl(
 class PreviewMainViewModel : MainViewModel {
     override val selectedRoomId: MutableStateFlow<RoomId?> = MutableStateFlow(null)
     override val isBackButtonVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val isSinglePane: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>> =
         MutableValue(
             ChildStack(
@@ -572,7 +540,7 @@ class PreviewMainViewModel : MainViewModel {
             ChildStack(
                 active = Child.Created(
                     configuration = SelfVerificationRouter.Config.None,
-                    instance = SelfVerificationRouter.Wrapper.None
+                    instance = SelfVerificationRouter.Wrapper.None,
                 )
             )
         )
@@ -581,7 +549,7 @@ class PreviewMainViewModel : MainViewModel {
             ChildStack(
                 active = Child.Created(
                     configuration = SharingRouter.Config.None,
-                    instance = SharingRouter.Wrapper.None
+                    instance = SharingRouter.Wrapper.None,
                 )
             )
         )
@@ -626,36 +594,20 @@ class PreviewMainViewModel : MainViewModel {
             ChildStack(
                 active = Child.Created(
                     configuration = AccountSetupRouter.Config.None,
-                    instance = AccountSetupRouter.Wrapper.None
+                    instance = AccountSetupRouter.Wrapper.None,
                 )
             )
         )
 
-    override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
-
-    override fun start() {
-    }
-
-    override fun closeDetailsAndShowList() {
-    }
-
+    override val isRoomShown: StateFlow<Boolean> = MutableStateFlow(false)
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         selectedRoomId.value = id
     }
 
-    override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {
-    }
-
-    override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
-    }
-
-    override fun setSinglePane(isSinglePane: Boolean) {
-        this.isSinglePane.value = isSinglePane
-    }
-
-    override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
-    }
-
-    override fun closeAccountsOverview() {
-    }
+    override fun start() {}
+    override fun closeDetailsAndShowList() {}
+    override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {}
+    override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {}
+    override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {}
+    override fun closeAccountsOverview() {}
 }

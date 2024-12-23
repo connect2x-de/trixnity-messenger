@@ -3,8 +3,8 @@ package de.connect2x.messenger.compose.view.root
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -12,6 +12,8 @@ import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
+
+private val MAX_WIDTH = 1600.dp
 
 interface MainView {
     @Composable
@@ -31,13 +33,11 @@ class MainViewImpl : MainView {
         ) {
             Box(
                 Modifier.fillMaxSize()
+                    // TODO: remove the padding and adjust the bubble layout as it makes things look broken.
+                    .padding(horizontal = if (maxWidth - MAX_WIDTH > 0.dp) (maxWidth - MAX_WIDTH) / 2 else 0.dp)
             ) {
-                InitialSyncSwitch(mainViewModel)
-
                 val isSinglePane = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
-                LaunchedEffect(isSinglePane) {
-                    mainViewModel.setSinglePane(isSinglePane)
-                }
+                InitialSyncSwitch(mainViewModel, isSinglePane)
             }
         }
 
