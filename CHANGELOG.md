@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Possibility to provide an app version that is displayed in the info section
+- Show users typing in room list
+- Allow sending attachments with Enter (desktop)
 
 ### Changed
 
