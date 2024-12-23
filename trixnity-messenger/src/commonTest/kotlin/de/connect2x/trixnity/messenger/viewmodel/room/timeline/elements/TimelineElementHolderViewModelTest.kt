@@ -153,7 +153,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             cut.isFirstInUserSequence.value shouldBe false
             cancelNeverEndingCoroutines()
         }
-        should("showSender: be true when first in a user sequence (showSender)") {
+        should("showSender: be true when first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
                     text("Hi!")
@@ -168,7 +168,25 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("showSender: false when not first in a user sequence (showSender)") {
+        should("showSender: be true when state event before") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Hi!")
+                }
+                +stateEvent(sender = alice) {
+                    content = MemberEventContent(membership = Membership.JOIN)
+                }
+                +timelineEvent
+            }
+            val cut = cut()
+
+            async { cut.showSender.collect() }
+            advanceUntilIdle()
+            cut.showSender.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showSender: false when not first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -199,7 +217,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("showSender: be false when room is direct (showSender)") {
+        should("showSender: be false when room is direct") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
                     text("Hi!")
@@ -218,7 +236,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("showBigGapBefore: be true when first in a user sequence (showBigGapBefore)") {
+        should("showBigGapBefore: be true when first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = bob,
@@ -236,7 +254,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("showBigGapBefore: false when not first in a user sequence (showBigGapBefore)") {
+        should("showBigGapBefore: false when not first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = alice,

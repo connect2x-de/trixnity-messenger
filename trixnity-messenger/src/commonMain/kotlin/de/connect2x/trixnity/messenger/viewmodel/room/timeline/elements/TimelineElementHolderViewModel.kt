@@ -324,7 +324,9 @@ class TimelineElementHolderViewModelImpl(
             .map { it.isDirect }
             .flatMapLatest { isDirect ->
                 if (isDirect) flowOf(false)
-                else isFirstInUserSequence.filterNotNull()
+                else previousSupportedTimelineEvent.map { timelineEvent ->
+                    timelineEvent?.sender != senderUserId || timelineEvent.event is StateEvent
+                }
             }
                 ).stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
