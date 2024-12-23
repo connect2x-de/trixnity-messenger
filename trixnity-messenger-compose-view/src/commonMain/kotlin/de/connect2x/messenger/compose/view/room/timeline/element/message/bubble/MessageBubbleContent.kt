@@ -49,7 +49,7 @@ fun MessageBubbleContent(
     val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
-    val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value
+    val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
     val hasRepliedElement = holder.isReply.collectAsState().value != null
 
     val highlighted = if (highlight) Modifier.border(
@@ -113,6 +113,15 @@ fun MessageBubbleContent(
                             )
                         }
                     }
+                    if (isReplaced) {
+                        Text(
+                            i18n.messageBubbleEdited(),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.paddingFromBaseline(0.dp)
+                                .padding(end = 2.dp),
+                            maxLines = 1,
+                        )
+                    }
                     ReadMarker(holder)
                 }
             } else {
@@ -128,7 +137,7 @@ fun MessageBubbleContent(
                                 ),
                                 verticalAlignment = Alignment.Bottom,
                             ) {
-                                if (isReplaced == true)
+                                if (isReplaced) {
                                     Text(
                                         i18n.messageBubbleEdited(),
                                         style = MaterialTheme.typography.labelSmall,
@@ -136,6 +145,7 @@ fun MessageBubbleContent(
                                             .padding(end = 2.dp),
                                         maxLines = 1,
                                     )
+                                }
                                 Text(
                                     it,
                                     style = MaterialTheme.typography.labelSmall,
