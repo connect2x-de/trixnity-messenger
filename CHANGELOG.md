@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Text colors in message bubbles and input field (Desktop) adjusted for dark mode
+
 ### Security
 
 ## 3.0.3
