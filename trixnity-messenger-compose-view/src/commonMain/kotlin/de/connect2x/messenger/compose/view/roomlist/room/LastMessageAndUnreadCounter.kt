@@ -10,17 +10,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.PlaceholderHighlight
 import de.connect2x.messenger.compose.view.common.fade
 import de.connect2x.messenger.compose.view.common.placeholder
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
-fun LastMessageAndUnreadMessagesCounter(lastMessage: String?, unreadMessages: String?) {
+fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementViewModel) {
+    val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
+    val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
+    val unreadMessages = roomListElementViewModel.unreadMessages.collectAsState().value
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -32,7 +39,7 @@ fun LastMessageAndUnreadMessagesCounter(lastMessage: String?, unreadMessages: St
             )
     ) {
         Box(Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()) {
-            LastMessage(lastMessage)
+            LastMessage(lastMessage, usersTyping)
         }
         if (unreadMessages != null) {
             Surface(
@@ -53,11 +60,21 @@ fun LastMessageAndUnreadMessagesCounter(lastMessage: String?, unreadMessages: St
 
 
 @Composable
-fun LastMessage(lastMessage: String?) {
-    Text(
-        lastMessage ?: " ",
-        style = MaterialTheme.typography.bodyMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-    )
+fun LastMessage(lastMessage: String?, usersTyping: String?) {
+    if (usersTyping != null) {
+        Text(
+            usersTyping,
+            style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    } else {
+        Text(
+            lastMessage ?: " ",
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }
