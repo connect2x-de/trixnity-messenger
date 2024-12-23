@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Don't show sender for own messages
+- Don't show sender for own elements (including outbox elements)
 
 ### Security
 

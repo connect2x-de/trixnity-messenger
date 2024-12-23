@@ -170,14 +170,7 @@ class OutboxElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val showSender: StateFlow<Boolean?> =
-        matrixClient.room.getById(roomId)
-            .filterNotNull()
-            .map { it.isDirect }
-            .flatMapLatest { isDirect ->
-                if (isDirect) flowOf(false)
-                else isFirstInUserSequence.filterNotNull()
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
     override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
