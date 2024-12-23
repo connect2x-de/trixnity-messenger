@@ -108,6 +108,7 @@ fun MessageBubbleContent(
                             Text(
                                 it,
                                 style = MaterialTheme.typography.labelSmall,
+                                color = if (holder.isByMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                 modifier = Modifier.paddingFromBaseline(0.dp),
                                 maxLines = 1,
                             )
@@ -132,6 +133,7 @@ fun MessageBubbleContent(
                                     Text(
                                         i18n.messageBubbleEdited(),
                                         style = MaterialTheme.typography.labelSmall,
+                                        color = if (holder.isByMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                         modifier = Modifier.paddingFromBaseline(0.dp)
                                             .padding(end = 2.dp),
                                         maxLines = 1,
@@ -139,7 +141,7 @@ fun MessageBubbleContent(
                                 Text(
                                     it,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = if (holder.isByMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.paddingFromBaseline(0.dp),
                                     maxLines = 1,
                                 )
