@@ -147,7 +147,7 @@ android-common = ["androidx-appcompat", "androidx-work-runtime-ktx", "androidx-l
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
-kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmBridge" }
+kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 # ui
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
