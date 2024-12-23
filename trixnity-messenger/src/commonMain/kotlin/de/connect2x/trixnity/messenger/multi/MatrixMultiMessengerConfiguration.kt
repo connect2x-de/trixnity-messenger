@@ -9,6 +9,7 @@ import net.folivo.trixnity.client.ModuleFactory
 data class MatrixMultiMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
     override var appId: String = "de.connect2x.messenger",
+    override var appVersion: String? = null,
     override var urlProtocol: String = appId,
     override var urlHost: String = "localhost",
     override var sendLogsEmailAddress: String? = null,

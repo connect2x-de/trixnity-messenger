@@ -8,7 +8,7 @@ if [ "$(git show-ref --tags "$TAG")" ]; then
     echo "Tag '$TAG' already exists, so do nothing."
 else
     cd ..
-    ./gradlew kmmBridgePublish updatePackageSwift --stacktrace
+    ./gradlew -PENABLE_PUBLISHING=true kmmBridgePublish updatePackageSwift --stacktrace
     cat Package.swift
     cp Package.swift spm/Package.swift
     cd spm

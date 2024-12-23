@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Possibility to provide an app version that is displayed in the info section
+
 ### Changed
 - Moved message metadata into a unified view
 
@@ -18,7 +20,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Text colors in message bubbles and input field (Desktop) adjusted for dark mode
+
 ### Security
+
+## 3.0.3
+
+### Fixed
+
+- Fixed various scrolling issues in timeline
+- Fixed outbox loading in timeline
+
+## 3.0.2
+
+### Changed
+
+- Upgraded Trixnity to 4.11.2
+
+### Fixed
+
+- Cleaned up timeline element loading/dropping to prevent some scroll-jump edge cases
+- Fixed rendering of the date in small message bubbles
+- Fixed timeline elements displayed in wrong order
 
 ## 3.0.1
 
@@ -59,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Format links with escaped ampersand (`&amp;`)
 - Format links with semicolon (`https://abc.xyz/a;b;c`)
 - Wrong device name displayed in verification success message
+- Overlay sometimes won't vanish when switching accounts
 
 ## 2.4.0
 
