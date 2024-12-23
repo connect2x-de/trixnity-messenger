@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.core.component.get
@@ -28,7 +29,7 @@ open class AppInfoViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseAppInfo: () -> Unit,
 ) : ViewModelContext by viewModelContext, AppInfoViewModel {
-    override val version: String? = get<AppVersion>().version
+    override val version: String? = get<MatrixMessengerConfiguration>().version
     override val showPrivacy = MutableStateFlow(false)
     override val showImprint = MutableStateFlow(false)
     override val showLicenses = MutableStateFlow(false)
