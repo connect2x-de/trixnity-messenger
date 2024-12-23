@@ -138,14 +138,14 @@ class TimelineViewImpl : TimelineView {
                                 }
                                 when (element) {
                                     is TimelineElementHolderViewModel -> {
-                                        launchWithTimeoutHint(message, { "hasUnreadMarker" }) {
-                                            element.hasUnreadMarker.filterNotNull().first()
+                                        launchWithTimeoutHint(message, { "showUnreadMarker" }) {
+                                            element.showUnreadMarker.filterNotNull().first()
                                         }
-                                        launchWithTimeoutHint(message, { "hasLoadingIndicatorBefore" }) {
-                                            element.hasLoadingIndicatorBefore.filterNotNull().first()
+                                        launchWithTimeoutHint(message, { "showLoadingIndicatorBefore" }) {
+                                            element.showLoadingIndicatorBefore.filterNotNull().first()
                                         }
-                                        launchWithTimeoutHint(message, { "hasLoadingIndicatorAfter" }) {
-                                            element.hasLoadingIndicatorAfter.filterNotNull().first()
+                                        launchWithTimeoutHint(message, { "showLoadingIndicatorAfter" }) {
+                                            element.showLoadingIndicatorAfter.filterNotNull().first()
                                         }
                                         if (element.isByMe) launchWithTimeoutHint(
                                             message,
@@ -181,7 +181,7 @@ class TimelineViewImpl : TimelineView {
             } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {
-                        it is TimelineElementHolderViewModel && it.hasUnreadMarker.value
+                        it is TimelineElementHolderViewModel && it.showUnreadMarker.value
                     } + 1).coerceAtMost(timelineElementHolderViewModels.size - 1)
                 }
                 val listState =

@@ -502,7 +502,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker: show the unread marker when event is set") {
+        should("showUnreadMarker: show the unread marker when event is set") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -513,17 +513,17 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut(eventId = EventId("0"))
 
-            async { cut.hasUnreadMarker.collect() }
+            async { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             timeline.fullyReadEventIndex.value = 0
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe true
+            cut.showUnreadMarker.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker: show the unread marker when subsequent event is added") {
+        should("showUnreadMarker: show the unread marker when subsequent event is added") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -532,9 +532,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.hasUnreadMarker.collect() }
+            async { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             timeline.addEvents {
                 +messageEvent(sender = bob) {
@@ -542,11 +542,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe true
+            cut.showUnreadMarker.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker: not show the unread marker when subsequent event is added but by us") {
+        should("showUnreadMarker: not show the unread marker when subsequent event is added but by us") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -555,9 +555,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.hasUnreadMarker.collect() }
+            async { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             timeline.addEvents {
                 +messageEvent(sender = us) {
@@ -565,11 +565,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker: remove the unread marker when marker removed") {
+        should("showUnreadMarker: remove the unread marker when marker removed") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -581,17 +581,17 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.hasUnreadMarker.collect() }
+            async { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe true
+            cut.showUnreadMarker.value shouldBe true
 
             timeline.fullyReadEventIndex.value = 1
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker: not show the unread marker, when no subsequent event") {
+        should("showUnreadMarker: not show the unread marker, when no subsequent event") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -600,12 +600,12 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.hasUnreadMarker.collect() }
+            async { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
             cancelNeverEndingCoroutines()
         }
-        should("hasUnreadMarker: not show the unread marker, when none of the next events is supported") {
+        should("showUnreadMarker: not show the unread marker, when none of the next events is supported") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
                     text("Hi!")
@@ -614,9 +614,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.hasUnreadMarker.collect() }
+            async { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             timeline.addEvents {
                 // should be ignored
@@ -629,7 +629,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 )
             }
             advanceUntilIdle()
-            cut.hasUnreadMarker.value shouldBe false
+            cut.showUnreadMarker.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
@@ -656,8 +656,8 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             senderUserId = timelineEvent.sender,
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
-            hasLoadingIndicatorBefore = flowOf(false),
-            hasLoadingIndicatorAfter = flowOf(false),
+            showLoadingIndicatorBefore = flowOf(false),
+            showLoadingIndicatorAfter = flowOf(false),
             getReceipts = { receipts },
             timelineEventFlow = flowOf(timelineEvent),
             onMessageReplace = mock(),
