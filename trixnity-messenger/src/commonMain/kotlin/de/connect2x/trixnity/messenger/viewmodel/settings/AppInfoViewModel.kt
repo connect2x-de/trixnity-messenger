@@ -29,7 +29,7 @@ open class AppInfoViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseAppInfo: () -> Unit,
 ) : ViewModelContext by viewModelContext, AppInfoViewModel {
-    override val version: String? = get<MatrixMessengerConfiguration>().version
+    override val version: String? = get<MatrixMessengerConfiguration>().appVersion
     override val showPrivacy = MutableStateFlow(false)
     override val showImprint = MutableStateFlow(false)
     override val showLicenses = MutableStateFlow(false)
