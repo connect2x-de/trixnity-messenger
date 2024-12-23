@@ -26,7 +26,9 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
+import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -174,6 +176,22 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
+
+            async { cut.showSender.collect() }
+            advanceUntilIdle()
+            cut.showSender.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showSender: be false when we are the sender") {
+            val ourTimelineEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = us))
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = bob) {
+                    text("Hi!")
+                }
+                +ourTimelineEvent
+            }
+            val cut = cut(timelineEvent = ourTimelineEvent)
 
             async { cut.showSender.collect() }
             advanceUntilIdle()
@@ -493,7 +511,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            val cut = cut(EventId("0"))
+            val cut = cut(eventId = EventId("0"))
 
             async { cut.hasUnreadMarker.collect() }
             advanceUntilIdle()
@@ -511,7 +529,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            val cut = cut(EventId("0"))
+            val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
             async { cut.hasUnreadMarker.collect() }
@@ -534,7 +552,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            val cut = cut(EventId("0"))
+            val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
             async { cut.hasUnreadMarker.collect() }
@@ -560,7 +578,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            val cut = cut(EventId("0"))
+            val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
             async { cut.hasUnreadMarker.collect() }
@@ -579,7 +597,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            val cut = cut(EventId("0"))
+            val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
             async { cut.hasUnreadMarker.collect() }
@@ -593,7 +611,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            val cut = cut(EventId("0"))
+            val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
             async { cut.hasUnreadMarker.collect() }
@@ -617,7 +635,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
         }
     }
 
-    private fun TestScope.cut(eventId: EventId = this@TimelineElementHolderViewModelTest.eventId): TimelineElementHolderViewModel {
+    private fun TestScope.cut(
+        timelineEvent: TimelineEvent = this@TimelineElementHolderViewModelTest.timelineEvent,
+        eventId: EventId = timelineEvent.eventId
+    ): TimelineElementHolderViewModel {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
@@ -632,7 +653,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             key = "$roomId-$eventId",
             roomId = roomId,
             eventId = eventId,
-            senderUserId = alice,
+            senderUserId = timelineEvent.sender,
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
             hasLoadingIndicatorBefore = flowOf(false),

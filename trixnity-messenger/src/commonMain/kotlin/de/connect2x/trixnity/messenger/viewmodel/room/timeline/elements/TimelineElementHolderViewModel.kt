@@ -318,13 +318,15 @@ class TimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> =
-        matrixClient.room.getById(roomId)
+        (if (senderUserId == userId) flowOf(false)
+        else matrixClient.room.getById(roomId)
             .filterNotNull()
             .map { it.isDirect }
             .flatMapLatest { isDirect ->
                 if (isDirect) flowOf(false)
                 else isFirstInUserSequence.filterNotNull()
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            }
+                ).stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->
