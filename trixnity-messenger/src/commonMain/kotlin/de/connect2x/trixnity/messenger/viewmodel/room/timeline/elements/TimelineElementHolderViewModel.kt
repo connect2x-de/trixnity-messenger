@@ -317,9 +317,9 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, senderUserId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    override val showSender: StateFlow<Boolean?> =
-        (if (senderUserId == userId) flowOf(false)
-        else matrixClient.room.getById(roomId)
+    override val showSender: StateFlow<Boolean?> = when {
+        senderUserId == userId -> flowOf(null)
+        else -> matrixClient.room.getById(roomId)
             .filterNotNull()
             .map { it.isDirect }
             .flatMapLatest { isDirect ->
@@ -328,7 +328,7 @@ class TimelineElementHolderViewModelImpl(
                     timelineEvent?.sender != senderUserId || timelineEvent.event is StateEvent
                 }
             }
-                ).stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->
