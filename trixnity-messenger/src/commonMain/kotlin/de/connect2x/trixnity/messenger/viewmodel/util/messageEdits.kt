@@ -1,23 +1,47 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.RelationType.Replace
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 
 private val log = KotlinLogging.logger {}
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun messageEdits(
+    client: MatrixClient,
+    eventId: EventId,
+    roomId: RoomId,
+): Flow<List<TimelineEvent>> =
+    client.room.getTimelineEventReplaceAggregation(roomId, eventId).flatMapLatest {
+        (it.history + eventId).distinct().map { historicEventId ->
+            client.room.getTimelineEvent(roomId, historicEventId) {
+                fetchSize = 1
+                allowReplaceContent = false
+                fetchTimeout = 1.minutes
+                decryptionTimeout = 1.minutes
+            }.filterNotNull()
+        }.let { flows ->
+            combine(flows) {
+                it.toList()
+            }
+        }
+    }
+
+private fun messageEditsOld(
     client: MatrixClient,
     eventId: EventId,
     roomId: RoomId,
@@ -27,6 +51,19 @@ fun messageEdits(
     // TODO: Rewrite to using nice flows instead.
     // TODO: Maybe return a wrapper to allow flow cancellation?
 
+    emit(client.room.getTimelineEventReplaceAggregation(roomId, eventId).map {
+        (it.history + eventId).distinct().mapNotNull { relationId ->
+            client.room.getTimelineEvent(roomId, relationId) {
+                fetchSize = 1
+                allowReplaceContent = false
+                fetchTimeout = 1.minutes
+                decryptionTimeout = 1.minutes
+            }.first()
+        }
+    }.first())
+
+
+    /*
     var relations: Map<EventId, Flow<TimelineEventRelation?>>? = null
     while (relations == null) {
         try {
@@ -76,4 +113,6 @@ fun messageEdits(
         emit(messages)
     }
     emit(messages)
+
+     */
 }
