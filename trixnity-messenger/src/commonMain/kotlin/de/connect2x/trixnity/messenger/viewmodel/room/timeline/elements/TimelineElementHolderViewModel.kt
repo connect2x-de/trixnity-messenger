@@ -318,7 +318,7 @@ class TimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> = when {
-        senderUserId == userId -> flowOf(null)
+        senderUserId == userId -> flowOf(false)
         else -> matrixClient.room.getById(roomId)
             .filterNotNull()
             .map { it.isDirect }

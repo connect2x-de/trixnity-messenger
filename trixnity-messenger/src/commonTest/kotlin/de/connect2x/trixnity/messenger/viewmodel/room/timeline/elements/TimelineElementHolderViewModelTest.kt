@@ -10,15 +10,15 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -43,6 +43,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
+
 
 class TimelineElementHolderViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room1", "localhost")
@@ -73,8 +74,6 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
     private val receipts = MutableStateFlow<Map<EventId, Set<UserId>>>(mapOf())
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
@@ -97,7 +96,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                             sender = userId,
                             roomId = roomId,
                             originTimestamp = 0L,
-                            stateKey = userId.full
+                            stateKey = userId.full,
                         )
                     )
                 )
@@ -124,10 +123,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
-            advanceUntilIdle()
-            cut.isFirstInUserSequence.value shouldBe true
-
+            launch { cut.isFirstInUserSequence.collect() }
+            eventually(1.seconds) {
+                cut.isFirstInUserSequence.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("isFirstInUserSequence: false when not first in a user sequence") {
@@ -148,9 +147,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
-            advanceUntilIdle()
-            cut.isFirstInUserSequence.value shouldBe false
+            launch { cut.isFirstInUserSequence.collect() }
+            eventually(1.seconds) {
+                cut.isFirstInUserSequence.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showSender: be true when first in a user sequence") {
@@ -161,11 +161,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showSender.collect() }
-            advanceUntilIdle()
-            cut.showSender.value shouldBe true
-
+            launch { cut.showSender.collect() }
+            eventually(1.seconds) {
+                cut.showSender.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("showSender: be true when state event before") {
@@ -179,11 +178,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showSender.collect() }
-            advanceUntilIdle()
-            cut.showSender.value shouldBe true
-
+            launch { cut.showSender.collect() }
+            eventually(1.seconds) {
+                cut.showSender.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("showSender: false when not first in a user sequence") {
@@ -194,11 +192,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showSender.collect() }
-            advanceUntilIdle()
-            cut.showSender.value shouldBe false
-
+            launch { cut.showSender.collect() }
+            eventually(1.seconds) {
+                cut.showSender.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showSender: be false when we are the sender") {
@@ -210,11 +207,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +ourTimelineEvent
             }
             val cut = cut(timelineEvent = ourTimelineEvent)
-
-            async { cut.showSender.collect() }
-            advanceUntilIdle()
-            cut.showSender.value shouldBe false
-
+            launch { cut.showSender.collect() }
+            eventually(1.seconds) {
+                cut.showSender.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showSender: be false when room is direct") {
@@ -225,15 +221,14 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showSender.collect() }
-            advanceUntilIdle()
-            cut.showSender.value shouldBe true
-
+            launch { cut.showSender.collect() }
+            eventually(1.seconds) {
+                cut.showSender.value shouldBe true
+            }
             timeline.room.update { it.copy(isDirect = true) }
-            advanceUntilIdle()
-            cut.showSender.value shouldBe false
-
+            eventually(1.seconds) {
+                cut.showSender.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showBigGapBefore: be true when first in a user sequence") {
@@ -247,11 +242,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showBigGapBefore.collect() }
-            advanceUntilIdle()
-            cut.showBigGapBefore.value shouldBe true
-
+            launch { cut.showBigGapBefore.collect() }
+            eventually(1.seconds) {
+                cut.showBigGapBefore.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("showBigGapBefore: false when not first in a user sequence") {
@@ -265,11 +259,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showBigGapBefore.collect() }
-            advanceUntilIdle()
-            cut.showBigGapBefore.value shouldBe false
-
+            launch { cut.showBigGapBefore.collect() }
+            eventually(1.seconds) {
+                cut.showBigGapBefore.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showBigGapBefore: be true when time gap is large enough") {
@@ -283,11 +276,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showBigGapBefore.collect() }
-            advanceUntilIdle()
-            cut.showBigGapBefore.value shouldBe true
-
+            launch { cut.showBigGapBefore.collect() }
+            eventually(1.seconds) {
+                cut.showBigGapBefore.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("showBigGapBefore: be false when time gap is not large enough") {
@@ -301,11 +293,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.showBigGapBefore.collect() }
-            advanceUntilIdle()
-            cut.showBigGapBefore.value shouldBe false
-
+            launch { cut.showBigGapBefore.collect() }
+            eventually(1.seconds) {
+                cut.showBigGapBefore.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be true when read by third user") {
@@ -313,15 +304,14 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             receipts.value = mapOf(eventId to setOf(bob))
-            advanceUntilIdle()
-            cut.isRead.value shouldBe true
-
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be true when message from third user after it") {
@@ -329,11 +319,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             timeline.addEvents {
                 // should be ignored
                 +messageEvent(sender = alice) {
@@ -343,9 +332,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe true
-
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be false when no on read or sent a message") {
@@ -353,11 +342,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be false when not read by anyone and only us send message after it") {
@@ -368,11 +356,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut()
-
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be false when not read by anyone and only the same user send message after it") {
@@ -383,11 +370,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut()
-
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be false when only we read the event") {
@@ -395,12 +381,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
             receipts.value = mapOf(eventId to setOf(us))
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("isRead: be false when only the sender read the event") {
@@ -408,12 +393,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
             receipts.value = mapOf(eventId to setOf(alice))
-            async { cut.isRead.collect() }
-            advanceUntilIdle()
-            cut.isRead.value shouldBe false
-
+            launch { cut.isRead.collect() }
+            eventually(1.seconds) {
+                cut.isRead.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: be empty when not read") {
@@ -421,11 +405,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
-            advanceUntilIdle()
-            cut.isReadBy.value shouldBe emptyList()
-
+            launch { cut.isReadBy.collect() }
+            eventually(1.seconds) {
+                cut.isReadBy.value shouldBe emptyList()
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: contain users from read markers") {
@@ -433,15 +416,14 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
-            advanceUntilIdle()
-            cut.isReadBy.value shouldBe emptyList()
-
+            launch { cut.isReadBy.collect() }
+            eventually(1.seconds) {
+                cut.isReadBy.value shouldBe emptyList()
+            }
             receipts.value = mapOf(eventId to setOf(bob))
-            advanceUntilIdle()
-            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
+            eventually(1.seconds) {
+                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: contain sender of subsequent events") {
@@ -449,19 +431,18 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
-            advanceUntilIdle()
-            cut.isReadBy.value shouldBe emptyList()
-
+            launch { cut.isReadBy.collect() }
+            eventually(1.seconds) {
+                cut.isReadBy.value shouldBe emptyList()
+            }
             timeline.addEvents {
                 +messageEvent(sender = bob) {
                     text("Hi!")
                 }
             }
-            advanceUntilIdle()
-            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
+            eventually(1.seconds) {
+                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: not contain us from read marker") {
@@ -469,12 +450,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             receipts.value = mapOf(eventId to setOf(us, bob))
-            advanceUntilIdle()
-            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
+            eventually(1.seconds) {
+                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: not contain sender from read marker") {
@@ -482,12 +462,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             receipts.value = mapOf(eventId to setOf(alice, bob))
-            advanceUntilIdle()
-            cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
-
+            eventually(1.seconds) {
+                cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: not contain us from subsequent events") {
@@ -498,11 +477,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
-            advanceUntilIdle()
-            cut.isReadBy.value shouldBe emptyList()
-
+            launch { cut.isReadBy.collect() }
+            eventually(1.seconds) {
+                cut.isReadBy.value shouldBe emptyList()
+            }
             cancelNeverEndingCoroutines()
         }
         should("isReadBy: not contain sender from subsequent events") {
@@ -513,11 +491,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut()
-
-            async { cut.isReadBy.collect() }
-            advanceUntilIdle()
-            cut.isReadBy.value shouldBe emptyList()
-
+            launch { cut.isReadBy.collect() }
+            eventually(1.seconds) {
+                cut.isReadBy.value shouldBe emptyList()
+            }
             cancelNeverEndingCoroutines()
         }
         should("showUnreadMarker: show the unread marker when event is set") {
@@ -530,15 +507,14 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut(eventId = EventId("0"))
-
-            async { cut.showUnreadMarker.collect() }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            launch { cut.showUnreadMarker.collect() }
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             timeline.fullyReadEventIndex.value = 0
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe true
-
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("showUnreadMarker: show the unread marker when subsequent event is added") {
@@ -548,20 +524,19 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut(eventId = EventId("0"))
-
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            launch { cut.showUnreadMarker.collect() }
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             timeline.addEvents {
                 +messageEvent(sender = bob) {
                     text("Hi!")
                 }
             }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe true
-
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe true
+            }
             cancelNeverEndingCoroutines()
         }
         should("showUnreadMarker: not show the unread marker when subsequent event is added but by us") {
@@ -571,20 +546,19 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut(eventId = EventId("0"))
-
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            launch { cut.showUnreadMarker.collect() }
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             timeline.addEvents {
                 +messageEvent(sender = us) {
                     text("Hi!")
                 }
             }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showUnreadMarker: remove the unread marker when marker removed") {
@@ -597,16 +571,15 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut(eventId = EventId("0"))
-
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe true
-
+            launch { cut.showUnreadMarker.collect() }
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe true
+            }
             timeline.fullyReadEventIndex.value = 1
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showUnreadMarker: not show the unread marker, when no subsequent event") {
@@ -616,11 +589,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut(eventId = EventId("0"))
-
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
+            launch { cut.showUnreadMarker.collect() }
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
         should("showUnreadMarker: not show the unread marker, when none of the next events is supported") {
@@ -630,12 +603,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut(eventId = EventId("0"))
-
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            launch { cut.showUnreadMarker.collect() }
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             timeline.addEvents {
                 // should be ignored
                 +MessageEvent(
@@ -646,9 +618,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     originTimestamp = 1234,
                 )
             }
-            advanceUntilIdle()
-            cut.showUnreadMarker.value shouldBe false
-
+            eventually(1.seconds) {
+                cut.showUnreadMarker.value shouldBe false
+            }
             cancelNeverEndingCoroutines()
         }
     }
