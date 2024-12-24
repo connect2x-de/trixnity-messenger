@@ -40,7 +40,7 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 class RoomListRouter(
     private val viewModelContext: ViewModelContext,
@@ -51,7 +51,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onStartAccountSetup: (userId: UserId) -> Unit
+    private val onStartAccountSetup: (userId: UserId) -> Unit,
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -72,7 +72,7 @@ class RoomListRouter(
 
     private fun createChild(
         roomListConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (roomListConfig) {
             is Config.None -> Wrapper.None
@@ -87,7 +87,7 @@ class RoomListRouter(
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
                     onOpenAccountsOverview = ::onOpenAccountsOverview,
-                    onAccountSelected = onAccountSelected
+                    onAccountSelected = onAccountSelected,
                 )
             )
 

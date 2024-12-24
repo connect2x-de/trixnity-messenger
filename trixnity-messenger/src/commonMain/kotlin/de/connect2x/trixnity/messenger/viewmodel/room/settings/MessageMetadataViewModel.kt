@@ -2,8 +2,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.util.messageEdits
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 
@@ -13,18 +17,14 @@ private val log = KotlinLogging.logger {}
 interface MessageMetadataViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-//        message: TimelineElementViewModel.Message<*>,
-//        message: TimelineElementHolderViewModel,
         eventId: EventId,
         roomId: RoomId,
-//        addMembersToRoomViewModel: PotentialMembersViewModel,
         onBack: () -> Unit,
     ): MessageMetadataViewModel {
         return MessageMetadataViewModelImpl(
             viewModelContext,
             eventId,
             roomId,
-//            addMembersToRoomViewModel,
             onBack,
         )
     }
@@ -38,9 +38,11 @@ interface MessageMetadataViewModel {
     //    val message: TimelineElementViewModel.Message<*>
 //    val message: TimelineElementHolderViewModel
     val eventId: EventId
-//    val readers: StateFlow<List<UserInfoElement>?>
+
+    //    val readers: StateFlow<List<UserInfoElement>?>
 //    val reactors: StateFlow<Map<String, List<UserInfoElement>>?>
 //    val edits: StateFlow<List<TimelineElementViewModel.Message<*>>>
+    val edits: StateFlow<List<TimelineEvent>>
     val error: StateFlow<String?>
 //    val errorCause: StateFlow<String?>
 
@@ -67,7 +69,7 @@ class MessageMetadataViewModelImpl(
         backHandler.register(backCallback)
     }
 
-//    override val sender: StateFlow<UserInfoElement?> = message.sender
+    //    override val sender: StateFlow<UserInfoElement?> = message.sender
 //    override val readers: StateFlow<List<UserInfoElement>?> = message.isReadBy
 //    override val reactors: StateFlow<Map<String, List<UserInfoElement>>?> =
 //        message.reactions.map { reactions ->
@@ -75,7 +77,10 @@ class MessageMetadataViewModelImpl(
 //        }
 //            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 //
-//    override val edits: StateFlow<List<TimelineElementViewModel.Message<*>>> =
+    override val edits: StateFlow<List<TimelineEvent>> =
+        messageEdits(matrixClient, eventId, roomId)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+
 //        flow<List<TimelineElementViewModel.Message<*>>> {
 ////            emit(null)
 ////            matrixClient
@@ -87,7 +92,6 @@ class MessageMetadataViewModelImpl(
 //            }
 //
 //
-//        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
     override val error: StateFlow<String?>
         get() = TODO("Not yet implemented")

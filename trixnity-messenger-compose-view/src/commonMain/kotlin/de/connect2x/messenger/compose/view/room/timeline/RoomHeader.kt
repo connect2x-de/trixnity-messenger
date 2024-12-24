@@ -291,4 +291,5 @@ fun RoomContextMenu(
 
 @Composable
 private fun textColor(enabled: Boolean) =
-    if (enabled) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+    if (enabled) MaterialTheme.colorScheme.onBackground
+    else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
