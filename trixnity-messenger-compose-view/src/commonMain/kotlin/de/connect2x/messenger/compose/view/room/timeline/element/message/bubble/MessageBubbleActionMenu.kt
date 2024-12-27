@@ -50,8 +50,9 @@ fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
+    onReactLegacy: () -> Unit,
+    onInfoLegacy: () -> Unit,
     onInfo: () -> Unit,
-    onReact: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -80,7 +81,7 @@ fun BoxScope.MessageBubbleActionMenu(
                         .padding(bottom = 40.dp)
                 ) {
                     additionalContextActions(onClose)
-                    holder.baseMenuActions(i18n, onInfo, onReact).forEach { action ->
+                    holder.baseMenuActions(i18n, onInfo, onInfoLegacy, onReactLegacy).forEach { action ->
                         action.render {
                             onClose()
                         }
@@ -127,7 +128,7 @@ fun BoxScope.MessageBubbleActionMenu(
                     .sizeIn(maxWidth = 300.dp),
             ) {
                 additionalContextActions(onClose)
-                holder.baseMenuActions(i18n, onInfo, onReact).forEach { action ->
+                holder.baseMenuActions(i18n, onInfo, onInfoLegacy, onReactLegacy).forEach { action ->
                     action.render { onClose() }
                 }
             }

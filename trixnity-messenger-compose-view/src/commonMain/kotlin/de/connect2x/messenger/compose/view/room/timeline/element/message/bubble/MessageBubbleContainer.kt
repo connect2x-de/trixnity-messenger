@@ -122,11 +122,12 @@ fun MessageBubbleContainer(
                 holder,
                 hoverMessage,
                 showActionMenu,
+                onReactLegacy = { reactionsOpen.value = true }, // TODO remove
+                onInfoLegacy = { infoOpen.value = true }, // TODO remove
                 onInfo = {
+                    // TODO maybe add showMessageMetadata to BaseTimelineHolderElementVM?
                     if (holder is TimelineElementHolderViewModel) holder.showMessageMetadata()
-//                    infoOpen.value = true
                 },
-                onReact = { reactionsOpen.value = true },
                 additionalContextActions,
             )
         }

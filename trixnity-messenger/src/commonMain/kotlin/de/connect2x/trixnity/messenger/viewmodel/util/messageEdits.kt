@@ -9,12 +9,22 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformLatest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.room.TimelineEventAggregation
 import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.TimelineEventRelation
+import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.originTimestamp
+import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.RelationType
+import net.folivo.trixnity.core.model.events.m.replace
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -26,8 +36,11 @@ fun messageEdits(
     eventId: EventId,
     roomId: RoomId,
 ): Flow<List<TimelineEvent>> =
-    client.room.getTimelineEventReplaceAggregation(roomId, eventId).flatMapLatest {
-        (it.history + eventId).distinct().map { historicEventId ->
+// The replace-aggregation on Trixnity currently supports a local-only fetch.
+// This means there could be future edge cases of history items missing. But for now it should do.
+//    client.room.getTimelineEventReplaceAggregation(roomId, eventId).flatMapLatest {
+    getTimelineEventReplaceAggregation(client.room, roomId, eventId).flatMapLatest { aggregation ->
+        (aggregation.history + eventId).distinct().map { historicEventId ->
             client.room.getTimelineEvent(roomId, historicEventId) {
                 fetchSize = 1
                 allowReplaceContent = false
@@ -35,8 +48,8 @@ fun messageEdits(
                 decryptionTimeout = 1.minutes
             }.filterNotNull()
         }.let { flows ->
-            combine(flows) {
-                it.toList()
+            combine(flows) { events ->
+                events.toList().sortedBy { it.originTimestamp }.reversed()
             }
         }
     }
