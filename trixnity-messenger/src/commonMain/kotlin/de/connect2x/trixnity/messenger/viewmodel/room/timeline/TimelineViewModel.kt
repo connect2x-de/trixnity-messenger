@@ -564,10 +564,10 @@ class TimelineViewModelImpl(
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
-        val hasLoadingIndicatorBefore = loadingIndicatorBefore.map { it == key }.distinctUntilChanged()
+        val showLoadingIndicatorBefore = loadingIndicatorBefore.map { it == key }.distinctUntilChanged()
             // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
             .debounce(300.milliseconds)
-        val hasLoadingIndicatorAfter = loadingIndicatorAfter.map { it == key }.distinctUntilChanged()
+        val showLoadingIndicatorAfter = loadingIndicatorAfter.map { it == key }.distinctUntilChanged()
             // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
             .debounce(300.milliseconds)
 
@@ -585,8 +585,8 @@ class TimelineViewModelImpl(
             sender = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
-            hasLoadingIndicatorBefore = hasLoadingIndicatorBefore,
-            hasLoadingIndicatorAfter = hasLoadingIndicatorAfter,
+            showLoadingIndicatorBefore = showLoadingIndicatorBefore,
+            showLoadingIndicatorAfter = showLoadingIndicatorAfter,
             getReceipts = ::getReceipts,
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,

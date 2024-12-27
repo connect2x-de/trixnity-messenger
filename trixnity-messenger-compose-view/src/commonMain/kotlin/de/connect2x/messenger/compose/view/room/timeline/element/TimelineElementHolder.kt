@@ -39,16 +39,16 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
         Column {
             when (timelineElementHolderViewModel) {
                 is TimelineElementHolderViewModel -> {
-                    val hasLoadingIndicatorBefore =
-                        timelineElementHolderViewModel.hasLoadingIndicatorBefore.collectAsState().value
-                    val hasLoadingIndicatorAfter =
-                        timelineElementHolderViewModel.hasLoadingIndicatorAfter.collectAsState().value
-                    val hasUnreadMarker = timelineElementHolderViewModel.hasUnreadMarker.collectAsState().value
+                    val showLoadingIndicatorBefore =
+                        timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsState().value
+                    val showLoadingIndicatorAfter =
+                        timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
+                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
 
-                    AnimatedVisibility(hasLoadingIndicatorBefore, enter = EnterTransition.None) { LoadingSpinner() }
+                    AnimatedVisibility(showLoadingIndicatorBefore, enter = EnterTransition.None) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
-                    AnimatedVisibility(hasUnreadMarker) { UnreadMessagesIndicator() }
-                    AnimatedVisibility(hasLoadingIndicatorAfter, enter = EnterTransition.None) { LoadingSpinner() }
+                    AnimatedVisibility(showUnreadMarker) { UnreadMessagesIndicator() }
+                    AnimatedVisibility(showLoadingIndicatorAfter, enter = EnterTransition.None) { LoadingSpinner() }
                 }
 
                 is OutboxElementHolderViewModel -> {
