@@ -44,8 +44,6 @@ fun MessageBubbleContent(
     showActionMenu: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
-    val i18n = DI.get<I18nView>()
-
     val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
