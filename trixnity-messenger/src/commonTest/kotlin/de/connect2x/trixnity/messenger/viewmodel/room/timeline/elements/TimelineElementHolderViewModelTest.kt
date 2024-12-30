@@ -17,6 +17,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Instant
@@ -104,6 +105,8 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 )
             }
             every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns emptyFlow()
+
             receipts.value = mapOf()
         }
 
