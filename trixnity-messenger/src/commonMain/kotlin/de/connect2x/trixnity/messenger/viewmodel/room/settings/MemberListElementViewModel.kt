@@ -198,7 +198,7 @@ class MemberListElementViewModelImpl(
         matrixClient.user.canUnbanUser(selectedRoomId, memberUserId)
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val iHavePowerToBlockUser: Boolean = matrixClient.userId == roomUser.userId
+    override val iHavePowerToBlockUser: Boolean = matrixClient.userId != roomUser.userId
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val blockingInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
