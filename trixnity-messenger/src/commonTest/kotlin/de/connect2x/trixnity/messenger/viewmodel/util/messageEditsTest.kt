@@ -152,12 +152,12 @@ class messageEditsTest : ShouldSpec() {
             val cut = cut(eventId0)
             cut.firstNotNullWithClue().let {
                 it shouldHaveSize 2
-                it[0].eventId shouldBe eventId1
-                it[0].originTimestamp shouldBe timestamp1
-                it[0].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message1)
-                it[1].eventId shouldBe eventId0
-                it[1].originTimestamp shouldBe timestamp0
-                it[1].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message0)
+                it[0].eventId shouldBe eventId0
+                it[0].originTimestamp shouldBe timestamp0
+                it[0].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message0)
+                it[1].eventId shouldBe eventId1
+                it[1].originTimestamp shouldBe timestamp1
+                it[1].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message1)
             }
             cancelNeverEndingCoroutines()
         }
@@ -177,18 +177,18 @@ class messageEditsTest : ShouldSpec() {
             val cut = cut(eventId0)
             cut.firstNotNullWithClue().let {
                 it shouldHaveSize 4
-                it[0].eventId shouldBe eventId3
-                it[0].originTimestamp shouldBe timestamp3
-                it[0].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message3)
-                it[1].eventId shouldBe eventId2
-                it[1].originTimestamp shouldBe timestamp2
-                it[1].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message2)
-                it[2].eventId shouldBe eventId1
-                it[2].originTimestamp shouldBe timestamp1
-                it[2].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message1)
-                it[3].eventId shouldBe eventId0
-                it[3].originTimestamp shouldBe timestamp0
-                it[3].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message0)
+                it[0].eventId shouldBe eventId0
+                it[0].originTimestamp shouldBe timestamp0
+                it[0].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message0)
+                it[1].eventId shouldBe eventId1
+                it[1].originTimestamp shouldBe timestamp1
+                it[1].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message1)
+                it[2].eventId shouldBe eventId2
+                it[2].originTimestamp shouldBe timestamp2
+                it[2].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message2)
+                it[3].eventId shouldBe eventId3
+                it[3].originTimestamp shouldBe timestamp3
+                it[3].content!! shouldBeSuccess RoomMessageEventContent.TextBased.Text(message3)
             }
         }
 

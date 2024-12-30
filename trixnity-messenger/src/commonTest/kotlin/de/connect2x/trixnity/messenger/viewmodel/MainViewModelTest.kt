@@ -668,16 +668,14 @@ class MainViewModelTest : ShouldSpec() {
                 it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
-
-            startSyncPresenceCapture shouldBe
-                    listOf(
-                        Presence.ONLINE, // initial sync
-                        Presence.ONLINE, // first normal sync
-                        Presence.OFFLINE, // 4 changes
-                        Presence.ONLINE,
-                        Presence.OFFLINE,
-                        Presence.ONLINE
-                    )
+            startSyncPresenceCapture shouldBe listOf(
+                Presence.ONLINE, // initial sync
+                Presence.ONLINE, // first normal sync
+                Presence.OFFLINE, // 4 changes
+                Presence.ONLINE,
+                Presence.OFFLINE,
+                Presence.ONLINE,
+            )
         }
     }
 
@@ -686,7 +684,7 @@ class MainViewModelTest : ShouldSpec() {
         matrixClients: Map<UserId, MatrixClient> = mapOf(UserId("test", "server") to matrixClientMock),
     ): MainViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
-        val mainViewModel = MainViewModelImpl(
+        return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
                 di = koinApplication {
@@ -704,9 +702,7 @@ class MainViewModelTest : ShouldSpec() {
                                     onBack: () -> Unit,
                                     onVerifyUser: () -> Unit,
                                     onShowRoomSettings: () -> Unit,
-                                ): RoomHeaderViewModel {
-                                    return roomHeaderViewModelMock
-                                }
+                                ): RoomHeaderViewModel = roomHeaderViewModelMock
                             }
                         }
                         single<InputAreaViewModelFactory> {
@@ -718,9 +714,7 @@ class MainViewModelTest : ShouldSpec() {
                                     onMessageReplyFinished: (RoomId, EventId) -> Unit,
                                     onShowAttachmentSendView: (FileDescriptor) -> Unit,
                                     onOpenMention: OpenMentionCallback
-                                ): InputAreaViewModel {
-                                    return inputAreaViewModelMock
-                                }
+                                ): InputAreaViewModel = inputAreaViewModelMock
                             }
                         }
                         single<RoomListViewModelFactory> {
@@ -736,69 +730,45 @@ class MainViewModelTest : ShouldSpec() {
                                     onSendLogs: () -> Unit,
                                     onOpenAccountsOverview: () -> Unit,
                                     onAccountSelected: () -> Unit,
-                                ): RoomListViewModel {
-                                    return object : RoomListViewModel {
-                                        override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
-                                        override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-                                        override val errorType: MutableStateFlow<ErrorType> =
-                                            MutableStateFlow(ErrorType.JUST_DISMISS)
-                                        override val elements: StateFlow<List<RoomListElementViewModel>> =
-                                            MutableStateFlow(emptyList())
-                                        override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
-                                            emptyMap()
-                                        )
-                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
-                                        override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-                                        override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-                                        override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
-                                            MutableStateFlow(true)
-                                        override val unverifiedAccounts: StateFlow<List<UserId>> =
+                                ): RoomListViewModel = object : RoomListViewModel {
+                                    override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
+                                    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+                                    override val errorType: MutableStateFlow<ErrorType> =
+                                        MutableStateFlow(ErrorType.JUST_DISMISS)
+                                    override val elements: StateFlow<List<RoomListElementViewModel>> =
+                                        MutableStateFlow(emptyList())
+                                    override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
+                                        emptyMap()
+                                    )
+                                    override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
+                                    override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
+                                    override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
+                                    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+                                    override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
+                                        MutableStateFlow(true)
+                                    override val unverifiedAccounts: StateFlow<List<UserId>> =
+                                        MutableStateFlow(listOf())
+                                    override val closeProfileNeeded: Boolean = false
+                                    override val accountViewModel: AccountViewModel = object : AccountViewModel {
+                                        override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+                                        override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val accounts: StateFlow<List<AccountInfo>> =
                                             MutableStateFlow(listOf())
-                                        override val closeProfileNeeded: Boolean = false
-                                        override val accountViewModel: AccountViewModel = object : AccountViewModel {
-                                            override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
-                                            override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
-                                            override val accounts: StateFlow<List<AccountInfo>> =
-                                                MutableStateFlow(listOf())
 
-                                            override fun selectActiveAccount(userId: UserId?) {
-                                            }
-
-                                            override fun openUserSettings() {
-                                            }
-
-                                            override fun openUserProfile() {
-                                            }
-
-                                            override fun openAppInfo() {
-                                            }
-                                        }
-
-                                        override fun createNewRoom() {
-                                        }
-
-                                        override fun createNewRoomFor(userId: UserId) {
-                                        }
-
-                                        override fun selectRoom(roomId: RoomId) {
-                                        }
-
-                                        override fun errorDismiss() {
-                                        }
-
-                                        override fun sendLogs() {
-                                        }
-
-                                        override fun openAccountsOverview() {
-                                        }
-
-                                        override fun closeProfile() {
-                                        }
-
-                                        override fun verifyAccount(userId: UserId) {
-                                        }
+                                        override fun selectActiveAccount(userId: UserId?) {}
+                                        override fun openUserSettings() {}
+                                        override fun openUserProfile() {}
+                                        override fun openAppInfo() {}
                                     }
+
+                                    override fun createNewRoom() {}
+                                    override fun createNewRoomFor(userId: UserId) {}
+                                    override fun selectRoom(roomId: RoomId) {}
+                                    override fun errorDismiss() {}
+                                    override fun sendLogs() {}
+                                    override fun openAccountsOverview() {}
+                                    override fun closeProfile() {}
+                                    override fun verifyAccount(userId: UserId) {}
                                 }
                             }
                         }
@@ -808,8 +778,8 @@ class MainViewModelTest : ShouldSpec() {
             ),
             onCreateNewAccount = {},
             onRemoveAccount = {},
-        )
-        mainViewModel.start()
-        return mainViewModel
+        ).apply {
+            start()
+        }
     }
 }

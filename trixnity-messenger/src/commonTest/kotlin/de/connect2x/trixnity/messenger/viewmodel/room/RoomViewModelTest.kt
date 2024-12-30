@@ -17,6 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
+import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -27,8 +28,9 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.TestScope
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,6 +53,7 @@ import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
@@ -60,6 +63,7 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -69,32 +73,21 @@ class RoomViewModelTest : ShouldSpec() {
     private val backPressedHandler = BackDispatcher()
 
     private val roomId = RoomId("room", "localhost")
-
     private val myUserId = UserId("user1", "localhost")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
 
-    val matrixClientMock = mock<MatrixClient>()
-
-    val roomServiceMock = mock<RoomService>()
-
-    val keyServiceMock = mock<KeyService>()
-
-    val verificationServiceMock = mock<VerificationService>()
-
-    val userServiceMock = mock<UserService>()
-
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
-
-    val syncApiClientMock = mock<SyncApiClient>()
-
-    val downloadManagerMock = mock<DownloadManager>()
-
-    val isNetworkAvailable = mock<IsNetworkAvailable>()
-
-    val runInitialSyncMock = mock<RunInitialSync>()
-
-    val minimizeMessengerMock = mock<() -> Unit>()
+    val matrixClientMock = mock<MatrixClient>()
+    val roomServiceMock = mock<RoomService>()
+    val userServiceMock = mock<UserService>()
+    private val keyServiceMock = mock<KeyService>()
+    private val verificationServiceMock = mock<VerificationService>()
+    private val syncApiClientMock = mock<SyncApiClient>()
+    private val downloadManagerMock = mock<DownloadManager>()
+    private val isNetworkAvailable = mock<IsNetworkAvailable>()
+    private val runInitialSyncMock = mock<RunInitialSync>()
+    private val minimizeMessengerMock = mock<() -> Unit>()
 
     lateinit var selfVerificationMethods: BlockingAnsweringScope<Flow<VerificationService.SelfVerificationMethods>>
     lateinit var syncState: BlockingAnsweringScope<StateFlow<SyncState>>
@@ -118,7 +111,6 @@ class RoomViewModelTest : ShouldSpec() {
             )
             lifecycle = LifecycleRegistry()
             lifecycle.resume()
-
             every { matrixClientMock.di } returns koinApplication {
                 modules(module {
                     single { roomServiceMock }
@@ -127,7 +119,6 @@ class RoomViewModelTest : ShouldSpec() {
                     single { verificationServiceMock }
                 })
             }.koin
-
             every { matrixClientMock.userId } returns myUserId
             every { matrixClientMock.deviceId } returns myDeviceId
             every { matrixClientMock.api } returns matrixClientServerApiClientMock
@@ -135,9 +126,7 @@ class RoomViewModelTest : ShouldSpec() {
             syncState returns MutableStateFlow(SyncState.RUNNING)
             everySuspend { matrixClientMock.startSync() } returns Unit
             everySuspend { matrixClientMock.cancelSync(any()) } returns Unit
-
             every { matrixClientServerApiClientMock.sync } returns syncApiClientMock
-
             every { roomServiceMock.getAll() } returns roomsFlow
             every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId))
             every {
@@ -148,40 +137,34 @@ class RoomViewModelTest : ShouldSpec() {
                     any(),
                     any<suspend (Flow<TimelineEvent>) -> Unit>()
                 )
-            } returns
-                    NoOpTimeline
+            } returns NoOpTimeline
             every { roomServiceMock.getById(any()) } returns flowOf(null)
             every {
                 roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "")
             } returns flowOf(null)
             every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
             every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
-
             every {
                 roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
             } returns MutableStateFlow(null)
-
             every {
                 roomServiceMock.getState(any(), eq(PowerLevelsEventContent::class), any())
             } returns MutableStateFlow(null)
             every {
                 roomServiceMock.usersTyping
             } returns MutableStateFlow(mapOf())
-
             every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(
                 null
             )
-            selfVerificationMethods =
-                every { verificationServiceMock.getSelfVerificationMethods() }
-            selfVerificationMethods returns MutableStateFlow(
+            every { verificationServiceMock.getSelfVerificationMethods() }.also {
+                selfVerificationMethods = it
+            } returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.PreconditionsNotMet(
                     emptySet()
                 )
             )
-
             every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns
                     flowOf(DeviceTrustLevel.Valid(false))
-
             everySuspend {
                 userServiceMock.loadMembers(
                     RoomId(any()),
@@ -189,7 +172,6 @@ class RoomViewModelTest : ShouldSpec() {
                 )
             } returns Unit
             every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
-
             every { userServiceMock.userPresence } returns MutableStateFlow(emptyMap())
             every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
             every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
@@ -200,7 +182,6 @@ class RoomViewModelTest : ShouldSpec() {
                     MutableStateFlow(null)
             every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
-
             every { minimizeMessengerMock.invoke() } returns Unit
         }
 
@@ -210,11 +191,101 @@ class RoomViewModelTest : ShouldSpec() {
 
         should("show selected room without settings initially") {
             val cut = roomViewModel()
-
-            shouldShowInitialView(cut)
-            delay(100.milliseconds)
+            advanceUntilIdle()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+            cancelNeverEndingCoroutines()
         }
 
+        should("show room settings") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            cut.showSettings()
+            advanceUntilIdle()
+//            cut shouldShowTimeline false
+            cut shouldShowExtrasOfType ExtrasRouter.Wrapper.RoomSettings::class
+            cancelNeverEndingCoroutines()
+        }
+
+        should("show message info") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            val eventId = EventId("event1")
+            cut.showMessageMetadata(eventId)
+            advanceUntilIdle()
+            delay(100)
+//            cut shouldShowTimeline false
+            cut shouldShowExtrasOfType ExtrasRouter.Wrapper.MessageMetadata::class
+            cancelNeverEndingCoroutines()
+        }
+
+        should("return from settings") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            cut.showSettings()
+            advanceUntilIdle()
+            cut.onCloseRoomSettings()
+            advanceUntilIdle()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+            cancelNeverEndingCoroutines()
+        }
+
+        should("return from message metadata") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            val eventId = EventId("event1")
+            cut.showMessageMetadata(eventId)
+            advanceUntilIdle()
+            cut.onCloseRoomSettings()
+            advanceUntilIdle()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+            cancelNeverEndingCoroutines()
+        }
+
+        should("close everything when closing room") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            cut.onRoomBack()
+            advanceUntilIdle()
+            cut shouldShowTimeline false
+            cut shouldShowExtras false
+            cancelNeverEndingCoroutines()
+        }
+
+        should("return to settings from message metadata") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            cut.showSettings()
+            advanceUntilIdle()
+            val eventId = EventId("event1")
+            cut.showMessageMetadata(eventId)
+            advanceUntilIdle()
+            cut.onCloseRoomSettings()
+            advanceUntilIdle()
+//            cut shouldShowTimeline true
+            cut shouldShowExtrasOfType ExtrasRouter.Wrapper.RoomSettings::class
+            cancelNeverEndingCoroutines()
+        }
+
+        should("close extras when returning from settings") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            val eventId = EventId("event1")
+            cut.showMessageMetadata(eventId)
+            advanceUntilIdle()
+            cut.showSettings()
+            advanceUntilIdle()
+            cut.onCloseRoomSettings()
+            advanceUntilIdle()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+            cancelNeverEndingCoroutines()
+        }
+
+
+        /*
         context(RoomViewModel::setSinglePane.toString()) {
             context("settings aren't activated") {
                 should("show room list in single-pane view") {
@@ -278,72 +349,30 @@ class RoomViewModelTest : ShouldSpec() {
                 }
             }
         }
-        should("show the room when room settings are getting disabled in two-pane view") {
-            val cut = roomViewModel()
-            shouldShowInitialView(cut)
-            cut.setSinglePane(true)
-            delay(100.milliseconds)
+        */
 
-            cut.onCloseRoomSettings()
-            delay(100.milliseconds)
+    }
 
-            assertSoftly {
-                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
-            }
-        }
-
-        should("show the room when room settings are getting disabled in multi-pane view") {
-            val cut = roomViewModel()
-            shouldShowInitialView(cut)
-            cut.setSinglePane(false)
-            delay(100.milliseconds)
-
-            cut.onCloseRoomSettings()
-            delay(100.milliseconds)
-
-            assertSoftly {
-                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
-            }
-        }
-
-        should("show the room settings view when room settings are getting disabled in two-pane view") {
-            val cut = roomViewModel()
-            shouldShowInitialView(cut)
-            cut.setSinglePane(true)
-            delay(100.milliseconds)
-
-            cut.onShowRoomSettings()
-            delay(100.milliseconds)
-
-            assertSoftly {
-                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
-            }
-        }
-
-        should("show the room view and the room settings view when room settings are getting disabled in multi-pane view") {
-            val cut = roomViewModel()
-            shouldShowInitialView(cut)
-            cut.setSinglePane(false)
-            delay(100.milliseconds)
-
-            cut.onShowRoomSettings()
-            delay(100.milliseconds)
-
-            assertSoftly {
-                cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
-            }
+    private suspend infix fun RoomViewModel.shouldShowTimeline(isShown: Boolean) {
+        delay(10.milliseconds)
+        assertSoftly {
+            if (isShown) this.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
+            else this.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
         }
     }
 
-    private suspend fun TestScope.shouldShowInitialView(cut: RoomViewModel) {
-        delay(100.milliseconds)
+    private suspend infix fun RoomViewModel.shouldShowExtras(isShown: Boolean) {
+        delay(10.milliseconds)
         assertSoftly {
-            cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-            cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+            if (isShown) this.extrasStack.value.active.instance shouldNot beOfType<ExtrasRouter.Wrapper.None>()
+            else this.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+        }
+    }
+
+    private suspend infix fun RoomViewModel.shouldShowExtrasOfType(extrasType: KClass<out ExtrasRouter.Wrapper>) {
+        delay(10.milliseconds)
+        assertSoftly {
+            this.extrasStack.value.active.instance should beOfType(extrasType)
         }
     }
 

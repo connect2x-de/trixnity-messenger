@@ -49,7 +49,7 @@ fun messageEdits(
             }.filterNotNull()
         }.let { flows ->
             combine(flows) { events ->
-                events.toList().sortedBy { it.originTimestamp }.reversed()
+                events.toList().sortedBy { it.originTimestamp }
             }
         }
     }

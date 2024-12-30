@@ -19,7 +19,7 @@ fun ExtrasPaneContentSwitch(
         animation = stackAnimation(fade()),
     ) {
         when (val child = it.instance) {
-            is ExtrasRouter.Wrapper.View -> RoomSettingsContainer(child.viewModel, isTwoPane)
+            is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isTwoPane)
             is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
             is ExtrasRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel)

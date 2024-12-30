@@ -36,7 +36,7 @@ interface ExtrasRouter {
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class View(val viewModel: RoomSettingsViewModel) : Wrapper()
+        class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
         class MessageMetadata(val viewModel: MessageMetadataViewModel) : Wrapper()
@@ -118,7 +118,7 @@ class ExtrasRouterImpl(
     ): Wrapper = when (config) {
         is None -> Wrapper.None
 
-        is Config.RoomSettings.MainSettings -> Wrapper.View(
+        is Config.RoomSettings.MainSettings -> Wrapper.RoomSettings(
             viewModelContext.get<RoomSettingsViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
                 onBack = onRoomBack,

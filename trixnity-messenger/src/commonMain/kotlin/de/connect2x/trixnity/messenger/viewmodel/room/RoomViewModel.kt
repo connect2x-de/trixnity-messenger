@@ -7,7 +7,6 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
@@ -20,6 +19,8 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None as ExtrasNone
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config.None as TimelineNone
 
 
 private val log = KotlinLogging.logger {}
@@ -48,6 +49,7 @@ interface RoomViewModel {
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
     val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
     val isRoomSettingsShown: StateFlow<Boolean>
+    val isTimelineShown: StateFlow<Boolean>
     val isExtrasShown: StateFlow<Boolean>
 
     fun onRoomBack()
@@ -65,6 +67,7 @@ open class RoomViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
     override val isRoomSettingsShown = MutableStateFlow(false)
+    override val isTimelineShown = MutableStateFlow(false)
     override val isExtrasShown = MutableStateFlow(false)
 
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
@@ -89,16 +92,15 @@ open class RoomViewModelImpl(
         extrasRouter.stack
 
     init {
-        log.debug { "create RoomViewModel " + roomId.full }
+        log.debug { "create RoomViewModel for: ${roomId.full} " }
         coroutineScope.launch { timelineRouter.showTimeline(roomId) }
         extrasStack.subscribe {
             isRoomSettingsShown.value = it.active.configuration is RoomSettings
-            isExtrasShown.value = it.active.configuration !is None
+            isExtrasShown.value = it.active.configuration !is ExtrasNone
         }
-    }
-
-    override fun onRoomBack() {
-        this.onRoomBack.invoke()
+        timelineStack.subscribe {
+            isTimelineShown.value = it.active.configuration !is TimelineNone
+        }
     }
 
     override fun showSettings() {
@@ -109,12 +111,16 @@ open class RoomViewModelImpl(
         onShowMessageMetadata(eventId)
     }
 
-    internal fun onShowMessageMetadata(eventId: EventId) = coroutineScope.launch {
-        extrasRouter.showMessageMetadata(eventId, roomId)
+    override fun onRoomBack() {
+        this.onRoomBack.invoke()
     }
 
     internal fun onShowRoomSettings() = coroutineScope.launch {
         extrasRouter.showRoomSettings(roomId)
+    }
+
+    internal fun onShowMessageMetadata(eventId: EventId) = coroutineScope.launch {
+        extrasRouter.showMessageMetadata(eventId, roomId)
     }
 
     internal fun onCloseRoomSettings() = coroutineScope.launch {
@@ -127,7 +133,7 @@ class PreviewRoomViewModel : RoomViewModel {
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = TimelineRouter.Config.None,
+                    configuration = TimelineNone,
                     instance = TimelineRouter.Wrapper.None,
                 )
             )
@@ -136,13 +142,14 @@ class PreviewRoomViewModel : RoomViewModel {
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = None,
+                    configuration = ExtrasNone,
                     instance = ExtrasRouter.Wrapper.None,
                 )
             )
         )
-    override val isRoomSettingsShown: StateFlow<Boolean> = MutableStateFlow(false)
-    override val isExtrasShown: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isRoomSettingsShown = MutableStateFlow(false)
+    override val isTimelineShown = MutableStateFlow(false)
+    override val isExtrasShown = MutableStateFlow(false)
     override fun onRoomBack() {}
     override fun showSettings() {}
     override fun showMessageMetadata(eventId: EventId) {}

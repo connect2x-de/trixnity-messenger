@@ -80,15 +80,15 @@ interface MainViewModel {
     val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
     val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
-    // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
+    /**
+     * ATTENTION: The viewmodel has to be explicitly started as the routers cannot be not initialized in the init block!
+     */
     fun start()
     fun closeDetailsAndShowList()
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
-
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
-
     fun closeAccountsOverview()
 }
 
