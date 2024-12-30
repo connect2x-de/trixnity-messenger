@@ -50,6 +50,11 @@ class UserBlockingImpl : UserBlocking {
     ) {
         mutex.withLock {
             withTimeoutOrNull(5.seconds) {
+                if (matrixClient.userId == userToBlock) {
+                    onFailure(IllegalArgumentException("Cannot block yourself"))
+                    return@withTimeoutOrNull
+                }
+
                 matrixClient.user.getAccountData<IgnoredUserListEventContent>()
                     .map { it ?: IgnoredUserListEventContent(emptyMap()) }.first()
                     .ignoredUsers.let { ignoredUsers ->
