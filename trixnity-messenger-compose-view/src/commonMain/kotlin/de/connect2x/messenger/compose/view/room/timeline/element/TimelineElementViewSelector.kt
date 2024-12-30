@@ -9,9 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
 
@@ -39,16 +37,13 @@ fun TimelineElementSelector(
 class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) :
     TimelineElementViewSelector {
     private val factoryMapping =
-        MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, TimelineElementView<TimelineElementViewModel<*>>?>>(
+        MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, TimelineElementView<TimelineElementViewModel<*>>>>(
             emptyMap()
         )
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {
         val factory = selectFactory(element)
-        withTimeoutOrNull(1.seconds) {
-            factory?.waitFor(element)
-            Unit
-        } ?: log.warn { "waited for more then 1 second for ${element::class.simpleName}" }
+        factory?.waitFor(element)
     }
 
     @Composable
@@ -83,20 +78,18 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         return factoryMapping.value[timelineElementViewModelClass]
             ?: run {
                 val foundFactory = factories.firstOrNull { it.supports.isInstance(element) }
-                if (foundFactory == null) {
-                    log.warn {
-                        "There are no registered views for ${element::class.simpleName}. " +
-                                "This can be a missing view in the DI or might be an element that should not be " +
-                                "visible in the timeline."
+                    ?: run {
+                        log.warn {
+                            "There are no registered views for ${element::class.simpleName}. " +
+                                    "This can be a missing view in the DI or might be an element that should not be " +
+                                    "visible in the timeline."
+                        }
+                        EmptyTimelineElementView
                     }
-                    factoryMapping.update { it + (timelineElementViewModelClass to null) }
-                    null
-                } else {
-                    @Suppress("UNCHECKED_CAST")
-                    foundFactory as TimelineElementView<TimelineElementViewModel<*>>
-                    factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
-                    foundFactory
-                }
+                @Suppress("UNCHECKED_CAST")
+                foundFactory as TimelineElementView<TimelineElementViewModel<*>>
+                factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
+                foundFactory
             }
     }
 }

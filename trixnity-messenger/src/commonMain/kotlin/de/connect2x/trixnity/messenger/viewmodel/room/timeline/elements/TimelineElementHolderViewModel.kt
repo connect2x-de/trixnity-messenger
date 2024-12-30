@@ -84,8 +84,8 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
-        hasLoadingIndicatorBefore: Flow<Boolean>,
-        hasLoadingIndicatorAfter: Flow<Boolean>,
+        showLoadingIndicatorBefore: Flow<Boolean>,
+        showLoadingIndicatorAfter: Flow<Boolean>,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
@@ -101,8 +101,8 @@ interface TimelineElementHolderViewModelFactory {
             senderUserId = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
-            hasLoadingIndicatorBefore = hasLoadingIndicatorBefore,
-            hasLoadingIndicatorAfter = hasLoadingIndicatorAfter,
+            showLoadingIndicatorBefore = showLoadingIndicatorBefore,
+            showLoadingIndicatorAfter = showLoadingIndicatorAfter,
             getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
@@ -114,11 +114,12 @@ interface TimelineElementHolderViewModelFactory {
 }
 
 interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
+    val roomId: RoomId
     val eventId: EventId
 
-    val hasUnreadMarker: StateFlow<Boolean>
-    val hasLoadingIndicatorBefore: StateFlow<Boolean>
-    val hasLoadingIndicatorAfter: StateFlow<Boolean>
+    val showUnreadMarker: StateFlow<Boolean>
+    val showLoadingIndicatorBefore: StateFlow<Boolean>
+    val showLoadingIndicatorAfter: StateFlow<Boolean>
 
     val isRead: StateFlow<Boolean?>
     val isReadBy: StateFlow<List<UserInfoElement>?>
@@ -159,13 +160,13 @@ class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
-    val roomId: RoomId,
+    override val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
-    hasLoadingIndicatorBefore: Flow<Boolean>,
-    hasLoadingIndicatorAfter: Flow<Boolean>,
+    showLoadingIndicatorBefore: Flow<Boolean>,
+    showLoadingIndicatorAfter: Flow<Boolean>,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
@@ -179,10 +180,10 @@ class TimelineElementHolderViewModelImpl(
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
 
-    override val hasLoadingIndicatorBefore =
-        hasLoadingIndicatorBefore.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
-    override val hasLoadingIndicatorAfter =
-        hasLoadingIndicatorAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    override val showLoadingIndicatorBefore =
+        showLoadingIndicatorBefore.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    override val showLoadingIndicatorAfter =
+        showLoadingIndicatorAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -196,7 +197,7 @@ class TimelineElementHolderViewModelImpl(
                 .drop(1)
         ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    override val hasUnreadMarker: StateFlow<Boolean> =
+    override val showUnreadMarker: StateFlow<Boolean> =
         matrixClient.room.getAccountData<FullyReadEventContent>(roomId).flatMapLatest { fullyReadEvent ->
             if (fullyReadEvent?.eventId == eventId) {
                 log.trace { "start compute unread marker at $eventId" }
@@ -314,14 +315,18 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, senderUserId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    override val showSender: StateFlow<Boolean?> =
-        matrixClient.room.getById(roomId)
+    override val showSender: StateFlow<Boolean?> = when {
+        senderUserId == userId -> flowOf(false)
+        else -> matrixClient.room.getById(roomId)
             .filterNotNull()
             .map { it.isDirect }
             .flatMapLatest { isDirect ->
                 if (isDirect) flowOf(false)
-                else isFirstInUserSequence.filterNotNull()
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+                else previousSupportedTimelineEvent.map { timelineEvent ->
+                    timelineEvent?.sender != senderUserId || timelineEvent.event is StateEvent
+                }
+            }
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->
@@ -541,13 +546,10 @@ class TimelineElementHolderViewModelImpl(
             )
         }
     }
-
-    override fun toString(): String =
-        "TimelineElementViewModel(showLoadingIndicator=${this@TimelineElementHolderViewModelImpl.hasLoadingIndicatorBefore.value}" +
-                ", shouldShowUnreadMarker=${hasUnreadMarker.value})"
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
+    override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$1:localhost")
     override val key: String = eventId.full
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
@@ -569,9 +571,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(
         PreviewRepliedTimelineElementViewModel1()
     )
-    override val hasUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val hasLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val hasLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -596,6 +598,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
+    override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
@@ -615,9 +618,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
-    override val hasUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val hasLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val hasLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)

@@ -89,7 +89,7 @@ fun LicensesLink(appInfoViewModel: AppInfoViewModel) {
 }
 
 @Composable
-private fun Item(text: String, action: (() -> Unit)? = null, icon: @Composable () -> Unit) {
+fun Item(text: String, action: (() -> Unit)? = null, icon: @Composable () -> Unit) {
     Item({ Text(text) }, action, icon)
 }
 

@@ -7,6 +7,7 @@ import io.ktor.client.engine.*
 interface MatrixMessengerBaseConfiguration {
     var appName: String
     var appId: String
+    var appVersion: String?
     var urlProtocol: String
     var urlHost: String
     var sendLogsEmailAddress: String?
@@ -19,6 +20,7 @@ interface MatrixMessengerBaseConfiguration {
     var httpClientConfig: (HttpClientConfig<*>.() -> Unit)?
 
     fun copyTo(other: MatrixMessengerBaseConfiguration) {
+        other.appVersion = appVersion
         other.appName = appName
         other.appId = appId
         other.urlProtocol = urlProtocol

@@ -64,9 +64,10 @@ class AccountAvatarViewImpl : AccountAvatarView {
 @Composable
 fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountViewModel) {
     val i18n = DI.get<I18nView>()
+    val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
     val isSingleAccount = accountViewModel.isSingleAccount.collectAsState().value
-    val activeAccountInfo = remember(accountViewModel.accounts.value, activeAccount) {
+    val activeAccountInfo = remember(accounts, activeAccount) {
         accountViewModel.accounts.map { accounts -> accounts.find { it.userId == activeAccount } }
     }.collectAsState(null).value
 
@@ -82,19 +83,32 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 AvatarArea(activeAccountInfo)
-                if (isSingleAccount.not()) DropdownMenu(
-                    expanded = accountSelectionOpen.value,
-                    onDismissRequest = { accountSelectionOpen.value = false },
-                    offset = DpOffset(0.dp, 0.dp),
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                ) {
-                    SelectAccountHeader(i18n.accountChangeAccount())
-                    AllAccountsMenuItem(accountViewModel)
-                    accountViewModel.accounts.value
-                        .filterNot { account -> account.userId == activeAccount }
-                        .forEach { account ->
-                            AccountMenuItem(account, accountViewModel::selectActiveAccount)
-                        }
+                if (isSingleAccount.not()) {
+                    DropdownMenu(
+                        expanded = accountSelectionOpen.value,
+                        onDismissRequest = { accountSelectionOpen.value = false },
+                        offset = DpOffset(0.dp, 0.dp),
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                    ) {
+                        SelectAccountHeader(i18n.accountChangeAccount())
+                        AllAccountsMenuItem(
+                            selectAction = {
+                                accountViewModel.selectActiveAccount(null)
+                                accountSelectionOpen.value = false
+                            }
+                        )
+                        accounts
+                            .filterNot { account -> account.userId == activeAccount }
+                            .forEach { account ->
+                                AccountMenuItem(
+                                    accountInfo = account,
+                                    selectAction = { user ->
+                                        accountViewModel.selectActiveAccount(user)
+                                        accountSelectionOpen.value = false
+                                    }
+                                )
+                            }
+                    }
                 }
             }
         }
@@ -141,11 +155,12 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Avatar(null, "*")
                 Spacer(Modifier.size(10.dp))
-                Tooltip({
-                    TooltipText {
-                        accounts.joinToString { account -> account.displayName }
-                    }
-                },
+                Tooltip(
+                    tooltip = {
+                        TooltipText {
+                            accounts.joinToString { account -> account.displayName }
+                        }
+                    },
                     onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() }
                 ) {
                     Column {
@@ -174,7 +189,13 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
         ) {
             SelectAccountHeader(i18n.accountChangeAccount())
             accounts.forEach { account ->
-                AccountMenuItem(account, accountViewModel::selectActiveAccount)
+                AccountMenuItem(
+                    accountInfo = account,
+                    selectAction = { user ->
+                        accountViewModel.selectActiveAccount(user)
+                        accountSelectionOpen.value = false
+                    }
+                )
             }
         }
     }
@@ -182,7 +203,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
 
 
 @Composable
-fun AllAccountsMenuItem(accountViewModel: AccountViewModel) {
+fun AllAccountsMenuItem(selectAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     DropdownMenuItem(
         text = {
@@ -199,7 +220,7 @@ fun AllAccountsMenuItem(accountViewModel: AccountViewModel) {
                 )
             }
         },
-        onClick = { accountViewModel.selectActiveAccount(null) },
+        onClick = selectAction,
         contentPadding = PaddingValues(horizontal = 20.dp)
     )
 }
@@ -211,7 +232,10 @@ fun AccountMenuItem(
 ) {
     DropdownMenuItem(
         text = {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.buttonPointerModifier()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.buttonPointerModifier()
+            ) {
                 Avatar(accountInfo.avatar, accountInfo.initials)
                 Spacer(Modifier.size(10.dp))
                 Column {

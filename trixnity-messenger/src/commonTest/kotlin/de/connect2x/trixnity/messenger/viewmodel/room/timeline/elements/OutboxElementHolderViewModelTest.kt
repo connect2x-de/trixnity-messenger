@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -172,7 +171,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-        should("showSender: be true when first in a user sequence (showSender)") {
+        should("showSender: always be false") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
                     text("Hi!")
@@ -181,38 +180,6 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
 
             async { cut.showSender.collect() }
-            delay(500.milliseconds)
-            cut.showSender.value shouldBe true
-
-            cancelNeverEndingCoroutines()
-        }
-        should("showSender: false when not first in a user sequence (showSender)") {
-            timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = us) {
-                    text("Hi!")
-                }
-            }
-            val cut = cut()
-
-            async { cut.showSender.collect() }
-            delay(500.milliseconds)
-            cut.showSender.value shouldBe false
-
-            cancelNeverEndingCoroutines()
-        }
-        should("showSender: be false when room is direct (showSender)") {
-            val timeline = timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = bob) {
-                    text("Hi!")
-                }
-            }
-            val cut = cut()
-
-            async { cut.showSender.collect() }
-            delay(500.milliseconds)
-            cut.showSender.value shouldBe true
-
-            timeline.room.update { it.copy(isDirect = true) }
             delay(500.milliseconds)
             cut.showSender.value shouldBe false
 
