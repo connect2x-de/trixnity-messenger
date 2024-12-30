@@ -101,60 +101,21 @@ fun MessageBubbleContent(
                     Modifier.align(Alignment.End).padding(5.dp),
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    holder.formattedTime.let {
-                        Box(
-                            contentAlignment = Alignment.BottomEnd
-                        ) {
-                            Text(
-                                it,
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.paddingFromBaseline(0.dp),
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                    if (isReplaced) {
-                        Text(
-                            i18n.messageBubbleEdited(),
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.paddingFromBaseline(0.dp)
-                                .padding(end = 2.dp),
-                            maxLines = 1,
-                        )
-                    }
-                    ReadMarker(holder)
+                    MessageBubbleContentInfo(isReplaced, holder)
                 }
             } else {
                 Layout(
                     content = {
                         content(showActionMenu)
-                        holder.formattedTime.let {
-                            Row(
-                                modifier = Modifier.padding(
-                                    start = 5.dp,
-                                    end = 5.dp,
-                                    bottom = 5.dp
-                                ),
-                                verticalAlignment = Alignment.Bottom,
-                            ) {
-                                if (isReplaced) {
-                                    Text(
-                                        i18n.messageBubbleEdited(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.paddingFromBaseline(0.dp)
-                                            .padding(end = 2.dp),
-                                        maxLines = 1,
-                                    )
-                                }
-                                Text(
-                                    it,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.paddingFromBaseline(0.dp),
-                                    maxLines = 1,
-                                )
-                                ReadMarker(holder)
-                            }
+                        Row(
+                            modifier = Modifier.padding(
+                                start = 5.dp,
+                                end = 5.dp,
+                                bottom = 5.dp
+                            ),
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            MessageBubbleContentInfo(isReplaced, holder)
                         }
                     },
                     measurePolicy = object : MeasurePolicy {
@@ -242,5 +203,33 @@ fun MessageBubbleContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MessageBubbleContentInfo(isReplaced: Boolean, holder: BaseTimelineElementHolderViewModel) {
+    val i18n = DI.get<I18nView>()
+
+    Row {
+        if (isReplaced) {
+            Text(
+                i18n.messageBubbleEdited(),
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.paddingFromBaseline(0.dp)
+                    .padding(end = 2.dp),
+                maxLines = 1,
+            )
+        }
+        Box(
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Text(
+                holder.formattedTime,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.paddingFromBaseline(0.dp),
+                maxLines = 1,
+            )
+        }
+        ReadMarker(holder)
     }
 }
