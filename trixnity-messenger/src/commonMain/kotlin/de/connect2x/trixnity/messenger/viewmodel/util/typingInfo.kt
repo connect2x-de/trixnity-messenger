@@ -15,9 +15,9 @@ suspend fun typingInfo(
     eventContent: TypingEventContent,
 ): String? {
     val usersTyping = eventContent.users.filterNot { it == matrixClient.userId }
-    return when {
-        usersTyping.isEmpty() -> null
-        usersTyping.size == 1 -> {
+    return when (usersTyping.size) {
+        0 -> null
+        1 -> {
             val username = usersTyping[0].let {
                 matrixClient.user.getById(roomId, it).first()?.name
                     ?: it.full
@@ -30,7 +30,7 @@ suspend fun typingInfo(
             }
         }
 
-        usersTyping.size < 4 -> {
+        in 2..4 -> {
             val usernames = usersTyping.map {
                 matrixClient.user.getById(roomId, it).first()?.name
                     ?: it.full
