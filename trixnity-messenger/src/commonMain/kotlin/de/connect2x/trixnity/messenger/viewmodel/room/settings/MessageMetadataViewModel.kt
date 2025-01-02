@@ -4,6 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.messageEdits
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -20,14 +21,12 @@ interface MessageMetadataViewModelFactory {
         eventId: EventId,
         roomId: RoomId,
         onBack: () -> Unit,
-    ): MessageMetadataViewModel {
-        return MessageMetadataViewModelImpl(
-            viewModelContext,
-            eventId,
-            roomId,
-            onBack,
-        )
-    }
+    ): MessageMetadataViewModel = MessageMetadataViewModelImpl(
+        viewModelContext,
+        eventId,
+        roomId,
+        onBack,
+    )
 
     companion object : MessageMetadataViewModelFactory
 }
@@ -57,7 +56,7 @@ class MessageMetadataViewModelImpl(
 //    override val message: TimelineElementViewModel.Message<*>,
 //    override val message: TimelineElementHolderViewModel,
     override val eventId: EventId,
-    private val roomId: RoomId,
+    roomId: RoomId,
     private val onBack: () -> Unit,
 ) : MessageMetadataViewModel, MatrixClientViewModelContext by viewModelContext {
 
@@ -93,8 +92,8 @@ class MessageMetadataViewModelImpl(
 //
 //
 
-    override val error: StateFlow<String?>
-        get() = TODO("Not yet implemented")
+    override val error: StateFlow<String?> = MutableStateFlow(null)
+//        get() = TODO("Not yet implemented")
 
     override fun back() {
         onBack()

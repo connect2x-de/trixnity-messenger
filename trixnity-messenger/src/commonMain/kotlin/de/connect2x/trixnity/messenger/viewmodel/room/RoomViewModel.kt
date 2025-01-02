@@ -49,7 +49,6 @@ interface RoomViewModel {
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
     val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
     val isRoomSettingsShown: StateFlow<Boolean>
-    val isTimelineShown: StateFlow<Boolean>
     val isExtrasShown: StateFlow<Boolean>
 
     fun onRoomBack()
@@ -67,7 +66,6 @@ open class RoomViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
     override val isRoomSettingsShown = MutableStateFlow(false)
-    override val isTimelineShown = MutableStateFlow(false)
     override val isExtrasShown = MutableStateFlow(false)
 
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
@@ -97,9 +95,6 @@ open class RoomViewModelImpl(
         extrasStack.subscribe {
             isRoomSettingsShown.value = it.active.configuration is RoomSettings
             isExtrasShown.value = it.active.configuration !is ExtrasNone
-        }
-        timelineStack.subscribe {
-            isTimelineShown.value = it.active.configuration !is TimelineNone
         }
     }
 
@@ -148,7 +143,6 @@ class PreviewRoomViewModel : RoomViewModel {
             )
         )
     override val isRoomSettingsShown = MutableStateFlow(false)
-    override val isTimelineShown = MutableStateFlow(false)
     override val isExtrasShown = MutableStateFlow(false)
     override fun onRoomBack() {}
     override fun showSettings() {}

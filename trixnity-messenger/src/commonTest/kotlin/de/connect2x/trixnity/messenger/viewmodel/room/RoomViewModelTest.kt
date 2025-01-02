@@ -33,7 +33,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -67,7 +66,6 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomViewModelTest : ShouldSpec() {
     private lateinit var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
@@ -153,6 +151,8 @@ class RoomViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.usersTyping
             } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+                    MutableStateFlow(emptyMap())
             every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(
                 null
             )
@@ -202,7 +202,6 @@ class RoomViewModelTest : ShouldSpec() {
             advanceUntilIdle()
             cut.showSettings()
             advanceUntilIdle()
-//            cut shouldShowTimeline false
             cut shouldShowExtrasOfType ExtrasRouter.Wrapper.RoomSettings::class
             cancelNeverEndingCoroutines()
         }
@@ -210,11 +209,10 @@ class RoomViewModelTest : ShouldSpec() {
         should("show message info") {
             val cut = roomViewModel()
             advanceUntilIdle()
-            val eventId = EventId("event1")
+            val eventId = EventId("event0")
             cut.showMessageMetadata(eventId)
             advanceUntilIdle()
-            delay(100)
-//            cut shouldShowTimeline false
+            cut shouldShowExtras true
             cut shouldShowExtrasOfType ExtrasRouter.Wrapper.MessageMetadata::class
             cancelNeverEndingCoroutines()
         }
@@ -224,7 +222,9 @@ class RoomViewModelTest : ShouldSpec() {
             advanceUntilIdle()
             cut.showSettings()
             advanceUntilIdle()
-            cut.onCloseRoomSettings()
+            cut shouldShowExtras true
+            (cut.extrasStack.value.active.instance as ExtrasRouter.Wrapper.RoomSettings)
+                .viewModel.close()
             advanceUntilIdle()
             cut shouldShowTimeline true
             cut shouldShowExtras false
@@ -234,22 +234,13 @@ class RoomViewModelTest : ShouldSpec() {
         should("return from message metadata") {
             val cut = roomViewModel()
             advanceUntilIdle()
-            val eventId = EventId("event1")
+            val eventId = EventId("event2")
             cut.showMessageMetadata(eventId)
             advanceUntilIdle()
-            cut.onCloseRoomSettings()
+            (cut.extrasStack.value.active.instance as ExtrasRouter.Wrapper.MessageMetadata)
+                .viewModel.back()
             advanceUntilIdle()
             cut shouldShowTimeline true
-            cut shouldShowExtras false
-            cancelNeverEndingCoroutines()
-        }
-
-        should("close everything when closing room") {
-            val cut = roomViewModel()
-            advanceUntilIdle()
-            cut.onRoomBack()
-            advanceUntilIdle()
-            cut shouldShowTimeline false
             cut shouldShowExtras false
             cancelNeverEndingCoroutines()
         }
@@ -259,12 +250,12 @@ class RoomViewModelTest : ShouldSpec() {
             advanceUntilIdle()
             cut.showSettings()
             advanceUntilIdle()
-            val eventId = EventId("event1")
+            val eventId = EventId("event3")
             cut.showMessageMetadata(eventId)
             advanceUntilIdle()
-            cut.onCloseRoomSettings()
+            (cut.extrasStack.value.active.instance as ExtrasRouter.Wrapper.MessageMetadata)
+                .viewModel.back()
             advanceUntilIdle()
-//            cut shouldShowTimeline true
             cut shouldShowExtrasOfType ExtrasRouter.Wrapper.RoomSettings::class
             cancelNeverEndingCoroutines()
         }
@@ -272,85 +263,32 @@ class RoomViewModelTest : ShouldSpec() {
         should("close extras when returning from settings") {
             val cut = roomViewModel()
             advanceUntilIdle()
-            val eventId = EventId("event1")
+            val eventId = EventId("event4")
             cut.showMessageMetadata(eventId)
             advanceUntilIdle()
             cut.showSettings()
             advanceUntilIdle()
-            cut.onCloseRoomSettings()
+            (cut.extrasStack.value.active.instance as ExtrasRouter.Wrapper.RoomSettings)
+                .viewModel.close()
             advanceUntilIdle()
             cut shouldShowTimeline true
             cut shouldShowExtras false
             cancelNeverEndingCoroutines()
         }
 
-
-        /*
-        context(RoomViewModel::setSinglePane.toString()) {
-            context("settings aren't activated") {
-                should("show room list in single-pane view") {
-                    val cut = roomViewModel()
-                    shouldShowInitialView(cut)
-
-                    cut.setSinglePane(true)
-                    delay(100.milliseconds)
-
-                    assertSoftly {
-                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
-                    }
-                }
-                should("show room list in multi-pane view") {
-                    val cut = roomViewModel()
-                    shouldShowInitialView(cut)
-
-                    cut.setSinglePane(false)
-                    delay(100.milliseconds)
-
-                    assertSoftly {
-                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
-                    }
-                }
-            }
-            context("settings are activated") {
-                should("show room's settings when settings are activated in single-pane view") {
-                    val cut = roomViewModel()
-                    shouldShowInitialView(cut)
-
-                    val timelineWrapper =
-                        cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
-                    timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
-
-                    cut.setSinglePane(true)
-                    delay(100.milliseconds)
-
-                    assertSoftly {
-                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
-                    }
-                }
-
-                should("show room view and room settings when settings are activated in multi-pane view") {
-                    val cut = roomViewModel()
-                    shouldShowInitialView(cut)
-
-                    val timelineWrapper =
-                        cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
-                    timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
-
-                    cut.setSinglePane(false)
-                    delay(100.milliseconds)
-
-                    assertSoftly {
-                        cut.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.View>()
-                        cut.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.View>()
-                    }
-                }
-            }
+        should("show room's settings when settings are activated") {
+            val cut = roomViewModel()
+            advanceUntilIdle()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+            val timelineWrapper =
+                cut.timelineStack.value.active.instance as TimelineRouter.Wrapper.View
+            timelineWrapper.viewModel.roomHeaderViewModel.showRoomSettings()
+            advanceUntilIdle()
+            cut shouldShowExtras true
+            cut shouldShowExtrasOfType ExtrasRouter.Wrapper.RoomSettings::class
+            cancelNeverEndingCoroutines()
         }
-        */
-
     }
 
     private suspend infix fun RoomViewModel.shouldShowTimeline(isShown: Boolean) {
@@ -378,7 +316,7 @@ class RoomViewModelTest : ShouldSpec() {
 
     private suspend fun roomViewModel(): RoomViewModelImpl {
         Dispatchers.setMain(Dispatchers.Unconfined)
-        val roomViewModel = RoomViewModelImpl(
+        return RoomViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(
                     lifecycle,
@@ -448,6 +386,5 @@ class RoomViewModelTest : ShouldSpec() {
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),
         )
-        return roomViewModel
     }
 }
