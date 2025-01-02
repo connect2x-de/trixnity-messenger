@@ -86,10 +86,10 @@ class MemberStateTimelineElementViewModelImpl(
                             flowOf(i18n.eventChangeAvatar(name))
                         } else if (content.displayName != previousContent.displayName) {
                             flowOf(i18n.eventChangeDisplayName(previousContent.displayName, content.displayName))
-                        } else if (previousContent.isDirect != isDirect) {
-                            flowOf(i18n.eventChangeDirectRoom(isDirect))
                         } else {
-                            flowOf(null)
+                            // This message is not very precise because it is also triggered when there is no change at all.
+                            // Emitting null would lead to the UI waiting for a value.
+                            membershipChanged(event, content, name, isDirect)
                         }
                     } else {
                         membershipChanged(event, content, name, isDirect)

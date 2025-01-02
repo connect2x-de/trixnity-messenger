@@ -50,7 +50,7 @@ fun MessageBubbleContent(
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value
-    val hasRepliedElement = holder.isReply.collectAsState().value != null
+    val hasRepliedElement = holder.isReply.collectAsState().value == true
 
     val highlighted = if (highlight) Modifier.border(
         width = 3.dp,
@@ -108,6 +108,7 @@ fun MessageBubbleContent(
                             Text(
                                 it,
                                 style = MaterialTheme.typography.labelSmall,
+                                color = if (holder.isByMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                 modifier = Modifier.paddingFromBaseline(0.dp),
                                 maxLines = 1,
                             )
@@ -132,6 +133,7 @@ fun MessageBubbleContent(
                                     Text(
                                         i18n.messageBubbleEdited(),
                                         style = MaterialTheme.typography.labelSmall,
+                                        color = if (holder.isByMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                         modifier = Modifier.paddingFromBaseline(0.dp)
                                             .padding(end = 2.dp),
                                         maxLines = 1,
@@ -139,7 +141,7 @@ fun MessageBubbleContent(
                                 Text(
                                     it,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = if (holder.isByMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
                                     modifier = Modifier.paddingFromBaseline(0.dp),
                                     maxLines = 1,
                                 )

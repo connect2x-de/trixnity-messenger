@@ -235,8 +235,7 @@ open class RoomHeaderViewModelImpl(
         directRoom.getUsers(matrixClient, selectedRoomId),
         matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
     ) { otherUsers, ignoredUserListEventContent ->
-        otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0])?.not())
-                ?: false
+        otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0])?.not() ?: false)
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val canUnblockUser: StateFlow<Boolean> = combine(
         directRoom.getUsers(matrixClient, selectedRoomId),

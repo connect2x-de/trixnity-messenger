@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- do not reuse an existing direct room with a user that has left the room
+- Possibility to provide an app version that is displayed in the info section
 
 ### Deprecated
 
@@ -21,11 +21,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix Smoketests on Web
-- Fixed redacted event not visible
-- Handling of temporary camera captures
+- Don't show sender for own elements (including outbox elements)
+- Show sender, when state event before element
+- Text colors in message bubbles and input field (Desktop) adjusted for dark mode
+- Removed ability to block yourself
 
 ### Security
+
+## 3.0.3
+
+### Fixed
+
+- Fixed various scrolling issues in timeline
+- Fixed outbox loading in timeline
+
+## 3.0.2
+
+### Changed
+
+- Upgraded Trixnity to 4.11.2
+
+### Fixed
+
+- Cleaned up timeline element loading/dropping to prevent some scroll-jump edge cases
+- Fixed rendering of the date in small message bubbles
+- Fixed timeline elements displayed in wrong order
+
+## 3.0.1
+
+### Changed
+
+- Do not reuse an existing direct room with a user that has left the room
+
+### Fixed
+
+- Fix Smoketests on Web
+- Fix redacted event not visible
+- Fix Handling of temporary camera captures
+- Fix unnecessary waiting for membership change message
+- Fix displaying the outbox without timeline for a short moment
+- Fix message edits not displayed immediately
+- Fix unread marker is shown when sending a message
 
 ## 3.0.0
 
@@ -50,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Format links with escaped ampersand (`&amp;`)
 - Format links with semicolon (`https://abc.xyz/a;b;c`)
 - Wrong device name displayed in verification success message
+- Overlay sometimes won't vanish when switching accounts
 
 ## 2.4.0
 

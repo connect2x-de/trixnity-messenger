@@ -127,11 +127,6 @@ abstract class I18n(
         DE - "'$oldDisplayName' hat den Namen zu '$newDisplayName' geändert"
     }
 
-    fun eventChangeDirectRoom(isDirect: Boolean) = translate {
-        EN - if (isDirect) "Group has been converted to Chat" else "Chat has been converted to Group"
-        DE - if (isDirect) "Gruppe wurde in einen Chat umgewandelt" else "Chat wurde in eine Gruppe umgewandelt"
-    }
-
     fun eventChangeChatGenitive() = translate {
         EN - "the chat"
         DE - "des Chats"

@@ -9,9 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
 
@@ -45,10 +43,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {
         val factory = selectFactory(element)
-        withTimeoutOrNull(2.seconds) {
-            factory?.waitFor(element)
-            Unit
-        } ?: log.warn { "waited for more then 2 seconds for ${element::class.simpleName}" }
+        factory?.waitFor(element)
     }
 
     @Composable
@@ -57,7 +52,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         element: TimelineElementViewModel<*>
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createInTimeline(holder, element) ?: warn(element)
+        factory?.createInTimeline(holder, element)
     }
 
     @Composable
@@ -65,13 +60,13 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         element: TimelineElementViewModel<*>
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createReplyInTimeline(element) ?: warn(element)
+        factory?.createReplyInTimeline(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: TimelineElementViewModel<*>) {
         val factory = rememberSelectFactory(element)
-        factory?.createReplyInSendMessage(element) ?: warn(element)
+        factory?.createReplyInSendMessage(element)
     }
 
     @Composable
@@ -82,22 +77,19 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         val timelineElementViewModelClass = element::class
         return factoryMapping.value[timelineElementViewModelClass]
             ?: run {
-                val foundFactory =
-                    factories.firstOrNull { it.supports.isInstance(element) }
-                if (foundFactory == null) return@run null
+                val foundFactory = factories.firstOrNull { it.supports.isInstance(element) }
+                    ?: run {
+                        log.warn {
+                            "There are no registered views for ${element::class.simpleName}. " +
+                                    "This can be a missing view in the DI or might be an element that should not be " +
+                                    "visible in the timeline."
+                        }
+                        EmptyTimelineElementView
+                    }
                 @Suppress("UNCHECKED_CAST")
                 foundFactory as TimelineElementView<TimelineElementViewModel<*>>
                 factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
                 foundFactory
             }
     }
-
-    private fun warn(element: TimelineElementViewModel<*>) {
-        log.warn {
-            "There are no registered views for ${element::class.simpleName}. " +
-                    "This can be a missing view in the DI or might be an element that should not be " +
-                    "visible in the timeline."
-        }
-    }
-
 }

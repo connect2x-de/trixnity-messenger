@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
@@ -54,8 +53,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -92,7 +92,16 @@ class TimelineViewImpl : TimelineView {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
         }
         val timelineElementViewModelGrouped by derivedStateOf {
-            timelineElementHolderViewModels.groupBy { it.formattedDate }
+            val vms = timelineElementHolderViewModels
+            buildList(vms.size) {
+                var lastDate: String? = null
+                for (index in vms.indices.reversed()) {
+                    val vm = vms[index]
+                    if (lastDate != vm.formattedDate) add(vm.formattedDate to vm)
+                    else add(null to vm)
+                    lastDate = vm.formattedDate
+                }
+            }.asReversed()
         }
 
         LaunchedEffect(Unit) {
@@ -100,36 +109,53 @@ class TimelineViewImpl : TimelineView {
             timelineViewModel.elements.collect { elements ->
                 log.trace { "wait for elements to be ready" }
                 withContext(Dispatchers.Default) {
-                    withTimeoutOrNull(5.seconds) {
-                        (elements - elementsFromLastCollect).forEach { element ->
-                            launch {
+                    (elements - elementsFromLastCollect).forEach { element ->
+                        val message = { "waited for element ${element.key}, but timed out: " }
+                        launch {
+                            withTimeoutOrNull(3.seconds) {
                                 val elementElement = element.element.filterNotNull().first()
-                                if (elementElement is TimelineElementViewModel.Empty) return@launch
-                                launch { timelineElementViewSelector.waitFor(elementElement) }
-                                launch { element.isFirstInUserSequence.filterNotNull().first() }
-                                launch {
+                                if (elementElement is TimelineElementViewModel.Empty) return@withTimeoutOrNull
+                                launchWithTimeoutHint(message, { "element ${elementElement::class.simpleName}" }) {
+                                    timelineElementViewSelector.waitFor(elementElement)
+                                }
+                                launchWithTimeoutHint(message, { "isFirstInUserSequence" }) {
+                                    element.isFirstInUserSequence.filterNotNull().first()
+                                }
+                                launchWithTimeoutHint(message, { "sender" }) {
                                     val showSender = element.showSender.filterNotNull().first()
                                     if (showSender) element.sender.filterNotNull().first()
                                 }
-                                launch { element.showBigGapBefore.filterNotNull().first() }
-                                launch {
-                                    val repliedElement = async { element.repliedElement.filterNotNull().first() }
+                                launchWithTimeoutHint(message, { "showBigGapBefore" }) {
+                                    element.showBigGapBefore.filterNotNull().first()
+                                }
+                                launchWithTimeoutHint(message, { "repliedElement" }) {
                                     val isReply = element.isReply.filterNotNull().first()
-                                    if (!isReply) repliedElement.cancel()
-                                    else {
+                                    if (isReply)
                                         timelineElementViewSelector.waitFor(
-                                            repliedElement.await().element.filterNotNull().first()
+                                            element.repliedElement.filterNotNull().first()
+                                                .element.filterNotNull().first()
                                         )
-                                    }
                                 }
                                 when (element) {
                                     is TimelineElementHolderViewModel -> {
-                                        launch { element.hasUnreadMarker.filterNotNull().first() }
-                                        launch { element.hasLoadingIndicatorBefore.filterNotNull().first() }
-                                        launch { element.hasLoadingIndicatorAfter.filterNotNull().first() }
-                                        if (element.isByMe) launch { element.isRead.filterNotNull().first() }
-                                        launch { element.reactions.filterNotNull().first() }
-                                        launch { element.isReplaced.filterNotNull().first() }
+                                        launchWithTimeoutHint(message, { "showUnreadMarker" }) {
+                                            element.showUnreadMarker.filterNotNull().first()
+                                        }
+                                        launchWithTimeoutHint(message, { "showLoadingIndicatorBefore" }) {
+                                            element.showLoadingIndicatorBefore.filterNotNull().first()
+                                        }
+                                        launchWithTimeoutHint(message, { "showLoadingIndicatorAfter" }) {
+                                            element.showLoadingIndicatorAfter.filterNotNull().first()
+                                        }
+                                        if (element.isByMe) launchWithTimeoutHint(
+                                            message,
+                                            { "isRead" }) { element.isRead.filterNotNull().first() }
+                                        launchWithTimeoutHint(message, { "reactions" }) {
+                                            element.reactions.filterNotNull().first()
+                                        }
+                                        launchWithTimeoutHint(message, { "isReplaced" }) {
+                                            element.isReplaced.filterNotNull().first()
+                                        }
                                     }
 
                                     is OutboxElementHolderViewModel -> {}
@@ -140,7 +166,7 @@ class TimelineViewImpl : TimelineView {
                 }
                 log.trace { "finished wait for elements to be ready" }
                 elementsFromLastCollect = elements
-                timelineElementHolderViewModels = elements.reversed()
+                timelineElementHolderViewModels = elements.asReversed()
             }
         }
 
@@ -155,7 +181,7 @@ class TimelineViewImpl : TimelineView {
             } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {
-                        it is TimelineElementHolderViewModel && it.hasUnreadMarker.value
+                        it is TimelineElementHolderViewModel && it.showUnreadMarker.value
                     } + 1).coerceAtMost(timelineElementHolderViewModels.size - 1)
                 }
                 val listState =
@@ -244,18 +270,14 @@ class TimelineViewImpl : TimelineView {
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
-                                timelineElementViewModelGrouped.forEach { (date, viewModels) ->
-                                    items(
-                                        viewModels,
-                                        key = { it.key }
-                                    ) { viewModel ->
-                                        TimelineElementHolder(
-                                            viewModel,
-                                        )
+                                timelineElementViewModelGrouped.forEach { (date, viewModel) ->
+                                    item(viewModel.key) {
+                                        TimelineElementHolder(viewModel)
                                     }
-                                    item("date-$date") {
-                                        DateStickyHeader(date)
-                                    }
+                                    if (date != null)
+                                        item("date-$date-${viewModel.key}") {
+                                            DateStickyHeader(date)
+                                        }
                                 }
                             }
                             listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
@@ -321,3 +343,12 @@ fun ReportMessageSwitch(timelineViewModel: TimelineViewModel) {
         }.let {}
     }
 }
+
+private fun CoroutineScope.launchWithTimeoutHint(message: () -> String, hint: () -> String, block: suspend () -> Unit) =
+    launch {
+        try {
+            block()
+        } catch (_: TimeoutCancellationException) {
+            log.warn { message() + hint() }
+        }
+    }

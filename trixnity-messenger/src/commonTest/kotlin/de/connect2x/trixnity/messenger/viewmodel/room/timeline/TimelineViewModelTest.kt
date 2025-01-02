@@ -310,7 +310,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         ),
                     )
 
-                val timelineMock = timeline(roomServiceMock, roomId) {
+                timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = me, transactionId = "1") {
                         text("Hello")
                     }
@@ -322,9 +322,13 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.elements.first() shouldHaveSize 2
             }
             should("add new outbox message and when it is received as timeline event from the server not show as outbox message") {
-                val timelineMock = timeline(roomServiceMock, roomId) {}
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = me, transactionId = "1") {
+                        text("Hello")
+                    }
+                }
                 val cut = timelineViewModel()
-                cut.elements.value shouldHaveSize 0
+                cut.elements waitForSize 1
 
                 outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
@@ -334,7 +338,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         createdAt = Instant.fromEpochMilliseconds(0)
                     ),
                 )
-                cut.elements waitForSize 1
+                cut.elements waitForSize 2
 
                 delay(500.milliseconds)
                 timelineMock.addEvents {
@@ -344,8 +348,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
 
                 continually(2.seconds) {
-                    cut.elements.first() shouldHaveSize 1
-                    cut.elements.first()[0].key shouldBe "$roomId-transactionId-1"
+                    cut.elements.first() shouldHaveSize 2
+                    cut.elements.first()[1].key shouldBe "$roomId-transactionId-1"
                 }
             }
             should("only contain the newest version of a replace event") {
@@ -470,8 +474,43 @@ class TimelineViewModelTest : ShouldSpec() {
                 )
                 cut.elements waitForSize 20
             }
+            should("load more messages after when outbox is last message") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                }
+                timelineMock.fullyReadEventIndex.value = 0
+
+                outboxMessagesFlow.value = listOf(
+                    RoomOutboxMessage(
+                        transactionId = "transactionId-1",
+                        roomId = roomId,
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
+                        createdAt = Instant.fromEpochMilliseconds(0)
+                    ),
+                )
+
+                val cut = timelineViewModel()
+                cut.elements waitForSize 2
+
+                cut.viewState.value = TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-transactionId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    windowIsFocused = true
+                )
+
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) {
+                        text("Hello")
+                    }
+                }
+
+                cut.elements waitForSize 3
+            }
             should("not load more messages after") {
-                println("///")
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -487,10 +526,10 @@ class TimelineViewModelTest : ShouldSpec() {
                 val cut = timelineViewModel()
                 cut.elements waitForSize 11
 
-                // see above, [0..10], 1 is at beginning -> do NOT load after
+                // 0 is at beginning -> do NOT load after
                 cut.viewState.value = TimelineViewModel.ViewState(
                     firstVisibleElement = "notRelevant",
-                    lastVisibleElement = "$roomId-1",
+                    lastVisibleElement = "$roomId-0",
                     firstLoadedElement = "notRelevant",
                     lastLoadedElement = "notRelevant",
                     windowIsFocused = true
@@ -502,7 +541,7 @@ class TimelineViewModelTest : ShouldSpec() {
         }
         context(TimelineViewModel::jumpToEndOfTimeline.name) {
             should("directly jump to the end of the timeline if the last event is already in the timeline") {
-                val timelineMock = timeline(roomServiceMock, roomId) {
+                timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
                     }
@@ -589,7 +628,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(coroutineScope)
                 cut.elements waitForSize 1
                 val coroutineScope = CoroutineScope(Dispatchers.Default)
-                scrollToCalled.map { it.size }.firstWithClue(1) // initial scroll ("0")
+                scrollToCalled.map { it.size }.firstWithClue { 1 } // initial scroll ("0")
 
                 outboxMessagesFlow.value = listOf(
                     RoomOutboxMessage(
@@ -720,6 +759,7 @@ class TimelineViewModelTest : ShouldSpec() {
                             single<MatrixMessengerConfiguration> {
                                 MatrixMessengerConfiguration().apply {
                                     timelineInitialSize = 10
+                                    timelineFetchSize = 20
                                     timelineBuffer = 10
                                     timelineMaxSize = 100
                                 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
@@ -31,10 +32,10 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
-import de.connect2x.messenger.compose.view.room.timeline.element.util.formatMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
 @Composable
@@ -70,9 +71,14 @@ private fun MessageTextContent(
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
             Row {
                 Icon(Icons.Filled.SmartToy, i18n.automated())
-                Text(i18n.automated())
+                Text(i18n.automated(), fontStyle = FontStyle.Italic)
             }
 
+            Spacer(Modifier.size(5.dp))
+        }
+
+        if (element is RoomMessageTimelineElementViewModel.TextBased.Emote) {
+            Text("${holder.sender.collectAsState().value?.name}", fontStyle = FontStyle.Italic)
             Spacer(Modifier.size(5.dp))
         }
 
@@ -83,9 +89,9 @@ private fun MessageTextContent(
             }.sortedByDescending { it.first.first }
 
         val message = element.formattedBody ?: element.body
-        val text = formatMessage(message, mentions, holder, element)
+        val text = formatMessage(message, mentions)
 
-        val richTextState = rememberSaveable(saver = RichTextState.Saver) {
+        val richTextState = rememberSaveable(text, saver = RichTextState.Saver) {
             RichTextState().apply {
                 setHtml(text)
             }
@@ -144,3 +150,58 @@ private fun MessageRichText(
         )
     }
 }
+
+private val urlRegex =
+    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;]*)")
+
+@Composable
+private fun formatMessage(
+    message: String,
+    mentions: List<Pair<IntRange, TimelineElementMention?>>,
+): String {
+    val i18n = DI.get<I18nView>()
+    return remember(message, mentions) {
+        message
+            .formatMentions(mentions, i18n::eventMentionPile)
+            .formatLinks()
+            .replace("\n", "<br>")
+    }
+}
+
+internal fun String.formatMentions(
+    mentions: List<Pair<IntRange, TimelineElementMention?>>,
+    eventPile: (String) -> String
+): String =
+    mentions.foldIndexed(this) { index, currentText, (range, mention) ->
+        val anchorContent = when (mention) {
+            is TimelineElementMention.Event -> eventPile(mention.room.name)
+            is TimelineElementMention.Room -> mention.room.name
+            is TimelineElementMention.User -> mention.user.name
+
+            null -> null
+        }
+
+        if (anchorContent == null) {
+            currentText
+        } else {
+            currentText.replaceRange(
+                range,
+                """<a href="timmy-data:$index">$anchorContent</a>"""
+            )
+        }
+    }
+
+internal fun String.formatLinks(): String =
+    this.replace(urlRegex) {
+        val href = "href=\""
+        if (
+            it.range.first > href.length &&
+            this.subSequence(it.range.first - href.length, it.range.first) == href &&
+            it.range.last != this.length &&
+            this[it.range.last + 1] == '"'
+        ) {
+            it.value
+        } else {
+            "<a href=\"${it.value}\">${it.value}</a>"
+        }
+    }

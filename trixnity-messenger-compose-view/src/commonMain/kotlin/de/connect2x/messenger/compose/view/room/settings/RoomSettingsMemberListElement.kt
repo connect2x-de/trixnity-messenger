@@ -119,7 +119,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
     }
 }
 
-private fun getRoomSettingsMemberRoleName(role: Role, i18n: I18nView): String {
+fun getRoomSettingsMemberRoleName(role: Role, i18n: I18nView): String {
     return when (role) {
         Role.ADMIN -> i18n.userProfileRoleAdministrator()
         Role.MODERATOR -> i18n.userProfileRoleModerator()

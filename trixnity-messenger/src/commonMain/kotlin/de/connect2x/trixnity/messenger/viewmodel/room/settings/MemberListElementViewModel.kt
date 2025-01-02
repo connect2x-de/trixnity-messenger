@@ -2,22 +2,18 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -35,7 +31,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.utils.ByteArrayFlow
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -68,6 +63,7 @@ interface MemberListElementViewModel {
     val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
     val showPowerLevel: StateFlow<Boolean>
+    val iHavePowerToBlockUser: Boolean
     val isUserBlocked: StateFlow<Boolean>
     val presence: StateFlow<Presence>
 
@@ -132,9 +128,11 @@ class MemberListElementViewModelImpl(
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
     override val showPowerLevel = MutableStateFlow(false)
 
-    override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canUnbanUser(selectedRoomId, memberUserId)
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val iHavePowerToUnbanUser: StateFlow<Boolean> =
+        matrixClient.user.canUnbanUser(selectedRoomId, memberUserId)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
+    override val iHavePowerToBlockUser: Boolean = matrixClient.userId != roomUser.userId
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
