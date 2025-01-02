@@ -50,21 +50,29 @@ import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
+
 interface RoomHeaderView {
     @Composable
-    fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean)
+    fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean, isBackButtonVisible: Boolean)
 }
 
 @Composable
-fun RoomHeader(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean = true) {
-    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton) }
+fun RoomHeader(
+    roomHeaderViewModel: RoomHeaderViewModel,
+    showSettingsButton: Boolean,
+    isBackButtonVisible: Boolean,
+) {
+    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton, isBackButtonVisible) }
 }
 
 class RoomHeaderViewImpl : RoomHeaderView {
     @Composable
-    override fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean) {
+    override fun create(
+        roomHeaderViewModel: RoomHeaderViewModel,
+        showSettingsButton: Boolean,
+        isBackButtonVisible: Boolean,
+    ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
-        val isBackButtonVisible = roomHeaderViewModel.isBackButtonVisible.collectAsState().value
         val isTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {

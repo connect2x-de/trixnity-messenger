@@ -340,15 +340,12 @@ class RoomViewModelTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        isBackButtonVisible: MutableStateFlow<Boolean>,
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
                                     ): RoomHeaderViewModel {
                                         return object : RoomHeaderViewModel {
                                             override val error: StateFlow<String?> = MutableStateFlow(null)
-                                            override val isBackButtonVisible: StateFlow<Boolean> =
-                                                MutableStateFlow(false)
                                             override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
                                                 MutableStateFlow(
                                                     RoomHeaderInfo("", "", "", null, null, false, false)
@@ -382,7 +379,6 @@ class RoomViewModelTest : ShouldSpec() {
             ),
             roomId = roomId,
             onRoomBack = mock(),
-            isBackButtonVisible = MutableStateFlow(false),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),
         )

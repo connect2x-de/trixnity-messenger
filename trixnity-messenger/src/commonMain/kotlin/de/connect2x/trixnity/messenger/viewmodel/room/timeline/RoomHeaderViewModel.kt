@@ -45,20 +45,16 @@ interface RoomHeaderViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        isBackButtonVisible: MutableStateFlow<Boolean>,
         onBack: () -> Unit,
         onVerifyUser: () -> Unit,
         onShowRoomSettings: () -> Unit,
-    ): RoomHeaderViewModel {
-        return RoomHeaderViewModelImpl(
-            viewModelContext,
-            selectedRoomId,
-            isBackButtonVisible,
-            onBack,
-            onVerifyUser,
-            onShowRoomSettings,
-        )
-    }
+    ): RoomHeaderViewModel = RoomHeaderViewModelImpl(
+        viewModelContext,
+        selectedRoomId,
+        onBack,
+        onVerifyUser,
+        onShowRoomSettings,
+    )
 
     companion object : RoomHeaderViewModelFactory
 }
@@ -75,9 +71,7 @@ data class RoomHeaderInfo(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
-
         other as RoomHeaderInfo
-
         if (roomName != other.roomName) return false
         if (roomTopic != other.roomTopic) return false
         if (roomImageInitials != other.roomImageInitials) return false
@@ -88,7 +82,6 @@ data class RoomHeaderInfo(
         if (presence != other.presence) return false
         if (isEncrypted != other.isEncrypted) return false
         if (isPublic != other.isPublic) return false
-
         return true
     }
 
@@ -106,7 +99,6 @@ data class RoomHeaderInfo(
 
 interface RoomHeaderViewModel {
     val error: StateFlow<String?>
-    val isBackButtonVisible: StateFlow<Boolean>
     val roomHeaderInfo: StateFlow<RoomHeaderInfo>
     val usersTyping: StateFlow<String?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
@@ -134,7 +126,6 @@ interface RoomHeaderViewModel {
 open class RoomHeaderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    override val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onBack: () -> Unit,
     private val onVerifyUser: () -> Unit,
     private val onShowRoomSettings: () -> Unit,
@@ -321,7 +312,6 @@ open class RoomHeaderViewModelImpl(
 
 class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val isBackButtonVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val roomHeaderInfo: MutableStateFlow<RoomHeaderInfo> = MutableStateFlow(
         RoomHeaderInfo(
             roomName = "Dev Channel",

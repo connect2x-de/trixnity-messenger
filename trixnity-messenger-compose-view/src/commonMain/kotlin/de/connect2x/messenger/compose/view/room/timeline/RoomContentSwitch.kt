@@ -13,17 +13,19 @@ import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
+
 @Composable
 fun RoomContentSwitch(
     stack: Value<ChildStack<*, TimelineRouter.Wrapper>>,
     showSettingsButton: Boolean,
+    showBackButton: Boolean,
 ) {
     Children(
         stack = stack,
-        animation = stackAnimation(fade())
+        animation = stackAnimation(fade()),
     ) {
         when (val child = it.instance) {
-            is TimelineRouter.Wrapper.View -> RoomContent(child.viewModel, showSettingsButton)
+            is TimelineRouter.Wrapper.View -> RoomContent(child.viewModel, showSettingsButton, showBackButton)
             is TimelineRouter.Wrapper.None -> Box {}
         }.let {}
     }
@@ -32,10 +34,11 @@ fun RoomContentSwitch(
 @Composable
 fun RoomContent(
     timelineViewModel: TimelineViewModel,
-    showSettingsButton: Boolean = true
+    showSettingsButton: Boolean,
+    showBackButton: Boolean,
 ) {
     Column(Modifier.fillMaxSize()) {
-        RoomHeader(timelineViewModel.roomHeaderViewModel, showSettingsButton)
+        RoomHeader(timelineViewModel.roomHeaderViewModel, showSettingsButton, showBackButton)
         AttachmentTimelineSwitch(timelineViewModel)
     }
 }

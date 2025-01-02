@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneContentSwitch
 import de.connect2x.messenger.compose.view.room.timeline.RoomContentSwitch
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel
 
+
 const val TIMELINE_WEIGHT = 0.6f
 const val SETTINGS_WEIGHT = 1f - TIMELINE_WEIGHT
 
@@ -45,7 +46,7 @@ class RoomViewImpl : RoomView {
                     modifier = Modifier
                         .weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)
                 ) {
-                    RoomContentSwitch(roomViewModel.timelineStack, !isSettingsShown)
+                    RoomContentSwitch(roomViewModel.timelineStack, !isSettingsShown, !isExtrasShown)
                 }
 
                 // Pane Divider

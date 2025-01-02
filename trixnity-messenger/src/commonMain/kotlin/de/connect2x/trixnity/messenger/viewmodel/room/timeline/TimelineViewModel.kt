@@ -110,13 +110,13 @@ import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+
 private val log = KotlinLogging.logger {}
 
 interface TimelineViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
-        isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
         onBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
@@ -124,7 +124,6 @@ interface TimelineViewModelFactory {
     ): TimelineViewModel = TimelineViewModelImpl(
         viewModelContext,
         roomId,
-        isBackButtonVisible,
         onShowSettings,
         onBack,
         onOpenMention,
@@ -225,7 +224,6 @@ interface TimelineViewModel {
 class TimelineViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    isBackButtonVisible: MutableStateFlow<Boolean>,
     onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
@@ -322,7 +320,6 @@ class TimelineViewModelImpl(
         get<RoomHeaderViewModelFactory>().create(
             viewModelContext = childContext("roomHeaderViewModel"),
             selectedRoomId = roomId,
-            isBackButtonVisible = isBackButtonVisible,
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
@@ -1038,30 +1035,13 @@ class PreviewTimelineViewModel : TimelineViewModel {
         }
     }
 
-    override fun errorDismiss() {
-    }
-
-    override fun leaveRoom() {
-    }
-
-    override fun jumpToEndOfTimeline() {
-    }
-
-    override suspend fun loadBefore() {
-    }
-
-    override suspend fun loadAfter() {
-    }
-
-    override suspend fun dropBefore(key: String) {
-    }
-
-    override suspend fun dropAfter(key: String) {
-    }
-
-    override suspend fun markAsRead(key: String) {
-    }
-
-    override fun markAsFullyRead() {
-    }
+    override fun errorDismiss() {}
+    override fun leaveRoom() {}
+    override fun jumpToEndOfTimeline() {}
+    override suspend fun loadBefore() {}
+    override suspend fun loadAfter() {}
+    override suspend fun dropBefore(key: String) {}
+    override suspend fun dropAfter(key: String) {}
+    override suspend fun markAsRead(key: String) {}
+    override fun markAsFullyRead() {}
 }

@@ -12,7 +12,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Co
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -44,7 +43,6 @@ interface TimelineRouter {
 
 class TimelineRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
-    private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
@@ -71,7 +69,6 @@ class TimelineRouterImpl(
                 viewModelContext.get<TimelineViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     roomId = RoomId(timelineConfig.roomId),
-                    isBackButtonVisible = isBackButtonVisible,
                     onShowSettings = onShowSettings,
                     onBack = onRoomBack,
                     onOpenMention = onOpenMention,

@@ -762,7 +762,6 @@ class TimelineViewModelTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        isBackButtonVisible: MutableStateFlow<Boolean>,
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
                                         onShowRoomSettings: () -> Unit,
@@ -791,7 +790,6 @@ class TimelineViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId,
-            isBackButtonVisible = MutableStateFlow(false),
             onShowSettings = mock(),
             onBack = onBackMock,
             onOpenMention = mock(),

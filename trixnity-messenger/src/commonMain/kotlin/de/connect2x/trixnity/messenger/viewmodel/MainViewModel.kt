@@ -69,7 +69,6 @@ interface MainViewModelFactory {
 
 interface MainViewModel {
     val selectedRoomId: MutableStateFlow<RoomId?>
-    val isBackButtonVisible: MutableStateFlow<Boolean>
     val isRoomShown: StateFlow<Boolean>
     val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>>
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
@@ -103,7 +102,6 @@ open class MainViewModelImpl(
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
-    override val isBackButtonVisible = MutableStateFlow(true) // TODO: Check if value is set correctly.
     override val isRoomShown = MutableStateFlow(false)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
@@ -144,7 +142,6 @@ open class MainViewModelImpl(
     private val roomRouter: RoomRouter =
         RoomRouterImpl(
             viewModelContext = viewModelContext,
-            isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
@@ -525,7 +522,6 @@ open class MainViewModelImpl(
 
 class PreviewMainViewModel : MainViewModel {
     override val selectedRoomId: MutableStateFlow<RoomId?> = MutableStateFlow(null)
-    override val isBackButtonVisible: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>> =
         MutableValue(
             ChildStack(

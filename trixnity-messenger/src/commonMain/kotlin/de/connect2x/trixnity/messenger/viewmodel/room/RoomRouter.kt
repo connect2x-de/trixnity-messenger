@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -45,7 +44,6 @@ interface RoomRouter {
 
 class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
-    private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onCloseRoom: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
@@ -71,7 +69,6 @@ class RoomRouterImpl(
                 viewModelContext.get<RoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
-                    isBackButtonVisible = isBackButtonVisible,
                     onRoomBack = onCloseRoom,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,

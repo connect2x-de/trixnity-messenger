@@ -335,7 +335,6 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            isBackButtonVisible = MutableStateFlow(false),
             onBack = mock(),
             onVerifyUser = mock(),
             onShowRoomSettings = mock(),
@@ -347,7 +346,6 @@ class RoomHeaderViewModelTest : ShouldSpec() {
     private fun subscribe(roomHeaderViewModel: RoomHeaderViewModel) {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.roomHeaderInfo.collect() }
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.isBackButtonVisible.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.usersTyping.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.canVerifyUser.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.error.collect() }

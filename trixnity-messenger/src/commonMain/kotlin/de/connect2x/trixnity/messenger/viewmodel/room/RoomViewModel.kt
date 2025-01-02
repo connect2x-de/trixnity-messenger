@@ -29,7 +29,6 @@ interface RoomViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        isBackButtonVisible: MutableStateFlow<Boolean>,
         onRoomBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
@@ -37,7 +36,6 @@ interface RoomViewModelFactory {
         viewModelContext = viewModelContext,
         roomId = selectedRoomId,
         onRoomBack = onRoomBack,
-        isBackButtonVisible = isBackButtonVisible,
         onOpenMention = onOpenMention,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
@@ -61,7 +59,6 @@ open class RoomViewModelImpl(
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
     onOpenMention: OpenMentionCallback,
-    isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
@@ -71,13 +68,12 @@ open class RoomViewModelImpl(
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
         viewModelContext = viewModelContext,
         onRoomBack = onRoomBack,
-        onSettingsBack = ::onCloseRoomSettings,
+        onSettingsBack = ::onSettingsBack,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(
         viewModelContext = viewModelContext,
-        isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowRoomSettings,
         onRoomBack = onRoomBack,
         onOpenMention = onOpenMention,
@@ -118,7 +114,7 @@ open class RoomViewModelImpl(
         extrasRouter.showMessageMetadata(eventId, roomId)
     }
 
-    internal fun onCloseRoomSettings() = coroutineScope.launch {
+    internal fun onSettingsBack() = coroutineScope.launch {
         extrasRouter.closeExtrasRouter()
     }
 }
