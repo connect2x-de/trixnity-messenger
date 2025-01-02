@@ -44,8 +44,10 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -59,7 +61,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -86,13 +87,13 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
     private lateinit var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
 
@@ -103,32 +104,19 @@ class MainViewModelTest : ShouldSpec() {
     private lateinit var messengerSettings: MatrixMessengerSettingsHolder
 
     val matrixClientMock = mock<MatrixClient>()
-
-    val matrixClientMock2 = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
-    val keyServiceMock = mock<KeyService>()
-
-    val keySecretServiceMock = mock<KeySecretService>()
-
-    val keyTrustServiceMock = mock<KeyTrustService>()
-
-    val verificationServiceMock = mock<VerificationService>()
-
-    val verificationServiceMock2 = mock<VerificationService>()
-
     val userServiceMock = mock<UserService>()
-
-    val downloadManagerMock = mock<DownloadManager>()
-
-    val isNetworkAvailable = mock<IsNetworkAvailable>()
-
     val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
-
     val inputAreaViewModelMock = mock<InputAreaViewModel>()
-
-    val runInitialSyncMock = mock<RunInitialSync>()
+    private val matrixClientMock2 = mock<MatrixClient>()
+    private val keyServiceMock = mock<KeyService>()
+    private val keySecretServiceMock = mock<KeySecretService>()
+    private val keyTrustServiceMock = mock<KeyTrustService>()
+    private val verificationServiceMock = mock<VerificationService>()
+    private val verificationServiceMock2 = mock<VerificationService>()
+    private val downloadManagerMock = mock<DownloadManager>()
+    private val isNetworkAvailable = mock<IsNetworkAvailable>()
+    private val runInitialSyncMock = mock<RunInitialSync>()
 
     lateinit var selfVerificationMethods: BlockingAnsweringScope<Flow<VerificationService.SelfVerificationMethods>>
     lateinit var networkAvailable: BlockingAnsweringScope<Boolean>
@@ -137,6 +125,8 @@ class MainViewModelTest : ShouldSpec() {
     private val startSyncPresenceCapture = mutableListOf<Presence>()
 
     init {
+        coroutineTestScope = true
+
         beforeTest {
             resetMocks(
                 matrixClientMock,
@@ -237,7 +227,6 @@ class MainViewModelTest : ShouldSpec() {
                     accountSetupFinished = true
                 )
             }
-
         }
 
         afterTest {
@@ -250,187 +239,51 @@ class MainViewModelTest : ShouldSpec() {
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
-
-            eventually(2.seconds) {
-                assertSoftly {
-                    cut.selectedRoomId.value shouldBe null
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-                }
-            }
-
-        }
-
-        should("show its room view when room is selected") {
-            val cut = mainViewModel()
-
-            val roomId = RoomId("!Room:localhost")
-            cut.setSinglePane(true)
-
-            cut.onRoomSelected(UserId("test", "server"), roomId)
-
-            eventually(2.seconds) {
-                assertSoftly {
-                    cut.isSinglePane.value shouldBe true
-                    cut.selectedRoomId.value shouldBe roomId
-
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>() // since single pane
-                }
-            }
-
-        }
-
-        should("show room list view if room is selected in multi-pane view") {
-            val cut = mainViewModel()
-
-            val roomId = RoomId("!Room:localhost")
-            cut.setSinglePane(false)
-
-            cut.onRoomSelected(UserId("test", "server"), roomId)
-
-            eventually(2.seconds) {
-                assertSoftly {
-                    cut.isSinglePane.value shouldBe false
-                    cut.selectedRoomId.value shouldBe roomId
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>() // since multi pane
-                }
-            }
-
-        }
-
-        should("show list of rooms when the room view is closed") {
-            val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-
-            cut.closeDetailsAndShowList()
-
-            eventually(2.seconds) {
+            advanceUntilIdle()
+            assertSoftly {
                 cut.selectedRoomId.value shouldBe null
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+                cut shouldShowListOfType RoomListRouter.Wrapper.List::class
+                cut shouldShowRoom false
             }
-
         }
 
-        should("show room view after switching to multipane when room was selected before") {
+        should("show room when room is selected") {
             val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-            cut.selectedRoomId.first { it == RoomId("!Room:localhost") }
-            cut.setSinglePane(false)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+            val roomId = RoomId("!Room:localhost")
+            cut.onRoomSelected(UserId("test", "server"), roomId)
+            advanceUntilIdle()
+            assertSoftly {
+                cut.selectedRoomId.value shouldBe roomId
+                cut shouldShowRoom true
             }
-
         }
 
-        should("not show room view after switching to multi-pane when no room was selected") {
+        should("show room list when the room view is closed") {
             val cut = mainViewModel()
-
-            cut.setSinglePane(false)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+            val roomId = RoomId("!Room:localhost")
+            cut.onRoomSelected(UserId("test", "server"), roomId)
+            advanceUntilIdle()
+            cut.closeDetailsAndShowList()
+            advanceUntilIdle()
+            assertSoftly {
+                cut.selectedRoomId.value shouldBe null
+                cut shouldShowRoom false
+                cut shouldShowList true
             }
-
         }
 
-        should("close the room list when a room is selected and switch to single-pane") {
+        should("show room list when the room view is left with the back button") {
             val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-            cut.selectedRoomId.first { it == RoomId("!Room:localhost") }
-            cut.setSinglePane(true)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-            }
-
-        }
-
-        should("show the room list when no room is selected and switch to single-pane") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(true)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-            }
-
-        }
-
-        should("show room list when the room view is left with the back button in single-pane") {
-            val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-            cut.setSinglePane(true)
-            eventually(2.seconds) { // wait for single pane to be set async
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
-            }
-
+            val roomId = RoomId("!Room:localhost")
+            cut.onRoomSelected(UserId("test", "server"), roomId)
+            advanceUntilIdle()
             backPressedHandler.back()
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+            advanceUntilIdle()
+            assertSoftly {
+                cut.selectedRoomId.value shouldBe null
+                cut shouldShowListOfType RoomListRouter.Wrapper.List::class
+                cut shouldShowRoom false
             }
-        }
-
-        should("still show the room list when the back button is pressed in a single-pane with the room list visible") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(true)
-
-            backPressedHandler.back()
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-            }
-
-        }
-
-        should("still show the room list when the back button is pressed in a multi-pane with the room list visible") {
-            val cut = mainViewModel()
-
-
-            backPressedHandler.back()
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-            }
-
-        }
-
-        should("show the back button in single-pane layout") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(true)
-
-            eventually(2.seconds) {
-                cut.isBackButtonVisible.value shouldBe true
-            }
-
-        }
-
-        should("not show the back button in multi-pane layout") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(false)
-
-            eventually(2.seconds) {
-                cut.isBackButtonVisible.value shouldBe false
-            }
-
         }
 
         should("show self verification modal when self verification is needed") {
@@ -679,6 +532,29 @@ class MainViewModelTest : ShouldSpec() {
         }
     }
 
+    private suspend infix fun MainViewModel.shouldShowRoom(isShown: Boolean) {
+        delay(10.milliseconds)
+        assertSoftly {
+            if (isShown) this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+            else this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+        }
+    }
+
+    private suspend infix fun MainViewModel.shouldShowList(isShown: Boolean) {
+        delay(10.milliseconds)
+        assertSoftly {
+            if (isShown) this.roomListRouterStack.value.active.instance shouldNot beOfType<RoomListRouter.Wrapper.None>()
+            else this.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
+        }
+    }
+
+    private suspend infix fun MainViewModel.shouldShowListOfType(extrasType: KClass<out RoomListRouter.Wrapper>) {
+        delay(10.milliseconds)
+        assertSoftly {
+            this.roomListRouterStack.value.active.instance should beOfType(extrasType)
+        }
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     private suspend fun mainViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(UserId("test", "server") to matrixClientMock),
@@ -698,7 +574,6 @@ class MainViewModelTest : ShouldSpec() {
                                 override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
-                                    isBackButtonVisible: MutableStateFlow<Boolean>,
                                     onBack: () -> Unit,
                                     onVerifyUser: () -> Unit,
                                     onShowRoomSettings: () -> Unit,

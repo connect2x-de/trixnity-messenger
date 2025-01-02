@@ -36,7 +36,7 @@ class MessengerViewImpl : MessengerView {
         Row(modifier = Modifier.fillMaxSize()) {
 
             // Room List
-            if (!(isRoomShown && isSinglePane)) Box(
+            if (!isRoomShown || !isSinglePane) Box(
                 modifier = Modifier
                     .weight(if (isSinglePane) 1F else ROOM_LIST_WEIGHT)
             ) {

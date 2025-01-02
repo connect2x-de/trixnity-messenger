@@ -42,7 +42,7 @@ class RoomViewImpl : RoomView {
             Row(modifier = Modifier.fillMaxSize()) {
 
                 // Timeline Column
-                if (!(isExtrasShown && isSinglePane)) Box(
+                if (!isExtrasShown || !isSinglePane) Box(
                     modifier = Modifier
                         .weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)
                 ) {

@@ -53,16 +53,16 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewMod
 
 interface RoomHeaderView {
     @Composable
-    fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean, isBackButtonVisible: Boolean)
+    fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean, showBackButton: Boolean)
 }
 
 @Composable
 fun RoomHeader(
     roomHeaderViewModel: RoomHeaderViewModel,
     showSettingsButton: Boolean,
-    isBackButtonVisible: Boolean,
+    showBackButton: Boolean,
 ) {
-    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton, isBackButtonVisible) }
+    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton, showBackButton) }
 }
 
 class RoomHeaderViewImpl : RoomHeaderView {
@@ -70,7 +70,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
     override fun create(
         roomHeaderViewModel: RoomHeaderViewModel,
         showSettingsButton: Boolean,
-        isBackButtonVisible: Boolean,
+        showBackButton: Boolean,
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val isTyping = roomHeaderViewModel.usersTyping.collectAsState().value
@@ -81,12 +81,12 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                 ) {
-                    if (isBackButtonVisible) {
+                    if (showBackButton) {
                         RoomBackButton(roomHeaderViewModel)
                     }
                     Row(
                         Modifier
-                            .padding(vertical = 4.dp, horizontal = if (isBackButtonVisible) 0.dp else 10.dp)
+                            .padding(vertical = 4.dp, horizontal = if (showBackButton) 0.dp else 10.dp)
                             .align(Alignment.CenterVertically),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -183,7 +183,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
 @Composable
 fun RoomExtras(
     roomHeaderViewModel: RoomHeaderViewModel,
-    showSettingsButton: Boolean = true,
+    showSettingsButton: Boolean,
 ) {
     val contextMenuOpen = remember { mutableStateOf(false) }
     val isMobile = Platform.current.isMobile
