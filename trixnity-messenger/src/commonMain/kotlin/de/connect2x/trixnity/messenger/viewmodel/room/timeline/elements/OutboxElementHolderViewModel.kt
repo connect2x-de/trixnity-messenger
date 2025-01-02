@@ -48,21 +48,18 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate: String,
         formattedTime: String,
         onOpenMention: OpenMentionCallback,
-    ): OutboxElementHolderViewModel {
-        return OutboxElementHolderViewModelImpl(
-            viewModelContext = viewModelContext,
-            key = key,
-            outboxMessageFlow = outboxMessageFlow,
-            roomId = roomId,
-            transactionId = transactionId,
-            formattedDate = formattedDate,
-            formattedTime = formattedTime,
-            onOpenMention = onOpenMention,
-        )
-    }
+    ): OutboxElementHolderViewModel = OutboxElementHolderViewModelImpl(
+        viewModelContext = viewModelContext,
+        key = key,
+        outboxMessageFlow = outboxMessageFlow,
+        roomId = roomId,
+        transactionId = transactionId,
+        formattedDate = formattedDate,
+        formattedTime = formattedTime,
+        onOpenMention = onOpenMention,
+    )
 
     companion object : OutboxElementHolderViewModelFactory
-
 }
 
 interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
@@ -169,15 +166,7 @@ class OutboxElementHolderViewModelImpl(
             firstOutboxTransactionId == transactionId && lastTimelineEvent?.sender != userId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val showSender: StateFlow<Boolean?> =
-        matrixClient.room.getById(roomId)
-            .filterNotNull()
-            .map { it.isDirect }
-            .flatMapLatest { isDirect ->
-                if (isDirect) flowOf(false)
-                else isFirstInUserSequence.filterNotNull()
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
     override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 

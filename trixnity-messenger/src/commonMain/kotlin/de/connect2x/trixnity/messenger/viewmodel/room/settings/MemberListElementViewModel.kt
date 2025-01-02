@@ -83,6 +83,7 @@ interface MemberListElementViewModel {
     val showRole: StateFlow<Boolean>
     val showPowerLevel: StateFlow<Boolean>
     val changePowerLevelViewModel: ChangePowerLevelViewModel
+    val iHavePowerToBlockUser: Boolean
     val isUserBlocked: StateFlow<Boolean>
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
@@ -197,6 +198,7 @@ class MemberListElementViewModelImpl(
         matrixClient.user.canUnbanUser(selectedRoomId, memberUserId)
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
+    override val iHavePowerToBlockUser: Boolean = matrixClient.userId != roomUser.userId
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val blockingInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
