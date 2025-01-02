@@ -330,6 +330,10 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             every { roomServiceMock2.getLastTimelineEvent(any(), any()) } returns flowOf(null)
             every { roomServiceMock3.getLastTimelineEvent(any(), any()) } returns flowOf(null)
 
+            every { roomServiceMock1.usersTyping } returns MutableStateFlow(mapOf())
+            every { roomServiceMock2.usersTyping } returns MutableStateFlow(mapOf())
+            every { roomServiceMock3.usersTyping } returns MutableStateFlow(mapOf())
+
             every {
                 roomServiceMock1.getAllState(spaceId1, ChildEventContent::class)
             } returns flowOf(mapOf())
