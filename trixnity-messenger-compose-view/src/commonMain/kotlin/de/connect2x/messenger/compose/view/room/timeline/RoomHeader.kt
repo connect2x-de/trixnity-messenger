@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view.room.timeline
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,7 +69,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
     override fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val isBackButtonVisible = roomHeaderViewModel.isBackButtonVisible.collectAsState().value
-        val isTyping = roomHeaderViewModel.usersTyping.collectAsState().value
+        val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         val canShowUserProfile = roomHeaderViewModel.canShowUserProfile.collectAsState().value
 
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
@@ -114,8 +114,12 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             }
 
                             Column {
-                                RoomName(roomHeaderElement, isTyping)
-                                RoomTopic(roomHeaderElement)
+                                RoomName(roomHeaderElement)
+                                if (usersTyping != null) {
+                                    UsersTyping(usersTyping)
+                                } else {
+                                    RoomTopic(roomHeaderElement)
+                                }
                             }
                         }
 
@@ -145,7 +149,6 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
 @Composable
 fun ColumnScope.RoomName(
     roomHeaderElement: RoomHeaderInfo,
-    isTyping: String?
 ) {
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
@@ -155,18 +158,20 @@ fun ColumnScope.RoomName(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 1
+            maxLines = 1,
         )
+    }
+}
 
-    }
-    isTyping?.let {
-        Text(
-            text = it,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1
-        )
-    }
+@Composable
+fun UsersTyping(usersTyping: String) {
+    Text(
+        text = usersTyping,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.bodyMedium,
+        fontStyle = FontStyle.Italic,
+        maxLines = 1,
+    )
 }
 
 @Composable

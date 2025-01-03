@@ -16,7 +16,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,11 +44,11 @@ import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
+import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
 import net.folivo.trixnity.client.room.message.react
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.originalName
@@ -67,7 +66,6 @@ import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -158,7 +156,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     )
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
@@ -209,8 +207,9 @@ class TimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReplaced: StateFlow<Boolean> =
-        timelineEventFlow.map { it.isReplaced == true }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map {
+            it.replacedBy != null
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, true)
 
     override val canBeReactedTo: StateFlow<Boolean> =
         combine(
@@ -451,28 +450,6 @@ class TimelineElementHolderViewModelImpl(
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
 
-    private fun findInviterId(
-        timelineEvent: TimelineEvent?,
-    ): Flow<UserId?> {
-        return timelineEvent?.let { te ->
-            val event = te.event
-            val content = event.content
-            if (event is StateEvent &&
-                event.stateKey == matrixClient.userId.full &&
-                content is MemberEventContent &&
-                content.membership == Membership.INVITE
-            ) {
-                flowOf(event.sender)
-            } else {
-                matrixClient.room.getNextTimelineEvent(te)
-                    ?.flatMapLatest { nextTimelineEvent ->
-                        findInviterId(nextTimelineEvent)
-                    }
-                    ?: flowOf(null)
-            }
-        } ?: flowOf(null)
-    }
-
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow
         .filterNotNull()
         .map {
@@ -582,7 +559,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val formattedBody: String = "Hello <b/>everyone!"
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override fun openMention(timelineElementMention: TimelineElementMention) {}
+            override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:12"
@@ -631,7 +608,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
             override val formattedBody: String = "Hello <b/>too!"
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override fun openMention(timelineElementMention: TimelineElementMention) {}
+            override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:24"
