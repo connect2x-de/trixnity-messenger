@@ -12,8 +12,9 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountView
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TextBasedViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
@@ -173,15 +174,15 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         createNewChatViewModel.onUserClick(users.first())
         log.debug { "chat should have been created -> check to find it in the list" }
         val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
-            .viewModel.sortedRoomListElementViewModels
+            .viewModel.elements
         sortedRoomListElementViewModels.flatMapLatest { roomListElements ->
-            combine(roomListElements.map { it.viewModel.roomName }) { roomNames ->
+            combine(roomListElements.map { it.roomName }) { roomNames ->
                 log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
                 roomNames.any { it == username }
             }
         }.first { it }
         log.debug { "found room -> return" }
-        sortedRoomListElementViewModels.value.first { it.viewModel.roomName.value == username }
+        sortedRoomListElementViewModels.value.first { it.roomName.value == username }
     }
 }
 
@@ -207,15 +208,15 @@ suspend fun MatrixMessengerWithRoot.createGroupWithUsers(groupName: String, vara
         createNewGroupViewModel.createNewGroup()
         log.debug { "group '$groupName' should have been created -> check to find it in the list" }
         val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
-            .viewModel.sortedRoomListElementViewModels
+            .viewModel.elements
         sortedRoomListElementViewModels.flatMapLatest { roomListElements ->
-            combine(roomListElements.map { it.viewModel.roomName }) { roomNames ->
+            combine(roomListElements.map { it.roomName }) { roomNames ->
                 log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
                 roomNames.any { it == groupName }
             }
         }.first { it }
         log.debug { "found group -> return" }
-        sortedRoomListElementViewModels.value.first { it.viewModel.roomName.value == groupName }
+        sortedRoomListElementViewModels.value.first { it.roomName.value == groupName }
     }
 }
 
@@ -223,10 +224,10 @@ suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: Ro
     withTimeout(10.seconds) {
         log.info { "reject the invitation at $roomId" }
         log.debug { "found room $roomId, now reject the invitation" }
-        findRoomWithId(roomId).viewModel.rejectInvitationAndBlockInviter()
+        findRoomWithId(roomId).rejectInvitationAndBlockInviter()
         stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
             .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
-            .sortedRoomListElementViewModels.first { it.none { it.roomId == roomId } }
+            .elements.first { it.none { it.roomId == roomId } }
         Unit
     }
 }
@@ -234,8 +235,8 @@ suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: Ro
 suspend fun MatrixMessengerWithRoot.acceptInvitationToRoom(roomId: RoomId) = with(root) {
     withTimeout(10.seconds) {
         log.info { "accept the invitation to room $roomId" }
-        val roomListElementViewModel = findRoomWithId(roomId).viewModel
-        roomListElementViewModel.isInvite.first { it ?: false }
+        val roomListElementViewModel = findRoomWithId(roomId)
+        roomListElementViewModel.isInvite.first { it == true }
         roomListElementViewModel.acceptInvitation()
         val roomName = roomListElementViewModel.roomName.first {
             it?.startsWith("invitation")?.not() ?: false
@@ -251,7 +252,7 @@ suspend fun MatrixMessengerWithRoot.acceptInvitationToRoom(roomId: RoomId) = wit
 suspend fun MatrixMessengerWithRoot.leaveRoom(roomId: RoomId) = with(root) {
     withTimeout(15.seconds) {
         log.info { "leave room $roomId" }
-        val roomName = findRoomWithId(roomId).viewModel.roomName.first { it != null }
+        val roomName = findRoomWithId(roomId).roomName.first { it != null }
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
         val roomListViewModel = mainViewModel
             .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
@@ -263,7 +264,7 @@ suspend fun MatrixMessengerWithRoot.leaveRoom(roomId: RoomId) = with(root) {
         timelineViewModel.leaveRoom()
         log.debug { "left room $roomId" }
         mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.None::class)
-        roomListViewModel.sortedRoomListElementViewModels.first { roomListElements ->
+        roomListViewModel.elements.first { roomListElements ->
             roomListElements.none { it.roomId == roomId }
         }
         log.debug { "left room is no longer in room list" }
@@ -276,7 +277,7 @@ suspend fun MatrixMessengerWithRoot.findRoomWithId(roomId: RoomId) = with(root) 
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
         val roomListRouterStack = mainViewModel.roomListRouterStack
         val roomListElements = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
-            .viewModel.sortedRoomListElementViewModels.first { roomListElements ->
+            .viewModel.elements.first { roomListElements ->
                 log.debug { "found ${roomListElements.size} rooms" }
                 roomListElements.any {
                     log.trace { "found ${it.roomId}" }
@@ -310,16 +311,21 @@ suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String)
         inputAreaViewModel.isSendEnabled.first { it }
         inputAreaViewModel.sendMessage()
         timelineViewModel.jumpToEndOfTimeline() // TODO remove?
-        timelineViewModel.timelineElementHolderViewModels.first { vms ->
+        timelineViewModel.elements.first { vms ->
             log.debug { "vms: $vms" }
-            timelineViewModel.firstVisibleTimelineElement.value = vms.firstOrNull()?.key
-            timelineViewModel.lastVisibleTimelineElement.value = vms.lastOrNull()?.key
+            timelineViewModel.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = vms.first().key,
+                lastVisibleElement = vms.last().key,
+                firstLoadedElement = vms.first().key,
+                lastLoadedElement = vms.last().key,
+                windowIsFocused = true,
+            )
             vms
                 .filterIsInstance<TimelineElementHolderViewModel>()
                 .any {
-                    val vm = it.timelineElementViewModel.filterNotNull().first()
+                    val vm = it.element.filterNotNull().first()
                     log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
-                    vm is TextBasedViewModel && vm.message == message
+                    vm is RoomMessageTimelineElementViewModel.TextBased.Text && vm.body == message
                 }
         }
         job.cancel()
@@ -333,16 +339,21 @@ suspend fun MatrixMessengerWithRoot.findMessage(roomId: RoomId, message: String)
         roomListViewModel.selectRoom(roomId)
         val timelineViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
             .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
-        timelineViewModel.timelineElementHolderViewModels.first { vms ->
+        timelineViewModel.elements.first { vms ->
             log.debug { "vms: $vms" }
-            timelineViewModel.firstVisibleTimelineElement.value = vms.firstOrNull()?.key
-            timelineViewModel.lastVisibleTimelineElement.value = vms.lastOrNull()?.key
+            timelineViewModel.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = vms.first().key,
+                lastVisibleElement = vms.last().key,
+                firstLoadedElement = vms.first().key,
+                lastLoadedElement = vms.last().key,
+                windowIsFocused = true,
+            )
             vms
                 .filterIsInstance<TimelineElementHolderViewModel>()
                 .any {
-                    val vm = it.timelineElementViewModel.filterNotNull().first()
+                    val vm = it.element.filterNotNull().first()
                     log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
-                    vm is TextBasedViewModel && vm.message == message
+                    vm is RoomMessageTimelineElementViewModel.TextBased.Text && vm.body == message
                 }
         }
         true

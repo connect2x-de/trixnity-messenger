@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
@@ -94,7 +97,7 @@ interface RoomListViewModel {
     val selectedRoomId: StateFlow<RoomId?>
     val error: StateFlow<String?>
     val errorType: StateFlow<ErrorType>
-    val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>>
+    val elements: StateFlow<List<RoomListElementViewModel>>
 
     val syncStateError: StateFlow<Map<UserId, Boolean>>
     val allSyncError: StateFlow<Boolean>
@@ -127,13 +130,6 @@ interface RoomListViewModel {
     fun closeProfile()
 }
 
-data class RoomListElement(
-    val roomId: RoomId,
-    val isDirect: Boolean,
-    val isInvite: Boolean,
-    val viewModel: RoomListElementViewModel
-)
-
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class RoomListViewModelImpl(
     viewModelContext: ViewModelContext,
@@ -157,7 +153,7 @@ class RoomListViewModelImpl(
     override val errorType = _errorType.asStateFlow()
     private val errorSelectedRoom = MutableStateFlow<RoomId?>(null)
 
-    override val sortedRoomListElementViewModels: StateFlow<List<RoomListElement>>
+    override val elements: StateFlow<List<RoomListElementViewModel>>
 
     private val syncState: StateFlow<Map<UserId, SyncState>>
     override val syncStateError: StateFlow<Map<UserId, Boolean>>
@@ -204,7 +200,12 @@ class RoomListViewModelImpl(
             onShowProfile = onUserProfileSelected,
         )
 
-    private val roomListElementViewModels = mutableMapOf<RoomId, RoomListElementViewModel>()
+    private data class RoomListElementViewModelWrapper(
+        val viewModel: RoomListElementViewModel,
+        val lifecycle: LifecycleRegistry,
+    )
+
+    private val elementCache = mutableMapOf<RoomId, RoomListElementViewModelWrapper>()
 
     private val selfVerificationTrigger = get<SelfVerificationTrigger>()
 
@@ -281,7 +282,7 @@ class RoomListViewModelImpl(
                 } else flowOf(allRoomIds)
             }
 
-        sortedRoomListElementViewModels =
+        elements =
             combine(
                 allRoomsFlow,
                 directRoomsFlow,
@@ -291,7 +292,8 @@ class RoomListViewModelImpl(
                     val roomWithMatrixClient: RoomWithMatrixClient,
                     val sortTime: Instant?,
                 )
-                roomsWithMeta.values.asFlow()
+
+                val relevantRooms = roomsWithMeta.values.asFlow()
                     .filter { (room, _) ->
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
@@ -318,29 +320,33 @@ class RoomListViewModelImpl(
                     .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
                     .asFlow<SortableRoom>()
                     .map<SortableRoom, RoomWithMatrixClient> { it.roomWithMatrixClient }
-                    .map { (room, matrixClient) ->
-                        val roomId = room.roomId
-                        val existingViewModel = roomListElementViewModels[roomId]
-                        val viewModel = if (existingViewModel != null) existingViewModel else {
-                            val roomListElementViewModel =
-                                viewModelContext.get<RoomListElementViewModelFactory>().create(
-                                    viewModelContext = childContext(
-                                        "roomListElement-${roomId.full}",
-                                        userId = matrixClient.userId,
-                                    ),
-                                    roomId,
-                                    onRoomSelected = { onRoomSelected(matrixClient.userId, roomId) },
-                                )
-                            roomListElementViewModels[roomId] = roomListElementViewModel
-                            roomListElementViewModel
+                    .toList()
+                    .associate { it.room.roomId to it.matrixClient.userId }
+
+                elementCache.mapNotNull { (key, wrapper) ->
+                    if (relevantRooms[key] == null) {
+                        wrapper.lifecycle.destroy()
+                        key
+                    } else null
+                }.forEach { key -> elementCache.remove(key) }
+
+                relevantRooms.map { (roomId, userId) ->
+                    elementCache[roomId]?.viewModel
+                        ?: run {
+                            val lifecycleRegistry = LifecycleRegistry()
+                            lifecycleRegistry.start()
+                            viewModelContext.get<RoomListElementViewModelFactory>().create(
+                                viewModelContext = childContextWithOwnLifecycle(
+                                    lifecycle = lifecycleRegistry,
+                                    userId = userId,
+                                ),
+                                roomId,
+                                onRoomSelected = { onRoomSelected(userId, roomId) },
+                            ).also {
+                                elementCache[roomId] = RoomListElementViewModelWrapper(it, lifecycleRegistry)
+                            }
                         }
-                        RoomListElement(
-                            roomId = roomId,
-                            isDirect = room.isDirect,
-                            isInvite = room.membership == Membership.INVITE,
-                            viewModel = viewModel,
-                        )
-                    }.toList()
+                }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
         syncState = matrixClients.flatMapLatest { matrixClients ->
@@ -479,15 +485,12 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val selectedRoomId: MutableStateFlow<RoomId?> = MutableStateFlow(null)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorType: MutableStateFlow<ErrorType> = MutableStateFlow(ErrorType.JUST_DISMISS)
-    val roomId1 = RoomId("1", "localhost")
-    val roomId2 = RoomId("2", "localhost")
-    val roomId3 = RoomId("3", "localhost")
-    override val sortedRoomListElementViewModels: MutableStateFlow<List<RoomListElement>> =
+    override val elements: MutableStateFlow<List<RoomListElementViewModel>> =
         MutableStateFlow(
             listOf(
-                RoomListElement(roomId1, true, false, PreviewRoomListElementViewModel1()),
-                RoomListElement(roomId2, false, false, PreviewRoomListElementViewModel2()),
-                RoomListElement(roomId3, true, false, PreviewRoomListElementViewModel3()),
+                PreviewRoomListElementViewModel1(),
+                PreviewRoomListElementViewModel2(),
+                PreviewRoomListElementViewModel3(),
             )
         )
     override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())

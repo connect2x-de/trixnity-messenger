@@ -1,12 +1,20 @@
 package de.connect2x.trixnity.messenger
 
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.matching
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
 import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
+import io.kotest.core.test.TestScope
 import io.kotest.matchers.nulls.shouldNotBeNull
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -15,6 +23,8 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import org.koin.core.Koin
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -89,3 +99,28 @@ inline fun <reified T> ArgMatchersScope.isNot(
     }) {
         others.contains(it).not()
     }
+
+/**
+ * Use this, when you want to use coroutine-test.
+ */
+fun TestScope.testViewModelContext(di: Koin) = object :
+    ViewModelContext by ViewModelContextImpl(
+        di = di,
+        componentContext = DefaultComponentContext(LifecycleRegistry()),
+        coroutineContext = coroutineContext
+    ) {
+    override val coroutineScope = CoroutineScope(coroutineContext)
+}
+
+/**
+ * Use this, when you want to use coroutine-test.
+ */
+fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = object :
+    MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
+        di = di,
+        componentContext = DefaultComponentContext(LifecycleRegistry()),
+        userId = userId,
+        coroutineContext = coroutineContext
+    ) {
+    override val coroutineScope = CoroutineScope(coroutineContext)
+}

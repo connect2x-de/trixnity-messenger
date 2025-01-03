@@ -64,15 +64,9 @@ fun SelectVerificationMethodContent(
                         selected = selectedVerificationMethod.value == verificationMethod,
                         onClick = { selectedVerificationMethod.value = verificationMethod },
                     )
-                    Text(
-                        text = explanation,
-                    )
+                    Text(explanation)
                 }
-            } else {
-                Text(
-                    text = explanation,
-                )
-            }
+            } else Text(explanation)
         }
     }
 }
@@ -94,7 +88,7 @@ fun BoxScope.CompareEmojisOrNumbersContent(verificationStepCompareViewModel: Ver
                 Row(
                     Modifier.align(Alignment.Center),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceAround,
                 ) {
                     emojis.take(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
                 }
@@ -103,7 +97,7 @@ fun BoxScope.CompareEmojisOrNumbersContent(verificationStepCompareViewModel: Ver
                 Row(
                     Modifier.align(Alignment.Center),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceAround,
                 ) {
                     emojis.drop(4).map { Emoji(it, this@BoxWithConstraints.maxWidth / 4) }
                 }

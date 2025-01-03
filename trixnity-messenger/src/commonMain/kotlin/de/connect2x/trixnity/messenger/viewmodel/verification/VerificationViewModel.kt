@@ -68,6 +68,7 @@ interface VerificationViewModelFactory {
 }
 
 interface VerificationViewModel {
+    val userId: UserId
     val stack: Value<ChildStack<Config, Wrapper>>
     fun cancel()
 
@@ -125,7 +126,7 @@ interface VerificationViewModel {
             Config()
 
         @Serializable
-        data class Success(val fromDeviceId: String?) : Config()
+        data object Success : Config()
 
         @Serializable
         data object Rejected : Config()
@@ -210,7 +211,6 @@ open class VerificationViewModelImpl(
                 get<VerificationStepSuccessViewModelFactory>()
                     .create(
                         viewModelContext = childContext(componentContext),
-                        fromDeviceId = config.fromDeviceId,
                         onVerificationSuccessOk = ::onVerificationSuccessOk,
                     )
             )
@@ -352,7 +352,7 @@ open class VerificationViewModelImpl(
                     is ActiveVerificationState.Done -> {
                         verificationJob?.cancel()
                         navigation.replaceCurrentSuspending(
-                            Success(activeVerification.theirDeviceId)
+                            Success
                         )
                     }
 

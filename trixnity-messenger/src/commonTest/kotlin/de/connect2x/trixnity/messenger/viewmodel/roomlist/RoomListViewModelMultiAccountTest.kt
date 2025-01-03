@@ -330,6 +330,10 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             every { roomServiceMock2.getLastTimelineEvent(any(), any()) } returns flowOf(null)
             every { roomServiceMock3.getLastTimelineEvent(any(), any()) } returns flowOf(null)
 
+            every { roomServiceMock1.usersTyping } returns MutableStateFlow(mapOf())
+            every { roomServiceMock2.usersTyping } returns MutableStateFlow(mapOf())
+            every { roomServiceMock3.usersTyping } returns MutableStateFlow(mapOf())
+
             every {
                 roomServiceMock1.getAllState(spaceId1, ChildEventContent::class)
             } returns flowOf(mapOf())
@@ -495,7 +499,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            val list = cut.sortedRoomListElementViewModels.onEach { println(it) }.first { it.size == 5 }
+            val list = cut.elements.onEach { println(it) }.first { it.size == 5 }
             list[0].roomId shouldBe roomId2
             list[1].roomId shouldBe roomId3
             list[2].roomId shouldBe roomId5
@@ -605,11 +609,11 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
 
             cut.searchTerm.value = ""
             testCoroutineScheduler.advanceUntilIdle()
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 4
+            cut.elements.value shouldHaveSize 4
 
             cut.searchTerm.value = "  "
             testCoroutineScheduler.runCurrent()
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 4
+            cut.elements.value shouldHaveSize 4
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -646,8 +650,8 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
 
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 2
-            cut.sortedRoomListElementViewModels.value.should(
+            cut.elements.value shouldHaveSize 2
+            cut.elements.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId2, roomId3))
             )
 
@@ -686,11 +690,11 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             cut.searchTerm.value = "1"
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
-            cut.sortedRoomListElementViewModels.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
+            cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))
 
             room3NameFlow.value = "I am number 1"
             testCoroutineScheduler.advanceUntilIdle() // no debounce, since search term stays the same
-            cut.sortedRoomListElementViewModels.value.should(
+            cut.elements.value.should(
                 containRoomListElementViewModelsFor(listOf(roomId1, roomId3))
             )
 
@@ -737,7 +741,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
 
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 3
+            cut.elements.value shouldHaveSize 3
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -766,14 +770,14 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
             testCoroutineScheduler.advanceUntilIdle()
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 3
+            cut.elements.value shouldHaveSize 3
 
             matrixClients.value =
                 mapOf(
                     UserId("test1", "server") to matrixClientMock1
                 )
             testCoroutineScheduler.advanceUntilIdle()
-            cut.sortedRoomListElementViewModels.value shouldHaveSize 2
+            cut.elements.value shouldHaveSize 2
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -784,7 +788,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         launch { cut.selectedRoomId.collect() }
         launch { cut.error.collect() }
         launch { cut.errorType.collect() }
-        launch { cut.sortedRoomListElementViewModels.collect() }
+        launch { cut.elements.collect() }
         launch { cut.syncStateError.collect() }
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
@@ -859,19 +863,20 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
     }
 
     private fun containRoomListElementViewModelsFor(roomIds: List<RoomId>) =
-        KoMatcher<List<RoomListElement>> { list ->
-            MatcherResult(roomIds.all { roomId ->
-                list.any { element -> element.viewModel.roomId == roomId }
-            },
+        KoMatcher<List<RoomListElementViewModel>> { list ->
+            MatcherResult(
+                roomIds.all { roomId ->
+                    list.any { element -> element.roomId == roomId }
+                },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 },
                 {
                     "RoomListElementViewModel with ids [${
-                        roomIds.filterNot { roomId -> list.any { element -> element.viewModel.roomId == roomId } }
+                        roomIds.filterNot { roomId -> list.any { element -> element.roomId == roomId } }
                             .joinToString { it.full }
                     }] not found"
                 })

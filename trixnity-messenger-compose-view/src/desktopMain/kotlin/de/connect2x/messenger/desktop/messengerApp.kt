@@ -25,7 +25,6 @@ import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
@@ -55,7 +54,6 @@ fun CoroutineScope.messengerApp(
     matrixMultiMessenger: MatrixMultiMessenger,
     lifecycle: LifecycleRegistry,
     urlHandler: UrlHandler,
-    isDebug: Boolean = false,
 ) {
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
@@ -130,7 +128,6 @@ fun CoroutineScope.messengerApp(
                     CompositionLocalProvider(
                         Platform provides PlatformType.DESKTOP,
                         IsFocused provides windowIsFocused,
-                        IsDebug provides isDebug,
                         DI provides matrixMessenger.di,
                     ) {
                         MessengerTheme {
@@ -148,7 +145,6 @@ fun CoroutineScope.messengerApp(
                     CompositionLocalProvider(
                         Platform provides PlatformType.DESKTOP,
                         IsFocused provides windowIsFocused,
-                        IsDebug provides isDebug,
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,
                     ) {

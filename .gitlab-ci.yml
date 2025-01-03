@@ -184,7 +184,7 @@ test:smoketest-desktop-linux:
       :trixnity-messenger-compose-view:desktopTest
       --stacktrace
 
-test:smoketest-web-linux:
+test:smoketest-web:
   stage: test
   interruptible: true
   timeout: 1h
@@ -201,7 +201,7 @@ test:smoketest-web-linux:
       :trixnity-messenger-compose-view:webBrowserFirefoxTest
       --stacktrace
 
-test:smoketest-android-linux:
+test:smoketest-android:
   stage: test
   interruptible: true
   timeout: 15m
