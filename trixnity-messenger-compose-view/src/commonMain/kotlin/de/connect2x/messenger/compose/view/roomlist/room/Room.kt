@@ -48,8 +48,6 @@ fun RoomListElement(
 class RoomListElementViewImpl : RoomListElementView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel) {
-        val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
-        val unreadMessages = roomListElementViewModel.unreadMessages.collectAsState().value
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
@@ -67,7 +65,7 @@ class RoomListElementViewImpl : RoomListElementView {
                     } else {
                         Column(Modifier.align(Alignment.CenterVertically)) {
                             RoomNameAndTime(roomListElementViewModel)
-                            LastMessageAndUnreadMessagesCounter(lastMessage, unreadMessages)
+                            LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
                         }
                     }
                 }

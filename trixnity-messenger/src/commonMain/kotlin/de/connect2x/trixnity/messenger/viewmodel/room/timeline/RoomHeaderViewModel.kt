@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
+import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -216,7 +217,7 @@ open class RoomHeaderViewModelImpl(
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val usersTyping = matrixClient.room.usersTyping.map { map ->
-        map[selectedRoomId]?.let { typingInfo(it) }
+        map[selectedRoomId]?.let { typingInfo(matrixClient, selectedRoomId, i18n, it) }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val canBlockUser: StateFlow<Boolean> = combine(
@@ -274,47 +275,6 @@ open class RoomHeaderViewModelImpl(
 
     override fun goBack() {
         onBack()
-    }
-
-    private suspend fun typingInfo(eventContent: TypingEventContent): String? {
-        val usersTyping = eventContent.users.filterNot { it == matrixClient.userId }
-        return when {
-            usersTyping.isEmpty() -> null
-            usersTyping.size == 1 -> {
-                val username = usersTyping[0].let {
-                    matrixClient.user.getById(selectedRoomId, it).first()?.name
-                        ?: it.full
-                }
-                val isDirect =
-                    matrixClient.room.getById(selectedRoomId).first()?.isDirect ?: false
-                when {
-                    isDirect -> i18n.roomHeaderTypingSingleDirect()
-                    else -> i18n.roomHeaderTypingSingle(username)
-                }
-            }
-
-            usersTyping.size < 4 -> {
-                val usernames = usersTyping.map {
-                    matrixClient.user.getById(selectedRoomId, it).first()?.name
-                        ?: it.full
-                }
-
-                i18n.roomHeaderTypingMultiple(
-                    i18n.commonAnd(
-                        usernames.take(usernames.size - 1).joinToString(),
-                        usernames.last()
-                    )
-                )
-            }
-
-            else -> {
-                val usernames = usersTyping.map {
-                    matrixClient.user.getById(selectedRoomId, it).first()?.name
-                        ?: it.full
-                }
-                i18n.roomHeaderTypingMultipleMore(usernames.take(2).joinToString())
-            }
-        }
     }
 }
 

@@ -245,6 +245,7 @@ class RoomListViewModelTest : ShouldSpec() {
                     stateKey = "",
                 )
             )
+            every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
 
             every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
@@ -1011,6 +1012,8 @@ class RoomListViewModelTest : ShouldSpec() {
                     )
             every { userServiceMock2.getAll(spaceId2) } returns MutableStateFlow(mapOf())
             every { userServiceMock2.getAll(spaceId21) } returns MutableStateFlow(mapOf())
+
+            every { roomServiceMock2.usersTyping } returns MutableStateFlow(mapOf())
 
             val cut = roomListViewModel(
                 coroutineContext,
