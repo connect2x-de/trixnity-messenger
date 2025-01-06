@@ -20,12 +20,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.sender
+import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import org.koin.core.component.get
@@ -50,11 +52,8 @@ interface MessageMetadataViewModelFactory {
 }
 
 interface MessageMetadataViewModel {
-//    val sender: StateFlow<UserInfoElement?>
-
-    //    val message: TimelineElementViewModel.Message<*>
-//    val message: TimelineElementHolderViewModel
     val eventId: EventId
+    val senderInfo: StateFlow<UserInfoElement?>
     val userInteractions: StateFlow<List<MessageUserInteraction>>
     val reactionCounts: StateFlow<Map<ReactionKey, UInt>>
     val edits: StateFlow<List<TimelineEvent>>
@@ -64,14 +63,10 @@ interface MessageMetadataViewModel {
 
     //    fun errorDismiss()
     fun back()
-
-    // TODO: add functions to initiate edit/reply/delete/other moderation options?
 }
 
 class MessageMetadataViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-//    override val message: TimelineElementViewModel.Message<*>,
-//    override val message: TimelineElementHolderViewModel,
     override val eventId: EventId,
     roomId: RoomId,
     private val onBack: () -> Unit,
@@ -87,29 +82,29 @@ class MessageMetadataViewModelImpl(
         backHandler.register(backCallback)
     }
 
-    //    override val sender: StateFlow<UserInfoElement?> = message.sender
-//    override val readers: StateFlow<List<UserInfoElement>?> = message.isReadBy
-//    override val reactors: StateFlow<Map<String, List<UserInfoElement>>?> =
-//        message.reactions.map { reactions ->
-//            reactions.mapValues { (_, value) -> value.map { it.sender } }
-//        }
-//            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-//
     override val edits: StateFlow<List<TimelineEvent>> =
         getMessageEditHistory(matrixClient, eventId, roomId)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
-//        flow<List<TimelineElementViewModel.Message<*>>> {
-////            emit(null)
-////            matrixClient
-////            message.eventId
-//            matrixClient.room.getTimelineEventRelations(roomId, message.eventId, RelationType.Replace).map {
-//                it?.mapValues { event ->
-////                    event.value
-//                }
-//            }
-//
-//
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val senderInfo: StateFlow<UserInfoElement?> =
+        matrixClient.room.getTimelineEvent(roomId, eventId) {
+            fetchSize = 1
+            allowReplaceContent = false
+        }.flatMapLatest {
+            it?.let { event ->
+                matrixClient.user.getById(roomId, it.sender)
+                    .filterNotNull().map { roomUser ->
+                        roomUser.toUserInfoElement(
+                            coroutineScope,
+                            matrixClient,
+                            initials,
+                            config.avatarMaxSize,
+                            roomUser.userId,
+                        )
+                    }
+            } ?: flowOf(null)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val readers: StateFlow<Set<RoomUser>> =

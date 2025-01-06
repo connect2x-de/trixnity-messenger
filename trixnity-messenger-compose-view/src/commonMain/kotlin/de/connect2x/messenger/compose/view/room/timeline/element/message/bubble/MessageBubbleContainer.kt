@@ -125,7 +125,7 @@ fun MessageBubbleContainer(
                     if (holder is TimelineElementHolderViewModel) holder.showMessageMetadata()
                 },
                 onReactToMessage = { reactionsOpen.value = true },
-                onInfoLegacy = { infoOpen.value = true }, // TODO remove
+                onInfoClassic = { infoOpen.value = true }, // TODO remove
                 additionalContextActions,
             )
         }

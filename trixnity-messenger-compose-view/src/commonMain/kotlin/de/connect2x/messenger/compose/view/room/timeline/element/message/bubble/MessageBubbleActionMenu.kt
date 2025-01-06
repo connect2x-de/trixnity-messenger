@@ -51,7 +51,7 @@ fun BoxScope.MessageBubbleActionMenu(
     showActionMenu: MutableState<Boolean>,
     onMessageInfo: () -> Unit,
     onReactToMessage: () -> Unit,
-    onInfoLegacy: () -> Unit, // TODO remove
+    onInfoClassic: () -> Unit, // TODO remove
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -62,7 +62,7 @@ fun BoxScope.MessageBubbleActionMenu(
             holder,
             i18n,
             onMessageInfo,
-            onInfoLegacy,
+            onInfoClassic,
             onReactToMessage,
         )
 
@@ -73,7 +73,7 @@ fun BoxScope.MessageBubbleActionMenu(
             i18n,
             additionalContextActions,
             onMessageInfo,
-            onInfoLegacy,
+            onInfoClassic,
             onReactToMessage,
         )
     }
@@ -87,7 +87,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     i18n: I18nView,
     additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
     onMessageInfo: () -> Unit,
-    onInfoLegacy: () -> Unit,
+    onInfoClassic: () -> Unit,
     onReactToMessage: () -> Unit,
 ) {
     val onClose = {
@@ -128,7 +128,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 .sizeIn(maxWidth = 300.dp),
         ) {
             additionalContextActions(onClose)
-            holder.baseMenuActions(i18n, onMessageInfo, onInfoLegacy, onReactToMessage).forEach { action ->
+            holder.baseMenuActions(i18n, onMessageInfo, onInfoClassic, onReactToMessage).forEach { action ->
                 action.render { onClose() }
             }
         }
@@ -143,7 +143,7 @@ private fun BoxScope.MessageBubbleActionMenuMobile(
     holder: BaseTimelineElementHolderViewModel,
     i18n: I18nView,
     onMessageInfo: () -> Unit,
-    onInfoLegacy: () -> Unit,
+    onInfoClassic: () -> Unit,
     onReactToMessage: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -169,7 +169,7 @@ private fun BoxScope.MessageBubbleActionMenuMobile(
                     .padding(bottom = 40.dp)
             ) {
                 additionalContextActions(onClose)
-                holder.baseMenuActions(i18n, onMessageInfo, onInfoLegacy, onReactToMessage).forEach { action ->
+                holder.baseMenuActions(i18n, onMessageInfo, onInfoClassic, onReactToMessage).forEach { action ->
                     action.render {
                         onClose()
                     }

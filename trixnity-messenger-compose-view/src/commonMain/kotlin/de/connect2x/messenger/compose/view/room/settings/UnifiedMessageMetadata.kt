@@ -56,11 +56,27 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
     val edits = viewModel.edits.collectAsState().value
     val reactionCounts = viewModel.reactionCounts.collectAsState().value
     val userInteractions = viewModel.userInteractions.collectAsState().value
+    val senderInfo = viewModel.senderInfo.collectAsState().value
     var interactionFilterByReaction by remember { mutableStateOf<ReactionKey?>(null) }
     Box(Modifier.fillMaxSize()) {
         Column {
             Header(viewModel::back, "we need to go back")
             Spacer(Modifier.size(8.dp))
+            senderInfo?.let { info ->
+                val avatarImage = info.image?.collectAsState(null)?.value
+                Box(Modifier.padding(4.dp)) {
+                    Row {
+                        Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
+                            Avatar(avatarImage, info.initials ?: "?")
+                        }
+                        Spacer(Modifier.size(8.dp))
+                        Column {
+                            Text(info.name, fontWeight = FontWeight.Bold)
+                            Text(info.userId.full, fontWeight = FontWeight.Light)
+                        }
+                    }
+                }
+            }
             Text("metadata of ${viewModel.eventId}")
             Spacer(Modifier.size(8.dp))
             Text("Editing history:") // TODO: i18n
