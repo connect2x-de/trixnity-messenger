@@ -24,8 +24,9 @@ class DeviceVerificationModalViewImpl : DeviceVerificationModalView {
     @Composable
     override fun create(verificationViewModel: VerificationViewModel) {
         val i18n = DI.get<I18nView>()
+        val userId = verificationViewModel.userId
         // TODO: Close the modal instead of cancelling the current process here.
-        MessengerModal(verificationViewModel::cancel, i18n.deviceVerificationTitle()) {
+        MessengerModal(verificationViewModel::cancel, i18n.deviceVerificationTitle(userId)) {
             Box(Modifier.fillMaxWidth()) {
                 DeviceVerificationStepSwitch(verificationViewModel)
             }

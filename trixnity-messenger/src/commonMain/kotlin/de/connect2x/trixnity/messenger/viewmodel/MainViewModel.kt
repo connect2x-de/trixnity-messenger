@@ -15,12 +15,11 @@ import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.getOrNull
-import de.connect2x.trixnity.messenger.viewmodel.files.MediaRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.PreviewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.MessageMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
@@ -48,7 +47,6 @@ import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -78,7 +76,6 @@ interface MainViewModel {
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
     val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>>
     val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>>
-    val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>>
     val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
     val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>>
     val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
@@ -92,13 +89,8 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
 
     fun setSinglePane(isSinglePane: Boolean)
-    fun openMedia(
-        content: RoomMessageEventContent.FileBased,
-        onDownload: () -> Unit,
-        userId: UserId
-    )
 
-    fun openMention(userId: UserId, messageMention: MessageMention)
+    fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
 
     fun closeAccountsOverview()
 }
@@ -158,7 +150,6 @@ open class MainViewModelImpl(
             viewModelContext = viewModelContext,
             isBackButtonVisible = isBackButtonVisible,
             onCloseRoom = ::closeDetailsAndShowList,
-            onOpenMedia = ::openMedia,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
         )
@@ -177,9 +168,6 @@ open class MainViewModelImpl(
             }
         }
     }
-
-    private val mediaRouter: MediaRouter = MediaRouter(viewModelContext = viewModelContext)
-    override val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>> = mediaRouter.stack
 
     private val verificationRouter: VerificationRouter =
         VerificationRouter(
@@ -211,9 +199,7 @@ open class MainViewModelImpl(
     }
 
     private fun backPressHandler() {
-        if (mediaRouter.isMediaOpen()) {
-            mediaRouter.closeMedia()
-        } else if (roomRouter.isShown() && isSinglePane.value) {
+        if (roomRouter.isShown() && isSinglePane.value) {
             closeDetailsAndShowList()
         } else {
             getOrNull<MinimizeApp>()?.invoke()
@@ -231,7 +217,6 @@ open class MainViewModelImpl(
                 log.debug { "since all account have been removed, close all navigation" }
                 roomRouter.closeRoom()
                 roomListRouter.close()
-                mediaRouter.closeMedia()
                 avatarCutterRouter.close()
                 initialSyncRouter.close()
                 verificationRouter.closeVerification()
@@ -521,56 +506,22 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun openMedia(
-        content: RoomMessageEventContent.FileBased,
-        onDownload: () -> Unit,
-        userId: UserId,
-    ) {
-        when (content) {
-            is RoomMessageEventContent.FileBased.Image -> coroutineScope.launch {
-                mediaRouter.openImage(
-                    content,
-                    userId,
-                    onDownload
-                )
-            }
-
-            is RoomMessageEventContent.FileBased.Video -> coroutineScope.launch {
-                mediaRouter.openVideo(
-                    content,
-                    userId,
-                    onDownload
-                )
-            }
-
-            is RoomMessageEventContent.FileBased.File -> coroutineScope.launch {
-                when (content.info?.mimeType) {
-                    "application/pdf" -> mediaRouter.openPdf(content, userId, onDownload)
-                    "text/markdown" -> mediaRouter.openMarkdown(content, userId, onDownload)
-                    "text/plain" -> mediaRouter.openText(content, userId, onDownload)
-                }
-            }
-
-            else -> {}
-        }
-    }
-
-    override fun openMention(userId: UserId, messageMention: MessageMention) {
-        when (messageMention) {
-            is MessageMention.User -> {
-                val user = messageMention.user.userId
+    override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
+        when (timelineElementMention) {
+            is TimelineElementMention.User -> {
+                val user = timelineElementMention.user.userId
                 // TODO: implement and open user view (profile)
                 log.warn { "UserView to display $user not implemented yet" }
             }
 
-            is MessageMention.Room -> {
-                log.debug { "Opening Room ${messageMention.room.roomId}" }
-                val roomId = messageMention.room.roomId
+            is TimelineElementMention.Room -> {
+                log.debug { "Opening Room ${timelineElementMention.room.roomId}" }
+                val roomId = timelineElementMention.room.roomId
                 onRoomSelected(userId, roomId)
             }
 
-            is MessageMention.Event -> {
-                val eventId = messageMention.event.eventId
+            is TimelineElementMention.Event -> {
+                val eventId = timelineElementMention.event.eventId
                 // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
@@ -655,15 +606,6 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val mediaRouterStack: Value<ChildStack<MediaRouter.Config, MediaRouter.Wrapper>> =
-        MutableValue(
-            ChildStack(
-                active = Child.Created(
-                    configuration = MediaRouter.Config.None,
-                    instance = MediaRouter.Wrapper.None,
-                )
-            )
-        )
     override val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
         MutableValue(
             ChildStack(
@@ -714,14 +656,7 @@ class PreviewMainViewModel : MainViewModel {
         this.isSinglePane.value = isSinglePane
     }
 
-    override fun openMedia(
-        content: RoomMessageEventContent.FileBased,
-        onDownload: () -> Unit,
-        userId: UserId
-    ) {
-    }
-
-    override fun openMention(userId: UserId, messageMention: MessageMention) {
+    override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
     }
 
     override fun closeAccountsOverview() {

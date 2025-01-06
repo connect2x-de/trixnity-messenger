@@ -41,7 +41,6 @@ import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.PHOTO
 import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.VIDEO
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
@@ -210,7 +209,6 @@ fun CameraDialog(
     onCloseCameraDialog: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val appId = DI.get<MatrixMessengerConfiguration>().appId
     val context = LocalContext.current
     var showPermissionAlert by remember { mutableStateOf(false) }
     var isPermissionGranted by remember { mutableStateOf(false) }
@@ -220,7 +218,7 @@ fun CameraDialog(
     }
     val tempFile = File(context.cacheDir, tempFileName)
     val tempUri = FileProvider.getUriForFile(
-        context, "$appId.provider", tempFile,
+        context, "${context.packageName}.provider", tempFile,
     )
 
     val cameraLauncher = when (mode) {

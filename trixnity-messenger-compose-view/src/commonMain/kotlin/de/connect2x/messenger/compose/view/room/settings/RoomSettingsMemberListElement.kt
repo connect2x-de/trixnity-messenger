@@ -99,7 +99,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val showPowerLevel = memberListElementViewModel.showPowerLevel.collectAsState().value
         val showRole = memberListElementViewModel.showRole.collectAsState().value
         val isLastMember =
-            memberListViewModel.memberListElementViewModels.collectAsState().value.lastOrNull()?.first == memberListElementViewModel.userId
+            memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val membership = memberListElementViewModel.membership.collectAsState().value
         val membershipReason = memberListElementViewModel.membershipReason.collectAsState().value
@@ -205,6 +205,7 @@ fun RoomSettingsMemberOptions(
         memberListElementViewModel.banUserWarningOpen.collectAsState().value
     val unbanUserWarningOpen =
         memberListElementViewModel.unbanUserWarningOpen.collectAsState().value
+    val iHavePowerToBlockUser = memberListElementViewModel.iHavePowerToBlockUser
     val isUserBlocked = memberListElementViewModel.isUserBlocked.collectAsState().value
     val blockingInProgress = memberListElementViewModel.blockingInProgress.collectAsState().value
     val membership = memberListElementViewModel.membership.collectAsState().value
@@ -325,7 +326,7 @@ fun RoomSettingsMemberOptions(
                 contentPadding = PaddingValues(horizontal = 10.dp),
             )
         }
-        if (blockingInProgress.not()) {
+        if (iHavePowerToBlockUser && blockingInProgress.not()) {
             if (isUserBlocked) {
                 DropdownMenuItem(
                     text = {

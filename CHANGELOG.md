@@ -9,6 +9,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Status of an edited message
+- Possibility to provide an app version that is displayed in the info section
+- Show users typing in room list
+- Allow sending attachments with Enter (desktop)
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Don't show sender for own elements (including outbox elements)
+- Show sender, when state event before element
+- Text colors in message bubbles and input field (Desktop) adjusted for dark mode
+- Removed ability to block yourself
+
+### Security
+
+## 3.0.3
+
+### Fixed
+
+- Fixed various scrolling issues in timeline
+- Fixed outbox loading in timeline
+
+## 3.0.2
+
+### Changed
+
+- Upgraded Trixnity to 4.11.2
+
+### Fixed
+
+- Cleaned up timeline element loading/dropping to prevent some scroll-jump edge cases
+- Fixed rendering of the date in small message bubbles
+- Fixed timeline elements displayed in wrong order
+
+## 3.0.1
+
+### Changed
+
+- Do not reuse an existing direct room with a user that has left the room
+
+### Fixed
+
+- Fix Smoketests on Web
+- Fix redacted event not visible
+- Fix Handling of temporary camera captures
+- Fix unnecessary waiting for membership change message
+- Fix displaying the outbox without timeline for a short moment
+- Fix message edits not displayed immediately
+- Fix unread marker is shown when sending a message
+
+## 3.0.0
+
+### Added
+
 - Add ability to share plain and formatted text
 - Add ability to share url with icon
 - Camera capture as a file selection option
@@ -19,19 +78,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `RoomSettingsMemberListElement` interfaces to allow more flexibility
 - Updated documentation on how to use the framework from SwiftUI
 - In single account mode make the profile banner open the user profile
+- Device verification dialog to show the affected account name and mxid
 - Use `XDG_DATA_HOME` on linux
-
-### Deprecated
-
-### Removed
+- New extensible faster timeline architecture
 
 ### Fixed
 
 - Format links with escaped ampersand (`&amp;`)
 - Format links with semicolon (`https://abc.xyz/a;b;c`)
 - Wrong device name displayed in verification success message
-
-### Security
+- Overlay sometimes won't vanish when switching accounts
 
 ## 2.4.0
 
@@ -44,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added hook on Android to change the behaviour of the messenger on startup of the Activity
 - Add download button for file overlays
 - Allow configuration to not use the account setup wizard
-- Support private Browser Tabs.
+- Support private Browser Tabs
 - PDF reader for web
 
 ### Changed
@@ -70,14 +126,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash when opening file picker on linux distribution
 - Fix Cannot delete database when corrupted
 - Fix server discovery fallback hiding server discovery errors
-- Fixed scaling on mobile devices in web.
+- Fixed scaling on mobile devices in web
 - Fix SPM: only publish when there are changes
 
 ## 2.3.7
 
 ### Added
 
-- File save and upload dialog on web.
+- File save and upload dialog on web
 - use KMMBridge to publish iOS Swift and Objective-C artefacts
   to [https://gitlab.com/connect2x/trixnity-messenger/spm.git]()
 - Wizard for account setup after initial login
@@ -87,7 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Upgrade Trixnity to 4.10.0
-- Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`.
+- Make `MatrixMessenger` and `MatrixMultiMessenger` `Autocloseable` and close `HttpClientEngine`
 - Allow to configure `httpClientEngine` and `httpClientConfig` via `MatrixMessengerConfiguration`/
   `MatrixMultiMessengerConfiguration`
 - Button to skip verification is now part of the list of available verification methods
@@ -95,11 +151,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Don't show placeholder, when lastRelevantEventId not known.
-- Don't mark state events as relevant.
+- Don't show placeholder, when lastRelevantEventId not known
+- Don't mark state events as relevant
 - Wizard and modal dialog buttons are always shown on smaller screens
 - Fix Emojis on Web
-- Fix directory picker in room export.
+- Fix directory picker in room export
 - Fix UIA authentication fallback flows with multiple stages; explicitly show that phone/email verification are not yet
   supported
 - Don't show edited message as new message
@@ -118,21 +174,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reduce flickering by showing creation time and date on outbox messages
 - Change symbol for read messages to a double cross
-- Remove alpha channel in outbox messages.
-- Unify calculation of last relevant event in room list.
+- Remove alpha channel in outbox messages
+- Unify calculation of last relevant event in room list
 
 ### Fixed
 
 - Show Search Results when creating Room on small screen sizes
-- Fixed bad contrast due to missing root Surface.
-- Fixed editing a message bumps room up.
-- Fixed Android notifications.
+- Fixed bad contrast due to missing root Surface
+- Fixed editing a message bumps room up
+- Fixed Android notifications
 
 ## 2.3.5
 
 ### Removed
 
-- Removed edge-to-edge support until we support it in the UI.
+- Removed edge-to-edge support until we support it in the UI
 
 ### Fixed
 
@@ -162,7 +218,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change keychain handling to include an appId
 - Show Read-by information in context menu
-- Replace MacOS Keychain handling with new API (a deprecated API was used before).
+- Replace MacOS Keychain handling with new API (a deprecated API was used before)
 
 ### Fixed
 
@@ -172,7 +228,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Open in App Browser for SSO.
+- Open in App Browser for SSO
 
 ## 2.3.1
 
@@ -228,7 +284,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix device list loading set to false too early
 - Fix licenses by putting them into configuration
 - Fix default NotificationHandler using wrong app name and channel ID
-- Fix loading of complete timeline, when event mention is wrongly found.
+- Fix loading of complete timeline, when event mention is wrongly found
 - Fix missing initial sync modal
 - Performance improvement: setHtml only once per message
 - Fix flickering in the timeline

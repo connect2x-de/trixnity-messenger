@@ -1,27 +1,47 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import kotlinx.coroutines.flow.Flow
+import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.core.model.UserId
 
-data class UserInfoElement(
+private val log = KotlinLogging.logger { }
+
+class UserInfoElement(
     val name: String,
     val userId: UserId,
     val initials: String? = null,
-    val image: Flow<ByteArray>? = null,
+    val image: StateFlow<ByteArray?>? = null,
 )
 
-suspend fun RoomUser.toUserInfoElement(matrixClient: MatrixClient): UserInfoElement =
+fun RoomUser?.toUserInfoElement(
+    coroutineScope: CoroutineScope,
+    matrixClient: MatrixClient,
+    initials: Initials,
+    maxAvatarSize: Long,
+    fallbackUserId: UserId,
+): UserInfoElement =
     UserInfoElement(
-        name = this.name,
-        userId = this.userId,
-        initials = Initials.compute(this.name),
-        image = this.avatarUrl?.let {
-            matrixClient.media.getMedia(it).getOrNull()
+        name = this?.name ?: fallbackUserId.full,
+        userId = this?.userId ?: fallbackUserId,
+        initials = initials.compute(this?.name ?: fallbackUserId.full),
+        image = this@toUserInfoElement?.avatarUrl?.let { avatarUrl ->
+            flow {
+                // TODO some sort of retry (see retryLoopFlow)
+                emit(
+                    matrixClient.media.getMedia(avatarUrl).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {
+                        log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
+                    }
+                )
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
         }
     )
-

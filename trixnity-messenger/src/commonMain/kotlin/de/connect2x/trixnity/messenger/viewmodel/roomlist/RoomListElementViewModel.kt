@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
+import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -83,6 +84,7 @@ interface RoomListElementViewModel {
     val roomImageInitials: StateFlow<String?>
     val roomImage: StateFlow<ByteArray?>
     val lastMessage: StateFlow<String?>
+    val usersTyping: StateFlow<String?>
     val time: StateFlow<String?>
     val unreadMessages: StateFlow<String?>
     val presence: StateFlow<Presence?>
@@ -124,6 +126,7 @@ open class RoomListElementViewModelImpl(
     override val isInvite: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.INVITE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
@@ -137,7 +140,15 @@ open class RoomListElementViewModelImpl(
                 roomInviter.getInviter(matrixClient, roomId)?.let { inviterUserId ->
                     matrixClient.user.getById(roomId, inviterUserId)
                         .filterNotNull()
-                        .map { it.toUserInfoElement(matrixClient) }
+                        .map {
+                            it.toUserInfoElement(
+                                coroutineScope,
+                                matrixClient,
+                                initials,
+                                maxAvatarSize,
+                                inviterUserId
+                            )
+                        }
                 } ?: flowOf(null)
             } else {
                 flowOf(null)
@@ -158,7 +169,6 @@ open class RoomListElementViewModelImpl(
         roomNameCalculations.getRoomName(roomId, matrixClient, formatted = false)
             .map { initials.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), null)
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val roomImage: StateFlow<ByteArray?> =
         roomFlow.map { room ->
             room.avatarUrl?.let { avatarUrl ->
@@ -216,6 +226,11 @@ open class RoomListElementViewModelImpl(
                 message
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val usersTyping: StateFlow<String?> =  matrixClient.room.usersTyping.map { map ->
+        map[roomId]?.let { typingInfo(matrixClient, roomId, i18n, it) }
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val time: StateFlow<String?> =
         roomFlow.map { room ->
             room.lastRelevantEventTimestamp?.let {
@@ -332,6 +347,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("B")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
     override val lastMessage: MutableStateFlow<String?> = MutableStateFlow("Gute Entscheidung!")
+    override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("20:46")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("99+")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
@@ -357,6 +373,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
     override val lastMessage: MutableStateFlow<String?> =
         MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+    override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("Martin schreibt...")
     override val time: MutableStateFlow<String?> = MutableStateFlow("24.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("2")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
@@ -382,6 +399,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
     override val lastMessage: MutableStateFlow<String?> =
         MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+    override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
@@ -407,6 +425,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
     override val lastMessage: MutableStateFlow<String?> =
         MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+    override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.OFFLINE)

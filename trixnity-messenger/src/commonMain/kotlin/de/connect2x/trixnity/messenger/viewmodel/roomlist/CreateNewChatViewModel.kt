@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
@@ -20,6 +21,7 @@ import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 
 private val log = KotlinLogging.logger {}
@@ -100,29 +102,19 @@ open class CreateNewChatViewModelImpl(
             if (existingRoomIds?.isNotEmpty() == true &&
                 existingRoomIds.any { matrixClient.room.getById(it).first() != null }
             ) {
-                log.info { "go to existing room with $userId" }
-                existingRoomIds.find { matrixClient.room.getById(it).first() != null }?.let { goToRoom(matrixClient.userId, it) }
+                log.debug { "Check whether there is already existing room with $userId" }
+                // check whether the user left the room; if so, do NOT re-use the room
+                existingRoomIds.find {
+                    val membership = matrixClient.user.getById(it, userId).first()?.membership
+                    membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
+                }?.let {
+                    log.info { "go to existing room with $userId" }
+                    goToRoom(matrixClient.userId, it)
+                } ?: run {
+                    createNewRoom(userId)
+                }
             } else {
-                log.info { "create new room with $userId" }
-                val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
-                val historyVisibility = optionalRoomHistoryVisibility.value?.let {
-                    listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
-                } ?: emptyList()
-                matrixClient.api.room.createRoom(
-                    isDirect = true,
-                    invite = setOf(userId),
-                    initialState = encryption + historyVisibility,
-                    preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
-                ).fold(
-                    onSuccess = { roomId ->
-                        log.debug { "created room ${roomId.full}" }
-                        goToRoom(matrixClient.userId, roomId)
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot create room." }
-                        createNewRoomViewModel.error.value = i18n.createNewChatError()
-                    }
-                )
+                createNewRoom(userId)
             }
         }
     }
@@ -135,6 +127,29 @@ open class CreateNewChatViewModelImpl(
         matrixClient.user.getAccountData<DirectEventContent>().collect {
             createNewRoomViewModel.existingDirectRooms.value = it?.mappings ?: emptyMap()
         }
+    }
+
+    private suspend fun createNewRoom(userId: UserId) {
+        log.info { "create new room with $userId" }
+        val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
+        val historyVisibility = optionalRoomHistoryVisibility.value?.let {
+            listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+        } ?: emptyList()
+        matrixClient.api.room.createRoom(
+            isDirect = true,
+            invite = setOf(userId),
+            initialState = encryption + historyVisibility,
+            preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
+        ).fold(
+            onSuccess = { roomId ->
+                log.debug { "created room ${roomId.full}" }
+                goToRoom(matrixClient.userId, roomId)
+            },
+            onFailure = {
+                log.error(it) { "Cannot create room." }
+                createNewRoomViewModel.error.value = i18n.createNewChatError()
+            }
+        )
     }
 
 }

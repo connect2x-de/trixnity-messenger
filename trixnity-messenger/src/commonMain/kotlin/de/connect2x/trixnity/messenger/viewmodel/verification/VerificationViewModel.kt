@@ -68,6 +68,7 @@ interface VerificationViewModelFactory {
 }
 
 interface VerificationViewModel {
+    val userId: UserId
     val stack: Value<ChildStack<Config, Wrapper>>
     fun cancel()
 

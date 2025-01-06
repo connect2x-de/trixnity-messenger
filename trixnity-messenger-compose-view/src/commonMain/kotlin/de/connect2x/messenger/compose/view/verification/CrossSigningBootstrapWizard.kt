@@ -74,7 +74,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                 Paragraphs {
                     Text(i18n.bootstrapRecoveryKeyExplanation1())
                     Text(i18n.bootstrapRecoveryKeyExplanation2())
-                    WizardImage(Res.drawable.vault, "", 300.dp, boxWithConstraintsScope)// FIXME i18n
+                    WizardImage(Res.drawable.vault, i18n.bootstrapVault(), 300.dp, boxWithConstraintsScope)
                     if (error != null) {
                         ErrorView(error)
                     }
@@ -149,7 +149,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        WizardImage(Res.drawable.recoverykey, "", 60.dp) // FIXME i18n
+                        WizardImage(Res.drawable.recoverykey, i18n.bootstrapRecoveryKey(), 60.dp)
                         LargeSpacer()
                         SelectionContainer(Modifier.weight(1.0f)) {
                             Column {

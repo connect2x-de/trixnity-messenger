@@ -4,7 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsDebug
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
@@ -19,6 +18,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.update
@@ -28,10 +28,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
+import org.koin.core.logger.PrintLogger
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -45,7 +48,6 @@ internal fun InitMessengerPreview(
     CompositionLocalProvider(
         Platform provides PlatformType.ANDROID,
         IsFocused provides true,
-        IsDebug provides false,
         DI provides koinApplication.koin,
     ) {
         MessengerTheme(typography = MaterialTheme.typography) { // TODO we have to disable our own typography here, since there is a bug in compose resources (https://github.com/JetBrains/compose-multiplatform/pull/4965)
@@ -54,10 +56,9 @@ internal fun InitMessengerPreview(
     }
 }
 
-private fun createKoinApplication(): KoinApplication {
+fun createKoinApplication(): KoinApplication {
     val koinApplication = koinApplication {
         modules(
-            composeViewModule(),
             module {
                 single<I18nView> { object : I18nView(DefaultLanguages, get(), get(), get()) {} }
                 single<MatrixMessengerConfiguration> {
@@ -69,6 +70,8 @@ private fun createKoinApplication(): KoinApplication {
                 single<GetSystemLang> {
                     GetSystemLang { "de" }
                 }
+                single<Languages> { DefaultLanguages }
+                single<TimeZone> { TimeZone.currentSystemDefault() }
                 single<MatrixMessengerSettingsHolder> {
                     val settingsHolder: MutableStateFlow<MatrixMessengerSettings?> =
                         MutableStateFlow(MatrixMessengerSettings(mapOf("preferredLang" to JsonPrimitive("en"))))
@@ -89,7 +92,9 @@ private fun createKoinApplication(): KoinApplication {
                     CloseApp { }
                 }
             },
+            composeViewModule(),
         )
+        logger(PrintLogger(level = Level.DEBUG))
     }
     if (KoinPlatformTools.defaultContext().getOrNull() == null) {
         startKoin(koinApplication)

@@ -18,7 +18,12 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolder, getSystemLang: GetSystemLang, timeZone: TimeZone) :
+abstract class I18n(
+    languages: Languages,
+    settings: MatrixMessengerSettingsHolder,
+    getSystemLang: GetSystemLang,
+    timeZone: TimeZone
+) :
     I18nBase(languages, settings, getSystemLang, timeZone) {
 
     // ---- translations -----
@@ -120,11 +125,6 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
     fun eventChangeDisplayName(oldDisplayName: String?, newDisplayName: String?) = translate {
         EN - "'$oldDisplayName' has changed their name to '$newDisplayName'"
         DE - "'$oldDisplayName' hat den Namen zu '$newDisplayName' geändert"
-    }
-
-    fun eventChangeDirectRoom(isDirect: Boolean) = translate {
-        EN - if (isDirect) "Group has been converted to Chat" else "Chat has been converted to Group"
-        DE - if (isDirect) "Gruppe wurde in einen Chat umgewandelt" else "Chat wurde in eine Gruppe umgewandelt"
     }
 
     fun eventChangeChatGenitive() = translate {
@@ -1073,11 +1073,6 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Datei konnte nicht gelesen werden"
     }
 
-    fun mediaCouldNotBeDecrypted() = translate {
-        EN - "File could not be decrypted"
-        DE - "Datei konnte nicht entschlüsselt werden"
-    }
-
     fun mediaCanNotBePreviewed() = translate {
         EN - "File can not be previewed."
         DE - "Datei kann nicht angezeigt werden."
@@ -1153,6 +1148,30 @@ abstract class I18n(languages: Languages, settings: MatrixMessengerSettingsHolde
         DE - "Sie können offline keine Teilnehmer entbannen"
     }
 
+    fun timelineElementDecryptionErrorAlgorithmNotSupported() = translate {
+        EN - "Decryption algorithm not supported."
+        DE - "Verschlüsselungsalgorithmus wird nicht unterstützt."
+    }
+
+    fun timelineElementDecryptionErrorTimeout() = translate {
+        EN - "Decryption took too much time."
+        DE - "Entschlüsselung hat zu lange gedauert."
+    }
+
+    fun timelineElementDecryptionErrorNoContent() = translate {
+        EN - "This message has been edited, but the new content could not be found."
+        DE - "Diese Nachricht wurde editiert, aber der neue Inhalt konnte nicht gefunden werden."
+    }
+
+    fun timelineElementDecryptionErrorGeneric(error: String?) = translate {
+        EN - "There was an error decrypting this message: ${error ?: commonUnknown()}"
+        DE - "Es gab einen Fehler beim Entschlüsseln der Nachricht: ${error ?: commonUnknown()}"
+    }
+
+    fun downloadFailed(error: String?) = translate {
+        EN - "Download failed: ${error ?: commonUnknown()}"
+        DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
+    }
 }
 
 internal fun getLang(

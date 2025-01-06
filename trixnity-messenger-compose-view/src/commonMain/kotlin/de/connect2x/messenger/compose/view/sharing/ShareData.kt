@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.AdaptiveDialog
-import de.connect2x.messenger.compose.view.files.imageBitmapFromBytes
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
@@ -66,7 +66,6 @@ import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
-
 
 interface ShareDataView {
     @Composable
@@ -85,7 +84,7 @@ class ShareDataViewImpl : ShareDataView {
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
         val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
-        val allRooms by viewModel.roomList.sortedRoomListElementViewModels.collectAsState()
+        val allRooms by viewModel.roomList.elements.collectAsState()
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
         val sending by viewModel.sending.collectAsState()
         val enabled = selectedRoomId != null && !sending
@@ -147,11 +146,11 @@ class ShareDataViewImpl : ShareDataView {
                     } else {
                         LazyColumn(Modifier.fillMaxSize(), state) {
                             items(
-                                allRooms, { (roomId, _) -> roomId.full }) { roomListElement ->
+                                allRooms, { it.roomId.full }) { roomListElement ->
                                 RoomListElementContainer(
                                     roomListElement.roomId,
                                     viewModel.roomList,
-                                    roomListElement.viewModel,
+                                    roomListElement,
                                 )
                             }
                         }
@@ -221,9 +220,8 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
     var image by remember { mutableStateOf<ImageBitmap?>(null) }
 
     LaunchedEffect(icon) {
-        icon
-            ?.let { it.content.limitedByteArrayOrNull(maxMediaSize) }
-            ?.also { image = imageBitmapFromBytes(it) }
+        icon?.content?.limitedByteArrayOrNull(maxMediaSize)
+            ?.also { image = it.toImageBitmap() }
     }
 
     Row(

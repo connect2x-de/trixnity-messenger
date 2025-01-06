@@ -26,12 +26,6 @@ import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.messenger.compose.view.connecting.StoreFailureView
 import de.connect2x.messenger.compose.view.connecting.StoreFailureViewImpl
-import de.connect2x.messenger.compose.view.files.ImageOverlayView
-import de.connect2x.messenger.compose.view.files.ImageOverlayViewImpl
-import de.connect2x.messenger.compose.view.files.PdfOverlayView
-import de.connect2x.messenger.compose.view.files.PdfOverlayViewImpl
-import de.connect2x.messenger.compose.view.files.VideoOverlayView
-import de.connect2x.messenger.compose.view.files.VideoOverlayViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationViewImpl
@@ -75,8 +69,6 @@ import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyView
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.GetContextMenuActionsView
-import de.connect2x.messenger.compose.view.room.timeline.GetContextMenuActionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ImageReplyView
@@ -99,8 +91,6 @@ import de.connect2x.messenger.compose.view.room.timeline.SendAttachmentView
 import de.connect2x.messenger.compose.view.room.timeline.SendAttachmentViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.TextReplyView
 import de.connect2x.messenger.compose.view.room.timeline.TextReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.TimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.TimelineView
 import de.connect2x.messenger.compose.view.room.timeline.TimelineViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.TypingIndicatorView
@@ -111,26 +101,47 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageAndDateView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageAndDateViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleContentView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleContentViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageBubbleViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageContainerView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageContainerViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageDateViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageHeaderViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.EmptyTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationView
-import de.connect2x.messenger.compose.view.room.timeline.element.UserVerificationViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.RedactedTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderView
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolderViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelectorImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElementViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.LocationRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.NoticeRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.UnknownRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationRequestRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.state.AvatarStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.CanonicalAliasStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.CreateStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.EncryptionStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.HistoryVisibilityStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.MemberStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.NameStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListView
@@ -248,6 +259,10 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModa
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModalView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationModalViewImpl
 import org.koin.core.module.Module
+import org.koin.core.parameter.ParametersHolder
+import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun composeViewModule(): Module = module {
@@ -309,11 +324,8 @@ fun connectingViewModule() = module {
 }
 
 fun filesViewModule() = module {
-    single<ImageOverlayView> { ImageOverlayViewImpl() }
-    single<VideoOverlayView> { VideoOverlayViewImpl() }
-    single<PdfOverlayView> { PdfOverlayViewImpl() }
-    single<FilePickerTypeSelectionView> { FilePickerTypeSelectionViewImpl() }
     single<ShareDataView> { ShareDataViewImpl() }
+    single<FilePickerTypeSelectionView> { FilePickerTypeSelectionViewImpl() }
 }
 
 fun profileViewModule() = module {
@@ -373,23 +385,53 @@ fun roomSettingsViewModule() = module {
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
 }
 
+inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<F>(named<F>(), definition = definition).bind<TimelineElementView<*>>()
+
+inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDetailsView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
+
 fun timelineViewModule() = module {
+    timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
+    timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementView() }
+    timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementView() }
+    timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementView() }
+    timelineElementView<AudioRoomMessageTimelineElementView> { AudioRoomMessageTimelineElementView() }
+    timelineElementView<EmoteRoomMessageTimelineElementView> { EmoteRoomMessageTimelineElementView() }
+    timelineElementView<FileRoomMessageTimelineElementView> { FileRoomMessageTimelineElementView() }
+    timelineElementView<ImageRoomMessageTimelineElementView> { ImageRoomMessageTimelineElementView() }
+    timelineElementView<LocationRoomMessageTimelineElementView> { LocationRoomMessageTimelineElementView() }
+    timelineElementView<NoticeRoomMessageTimelineElementView> { NoticeRoomMessageTimelineElementView() }
+    timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementView() }
+    timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementView() }
+    timelineElementView<VerificationRequestRoomMessageTimelineElementView> { VerificationRequestRoomMessageTimelineElementView() }
+    timelineElementView<UnknownRoomMessageTimelineElementView> { UnknownRoomMessageTimelineElementView() }
+    timelineElementView<AvatarStateTimelineElementView> { AvatarStateTimelineElementView() }
+    timelineElementView<CanonicalAliasStateTimelineElementView> { CanonicalAliasStateTimelineElementView() }
+    timelineElementView<CreateStateTimelineElementView> { CreateStateTimelineElementView() }
+    timelineElementView<EncryptionStateTimelineElementView> { EncryptionStateTimelineElementView() }
+    timelineElementView<HistoryVisibilityStateTimelineElementView> { HistoryVisibilityStateTimelineElementView() }
+    timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementView() }
+    timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementView() }
+    timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementView() }
+    timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
+    // TODO enable when fixed and all platforms supported
+    // timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
+    single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
+    single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
+
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }
     single<TimelineView> { TimelineViewImpl() }
-    single<TimelineElementView> { TimelineElementViewImpl() }
+    single<TimelineElementHolderView> { TimelineElementHolderViewImpl() }
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
-    single<MessageContainerView> { MessageContainerViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
     single<MessageReactionsView> { MessageReactionsViewImpl() }
     single<MessageInfoView> { MessageInfoViewImpl() }
-    single<MessageBubbleContentView> { MessageBubbleContentViewImpl() }
-    single<GetContextMenuActionsView> { GetContextMenuActionsViewImpl() }
-    single<MessageAndDateView> { MessageAndDateViewImpl() }
-    single<MessageDateView> { MessageDateViewImpl() }
-    single<UserVerificationView> { UserVerificationViewImpl() }
+    single<FileBasedRoomMessageTimelineElementView> { FileBasedRoomMessageTimelineElementViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
-    single<MessageHeaderView> { MessageHeaderViewImpl() }
     single<ReplyToAreaView> { ReplyToAreaViewImpl() }
     single<TextReplyView> { TextReplyViewImpl() }
     single<ImageReplyView> { ImageReplyViewImpl() }
