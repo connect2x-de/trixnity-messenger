@@ -181,7 +181,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Light,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
@@ -266,40 +266,36 @@ fun RoomContextMenu(
             contentPadding = PaddingValues(horizontal = 10.dp),
             enabled = canVerifyUser,
         )
-        if (canBlockUser) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        i18n.roomHeaderBlockUser(),
-                        Modifier.buttonPointerModifier(canBlockUser),
-                        color = textColor(canBlockUser),
-                    )
-                },
-                onClick = {
-                    contextMenuOpen.value = false
-                    roomHeaderViewModel.blockUser()
-                },
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                enabled = canBlockUser,
-            )
-        }
-        if (canUnblockUser) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        i18n.roomHeaderUnblockUser(),
-                        Modifier.buttonPointerModifier(canUnblockUser),
-                        color = textColor(canUnblockUser),
-                    )
-                },
-                onClick = {
-                    contextMenuOpen.value = false
-                    roomHeaderViewModel.unblockUser()
-                },
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                enabled = canUnblockUser,
-            )
-        }
+        if (canBlockUser) DropdownMenuItem(
+            text = {
+                Text(
+                    i18n.roomHeaderBlockUser(),
+                    Modifier.buttonPointerModifier(canBlockUser),
+                    color = textColor(canBlockUser),
+                )
+            },
+            onClick = {
+                contextMenuOpen.value = false
+                roomHeaderViewModel.blockUser()
+            },
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            enabled = canBlockUser,
+        )
+        if (canUnblockUser) DropdownMenuItem(
+            text = {
+                Text(
+                    i18n.roomHeaderUnblockUser(),
+                    Modifier.buttonPointerModifier(canUnblockUser),
+                    color = textColor(canUnblockUser),
+                )
+            },
+            onClick = {
+                contextMenuOpen.value = false
+                roomHeaderViewModel.unblockUser()
+            },
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            enabled = canUnblockUser,
+        )
     }
 }
 
