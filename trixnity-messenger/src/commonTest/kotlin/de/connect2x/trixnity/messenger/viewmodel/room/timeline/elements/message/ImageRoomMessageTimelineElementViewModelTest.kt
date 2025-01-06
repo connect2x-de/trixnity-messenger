@@ -78,7 +78,6 @@ class ImageRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             } calls {
                 withContext(Dispatchers.Default) {
                     delay(500.milliseconds)
-                    println(" ---- RETURN")
                     "thumbnail".encodeToByteArray()
                 }
             }
