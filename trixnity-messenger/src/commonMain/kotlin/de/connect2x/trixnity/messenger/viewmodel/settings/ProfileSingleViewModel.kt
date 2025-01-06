@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.media
+import net.folivo.trixnity.clientserverapi.model.server.setAvatarUrl
+import net.folivo.trixnity.clientserverapi.model.server.setDisplayName
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
@@ -34,7 +36,9 @@ interface ProfileSingleViewModelFactory {
 interface ProfileSingleViewModel {
     val userId: UserId
     val displayName: StateFlow<String>
+    val canChangeDisplayName: StateFlow<Boolean>
     val avatar: StateFlow<ByteArray?>
+    val canChangeAvatar: StateFlow<Boolean>
     val initials: StateFlow<String>
     val editDisplayName: MutableStateFlow<String>
     val openAvatarCutter: MutableStateFlow<Boolean>
@@ -50,6 +54,9 @@ class ProfileSingleViewModelImpl(
 
     override val displayName = matrixClient.displayName.map { it ?: userId.localpart }
         .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
+    override val canChangeDisplayName: StateFlow<Boolean> =
+        matrixClient.serverData.map { it?.capabilities?.capabilities?.setDisplayName?.enabled ?: false }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val avatar = matrixClient.avatarUrl.map { avatarUrl ->
@@ -72,6 +79,9 @@ class ProfileSingleViewModelImpl(
             )
         }
     }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    override val canChangeAvatar =
+        matrixClient.serverData.map { it?.capabilities?.capabilities?.setAvatarUrl?.enabled ?: false }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val initials = matrixClient.displayName.map { it?.let { initialsComputation.compute(it) } ?: "" }
         .stateIn(coroutineScope, SharingStarted.Eagerly, "")

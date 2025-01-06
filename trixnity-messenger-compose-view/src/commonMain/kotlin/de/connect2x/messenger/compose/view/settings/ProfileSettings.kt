@@ -134,6 +134,7 @@ fun ProfileOfAccountCard(
 fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
     val i18n = DI.get<I18nView>()
     val avatar = profileSingleViewModel.avatar.collectAsState().value
+    val canChangeAvatar = profileSingleViewModel.canChangeAvatar.collectAsState().value
     val initials = profileSingleViewModel.initials.collectAsState().value
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -144,7 +145,10 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.clip(CircleShape)
                     ) {
-                        EditButton(onClick = { profileSingleViewModel.openAvatarCutter.value = true })
+                        EditButton(
+                            onClick = { profileSingleViewModel.openAvatarCutter.value = true },
+                            enabled = canChangeAvatar,
+                        )
                         { EditIcon(Icons.Default.PhotoCamera, i18n.profileAvatarChange()) }
                     }
                 }
@@ -158,16 +162,20 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
     val i18n = DI.get<I18nView>()
     val displayName = profileSingleViewModel.displayName.collectAsState().value
     val editDisplayName = profileSingleViewModel.editDisplayName.collectAsStateForTextField().value
+    val canChangeDisplayName = profileSingleViewModel.canChangeDisplayName.collectAsState().value
 
     val focusRequester = remember { FocusRequester() }
     val editMode = remember { mutableStateOf(false) }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editMode.value) {
-            EditButton({
-                profileViewModel.cancelEditDisplayName(profileSingleViewModel.userId)
-                editMode.value = false
-            }) {
+            EditButton(
+                onClick = {
+                    profileViewModel.cancelEditDisplayName(profileSingleViewModel.userId)
+                    editMode.value = false
+                },
+                enabled = canChangeDisplayName,
+            ) {
                 EditIcon(Icons.Default.Clear, i18n.commonCancel())
             }
             Spacer(Modifier.size(10.dp))

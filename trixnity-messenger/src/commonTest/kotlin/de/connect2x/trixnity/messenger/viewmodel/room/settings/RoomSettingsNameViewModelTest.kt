@@ -158,7 +158,6 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
         everySuspend {
             roomsApiClientMock.sendStateEvent(eq(roomId), eq(expectedRequestContent), any(), any())
         } calls {
-            println("----call")
             handle.numCallsToHomeServer.value += 1
             Result.success(EventId("1"))
         }

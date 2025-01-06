@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.clientserverapi.model.server.setAvatarUrl
+import net.folivo.trixnity.clientserverapi.model.server.setDisplayName
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
@@ -103,22 +105,30 @@ class ProfileViewModelImpl(
         if (newDisplayName != getDisplayNameFlow(userId)?.value) {
             coroutineScope.launch {
                 val matrixClient = getMatrixClient(userId)
-                log.debug { "set new display name in account $userId: $newDisplayName" }
-                matrixClient.setDisplayName(newDisplayName)
-                    .onFailure {
-                        log.error(it) { "Cannot set display name." }
-                        if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
-                            error.value = i18n.profileNameForbidden()
-                        } else {
-                            error.value = i18n.profileNameError()
+                if (matrixClient.serverData.value?.capabilities?.capabilities?.setDisplayName?.enabled == true) {
+                    log.debug { "set new display name in account $userId: $newDisplayName" }
+                    matrixClient.setDisplayName(newDisplayName)
+                        .onFailure {
+                            log.error(it) { "Cannot set display name." }
+                            if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                                error.value = i18n.profileNameForbidden()
+                            } else {
+                                error.value = i18n.profileNameError()
+                            }
                         }
-                    }
+                } else {
+                    log.warn { "Missing server capability to set the display name." }
+                }
             }
         }
     }
 
     override fun openAvatarCutter(userId: UserId, file: FileDescriptor) {
-        onOpenAvatarCutter(userId, file)
+        if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.setAvatarUrl?.enabled == true) {
+            onOpenAvatarCutter(userId, file)
+        } else {
+            log.warn { "Missing server capability to change the user avatar." }
+        }
     }
 
     override fun closeAvatarCutter() {
