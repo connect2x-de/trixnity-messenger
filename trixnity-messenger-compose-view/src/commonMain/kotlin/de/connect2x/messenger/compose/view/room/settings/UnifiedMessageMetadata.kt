@@ -77,9 +77,9 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
                     }
                 }
             }
-            Text("metadata of ${viewModel.eventId}")
-            Spacer(Modifier.size(8.dp))
-            Text("Editing history:") // TODO: i18n
+//            Text("metadata of ${viewModel.eventId}")
+//            Spacer(Modifier.size(8.dp))
+//            Text("Editing history:") // TODO: i18n
             Column {
                 edits.sortedBy { it.originTimestamp }.reversed().forEach { item ->
                     val content = item.content?.fold({ it }, { null })
@@ -166,9 +166,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
                                         ) // TODO: i18n
                                         Spacer(Modifier.size(6.dp))
                                     }
-                                    val reactions = interactionFilterByReaction
-                                        ?.let { listOf(it) } ?: interaction.reactions
-                                    reactions.forEach { reactionKey ->
+                                    interaction.reactions.forEach { reactionKey ->
                                         Text(
                                             reactionKey,
                                             style = MaterialTheme.typography.labelLarge,
