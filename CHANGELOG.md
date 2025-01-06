@@ -9,7 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Status of an edited message
 - Possibility to provide an app version that is displayed in the info section
+- Show users typing in room list
+- Allow sending attachments with Enter (desktop)
 
 ### Changed
 - Moved message metadata into a unified view
@@ -23,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't show sender for own elements (including outbox elements)
 - Show sender, when state event before element
 - Text colors in message bubbles and input field (Desktop) adjusted for dark mode
+- Removed ability to block yourself
 
 ### Security
 

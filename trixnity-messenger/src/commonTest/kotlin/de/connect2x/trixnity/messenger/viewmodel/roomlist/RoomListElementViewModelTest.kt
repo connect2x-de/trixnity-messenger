@@ -235,6 +235,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                 )
             } returns MutableStateFlow(null)
             everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.success(Unit)
+            every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
 
             roomByIdMocker = every { roomServiceMock.getById(roomId) }
             roomByIdMocker returns

@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,7 +74,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
         showBackButton: Boolean,
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
-        val isTyping = roomHeaderViewModel.usersTyping.collectAsState().value
+        val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {
                 Row(
@@ -112,8 +113,12 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                RoomName(roomHeaderElement, isTyping)
-                                RoomTopic(roomHeaderElement)
+                                RoomName(roomHeaderElement)
+                                if (usersTyping != null) {
+                                    UsersTyping(usersTyping)
+                                } else {
+                                    RoomTopic(roomHeaderElement)
+                                }
                             }
                             RoomExtras(roomHeaderViewModel, showSettingsButton)
                         }
@@ -140,7 +145,6 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
 @Composable
 fun ColumnScope.RoomName(
     roomHeaderElement: RoomHeaderInfo,
-    isTyping: String?
 ) {
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
@@ -150,18 +154,20 @@ fun ColumnScope.RoomName(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 1
+            maxLines = 1,
         )
+    }
+}
 
-    }
-    isTyping?.let {
-        Text(
-            text = it,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1
-        )
-    }
+@Composable
+fun UsersTyping(usersTyping: String) {
+    Text(
+        text = usersTyping,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.bodyMedium,
+        fontStyle = FontStyle.Italic,
+        maxLines = 1,
+    )
 }
 
 @Composable

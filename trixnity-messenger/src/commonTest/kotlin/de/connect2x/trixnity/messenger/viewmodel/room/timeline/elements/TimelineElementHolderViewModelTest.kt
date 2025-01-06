@@ -14,11 +14,12 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -104,6 +105,8 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 )
             }
             every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns emptyFlow()
+
             receipts.value = mapOf()
         }
 
@@ -125,7 +128,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
+            launch { cut.isFirstInUserSequence.collect() }
             advanceUntilIdle()
             cut.isFirstInUserSequence.value shouldBe true
 
@@ -149,7 +152,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +timelineEvent
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
+            launch { cut.isFirstInUserSequence.collect() }
             advanceUntilIdle()
             cut.isFirstInUserSequence.value shouldBe false
             cancelNeverEndingCoroutines()
@@ -163,7 +166,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showSender.collect() }
+            launch { cut.showSender.collect() }
             advanceUntilIdle()
             cut.showSender.value shouldBe true
 
@@ -181,7 +184,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showSender.collect() }
+            launch { cut.showSender.collect() }
             advanceUntilIdle()
             cut.showSender.value shouldBe true
 
@@ -196,7 +199,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showSender.collect() }
+            launch { cut.showSender.collect() }
             advanceUntilIdle()
             cut.showSender.value shouldBe false
 
@@ -212,7 +215,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut(timelineEvent = ourTimelineEvent)
 
-            async { cut.showSender.collect() }
+            launch { cut.showSender.collect() }
             advanceUntilIdle()
             cut.showSender.value shouldBe false
 
@@ -227,7 +230,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showSender.collect() }
+            launch { cut.showSender.collect() }
             advanceUntilIdle()
             cut.showSender.value shouldBe true
 
@@ -249,7 +252,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showBigGapBefore.collect() }
+            launch { cut.showBigGapBefore.collect() }
             advanceUntilIdle()
             cut.showBigGapBefore.value shouldBe true
 
@@ -267,7 +270,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showBigGapBefore.collect() }
+            launch { cut.showBigGapBefore.collect() }
             advanceUntilIdle()
             cut.showBigGapBefore.value shouldBe false
 
@@ -285,7 +288,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showBigGapBefore.collect() }
+            launch { cut.showBigGapBefore.collect() }
             advanceUntilIdle()
             cut.showBigGapBefore.value shouldBe true
 
@@ -303,7 +306,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showBigGapBefore.collect() }
+            launch { cut.showBigGapBefore.collect() }
             advanceUntilIdle()
             cut.showBigGapBefore.value shouldBe false
 
@@ -315,7 +318,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -331,7 +334,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -355,7 +358,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -370,7 +373,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -385,7 +388,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -398,7 +401,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
 
             receipts.value = mapOf(eventId to setOf(us))
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -411,7 +414,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
 
             receipts.value = mapOf(eventId to setOf(alice))
-            async { cut.isRead.collect() }
+            launch { cut.isRead.collect() }
             advanceUntilIdle()
             cut.isRead.value shouldBe false
 
@@ -423,7 +426,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             advanceUntilIdle()
             cut.isReadBy.value shouldBe emptyList()
 
@@ -435,7 +438,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             advanceUntilIdle()
             cut.isReadBy.value shouldBe emptyList()
 
@@ -451,7 +454,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             advanceUntilIdle()
             cut.isReadBy.value shouldBe emptyList()
 
@@ -471,7 +474,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             receipts.value = mapOf(eventId to setOf(us, bob))
             advanceUntilIdle()
             cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
@@ -484,7 +487,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             receipts.value = mapOf(eventId to setOf(alice, bob))
             advanceUntilIdle()
             cut.isReadBy.value?.map { it.userId } shouldBe listOf(bob)
@@ -500,7 +503,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             advanceUntilIdle()
             cut.isReadBy.value shouldBe emptyList()
 
@@ -515,7 +518,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.isReadBy.collect() }
+            launch { cut.isReadBy.collect() }
             advanceUntilIdle()
             cut.isReadBy.value shouldBe emptyList()
 
@@ -532,7 +535,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut(eventId = EventId("0"))
 
-            async { cut.showUnreadMarker.collect() }
+            launch { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
             cut.showUnreadMarker.value shouldBe false
 
@@ -551,7 +554,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
+            launch { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
             cut.showUnreadMarker.value shouldBe false
 
@@ -574,7 +577,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
+            launch { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
             cut.showUnreadMarker.value shouldBe false
 
@@ -600,7 +603,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
+            launch { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
             cut.showUnreadMarker.value shouldBe true
 
@@ -619,7 +622,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
+            launch { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
             cut.showUnreadMarker.value shouldBe false
             cancelNeverEndingCoroutines()
@@ -633,7 +636,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val cut = cut(eventId = EventId("0"))
 
             timeline.fullyReadEventIndex.value = 0
-            async { cut.showUnreadMarker.collect() }
+            launch { cut.showUnreadMarker.collect() }
             advanceUntilIdle()
             cut.showUnreadMarker.value shouldBe false
 
