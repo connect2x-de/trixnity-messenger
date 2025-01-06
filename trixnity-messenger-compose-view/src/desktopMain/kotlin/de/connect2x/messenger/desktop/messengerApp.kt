@@ -32,6 +32,8 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.sysnotify.create
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -55,6 +57,10 @@ fun CoroutineScope.messengerApp(
     lifecycle: LifecycleRegistry,
     urlHandler: UrlHandler,
 ) {
+    val notificationHandler = NotificationHandler.create(
+        name = "Trixnity Messenger",
+        id = "de.connect2x.messenger"
+    )
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
         val width = gd.displayMode.width
@@ -64,7 +70,6 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
-        val notifications = mutableStateListOf<Notification>()
 
         Window(
             onCloseRequest = ::exitApplication,
@@ -81,7 +86,6 @@ fun CoroutineScope.messengerApp(
                             log.debug { "window is focused" }
                             windowIsFocused = true
                             lifecycle.resume()
-                            notifications.clear()
                         }
 
                         override fun windowLostFocus(e: WindowEvent?) {
@@ -134,10 +138,7 @@ fun CoroutineScope.messengerApp(
                             Client(rootViewModel)
                         }
 
-                        Notifications(
-                            matrixMessenger,
-                            trayState,
-                        )
+                        Notifications(matrixMessenger, notificationHandler)
                     }
                 },
                 nonActiveMessenger = { existingProfiles ->
@@ -156,4 +157,5 @@ fun CoroutineScope.messengerApp(
             )
         }
     }
+    notificationHandler.close()
 }

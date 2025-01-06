@@ -76,6 +76,11 @@ kotlin {
                 implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
+                //implementation(libs.sysnotify.jvmnatives.windows.x64) // TODO: Fix in SysNotify 1.6.1
+                implementation(libs.sysnotify.jvmnatives.macos.x64)
+                implementation(libs.sysnotify.jvmnatives.macos.arm64)
+                implementation(libs.sysnotify.jvmnatives.linux.x64)
+                implementation(libs.sysnotify.jvmnatives.linux.arm64)
             }
         }
         androidMain {
@@ -124,9 +129,6 @@ kotlin {
 dependencies {
     androidTestImplementation(libs.ui.test.junit4.android)
     debugImplementation(libs.ui.test.android.manifest)
-    // implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
-    // implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
-    // implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
 }
 
 android {
