@@ -680,7 +680,6 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             formattedTime = "07:24",
             showLoadingIndicatorBefore = flowOf(false),
             showLoadingIndicatorAfter = flowOf(false),
-            getReceipts = { receipts },
             timelineEventFlow = flowOf(timelineEvent),
             onMessageReplace = mock(),
             onMessageReply = mock(),
