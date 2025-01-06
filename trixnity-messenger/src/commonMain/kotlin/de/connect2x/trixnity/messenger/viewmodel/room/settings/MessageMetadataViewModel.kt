@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageEditHistory
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageReadReceipts
@@ -16,11 +17,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.EventId
@@ -52,13 +55,10 @@ interface MessageMetadataViewModel {
     //    val message: TimelineElementViewModel.Message<*>
 //    val message: TimelineElementHolderViewModel
     val eventId: EventId
-
-    val readers: StateFlow<List<UserInfoElement>?>
-
-    //    val reactors: StateFlow<Map<String, List<UserInfoElement>>?>
-//    val edits: StateFlow<List<TimelineElementViewModel.Message<*>>>
+    val userInteractions: StateFlow<List<MessageUserInteraction>>
+    val reactionCounts: StateFlow<Map<ReactionKey, UInt>>
     val edits: StateFlow<List<TimelineEvent>>
-    val reactions: StateFlow<Map<UserInfoElement, Set<ReactionKey>>>
+
     val error: StateFlow<String?>
 //    val errorCause: StateFlow<String?>
 
@@ -112,7 +112,7 @@ class MessageMetadataViewModelImpl(
 //
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val readers: StateFlow<List<UserInfoElement>?> =
+    val readers: StateFlow<Set<RoomUser>> =
         matrixClient.room.getTimelineEvent(roomId, eventId) {
             fetchSize = 1
             allowReplaceContent = false
@@ -120,36 +120,34 @@ class MessageMetadataViewModelImpl(
             .map { it?.sender }
             .filterNotNull()
             .flatMapLatest { senderUserId ->
-                getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId).map { users ->
-                    when {
-                        users.isEmpty() -> null
-                        else -> users.map {
-                            it.toUserInfoElement(
-                                coroutineScope,
-                                matrixClient,
-                                initials,
-                                config.avatarMaxSize,
-                                it.userId,
-                            )
-                        }
-                    }
-                }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+                getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId)
+            }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptySet())
 
-    override val reactions: StateFlow<Map<UserInfoElement, Set<ReactionKey>>> =
+    val reactions: StateFlow<MessageUserReactions> =
         getMessageUserReactions(matrixClient, roomId, eventId)
-            .map {
-                it.mapKeys {
-                    it.key.toUserInfoElement(
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, MessageUserReactions())
+
+    override val userInteractions: StateFlow<List<MessageUserInteraction>> =
+        combine(readers, reactions) { readers, reactions ->
+            (readers + reactions.byUser.keys).toSet().map { roomUser ->
+                MessageUserInteraction(
+                    userInfo = roomUser.toUserInfoElement(
                         coroutineScope,
                         matrixClient,
                         initials,
                         config.avatarMaxSize,
-                        it.key.userId,
-                    )
-                }
+                        roomUser.userId,
+                    ),
+                    reactions = reactions.byUser.getOrElse(roomUser) { emptySet() },
+                    hasRead = readers.contains(roomUser),
+                )
             }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, mapOf())
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyList())
+
+
+    override val reactionCounts: StateFlow<Map<ReactionKey, UInt>> =
+        reactions.map { it.byCount }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
 
     override val error: StateFlow<String?> = MutableStateFlow(null)
 //        get() = TODO("Not yet implemented")
@@ -159,3 +157,9 @@ class MessageMetadataViewModelImpl(
     }
 
 }
+
+data class MessageUserInteraction(
+    val userInfo: UserInfoElement,
+    val reactions: Set<ReactionKey>,
+    val hasRead: Boolean,
+)

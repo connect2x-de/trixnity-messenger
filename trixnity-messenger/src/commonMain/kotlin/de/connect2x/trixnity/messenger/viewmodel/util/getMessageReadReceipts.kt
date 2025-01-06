@@ -43,7 +43,7 @@ fun getMessageIsRead(
 @OptIn(ExperimentalCoroutinesApi::class)
 fun getMessageReadReceipts(
     client: MatrixClient, senderUserId: UserId, roomId: RoomId, eventId: EventId,
-): Flow<List<RoomUser>> = flow {
+): Flow<Set<RoomUser>> = flow {
     val cumulatedReads = mutableSetOf<UserId>()
     isReadSearch(client, senderUserId, roomId, eventId)
         .collect {
@@ -59,12 +59,12 @@ fun getMessageReadReceipts(
             }
         }
 }.flatMapLatest { userIds ->
-    if (userIds.isEmpty()) flowOf(emptyList())
+    if (userIds.isEmpty()) flowOf(emptySet())
     else {
         val roomUserFlows = userIds
             .map { userId -> client.user.getById(roomId, userId) }
         combine(roomUserFlows) { roomUsers ->
-            roomUsers.filterNotNull().toList()
+            roomUsers.filterNotNull().toSet()
         }
     }
 }

@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel.ReactionEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +22,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 
 
+// TODO remove
 @OptIn(ExperimentalCoroutinesApi::class)
 fun getMessageUserReactions(
     client: MatrixClient,
@@ -45,7 +45,7 @@ fun getMessageUserReactions(
                             events.mapNotNull { event ->
                                 users.find { it?.userId == event.sender }?.let { sender ->
                                     // TODO: refactor to be more general
-                                    TimelineElementHolderViewModel.ReactionEvent(
+                                    ReactionEvent(
                                         eventId = event.eventId,
                                         sender = UserInfoElement(
                                             name = sender.originalName ?: sender.name,
@@ -69,62 +69,35 @@ fun getMessageUserReactions(
     client: MatrixClient,
     roomId: RoomId,
     eventId: EventId,
-): Flow<Map<RoomUser, Set<ReactionKey>>> =
+): Flow<MessageUserReactions> =
     client.room.getTimelineEventReactionAggregation(roomId, eventId)
         .flatMapLatest { reactions ->
-            val userReactions = mutableMapOf<UserId, MutableSet<ReactionKey>>().also { result ->
-                val reactionsAggregation = reactions.reactions
-                reactionsAggregation.keys.forEach { reactionKey ->
-                    reactionsAggregation[reactionKey]?.let {
-                        it.forEach { event ->
-                            result.getOrPut(event.sender) { mutableSetOf() }
-                                .add(reactionKey)
-                        }
+            val reactionsAggregation = reactions.reactions
+            val reactionCounts = mutableMapOf<ReactionKey, UInt>()
+            val userReactions = mutableMapOf<UserId, MutableSet<ReactionKey>>()
+            reactionsAggregation.keys.forEach { reactionKey ->
+                reactionsAggregation[reactionKey]?.let {
+                    it.forEach { event ->
+                        reactionCounts[reactionKey] = reactionCounts.getOrPut(reactionKey) { 0u } + 1u
+                        userReactions.getOrPut(event.sender) { mutableSetOf() }
+                            .add(reactionKey)
                     }
                 }
             }
             combine(userReactions.keys.map { userId -> client.user.getById(roomId, userId) }) { users ->
-                users.filterNotNull()
-                    .associateWith { roomUser ->
-                        userReactions.getOrElse(roomUser.userId) { setOf() }
-                    }.filterValues { it.isEmpty().not() }
+                MessageUserReactions(
+                    byUser = users.filterNotNull()
+                        .associateWith { roomUser ->
+                            userReactions.getOrElse(roomUser.userId) { setOf() }.toSet()
+                        }.filterValues { it.isEmpty().not() },
+                    byCount = reactionCounts,
+                )
             }
         }
 
 typealias ReactionKey = String
 
-/*
-
-@OptIn(ExperimentalCoroutinesApi::class)
-fun getMessageUserReactions(
-    client: MatrixClient, roomId: RoomId, eventId: EventId, filterByReaction: String?,
-):
-        Flow<Unit> =
-//        Flow<Map<UserId, UserReactions>> =
-    client.room.getTimelineEventReactionAggregation(roomId, eventId)
-        .flatMapLatest { reactions ->
-            combine(reactions.reactions.flatMap { (_, timelineEvents) ->
-                timelineEvents.map { timelineEvent ->
-                    client.user.getById(roomId, timelineEvent.sender)
-                }
-            }) { users ->
-                val reactionSets: Map<UserId, MutableSet<String>> = mutableMapOf()
-
-
-
-
-//                users.filterNotNull().associate { user ->
-//                    user.userId to UserReactions(user, setOf())
-//                }
-            }
-
-
-//        it.reactions.map { reaction ->
-//         reaction
-//        }
-        }
-
-
- */
-
-data class UserReactions(val user: RoomUser, val reactions: Set<String>)
+data class MessageUserReactions(
+    val byUser: Map<RoomUser, Set<ReactionKey>> = emptyMap(),
+    val byCount: Map<ReactionKey, UInt> = emptyMap(),
+)

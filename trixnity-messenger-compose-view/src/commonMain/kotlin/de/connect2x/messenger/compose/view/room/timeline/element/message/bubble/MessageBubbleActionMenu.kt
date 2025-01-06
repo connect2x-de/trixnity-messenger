@@ -55,25 +55,28 @@ fun BoxScope.MessageBubbleActionMenu(
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
-    if (Platform.current.isMobile) MessageBubbleActionMenuMobile(
-        showActionMenu,
-        additionalContextActions,
-        holder,
-        i18n,
-        onMessageInfo,
-        onInfoLegacy,
-        onReactToMessage,
-    )
-    else MessageBubbleActionMenuDefault(
-        showActionMenu,
-        holder,
-        hoverMessage,
-        i18n,
-        additionalContextActions,
-        onMessageInfo,
-        onInfoLegacy,
-        onReactToMessage,
-    )
+    when {
+        Platform.current.isMobile -> MessageBubbleActionMenuMobile(
+            showActionMenu,
+            additionalContextActions,
+            holder,
+            i18n,
+            onMessageInfo,
+            onInfoLegacy,
+            onReactToMessage,
+        )
+
+        else -> MessageBubbleActionMenuDefault(
+            showActionMenu,
+            holder,
+            hoverMessage,
+            i18n,
+            additionalContextActions,
+            onMessageInfo,
+            onInfoLegacy,
+            onReactToMessage,
+        )
+    }
 }
 
 @Composable
@@ -85,7 +88,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
     onMessageInfo: () -> Unit,
     onInfoLegacy: () -> Unit,
-    onReactToMessage: () -> Unit
+    onReactToMessage: () -> Unit,
 ) {
     val onClose = {
         showActionMenu.value = false
@@ -141,7 +144,7 @@ private fun BoxScope.MessageBubbleActionMenuMobile(
     i18n: I18nView,
     onMessageInfo: () -> Unit,
     onInfoLegacy: () -> Unit,
-    onReactToMessage: () -> Unit
+    onReactToMessage: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(false)
