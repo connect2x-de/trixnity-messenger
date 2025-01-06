@@ -105,7 +105,7 @@ class ProfileViewModelImpl(
         if (newDisplayName != getDisplayNameFlow(userId)?.value) {
             coroutineScope.launch {
                 val matrixClient = getMatrixClient(userId)
-                if (matrixClient.serverData.value?.capabilities?.capabilities?.setDisplayName?.enabled == true) {
+                if (matrixClient.serverData.value?.capabilities?.capabilities?.setDisplayName?.enabled ?: true) {
                     log.debug { "set new display name in account $userId: $newDisplayName" }
                     matrixClient.setDisplayName(newDisplayName)
                         .onFailure {
@@ -124,7 +124,7 @@ class ProfileViewModelImpl(
     }
 
     override fun openAvatarCutter(userId: UserId, file: FileDescriptor) {
-        if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.setAvatarUrl?.enabled == true) {
+        if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.setAvatarUrl?.enabled ?: true) {
             onOpenAvatarCutter(userId, file)
         } else {
             log.warn { "Missing server capability to change the user avatar." }

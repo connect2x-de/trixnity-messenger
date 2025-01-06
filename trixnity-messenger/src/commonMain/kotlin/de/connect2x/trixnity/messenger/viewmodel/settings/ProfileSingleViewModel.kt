@@ -55,8 +55,8 @@ class ProfileSingleViewModelImpl(
     override val displayName = matrixClient.displayName.map { it ?: userId.localpart }
         .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
     override val canChangeDisplayName: StateFlow<Boolean> =
-        matrixClient.serverData.map { it?.capabilities?.capabilities?.setDisplayName?.enabled ?: false }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        matrixClient.serverData.map { it?.capabilities?.capabilities?.setDisplayName?.enabled ?: true }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val avatar = matrixClient.avatarUrl.map { avatarUrl ->
@@ -80,8 +80,8 @@ class ProfileSingleViewModelImpl(
         }
     }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
     override val canChangeAvatar =
-        matrixClient.serverData.map { it?.capabilities?.capabilities?.setAvatarUrl?.enabled ?: false }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        matrixClient.serverData.map { it?.capabilities?.capabilities?.setAvatarUrl?.enabled ?: true }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val initials = matrixClient.displayName.map { it?.let { initialsComputation.compute(it) } ?: "" }
         .stateIn(coroutineScope, SharingStarted.Eagerly, "")
