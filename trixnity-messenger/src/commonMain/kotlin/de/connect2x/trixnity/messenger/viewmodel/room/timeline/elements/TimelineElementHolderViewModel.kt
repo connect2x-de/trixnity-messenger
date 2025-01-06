@@ -13,7 +13,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
+import de.connect2x.trixnity.messenger.viewmodel.util.getMessageIsRead
+import de.connect2x.trixnity.messenger.viewmodel.util.getMessageReadReceipts
+import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -29,7 +31,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -38,13 +39,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getAccountData
-import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.room.message.react
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -52,7 +51,6 @@ import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.isReplaced
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
@@ -89,7 +87,6 @@ interface TimelineElementHolderViewModelFactory {
         formattedTime: String,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
-        getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
@@ -107,7 +104,6 @@ interface TimelineElementHolderViewModelFactory {
             formattedTime = formattedTime,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
-            getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
@@ -126,6 +122,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorBefore: StateFlow<Boolean>
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
+    // TODO: remove?
     val isRead: StateFlow<Boolean?>
     val isReadBy: StateFlow<List<UserInfoElement>?>
 
@@ -174,7 +171,6 @@ class TimelineElementHolderViewModelImpl(
     override val formattedTime: String,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
-    private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
@@ -183,7 +179,6 @@ class TimelineElementHolderViewModelImpl(
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout)
     private val config = get<MatrixMessengerConfiguration>()
-
     private val initials = get<Initials>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
@@ -316,6 +311,7 @@ class TimelineElementHolderViewModelImpl(
             timelineEvent?.sender != senderUserId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
+
     // TODO images are loaded for each holder into memory! This should be fixed.
     override val sender: StateFlow<UserInfoElement?> =
         matrixClient.user.getById(roomId, senderUserId).map { user ->
@@ -350,111 +346,25 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-
-    private sealed interface IsReadSearchResult {
-        data object Unread : IsReadSearchResult
-        data class Read(val readBy: Set<UserId>) : IsReadSearchResult
-    }
-
-    /**
-     * TODO This algorithm has a few issues (mostly edge cases):
-     *   - Ressource consumption: Too many same re-computations are done for each element.
-     *     For example when far away from the last event and only ourself wrote messages.
-     *   - Wrong results: On membership change depending on history visibility we may getting wrong results.
-     *     For example when A sends a message and B joins, B may not be able to read at all but is marked as reader.
-     *   Possible solution: lazily calculate Map<EventId,Set<UserId>> (sorted) in TimelineViewModel, which can be iterated through.
-     *   This List must also forget "old" events, when not needed anymore and consider membership changes depending on history visibility.
-     */
-    private fun isReadSearch(roomId: RoomId, eventId: EventId): Flow<IsReadSearchResult> =
-        getReceipts(roomId).flatMapLatest { receipts ->
-            log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
-            matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
-                .transform {
-                    val timelineEvent = it.first()
-                    val sender = timelineEvent.sender
-                    val currentEventId = timelineEvent.eventId
-                    val currentRoomId = timelineEvent.roomId
-                    val foundReaders = buildSet {
-                        addAll(receipts[currentEventId].orEmpty())
-                        add(sender)
-                        remove(senderUserId)
-                        remove(userId)
-                    }
-                    when {
-                        foundReaders.isNotEmpty() -> emit(IsReadSearchResult.Read(foundReaders))
-                        currentRoomId != roomId -> emitAll(isReadSearch(currentRoomId, currentEventId)) // recursive!
-                        else -> emit(IsReadSearchResult.Unread)
-                    }
-                }
-        }
-
     override val isRead: StateFlow<Boolean?> =
-        isReadSearch(roomId, eventId).map {
-            when (it) {
-                is IsReadSearchResult.Read -> true
-                IsReadSearchResult.Unread -> false
-            }
-        }.takeWhileInclusive { !it }
+        getMessageIsRead(matrixClient, senderUserId, roomId, eventId)
             .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
-        flow {
-            val cumulatedReads = mutableSetOf<UserId>()
-            isReadSearch(roomId, eventId)
-                .collect {
-                    when (it) {
-                        is IsReadSearchResult.Read -> {
-                            cumulatedReads.addAll(it.readBy)
-                            emit(cumulatedReads.toList())
-                        }
-
-                        IsReadSearchResult.Unread -> {
-                            if (cumulatedReads.isEmpty()) emit(cumulatedReads.toList())
-                        }
-                    }
-                }
-        }.flatMapLatest { userIds ->
-            if (userIds.isEmpty()) flowOf(emptyList())
-            else combine(userIds.map { userId -> matrixClient.user.getById(roomId, userId) }) { roomUsers ->
-                roomUsers.mapNotNull { user ->
-                    if (user == null) return@mapNotNull null
-                    user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, user.userId)
+        getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId).map { users ->
+            when {
+                users.isEmpty() -> null
+                else -> users.map {
+                    it.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, it.userId)
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
+
     // TODO should consider outbox to get immediate feedback
     override val reactions =
-        timelineEventFlow.flatMapLatest { timelineEvent ->
-            when (timelineEvent.content?.getOrNull()) {
-                is RedactedEventContent -> flowOf(emptyMap())
-                else -> matrixClient.room.getTimelineEventReactionAggregation(roomId, eventId)
-                    .flatMapLatest { reactions ->
-                        combine(reactions.reactions.flatMap { (_, timelineEvents) ->
-                            timelineEvents.map { timelineEvent ->
-                                matrixClient.user.getById(roomId, timelineEvent.sender)
-                            }
-                        }) { users ->
-                            reactions.reactions.mapValues { (_, events) ->
-                                events.mapNotNull { event ->
-                                    users.find { it?.userId == event.sender }?.let { sender ->
-                                        TimelineElementHolderViewModel.ReactionEvent(
-                                            eventId = event.eventId,
-                                            sender = UserInfoElement(
-                                                name = sender.originalName ?: sender.name,
-                                                userId = sender.userId,
-                                                initials = initials.compute(sender.originalName ?: sender.name),
-                                                image = null // TODO
-                                            ),
-                                            isMe = event.sender == matrixClient.userId,
-                                        )
-                                    }
-                                }.toSet()
-                            }
-                        }
-                    }
-            }
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
+        getMessageUserReactions(matrixClient, timelineEventFlow, initials, roomId, eventId)
+            .stateIn(coroutineScope, Lazily, emptyMap())
 
     private fun findInviterId(
         timelineEvent: TimelineEvent?,
@@ -511,7 +421,7 @@ class TimelineElementHolderViewModelImpl(
                 timelineEventFlow.first().let { timelineEvent ->
                     if (matrixClient.user.canRedactEvent(
                             timelineEvent.roomId,
-                            timelineEvent.eventId
+                            timelineEvent.eventId,
                         ).first()
                     ) {
                         launch {

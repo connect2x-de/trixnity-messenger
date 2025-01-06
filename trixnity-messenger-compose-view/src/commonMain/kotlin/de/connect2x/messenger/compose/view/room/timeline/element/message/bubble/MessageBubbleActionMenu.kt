@@ -44,92 +44,132 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
-    onReactLegacy: () -> Unit,
-    onInfoLegacy: () -> Unit,
-    onInfo: () -> Unit,
+    onMessageInfo: () -> Unit,
+    onReactToMessage: () -> Unit,
+    onInfoLegacy: () -> Unit, // TODO remove
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
+    if (Platform.current.isMobile) MessageBubbleActionMenuMobile(
+        showActionMenu,
+        additionalContextActions,
+        holder,
+        i18n,
+        onMessageInfo,
+        onInfoLegacy,
+        onReactToMessage,
+    )
+    else MessageBubbleActionMenuDefault(
+        showActionMenu,
+        holder,
+        hoverMessage,
+        i18n,
+        additionalContextActions,
+        onMessageInfo,
+        onInfoLegacy,
+        onReactToMessage,
+    )
+}
+
+@Composable
+private fun BoxScope.MessageBubbleActionMenuDefault(
+    showActionMenu: MutableState<Boolean>,
+    holder: BaseTimelineElementHolderViewModel,
+    hoverMessage: State<Boolean>,
+    i18n: I18nView,
+    additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
+    onMessageInfo: () -> Unit,
+    onInfoLegacy: () -> Unit,
+    onReactToMessage: () -> Unit
+) {
+    val onClose = {
+        showActionMenu.value = false
+    }
+    Box(
+        Modifier.Companion
+            .align(Alignment.TopEnd)
+            .padding(
+                top = 4.dp,
+                end = if (holder.isByMe) 14.dp else 4.dp
+            )
+            .defaultMinSize(minHeight = 24.dp, minWidth = 24.dp) // 24dp Material Icon
+    ) {
+        AnimatedVisibility(
+            hoverMessage.value,
+            Modifier
+                .clip(CircleShape)
+        ) {
+            Box(
+                Modifier
+                    .background(Color.Black.copy(alpha = 0.1f))
+                    .clickable { showActionMenu.value = showActionMenu.value.not() }
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .indication(
+                        indication = null,
+                        interactionSource = MutableInteractionSource()
+                    )
+            ) {
+                Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
+            }
+        }
+        DropdownMenu(
+            expanded = showActionMenu.value,
+            onDismissRequest = { showActionMenu.value = false },
+            offset = DpOffset(0.dp, 0.dp),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                .sizeIn(maxWidth = 300.dp),
+        ) {
+            additionalContextActions(onClose)
+            holder.baseMenuActions(i18n, onMessageInfo, onInfoLegacy, onReactToMessage).forEach { action ->
+                action.render { onClose() }
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun BoxScope.MessageBubbleActionMenuMobile(
+    showActionMenu: MutableState<Boolean>,
+    additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
+    holder: BaseTimelineElementHolderViewModel,
+    i18n: I18nView,
+    onMessageInfo: () -> Unit,
+    onInfoLegacy: () -> Unit,
+    onReactToMessage: () -> Unit
+) {
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(false)
-
-    if (Platform.current.isMobile) {
-        val onClose = {
-            coroutineScope.launch {
-                bottomSheetState.hide()
-            }.invokeOnCompletion {
-                if (!bottomSheetState.isVisible)
-                    showActionMenu.value = false
-            }
-            Unit
+    val onClose = {
+        coroutineScope.launch {
+            bottomSheetState.hide()
+        }.invokeOnCompletion {
+            if (!bottomSheetState.isVisible)
+                showActionMenu.value = false
         }
-        if (showActionMenu.value) {
-            ModalBottomSheet(
-                sheetState = bottomSheetState,
-                onDismissRequest = { showActionMenu.value = false },
-            ) {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 100.dp)
-                        .padding(bottom = 40.dp)
-                ) {
-                    additionalContextActions(onClose)
-                    holder.baseMenuActions(i18n, onInfo, onInfoLegacy, onReactLegacy).forEach { action ->
-                        action.render {
-                            onClose()
-                        }
-                    }
-                }
-            }
-        }
-    } else { // not mobile
-        val onClose = {
-            showActionMenu.value = false
-        }
-        Box(
-            Modifier
-                .align(Alignment.TopEnd)
-                .padding(
-                    top = 4.dp,
-                    end = if (holder.isByMe) 14.dp else 4.dp
-                )
-                .defaultMinSize(minHeight = 24.dp, minWidth = 24.dp) // 24dp Material Icon
+        Unit
+    }
+    if (showActionMenu.value) {
+        ModalBottomSheet(
+            sheetState = bottomSheetState,
+            onDismissRequest = { showActionMenu.value = false },
         ) {
-            AnimatedVisibility(
-                hoverMessage.value,
+            Column(
                 Modifier
-                    .clip(CircleShape)
-            ) {
-                Box(
-                    Modifier
-                        .background(Color.Black.copy(alpha = 0.1f))
-                        .clickable { showActionMenu.value = showActionMenu.value.not() }
-                        .pointerHoverIcon(PointerIcon.Hand)
-                        .indication(
-                            indication = null,
-                            interactionSource = MutableInteractionSource()
-                        )
-                ) {
-                    Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
-                }
-            }
-            DropdownMenu(
-                expanded = showActionMenu.value,
-                onDismissRequest = { showActionMenu.value = false },
-                offset = DpOffset(0.dp, 0.dp),
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
-                    .sizeIn(maxWidth = 300.dp),
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 100.dp)
+                    .padding(bottom = 40.dp)
             ) {
                 additionalContextActions(onClose)
-                holder.baseMenuActions(i18n, onInfo, onInfoLegacy, onReactLegacy).forEach { action ->
-                    action.render { onClose() }
+                holder.baseMenuActions(i18n, onMessageInfo, onInfoLegacy, onReactToMessage).forEach { action ->
+                    action.render {
+                        onClose()
+                    }
                 }
             }
         }

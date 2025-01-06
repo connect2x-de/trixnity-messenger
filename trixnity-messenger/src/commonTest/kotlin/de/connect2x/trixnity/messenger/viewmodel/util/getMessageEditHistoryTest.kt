@@ -12,12 +12,16 @@ import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.GetTimelineEventConfig
@@ -38,7 +42,8 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
-class messageEditsTest : ShouldSpec() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class getMessageEditHistoryTest : ShouldSpec() {
 
     private val matrixClientMock = mock<MatrixClient>()
     private val roomServiceMock = mock<RoomService>()
@@ -80,11 +85,18 @@ class messageEditsTest : ShouldSpec() {
         gap = null,
     )
 
-    private fun applyEventHistory(parentEvent: TimelineEvent, relatedEvents: List<TimelineEvent> = listOf()) {
+    private fun applyEventHistory(
+        parentEvent: TimelineEvent,
+        relatedEvents: List<TimelineEvent> = listOf(),
+        transformRelatedEventFlow: (eventId: EventId, eventFlow: Flow<TimelineEventRelation>) -> Flow<TimelineEventRelation> =
+            { _, eventFlow -> eventFlow },
+    ) {
         val relations = relatedEvents.associate {
-            it.eventId to flowOf(
-                TimelineEventRelation(
-                    roomId, it.eventId, RelationType.Replace, parentEvent.eventId,
+            it.eventId to transformRelatedEventFlow(
+                it.eventId, flowOf(
+                    TimelineEventRelation(
+                        roomId, it.eventId, RelationType.Replace, parentEvent.eventId,
+                    )
                 )
             )
         }
@@ -114,14 +126,20 @@ class messageEditsTest : ShouldSpec() {
             every { matrixClientMock.userId } returns userId
             every { roomServiceMock.getTimelineEventRelations(eq(roomId), any(), eq(RelationType.Replace)) } calls {
                 val eventId: EventId = it.arg(1)
-                fakeTimeline.value.shouldNotBeNull()
-                val relations = fakeTimeline.value!!.first
-                relations.first shouldBe eventId
-                flowOf(relations.second)
+                fakeTimeline.flatMapLatest { timeline ->
+                    timeline.shouldNotBeNull()
+                    val relations = timeline.first
+                    relations.first shouldBe eventId
+                    flowOf(relations.second)
+                }
             }
             every { roomServiceMock.getTimelineEvent(eq(roomId), any(), any()) } calls {
                 val eventId: EventId = it.arg(1)
                 val config: GetTimelineEventConfig.() -> Unit = it.arg(2)
+//                GetTimelineEventConfig().apply(config).copy().apply {
+//                    fetchSize shouldBe 1
+//                    allowReplaceContent shouldBe false
+//                }
                 fakeTimeline.value.shouldNotBeNull()
                 val event = fakeTimeline.value!!.second.get(eventId)
                 flowOf(event)
@@ -192,9 +210,73 @@ class messageEditsTest : ShouldSpec() {
             }
         }
 
-        should("not block the loading of the other edits if one's unavailable") { TODO() }
+        should("not block the loading of the other edits if one's unavailable") {
+            val eventId0 = EventId("event0")
+            val eventId1 = EventId("event1")
+            val eventId2 = EventId("event2")
+            val eventId3 = EventId("event3")
+            applyEventHistory(
+                makeTimelineEvent(eventId0, timestamp0, message0), listOf(
+                    makeTimelineEvent(eventId1, timestamp1, message1),
+                    makeTimelineEvent(eventId2, timestamp2, message2),
+                    makeTimelineEvent(eventId3, timestamp3, message3),
+                ),
+                { eventId, eventFlow ->
+                    if (eventId == eventId2)
+                        flow {
+//                            while (true) {
+//                            }
+                        }
+                    else eventFlow
+                }
+            )
+            val cut = cut(eventId0)
+            cut.firstNotNullWithClue().let {
+                it shouldHaveSize 4
 
-        should("update list once new edit has been made") { TODO() }
+            }
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("update list once new edit has been made") {
+            val eventId0 = EventId("event0")
+            val eventId1 = EventId("event1")
+            val eventId2 = EventId("event2")
+            applyEventHistory(
+                makeTimelineEvent(eventId0, timestamp0, message0), listOf(
+                    makeTimelineEvent(eventId1, timestamp1, message1),
+                )
+            )
+            val history = MutableStateFlow<List<TimelineEvent>?>(null)
+//            val cut = cut(eventId0)
+            cut(eventId0).collect {
+                history.value = it
+            }
+
+            advanceUntilIdle()
+
+            history.value!!.let {
+                it shouldHaveSize 2
+
+            }
+
+
+            applyEventHistory(
+                makeTimelineEvent(eventId0, timestamp0, message0), listOf(
+                    makeTimelineEvent(eventId1, timestamp1, message1),
+                    makeTimelineEvent(eventId2, timestamp2, message2),
+                )
+            )
+
+            advanceUntilIdle()
+            history.value!!.let {
+                it shouldHaveSize 3
+
+            }
+
+            cancelNeverEndingCoroutines()
+        }
 
         should("throw error if access is not granted") { TODO() }
     }
@@ -207,7 +289,7 @@ class messageEditsTest : ShouldSpec() {
                 createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock))
             )
         }.koin
-        return messageEdits(
+        return getMessageEditHistory(
             client = testMatrixClientViewModelContext(
                 di = di,
                 userId = userId,

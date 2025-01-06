@@ -33,7 +33,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
     i18n: I18nView,
     onInfo: () -> Unit,
     onInfoLegacy: () -> Unit, // TODO remove
-    onReactLegacy: () -> Unit, // TODO remove
+    onReact: () -> Unit,
 ): List<BaseTimelineElementHolderContextMenuAction> {
     val canBeReactedTo = asTimelineElementHolder()?.canBeReactedTo?.collectAsState()?.value == true
     val canBeRepliedTo = asTimelineElementHolder()?.canBeRepliedTo?.collectAsState()?.value == true
@@ -62,8 +62,8 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
         if (this@baseMenuActions is TimelineElementHolderViewModel && canBeReactedTo) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
-                    label = i18n.reactMessage() + " LEGACY",
-                    action = onReactLegacy,
+                    label = i18n.reactMessage(),
+                    action = onReact,
                 )
             )
         }

@@ -104,30 +104,28 @@ fun MessageBubbleContainer(
                         )
                     }
                 }
-                if (holder.isByMe && isFirstInUserSequence) {
-                    Box(
-                        Modifier
-                            .background(
-                                messageBackground,
-                                shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
-                            )
-                            .zIndex(-1f)
-                            .fillMaxHeight()
-                        // no width and no padding, as really wide messages will push this to the max amount (we only use padding in the Timeline)
-                    )
-                }
+                if (holder.isByMe && isFirstInUserSequence) Box(
+                    Modifier
+                        .background(
+                            messageBackground,
+                            shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
+                        )
+                        .zIndex(-1f)
+                        .fillMaxHeight()
+                    // No width and no padding, as really wide messages will push this
+                    // to the max amount (we only use padding in the Timeline)
+                )
             }
-
             MessageBubbleActionMenu(
                 holder,
                 hoverMessage,
                 showActionMenu,
-                onReactLegacy = { reactionsOpen.value = true }, // TODO remove
-                onInfoLegacy = { infoOpen.value = true }, // TODO remove
-                onInfo = {
+                onMessageInfo = {
                     // TODO maybe add showMessageMetadata to BaseTimelineHolderElementVM?
                     if (holder is TimelineElementHolderViewModel) holder.showMessageMetadata()
                 },
+                onReactToMessage = { reactionsOpen.value = true },
+                onInfoLegacy = { infoOpen.value = true }, // TODO remove
                 additionalContextActions,
             )
         }

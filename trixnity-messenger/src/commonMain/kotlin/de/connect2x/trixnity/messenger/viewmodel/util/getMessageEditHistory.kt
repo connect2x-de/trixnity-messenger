@@ -31,15 +31,15 @@ import kotlin.time.Duration.Companion.minutes
 private val log = KotlinLogging.logger {}
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun messageEdits(
+fun getMessageEditHistory(
     client: MatrixClient,
     eventId: EventId,
     roomId: RoomId,
 ): Flow<List<TimelineEvent>> =
 // The replace-aggregation on Trixnity currently supports a local-only fetch.
 // This means there could be future edge cases of history items missing. But for now it should do.
-//    client.room.getTimelineEventReplaceAggregation(roomId, eventId).flatMapLatest {
-    getTimelineEventReplaceAggregation(client.room, roomId, eventId).flatMapLatest { aggregation ->
+    client.room.getTimelineEventReplaceAggregation(roomId, eventId).flatMapLatest { aggregation ->
+//    getTimelineEventReplaceAggregation(client.room, roomId, eventId).flatMapLatest { aggregation ->
         (aggregation.history + eventId).distinct().map { historicEventId ->
             client.room.getTimelineEvent(roomId, historicEventId) {
                 fetchSize = 1
@@ -53,6 +53,65 @@ fun messageEdits(
             }
         }
     }
+
+// TODO: Create dataclass for the result which can also be used to abort the search flow.
+
+@OptIn(ExperimentalCoroutinesApi::class)
+private fun getTimelineEventReplaceAggregation(
+    roomService: RoomService,
+    roomId: RoomId,
+    eventId: EventId,
+): Flow<TimelineEventAggregation.Replace> =
+    roomService.getTimelineEventRelations(roomId, eventId, RelationType.Replace)
+        .map {
+            log.debug { "$roomId and $eventId" }
+            val dat = mutableListOf<Pair<EventId, TimelineEventRelation>>()
+            it?.forEach { entry ->
+                dat.add(Pair(entry.key, entry.value.first { rel -> rel != null }!!))
+            }
+
+            val msgs = mutableListOf<Pair<EventId, TimelineEvent>>()
+            it?.keys?.let { keys -> keys + eventId }?.forEach { eid ->
+                roomService.getTimelineEvent(roomId, eid) {
+                    fetchSize = 1
+                    allowReplaceContent = false
+                    fetchTimeout = 1.minutes
+                    decryptionTimeout = 1.minutes
+                }.first { msg -> msg != null }.let { msg ->
+                    msgs.add(Pair(msg!!.eventId, msg!!))
+                }
+            }
+
+            it?.keys
+        }
+        .transformLatest { relations ->
+            val serverAggregation = roomService.getTimelineEvent(roomId, eventId) {
+                allowReplaceContent = false
+                decryptionTimeout = ZERO
+            }.first()?.event?.unsigned?.relations?.replace?.eventId
+            emit(
+                when {
+                    relations == null -> setOfNotNull(serverAggregation)
+                    serverAggregation == null -> relations
+                    else -> relations + serverAggregation
+                }
+            )
+        }
+        .map { relations ->
+            val timelineEvent = roomService.getTimelineEvent(roomId, eventId) {
+                allowReplaceContent = false
+                decryptionTimeout = ZERO
+            }.first()
+            val history = relations.mapNotNull {
+                roomService.getTimelineEvent(roomId, it) {
+                    allowReplaceContent = false
+                    decryptionTimeout = ZERO
+                }.first()
+            }.filter { it.event.sender == timelineEvent?.sender }
+                .sortedBy { it.event.originTimestamp }
+                .map { it.eventId }
+            TimelineEventAggregation.Replace(history.lastOrNull(), history)
+        }
 
 private fun messageEditsOld(
     client: MatrixClient,

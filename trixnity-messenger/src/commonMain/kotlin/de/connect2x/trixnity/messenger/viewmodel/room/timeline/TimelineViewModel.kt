@@ -63,13 +63,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.dropWhile
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.scan
@@ -84,7 +82,6 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
-import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.GetTimelineEventsConfig
 import net.folivo.trixnity.client.room.Timeline
@@ -101,11 +98,9 @@ import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
-import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -217,6 +212,7 @@ interface TimelineViewModel {
         data class SendAttachmentView(val file: FileDescriptor) : Config()
     }
 }
+
 
 // TODO many calculations do not support future room upgrades. Either every usage of roomId considers room upgrades or
 //  instead, the room list should re-initialize the timeline with the new roomId!
@@ -562,10 +558,10 @@ class TimelineViewModelImpl(
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
         val showLoadingIndicatorBefore = loadingIndicatorBefore.map { it == key }.distinctUntilChanged()
-            // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
+            // Prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements).
             .debounce(300.milliseconds)
         val showLoadingIndicatorAfter = loadingIndicatorAfter.map { it == key }.distinctUntilChanged()
-            // prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements)
+            // Prevent flicker in UI, because for a short moment, this is true (while the UI loads new elements).
             .debounce(300.milliseconds)
 
         val formattedDate =
@@ -584,7 +580,6 @@ class TimelineViewModelImpl(
             formattedTime = formattedTime,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
-            getReceipts = ::getReceipts,
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,
@@ -944,31 +939,6 @@ class TimelineViewModelImpl(
         }
     }
 
-    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
-    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
-        flow {
-            emitAll(
-                getReceiptsByEventCache.read { get(roomId) }
-                    ?: getReceiptsByEventCache.write {
-                        getOrPut(roomId) {
-                            matrixClient.user.getAllReceipts(roomId)
-                                .flattenNotNull()
-                                .map { receipts ->
-                                    receipts
-                                        .mapNotNull { (key, value) ->
-                                            if (key == userId) null
-                                            else value.receipts[Read]
-                                                ?.let { it.eventId to key }
-                                        }
-                                        .groupBy { it.first }
-                                        .mapValues { it.value.map { it.second }.toSet() }
-                                }.distinctUntilChanged()
-                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
-                        }
-                    }
-            )
-        }
-
     private fun onVerifyUser() {
         coroutineScope.launch {
             log.debug { "try to create new user verification" }
@@ -985,7 +955,9 @@ class TimelineViewModelImpl(
     private fun List<BaseTimelineElementHolderViewModel>.findLastWithEventId(key: String) =
         takeWhileInclusive { it.key != key }
             .reversed()
-            .firstNotNullOfOrNull { if (it is TimelineElementHolderViewModel) it.eventId else null }
+            .firstNotNullOfOrNull {
+                if (it is TimelineElementHolderViewModel) it.eventId else null
+            }
 
     private fun EventId.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + full
     private fun String.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + this
